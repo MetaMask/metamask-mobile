@@ -19,10 +19,7 @@ import { fromTokenMinimalUnitString } from '../../../../util/number';
 import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
-import {
-  selectMoneyAccounts,
-  selectPrimaryMoneyAccount,
-} from '../../../../selectors/moneyAccountController';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 
