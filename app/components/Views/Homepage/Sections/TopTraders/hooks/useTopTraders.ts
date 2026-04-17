@@ -14,7 +14,7 @@ export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
   error: string | null;
-  followLoadingId: string | null;
+  followLoadingIds: Set<string>;
   refresh: () => Promise<void>;
   toggleFollow: (addressOrId: string) => void;
 }
@@ -42,7 +42,9 @@ export const useTopTraders = (
   });
 
   const followingProfileIds = useSelector(selectFollowingProfileIds);
-  const [followLoadingId, setFollowLoadingId] = useState<string | null>(null);
+  const [followLoadingIds, setFollowLoadingIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const traders: TopTrader[] = useMemo(() => {
     if (!data?.traders) {
@@ -72,7 +74,7 @@ export const useTopTraders = (
 
   const toggleFollow = useCallback(
     async (addressOrId: string) => {
-      setFollowLoadingId(addressOrId);
+      setFollowLoadingIds((prev) => new Set(prev).add(addressOrId));
       try {
         const { profileId } =
           await Engine.context.AuthenticationController.getSessionProfile();
@@ -92,7 +94,11 @@ export const useTopTraders = (
       } catch (err) {
         Logger.error(err as Error, 'useTopTraders: toggleFollow failed');
       } finally {
-        setFollowLoadingId(null);
+        setFollowLoadingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(addressOrId);
+          return next;
+        });
       }
     },
     [followingProfileIds],
@@ -109,7 +115,7 @@ export const useTopTraders = (
     isLoading,
     error:
       error instanceof Error ? error.message : error ? String(error) : null,
-    followLoadingId,
+    followLoadingIds,
     refresh,
     toggleFollow,
   };

@@ -61,6 +61,7 @@ const defaultUseTopTradersResult: UseTopTradersResult = {
   traders: fixtureTraders,
   isLoading: false,
   error: null,
+  followLoadingIds: new Set(),
   refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
 };

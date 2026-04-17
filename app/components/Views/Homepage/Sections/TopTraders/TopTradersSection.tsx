@@ -52,7 +52,7 @@ const TopTradersSection = forwardRef<
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
 
-  const { traders, isLoading, refresh, toggleFollow, followLoadingId } =
+  const { traders, isLoading, refresh, toggleFollow, followLoadingIds } =
     useTopTraders({
       limit: HOME_TRADER_LIMIT,
       enabled: isEnabled,
@@ -125,7 +125,7 @@ const TopTradersSection = forwardRef<
                   trader={trader}
                   onFollowPress={toggleFollow}
                   onTraderPress={handleTraderPress}
-                  isFollowDisabled={followLoadingId === trader.id}
+                  isFollowDisabled={followLoadingIds.has(trader.id)}
                 />
               ))}
         </ScrollView>

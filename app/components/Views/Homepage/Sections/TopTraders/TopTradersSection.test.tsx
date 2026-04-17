@@ -23,6 +23,7 @@ const mockUseTopTraders = jest.fn((_options?: unknown) => ({
   traders: mockTraders,
   isLoading: false,
   error: null,
+  followLoadingIds: new Set(),
   refresh: mockRefetch,
   toggleFollow: jest.fn(),
 }));
@@ -75,6 +76,7 @@ describe('TopTradersSection', () => {
       traders: mockTraders,
       isLoading: false,
       error: null,
+      followLoadingIds: new Set(),
       refresh: mockRefetch,
       toggleFollow: jest.fn(),
     });
@@ -85,6 +87,7 @@ describe('TopTradersSection', () => {
       traders: [],
       isLoading: false,
       error: null,
+      followLoadingIds: new Set(),
       refresh: mockRefetch,
       toggleFollow: jest.fn(),
     });
@@ -97,6 +100,7 @@ describe('TopTradersSection', () => {
       traders: [],
       isLoading: true,
       error: null,
+      followLoadingIds: new Set(),
       refresh: mockRefetch,
       toggleFollow: jest.fn(),
     });

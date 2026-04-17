@@ -134,7 +134,7 @@ const TopTradersView = () => {
   const [selectedChain, setSelectedChain] = useState<ChainFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  const { traders, isLoading, refresh, toggleFollow, followLoadingId } =
+  const { traders, isLoading, refresh, toggleFollow, followLoadingIds } =
     useTopTraders({
       limit: 250,
       enabled: isEnabled,
@@ -264,7 +264,7 @@ const TopTradersView = () => {
               trader={item}
               onFollowPress={toggleFollow}
               onTraderPress={handleTraderPress}
-              isFollowDisabled={followLoadingId === item.id}
+              isFollowDisabled={followLoadingIds.has(item.id)}
             />
           )}
           showsVerticalScrollIndicator={false}
