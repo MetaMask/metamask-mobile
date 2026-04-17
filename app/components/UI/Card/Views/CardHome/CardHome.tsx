@@ -23,6 +23,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import {
   StackActions,
+  useFocusEffect,
   useNavigation,
   useRoute,
   RouteProp,
@@ -136,6 +137,17 @@ const CardHome = () => {
     }
   }, [refetch]);
 
+  // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
+  const refetched = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!refetched.current) {
+        refetched.current = true;
+        refetch();
+      }
+    }, [refetch]),
+  );
+
   // --- Auth state transition: navigate to auth screen on logout ---
   const wasAuthenticated = useRef(isAuthenticated);
   useEffect(() => {
@@ -207,6 +219,8 @@ const CardHome = () => {
 
   const isSpendingLimitActive =
     data?.primaryFundingAsset?.status === FundingAssetStatus.Active;
+
+  const hasPriorityTokenBalance = (primaryToken?.rawTokenBalance ?? 0) > 0;
 
   // --- Error state ---
   if (isError) {
@@ -331,7 +345,6 @@ const CardHome = () => {
               isLoading={isLoading}
               isSwapEnabled={isSwapEnabled}
               onAddFunds={actions.addFundsAction}
-              onChangeAsset={actions.changeAssetAction}
               onEnableCard={actions.enableCardAction}
             />
           </Box>
@@ -376,6 +389,8 @@ const CardHome = () => {
         onToggleFreeze={actions.handleToggleFreeze}
         onManageSpendingLimit={actions.manageSpendingLimitAction}
         onOrderMetalCard={actions.orderMetalCardAction}
+        onChangeAsset={actions.changeAssetAction}
+        hasPriorityTokenBalance={hasPriorityTokenBalance}
         onNavigateToCardPage={actions.navigateToCardPage}
         onCashback={actions.cashbackAction}
         onTravel={actions.navigateToTravelPage}
