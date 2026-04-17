@@ -214,7 +214,7 @@ const MoneyPotentialEarnings = ({
 }: MoneyPotentialEarningsProps) => {
   const formatFiat = useFiatFormatter();
   const projectedMultiplier = useMemo(
-    () => (Number(apy) / 100) * PROJECTION_YEARS,
+    () => ((apy ?? 0) / 100) * PROJECTION_YEARS,
     [apy],
   );
 
