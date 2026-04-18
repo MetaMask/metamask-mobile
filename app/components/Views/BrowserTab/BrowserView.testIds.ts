@@ -1,5 +1,4 @@
 import enContent from '../../../../locales/languages/en.json';
-import ExternalSites from '../../../../tests/resources/externalsites.json';
 
 export const BrowserViewSelectorsIDs = {
   BROWSER_WEBVIEW_ID: 'browser-webview',
@@ -34,7 +33,7 @@ export const BrowserViewSelectorsText = {
 export const BrowserViewSelectorsXPaths = {
   FAVORITE_TAB: `//div[@id='root']/div[@class='App']//ol//li[contains(text(), 'Favorites')]`,
   TEST_DAPP_TEXT: '//a[@href="https://metamask.github.io/test-dapp/"]',
-  TEST_DAPP_LINK: `//a[contains(@href, '${ExternalSites.TEST_DAPP}')]`,
+  TEST_DAPP_LINK: `//a[contains(@href, 'https://metamask.github.io/test-dapp/')]`,
 } as const;
 
 export type BrowserViewSelectorsIDsType = typeof BrowserViewSelectorsIDs;
