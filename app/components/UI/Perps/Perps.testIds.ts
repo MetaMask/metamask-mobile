@@ -83,6 +83,9 @@ export const PerpsPositionCardSelectorsIDs = {
   AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
   DETAILS_SECTION: 'position-card-details',
   DIRECTION_VALUE: 'position-card-direction-value',
+  ENTRY_VALUE: 'position-card-entry-value',
+  LIQUIDATION_PRICE_VALUE: 'position-card-liquidation-price-value',
+  FUNDING_PAYMENTS_VALUE: 'position-card-funding-payments-value',
 };
 
 // ========================================
@@ -325,6 +328,9 @@ export const PerpsWithdrawViewSelectorsIDs = {
   DEST_TOKEN_AREA: 'dest-token-area',
   CONTINUE_BUTTON: 'continue-button',
   BOTTOM_SHEET_TOOLTIP: 'withdraw-bottom-sheet-tooltip',
+  RECEIVE_VALUE: 'perps-withdraw-receive-value',
+  FEE_VALUE: 'perps-withdraw-fee-value',
+  TIME_VALUE: 'perps-withdraw-time-value',
 };
 
 // ========================================
@@ -343,6 +349,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STATISTICS_OPEN_INTEREST: 'perps-statistics-open-interest',
   STATISTICS_FUNDING_RATE: 'perps-statistics-funding-rate',
   STATISTICS_FUNDING_COUNTDOWN: 'perps-statistics-funding-countdown',
+  STATISTICS_ORACLE_PRICE: 'perps-statistics-oracle-price',
   ADD_FUNDS_BUTTON: 'perps-market-details-add-funds-button',
   LONG_BUTTON: 'perps-market-details-long-button',
   SHORT_BUTTON: 'perps-market-details-short-button',
@@ -531,6 +538,9 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
+  MARGIN_VALUE: 'perps-order-view-margin-value',
+  LIQUIDATION_PRICE_VALUE: 'perps-order-view-liquidation-price-value',
+  FEES_VALUE: 'perps-order-view-fees-value',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
@@ -581,6 +591,9 @@ export const PerpsClosePositionViewSelectorsIDs = {
   FEES_TOOLTIP_BUTTON: 'close-position-fees-tooltip-button',
   POINTS_TOOLTIP_BUTTON: 'close-position-points-tooltip-button',
   YOU_RECEIVE_TOOLTIP_BUTTON: 'close-position-you-receive-tooltip-button',
+  MARGIN_VALUE: 'close-position-margin-value',
+  FEES_VALUE: 'close-position-fees-value',
+  RECEIVE_VALUE: 'close-position-receive-value',
 };
 
 // ========================================
@@ -600,6 +613,9 @@ export const PerpsAdjustMarginActionSheetSelectorsIDs = {
 export const PerpsAdjustMarginViewSelectorsIDs = {
   CONFIRM_BUTTON: 'perps-adjust-margin-confirm-button',
   DONE_BUTTON: 'perps-adjust-margin-done-button',
+  AVAILABLE_VALUE: 'perps-adjust-margin-available-value',
+  LIQUIDATION_PRICE_VALUE: 'perps-adjust-margin-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE: 'perps-adjust-margin-liquidation-distance-value',
 } as const;
 
 export const PerpsMarketTabsSelectorsIDs = {
@@ -784,4 +800,6 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   SHEET: 'perps-flip-position-confirm-sheet',
   CANCEL_BUTTON: 'perps-flip-position-cancel-button',
   FLIP_BUTTON: 'perps-flip-position-flip-button',
+  EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
+  FEES_VALUE: 'perps-flip-position-fees-value',
 } as const;
