@@ -1,62 +1,92 @@
 import React, { useCallback } from 'react';
 import { View, TouchableOpacity, TextInput, Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Icon, {
+  FontWeight,
+  HeaderStandard,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
-import type { PerpsHomeHeaderProps } from './PerpsHomeHeader.types';
-import styleSheet from './PerpsHomeHeader.styles';
 import { selectPerpsNetwork } from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../PerpsProviderSelector';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import type { PerpsHomeHeaderProps } from './PerpsHomeHeader.types';
+import styleSheet from './PerpsHomeHeader.styles';
+
+function PerpsHomeHeaderTitleSegment({
+  screenTitle,
+  testID,
+}: Pick<PerpsHomeHeaderProps, 'screenTitle' | 'testID'>) {
+  const { styles } = useStyles(styleSheet, {});
+  const { isMultiProviderEnabled } = usePerpsProvider();
+  const network = useSelector(selectPerpsNetwork);
+  const isTestnet = network === 'testnet';
+
+  return (
+    <Box paddingTop={2} testID={testID}>
+      <Box twClassName="px-4">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName={
+            isMultiProviderEnabled
+              ? 'w-full flex-nowrap'
+              : 'w-full flex-wrap gap-y-1'
+          }
+        >
+          <Text
+            variant={TextVariant.HeadingLg}
+            fontWeight={FontWeight.Bold}
+            testID={testID ? `${testID}-title` : undefined}
+          >
+            {screenTitle ?? strings('perps.title')}
+          </Text>
+          {isMultiProviderEnabled && (
+            <Box twClassName="ml-auto flex-shrink-0">
+              <PerpsProviderSelectorBadge
+                testID={testID ? `${testID}-provider-badge` : undefined}
+              />
+            </Box>
+          )}
+          {isTestnet && !isMultiProviderEnabled && (
+            <View
+              style={styles.testnetBadge}
+              testID={testID ? `${testID}-testnet-badge` : undefined}
+            >
+              <View style={styles.testnetDot} />
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.WarningDefault}
+              >
+                Testnet
+              </Text>
+            </View>
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
 
 /**
- * PerpsHomeHeader Component
- *
- * Header component for Perps Home view with back button,
- * title, and search toggle functionality
- *
- * Features:
- * - Back button using ButtonIcon component
- * - Centered title with custom text support
- * - Search toggle button that changes icon based on visibility
- *
- * @example
- * ```tsx
- * <PerpsHomeHeader
- *   isSearchVisible={isSearchVisible}
- *   onSearchToggle={handleSearchToggle}
- * />
- * ```
- *
- * @example Custom back handler
- * ```tsx
- * <PerpsHomeHeader
- *   title="My Markets"
- *   onBack={customBackHandler}
- *   isSearchVisible={false}
- *   onSearchToggle={toggleSearch}
- * />
- * ```
+ * Perps home: top nav (`HeaderStandard` / search) or scroll title row (`segment="title"`).
  */
 const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
-  title,
+  segment = 'nav',
+  screenTitle,
   isSearchVisible = false,
   searchQuery = '',
   onSearchQueryChange,
@@ -65,29 +95,29 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   onSearchToggle,
   testID,
 }) => {
+  if (segment === 'title') {
+    return (
+      <PerpsHomeHeaderTitleSegment screenTitle={screenTitle} testID={testID} />
+    );
+  }
+
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
-  const { isMultiProviderEnabled } = usePerpsProvider();
-  const network = useSelector(selectPerpsNetwork);
-  const isTestnet = network === 'testnet';
 
-  // Default back handler
   const defaultHandleBack = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
   }, [navigation]);
 
-  // Use custom handler if provided, otherwise use default
   const handleBack = onBack || defaultHandleBack;
 
-  return (
-    <View style={styles.header} testID={testID}>
-      {isSearchVisible ? (
+  if (isSearchVisible) {
+    return (
+      <View style={styles.header} testID={testID}>
         <View style={styles.headerContainerWrapper}>
-          {/* Search Bar - Replaces back button and title */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -97,7 +127,7 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
             <Icon
               name={IconName.Search}
               size={IconSize.Sm}
-              color={IconColor.Alternative}
+              color={IconColor.IconAlternative}
               style={tw.style('mr-2')}
             />
             <TextInput
@@ -117,78 +147,42 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
                 <Icon
                   name={IconName.CircleX}
                   size={IconSize.Md}
-                  color={IconColor.Alternative}
+                  color={IconColor.IconAlternative}
                 />
               </Pressable>
             )}
           </Box>
-          {/* Cancel Button */}
           <TouchableOpacity
             style={styles.searchButton}
             onPress={onSearchToggle}
             testID={testID ? `${testID}-search-close` : undefined}
           >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
               {strings('perps.cancel')}
             </Text>
           </TouchableOpacity>
         </View>
-      ) : (
-        <View style={styles.headerContainerWrapper}>
-          {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={handleBack}
-            testID={testID ? `${testID}-back-button` : undefined}
-          >
-            <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
-          </TouchableOpacity>
+      </View>
+    );
+  }
 
-          {/* Title with optional provider badge */}
-          <View style={styles.headerTitleContainer}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              <Text
-                variant={TextVariant.HeadingLG}
-                color={TextColor.Default}
-                style={styles.headerTitle}
-              >
-                {title || strings('perps.title')}
-              </Text>
-              {isMultiProviderEnabled && (
-                <PerpsProviderSelectorBadge
-                  testID={testID ? `${testID}-provider-badge` : undefined}
-                />
-              )}
-              {isTestnet && !isMultiProviderEnabled && (
-                <View
-                  style={styles.testnetBadge}
-                  testID={testID ? `${testID}-testnet-badge` : undefined}
-                >
-                  <View style={styles.testnetDot} />
-                  <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
-                    Testnet
-                  </Text>
-                </View>
-              )}
-            </Box>
-          </View>
-
-          {/* Search Toggle Button */}
-          <View style={styles.titleButtonsRightContainer}>
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={onSearchToggle}
-              testID={testID ? `${testID}-search-toggle` : undefined}
-            >
-              <Icon name={IconName.Search} size={IconSize.Lg} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-    </View>
+  return (
+    <HeaderStandard
+      testID={testID}
+      onBack={handleBack}
+      backButtonProps={{
+        accessibilityLabel: 'Back',
+        testID: testID ? `${testID}-back-button` : undefined,
+      }}
+      endButtonIconProps={[
+        {
+          iconName: IconName.Search,
+          onPress: onSearchToggle,
+          accessibilityLabel: 'Search',
+          testID: testID ? `${testID}-search-toggle` : undefined,
+        },
+      ]}
+    />
   );
 };
 

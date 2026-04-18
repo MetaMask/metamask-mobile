@@ -49,7 +49,7 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 
   return (
     <Box
-      twClassName="mx-4 mt-4 mb-4 px-4 py-6 rounded-xl"
+      twClassName="mx-4 mb-4 px-4 py-6 rounded-xl"
       style={tw.style('bg-background-section')}
       testID={`${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`}
     >
@@ -198,7 +198,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mt-4 mb-4 rounded-xl' : 'mb-4'}
+        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : 'mb-4'}
       >
         <PerpsProgressBar
           progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
@@ -240,10 +240,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         {isBalanceEmpty ? (
           <PerpsEmptyBalance onAddFunds={handleAddFunds} />
         ) : (
-          <Box twClassName="px-4 pt-4 pb-4">
+          <Box twClassName="px-4 pt-2 pb-4">
             <Animated.View style={[getBalanceAnimatedStyle]}>
               <SensitiveText
-                variant={TextVariant.DisplayMD}
+                variant={TextVariant.DisplayLG}
                 color={TextColor.Default}
                 testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                 isHidden={privacyMode}

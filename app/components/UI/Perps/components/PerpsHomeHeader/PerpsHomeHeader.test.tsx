@@ -8,7 +8,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => false),
+  useSelector: jest.fn(() => 'mainnet'),
+}));
+
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: jest.fn(() => ({ isMultiProviderEnabled: false })),
 }));
 
 jest.mock('../PerpsProviderSelector', () => ({
@@ -18,39 +22,61 @@ jest.mock('../PerpsProviderSelector', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
     const translations: Record<string, string> = {
-      'perps.title': 'Perps',
       'perps.search_by_token_symbol': 'Search by token symbol',
       'perps.cancel': 'Cancel',
+      'perps.title': 'Perps',
     };
     return translations[key] || key;
   }),
 }));
 
-jest.mock(
-  '../../../../../component-library/components/Buttons/ButtonIcon',
-  () => {
-    const { TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        onPress,
-        testID,
-      }: {
-        onPress: () => void;
-        testID?: string;
-      }) => <TouchableOpacity testID={testID} onPress={onPress} />,
-      ButtonIconSizes: { Md: 'md', Sm: 'sm' },
-    };
-  },
-);
-
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View, Text: RNText } = jest.requireActual('react-native');
+  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     Box: View,
-    Text: RNText,
     BoxFlexDirection: { Row: 'row' },
     BoxAlignItems: { Center: 'center' },
+    BoxFlexWrap: { Wrap: 'wrap' },
+    FontWeight: { Bold: 'bold' },
+    Text,
+    TextVariant: {
+      HeadingLg: 'HeadingLg',
+      BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
+    },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      WarningDefault: 'WarningDefault',
+    },
+    HeaderStandard: ({
+      testID,
+      onBack,
+      backButtonProps,
+      endButtonIconProps,
+    }: {
+      testID?: string;
+      onBack?: () => void;
+      backButtonProps?: { testID?: string };
+      endButtonIconProps?: { testID?: string; onPress?: () => void }[];
+    }) => (
+      <View testID={testID}>
+        <TouchableOpacity testID={backButtonProps?.testID} onPress={onBack} />
+        {endButtonIconProps?.map((btn) => (
+          <TouchableOpacity
+            key={btn.testID ?? btn.onPress?.toString()}
+            testID={btn.testID}
+            onPress={btn.onPress}
+          />
+        ))}
+      </View>
+    ),
+    Icon: ({ testID }: { testID?: string }) => <View testID={testID} />,
+    IconName: {
+      Search: 'Search',
+      CircleX: 'CircleX',
+    },
+    IconSize: { Sm: 'sm', Md: 'md' },
+    IconColor: { IconAlternative: 'IconAlternative' },
   };
 });
 
@@ -67,44 +93,15 @@ jest.mock('../../../../../util/theme', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
-    IconName: {
-      Search: 'Search',
-      ArrowLeft: 'ArrowLeft',
-      CircleX: 'CircleX',
-    },
-    IconSize: { Sm: 'sm', Lg: 'lg', Md: 'md' },
-    IconColor: { Default: 'Default', Alternative: 'Alternative' },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: Text,
-    TextVariant: {
-      BodyMD: 'BodyMD',
-      HeadingLG: 'HeadingLG',
-    },
-    TextColor: {
-      Default: 'Default',
-    },
-  };
-});
-
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: () => ({
     styles: {
       header: {},
       headerContainerWrapper: {},
-      headerTitle: {},
       searchButton: {},
       searchBarContainer: {},
+      testnetBadge: {},
+      testnetDot: {},
     },
   }),
 }));
@@ -127,34 +124,15 @@ describe('PerpsHomeHeader', () => {
     mockCanGoBack.mockReturnValue(true);
   });
 
-  describe('Rendering', () => {
-    it('renders with default title', () => {
-      const { getByText } = render(
-        <PerpsHomeHeader onSearchToggle={jest.fn()} />,
-      );
-
-      expect(getByText('Perps')).toBeTruthy();
-    });
-
-    it('renders with custom title', () => {
-      const { getByText } = render(
-        <PerpsHomeHeader title="My Markets" onSearchToggle={jest.fn()} />,
-      );
-
-      expect(getByText('My Markets')).toBeTruthy();
-    });
-
-    it('renders search button', () => {
+  describe('nav + search', () => {
+    it('renders search action', () => {
       const { getByTestId } = render(
         <PerpsHomeHeader onSearchToggle={jest.fn()} testID="home-header" />,
       );
 
-      const searchButton = getByTestId('home-header-search-toggle');
-      expect(searchButton).toBeTruthy();
+      expect(getByTestId('home-header-search-toggle')).toBeTruthy();
     });
-  });
 
-  describe('Default Navigation', () => {
     it('calls navigation.goBack() when back button is pressed', () => {
       const { getByTestId } = render(
         <PerpsHomeHeader onSearchToggle={jest.fn()} testID="home-header" />,
@@ -179,9 +157,7 @@ describe('PerpsHomeHeader', () => {
       expect(mockCanGoBack).toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
-  });
 
-  describe('Custom Handlers', () => {
     it('uses custom onBack handler when provided', () => {
       const customBackHandler = jest.fn();
       const { getByTestId } = render(
@@ -213,25 +189,9 @@ describe('PerpsHomeHeader', () => {
 
       expect(mockSearchToggle).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe('Search Icon State', () => {
-    it('renders Search icon when isSearchVisible is false', () => {
-      const { getByTestId } = render(
-        <PerpsHomeHeader
-          isSearchVisible={false}
-          onSearchToggle={jest.fn()}
-          testID="home-header"
-        />,
-      );
-
-      const searchButton = getByTestId('home-header-search-toggle');
-      expect(searchButton).toBeTruthy();
-      // Icon component would render IconName.Search
-    });
-
-    it('renders Cancel button when isSearchVisible is true', () => {
-      const { getByTestId } = render(
+    it('renders Cancel control and label when isSearchVisible is true', () => {
+      const { getByTestId, getByText } = render(
         <PerpsHomeHeader
           isSearchVisible
           onSearchToggle={jest.fn()}
@@ -239,13 +199,10 @@ describe('PerpsHomeHeader', () => {
         />,
       );
 
-      const cancelButton = getByTestId('home-header-search-close');
-      expect(cancelButton).toBeTruthy();
-      // Icon component would render IconName.Close
+      expect(getByTestId('home-header-search-close')).toBeTruthy();
+      expect(getByText('Cancel')).toBeOnTheScreen();
     });
-  });
 
-  describe('Test ID', () => {
     it('applies custom testID and derived testIDs', () => {
       const { getByTestId } = render(
         <PerpsHomeHeader onSearchToggle={jest.fn()} testID="custom-header" />,
@@ -254,6 +211,26 @@ describe('PerpsHomeHeader', () => {
       expect(getByTestId('custom-header')).toBeTruthy();
       expect(getByTestId('custom-header-back-button')).toBeTruthy();
       expect(getByTestId('custom-header-search-toggle')).toBeTruthy();
+    });
+  });
+
+  describe('segment="title"', () => {
+    it('renders default title', () => {
+      const { getByText, getByTestId } = render(
+        <PerpsHomeHeader segment="title" testID="perps-home-heading" />,
+      );
+
+      expect(getByTestId('perps-home-heading')).toBeTruthy();
+      expect(getByTestId('perps-home-heading-title')).toBeTruthy();
+      expect(getByText('Perps')).toBeTruthy();
+    });
+
+    it('renders custom screenTitle', () => {
+      const { getByText } = render(
+        <PerpsHomeHeader segment="title" screenTitle="My Markets" testID="h" />,
+      );
+
+      expect(getByText('My Markets')).toBeTruthy();
     });
   });
 });

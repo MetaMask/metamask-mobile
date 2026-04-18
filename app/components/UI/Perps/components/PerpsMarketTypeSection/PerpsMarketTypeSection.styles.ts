@@ -5,13 +5,10 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
     section: {
-      marginBottom: 30,
-    },
-    contentContainer: {
-      marginHorizontal: 16,
-      borderRadius: 12,
-      paddingVertical: 4,
-      backgroundColor: theme.colors.background.muted,
+      marginBottom: 24,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.border.muted,
+      paddingTop: 32,
     },
   });
 };
