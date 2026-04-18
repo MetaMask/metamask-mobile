@@ -70,6 +70,16 @@ const AddWallet = () => {
         testID: AddWalletTestIds.CONNECT_HARDWARE_BUTTON,
         title: strings('connect_hardware.title_select_hardware'),
       },
+      {
+        analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
+        description: strings(
+          'multichain_accounts.link_metamask_extension_description',
+        ),
+        iconName: IconName.Extension,
+        routeName: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+        testID: AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
+        title: strings('multichain_accounts.link_metamask_extension'),
+      },
     ],
     [],
   );

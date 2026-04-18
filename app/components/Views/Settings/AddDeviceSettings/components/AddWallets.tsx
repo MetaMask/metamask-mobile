@@ -18,6 +18,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { AddDeviceSettingsStep } from '../constant';
 import { CaipChainId } from '@metamask/utils';
+import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface AddWalletsProps {
   onAddWallets: (type: AddDeviceSettingsStep) => void;
@@ -48,56 +50,58 @@ const WalletItem = ({
 }: {
   isSelected: boolean;
   onChange: () => void;
-}) => (
-  <Box
-    twClassName="flex-row gap-2 items-center justify-between p-4"
-    backgroundColor={
-      isSelected
-        ? BoxBackgroundColor.PrimaryMuted
-        : BoxBackgroundColor.BackgroundDefault
-    }
-  >
-    <Box twClassName="flex-row flex-1 items-center gap-3">
-      <Checkbox isSelected={isSelected} onChange={onChange} />
-      <AvatarAccount
-        shape="circle"
-        address="0x1234567890123456789012345678901234567890"
-        size={AvatarAccountSize.Md}
-      />
-      <Box twClassName="flex-col gap-1">
+}) => {
+  const tw = useTailwind();
+  return (
+    <TouchableOpacity
+      style={tw.style(
+        'flex-row gap-2 items-center justify-between p-4',
+        isSelected ? 'bg-primary-muted' : 'bg-background-default',
+      )}
+      onPress={onChange}
+    >
+      <Box twClassName="flex-row flex-1 items-center gap-3">
+        <Checkbox isSelected={isSelected} onChange={onChange} />
+        <AvatarAccount
+          shape="circle"
+          address="0x1234567890123456789012345678901234567890"
+          size={AvatarAccountSize.Md}
+        />
+        <Box twClassName="flex-col gap-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
+            Defi wallet
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            0x34567...a3456
+          </Text>
+        </Box>
+      </Box>
+      <Box twClassName="flex-col items-end justify-end gap-1">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
         >
-          Defi wallet
+          $1,234.45
         </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
-          0x34567...a3456
-        </Text>
+        <AvatarGroup
+          size={AvatarGroupSize.Xs}
+          max={1}
+          variant={AvatarGroupVariant.Account}
+          avatarPropsArr={STABLECOIN_AVATAR_PROPS}
+        />
       </Box>
-    </Box>
-    <Box twClassName="flex-col items-end justify-end gap-1">
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-      >
-        $1,234.45
-      </Text>
-      <AvatarGroup
-        size={AvatarGroupSize.Xs}
-        max={1}
-        variant={AvatarGroupVariant.Account}
-        avatarPropsArr={STABLECOIN_AVATAR_PROPS}
-      />
-    </Box>
-  </Box>
-);
+    </TouchableOpacity>
+  );
+};
 
 const AddWallets = ({ onAddWallets }: AddWalletsProps) => {
   const [isSelectAll, setIsSelectAll] = useState(false);

@@ -598,6 +598,8 @@
     "invalid_qr_code_title": "Invalid QR Code",
     "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase",
     "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "or": "or",
+    "import_wallet_from_extension": "import from the MetaMask extension",
     "metamask_password": "MetaMask password",
     "metamask_password_description": "Unlocks MetaMask on this device only.",
     "seed_phrase_required": "Secret Recovery Phrase is required",
@@ -3434,7 +3436,22 @@
       "scan_qr_code": "Scan QR code",
       "scan_qr_code_desc": "Scan this with the MetaMask app on the device you want to add.",
       "enter_verification_code": "Enter verification code",
-      "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device."
+      "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device.",
+      "add_device_to_wallet": "Add this device to wallet",
+      "points": {
+        "one": "Open MetaMask on your other device",
+        "two": "Go to",
+        "two_bold_one": "Settings",
+        "two_bold_two": "Add device",
+        "two_icon": ">",
+        "three": "Scan the QR code with this device",
+        "four": "Enter the security code on your extension"
+      },
+      "scan_qr_code_button": "Scan QR code",
+      "enter_code_on_extension": "Enter code on extension",
+      "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
+      "done": "Done",
+      "device_added": "Device added"
     }
   },
   "aes_crypto_test_form": {
@@ -7099,6 +7116,8 @@
     "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
+    "link_metamask_extension" : "Link MetaMask extension",
+    "link_metamask_extension_description": "Link your MetaMask extension to your wallet",
     "account_details": {
       "header_title": "Account details",
       "account_name": "Account name",

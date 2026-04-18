@@ -39,6 +39,7 @@ import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
+import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -1123,6 +1124,11 @@ const MainNavigator = () => {
         component={NotificationsModeView}
       />
       <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
+      <Stack.Screen
+        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+        component={AddDeviceToWallet}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="NftDetails"
         component={NftDetailsModeView}

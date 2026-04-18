@@ -8,7 +8,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { lightTheme } from '@metamask/design-tokens';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import { lightTheme, darkTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../locales/i18n';
 import QRCode from 'react-native-qrcode-svg';
 import logo from '../../../../../images/branding/fox.png';
@@ -23,6 +25,15 @@ interface QrCodeScanProps {
 
 const QrCodeScan = ({ onScanSuccess }: QrCodeScanProps) => {
   const tw = useTailwind();
+  const { themeAppearance } = useTheme();
+  const isDark = themeAppearance === AppThemeKey.dark;
+
+  const qrBackground = isDark
+    ? lightTheme.colors.background.default
+    : darkTheme.colors.background.default;
+  const qrForeground = isDark
+    ? darkTheme.colors.background.default
+    : lightTheme.colors.background.default;
 
   useEffect(() => {
     setTimeout(() => {
@@ -45,17 +56,19 @@ const QrCodeScan = ({ onScanSuccess }: QrCodeScanProps) => {
       </Text>
       <Box twClassName="items-center justify-center flex-row mt-4">
         <Box
-          style={tw.style('rounded-2xl overflow-hidden p-3')}
-          twClassName="bg-white"
+          style={[
+            tw.style('rounded-2xl overflow-hidden p-3'),
+            { backgroundColor: qrBackground },
+          ]}
         >
           <QRCode
-            value="metamask-device-sync"
+            value={'metamask-device-sync'}
             size={QR_SIZE}
-            color={lightTheme.colors.text.default}
-            backgroundColor={lightTheme.colors.background.default}
+            color={qrForeground}
+            backgroundColor={qrBackground}
             logo={logo}
             logoSize={LOGO_SIZE}
-            logoBackgroundColor={lightTheme.colors.background.default}
+            logoBackgroundColor={qrBackground}
             logoBorderRadius={8}
             logoMargin={4}
           />

@@ -610,9 +610,17 @@ const ImportFromSecretRecoveryPhrase = ({
                   >
                     {strings(
                       'import_from_seed.enter_your_secret_recovery_phrase',
-                    )}
+                    )}{' '}
+                    {strings('import_from_seed.or')}{' '}
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.PrimaryDefault}
+                      onPress={() => navigation.navigate('AddDeviceToWallet')}
+                    >
+                      {strings('import_from_seed.import_wallet_from_extension')}
+                    </Text>
                   </Text>
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     onPress={showWhatIsSeedPhrase}
                     testID={
                       ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
@@ -623,7 +631,7 @@ const ImportFromSecretRecoveryPhrase = ({
                       size={IconSize.Md}
                       color={colors.icon.alternative}
                     />
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </Box>
                 <SrpInputGrid
                   ref={srpInputGridRef}
