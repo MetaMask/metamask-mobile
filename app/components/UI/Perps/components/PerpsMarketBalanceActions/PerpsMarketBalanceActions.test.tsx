@@ -132,8 +132,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    ...actual,
     Box: ({ children, testID, ...props }: MockComponentProps) => (
       <View testID={testID} {...props}>
         {children}

@@ -26,10 +26,14 @@ import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import type { PerpsHomeHeaderProps } from './PerpsHomeHeader.types';
 import styleSheet from './PerpsHomeHeader.styles';
 
+type PerpsHomeHeaderTitleSegmentProps = Readonly<
+  Pick<PerpsHomeHeaderProps, 'screenTitle' | 'testID'>
+>;
+
 function PerpsHomeHeaderTitleSegment({
   screenTitle,
   testID,
-}: Pick<PerpsHomeHeaderProps, 'screenTitle' | 'testID'>) {
+}: PerpsHomeHeaderTitleSegmentProps) {
   const { styles } = useStyles(styleSheet, {});
   const { isMultiProviderEnabled } = usePerpsProvider();
   const network = useSelector(selectPerpsNetwork);
@@ -95,12 +99,6 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   onSearchToggle,
   testID,
 }) => {
-  if (segment === 'title') {
-    return (
-      <PerpsHomeHeaderTitleSegment screenTitle={screenTitle} testID={testID} />
-    );
-  }
-
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -113,6 +111,12 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   }, [navigation]);
 
   const handleBack = onBack || defaultHandleBack;
+
+  if (segment === 'title') {
+    return (
+      <PerpsHomeHeaderTitleSegment screenTitle={screenTitle} testID={testID} />
+    );
+  }
 
   if (isSearchVisible) {
     return (
