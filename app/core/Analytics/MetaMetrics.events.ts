@@ -67,6 +67,7 @@ enum EVENT_NAME {
 
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
+  REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
   SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
@@ -797,6 +798,9 @@ const events = {
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED: generateOpt(
     EVENT_NAME.REMOTE_CONNECTION_REQUEST_RECEIVED,
+  ),
+  REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
   ),
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
