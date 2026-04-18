@@ -157,19 +157,8 @@ if [[ -n "$METRO_PID" ]]; then
 fi
 if [[ -z "$METRO_PID" ]] || ! curl -sf "http://localhost:$SHARED_PORT/status" >/dev/null 2>&1; then
   echo "Starting Metro on port $SHARED_PORT with METAMASK_ENVIRONMENT=e2e IS_TEST=true..."
-  METAMASK_ENVIRONMENT=e2e IS_TEST=true METAMASK_BUILD_TYPE=main \
-    nohup yarn expo start --port "$SHARED_PORT" >/dev/null 2>&1 &
-  echo "Waiting for Metro on $SHARED_PORT to become ready..."
-  for i in $(seq 1 30); do
-    if curl -sf "http://localhost:$SHARED_PORT/status" >/dev/null 2>&1; then
-      echo "Metro ready on $SHARED_PORT after $((i * 3))s"
-      break
-    fi
-    if [[ $i -eq 30 ]]; then
-      echo "ERROR: Metro on $SHARED_PORT not ready after 90s — Detox specs will likely fail"
-    fi
-    sleep 3
-  done
+  METAMASK_ENVIRONMENT=e2e IS_TEST=true METAMASK_BUILD_TYPE=main WATCHER_PORT="$SHARED_PORT" \
+    bash "$SCRIPT_DIR/start-metro.sh"
 fi
 
 # Source .e2e.env for Detox
