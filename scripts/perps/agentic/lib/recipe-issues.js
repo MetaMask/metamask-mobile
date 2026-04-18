@@ -129,10 +129,15 @@ function normalizeAppBufferEntries(entries) {
 function dedupeIssues(issues) {
   const seen = new Map();
   for (const issue of issues) {
-    const key = `${issue.level}|${issue.channel}|${issue.source}|${issue.text.slice(0, 300)}`;
+    const key = `${issue.level}|${issue.text.slice(0, 300)}`;
     const prior = seen.get(key);
     if (prior) {
       prior.count += 1;
+      // Prefer the in-app capture over the Metro mirror when both channels
+      // report the same logical issue text.
+      if (prior.source !== 'app' && issue.source === 'app') {
+        Object.assign(prior, issue, { count: prior.count });
+      }
     } else {
       seen.set(key, { ...issue, count: 1 });
     }

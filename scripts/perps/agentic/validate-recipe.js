@@ -682,12 +682,13 @@ function collectRecipeIssues(runOptions, document) {
   const recipeIssues = {
     captured,
     unexpected: unexpectedCounts,
-    failOn: failOn && (Array.isArray(failOn.levels) || Array.isArray(failOn.textMatches))
-      ? {
-          levels: Array.isArray(failOn.levels) ? failOn.levels.slice() : [],
-          textMatches: Array.isArray(failOn.textMatches) ? failOn.textMatches.slice() : [],
-        }
-      : [],
+    failOn: {
+      levels: failOn && Array.isArray(failOn.levels) ? failOn.levels.slice() : [],
+      textMatches:
+        failOn && Array.isArray(failOn.textMatches)
+          ? failOn.textMatches.slice()
+          : [],
+    },
     review,
   };
 
