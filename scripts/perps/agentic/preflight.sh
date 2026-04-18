@@ -162,17 +162,25 @@ kill_tree() {
 watch_log() {
   local log="$1" watcher_of="$2" N="${3:-3}"
   [ -t 1 ] || return 0
-  local cols width i
+  local cols width i cleanup_done=0
   cols=$(tput cols 2>/dev/null || echo 120)
   width=$((cols - 6))
   [ "$width" -lt 20 ] && width=20
+
+  watch_log_cleanup() {
+    [ "$cleanup_done" -eq 1 ] && return
+    cleanup_done=1
+    printf '\033[%dA\033[J' "$N" 2>/dev/null || true
+    tput cnorm 2>/dev/null || true
+  }
 
   # Reserve N rows once; every subsequent tick starts with cursor-up N.
   i=0
   while [ $i -lt $N ]; do printf '\n'; i=$((i + 1)); done
   # Hide cursor during tail to avoid blink/drift artifacts.
   tput civis 2>/dev/null || true
-  trap 'tput cnorm 2>/dev/null || true' RETURN
+  trap 'watch_log_cleanup' EXIT
+  trap 'watch_log_cleanup; exit 0' TERM INT
 
   while kill -0 "$watcher_of" 2>/dev/null; do
     # Move cursor up N rows and clear from cursor to end of screen.
@@ -200,8 +208,8 @@ watch_log() {
   done
 
   # Final clear: leave N blank rows behind so the caller can print its status.
-  printf '\033[%dA\033[J' "$N"
-  tput cnorm 2>/dev/null || true
+  watch_log_cleanup
+  trap - EXIT TERM INT
 }
 
 # Run a command in the background while tailing its log file live. Returns
