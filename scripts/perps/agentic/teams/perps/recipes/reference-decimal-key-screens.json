@@ -115,12 +115,12 @@
         },
         "btc-order-wait-modify-sheet": {
           "action": "wait_for",
-          "test_id": "undefined-add_to_position",
+          "test_id": "perps-market-details-modify-action-sheet-add_to_position",
           "next": "btc-order-select-add-to-position"
         },
         "btc-order-select-add-to-position": {
           "action": "press",
-          "test_id": "undefined-add_to_position",
+          "test_id": "perps-market-details-modify-action-sheet-add_to_position",
           "next": "btc-order-wait"
         },
         "btc-order-wait": {
@@ -236,12 +236,12 @@
         },
         "eth-order-wait-modify-sheet": {
           "action": "wait_for",
-          "test_id": "undefined-add_to_position",
+          "test_id": "perps-market-details-modify-action-sheet-add_to_position",
           "next": "eth-order-select-add-to-position"
         },
         "eth-order-select-add-to-position": {
           "action": "press",
-          "test_id": "undefined-add_to_position",
+          "test_id": "perps-market-details-modify-action-sheet-add_to_position",
           "next": "eth-order-wait"
         },
         "eth-order-wait": {
@@ -460,12 +460,12 @@
         },
         "eth-reverse-wait-menu": {
           "action": "wait_for",
-          "test_id": "undefined-flip_position",
+          "test_id": "perps-market-details-modify-action-sheet-flip_position",
           "next": "eth-reverse-open"
         },
         "eth-reverse-open": {
           "action": "press",
-          "test_id": "undefined-flip_position",
+          "test_id": "perps-market-details-modify-action-sheet-flip_position",
           "next": "eth-reverse-wait"
         },
         "eth-reverse-wait": {

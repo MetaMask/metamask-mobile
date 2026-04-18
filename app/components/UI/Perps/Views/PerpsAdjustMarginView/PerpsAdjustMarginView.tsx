@@ -402,9 +402,6 @@ const PerpsAdjustMarginView: React.FC = () => {
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
-                  testID={
-                    PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
-                  }
                 >
                   {formatLiquidationDistance(
                     currentLiquidationDistance,
@@ -416,7 +413,12 @@ const PerpsAdjustMarginView: React.FC = () => {
                   size={IconSize.Sm}
                   color={colors.icon.alternative}
                 />
-                <Text variant={TextVariant.BodyMD}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  testID={
+                    PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                  }
+                >
                   {formatLiquidationDistance(
                     displayNewLiquidationDistance,
                     displayNewLiquidationPrice,
