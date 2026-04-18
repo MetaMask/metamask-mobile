@@ -14,6 +14,13 @@ export enum UserProfileProperty {
   CURRENT_CURRENCY = 'current_currency',
   HAS_MARKETING_CONSENT = 'has_marketing_consent',
   NUMBER_OF_HD_ENTROPIES = 'number_of_hd_entropies',
+  NUMBER_OF_ACCOUNT_GROUPS = 'number_of_account_groups',
+  NUMBER_OF_IMPORTED_ACCOUNTS = 'number_of_imported_accounts',
+  NUMBER_OF_LEDGER_ACCOUNTS = 'number_of_ledger_accounts',
+  NUMBER_OF_TREZOR_ACCOUNTS = 'number_of_trezor_accounts',
+  NUMBER_OF_LATTICE_ACCOUNTS = 'number_of_lattice_accounts',
+  NUMBER_OF_QR_HARDWARE_ACCOUNTS = 'number_of_qr_hardware_accounts',
+  NUMBER_OF_HARDWARE_WALLETS = 'number_of_hardware_wallets',
   CHAIN_IDS = 'chain_id_list',
   HAS_REWARDS_OPTED_IN = 'has_rewards_opted_in',
   REWARDS_REFERRED = 'rewards_referred',
@@ -33,7 +40,14 @@ export interface UserProfileMetaData {
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
   [UserProfileProperty.HAS_MARKETING_CONSENT]: boolean;
-  [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]?: number;
+  [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: number;
+  [UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]: number;
+  [UserProfileProperty.NUMBER_OF_IMPORTED_ACCOUNTS]: number;
+  [UserProfileProperty.NUMBER_OF_LEDGER_ACCOUNTS]: number;
+  [UserProfileProperty.NUMBER_OF_TREZOR_ACCOUNTS]: number;
+  [UserProfileProperty.NUMBER_OF_LATTICE_ACCOUNTS]: number;
+  [UserProfileProperty.NUMBER_OF_QR_HARDWARE_ACCOUNTS]: number;
+  [UserProfileProperty.NUMBER_OF_HARDWARE_WALLETS]: number;
   [UserProfileProperty.CHAIN_IDS]: CaipChainId[];
   [UserProfileProperty.HAS_REWARDS_OPTED_IN]?: string;
   [UserProfileProperty.REWARDS_REFERRED]?: boolean;
