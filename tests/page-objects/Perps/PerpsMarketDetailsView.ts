@@ -172,11 +172,16 @@ class PerpsMarketDetailsView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            '//android.widget.Button[@content-desc="Long"]',
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+          ),
+      },
     });
   }
 
@@ -189,7 +194,6 @@ class PerpsMarketDetailsView {
       appium: () =>
         PlaywrightMatchers.getElementById(
           PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
-          { exact: true },
         ),
     });
   }

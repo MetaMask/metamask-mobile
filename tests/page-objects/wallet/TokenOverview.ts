@@ -78,6 +78,19 @@ class TokenOverview {
     });
   }
 
+  get priceChartContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByAccessibilityId(
+          TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
+        ),
+    });
+  }
+
   get unstakeButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
   }

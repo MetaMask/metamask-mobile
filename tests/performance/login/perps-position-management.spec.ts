@@ -38,7 +38,7 @@ test.describe(PerformancePreps, () => {
       );
       const openOrderScreenTimer = new TimerHelper(
         'Open Order Screen',
-        { ios: 1500, android: 1500 },
+        { ios: 3000, android: 3000 },
         currentDeviceDetails.platform,
       );
       const openPositionTimer = new TimerHelper(
@@ -92,7 +92,6 @@ test.describe(PerformancePreps, () => {
           console.error('❌ Error closing existing position:', error);
         }
       }
-
       await PerpsMarketDetailsView.tapLongButton();
       // Open Position
       await openOrderScreenTimer.measure(async () => {

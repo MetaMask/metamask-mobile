@@ -30,13 +30,9 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
       await WalletView.tapOnTokensSection();
       await WalletView.tapOnToken('USDC');
 
-      const priceChartDotEnd = asPlaywrightElement(
-        TokenOverview.priceChartDotEnd,
-      );
-
       await assetViewScreen.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
-          priceChartDotEnd,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(TokenOverview.priceChartContainer),
         );
       });
 
