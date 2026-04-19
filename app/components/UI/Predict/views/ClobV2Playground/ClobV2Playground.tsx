@@ -34,6 +34,7 @@ import Engine from '../../../../../core/Engine';
 import { selectSelectedAccountGroupId } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isSmartContractAddress } from '../../../../../util/transactions';
 import {
+  COLLATERAL_OFFRAMP_ADDRESS,
   COLLATERAL_ONRAMP_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
@@ -57,6 +58,7 @@ import { Signer } from '../../providers/types';
 import {
   encodeApprove,
   encodeErc1155Approve,
+  encodeUnwrap,
   encodeWrap,
   getBalance,
 } from '../../providers/polymarket/utils';
@@ -333,9 +335,12 @@ const ClobV2Playground = () => {
   const [isUpgradeLoading, setIsUpgradeLoading] = useState(false);
   const [isDowngradeLoading, setIsDowngradeLoading] = useState(false);
 
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       isMountedRef.current = false;
-    }, []);
+    },
+    [],
+  );
 
   const signer = useMemo<Signer | null>(() => {
     if (!address) {
@@ -482,7 +487,7 @@ const ClobV2Playground = () => {
 
     const confirmed = await confirmAction(
       'Downgrade to v1',
-      'This will revoke all v2 allowances. pUSD balance is kept (Offramp not yet operational).',
+      'This will unwrap pUSD into USDC.e and revoke all v2 allowances.',
     );
 
     if (!confirmed) {
@@ -494,6 +499,10 @@ const ClobV2Playground = () => {
 
     try {
       const safeAddress = computeProxyAddress(address);
+      const pUsdBalance = await getErc20BalanceRaw({
+        tokenAddress: MATIC_CONTRACTS.collateral,
+        owner: safeAddress,
+      });
 
       const safeTxns: {
         to: string;
@@ -501,6 +510,28 @@ const ClobV2Playground = () => {
         operation: OperationType;
         value: string;
       }[] = [];
+
+      if (pUsdBalance > 0n) {
+        safeTxns.push({
+          to: MATIC_CONTRACTS.collateral,
+          data: encodeApprove({
+            spender: COLLATERAL_OFFRAMP_ADDRESS,
+            amount: pUsdBalance,
+          }),
+          operation: OperationType.Call,
+          value: '0',
+        });
+        safeTxns.push({
+          to: COLLATERAL_OFFRAMP_ADDRESS,
+          data: encodeUnwrap({
+            asset: USDC_E_ADDRESS,
+            to: safeAddress,
+            amount: pUsdBalance,
+          }),
+          operation: OperationType.Call,
+          value: '0',
+        });
+      }
 
       for (const spender of usdcESpenders) {
         safeTxns.push({
@@ -511,7 +542,11 @@ const ClobV2Playground = () => {
         });
       }
 
-      for (const spender of [...pUsdSpenders, PERMIT2_ADDRESS]) {
+      for (const spender of [
+        ...pUsdSpenders,
+        PERMIT2_ADDRESS,
+        COLLATERAL_OFFRAMP_ADDRESS,
+      ]) {
         safeTxns.push({
           to: MATIC_CONTRACTS.collateral,
           data: encodeApprove({ spender, amount: 0n }),
@@ -542,7 +577,11 @@ const ClobV2Playground = () => {
       });
 
       if (isMountedRef.current) {
-        setStatus('Downgrade submitted — v2 allowances revoked');
+        setStatus(
+          pUsdBalance > 0n
+            ? `Downgrade submitted — unwrapping ${Number(pUsdBalance) / 1e6} pUSD + revoking allowances`
+            : 'Downgrade submitted — allowances revoked (no pUSD to unwrap)',
+        );
       }
       await refresh();
     } catch (downgradeError) {
@@ -655,7 +694,7 @@ const ClobV2Playground = () => {
         <Section title="Upgrade / Downgrade">
           <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
             Upgrade sets v2 allowances and wraps USDC.e into pUSD. Downgrade
-            revokes v2 approvals (unwrap not yet available).
+            unwraps pUSD back to USDC.e and revokes v2 approvals.
           </Text>
 
           <Box twClassName="gap-3">
