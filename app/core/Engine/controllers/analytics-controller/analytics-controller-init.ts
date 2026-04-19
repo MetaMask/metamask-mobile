@@ -32,7 +32,7 @@ function getCompositionFingerprint(accounts: InternalAccounts): string {
       )?.entropy;
       return `${id}|${keyringType}|${entropy?.id ?? ''}|${entropy?.groupIndex ?? ''}`;
     })
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .join(';');
 }
 
