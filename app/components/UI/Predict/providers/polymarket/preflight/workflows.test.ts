@@ -1,5 +1,5 @@
 import { parseUnits } from 'ethers/lib/utils';
-import type { PredictPosition } from '../../../types';
+import { PredictPositionStatus, type PredictPosition } from '../../../types';
 import { POLYMARKET_V2_PROTOCOL } from '../protocol/definitions';
 import { compileClaimTransactions } from './claim';
 import { compileDepositMaintenanceTransactions } from './deposit';
@@ -20,14 +20,14 @@ const claimPosition: PredictPosition = {
   providerId: 'polymarket',
   marketId: 'market-1',
   title: 'Question?',
-  description: 'Description',
-  image: 'https://example.com/image.png',
   outcomeId:
     '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   outcomeTokenId: '123',
   outcomeIndex: 0,
   outcome: 'Yes',
-  status: 'won',
+  icon: 'https://example.com/icon.png',
+  amount: 2,
+  status: PredictPositionStatus.WON,
   endDate: '2026-01-01T00:00:00.000Z',
   size: 2,
   price: 0.5,
@@ -35,16 +35,9 @@ const claimPosition: PredictPosition = {
   cashPnl: 1,
   percentPnl: 100,
   claimable: true,
-  redeemable: true,
-  resolved: true,
-  negativeRisk: false,
-  icon: 'https://example.com/icon.png',
   avgPrice: 0.5,
   initialValue: 1,
   realizedPnl: 1,
-  curPrice: 1,
-  slug: 'slug',
-  eventId: 'event-1',
   negRisk: false,
 };
 

@@ -16,7 +16,7 @@ export type WithdrawExecutionMode =
   | 'usdce-deficit-unwrap'
   | 'pusd-transfer';
 
-export interface PolymarketProtocolDefinition {
+interface BasePolymarketProtocolDefinition {
   key: PolymarketProtocolKey;
   contracts: ContractConfig;
   collateral: {
@@ -71,7 +71,7 @@ export function getClobV2BuilderCode(
   return getRequiredBuilderCodeFromEnv(PROD_BUILDER_CODE_ENV);
 }
 
-export const POLYMARKET_V1_PROTOCOL: PolymarketProtocolDefinition = {
+export const POLYMARKET_V1_PROTOCOL = {
   key: 'v1',
   contracts: MATIC_CONTRACTS,
   collateral: {
@@ -80,19 +80,24 @@ export const POLYMARKET_V1_PROTOCOL: PolymarketProtocolDefinition = {
     claimToken: MATIC_CONTRACTS.collateral,
     feeAuthorizationToken: MATIC_CONTRACTS.collateral,
     balanceTokens: [MATIC_CONTRACTS.collateral],
+    onrampAddress: undefined,
+    offrampAddress: undefined,
   },
   order: {
     domainVersion: '1',
     metadata: HASH_ZERO_BYTES32,
+    getBuilderCode: undefined,
   },
-  transport: {},
+  transport: {
+    clobVersionHeader: undefined,
+  },
   workflow: {
     depositMode: 'usdce-transfer',
     withdrawMode: 'usdce-transfer',
   },
-};
+} satisfies BasePolymarketProtocolDefinition;
 
-export const POLYMARKET_V2_PROTOCOL: PolymarketProtocolDefinition = {
+export const POLYMARKET_V2_PROTOCOL = {
   key: 'v2',
   contracts: MATIC_CONTRACTS_V2,
   collateral: {
@@ -116,7 +121,11 @@ export const POLYMARKET_V2_PROTOCOL: PolymarketProtocolDefinition = {
     depositMode: 'usdce-transfer',
     withdrawMode: 'usdce-deficit-unwrap',
   },
-};
+} satisfies BasePolymarketProtocolDefinition;
+
+export type PolymarketProtocolDefinition =
+  | typeof POLYMARKET_V1_PROTOCOL
+  | typeof POLYMARKET_V2_PROTOCOL;
 
 export function resolvePolymarketProtocol(
   featureFlags: Pick<PredictFeatureFlags, 'predictClobV2Enabled'>,

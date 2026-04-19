@@ -1,4 +1,5 @@
 import type { ClobHeaders } from '../types';
+import type { ProtocolRelayerOrder } from './orderCodec';
 import { submitProtocolClobOrder } from './transport';
 import { POLYMARKET_V1_PROTOCOL, POLYMARKET_V2_PROTOCOL } from './definitions';
 
@@ -26,7 +27,7 @@ const clobOrder = {
     salt: 1,
     side: 'BUY',
   },
-};
+} as ProtocolRelayerOrder;
 
 describe('polymarket protocol transport', () => {
   beforeEach(() => {

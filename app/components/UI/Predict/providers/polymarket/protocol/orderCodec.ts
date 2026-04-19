@@ -17,6 +17,15 @@ import {
 import { generateSalt, roundOrderAmount } from '../utils';
 import type { PolymarketProtocolDefinition } from './definitions';
 
+export type V1ProtocolDefinition = Extract<
+  PolymarketProtocolDefinition,
+  { key: 'v1' }
+>;
+export type V2ProtocolDefinition = Extract<
+  PolymarketProtocolDefinition,
+  { key: 'v2' }
+>;
+
 export interface OrderDataV2 {
   maker: string;
   signer?: string;
@@ -45,12 +54,16 @@ export interface ClobOrderObjectV2 {
   orderType: OrderType;
 }
 
+export type ProtocolUnsignedOrderV1 = OrderData & { salt: string };
+export type ProtocolUnsignedOrderV2 = OrderDataV2 & { salt: string };
 export type ProtocolUnsignedOrder =
-  | (OrderData & { salt: string })
-  | (OrderDataV2 & { salt: string });
-export type ProtocolSignedOrder =
-  | (OrderData & { salt: string; signature: string })
-  | SignedOrderV2;
+  | ProtocolUnsignedOrderV1
+  | ProtocolUnsignedOrderV2;
+export type ProtocolSignedOrderV1 = ProtocolUnsignedOrderV1 & {
+  signature: string;
+};
+export type ProtocolSignedOrderV2 = SignedOrderV2;
+export type ProtocolSignedOrder = ProtocolSignedOrderV1 | ProtocolSignedOrderV2;
 export type ProtocolRelayerOrder = ClobOrderObject | ClobOrderObjectV2;
 
 function getTakerAmountWithSlippage(preview: OrderPreview): string {
@@ -76,6 +89,32 @@ function getTakerAmountWithSlippage(preview: OrderPreview): string {
   ).toString();
 }
 
+export function buildProtocolUnsignedOrder({
+  protocol,
+  preview,
+  makerAddress,
+  signerAddress,
+  nowInSeconds,
+}: {
+  protocol: V1ProtocolDefinition;
+  preview: OrderPreview;
+  makerAddress: string;
+  signerAddress: string;
+  nowInSeconds?: number;
+}): ProtocolUnsignedOrderV1;
+export function buildProtocolUnsignedOrder({
+  protocol,
+  preview,
+  makerAddress,
+  signerAddress,
+  nowInSeconds,
+}: {
+  protocol: V2ProtocolDefinition;
+  preview: OrderPreview;
+  makerAddress: string;
+  signerAddress: string;
+  nowInSeconds?: number;
+}): ProtocolUnsignedOrderV2;
 export function buildProtocolUnsignedOrder({
   protocol,
   preview,
@@ -222,17 +261,49 @@ export function serializeProtocolRelayerOrder({
   orderType,
   side,
 }: {
+  signedOrder: ProtocolSignedOrderV1;
+  owner: string;
+  orderType: OrderType;
+  side: Side;
+}): ClobOrderObject;
+export function serializeProtocolRelayerOrder({
+  signedOrder,
+  owner,
+  orderType,
+  side,
+}: {
+  signedOrder: ProtocolSignedOrderV2;
+  owner: string;
+  orderType: OrderType;
+  side: Side;
+}): ClobOrderObjectV2;
+export function serializeProtocolRelayerOrder({
+  signedOrder,
+  owner,
+  orderType,
+  side,
+}: {
   signedOrder: ProtocolSignedOrder;
   owner: string;
   orderType: OrderType;
   side: Side;
 }): ProtocolRelayerOrder {
+  const order = {
+    ...signedOrder,
+    side,
+    salt: parseInt(signedOrder.salt, 16),
+  };
+
+  if ('builder' in signedOrder) {
+    return {
+      order: order as ClobOrderObjectV2['order'],
+      owner,
+      orderType,
+    };
+  }
+
   return {
-    order: {
-      ...signedOrder,
-      side,
-      salt: parseInt(signedOrder.salt, 16),
-    },
+    order: order as ClobOrderObject['order'],
     owner,
     orderType,
   };
