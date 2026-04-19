@@ -10,7 +10,7 @@ import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-ad
 import { isE2E } from '../../../../util/test/utils';
 import { getBrazePlugin, syncBrazeAllowlists } from '../../../Braze';
 import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
-import { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AccountsControllerState } from '@metamask/accounts-controller';
 import { analytics } from '../../../../util/analytics/analytics';
 import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import Logger from '../../../../util/Logger';
@@ -21,9 +21,9 @@ import Logger from '../../../../util/Logger';
  * intentionally excluded so that account switches and renames do not trigger
  * an unnecessary identify call.
  */
-function getCompositionFingerprint(
-  accounts: Record<string, InternalAccount>,
-): string {
+type InternalAccounts = AccountsControllerState['internalAccounts']['accounts'];
+
+function getCompositionFingerprint(accounts: InternalAccounts): string {
   return Object.entries(accounts)
     .map(([id, acct]) => {
       const keyringType = acct.metadata?.keyring?.type ?? '';
@@ -81,7 +81,7 @@ export const analyticsControllerInit: MessengerClientInitFunction<
   let lastCompositionFingerprint = '';
   initMessenger.subscribe(
     'AccountsController:stateChange',
-    (accounts) => {
+    (accounts: InternalAccounts) => {
       const fingerprint = getCompositionFingerprint(accounts);
       if (fingerprint === lastCompositionFingerprint) return;
       lastCompositionFingerprint = fingerprint;
