@@ -253,12 +253,19 @@ export const createApiKey = async ({
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
 
-export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-
-  const response = await fetch(`${CLOB_ENDPOINT}/book?token_id=${tokenId}`, {
-    method: 'GET',
-  });
+export const getOrderBook = async ({
+  tokenId,
+  clobVersion = 'v1',
+}: {
+  tokenId: string;
+  clobVersion?: 'v1' | 'v2';
+}) => {
+  const response = await fetch(
+    `${getClobEndpoint(clobVersion)}/book?token_id=${tokenId}`,
+    {
+      method: 'GET',
+    },
+  );
   if (!response.ok) {
     const responseData = (await response.json()) as { error: string };
     if (
@@ -1861,13 +1868,24 @@ export const roundOrderAmount = ({
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
+    isV2?: boolean;
   },
 ): Promise<OrderPreview> => {
-  const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
-    params;
+  const {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    side,
+    size,
+    feeCollection,
+    isV2,
+  } = params;
   const [book, feeRateBps] = await Promise.all([
-    getOrderBook({ tokenId: outcomeTokenId }),
-    getFeeRateBps({ tokenId: outcomeTokenId }),
+    getOrderBook({
+      tokenId: outcomeTokenId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+    }),
+    isV2 ? Promise.resolve('0') : getFeeRateBps({ tokenId: outcomeTokenId }),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);

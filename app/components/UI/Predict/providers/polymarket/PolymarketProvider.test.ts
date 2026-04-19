@@ -1562,6 +1562,7 @@ describe('PolymarketProvider', () => {
       expect(mockPreviewOrder).toHaveBeenCalledWith({
         ...mockParams,
         feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
+        isV2: false,
       });
     });
     it('returns FOK orderType by default', async () => {
@@ -1575,9 +1576,15 @@ describe('PolymarketProvider', () => {
       const provider = createProvider({ predictClobV2Enabled: true });
       mockPreviewOrder.mockResolvedValue({ feeRateBps: '123' });
 
-      const result = await provider.previewOrder(createPreviewOrderParams());
+      const previewParams = createPreviewOrderParams();
+      const result = await provider.previewOrder(previewParams);
 
       expect(result.feeRateBps).toBe('0');
+      expect(mockPreviewOrder).toHaveBeenCalledWith({
+        ...previewParams,
+        feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
+        isV2: true,
+      });
     });
 
     it.each([

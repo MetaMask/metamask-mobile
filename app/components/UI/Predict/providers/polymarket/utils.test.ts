@@ -597,6 +597,25 @@ describe('polymarket utils', () => {
       );
     });
 
+    it('reads the v2 order book when requested', async () => {
+      const mockOrderBook = {
+        bids: [],
+        asks: [],
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOrderBook),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await getOrderBook({ tokenId: 'test-token', clobVersion: 'v2' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob-v2.polymarket.com/book?token_id=test-token',
+        { method: 'GET' },
+      );
+    });
+
     it('handle fetch errors', async () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
@@ -4030,6 +4049,41 @@ describe('polymarket utils', () => {
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.fees).toBeUndefined();
       expect(result.feeRateBps).toBe('15');
+    });
+
+    it('uses the v2 order book endpoint and zero fee rate for v2 previews', async () => {
+      const mockOrderBook = {
+        timestamp: '2024-01-01T00:00:00Z',
+        tick_size: '0.01',
+        min_order_size: '1',
+        neg_risk: false,
+        asks: [
+          { price: '0.50', size: '100' },
+          { price: '0.51', size: '50' },
+        ],
+        bids: [],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      const result = await previewOrder({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.BUY,
+        size: 50,
+        isV2: true,
+      });
+
+      expect(result.feeRateBps).toBe('0');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob-v2.polymarket.com/book?token_id=token-1',
+        { method: 'GET' },
+      );
     });
 
     it('throws error when orderbook is not available', async () => {

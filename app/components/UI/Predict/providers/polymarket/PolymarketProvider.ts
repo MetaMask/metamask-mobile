@@ -1657,7 +1657,11 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<OrderPreview> {
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const protocol = this.#getProtocol();
-    const basePreview = await previewOrder({ ...params, feeCollection });
+    const basePreview = await previewOrder({
+      ...params,
+      feeCollection,
+      isV2: protocol.key === 'v2',
+    });
     const normalizedPreview = {
       ...basePreview,
       feeRateBps: getPreviewFeeRateBpsForProtocol({
