@@ -136,6 +136,10 @@ import SampleFeature from '../../../features/SampleFeature/components/views/Samp
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
+import { RequestPayment } from '../../Views/RequestPayment';
+import { PayMerchantConfirmation } from '../../Views/confirmations/PayMerchant';
+import { isPaymentSystemEnabled } from '../../../util/payment-request';
+import { strings } from '../../../../locales/i18n';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/WaysToEarn/BonusCodeBottomSheet';
@@ -1110,6 +1114,30 @@ const MainNavigator = () => {
           ...slideFromRightAnimation,
         }}
       />
+      {isPaymentSystemEnabled() && (
+        <>
+          <Stack.Screen
+            name={Routes.REQUEST_PAYMENT.ROOT}
+            component={RequestPayment}
+            options={{
+              headerShown: false,
+              gestureEnabled: false,
+              cardStyle: { backgroundColor: colors.background.default },
+              ...slideFromRightAnimation,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PAY_MERCHANT.CONFIRMATION}
+            component={PayMerchantConfirmation}
+            options={{
+              headerShown: true,
+              title: strings('pay_merchant.title'),
+              cardStyle: { backgroundColor: colors.background.default },
+              ...slideFromRightAnimation,
+            }}
+          />
+        </>
+      )}
       <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
       <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
       <Stack.Screen

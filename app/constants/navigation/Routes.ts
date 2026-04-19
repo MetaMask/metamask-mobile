@@ -501,6 +501,16 @@ const Routes = {
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
   },
+  REQUEST_PAYMENT: {
+    ROOT: 'RequestPayment',
+    ASSET: 'RequestPaymentAsset',
+    AMOUNT: 'RequestPaymentAmount',
+    METADATA: 'RequestPaymentMetadata',
+    QR: 'RequestPaymentQR',
+  },
+  PAY_MERCHANT: {
+    CONFIRMATION: 'PayMerchantConfirmation',
+  },
   SDK: {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },

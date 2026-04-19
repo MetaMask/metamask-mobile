@@ -46,6 +46,7 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import { getQRType } from './utils';
+import { tryRouteMerchantPayment } from '../../../util/payment-request';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
 
@@ -422,6 +423,34 @@ const QRScanner = ({
         let addressToValidate = content;
         const hasEthereumProtocol =
           content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1;
+
+        if (
+          hasEthereumProtocol &&
+          tryRouteMerchantPayment({
+            content,
+            // Defer navigation until after the scanner's `goBack()` settles —
+            // otherwise the pushed PayMerchant screen gets popped right away.
+            navigate: (name, params) =>
+              InteractionManager.runAfterInteractions(() =>
+                navigation.navigate(name, params),
+              ),
+            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+          })
+        ) {
+          shouldReadBarCodeRef.current = false;
+          setIsCameraActive(false);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+              })
+              .build(),
+          );
+          end();
+          return;
+        }
 
         let isEthereumUrl = false;
         if (hasEthereumProtocol) {

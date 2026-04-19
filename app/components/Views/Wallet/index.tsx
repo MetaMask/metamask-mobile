@@ -86,6 +86,7 @@ import {
 } from '../../../component-library/components/Toast';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
+import { isPaymentSystemEnabled } from '../../../util/payment-request';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   trackActionButtonClick,
@@ -682,6 +683,11 @@ const Wallet = ({
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
+  const displayRequestPaymentButton = isPaymentSystemEnabled();
+
+  const onRequestPayment = useCallback(() => {
+    navigate(Routes.REQUEST_PAYMENT.ROOT);
+  }, [navigate]);
 
   const onReceive = useCallback(() => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -1322,9 +1328,11 @@ const Wallet = ({
         <AssetDetailsActions
           displayBuyButton={displayBuyButton}
           displaySwapsButton={displaySwapsButton}
+          displayRequestPaymentButton={displayRequestPaymentButton}
           goToSwaps={goToSwaps}
           onReceive={onReceive}
           onSend={onSend}
+          onRequestPayment={onRequestPayment}
           buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
           swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
           sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}

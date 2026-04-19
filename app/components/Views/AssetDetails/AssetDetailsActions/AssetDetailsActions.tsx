@@ -24,10 +24,12 @@ import {
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
+  displayRequestPaymentButton?: boolean;
   onBuy?: () => void;
   goToSwaps: () => void;
   onSend: () => void;
   onReceive: () => void;
+  onRequestPayment?: () => void;
   // Asset context for fund flow
   asset?: {
     assetId?: string;
@@ -39,21 +41,25 @@ export interface AssetDetailsActionsProps {
   swapButtonActionID?: string;
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
+  requestPaymentButtonActionID?: string;
 }
 
 // TODO: Delete when TokenDetailsV2Buttons flag is fully rolled out
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
+  displayRequestPaymentButton = false,
   onBuy,
   goToSwaps,
   onSend,
   onReceive,
+  onRequestPayment,
   asset,
   buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+  requestPaymentButtonActionID = 'wallet-request-payment-button',
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -138,6 +144,13 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
     withNavigationLock(onReceive);
   }, [withNavigationLock, onReceive]);
 
+  const handleRequestPaymentPress = useCallback(() => {
+    if (!onRequestPayment) {
+      return;
+    }
+    withNavigationLock(onRequestPayment);
+  }, [withNavigationLock, onRequestPayment]);
+
   return (
     <View style={styles.activitiesButton}>
       {displayBuyButton && (
@@ -180,6 +193,17 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           testID={receiveButtonActionID}
         />
       </View>
+      {displayRequestPaymentButton && (
+        <View style={styles.buttonContainer}>
+          <MainActionButton
+            iconName={IconName.Scan}
+            label={strings('request_payment.wallet_action_label')}
+            onPress={handleRequestPaymentPress}
+            isDisabled={!canSignTransactions || !onRequestPayment}
+            testID={requestPaymentButtonActionID}
+          />
+        </View>
+      )}
     </View>
   );
 };

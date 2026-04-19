@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MM Payment System — Architecture at a glance</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b0d12;
+        --panel: #131722;
+        --panel-2: #1a2030;
+        --border: #262d40;
+        --text: #e6e9f0;
+        --muted: #8a93a8;
+        --accent: #f6851b; /* MetaMask orange */
+        --accent-2: #037dd6;
+        --ok: #28a745;
+        --warn: #ffcc4d;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f7f8fb;
+          --panel: #ffffff;
+          --panel-2: #f0f2f7;
+          --border: #dfe3ec;
+          --text: #1b1f2a;
+          --muted: #5b6478;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        line-height: 1.45;
+      }
+      .wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 20px 80px;
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 0;
+      }
+      h1 .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: var(--accent);
+        border-radius: 999px;
+        margin-right: 10px;
+        transform: translateY(-2px);
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 12px;
+        margin: 20px 0 24px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .card p {
+        margin: 0;
+        font-size: 14px;
+      }
+      .card code {
+        background: var(--panel-2);
+        padding: 1px 6px;
+        border-radius: 6px;
+        font-size: 12.5px;
+      }
+      .diagram {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        overflow: auto;
+      }
+      .diagram + .diagram {
+        margin-top: 20px;
+      }
+      .legend {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        font-size: 12.5px;
+        color: var(--muted);
+        margin: 10px 2px 0;
+      }
+      .legend span::before {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        margin-right: 6px;
+        vertical-align: -1px;
+      }
+      .legend .merchant::before { background: #f6851b; }
+      .legend .customer::before { background: #037dd6; }
+      .legend .core::before { background: #6f7acb; }
+      .legend .flag::before { background: #ffcc4d; }
+      .legend .external::before { background: #8a93a8; }
+      section {
+        margin-top: 32px;
+      }
+      section h2 {
+        font-size: 18px;
+        margin: 0 0 10px;
+      }
+      footer {
+        margin-top: 40px;
+        color: var(--muted);
+        font-size: 12.5px;
+      }
+      a { color: var(--accent-2); }
+
+      /* Zoomable diagram controls */
+      .zoomable {
+        position: relative;
+      }
+      .zoomable .mermaid {
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
+      }
+      .zoomable .mermaid:active {
+        cursor: grabbing;
+      }
+      .zoom-toolbar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 6px;
+        z-index: 2;
+        background: color-mix(in oklab, var(--panel) 85%, transparent);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 4px;
+        backdrop-filter: blur(6px);
+      }
+      .zoom-toolbar button {
+        appearance: none;
+        background: var(--panel-2);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        width: 32px;
+        height: 28px;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 8px;
+        font-family: inherit;
+      }
+      .zoom-toolbar button.wide {
+        width: auto;
+      }
+      .zoom-toolbar button:hover {
+        border-color: var(--accent-2);
+        color: var(--accent-2);
+      }
+      .zoom-toolbar button:active {
+        transform: translateY(1px);
+      }
+      .zoom-hint {
+        position: absolute;
+        bottom: 10px;
+        left: 12px;
+        color: var(--muted);
+        font-size: 11.5px;
+        z-index: 2;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1><span class="dot"></span>MM Payment System — Architecture at a glance</h1>
+        <div class="meta">Branch: <code>vs/mm-payment-mvp</code></div>
+      </header>
+      <p class="subtitle">
+        Merchant and customer share the same MetaMask Mobile app. EVM-only v1, EIP-681
+        URIs with extra merchant metadata query params. All entry points are gated
+        behind the local <code>MM_PAYMENT_SYSTEM_ENABLED</code> env flag.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Merchant entry</h3>
+          <p>New "Request" action on the Wallet home, next to Buy/Swap/Send/Receive.</p>
+        </div>
+        <div class="card">
+          <h3>Customer entry</h3>
+          <p>QR scanner or <code>ethereum:</code> deeplink — both route merchant URIs to <code>PayMerchantConfirmation</code>.</p>
+        </div>
+        <div class="card">
+          <h3>Core utility</h3>
+          <p><code>app/util/payment-request</code> — build, parse, route, atomic-amount helpers.</p>
+        </div>
+        <div class="card">
+          <h3>Feature flag</h3>
+          <p><code>process.env.MM_PAYMENT_SYSTEM_ENABLED === 'true'</code> gates navigation, entry button, and routing helper.</p>
+        </div>
+      </div>
+
+      <section>
+        <h2>End-to-end flow</h2>
+        <div class="diagram zoomable" id="e2e-diagram">
+          <div class="zoom-toolbar" role="toolbar" aria-label="Diagram zoom controls">
+            <button type="button" data-zoom="out" title="Zoom out (−)">−</button>
+            <button type="button" data-zoom="in" title="Zoom in (+)">+</button>
+            <button type="button" data-zoom="reset" class="wide" title="Reset view (0)">Reset</button>
+            <button type="button" data-zoom="fit" class="wide" title="Fit to screen (F)">Fit</button>
+          </div>
+          <div class="zoom-hint">Scroll to zoom · drag to pan · double-click to zoom in · shift+double-click to zoom out</div>
+          <pre class="mermaid">
+flowchart LR
+  %% ===== Merchant side =====
+  subgraph M["Merchant (same app)"]
+    direction TB
+    WH["Wallet Home\nAssetDetailsActions"]:::merchant
+    RP["RequestPayment screen\n(asset + amount + metadata form)"]:::merchant
+    RPQR["RequestPaymentQR screen\nQR + share + copy"]:::merchant
+  end
+
+  %% ===== Core utilities =====
+  subgraph C["app/util/payment-request"]
+    direction TB
+    BUILD["buildPaymentUri()"]:::core
+    ATOM["toAtomicAmount()"]:::core
+    PARSE["parsePaymentUri()\nisMerchantPaymentUri()"]:::core
+    ROUTE["tryRouteMerchantPayment()"]:::core
+    FLAG["isPaymentSystemEnabled()"]:::flag
+  end
+
+  %% ===== Customer side =====
+  subgraph X["Customer (same app)"]
+    direction TB
+    QRS["QRScanner"]:::customer
+    DL["handleEthereumUrl\n(DeeplinkManager)"]:::customer
+    PMC["PayMerchantConfirmation screen"]:::customer
+    SEND["Existing Send stack\nRoutes.SEND.DEFAULT → RECIPIENT"]:::external
+  end
+
+  %% Merchant path
+  WH -- "tap Request\n(flag on)" --> RP
+  RP -- "validate + serialize" --> ATOM
+  RP -- "build URI" --> BUILD
+  BUILD -- "ethereum:...?merchantName&memo&invoiceId&issuedAt" --> RPQR
+
+  %% QR in the physical world
+  RPQR -. "customer scans or shares link" .-> QRS
+  RPQR -. "share / copy link" .-> DL
+
+  %% Customer path
+  QRS --> ROUTE
+  DL --> ROUTE
+  ROUTE -- "flag?" --> FLAG
+  ROUTE -- "isMerchantPaymentUri?" --> PARSE
+  ROUTE -- "navigate(PayMerchantConfirmation, {uri, origin})" --> PMC
+  PMC -- "parsePaymentUri()" --> PARSE
+  PMC -- "confirm → prefilled txMeta\n(native value / erc20 transfer)" --> SEND
+
+  classDef merchant fill:#3a2512,stroke:#f6851b,color:#ffd8ae;
+  classDef customer fill:#0f2a44,stroke:#037dd6,color:#cfe4fb;
+  classDef core fill:#1f2444,stroke:#6f7acb,color:#dfe2ff;
+  classDef flag fill:#3a3215,stroke:#ffcc4d,color:#ffe9a8;
+  classDef external fill:#1f2530,stroke:#8a93a8,color:#d0d5e0;
+          </pre>
+        </div>
+        <div class="legend">
+          <span class="merchant">Merchant screens</span>
+          <span class="customer">Customer screens / handlers</span>
+          <span class="core">Core utilities</span>
+          <span class="flag">Feature flag</span>
+          <span class="external">Existing app surfaces</span>
+        </div>
+      </section>
+
+      <section>
+        <h2>QR content format (EIP-681 + metadata)</h2>
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart TB
+  NATIVE["<b>Native</b><br/>ethereum:&lt;merchant&gt;@&lt;chainId&gt;?value=&lt;wei&gt;<br/>&amp;merchantName=...&amp;memo=...&amp;invoiceId=...&amp;issuedAt=..."]:::uri
+  ERC20["<b>ERC-20</b><br/>ethereum:&lt;token&gt;@&lt;chainId&gt;/transfer?address=&lt;merchant&gt;&amp;uint256=&lt;atomic&gt;<br/>&amp;merchantName=...&amp;memo=...&amp;invoiceId=...&amp;issuedAt=..."]:::uri
+  NOTE["Unknown query params are ignored by<br/>EIP-681-compliant wallets — safe<br/>fallback for non-MetaMask scanners."]:::note
+
+  NATIVE --- NOTE
+  ERC20 --- NOTE
+
+  classDef uri fill:#121a2a,stroke:#6f7acb,color:#e6e9f0,stroke-width:1px;
+  classDef note fill:#1f2530,stroke:#8a93a8,color:#d0d5e0,font-style:italic;
+          </pre>
+        </div>
+      </section>
+
+      <section>
+        <h2>Module map</h2>
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart LR
+  subgraph UI["UI"]
+    direction TB
+    WH["components/Views/Wallet/index.tsx"]:::ui
+    ADA["components/Views/AssetDetails/AssetDetailsActions"]:::ui
+    RPDIR["components/Views/RequestPayment/\nRequestPayment.tsx\nRequestPaymentQR.tsx\nRequestPayment.testIds.ts"]:::ui
+    PMDIR["components/Views/confirmations/PayMerchant/\nPayMerchantConfirmation.tsx"]:::ui
+  end
+
+  subgraph NAV["Navigation"]
+    direction TB
+    ROUTES["constants/navigation/Routes.ts\nREQUEST_PAYMENT.{ROOT, QR}\nPAY_MERCHANT.CONFIRMATION"]:::nav
+    MAIN["components/Nav/Main/MainNavigator.js\n(screens gated by flag)"]:::nav
+  end
+
+  subgraph CORE["Core / utilities"]
+    direction TB
+    PR["util/payment-request/\nbuildPaymentUri / parsePaymentUri\ntryRouteMerchantPayment / toAtomicAmount\nisPaymentSystemEnabled"]:::core
+    QRS["components/Views/QRScanner/index.tsx"]:::core
+    DL["core/DeeplinkManager/handlers/legacy/handleEthereumUrl.ts"]:::core
+  end
+
+  subgraph CFG["Build / i18n"]
+    direction TB
+    BABEL["babel.config.tests.js\n(excludes isPaymentSystemEnabled from env inlining)"]:::cfg
+    I18N["locales/languages/en.json\nrequest_payment.* / pay_merchant.*"]:::cfg
+  end
+
+  WH --> ADA
+  ADA --> RPDIR
+  RPDIR --> PR
+  PMDIR --> PR
+  QRS --> PR
+  DL --> PR
+  MAIN --> RPDIR
+  MAIN --> PMDIR
+  MAIN --> ROUTES
+  RPDIR --> ROUTES
+  PMDIR --> ROUTES
+
+  classDef ui fill:#3a2512,stroke:#f6851b,color:#ffd8ae;
+  classDef nav fill:#16331f,stroke:#28a745,color:#c8f0d4;
+  classDef core fill:#1f2444,stroke:#6f7acb,color:#dfe2ff;
+  classDef cfg fill:#3a3215,stroke:#ffcc4d,color:#ffe9a8;
+          </pre>
+        </div>
+      </section>
+
+      <section>
+        <h2>Sequence — merchant creates a request</h2>
+        <div class="diagram">
+          <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant U as Merchant
+  participant W as Wallet Home
+  participant R as RequestPayment
+  participant PR as payment-request utils
+  participant Q as RequestPaymentQR
+  U->>W: Tap "Request" (flag on)
+  W->>R: navigate(REQUEST_PAYMENT.ROOT)
+  U->>R: Enter amount, decimals, (optional) token, memo, invoice id
+  R->>PR: toAtomicAmount(amount, decimals)
+  R->>PR: buildPaymentUri({chainId, merchant, asset, amount, metadata})
+  PR-->>R: EIP-681 URI
+  R->>Q: navigate(REQUEST_PAYMENT.QR, {uri})
+  Q-->>U: Render QR + Share / Copy
+          </pre>
+        </div>
+      </section>
+
+      <section>
+        <h2>Sequence — customer pays via QR</h2>
+        <div class="diagram">
+          <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant U as Customer
+  participant S as QRScanner
+  participant T as tryRouteMerchantPayment
+  participant F as isPaymentSystemEnabled
+  participant P as parsePaymentUri / isMerchantPaymentUri
+  participant C as PayMerchantConfirmation
+  participant SEND as Existing Send stack
+  U->>S: Scan merchant QR
+  S->>T: { content, navigate, origin }
+  T->>F: flag on?
+  F-->>T: true
+  T->>P: isMerchantPaymentUri(content)
+  P-->>T: true
+  T->>C: navigate(PAY_MERCHANT.CONFIRMATION, {uri, origin})
+  C->>P: parsePaymentUri(uri)
+  P-->>C: {chainId, merchantAddress, asset, amount, metadata}
+  U->>C: Tap "Confirm payment"
+  C->>SEND: navigate(SEND.DEFAULT, {screen: RECIPIENT, params: {txMeta}})
+  SEND-->>U: Normal send / gas / security alerts / confirmation
+          </pre>
+        </div>
+      </section>
+
+      <section>
+        <h2>Out of scope (v1)</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>SoftPOS / card payments</h3>
+            <p>Feasibility only — see <code>docs/payment-system-card-feasibility.md</code>. Non-code blockers (compliance, KYC, settlement) make it unviable for v1.</p>
+          </div>
+          <div class="card">
+            <h3>Non-EVM chains</h3>
+            <p>EIP-681 is EVM-specific. Solana / Bitcoin / etc. would need a separate URI scheme and asset-selection flow.</p>
+          </div>
+          <div class="card">
+            <h3>Merchant-side receipt</h3>
+            <p>Merchant verifies payment through normal wallet activity; no passive poller or push receipt yet.</p>
+          </div>
+          <div class="card">
+            <h3>Fiat amount toggle</h3>
+            <p>Form takes crypto amount + decimals. Fiat input / toggle is a follow-up.</p>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        Generated for the <code>vs/mm-payment-mvp</code> branch. Diagrams rendered
+        with Mermaid (loaded from jsDelivr CDN). Refresh the page if diagrams look
+        blank — your browser may have blocked the CDN.
+      </footer>
+    </div>
+
+    <!-- svg-pan-zoom for the zoomable diagram -->
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "default",
+        securityLevel: "loose",
+        flowchart: { curve: "basis", htmlLabels: true },
+        themeVariables: {
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          fontSize: "14px",
+        },
+      });
+
+      (async () => {
+        await mermaid.run({ querySelector: ".mermaid" });
+        initZoomable("#e2e-diagram");
+      })();
+
+      function initZoomable(containerSelector) {
+        const container = document.querySelector(containerSelector);
+        if (!container || typeof window.svgPanZoom !== "function") return;
+
+        const svg = container.querySelector("svg");
+        if (!svg) return;
+
+        // Mermaid sets a fixed max-width; clear it so zoom can expand visually.
+        svg.style.maxWidth = "100%";
+        svg.style.width = "100%";
+        svg.style.height = "70vh";
+
+        const panZoom = window.svgPanZoom(svg, {
+          zoomEnabled: true,
+          panEnabled: true,
+          controlIconsEnabled: false,
+          dblClickZoomEnabled: true,
+          mouseWheelZoomEnabled: true,
+          preventMouseEventsDefault: true,
+          fit: true,
+          center: true,
+          minZoom: 0.3,
+          maxZoom: 8,
+          zoomScaleSensitivity: 0.35,
+        });
+
+        // Shift + double-click = zoom out (svg-pan-zoom only has zoom-in by default).
+        svg.addEventListener("dblclick", (ev) => {
+          if (ev.shiftKey) {
+            ev.preventDefault();
+            panZoom.zoomOut();
+          }
+        });
+
+        // Toolbar buttons
+        container.querySelectorAll("[data-zoom]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const action = btn.getAttribute("data-zoom");
+            if (action === "in") panZoom.zoomIn();
+            else if (action === "out") panZoom.zoomOut();
+            else if (action === "reset") {
+              panZoom.resetZoom();
+              panZoom.center();
+            } else if (action === "fit") {
+              panZoom.resize();
+              panZoom.fit();
+              panZoom.center();
+            }
+          });
+        });
+
+        // Keyboard shortcuts while the diagram is in the viewport.
+        let focused = false;
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) focused = e.isIntersecting;
+          },
+          { threshold: 0.2 },
+        );
+        io.observe(container);
+        window.addEventListener("keydown", (ev) => {
+          if (!focused) return;
+          if (ev.target && /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName))
+            return;
+          if (ev.key === "+" || ev.key === "=") {
+            panZoom.zoomIn();
+          } else if (ev.key === "-" || ev.key === "_") {
+            panZoom.zoomOut();
+          } else if (ev.key === "0") {
+            panZoom.resetZoom();
+            panZoom.center();
+          } else if (ev.key === "f" || ev.key === "F") {
+            panZoom.resize();
+            panZoom.fit();
+            panZoom.center();
+          }
+        });
+
+        // Keep the view sensible when the window resizes.
+        window.addEventListener("resize", () => {
+          panZoom.resize();
+          panZoom.fit();
+          panZoom.center();
+        });
+      }
+    </script>
+  </body>
+</html>

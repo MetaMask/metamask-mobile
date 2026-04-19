@@ -16,6 +16,7 @@ import {
 import NavigationService from '../../../NavigationService';
 import handleApproveUrl from './handleApproveUrl';
 import switchNetwork from '../../../../util/networks/switchNetwork';
+import { tryRouteMerchantPayment } from '../../../../util/payment-request';
 
 async function handleEthereumUrl({
   url,
@@ -33,6 +34,17 @@ async function handleEthereumUrl({
   }
 
   const txMeta = { ...ethUrl, source: url };
+
+  if (
+    tryRouteMerchantPayment({
+      content: url,
+      navigate: (name, params) =>
+        NavigationService.navigation.navigate(name, params),
+      origin,
+    })
+  ) {
+    return;
+  }
 
   try {
     const { MultichainNetworkController } = Engine.context;
