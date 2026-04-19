@@ -7,5 +7,5 @@
  * @returns true when the env var is literally the string "true".
  */
 export function isPaymentSystemEnabled(): boolean {
-  return true;
+  return process.env.MM_PAYMENT_SYSTEM_ENABLED === 'true';
 }
