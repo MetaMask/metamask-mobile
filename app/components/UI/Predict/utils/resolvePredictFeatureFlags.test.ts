@@ -31,6 +31,7 @@ describe('resolvePredictFeatureFlags', () => {
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
+      predictClobV2Enabled: false,
     });
   });
 
@@ -167,6 +168,7 @@ describe('resolvePredictFeatureFlags', () => {
     mockValidatedVersionGatedFeatureFlag
       .mockImplementationOnce(() => false)
       .mockImplementationOnce(() => true)
+      .mockImplementationOnce(() => false)
       .mockImplementationOnce(() => false);
 
     const result = resolvePredictFeatureFlags({
@@ -184,6 +186,55 @@ describe('resolvePredictFeatureFlags', () => {
 
     expect(result.fakOrdersEnabled).toBe(true);
     expect(result.predictWithAnyTokenEnabled).toBe(false);
+    expect(result.predictClobV2Enabled).toBe(false);
+  });
+
+  describe('predictClobV2Enabled', () => {
+    it('returns false when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictClobV2Enabled).toBe(false);
+    });
+
+    it('returns true when flag is enabled and version validation passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          'enabled' in flag
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictClobV2: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictClobV2Enabled).toBe(true);
+    });
+
+    it('returns false when flag is disabled or version validation fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation(() => false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictClobV2: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictClobV2Enabled).toBe(false);
+    });
   });
 
   describe('extendedSportsMarketsLeagues', () => {

@@ -82,6 +82,11 @@ export function resolvePredictFeatureFlags(
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flags.predictUpDown),
     ) ?? false;
 
+  const predictClobV2Enabled =
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flags.predictClobV2),
+    ) ?? false;
+
   const rawExtendedSportsFlag =
     unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
       flags.predictExtendedSportsMarkets,
@@ -103,5 +108,6 @@ export function resolvePredictFeatureFlags(
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
+    predictClobV2Enabled,
   };
 }

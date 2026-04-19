@@ -263,6 +263,7 @@ describe('PolymarketProvider', () => {
     fakOrdersEnabled: false,
     predictWithAnyTokenEnabled: false,
     predictUpDownEnabled: false,
+    predictClobV2Enabled: false,
   };
   const createProvider = (
     featureFlagsOverride?: Partial<PredictFeatureFlags>,
