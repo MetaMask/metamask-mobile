@@ -23,9 +23,7 @@ import Logger from '../../../../util/Logger';
  */
 type InternalAccounts = AccountsControllerState['internalAccounts']['accounts'];
 
-function getCompositionFingerprint(
-  accounts: InternalAccounts,
-): string {
+function getCompositionFingerprint(accounts: InternalAccounts): string {
   return Object.entries(accounts)
     .map(([id, acct]) => {
       const keyringType = acct.metadata?.keyring?.type ?? '';
