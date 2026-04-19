@@ -82,6 +82,7 @@ export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
+  CLOB_ENDPOINT_V2: 'https://clob-v2.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
@@ -201,13 +202,27 @@ export const getL2Headers = async ({
   return headers;
 };
 
-export const deriveApiKey = async ({ address }: { address: string }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+function getClobEndpoint(clobVersion: 'v1' | 'v2' = 'v1'): string {
+  const { CLOB_ENDPOINT, CLOB_ENDPOINT_V2 } = getPolymarketEndpoints();
+
+  return clobVersion === 'v2' ? CLOB_ENDPOINT_V2 : CLOB_ENDPOINT;
+}
+
+export const deriveApiKey = async ({
+  address,
+  clobVersion = 'v1',
+}: {
+  address: string;
+  clobVersion?: 'v1' | 'v2';
+}) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(`${CLOB_ENDPOINT}/auth/derive-api-key`, {
-    method: 'GET',
-    headers,
-  });
+  const response = await fetch(
+    `${getClobEndpoint(clobVersion)}/auth/derive-api-key`,
+    {
+      method: 'GET',
+      headers,
+    },
+  );
   if (!response.ok) {
     throw new Error('Failed to derive API key');
   }
@@ -215,16 +230,21 @@ export const deriveApiKey = async ({ address }: { address: string }) => {
   return apiKeyRaw as ApiKeyCreds;
 };
 
-export const createApiKey = async ({ address }: { address: string }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+export const createApiKey = async ({
+  address,
+  clobVersion = 'v1',
+}: {
+  address: string;
+  clobVersion?: 'v1' | 'v2';
+}) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(`${CLOB_ENDPOINT}/auth/api-key`, {
+  const response = await fetch(`${getClobEndpoint(clobVersion)}/auth/api-key`, {
     method: 'POST',
     headers,
     body: '',
   });
   if (response.status === 400) {
-    return await deriveApiKey({ address });
+    return await deriveApiKey({ address, clobVersion });
   }
   const apiKeyRaw = await response.json();
   return apiKeyRaw as ApiKeyCreds;

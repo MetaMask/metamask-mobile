@@ -171,7 +171,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly chainId = POLYGON_MAINNET_CHAIN_ID;
   readonly #getFeatureFlags: () => PredictFeatureFlags;
 
-  #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
+  #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
@@ -367,7 +367,10 @@ export class PolymarketProvider implements PredictProvider {
       ...order,
       signature,
     };
-    const signerApiKey = await this.getApiKey({ address: signer.address });
+    const signerApiKey = await this.getApiKey({
+      address: signer.address,
+      protocolKey: protocol.key,
+    });
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const shouldUsePermit2 = this.#hasPermit2Config({
       permit2Enabled: preview.fees?.permit2Enabled,
@@ -542,7 +545,10 @@ export class PolymarketProvider implements PredictProvider {
       ...order,
       signature,
     };
-    const signerApiKey = await this.getApiKey({ address: signer.address });
+    const signerApiKey = await this.getApiKey({
+      address: signer.address,
+      protocolKey: protocol.key,
+    });
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const shouldUsePermit2 = this.#hasPermit2Config({
       permit2Enabled: preview.fees?.permit2Enabled,
@@ -762,16 +768,22 @@ export class PolymarketProvider implements PredictProvider {
 
   private async getApiKey({
     address,
+    protocolKey,
   }: {
     address: string;
+    protocolKey: 'v1' | 'v2';
   }): Promise<ApiKeyCreds> {
-    const cachedApiKey = this.#apiKeysByAddress.get(address);
+    const cacheKey = `${protocolKey}:${address}`;
+    const cachedApiKey = this.#apiKeysByProtocolAddress.get(cacheKey);
     if (cachedApiKey) {
       return cachedApiKey;
     }
 
-    const apiKeyCreds = await createApiKey({ address });
-    this.#apiKeysByAddress.set(address, apiKeyCreds);
+    const apiKeyCreds = await createApiKey({
+      address,
+      clobVersion: protocolKey,
+    });
+    this.#apiKeysByProtocolAddress.set(cacheKey, apiKeyCreds);
     return apiKeyCreds;
   }
 

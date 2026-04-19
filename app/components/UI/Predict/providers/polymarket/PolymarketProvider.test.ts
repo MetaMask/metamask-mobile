@@ -1320,6 +1320,10 @@ describe('PolymarketProvider', () => {
       expect(submitArgs.protocol).toEqual(
         expect.objectContaining({ key: 'v2' }),
       );
+      expect(mockCreateApiKey).toHaveBeenCalledWith({
+        address: mockSigner.address,
+        clobVersion: 'v2',
+      });
       expect(submitArgs.clobOrder).toEqual(
         expect.objectContaining({
           orderType: 'FAK',
@@ -1692,6 +1696,7 @@ describe('PolymarketProvider', () => {
       expect(mockCreateApiKey).toHaveBeenCalledTimes(1);
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner1.address,
+        clobVersion: 'v1',
       });
     });
 
@@ -1721,9 +1726,11 @@ describe('PolymarketProvider', () => {
       expect(mockCreateApiKey).toHaveBeenCalledTimes(2);
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner1.address,
+        clobVersion: 'v1',
       });
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner2.address,
+        clobVersion: 'v1',
       });
     });
   });

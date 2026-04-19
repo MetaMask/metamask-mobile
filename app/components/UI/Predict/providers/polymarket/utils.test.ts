@@ -141,6 +141,7 @@ describe('polymarket utils', () => {
       expect(endpoints).toEqual({
         GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
+        CLOB_ENDPOINT_V2: 'https://clob-v2.polymarket.com',
         CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
@@ -402,6 +403,23 @@ describe('polymarket utils', () => {
       );
     });
 
+    it('targets the v2 CLOB endpoint when requested', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApiKey),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await deriveApiKey({ address: mockAddress, clobVersion: 'v2' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob-v2.polymarket.com/auth/derive-api-key',
+        expect.objectContaining({
+          method: 'GET',
+        }),
+      );
+    });
+
     it('handle fetch errors', async () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
@@ -436,6 +454,25 @@ describe('polymarket utils', () => {
       );
     });
 
+    it('targets the v2 CLOB endpoint when requested', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApiKey),
+        status: 200,
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await createApiKey({ address: mockAddress, clobVersion: 'v2' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob-v2.polymarket.com/auth/api-key',
+        expect.objectContaining({
+          method: 'POST',
+          body: '',
+        }),
+      );
+    });
+
     it('derive API key when creation returns 400', async () => {
       const createResponse = {
         ok: false,
@@ -455,6 +492,39 @@ describe('polymarket utils', () => {
 
       expect(result).toEqual(mockApiKey);
       expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('derives from the v2 CLOB endpoint when v2 creation returns 400', async () => {
+      const createResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({}),
+        status: 400,
+      };
+      const deriveResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApiKey),
+      };
+
+      mockFetch
+        .mockResolvedValueOnce(createResponse)
+        .mockResolvedValueOnce(deriveResponse);
+
+      const result = await createApiKey({
+        address: mockAddress,
+        clobVersion: 'v2',
+      });
+
+      expect(result).toEqual(mockApiKey);
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        1,
+        'https://clob-v2.polymarket.com/auth/api-key',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        2,
+        'https://clob-v2.polymarket.com/auth/derive-api-key',
+        expect.objectContaining({ method: 'GET' }),
+      );
     });
 
     it('handle creation errors', async () => {
