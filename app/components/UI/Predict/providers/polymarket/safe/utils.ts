@@ -333,15 +333,17 @@ export const createPermit2FeeAuthorization = async ({
   signer,
   amount,
   spender,
+  tokenAddress = MATIC_CONTRACTS.collateral,
 }: {
   safeAddress: Hex;
   signer: Signer;
   amount: bigint;
   spender: string;
+  tokenAddress?: string;
 }): Promise<Permit2FeeAuthorization> => {
   const nonce = await getPermit2Nonce();
   const deadline = (Math.floor(Date.now() / 1000) + 3600).toString();
-  const token = MATIC_CONTRACTS.collateral;
+  const token = tokenAddress;
 
   const domain = {
     name: 'Permit2',

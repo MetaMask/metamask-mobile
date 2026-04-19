@@ -1659,11 +1659,13 @@ export const getMarketPositions = async ({
   return parsedPositions;
 };
 
-export const getBalance = async ({
+export const getRawBalance = async ({
   address,
+  tokenAddress,
 }: {
   address: string;
-}): Promise<number> => {
+  tokenAddress: string;
+}): Promise<bigint> => {
   const { NetworkController } = Engine.context;
   const networkClientId = NetworkController.findNetworkClientIdByChainId(
     numberToHex(POLYGON_MAINNET_CHAIN_ID),
@@ -1672,25 +1674,34 @@ export const getBalance = async ({
     NetworkController.getNetworkClientById(networkClientId).provider,
   );
 
-  // Get the collateral token contract address
-  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
-
-  // Encode the balanceOf function call
   const data = new Interface([
     'function balanceOf(address account) external view returns (uint256)',
   ]).encodeFunctionData('balanceOf', [address]);
 
-  // Make the contract call
   const res = await query(ethQuery, 'call', [
     {
-      to: contractConfig.collateral,
+      to: tokenAddress,
       data,
     },
   ]);
 
-  // Decode the result and convert to USDC (6 decimals)
-  const balance = Number(BigInt(res)) / 10 ** COLLATERAL_TOKEN_DECIMALS;
-  return balance;
+  return BigInt(res);
+};
+
+export const getBalance = async ({
+  address,
+  tokenAddress,
+}: {
+  address: string;
+  tokenAddress?: string;
+}): Promise<number> => {
+  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
+  const balance = await getRawBalance({
+    address,
+    tokenAddress: tokenAddress ?? contractConfig.collateral,
+  });
+
+  return Number(balance) / 10 ** COLLATERAL_TOKEN_DECIMALS;
 };
 
 const matchBuyOrder = ({
