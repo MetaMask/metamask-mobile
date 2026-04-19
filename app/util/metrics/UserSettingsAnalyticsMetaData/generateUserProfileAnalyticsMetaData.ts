@@ -18,8 +18,6 @@ export function getAccountCompositionTraits(
   const hdEntropyIds = new Set<string>();
   let numberOfImportedAccounts = 0;
   let numberOfLedgerAccounts = 0;
-  let numberOfTrezorAccounts = 0;
-  let numberOfLatticeAccounts = 0;
   let numberOfQrHardwareAccounts = 0;
 
   for (const [accountId, account] of Object.entries(internalAccounts)) {
@@ -31,12 +29,6 @@ export function getAccountCompositionTraits(
         break;
       case KeyringTypes.ledger:
         numberOfLedgerAccounts += 1;
-        break;
-      case KeyringTypes.trezor:
-        numberOfTrezorAccounts += 1;
-        break;
-      case KeyringTypes.lattice:
-        numberOfLatticeAccounts += 1;
         break;
       case KeyringTypes.qr:
       case KeyringTypes.oneKey:
@@ -66,8 +58,6 @@ export function getAccountCompositionTraits(
 
   const numberOfHardwareWallets =
     (numberOfLedgerAccounts > 0 ? 1 : 0) +
-    (numberOfTrezorAccounts > 0 ? 1 : 0) +
-    (numberOfLatticeAccounts > 0 ? 1 : 0) +
     (numberOfQrHardwareAccounts > 0 ? 1 : 0);
 
   return {
@@ -75,8 +65,6 @@ export function getAccountCompositionTraits(
     [UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]: accountGroupKeys.size,
     [UserProfileProperty.NUMBER_OF_IMPORTED_ACCOUNTS]: numberOfImportedAccounts,
     [UserProfileProperty.NUMBER_OF_LEDGER_ACCOUNTS]: numberOfLedgerAccounts,
-    [UserProfileProperty.NUMBER_OF_TREZOR_ACCOUNTS]: numberOfTrezorAccounts,
-    [UserProfileProperty.NUMBER_OF_LATTICE_ACCOUNTS]: numberOfLatticeAccounts,
     [UserProfileProperty.NUMBER_OF_QR_HARDWARE_ACCOUNTS]:
       numberOfQrHardwareAccounts,
     [UserProfileProperty.NUMBER_OF_HARDWARE_WALLETS]: numberOfHardwareWallets,
