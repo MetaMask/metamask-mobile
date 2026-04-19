@@ -1,3 +1,4 @@
+import { HASH_ZERO_BYTES32 } from '../constants';
 import {
   POLYMARKET_V1_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
@@ -6,23 +7,25 @@ import {
 } from './definitions';
 
 describe('polymarket protocol definitions', () => {
-  const originalEnvironment = process.env.METAMASK_ENVIRONMENT;
-  const originalDevBuilderCode =
-    process.env.MM_PREDICT_POLYMARKET_CLOB_V2_DEV_BUILDER_CODE;
-  const originalProdBuilderCode =
-    process.env.MM_PREDICT_POLYMARKET_CLOB_V2_PROD_BUILDER_CODE;
+  const originalBuilderCode = process.env.MM_PREDICT_BUILDER_CODE;
+  let warnSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    delete process.env.MM_PREDICT_POLYMARKET_CLOB_V2_DEV_BUILDER_CODE;
-    delete process.env.MM_PREDICT_POLYMARKET_CLOB_V2_PROD_BUILDER_CODE;
+    delete process.env.MM_PREDICT_BUILDER_CODE;
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
   });
 
   afterAll(() => {
-    process.env.METAMASK_ENVIRONMENT = originalEnvironment;
-    process.env.MM_PREDICT_POLYMARKET_CLOB_V2_DEV_BUILDER_CODE =
-      originalDevBuilderCode;
-    process.env.MM_PREDICT_POLYMARKET_CLOB_V2_PROD_BUILDER_CODE =
-      originalProdBuilderCode;
+    if (originalBuilderCode === undefined) {
+      delete process.env.MM_PREDICT_BUILDER_CODE;
+      return;
+    }
+
+    process.env.MM_PREDICT_BUILDER_CODE = originalBuilderCode;
   });
 
   it('resolves v1 when predictClobV2 is disabled', () => {
@@ -37,32 +40,31 @@ describe('polymarket protocol definitions', () => {
     );
   });
 
-  it('reads the dev builder code in dev builds', () => {
-    process.env.METAMASK_ENVIRONMENT = 'dev';
-    process.env.MM_PREDICT_POLYMARKET_CLOB_V2_DEV_BUILDER_CODE =
+  it('reads the builder code from MM_PREDICT_BUILDER_CODE', () => {
+    process.env.MM_PREDICT_BUILDER_CODE =
       '0x1111111111111111111111111111111111111111111111111111111111111111';
 
-    expect(getClobV2BuilderCode('dev')).toBe(
+    expect(getClobV2BuilderCode()).toBe(
       '0x1111111111111111111111111111111111111111111111111111111111111111',
     );
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('reads the prod builder code outside dev builds', () => {
-    process.env.METAMASK_ENVIRONMENT = 'prod';
-    process.env.MM_PREDICT_POLYMARKET_CLOB_V2_PROD_BUILDER_CODE =
-      '0x2222222222222222222222222222222222222222222222222222222222222222';
+  it('falls back to zero builder code when MM_PREDICT_BUILDER_CODE is missing', () => {
+    process.env.MM_PREDICT_BUILDER_CODE = '';
 
-    expect(getClobV2BuilderCode('prod')).toBe(
-      '0x2222222222222222222222222222222222222222222222222222222222222222',
+    expect(getClobV2BuilderCode()).toBe(HASH_ZERO_BYTES32);
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Polymarket CLOB v2 builder code missing in MM_PREDICT_BUILDER_CODE; falling back to zero bytes32 value',
     );
   });
 
-  it('throws when a valid builder code is not configured', () => {
-    process.env.METAMASK_ENVIRONMENT = 'dev';
-    process.env.MM_PREDICT_POLYMARKET_CLOB_V2_DEV_BUILDER_CODE = 'invalid';
+  it('falls back to zero builder code when MM_PREDICT_BUILDER_CODE is invalid', () => {
+    process.env.MM_PREDICT_BUILDER_CODE = 'invalid';
 
-    expect(() => getClobV2BuilderCode('dev')).toThrow(
-      'Missing valid Polymarket CLOB v2 builder code',
+    expect(getClobV2BuilderCode()).toBe(HASH_ZERO_BYTES32);
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Polymarket CLOB v2 builder code invalid in MM_PREDICT_BUILDER_CODE; falling back to zero bytes32 value',
     );
   });
 });

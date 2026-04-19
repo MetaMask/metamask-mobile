@@ -264,10 +264,23 @@ const mockIsLiveSportsEvent = isLiveSportsEvent as jest.Mock;
 const mockExtractNeededTeamsFromEvents =
   extractNeededTeamsFromEvents as jest.Mock;
 
-process.env.MM_PREDICT_POLYMARKET_CLOB_V2_PROD_BUILDER_CODE =
-  '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-
 describe('PolymarketProvider', () => {
+  const originalBuilderCode = process.env.MM_PREDICT_BUILDER_CODE;
+
+  beforeAll(() => {
+    process.env.MM_PREDICT_BUILDER_CODE =
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  });
+
+  afterAll(() => {
+    if (originalBuilderCode === undefined) {
+      delete process.env.MM_PREDICT_BUILDER_CODE;
+      return;
+    }
+
+    process.env.MM_PREDICT_BUILDER_CODE = originalBuilderCode;
+  });
+
   const defaultFeatureFlags: PredictFeatureFlags = {
     feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
     liveSportsLeagues: [],

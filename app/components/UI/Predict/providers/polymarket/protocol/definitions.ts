@@ -42,33 +42,27 @@ interface BasePolymarketProtocolDefinition {
   };
 }
 
-const DEV_BUILDER_CODE_ENV = 'MM_PREDICT_POLYMARKET_CLOB_V2_DEV_BUILDER_CODE';
-const PROD_BUILDER_CODE_ENV = 'MM_PREDICT_POLYMARKET_CLOB_V2_PROD_BUILDER_CODE';
+const BUILDER_CODE_ENV = 'MM_PREDICT_BUILDER_CODE';
 
 function isBytes32Hex(value: string | undefined): value is string {
   return Boolean(value?.match(/^0x[a-fA-F0-9]{64}$/u));
 }
 
-function getRequiredBuilderCodeFromEnv(envVarName: string): string {
-  const value = process.env[envVarName];
+export function getClobV2BuilderCode(): string {
+  const value = process.env[BUILDER_CODE_ENV];
 
-  if (!isBytes32Hex(value)) {
-    throw new Error(
-      `Missing valid Polymarket CLOB v2 builder code in ${envVarName}`,
-    );
+  if (isBytes32Hex(value)) {
+    return value;
   }
 
-  return value;
-}
+  const reason = value ? 'invalid' : 'missing';
 
-export function getClobV2BuilderCode(
-  environment = process.env.METAMASK_ENVIRONMENT,
-): string {
-  if (environment === 'dev') {
-    return getRequiredBuilderCodeFromEnv(DEV_BUILDER_CODE_ENV);
-  }
+  // eslint-disable-next-line no-console
+  console.warn(
+    `Polymarket CLOB v2 builder code ${reason} in ${BUILDER_CODE_ENV}; falling back to zero bytes32 value`,
+  );
 
-  return getRequiredBuilderCodeFromEnv(PROD_BUILDER_CODE_ENV);
+  return HASH_ZERO_BYTES32;
 }
 
 export const POLYMARKET_V1_PROTOCOL = {
