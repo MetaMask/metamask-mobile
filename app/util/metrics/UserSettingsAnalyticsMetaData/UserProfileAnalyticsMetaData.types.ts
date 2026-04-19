@@ -17,8 +17,6 @@ export enum UserProfileProperty {
   NUMBER_OF_ACCOUNT_GROUPS = 'number_of_account_groups',
   NUMBER_OF_IMPORTED_ACCOUNTS = 'number_of_imported_accounts',
   NUMBER_OF_LEDGER_ACCOUNTS = 'number_of_ledger_accounts',
-  NUMBER_OF_TREZOR_ACCOUNTS = 'number_of_trezor_accounts',
-  NUMBER_OF_LATTICE_ACCOUNTS = 'number_of_lattice_accounts',
   NUMBER_OF_QR_HARDWARE_ACCOUNTS = 'number_of_qr_hardware_accounts',
   NUMBER_OF_HARDWARE_WALLETS = 'number_of_hardware_wallets',
   CHAIN_IDS = 'chain_id_list',
@@ -44,8 +42,6 @@ export interface UserProfileMetaData {
   [UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]: number;
   [UserProfileProperty.NUMBER_OF_IMPORTED_ACCOUNTS]: number;
   [UserProfileProperty.NUMBER_OF_LEDGER_ACCOUNTS]: number;
-  [UserProfileProperty.NUMBER_OF_TREZOR_ACCOUNTS]: number;
-  [UserProfileProperty.NUMBER_OF_LATTICE_ACCOUNTS]: number;
   [UserProfileProperty.NUMBER_OF_QR_HARDWARE_ACCOUNTS]: number;
   [UserProfileProperty.NUMBER_OF_HARDWARE_WALLETS]: number;
   [UserProfileProperty.CHAIN_IDS]: CaipChainId[];

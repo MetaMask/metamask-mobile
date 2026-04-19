@@ -113,8 +113,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]: 0,
       [UserProfileProperty.NUMBER_OF_IMPORTED_ACCOUNTS]: 0,
       [UserProfileProperty.NUMBER_OF_LEDGER_ACCOUNTS]: 0,
-      [UserProfileProperty.NUMBER_OF_TREZOR_ACCOUNTS]: 0,
-      [UserProfileProperty.NUMBER_OF_LATTICE_ACCOUNTS]: 0,
       [UserProfileProperty.NUMBER_OF_QR_HARDWARE_ACCOUNTS]: 0,
       [UserProfileProperty.NUMBER_OF_HARDWARE_WALLETS]: 0,
     });
@@ -174,8 +172,6 @@ describe('getAccountCompositionTraits', () => {
       [UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]: 0,
       [UserProfileProperty.NUMBER_OF_IMPORTED_ACCOUNTS]: 0,
       [UserProfileProperty.NUMBER_OF_LEDGER_ACCOUNTS]: 0,
-      [UserProfileProperty.NUMBER_OF_TREZOR_ACCOUNTS]: 0,
-      [UserProfileProperty.NUMBER_OF_LATTICE_ACCOUNTS]: 0,
       [UserProfileProperty.NUMBER_OF_QR_HARDWARE_ACCOUNTS]: 0,
       [UserProfileProperty.NUMBER_OF_HARDWARE_WALLETS]: 0,
     });
@@ -240,20 +236,6 @@ describe('getAccountCompositionTraits', () => {
     expect(traits[UserProfileProperty.NUMBER_OF_HD_ENTROPIES]).toBe(0);
   });
 
-  it('counts Trezor accounts', () => {
-    const acct = makeAccount('trezor1', KeyringTypes.trezor);
-    const traits = getAccountCompositionTraits({ [acct.id]: acct });
-    expect(traits[UserProfileProperty.NUMBER_OF_TREZOR_ACCOUNTS]).toBe(1);
-    expect(traits[UserProfileProperty.NUMBER_OF_HARDWARE_WALLETS]).toBe(1);
-  });
-
-  it('counts Lattice accounts', () => {
-    const acct = makeAccount('lattice1', KeyringTypes.lattice);
-    const traits = getAccountCompositionTraits({ [acct.id]: acct });
-    expect(traits[UserProfileProperty.NUMBER_OF_LATTICE_ACCOUNTS]).toBe(1);
-    expect(traits[UserProfileProperty.NUMBER_OF_HARDWARE_WALLETS]).toBe(1);
-  });
-
   it('counts QR hardware accounts (qr keyring)', () => {
     const acct = makeAccount('qr1', KeyringTypes.qr);
     const traits = getAccountCompositionTraits({ [acct.id]: acct });
@@ -293,10 +275,10 @@ describe('getAccountCompositionTraits', () => {
 
   it('hardware wallet accounts do not contribute to number_of_hd_entropies', () => {
     const ledger = makeAccount('ledger1', KeyringTypes.ledger);
-    const trezor = makeAccount('trezor1', KeyringTypes.trezor);
+    const qr = makeAccount('qr1', KeyringTypes.qr);
     const traits = getAccountCompositionTraits({
       [ledger.id]: ledger,
-      [trezor.id]: trezor,
+      [qr.id]: qr,
     });
     expect(traits[UserProfileProperty.NUMBER_OF_HD_ENTROPIES]).toBe(0);
   });
