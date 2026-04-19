@@ -52,7 +52,18 @@ export function useTransactionCustomAmount({
 
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const tokenAddress = getTokenAddress(transactionMeta);
-  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const rawTokenFiatRate =
+    useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+
+  // pUSD (Predict) is a dollar-pegged stablecoin backed 1:1 by USDC on-chain.
+  // The token rates controller doesn't track pUSD, so the rate lookup falls
+  // back to the native-token (POL ≈ $0.09) rate which inflates the converted
+  // amount ~11×, triggering a false "Insufficient funds" alert. Override to 1.
+  const isStablecoinWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.predictWithdraw,
+  ]);
+  const tokenFiatRate = isStablecoinWithdraw ? 1 : rawTokenFiatRate;
+
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
   const { updateTokenAmount: updateTokenAmountCallback } =
