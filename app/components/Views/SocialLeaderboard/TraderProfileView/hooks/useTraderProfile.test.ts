@@ -1,16 +1,42 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useTraderProfile } from './useTraderProfile';
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('../../../../../selectors/socialController', () => ({
+  selectFollowingProfileIds: jest.fn(),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      getSessionProfile: jest
+        .fn()
+        .mockResolvedValue({ profileId: 'mock-profile-id' }),
+    },
+  },
+  controllerMessenger: {
+    call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
 }));
 
 jest.mock('@metamask/react-data-query');
 
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -47,6 +73,7 @@ describe('useTraderProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
+    mockUseSelector.mockReturnValue([]);
   });
 
   describe('query configuration', () => {
@@ -147,32 +174,109 @@ describe('useTraderProfile', () => {
   });
 
   describe('toggleFollow', () => {
-    it('defaults isFollowing to false', () => {
+    beforeEach(() => {
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
+        followed: [],
+        unfollowed: [],
+      });
+    });
+
+    it('defaults isFollowing to false when not in controller state', () => {
       const { result } = renderHook(() => useTraderProfile('trader-1'));
       expect(result.current.isFollowing).toBe(false);
     });
 
-    it('sets isFollowing to true on the first toggle', () => {
+    it('seeds isFollowing true when traderId is in followingProfileIds', () => {
+      mockUseSelector.mockReturnValue(['trader-1']);
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+      expect(result.current.isFollowing).toBe(true);
+    });
+
+    it('calls followTrader when not currently following', async () => {
       const { result } = renderHook(() => useTraderProfile('trader-1'));
 
-      act(() => {
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialController:followTrader',
+        { addressOrUid: 'mock-profile-id', targets: ['trader-1'] },
+      );
+    });
+
+    it('calls unfollowTrader when currently following', async () => {
+      mockUseSelector.mockReturnValue(['trader-1']);
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialController:unfollowTrader',
+        { addressOrUid: 'mock-profile-id', targets: ['trader-1'] },
+      );
+    });
+
+    it('flips isFollowing optimistically before the API call resolves', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      expect(result.current.isFollowing).toBe(false);
+
+      await act(async () => {
         result.current.toggleFollow();
       });
 
       expect(result.current.isFollowing).toBe(true);
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
     });
 
-    it('toggles isFollowing back to false on the second call', () => {
+    it('reverts isFollowing when the API call rejects', async () => {
+      (Engine.controllerMessenger.call as jest.Mock).mockRejectedValue(
+        new Error('boom'),
+      );
       const { result } = renderHook(() => useTraderProfile('trader-1'));
 
-      act(() => {
-        result.current.toggleFollow();
-      });
-      act(() => {
-        result.current.toggleFollow();
+      await act(async () => {
+        await result.current.toggleFollow();
       });
 
       expect(result.current.isFollowing).toBe(false);
+    });
+
+    it('ignores concurrent toggleFollow calls while one is in flight', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
     });
   });
 

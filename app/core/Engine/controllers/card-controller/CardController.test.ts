@@ -418,7 +418,9 @@ describe('CardController — auth methods', () => {
       provider.logout.mockResolvedValue(undefined);
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       mockTokenStore.remove.mockResolvedValue(true);
-      const controller = buildController(provider, { isAuthenticated: true });
+      const controller = buildController(provider, {
+        isAuthenticated: true,
+      });
 
       await controller.logout();
 
@@ -432,7 +434,9 @@ describe('CardController — auth methods', () => {
       provider.logout.mockRejectedValue(new Error('Server error'));
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       mockTokenStore.remove.mockResolvedValue(true);
-      const controller = buildController(provider, { isAuthenticated: true });
+      const controller = buildController(provider, {
+        isAuthenticated: true,
+      });
 
       await controller.logout();
 

@@ -14,6 +14,19 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: (action: () => void) => action(),
+    isEligible: true,
+  }),
+}));
+
+jest.mock('../../hooks/usePredictNavigation', () => ({
+  usePredictNavigation: () => ({
+    navigateToBuyPreview: jest.fn(),
+  }),
+}));
+
 jest.mock('../PredictShareButton/PredictShareButton', () => {
   const { View } = jest.requireActual('react-native');
   return function MockPredictShareButton({ marketId }: { marketId?: string }) {
