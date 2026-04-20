@@ -169,6 +169,28 @@ const isLoadingBalance = (balance?: string) =>
   balance === TOKEN_BALANCE_LOADING ||
   balance === TOKEN_BALANCE_LOADING_UPPERCASE;
 
+export const getSecurityTag = (
+  securityType: NonNullable<BridgeToken['securityData']>['type'] | undefined,
+) => {
+  if (securityType === 'Warning' || securityType === 'Spam') {
+    return {
+      severity: TagSeverity.Warning,
+      label: strings('bridge.token_suspicious'),
+      iconName: IconName.Danger,
+      iconColor: IconColor.WarningDefault,
+    };
+  }
+  if (securityType === 'Malicious') {
+    return {
+      severity: TagSeverity.Danger,
+      label: strings('bridge.token_malicious'),
+      iconName: IconName.Warning,
+      iconColor: IconColor.ErrorDefault,
+    };
+  }
+  return null;
+};
+
 const FiatBalanceView = ({
   balance,
   isSelected,
@@ -307,23 +329,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     ? ACCOUNT_TYPE_LABELS[token.accountType]
     : undefined;
 
-  const securityType = token.securityData?.type;
-  const securityTag =
-    securityType === 'Warning' || securityType === 'Spam'
-      ? {
-          severity: TagSeverity.Warning,
-          label: strings('bridge.token_suspicious'),
-          iconName: IconName.Danger,
-          iconColor: IconColor.WarningDefault,
-        }
-      : securityType === 'Malicious'
-        ? {
-            severity: TagSeverity.Danger,
-            label: strings('bridge.token_malicious'),
-            iconName: IconName.Warning,
-            iconColor: IconColor.ErrorDefault,
-          }
-        : null;
+  const securityTag = getSecurityTag(token.securityData?.type);
 
   return (
     <Box

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Text as RNText } from 'react-native';
-import { TokenSelectorItem } from './TokenSelectorItem';
+import { TokenSelectorItem, getSecurityTag } from './TokenSelectorItem';
 import { ethers } from 'ethers';
 import { useABTest } from '../../../../hooks';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
@@ -89,9 +89,17 @@ jest.mock('@metamask/design-system-react-native', () => {
     default: Icon,
     Icon,
     __mockIcon: Icon,
-    IconColor: { InfoDefault: 'InfoDefault' },
-    IconName: { VerifiedFilled: 'VerifiedFilled' },
-    IconSize: { Sm: 'Sm' },
+    IconColor: {
+      InfoDefault: 'InfoDefault',
+      WarningDefault: 'WarningDefault',
+      ErrorDefault: 'ErrorDefault',
+    },
+    IconName: {
+      VerifiedFilled: 'VerifiedFilled',
+      Warning: 'Warning',
+      Danger: 'Danger',
+    },
+    IconSize: { Sm: 'Sm', Xs: 'Xs' },
   };
 });
 
@@ -103,13 +111,26 @@ const { __mockIcon: mockDSIcon } = jest.requireMock(
 
 jest.mock('../../../../component-library/base-components/TagBase', () => {
   const { createElement } = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) =>
-      createElement(Text, null, children),
-    TagShape: { Rectangle: 'Rectangle' },
-    TagSeverity: { Info: 'Info' },
+    default: ({
+      children,
+      startAccessory,
+    }: {
+      children: React.ReactNode;
+      startAccessory?: React.ReactNode;
+    }) =>
+      createElement(
+        View,
+        null,
+        startAccessory,
+        typeof children === 'string'
+          ? createElement(Text, null, children)
+          : children,
+      ),
+    TagShape: { Rectangle: 'Rectangle', Pill: 'Pill' },
+    TagSeverity: { Info: 'Info', Warning: 'Warning', Danger: 'Danger' },
   };
 });
 
@@ -475,6 +496,96 @@ describe('TokenSelectorItem', () => {
     });
   });
 
+  describe('security badges', () => {
+    it.each(['Warning', 'Spam'] as const)(
+      'shows Suspicious badge for %s type',
+      (securityType) => {
+        const token = createMockTokenWithBalance({
+          securityData: { type: securityType },
+        });
+
+        const { getByText } = render(
+          <TokenSelectorItem token={token} onPress={mockOnPress} />,
+        );
+
+        expect(getByText('bridge.token_suspicious')).toBeTruthy();
+      },
+    );
+
+    it('shows Malicious badge for Malicious type', () => {
+      const token = createMockTokenWithBalance({
+        securityData: { type: 'Malicious' },
+      });
+
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(getByText('bridge.token_malicious')).toBeTruthy();
+    });
+
+    it.each(['Info', 'Benign', 'Verified'] as const)(
+      'does not show a security badge for %s type',
+      (securityType) => {
+        const token = createMockTokenWithBalance({
+          securityData: { type: securityType },
+        });
+
+        const { queryByText } = render(
+          <TokenSelectorItem token={token} onPress={mockOnPress} />,
+        );
+
+        expect(queryByText('bridge.token_suspicious')).toBeNull();
+        expect(queryByText('bridge.token_malicious')).toBeNull();
+      },
+    );
+
+    it('does not show a security badge when securityData is absent', () => {
+      const token = createMockTokenWithBalance({ securityData: undefined });
+
+      const { queryByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(queryByText('bridge.token_suspicious')).toBeNull();
+      expect(queryByText('bridge.token_malicious')).toBeNull();
+    });
+
+    it('renders Warning icon with WarningDefault color for Suspicious badge', () => {
+      const token = createMockTokenWithBalance({
+        securityData: { type: 'Warning' },
+      });
+
+      render(<TokenSelectorItem token={token} onPress={mockOnPress} />);
+
+      expect(mockDSIcon).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Danger',
+          color: 'WarningDefault',
+          size: 'Sm',
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('renders Danger icon with ErrorDefault color for Malicious badge', () => {
+      const token = createMockTokenWithBalance({
+        securityData: { type: 'Malicious' },
+      });
+
+      render(<TokenSelectorItem token={token} onPress={mockOnPress} />);
+
+      expect(mockDSIcon).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Warning',
+          color: 'ErrorDefault',
+          size: 'Sm',
+        }),
+        expect.anything(),
+      );
+    });
+  });
+
   describe('A/B variants', () => {
     it('keeps fiat above token balance in the control layout', () => {
       const token = createMockTokenWithBalance({
@@ -525,5 +636,45 @@ describe('TokenSelectorItem', () => {
         treatmentTextOrder.indexOf('$500'),
       );
     });
+  });
+});
+
+describe('getSecurityTag', () => {
+  it.each(['Warning', 'Spam'] as const)(
+    'returns Warning severity config for %s type',
+    (securityType) => {
+      const result = getSecurityTag(securityType);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          severity: 'Warning',
+          iconName: 'Danger',
+          iconColor: 'WarningDefault',
+        }),
+      );
+    },
+  );
+
+  it('returns Danger severity config for Malicious type', () => {
+    const result = getSecurityTag('Malicious');
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        severity: 'Danger',
+        iconName: 'Warning',
+        iconColor: 'ErrorDefault',
+      }),
+    );
+  });
+
+  it.each(['Info', 'Benign', 'Verified'] as const)(
+    'returns null for %s type',
+    (securityType) => {
+      expect(getSecurityTag(securityType)).toBeNull();
+    },
+  );
+
+  it('returns null when securityType is undefined', () => {
+    expect(getSecurityTag(undefined)).toBeNull();
   });
 });

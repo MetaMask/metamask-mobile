@@ -109,6 +109,41 @@ describe('usePopularTokens', () => {
       );
     });
 
+    it('preserves securityData in the response', async () => {
+      const tokenWithSecurity = createMockPopularToken({
+        symbol: 'SAFE',
+        securityData: {
+          type: 'Warning',
+          metadata: {
+            features: [
+              {
+                featureId: 'HONEYPOT',
+                type: 'Warning',
+                description: 'Honeypot risk',
+              },
+            ],
+          },
+        },
+      });
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        json: async () => [tokenWithSecurity],
+      });
+
+      const { result } = renderHook(() =>
+        usePopularTokens({
+          chainIds: [MOCK_CHAIN_IDS.ethereum],
+          includeAssets: '[]',
+        }),
+      );
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.popularTokens[0].securityData).toEqual(
+        tokenWithSecurity.securityData,
+      );
+    });
+
     it('falls back to an empty array for malformed responses', async () => {
       mockedEngine.context.AuthenticationController.getBearerToken.mockReturnValue(
         new Promise(() => undefined),
