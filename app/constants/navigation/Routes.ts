@@ -20,6 +20,7 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    HEADLESS_PLAYGROUND: 'RampHeadlessPlayground',
     AMOUNT_INPUT: 'RampAmountInput',
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',

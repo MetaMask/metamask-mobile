@@ -31,6 +31,8 @@ import styles from './Settings.styles';
 
 export const RAMP_SETTINGS_HEADER_TEST_ID = 'ramp-settings-header';
 export const RAMP_SETTINGS_BACK_BUTTON_TEST_ID = 'ramp-settings-back-button';
+export const RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID =
+  'ramp-settings-headless-playground-button';
 
 function Settings() {
   const navigation = useNavigation();
@@ -53,6 +55,10 @@ function Settings() {
 
   const handleChangeRegion = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.REGION_SELECTOR);
+  }, [navigation]);
+
+  const handleOpenHeadlessPlayground = useCallback(() => {
+    navigation.navigate(Routes.RAMP.HEADLESS_PLAYGROUND);
   }, [navigation]);
 
   return (
@@ -134,6 +140,20 @@ function Settings() {
               {isInternalBuild ? (
                 <Row>
                   <ActivationKeys />
+                </Row>
+              ) : null}
+              {isInternalBuild ? (
+                <Row>
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    onPress={handleOpenHeadlessPlayground}
+                    label={strings(
+                      'app_settings.fiat_on_ramp.headless_playground.entry_button',
+                    )}
+                    testID={RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID}
+                  />
                 </Row>
               ) : null}
             </ScreenLayout.Content>

@@ -259,6 +259,7 @@ export interface RootStackParamList extends ParamListBase {
   SendTransaction: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
+  RampHeadlessPlayground: undefined;
   RampAmountInput:
     | (SimpleRampBuildQuoteParams & { nativeFlowError?: string })
     | undefined;

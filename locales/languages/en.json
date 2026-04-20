@@ -3344,7 +3344,27 @@
       "update": "Update",
       "cancel": "Cancel",
       "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
-      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}",
+      "headless_playground": {
+        "title": "Headless Buy playground",
+        "entry_button": "Open Headless Buy playground",
+        "selected_values": "Selected values",
+        "selected_user_region": "User region",
+        "selected_provider": "Selected provider",
+        "selected_token": "Selected token",
+        "selected_payment_method": "Selected payment method",
+        "providers": "Providers",
+        "tokens": "Tokens",
+        "payment_methods": "Payment methods",
+        "no_data": "No data",
+        "none_selected": "None selected",
+        "loading": "Loading…",
+        "error": "Error",
+        "count": "{{count}} item(s)",
+        "summary": "Summary",
+        "summary_token": "Token",
+        "summary_provider": "Provider"
+      }
     },
     "request_feature": "Request a feature",
     "contact_support": "Contact support",
