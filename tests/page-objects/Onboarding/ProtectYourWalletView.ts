@@ -23,11 +23,8 @@ class ProtectYourWalletView {
       appium: {
         android: () => PlaywrightMatchers.getElementByText('Remind me later'),
         ios: () =>
-          PlaywrightMatchers.getElementByXPath(
-            '(//XCUIElementTypeStaticText[@name="Remind me later"])[2]',
-            {
-              exact: true,
-            },
+          PlaywrightMatchers.getElementByAccessibilityId(
+            'remind-me-later-button',
           ),
       },
     });

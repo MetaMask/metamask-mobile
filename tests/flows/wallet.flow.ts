@@ -40,6 +40,7 @@ import PlaywrightUtilities from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
+import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -49,6 +50,7 @@ const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
+const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
 
 /**
  * Gets the localhost URL for Ganache/Anvil network connection.
@@ -494,14 +496,26 @@ export const selectAccountByDevice = async (
  * @function dismisspredictionsModalPlaywright
  * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
  */
-export const dismisspredictionsModalPlaywright = async (): Promise<void> => {
-  try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(PredictModalView.notNowButton),
-    );
-    await PredictModalView.tapNotNowButton();
-  } catch {
-    logger.error('Predict Modal Not Now Button is not visible');
+export const dismisspredictionsModalPlaywright = async (
+  maxRetries = 3,
+): Promise<void> => {
+  const btn = await asPlaywrightElement(PredictModalView.notNowButton);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await btn.unwrap().click();
+    } catch {
+      return;
+    }
+    try {
+      await btn.waitForDisplayed({ reverse: true, timeout: 5000 });
+      return;
+    } catch {
+      if (attempt === maxRetries) {
+        logger.error(
+          `Predict modal not dismissed after ${maxRetries} attempts`,
+        );
+      }
+    }
   }
 };
 
@@ -554,7 +568,23 @@ export const onboardingFlowImportSRPPlaywright = async (
     await asPlaywrightElement(OnboardingSuccessView.doneButton),
   );
   await OnboardingSuccessView.tapDone();
-  await dismisspredictionsModalPlaywright();
+  const productionFeatureFlags = await fetchProductionFeatureFlags(
+    'main',
+    testEnvironment,
+  );
+
+  const predictGtmOnboardingModalEnabled = (
+    productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
+      enabled?: boolean;
+    }
+  )?.enabled;
+  console.log(
+    `Predict GTM Onboarding Modal Enabled: ${predictGtmOnboardingModalEnabled}`,
+  );
+  if (predictGtmOnboardingModalEnabled) {
+    await dismisspredictionsModalPlaywright();
+  }
+
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(WalletView.container),
   );

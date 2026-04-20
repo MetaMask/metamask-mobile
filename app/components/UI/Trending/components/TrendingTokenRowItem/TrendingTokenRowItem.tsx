@@ -307,38 +307,34 @@ const TrendingTokenRowItem = ({
       onPress={handlePress}
       testID={`trending-token-row-item-${token.assetId}`}
     >
-      <View>
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              size={AvatarSize.Xs}
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeImageSource}
-              isScaled={false}
-            />
-          }
-        >
-          <TrendingTokenLogo
-            assetId={token.assetId}
-            symbol={token.symbol}
-            size={40}
-            recyclingKey={token.assetId}
+      <BadgeWrapper
+        style={styles.badge}
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            size={AvatarSize.Xs}
+            variant={BadgeVariant.Network}
+            imageSource={networkBadgeImageSource}
+            isScaled={false}
           />
-        </BadgeWrapper>
-      </View>
+        }
+      >
+        <TrendingTokenLogo
+          assetId={token.assetId}
+          symbol={token.symbol}
+          size={40}
+          recyclingKey={token.assetId}
+        />
+      </BadgeWrapper>
       <View style={styles.leftContainer}>
-        <View style={styles.tokenHeaderRow}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {token?.name ?? token?.symbol}
-          </Text>
-        </View>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {token?.name ?? token?.symbol}
+        </Text>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {formatMarketStats(
             token.marketCap ?? 0,

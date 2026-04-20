@@ -1525,7 +1525,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Show Long/Short buttons when no position exists and user can trade */}
           {shouldShowLongShortButtonsOnly && (
             <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
+              <View
+                style={styles.actionButtonWrapper}
+                testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON_WRAPPER}
+              >
                 {buttonColorVariant === 'monochrome' ? (
                   <Button
                     variant={ButtonVariants.Primary}
@@ -1550,7 +1553,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 )}
               </View>
 
-              <View style={styles.actionButtonWrapper}>
+              <View
+                style={styles.actionButtonWrapper}
+                testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON_WRAPPER}
+              >
                 {buttonColorVariant === 'monochrome' ? (
                   <Button
                     variant={ButtonVariants.Primary}

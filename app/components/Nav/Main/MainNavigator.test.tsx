@@ -1339,7 +1339,7 @@ describe('MainNavigator', () => {
         homeTabsRoot = root;
       });
 
-      it('renders WalletTabModalFlow', () => {
+      it('renders WalletTabStackFlow', () => {
         const Component = getScreenComponent(
           homeTabsRoot,
           Routes.WALLET.HOME,
@@ -1386,49 +1386,35 @@ describe('MainNavigator', () => {
     });
 
     describe('Nested navigator components', () => {
-      it('renders WalletTabStackFlow inside WalletTabModalFlow', () => {
+      it('renders WalletTabStackFlow inside HomeTabs', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
         const HomeTabs = getScreenComponent(mainRoot, 'Home');
         const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabModalFlow = getScreenComponent(
+        const WalletTabStackFlow = getScreenComponent(
           homeRoot,
           Routes.WALLET.HOME,
           'TabScreen',
-        );
-        const { root: walletModalRoot } = renderInner(WalletTabModalFlow);
-
-        const WalletTabStackFlow = getScreenComponent(
-          walletModalRoot,
-          Routes.WALLET.TAB_STACK_FLOW,
         );
         expect(renderInner(WalletTabStackFlow).toJSON()).toBeTruthy();
       });
 
-      it('renders WalletModalFlow inside WalletTabStackFlow', () => {
+      it('renders Wallet inside WalletTabStackFlow', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
         const HomeTabs = getScreenComponent(mainRoot, 'Home');
         const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabModalFlow = getScreenComponent(
+        const WalletTabStackFlow = getScreenComponent(
           homeRoot,
           Routes.WALLET.HOME,
           'TabScreen',
         );
-        const { root: walletModalRoot } = renderInner(WalletTabModalFlow);
-        const WalletTabStackFlow = getScreenComponent(
-          walletModalRoot,
-          Routes.WALLET.TAB_STACK_FLOW,
-        );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
 
-        const WalletModalFlow = getScreenComponent(
-          walletStackRoot,
-          'WalletView',
-        );
-        expect(renderInner(WalletModalFlow).toJSON()).toBeTruthy();
+        const WalletScreen = getScreenComponent(walletStackRoot, 'WalletView');
+        expect(renderInner(WalletScreen).toJSON()).toBeTruthy();
       });
 
       it('renders AssetStackFlow inside AssetNavigator', () => {

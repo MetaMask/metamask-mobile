@@ -28,7 +28,7 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 
-const AddressCopy = ({ iconColor, hitSlop }: AddressCopyProps) => {
+const AddressCopy = ({ iconColor, hitSlop, testID }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
 
@@ -59,7 +59,7 @@ const AddressCopy = ({ iconColor, hitSlop }: AddressCopyProps) => {
   }, [navigate, selectedAccountGroupId]);
 
   return (
-    <View style={styles.address}>
+    <View style={styles.address} testID={testID}>
       <ButtonIcon
         iconName={IconName.Copy}
         size={ButtonIconSize.Md}

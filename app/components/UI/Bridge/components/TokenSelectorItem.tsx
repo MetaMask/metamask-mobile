@@ -73,14 +73,13 @@ const createStyles = ({
       flex: 1,
       flexShrink: 1,
       minWidth: 0,
-      marginLeft: 12,
+      marginLeft: 8,
     },
     container: {
       backgroundColor: vars.isSelected
         ? theme.colors.primary.muted
         : theme.colors.background.default,
       paddingVertical: 4,
-      minHeight: 72,
       paddingLeft: 16,
       paddingRight: 10,
     },
@@ -96,7 +95,7 @@ const createStyles = ({
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingVertical: 12,
+      paddingVertical: 10,
       alignItems: 'flex-start',
     },
     tokenMainInfo: {
@@ -239,7 +238,28 @@ const TokenBalanceView = ({
   );
 };
 
-export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
+const formatTokenBalance = (balance: string): string => {
+  const numericBalance = Number(balance);
+  if (numericBalance === 0) {
+    return '0';
+  }
+  if (numericBalance < 0.00001) {
+    return '< 0.00001';
+  }
+  return parseAmount(balance, 5) || balance;
+};
+
+const TOP_ROW_BALANCE_TEXT_STYLE = {
+  textVariant: TextVariant.BodyMDMedium,
+  textColor: TextColor.Default,
+} as const;
+
+const BOTTOM_ROW_BALANCE_TEXT_STYLE = {
+  textVariant: TextVariant.BodyMD,
+  textColor: TextColor.Alternative,
+} as const;
+
+const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   token,
   onPress,
   networkName,
@@ -262,17 +282,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
   const fiatValue = token.balanceFiat;
 
-  const formatTokenBalance = (balance: string): string => {
-    const numericBalance = Number(balance);
-    if (numericBalance === 0) {
-      return '0';
-    }
-    if (numericBalance < 0.00001) {
-      return '< 0.00001';
-    }
-    return parseAmount(balance, 5) || balance;
-  };
-
   const selectedVariant =
     variant ??
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
@@ -289,19 +298,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
   const isNative = token.address === ethers.constants.AddressZero;
 
-  // to check if the token is a stock by checking if the name includes 'ondo' or 'stock'
   const { isStockToken } = useRWAToken();
 
   const fiatBalance = shouldShowBalance ? fiatValue : undefined;
   const tokenBalance = shouldShowBalance ? cryptoBalance : undefined;
-  const topRowBalanceTextStyle = {
-    textVariant: TextVariant.BodyMDMedium,
-    textColor: TextColor.Default,
-  };
-  const bottomRowBalanceTextStyle = {
-    textVariant: TextVariant.BodySM,
-    textColor: TextColor.Alternative,
-  };
 
   const label = token.accountType
     ? ACCOUNT_TYPE_LABELS[token.accountType]
@@ -309,6 +309,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
   return (
     <Box
+      accessible={false}
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
       style={styles.container}
@@ -325,11 +326,11 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         )}
       >
         <Box
+          accessible={false}
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={4}
         >
-          {/* Token Icon */}
           <BadgeWrapper
             style={styles.badgeWrapper}
             badgePosition={BadgePosition.BottomRight}
@@ -344,7 +345,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <AvatarToken
               name={token.symbol}
               imageSource={getTokenImageSource(token.symbol, token.image)}
-              size={AvatarSize.Lg}
+              size={AvatarSize.Md}
               testID={
                 isNative
                   ? `network-logo-${token.symbol}`
@@ -353,19 +354,20 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             />
           </BadgeWrapper>
 
-          {/* Token symbol/name on the left, balances on the right (extension layout pattern) */}
           <Box
+            accessible={false}
             style={styles.tokenInfo}
             flexDirection={FlexDirection.Column}
             gap={4}
           >
             <Box
+              accessible={false}
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
               justifyContent={JustifyContent.spaceBetween}
             >
-              <Box style={styles.tokenMainInfo} gap={4}>
-                <Box style={styles.tokenSymbolRow}>
+              <Box accessible={false} style={styles.tokenMainInfo} gap={4}>
+                <Box accessible={false} style={styles.tokenSymbolRow}>
                   <Text
                     variant={TextVariant.BodyMDMedium}
                     numberOfLines={1}
@@ -402,19 +404,20 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                   balance={tokenBalance}
                   isSelected={isSelected}
                   textStyle={styles.rightValue}
-                  {...topRowBalanceTextStyle}
+                  {...TOP_ROW_BALANCE_TEXT_STYLE}
                 />
               ) : (
                 <FiatBalanceView
                   balance={fiatBalance}
                   isSelected={isSelected}
                   textStyle={styles.rightValue}
-                  {...topRowBalanceTextStyle}
+                  {...TOP_ROW_BALANCE_TEXT_STYLE}
                 />
               )}
             </Box>
 
             <Box
+              accessible={false}
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
               justifyContent={JustifyContent.spaceBetween}
@@ -434,14 +437,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                   balance={fiatBalance}
                   isSelected={isSelected}
                   textStyle={styles.rightValue}
-                  {...bottomRowBalanceTextStyle}
+                  {...BOTTOM_ROW_BALANCE_TEXT_STYLE}
                 />
               ) : (
                 <TokenBalanceView
                   balance={tokenBalance}
                   isSelected={isSelected}
                   textStyle={styles.rightValue}
-                  {...bottomRowBalanceTextStyle}
+                  {...BOTTOM_ROW_BALANCE_TEXT_STYLE}
                 />
               )}
             </Box>
@@ -454,3 +457,17 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     </Box>
   );
 };
+
+export const TokenSelectorItem = React.memo(
+  TokenSelectorItemInner,
+  (prev, next) =>
+    prev.onPress === next.onPress &&
+    prev.token.address === next.token.address &&
+    prev.token.chainId === next.token.chainId &&
+    prev.token.balance === next.token.balance &&
+    prev.token.balanceFiat === next.token.balanceFiat &&
+    prev.isSelected === next.isSelected &&
+    prev.isNoFeeAsset === next.isNoFeeAsset &&
+    prev.shouldShowBalance === next.shouldShowBalance &&
+    prev.networkName === next.networkName,
+);

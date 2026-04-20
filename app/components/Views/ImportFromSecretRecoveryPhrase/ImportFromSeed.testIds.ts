@@ -1,6 +1,6 @@
 export const ImportFromSeedSelectorsIDs = {
   CONTAINER_ID: 'import-from-seed-screen',
-  SEED_PHRASE_INPUT_ID: 'import-from-seed-screen-seed-phrase-input-id',
+  SEED_PHRASE_INPUT_ID: 'seed-phrase-input',
   SCREEN_TITLE_ID: 'import-from-seed-screen-title-id',
   PASSWORD_STRENGTH_ID: 'import-from-seed-screen-seed-password-strength-id',
   CONFIRM_PASSWORD_CHECK_ICON_ID:
