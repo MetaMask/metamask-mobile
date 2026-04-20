@@ -3,7 +3,7 @@ import { parseUnits } from 'ethers/lib/utils';
 import type { PredictPosition } from '../../../types';
 import type { Signer } from '../../types';
 import {
-  CONDITIONAL_TOKEN_DECIMALS,
+  HASH_ZERO_BYTES32,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
 } from '../constants';
 import {
@@ -12,57 +12,72 @@ import {
 } from '../protocol/definitions';
 import { encodeUnwrap, encodeWrap } from '../protocol/orderCodec';
 import { OperationType, type SafeTransaction } from '../safe/types';
-import { encodeRedeemNegRiskPositions, encodeRedeemPositions } from '../utils';
+import { encodeRedeemPositions } from '../utils';
 import { buildSignedSafeExecution, getRawTokenBalance } from './core';
 import { compileRequirementTransactions } from './compileRequirementTransactions';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
-import { getCanonicalV2AllowanceRequirements } from './v2AllowanceRequirements';
+import {
+  getCanonicalV2AllowanceRequirements,
+  type V2AllowanceRequirement,
+} from './v2AllowanceRequirements';
 
 const MIN_CLAIM_BALANCE_RAW = BigInt(
   parseUnits(MIN_COLLATERAL_BALANCE_FOR_CLAIM.toString(), 6).toString(),
 );
+
+type PolymarketV2ProtocolDefinition = Extract<
+  PolymarketProtocolDefinition,
+  { key: 'v2' }
+>;
 
 function buildClaimSubtransactions({
   positions,
   protocol,
 }: {
   positions: PredictPosition[];
-  protocol: PolymarketProtocolDefinition;
+  protocol: PolymarketV2ProtocolDefinition;
 }): SafeTransaction[] {
-  return positions.map((position) => {
-    if (position.negRisk) {
-      const amounts: bigint[] = [0n, 0n];
-      amounts[position.outcomeIndex] = BigInt(
-        parseUnits(
-          position.size.toString(),
-          CONDITIONAL_TOKEN_DECIMALS,
-        ).toString(),
-      );
+  return positions.map((position) => ({
+    to: position.negRisk
+      ? protocol.claim.negRiskTarget
+      : protocol.claim.standardTarget,
+    data: encodeRedeemPositions({
+      collateralToken: protocol.collateral.claimToken,
+      parentCollectionId: HASH_ZERO_BYTES32,
+      conditionId: position.outcomeId,
+      indexSets: [1, 2],
+    }),
+    operation: OperationType.Call,
+    value: '0',
+  }));
+}
 
-      return {
-        to: protocol.contracts.negRiskAdapter,
-        data: encodeRedeemNegRiskPositions({
-          conditionId: position.outcomeId,
-          amounts,
-        }),
-        operation: OperationType.Call,
-        value: '0',
-      };
-    }
+export function getClaimRequirements({
+  positions,
+  protocol = POLYMARKET_V2_PROTOCOL,
+}: {
+  positions: PredictPosition[];
+  protocol?: PolymarketV2ProtocolDefinition;
+}): V2AllowanceRequirement[] {
+  const requirements = getCanonicalV2AllowanceRequirements(protocol);
 
-    return {
-      to: protocol.contracts.conditionalTokens,
-      data: encodeRedeemPositions({
-        collateralToken: protocol.collateral.claimToken,
-        parentCollectionId:
-          '0x0000000000000000000000000000000000000000000000000000000000000000',
-        conditionId: position.outcomeId,
-        indexSets: [1, 2],
-      }),
-      operation: OperationType.Call,
-      value: '0',
-    };
-  });
+  if (positions.some((position) => !position.negRisk)) {
+    requirements.push({
+      type: 'erc1155-operator',
+      tokenAddress: protocol.contracts.conditionalTokens,
+      operator: protocol.claim.standardTarget,
+    });
+  }
+
+  if (positions.some((position) => position.negRisk)) {
+    requirements.push({
+      type: 'erc1155-operator',
+      tokenAddress: protocol.contracts.conditionalTokens,
+      operator: protocol.claim.negRiskTarget,
+    });
+  }
+
+  return requirements;
 }
 
 export interface ClaimPlan {
@@ -82,13 +97,13 @@ export async function planClaim({
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
-  protocol?: PolymarketProtocolDefinition;
+  protocol?: PolymarketV2ProtocolDefinition;
 }): Promise<ClaimPlan> {
   const [missingRequirements, safeUsdceBalance, eoaUsdceBalance] =
     await Promise.all([
       inspectMissingRequirements({
         address: safeAddress,
-        requirements: getCanonicalV2AllowanceRequirements(protocol),
+        requirements: getClaimRequirements({ positions, protocol }),
       }),
       getRawTokenBalance({
         address: safeAddress,
@@ -133,7 +148,7 @@ export function compileClaimTransactions({
   safeUsdceBalance,
   deficit,
 }: {
-  protocol?: PolymarketProtocolDefinition;
+  protocol?: PolymarketV2ProtocolDefinition;
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
@@ -191,7 +206,7 @@ export async function buildClaimTransaction({
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
-  protocol?: PolymarketProtocolDefinition;
+  protocol?: PolymarketV2ProtocolDefinition;
 }) {
   const plan = await planClaim({
     signer,

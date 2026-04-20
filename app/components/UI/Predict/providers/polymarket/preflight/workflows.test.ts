@@ -1,7 +1,7 @@
 import { parseUnits } from 'ethers/lib/utils';
 import { PredictPositionStatus, type PredictPosition } from '../../../types';
 import { POLYMARKET_V2_PROTOCOL } from '../protocol/definitions';
-import { compileClaimTransactions } from './claim';
+import { compileClaimTransactions, getClaimRequirements } from './claim';
 import { compileDepositMaintenanceTransactions } from './deposit';
 import { compileTradePreflightTransactions } from './trade';
 import { compileWithdrawTransactions } from './withdraw';
@@ -75,7 +75,7 @@ describe('preflight workflow compilers', () => {
     );
   });
 
-  it('builds claim transactions as repairs, wrap, claim, then exact-deficit unwrap', () => {
+  it('builds claim transactions as repairs, wrap, adapter claim, then exact-deficit unwrap', () => {
     const transactions = compileClaimTransactions({
       protocol: POLYMARKET_V2_PROTOCOL,
       signer: {
@@ -93,9 +93,65 @@ describe('preflight workflow compilers', () => {
     expect(transactions.map((transaction) => transaction.to)).toEqual([
       '0x1000000000000000000000000000000000000000',
       POLYMARKET_V2_PROTOCOL.collateral.onrampAddress,
-      POLYMARKET_V2_PROTOCOL.contracts.conditionalTokens,
+      POLYMARKET_V2_PROTOCOL.claim.standardTarget,
       POLYMARKET_V2_PROTOCOL.collateral.offrampAddress,
     ]);
+  });
+
+  it('builds negRisk claim transactions through the negRisk collateral adapter', () => {
+    const transactions = compileClaimTransactions({
+      protocol: POLYMARKET_V2_PROTOCOL,
+      signer: {
+        address: '0x1111111111111111111111111111111111111111',
+        signPersonalMessage: jest.fn(),
+        signTypedMessage: jest.fn(),
+      },
+      positions: [{ ...claimPosition, negRisk: true }],
+      safeAddress: '0x9999999999999999999999999999999999999999',
+      missingRequirements,
+      safeUsdceBalance: 0n,
+      deficit: 0n,
+    });
+
+    expect(transactions.map((transaction) => transaction.to)).toEqual([
+      '0x1000000000000000000000000000000000000000',
+      POLYMARKET_V2_PROTOCOL.claim.negRiskTarget,
+    ]);
+  });
+
+  it('adds claim-only adapter approvals for the v2 claim targets needed by the positions', () => {
+    const requirements = getClaimRequirements({
+      protocol: POLYMARKET_V2_PROTOCOL,
+      positions: [
+        claimPosition,
+        { ...claimPosition, id: 'position-2', negRisk: true },
+      ],
+    });
+
+    const adapterOperators = requirements
+      .flatMap((requirement) => {
+        if (requirement.type !== 'erc1155-operator') {
+          return [];
+        }
+
+        if (
+          requirement.operator !==
+            POLYMARKET_V2_PROTOCOL.claim.standardTarget &&
+          requirement.operator !== POLYMARKET_V2_PROTOCOL.claim.negRiskTarget
+        ) {
+          return [];
+        }
+
+        return [requirement.operator];
+      })
+      .sort();
+
+    expect(adapterOperators).toEqual(
+      [
+        POLYMARKET_V2_PROTOCOL.claim.negRiskTarget,
+        POLYMARKET_V2_PROTOCOL.claim.standardTarget,
+      ].sort(),
+    );
   });
 
   it('builds withdraw fallback as repairs, optional unwrap, then usdce transfer', () => {

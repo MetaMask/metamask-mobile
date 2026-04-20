@@ -6,6 +6,8 @@ import {
   MATIC_CONTRACTS_V2,
   COLLATERAL_OFFRAMP_ADDRESS,
   COLLATERAL_ONRAMP_ADDRESS,
+  CTF_COLLATERAL_ADAPTER_ADDRESS,
+  NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
   USDC_E_ADDRESS,
 } from '../constants';
 
@@ -39,6 +41,10 @@ interface BasePolymarketProtocolDefinition {
   workflow: {
     depositMode: DepositExecutionMode;
     withdrawMode: WithdrawExecutionMode;
+  };
+  claim: {
+    standardTarget: string;
+    negRiskTarget: string;
   };
 }
 
@@ -89,6 +95,10 @@ export const POLYMARKET_V1_PROTOCOL = {
     depositMode: 'usdce-transfer',
     withdrawMode: 'usdce-transfer',
   },
+  claim: {
+    standardTarget: MATIC_CONTRACTS.conditionalTokens,
+    negRiskTarget: MATIC_CONTRACTS.negRiskAdapter,
+  },
 } satisfies BasePolymarketProtocolDefinition;
 
 export const POLYMARKET_V2_PROTOCOL = {
@@ -114,6 +124,10 @@ export const POLYMARKET_V2_PROTOCOL = {
   workflow: {
     depositMode: 'usdce-transfer',
     withdrawMode: 'usdce-deficit-unwrap',
+  },
+  claim: {
+    standardTarget: CTF_COLLATERAL_ADAPTER_ADDRESS,
+    negRiskTarget: NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
   },
 } satisfies BasePolymarketProtocolDefinition;
 

@@ -1,4 +1,8 @@
-import { HASH_ZERO_BYTES32 } from '../constants';
+import {
+  CTF_COLLATERAL_ADAPTER_ADDRESS,
+  HASH_ZERO_BYTES32,
+  NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
+} from '../constants';
 import {
   POLYMARKET_V1_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
@@ -66,5 +70,12 @@ describe('polymarket protocol definitions', () => {
     expect(warnSpy).toHaveBeenCalledWith(
       'Polymarket CLOB v2 builder code invalid in MM_PREDICT_BUILDER_CODE; falling back to zero bytes32 value',
     );
+  });
+
+  it('routes v2 claims through the collateral adapters', () => {
+    expect(POLYMARKET_V2_PROTOCOL.claim).toEqual({
+      standardTarget: CTF_COLLATERAL_ADAPTER_ADDRESS,
+      negRiskTarget: NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
+    });
   });
 });
