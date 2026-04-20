@@ -75,12 +75,14 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2VerifyIdentityNavDetails } from '../NativeFlow/VerifyIdentity';
+import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useSelector } from 'react-redux';
 import {
   getRampRoutingDecision,
+  selectHasAgreedTransakNativePolicy,
   UnifiedRampRoutingType,
 } from '../../../../../reducers/fiatOrders';
 import { selectProviderAutoSelected } from '../../../../../selectors/rampsController';
@@ -189,6 +191,9 @@ function BuildQuote() {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const hasAgreedTransakNativePolicy = useSelector(
+    selectHasAgreedTransakNativePolicy,
+  );
   const providerAutoSelected = useSelector(selectProviderAutoSelected);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
@@ -645,6 +650,14 @@ function BuildQuote() {
           throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
         await transakRouteAfterAuth(quote, amountAsNumber);
+      } else if (hasAgreedTransakNativePolicy) {
+        navigation.navigate(
+          ...createV2EnterEmailNavDetails({
+            amount: String(amountAsNumber),
+            currency,
+            assetId: selectedToken?.assetId,
+          }),
+        );
       } else {
         navigation.navigate(
           ...createV2VerifyIdentityNavDetails({
@@ -675,6 +688,7 @@ function BuildQuote() {
     transakGetBuyQuote,
     transakRouteAfterAuth,
     navigation,
+    hasAgreedTransakNativePolicy,
   ]);
 
   /**

@@ -547,6 +547,21 @@ describe('useHomeViewedEvent', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledWith(builtEvent);
     });
+
+    it('does not manually include active_ab_tests (auto-injected by analytics registry)', () => {
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+        }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          active_ab_tests: expect.anything(),
+        }),
+      );
+    });
   });
 
   describe('new analytics properties', () => {

@@ -26,6 +26,9 @@ const EXECUTABLE_ACTIONS = new Set([
   'app_background',
   'app_foreground',
   'app_restart',
+  // Profiler / trace capture (Hermes sampling profiler via CDP)
+  'trace_start',
+  'trace_stop',
 ]);
 
 const CONTROL_ACTIONS = new Set(['switch', 'end']);
