@@ -120,6 +120,19 @@ describe('enrichWithABTests', () => {
     });
   });
 
+  it('enriches Home Viewed events with hub page discovery tabs assignment', () => {
+    const event =
+      AnalyticsEventBuilder.createEventBuilder('Home Viewed').build();
+
+    const result = enrichWithABTests(event, {
+      coreMCU589AbtestHubPageDiscoveryTabs: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      { key: 'coreMCU589AbtestHubPageDiscoveryTabs', value: 'treatment' },
+    ]);
+  });
+
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
       .addProperties({
