@@ -11,7 +11,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
 import { FlashList } from '@shopify/flash-list';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useAssetFromTheme } from '../../../../../util/theme';
 import emptyStateDefiLight from '../../../../../images/empty-state-defi-light.png';
 import emptyStateDefiDark from '../../../../../images/empty-state-defi-dark.png';
