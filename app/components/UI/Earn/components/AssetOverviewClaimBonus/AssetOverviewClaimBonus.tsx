@@ -51,10 +51,13 @@ const styles = StyleSheet.create({
 
 interface AssetOverviewClaimBonusProps {
   asset: TokenI;
+  /** Called with the Merkl refetch function so the parent can trigger a refresh. */
+  onRefetchReady?: (refetch: () => void) => void;
 }
 
 const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   asset,
+  onRefetchReady,
 }) => {
   const {
     claimableReward,
@@ -62,7 +65,12 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     hasPendingClaim,
     isClaiming,
     claimRewards,
+    refetch,
   } = useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
+
+  useEffect(() => {
+    onRefetchReady?.(refetch);
+  }, [onRefetchReady, refetch]);
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();

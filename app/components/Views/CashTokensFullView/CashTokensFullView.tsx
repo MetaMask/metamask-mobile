@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   InteractionManager,
   Linking,
@@ -40,7 +46,6 @@ import AssetOverviewClaimBonus from '../../UI/Earn/components/AssetOverviewClaim
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import CashGetMusdEmptyState from '../Homepage/Sections/Cash/CashGetMusdEmptyState';
 import SectionRow from '../Homepage/components/SectionRow/SectionRow';
-import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import CashTokensFullViewSkeleton from './CashTokensFullViewSkeleton';
 import { useCashTokensRefresh } from './useCashTokensRefresh';
 import { AssetType } from '../confirmations/types/token';
@@ -72,11 +77,11 @@ const CashTokensFullView = () => {
     return () => handle.cancel();
   }, []);
 
-  const { refetch: refetchMerklBonus } = useMerklBonusClaim(
-    MUSD_MAINNET_ASSET_FOR_DETAILS,
-    'CashTokensFullView',
-    false,
-  );
+  const merklRefetchRef = useRef<(() => void) | null>(null);
+  const refetchMerklBonus = useCallback(() => merklRefetchRef.current?.(), []);
+  const handleRefetchReady = useCallback((refetch: () => void) => {
+    merklRefetchRef.current = refetch;
+  }, []);
   const { refreshing, onRefresh } = useCashTokensRefresh(refetchMerklBonus);
 
   const { initiateMaxConversion, initiateCustomConversion } =
@@ -142,7 +147,10 @@ const CashTokensFullView = () => {
   const bonusAndConvertSections = useMemo(
     () => (
       <>
-        <AssetOverviewClaimBonus asset={MUSD_MAINNET_ASSET_FOR_DETAILS} />
+        <AssetOverviewClaimBonus
+          asset={MUSD_MAINNET_ASSET_FOR_DETAILS}
+          onRefetchReady={handleRefetchReady}
+        />
         <MoneyConvertStablecoins
           tokens={conversionTokens}
           onMaxPress={handleConvertMaxPress}
@@ -156,6 +164,7 @@ const CashTokensFullView = () => {
       handleConvertMaxPress,
       handleConvertEditPress,
       handleLearnMorePress,
+      handleRefetchReady,
     ],
   );
 
