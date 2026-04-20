@@ -35,7 +35,6 @@ import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import {
   getHostname,
-  getCompatibleTronCaipChainIdsForWalletConnect,
   normalizeCaipChainIdOutbound,
   getScopedPermissions,
   hideWCLoadingState,
@@ -801,55 +800,153 @@ export class WC2Manager {
         proposalChains,
       });
 
-      if (requestedTronNamespace && !namespaces.tron) {
-        const tronAccounts = Engine.context.AccountsController.listAccounts()
-          .filter(
-            (account: { type: string }) => account.type === TrxAccountType.Eoa,
-          )
-          .map((account: { address: string }) => account.address);
-
+      if (requestedTronNamespace) {
         const requestedTronChains = requestedTronNamespace.chains ?? [];
-        const requestedTronMethods = requestedTronNamespace.methods ?? [];
+        // Per WalletConnect/CAIP spec, approved chains MUST match what the
+        // dapp requested. Dapp Tron adapters look up each approved chain id
+        // in an internal config map keyed by the canonical CAIP format they
+        // sent (typically hex), and crash reading `.chains` on undefined
+        // when they encounter a variant they don't recognize (e.g. decimal).
+        // Echo back exactly what was requested, deduplicated.
         const tronChains =
           requestedTronChains.length > 0
-            ? Array.from(
-                new Set(
-                  requestedTronChains.flatMap((chain) =>
-                    getCompatibleTronCaipChainIdsForWalletConnect(
-                      normalizeCaipChainIdOutbound(chain),
-                    ),
-                  ),
-                ),
-              )
-            : getCompatibleTronCaipChainIdsForWalletConnect(
-                normalizeCaipChainIdOutbound(TrxScope.Mainnet),
-              );
+            ? Array.from(new Set(requestedTronChains))
+            : [normalizeCaipChainIdOutbound(TrxScope.Mainnet)];
+
+        // Prefer addresses already granted via scoped permissions so we
+        // don't lose accounts when AccountsController filtering misses them.
+        const existingTronAddresses = Array.from(
+          new Set(
+            (namespaces.tron?.accounts ?? [])
+              .map((account) => {
+                const parts = account.split(':');
+                return parts.length >= 3 ? parts.slice(2).join(':') : '';
+              })
+              .filter(Boolean),
+          ),
+        );
+        const fallbackTronAddresses =
+          existingTronAddresses.length > 0
+            ? []
+            : Engine.context.AccountsController.listAccounts()
+                .filter(
+                  (account: { type: string }) =>
+                    account.type === TrxAccountType.Eoa,
+                )
+                .map((account: { address: string }) => account.address);
+        const tronAddresses = Array.from(
+          new Set([...existingTronAddresses, ...fallbackTronAddresses]),
+        );
+        const requestedTronMethods = requestedTronNamespace.methods ?? [];
+        const requestedTronEvents = requestedTronNamespace.events ?? [];
+
         namespaces.tron = {
           chains: tronChains,
           methods:
             requestedTronMethods.length > 0
               ? requestedTronMethods
-              : ['tron_signTransaction', 'tron_signMessage'],
-          events: requestedTronNamespace.events ?? [],
-          // A namespace requested by the dapp must still be structurally present,
-          // even if there are temporarily no local Tron accounts selected yet.
-          accounts: tronAccounts.flatMap((address) =>
+              : (namespaces.tron?.methods ?? [
+                  'tron_signTransaction',
+                  'tron_signMessage',
+                ]),
+          events:
+            requestedTronEvents.length > 0
+              ? requestedTronEvents
+              : (namespaces.tron?.events ?? []),
+          accounts: tronAddresses.flatMap((address) =>
             tronChains.map(
               (chainId) =>
                 `${chainId}:${address}` as `${string}:${string}:${string}`,
             ),
           ),
         };
+
         DevLogger.log(
-          '[wc][WC2Manager.session_proposal] injected tron namespace from proposal',
+          '[wc][WC2Manager.session_proposal] normalized tron namespace from proposal',
           {
             topic: proposal.params.pairingTopic,
-            chains: namespaces.tron.chains,
+            requestedTronChains,
+            finalTronChains: namespaces.tron.chains,
             accountsCount: namespaces.tron.accounts.length,
+            addressSource:
+              existingTronAddresses.length > 0
+                ? 'scopedPermissions'
+                : 'accountsController',
           },
         );
       }
+
+      // Some SDK restore paths still resolve delegated chains (wallet:eip155)
+      // by looking up a `wallet` namespace and reading `.chains`.
+      // Mirror eip155 into wallet namespace when the proposal requested it.
+      const requestedWalletNamespace =
+        allProposalNamespaces.wallet ??
+        (proposalChains.some((chain) => chain.startsWith('wallet:'))
+          ? {
+              chains: proposalChains.filter((chain) =>
+                chain.startsWith('wallet:'),
+              ),
+            }
+          : undefined);
+      const requestedWalletEip155 = requestedWalletNamespace?.chains?.some(
+        (chain) => chain === 'wallet:eip155',
+      );
+      if (requestedWalletEip155 && namespaces.eip155) {
+        const walletChains = ['wallet:eip155'];
+        const eip155Accounts = Array.isArray(namespaces.eip155.accounts)
+          ? namespaces.eip155.accounts
+          : [];
+        namespaces.wallet = {
+          chains: walletChains,
+          methods: namespaces.eip155.methods ?? [],
+          events: namespaces.eip155.events ?? [],
+          accounts: eip155Accounts.map((account) => {
+            const [, , address] = account.split(':');
+            return `wallet:eip155:${address}` as `${string}:${string}:${string}`;
+          }),
+        };
+      }
       ///: END:ONLY_INCLUDE_IF
+
+      // Filter out namespaces the dapp never requested. Some dapp universal
+      // providers (e.g. chain-specific Tron adapters) only register sub-
+      // providers for the namespaces they requested and crash during session
+      // rehydration when they encounter approved namespaces they don't know
+      // about (e.g. `Cannot read properties of undefined (reading 'chains')`
+      // when iterating `session.namespaces` and looking up an unknown rpc
+      // provider). Per WalletConnect spec, only namespaces that were present
+      // in required/optional should be approved.
+      const allowedNamespaceKeys = new Set<string>([
+        ...Object.keys(proposal.params.requiredNamespaces ?? {}),
+        ...Object.keys(proposal.params.optionalNamespaces ?? {}),
+      ]);
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      // If the proposal referenced `wallet:eip155` (delegated chain), the
+      // eip155 namespace is implicitly requested as well.
+      if (
+        proposalChains.some((chain) => chain === 'wallet:eip155') ||
+        allowedNamespaceKeys.has('wallet')
+      ) {
+        allowedNamespaceKeys.add('eip155');
+      }
+      // Tron chains can be requested as bare `tron:<ref>` in optional scopes
+      // without a `tron` namespace key on some dapps — keep tron if any
+      // proposal chain uses it.
+      if (proposalChains.some((chain) => chain.startsWith('tron:'))) {
+        allowedNamespaceKeys.add('tron');
+      }
+      ///: END:ONLY_INCLUDE_IF
+      if (allowedNamespaceKeys.size > 0) {
+        for (const key of Object.keys(namespaces)) {
+          if (!allowedNamespaceKeys.has(key)) {
+            DevLogger.log(
+              `WC2::session_proposal dropping unrequested namespace`,
+              { key, allowedNamespaceKeys: Array.from(allowedNamespaceKeys) },
+            );
+            delete namespaces[key];
+          }
+        }
+      }
 
       DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
 
