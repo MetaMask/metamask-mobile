@@ -103,6 +103,77 @@ describe('useUnifiedSwapBridgeContext', () => {
     });
   });
 
+  it('collects security_warnings from destination token features', () => {
+    mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+    mockSelectSourceToken.mockReturnValue({ symbol: 'ETH' });
+    mockSelectDestToken.mockReturnValue({
+      symbol: 'SHADY',
+      securityData: {
+        type: 'Warning',
+        metadata: {
+          features: [
+            {
+              featureId: 'HONEYPOT',
+              type: 'Warning',
+              description: 'Honeypot risk detected',
+            },
+            {
+              featureId: 'CONCENTRATED_SUPPLY',
+              type: 'Warning',
+              description: 'Concentrated supply risk',
+            },
+          ],
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.security_warnings).toEqual([
+      'Honeypot risk detected',
+      'Concentrated supply risk',
+    ]);
+  });
+
+  it('returns empty security_warnings when source token has warnings but destination does not', () => {
+    mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+    mockSelectSourceToken.mockReturnValue({
+      symbol: 'SCAM',
+      securityData: {
+        type: 'Malicious',
+        metadata: {
+          features: [
+            { featureId: 'F1', type: 'Warning', description: 'Source warning' },
+          ],
+        },
+      },
+    });
+    mockSelectDestToken.mockReturnValue({ symbol: 'USDC' });
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.security_warnings).toEqual([]);
+  });
+
+  it('returns empty security_warnings when destination token has no securityData', () => {
+    mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+    mockSelectSourceToken.mockReturnValue({ symbol: 'ETH' });
+    mockSelectDestToken.mockReturnValue({ symbol: 'USDC' });
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.security_warnings).toEqual([]);
+  });
+
   it('returns empty token symbols when tokens are undefined', () => {
     mockSelectShouldUseSmartTransaction.mockReturnValue(false);
     mockSelectSourceToken.mockReturnValue(undefined);
