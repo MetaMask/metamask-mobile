@@ -1,11 +1,38 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import WalletHomeOnboardingSteps from './WalletHomeOnboardingSteps';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
+import {
+  __clearLastMockedMethods,
+  __getLastMockedMethods,
+} from '../../../__mocks__/rive-react-native';
+import {
+  WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS,
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+  WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS,
+} from './walletHomeOnboardingChecklistRive';
+
+async function flushWalletHomeStepTransition() {
+  await act(async () => {
+    jest.advanceTimersByTime(
+      WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS + 100,
+    );
+  });
+}
 
 describe('WalletHomeOnboardingSteps', () => {
+  beforeEach(() => {
+    jest.useFakeTimers({ legacyFakeTimers: false });
+    __clearLastMockedMethods();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   const baseOnboarding = {
     walletHomeOnboardingStepsEligible: true,
     walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 0 },
@@ -39,17 +66,24 @@ describe('WalletHomeOnboardingSteps', () => {
     ).toBeNull();
   });
 
-  it('advances from fund step when primary is pressed', () => {
+  it('advances from fund step when primary is pressed', async () => {
     const { getByTestId, store } = renderSteps();
 
     fireEvent.press(getByTestId(primaryTestId));
-
     expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-      expect.objectContaining({ stepIndex: 1 }),
+      expect.objectContaining({ stepIndex: 0 }),
     );
+
+    await flushWalletHomeStepTransition();
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 1 }),
+      );
+    });
   });
 
-  it('advances from trade step when Skip is pressed', () => {
+  it('advances from trade step when Skip is pressed', async () => {
     const { getByTestId, store } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
     });
@@ -58,36 +92,52 @@ describe('WalletHomeOnboardingSteps', () => {
       getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
     );
 
-    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-      expect.objectContaining({ stepIndex: 2 }),
-    );
+    await flushWalletHomeStepTransition();
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 2 }),
+      );
+    });
   });
 
-  it('advances from trade step when primary is pressed', () => {
+  it('advances from trade step when primary is pressed', async () => {
     const { getByTestId, store } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
     });
 
     fireEvent.press(getByTestId(primaryTestId));
 
-    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-      expect.objectContaining({ stepIndex: 2 }),
-    );
+    await flushWalletHomeStepTransition();
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 2 }),
+      );
+    });
   });
 
-  it('completes flow when primary is pressed on last step', () => {
+  it('completes flow when primary is pressed on last step', async () => {
     const { getByTestId, store } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
     });
 
     fireEvent.press(getByTestId(primaryTestId));
 
-    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-      expect.objectContaining({ suppressedReason: 'flow_completed' }),
-    );
+    await act(async () => {
+      jest.advanceTimersByTime(
+        WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS + 100,
+      );
+    });
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ suppressedReason: 'flow_completed' }),
+      );
+    });
   });
 
-  it('completes flow when Skip is pressed on last step', () => {
+  it('completes flow when Skip is pressed on last step', async () => {
     const { getByTestId, store } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
     });
@@ -96,9 +146,17 @@ describe('WalletHomeOnboardingSteps', () => {
       getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
     );
 
-    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-      expect.objectContaining({ suppressedReason: 'flow_completed' }),
-    );
+    await act(async () => {
+      jest.advanceTimersByTime(
+        WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS + 100,
+      );
+    });
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ suppressedReason: 'flow_completed' }),
+      );
+    });
   });
 
   it('clamps persisted stepIndex when it is out of range', () => {
@@ -120,6 +178,29 @@ describe('WalletHomeOnboardingSteps', () => {
     ).toBeOnTheScreen();
   });
 
+  it('fires checklist Rive outro before advancing from fund step', async () => {
+    const { getByTestId, store } = renderSteps();
+    const fundStepRiveMethods = __getLastMockedMethods();
+
+    fireEvent.press(getByTestId(primaryTestId));
+
+    expect(fundStepRiveMethods?.fireState).toHaveBeenCalledWith(
+      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
+    );
+    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+      expect.objectContaining({ stepIndex: 0 }),
+    );
+
+    await flushWalletHomeStepTransition();
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 1 }),
+      );
+    });
+  });
+
   it('renders trade hero for step 1', () => {
     const { getByTestId } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
@@ -134,7 +215,7 @@ describe('WalletHomeOnboardingSteps', () => {
     expect(getByTestId('steps-root-hero-notifications')).toBeOnTheScreen();
   });
 
-  it('treats missing stepIndex in persisted state as 0', () => {
+  it('treats missing stepIndex in persisted state as 0', async () => {
     const { getByTestId, store } = renderWithProvider(
       <WalletHomeOnboardingSteps testID="steps-root" />,
       {
@@ -155,8 +236,11 @@ describe('WalletHomeOnboardingSteps', () => {
         `steps-root-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`,
       ),
     );
-    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-      expect.objectContaining({ stepIndex: 1 }),
-    );
+    await flushWalletHomeStepTransition();
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 1 }),
+      );
+    });
   });
 });
