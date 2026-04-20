@@ -223,7 +223,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI')
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -231,7 +231,7 @@ jobs:
       platform: ios
       test_suite_tag: 'SmokeMultiChainAPI'
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
@@ -358,7 +358,7 @@ jobs:
           retention-days: 7
 
       - name: Post slow E2E shard warning on PR
-        if: github.event_name == 'pull_request' && github.event.pull_request.number != ''
+        if: github.event.pull_request.number
         continue-on-error: true
         env:
           PLATFORM: ios
