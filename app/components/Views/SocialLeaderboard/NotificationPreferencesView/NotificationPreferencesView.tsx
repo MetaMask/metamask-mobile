@@ -202,16 +202,20 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
 // Main screen
 // ---------------------------------------------------------------------------
 
-const formatThreshold = (amount: number, currency: string): string => {
+const formatThreshold = (
+  amount: number,
+  currency: string | undefined,
+): string => {
+  const code = currency?.toUpperCase() ?? 'USD';
   try {
     return new Intl.NumberFormat(undefined, {
       style: 'currency',
-      currency: currency.toUpperCase(),
+      currency: code,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
   } catch {
-    return `${currency.toUpperCase()} ${amount}`;
+    return `${code} ${amount}`;
   }
 };
 
