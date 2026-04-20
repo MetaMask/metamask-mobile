@@ -191,14 +191,12 @@ module.exports = function (baseConfig) {
           },
         }),
       },
-      // DEBUG: lockdownSerializer disabled to confirm it's causing the hardenIntrinsics/require crash
-      // TODO: re-enable once LavaMoat is compatible with the new Metro module ID assignment
-      // serializer: lockdownSerializer(
-      //   { hermesRuntime: true },
-      //   {
-      //     getPolyfills,
-      //   },
-      // ),
+      serializer: lockdownSerializer(
+        { hermesRuntime: true },
+        {
+          getPolyfills,
+        },
+      ),
       serializer: {
         getPolyfills,
       },
