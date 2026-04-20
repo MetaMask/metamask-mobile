@@ -266,8 +266,10 @@ const EarnMusdConversionEducationView = () => {
       dispatch(setMusdConversionEducationSeen(true));
 
       // returnTo wins: pure navigation, no conversion.
+      // Use navigate (not replace) because returnTo targets a screen outside
+      // the Earn stack — replace only works within the current navigator.
       if (returnTo) {
-        navigation.replace(returnTo.screen, returnTo.params);
+        navigation.navigate(returnTo.screen, returnTo.params);
         return;
       }
 

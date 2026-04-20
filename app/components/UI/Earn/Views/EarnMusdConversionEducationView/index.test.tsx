@@ -784,12 +784,6 @@ describe('EarnMusdConversionEducationView', () => {
     });
 
     it('navigates to returnTo.screen when returnTo is provided, without initiating conversion', async () => {
-      const replace = jest.fn();
-      mockUseNavigation.mockReturnValue({
-        ...mockNavigation,
-        replace,
-      } as unknown as ReturnType<typeof useNavigation>);
-
       mockUseParams.mockReturnValue({
         returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
       });
@@ -808,7 +802,7 @@ describe('EarnMusdConversionEducationView', () => {
       });
 
       await waitFor(() => {
-        expect(replace).toHaveBeenCalledWith(
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.WALLET.CASH_TOKENS_FULL_VIEW,
           undefined,
         );
