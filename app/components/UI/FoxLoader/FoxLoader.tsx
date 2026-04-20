@@ -8,6 +8,7 @@ import Rive, {
   RiveRenderer,
   RiveRendererIOS,
   RiveRendererAndroid,
+  RNRiveError,
 } from 'rive-react-native';
 import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
@@ -194,9 +195,13 @@ const FoxLoader = ({
               isPlayingRef.current = true;
               setIsPlaying(true);
             }}
-            onError={() => {
+            onError={(riveError: RNRiveError) => {
               // Only bail out if Rive never started — runtime errors during playback are non-fatal
               if (!isCompleteRef.current && !isPlayingRef.current) {
+                Logger.error(
+                  new Error(riveError.message),
+                  `FoxLoader: Rive failed before playback (${riveError.type})`,
+                );
                 // onLoad may not have fired if Rive errored before the image rendered
                 hideAsync().catch((error) =>
                   Logger.error(
