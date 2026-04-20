@@ -379,7 +379,7 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <Box twClassName="mt-3 w-full overflow-hidden">
+      <Box twClassName="mt-3 w-full">
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
