@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import type { CaipChainId } from '@metamask/utils';
 import type { PaymentMethod } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
