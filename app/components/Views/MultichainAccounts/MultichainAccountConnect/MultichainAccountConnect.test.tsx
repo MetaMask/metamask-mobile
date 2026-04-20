@@ -367,6 +367,11 @@ jest.mock(
   }),
 );
 
+const { useAccountGroupsForPermissions: mockUseAccountGroupsForPermissions } =
+  jest.requireMock(
+    '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions',
+  );
+
 // Mock useWalletInfo hook
 jest.mock(
   '../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo',
@@ -693,6 +698,39 @@ describe('MultichainAccountConnect', () => {
         }),
       );
     });
+  });
+
+  it('passes EVM chains to permissions hook for mixed wallet:eip155 + tron requests', () => {
+    renderWithProvider(
+      <MultichainAccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'wc-channel-id',
+                isEip1193Request: false,
+              },
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
+                },
+                'tron:728126428': {
+                  accounts: [],
+                },
+              }),
+            },
+            permissionRequestId: 'test-mixed-request',
+          },
+        }}
+      />,
+      { state: createMockState() },
+    );
+
+    const requestedChainIds =
+      mockUseAccountGroupsForPermissions.mock.calls.at(-1)?.[2] ?? [];
+    expect(requestedChainIds).toContain('eip155:1');
+    expect(requestedChainIds).toContain('tron:728126428');
   });
 
   describe('Phishing detection', () => {

@@ -72,6 +72,7 @@ import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.t
 import {
   CaipAccountId,
   CaipChainId,
+  CaipNamespace,
   KnownCaipNamespace,
   parseCaipChainId,
 } from '@metamask/utils';
@@ -216,6 +217,32 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [requestedNamespaces],
   );
 
+  const requestedNamespacesForNetworkSelection = useMemo(() => {
+    const namespaces = new Set(requestedNamespacesWithoutWallet);
+    const rawScopeKeys = [
+      ...Object.keys(requestedCaip25CaveatValue.requiredScopes ?? {}),
+      ...Object.keys(requestedCaip25CaveatValue.optionalScopes ?? {}),
+    ];
+
+    // CAIP-25 may encode delegated namespace requests (for example wallet:eip155).
+    // Expand wallet:<namespace> scopes so default network selection still includes
+    // those concrete namespaces in multichain WalletConnect flows.
+    rawScopeKeys.forEach((scope) => {
+      if (!scope.startsWith(`${KnownCaipNamespace.Wallet}:`)) {
+        return;
+      }
+
+      const delegatedNamespace = scope.slice(
+        `${KnownCaipNamespace.Wallet}:`.length,
+      );
+      if (delegatedNamespace) {
+        namespaces.add(delegatedNamespace as CaipNamespace);
+      }
+    });
+
+    return Array.from(namespaces);
+  }, [requestedNamespacesWithoutWallet, requestedCaip25CaveatValue]);
+
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
@@ -322,14 +349,11 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       return defaultSelectedNetworkList;
     }
 
-    let additionalChains: CaipChainId[] = [];
-    if (isEip1193Request) {
-      additionalChains = nonTestNetworkCaipChainIds.filter((caipChainId) =>
-        requestedNamespacesWithoutWallet.includes(
-          parseCaipChainId(caipChainId).namespace,
-        ),
-      );
-    }
+    const additionalChains = nonTestNetworkCaipChainIds.filter((caipChainId) =>
+      requestedNamespacesForNetworkSelection.includes(
+        parseCaipChainId(caipChainId).namespace,
+      ),
+    );
 
     const supportedRequestedCaipChainIds = Array.from(
       new Set([
@@ -350,12 +374,12 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       );
     }
 
-    if (requestedNamespaces.length > 0) {
+    if (requestedNamespacesForNetworkSelection.length > 0) {
       return Array.from(
         new Set(
           defaultSelectedNetworkList.filter((caipChainId) => {
             const { namespace } = parseCaipChainId(caipChainId);
-            return requestedNamespaces.includes(namespace);
+            return requestedNamespacesForNetworkSelection.includes(namespace);
           }),
         ),
       );
@@ -368,8 +392,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     requestedCaipChainIds,
     isEip1193Request,
     currentlySelectedNetwork.chainId,
-    requestedNamespaces,
-    requestedNamespacesWithoutWallet,
+    requestedNamespacesForNetworkSelection,
     alreadyConnectedCaipChainIds,
     isSolanaWalletStandardRequest,
   ]);
