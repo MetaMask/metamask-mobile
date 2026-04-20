@@ -467,25 +467,10 @@ module.exports = {
     },
     {
       files: ['app/**/*.{ts,tsx}'],
-      excludedFiles: ['app/controllers/perps/**/*.{ts,tsx}'],
-      rules: {
-        'no-restricted-imports': [
-          'error',
-          {
-            patterns: [
-              {
-                group: ['**/controllers/perps', '**/controllers/perps/**'],
-                message:
-                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
-              },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      files: ['app/**/*.{ts,tsx}'],
-      excludedFiles: ['app/util/haptics/**/*.{ts,tsx}'],
+      excludedFiles: [
+        'app/controllers/perps/**/*.{ts,tsx}',
+        'app/util/haptics/**/*.{ts,tsx}',
+      ],
       rules: {
         'no-restricted-imports': [
           'error',
@@ -498,6 +483,11 @@ module.exports = {
               },
             ],
             patterns: [
+              {
+                group: ['**/controllers/perps', '**/controllers/perps/**'],
+                message:
+                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
+              },
               {
                 group: ['expo-haptics/*'],
                 message:
