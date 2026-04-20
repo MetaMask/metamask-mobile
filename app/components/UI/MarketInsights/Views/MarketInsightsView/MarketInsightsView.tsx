@@ -757,6 +757,8 @@ const MarketInsightsView: React.FC = () => {
             <TokenDetailsStickyFooter
               token={stickyFooterToken}
               skipBottomInset
+              swapTestID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
+              buyTestID={MarketInsightsSelectorsIDs.BUY_BUTTON}
             />
             <Box alignItems={BoxAlignItems.Center}>
               <Text

@@ -68,6 +68,10 @@ interface TokenStickyFooterProps {
   onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
   /** When true the footer omits its built-in safe-area bottom inset so the parent can manage spacing. */
   skipBottomInset?: boolean;
+  /** Optional testID for the swap button (used by E2E tests in different screens) */
+  swapTestID?: string;
+  /** Optional testID for the buy button (used by E2E tests in different screens) */
+  buyTestID?: string;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -78,6 +82,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   currentTokenBalance,
   onStickyButtonsResolved,
   skipBottomInset = false,
+  swapTestID,
+  buyTestID,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -235,6 +241,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       <View testID="bottomsheetfooter" style={[styles.footer, footerStyle]}>
         {showSwapButton && (
           <Button
+            testID={swapTestID}
             variant={
               swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
             }
@@ -266,6 +273,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         )}
         {showBuyButton && (
           <Button
+            testID={buyTestID}
             variant={
               buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
             }
