@@ -79,6 +79,11 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
+    it('playImpact(EdgeGestureEngage) calls impactAsync with Light', async () => {
+      await playImpact(ImpactMoment.EdgeGestureEngage);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+    });
+
     it('playImpact(QuickAmountSelection) calls impactAsync with Light', async () => {
       await playImpact(ImpactMoment.QuickAmountSelection);
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);

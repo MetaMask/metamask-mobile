@@ -59,6 +59,13 @@ export const ImpactMoment = {
   SliderTick: 'sliderTick',
 
   /**
+   * Browser WebView edge-swipe engaged (back / forward) — Light impact on touch-down
+   * in the edge zone. Distinct from `SliderTick`; tuning slider ticks must not change
+   * in-browser navigation gesture feedback.
+   */
+  EdgeGestureEngage: 'edgeGestureEngage',
+
+  /**
    * Slider thumb press or release — Medium impact (grab / let go).
    * Distinct from `SliderTick` (discrete ticks / threshold crossings).
    */
