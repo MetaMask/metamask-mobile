@@ -99,8 +99,6 @@ const Routes = {
   TRANSACTIONS_VIEW: 'TransactionsView',
   TRANSACTION_DETAILS: 'TransactionDetails',
   REWARDS_VIEW: 'RewardsView',
-  /** Root screen of the stack inside the Rewards tab (wraps RewardsNavigator); must differ from REWARDS_VIEW to avoid nested duplicate route names. */
-  REWARDS_STACK_ROOT: 'RewardsStackRoot',
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',

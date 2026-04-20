@@ -249,10 +249,6 @@ jest.mock('./hooks/useReferralDetails', () => ({
   }),
 }));
 
-jest.mock('./hooks/useMaybeShowCampaignEndToast', () => ({
-  useMaybeShowCampaignEndToast: jest.fn(),
-}));
-
 // Mock useRewardsVersionGuard hook
 jest.mock('./hooks/useRewardsVersionGuard', () => ({
   __esModule: true,

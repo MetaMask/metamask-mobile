@@ -28,7 +28,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
-import RewardsSubscriber from './RewardsSubscriber';
+import { useSeasonStatus } from './hooks/useSeasonStatus';
+import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
+import { useReferralDetails } from './hooks/useReferralDetails';
 
 const Stack = createStackNavigator();
 
@@ -54,6 +56,15 @@ const RewardsNavigator: React.FC = () => {
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
+
+  // This is used to fetch season status data when the component mounts
+  useSeasonStatus({ onlyForExplicitFetch: false });
+
+  // Fetch geo rewards metadata so optinAllowedForGeo is available across all rewards screens
+  useGeoRewardsMetadata({});
+
+  // Fetch referral details so referral code is available across all rewards screens
+  useReferralDetails();
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
@@ -102,93 +113,90 @@ const RewardsNavigator: React.FC = () => {
   }
 
   return (
-    <>
-      <RewardsSubscriber />
-      <Stack.Navigator initialRouteName={getInitialRoute()}>
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_FLOW}
-          component={OnboardingNavigator}
-          options={{
-            headerShown: false,
-            cardStyle: { backgroundColor: colors.background.default },
-          }}
-        />
-        {subscriptionId ? (
-          <>
-            <Stack.Screen
-              name={Routes.REWARDS_DASHBOARD}
-              component={RewardsDashboard}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REFERRAL_REWARDS_VIEW}
-              component={ReferralRewardsView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_SETTINGS_VIEW}
-              component={RewardsSettingsView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_CAMPAIGNS_VIEW}
-              component={CampaignsView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
-              component={CampaignTourStepView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW}
-              component={OndoCampaignDetailsView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW}
-              component={OndoCampaignWinningView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW}
-              component={SeasonOneCampaignDetailsView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_CAMPAIGN_MECHANICS}
-              component={CampaignMechanicsView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
-              component={MusdCalculatorView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
-              component={OndoLeaderboardView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR}
-              component={OndoCampaignRwaSelectorView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW}
-              component={OndoCampaignPortfolioView}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.REWARDS_ONDO_CAMPAIGN_STATS}
-              component={OndoCampaignStatsView}
-              options={{ headerShown: false }}
-            />
-          </>
-        ) : null}
-      </Stack.Navigator>
-    </>
+    <Stack.Navigator initialRouteName={getInitialRoute()}>
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_FLOW}
+        component={OnboardingNavigator}
+        options={{
+          headerShown: false,
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
+      />
+      {subscriptionId ? (
+        <>
+          <Stack.Screen
+            name={Routes.REWARDS_DASHBOARD}
+            component={RewardsDashboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REFERRAL_REWARDS_VIEW}
+            component={ReferralRewardsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_SETTINGS_VIEW}
+            component={RewardsSettingsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_CAMPAIGNS_VIEW}
+            component={CampaignsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
+            component={CampaignTourStepView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW}
+            component={OndoCampaignDetailsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW}
+            component={OndoCampaignWinningView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW}
+            component={SeasonOneCampaignDetailsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_CAMPAIGN_MECHANICS}
+            component={CampaignMechanicsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
+            component={MusdCalculatorView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
+            component={OndoLeaderboardView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR}
+            component={OndoCampaignRwaSelectorView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW}
+            component={OndoCampaignPortfolioView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_STATS}
+            component={OndoCampaignStatsView}
+            options={{ headerShown: false }}
+          />
+        </>
+      ) : null}
+    </Stack.Navigator>
   );
 };
 

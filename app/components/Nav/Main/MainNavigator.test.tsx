@@ -159,7 +159,6 @@ describe('MainNavigator', () => {
         }) => React.ReactNode;
       };
 
-      // rewardsViewRoute is found via .find(r => r.name === Routes.REWARDS_STACK_ROOT).
       const buildRewardsState = (activeRouteName: string | undefined) => ({
         routes: [
           {
@@ -168,7 +167,7 @@ describe('MainNavigator', () => {
               ? {
                   routes: [
                     {
-                      name: Routes.REWARDS_STACK_ROOT,
+                      name: Routes.REWARDS_VIEW,
                       state: {
                         index: 0,
                         routes: [{ name: activeRouteName }],
