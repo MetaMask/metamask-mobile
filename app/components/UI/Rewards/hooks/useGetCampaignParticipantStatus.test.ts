@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useGetCampaignParticipantStatus } from './useGetCampaignParticipantStatus';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignParticipantStatusById } from '../../../../reducers/rewards/selectors';
+import { selectCampaignParticipantStatus } from '../../../../reducers/rewards/selectors';
 import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignParticipantStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -26,7 +26,7 @@ jest.mock('../../../../selectors/rewards', () => ({
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCampaignParticipantStatusById: jest.fn(),
+  selectCampaignParticipantStatus: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({
@@ -44,14 +44,14 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockSetCampaignParticipantStatus =
   setCampaignParticipantStatus as unknown as jest.MockedFunction<
-    (payload: { campaignId: string; status: CampaignParticipantStatusDto }) => {
+    (payload: { subscriptionId: string; campaignId: string; status: CampaignParticipantStatusDto }) => {
       type: string;
-      payload: { campaignId: string; status: CampaignParticipantStatusDto };
+      payload: { subscriptionId: string; campaignId: string; status: CampaignParticipantStatusDto };
     }
   >;
-const mockSelectCampaignParticipantStatusById =
-  selectCampaignParticipantStatusById as jest.MockedFunction<
-    typeof selectCampaignParticipantStatusById
+const mockSelectCampaignParticipantStatus =
+  selectCampaignParticipantStatus as jest.MockedFunction<
+    typeof selectCampaignParticipantStatus
   >;
 
 const SUB_ID = 'sub-123';
@@ -66,7 +66,7 @@ function setupSelectors(
   participantStatus: CampaignParticipantStatusDto | null = null,
 ) {
   mockParticipantStatusSelector.mockReturnValue(participantStatus);
-  mockSelectCampaignParticipantStatusById.mockReturnValue(
+  mockSelectCampaignParticipantStatus.mockReturnValue(
     mockParticipantStatusSelector,
   );
 
@@ -117,6 +117,7 @@ describe('useGetCampaignParticipantStatus', () => {
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       mockSetCampaignParticipantStatus({
+        subscriptionId: SUB_ID,
         campaignId: CAMPAIGN_ID,
         status: STATUS,
       }),

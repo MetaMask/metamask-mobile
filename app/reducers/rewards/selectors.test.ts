@@ -50,7 +50,7 @@ import {
   selectCampaignsLoading,
   selectCampaignsError,
   selectCampaignParticipantStatuses,
-  selectCampaignParticipantStatusById,
+  selectCampaignParticipantStatus,
   selectCampaignParticipantCount,
   selectIsRewardsVersionBlocked,
   selectVersionGuardMinimumMobileVersion,
@@ -3227,71 +3227,96 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectCampaignParticipantStatusById', () => {
+  describe('selectCampaignParticipantStatus', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantStatus(undefined, 'campaign-1')(state)).toBeNull();
+    });
+
     it('returns null when campaignId is undefined', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {
-          'campaign-1': { optedIn: true, participantCount: 42 },
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(selectCampaignParticipantStatusById(undefined)(state)).toBeNull();
+      expect(selectCampaignParticipantStatus('sub-1', undefined)(state)).toBeNull();
     });
 
-    it('returns null when campaign has no status', () => {
+    it('returns null when composite key has no status', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {},
       });
       expect(
-        selectCampaignParticipantStatusById('campaign-1')(state),
+        selectCampaignParticipantStatus('sub-1', 'campaign-1')(state),
       ).toBeNull();
     });
 
-    it('returns status for a specific campaign', () => {
+    it('returns status for the correct subscriptionId:campaignId', () => {
       const status = { optedIn: true, participantCount: 42 };
       const state = createMockRootState({
         campaignParticipantStatuses: {
-          'campaign-1': status,
+          'sub-1:campaign-1': status,
         },
       });
-      expect(selectCampaignParticipantStatusById('campaign-1')(state)).toEqual(
+      expect(selectCampaignParticipantStatus('sub-1', 'campaign-1')(state)).toEqual(
         status,
       );
+    });
+
+    it('does not return status for a different subscriptionId', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantStatus('sub-2', 'campaign-1')(state)).toBeNull();
     });
   });
 
   describe('selectCampaignParticipantCount', () => {
-    it('returns null when campaignId is undefined', () => {
+    it('returns null when subscriptionId is undefined', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {
-          'campaign-1': { optedIn: true, participantCount: 42 },
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(selectCampaignParticipantCount(undefined)(state)).toBeNull();
+      expect(selectCampaignParticipantCount(undefined, 'campaign-1')(state)).toBeNull();
     });
 
-    it('returns null when campaign has no status', () => {
+    it('returns null when campaignId is undefined', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {},
       });
-      expect(selectCampaignParticipantCount('campaign-1')(state)).toBeNull();
+      expect(selectCampaignParticipantCount('sub-1', undefined)(state)).toBeNull();
     });
 
-    it('returns participantCount for a specific campaign', () => {
+    it('returns null when composite key has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBeNull();
+    });
+
+    it('returns participantCount for the correct subscriptionId:campaignId', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {
-          'campaign-1': { optedIn: true, participantCount: 42 },
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(42);
+      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(42);
     });
 
     it('returns 0 when participantCount is zero', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {
-          'campaign-1': { optedIn: false, participantCount: 0 },
+          'sub-1:campaign-1': { optedIn: false, participantCount: 0 },
         },
       });
-      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(0);
+      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(0);
     });
   });
 
