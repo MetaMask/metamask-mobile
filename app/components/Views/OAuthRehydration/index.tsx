@@ -108,7 +108,6 @@ import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
 
-const EmptyRecordConstant = {};
 const SEEDLESS_CONTROLLER_PREFIX = /^SeedlessOnboardingController\s*-\s*/;
 
 const FOX_IMAGE_SIZE = Device.isIos() ? 175 : 150;
