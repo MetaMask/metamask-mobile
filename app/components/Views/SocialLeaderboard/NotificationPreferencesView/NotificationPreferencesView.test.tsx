@@ -3,11 +3,14 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
+import { useFollowedTraders } from './hooks';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import NotificationPreferencesView from './NotificationPreferencesView';
 import { NotificationPreferencesViewSelectorsIDs } from './NotificationPreferencesView.testIds';
-import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
+import type {
+  FollowedTrader,
+  UseFollowedTradersResult,
+} from './hooks/useFollowedTraders';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -29,9 +32,13 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../util/theme', () => ({
   mockTheme: jest.requireActual('../../../../util/theme').mockTheme,
   useTheme: () => mockTheme,
+  useAssetFromTheme: jest.fn((light: unknown) => light),
 }));
 
-jest.mock('../../Homepage/Sections/TopTraders/hooks');
+jest.mock('./hooks', () => ({
+  ...jest.requireActual('./hooks'),
+  useFollowedTraders: jest.fn(),
+}));
 
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
@@ -48,8 +55,8 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 // Shared mock primitives
 // ---------------------------------------------------------------------------
 
-const mockUseTopTraders = useTopTraders as jest.MockedFunction<
-  typeof useTopTraders
+const mockUseFollowedTraders = useFollowedTraders as jest.MockedFunction<
+  typeof useFollowedTraders
 >;
 const mockSelectCurrentCurrency = selectCurrentCurrency as jest.MockedFunction<
   typeof selectCurrentCurrency
@@ -59,30 +66,25 @@ const makeTrader = (
   id: string,
   username: string,
   avatarUri?: string,
-): UseTopTradersResult['traders'][number] => ({
+): FollowedTrader => ({
   id,
-  rank: 1,
   username,
   avatarUri,
-  percentageChange: 10,
-  pnlValue: 500,
-  isFollowing: true,
 });
 
-const MOCK_TRADERS = [
+const MOCK_TRADERS: FollowedTrader[] = [
   makeTrader('trader-1', 'dutchiono', 'https://example.com/a1.png'),
   makeTrader('trader-2', 'Kien', 'https://example.com/a2.png'),
   makeTrader('trader-3', 'Raggedandrusty'),
 ];
 
-const makeUseTopTradersResult = (
-  overrides: Partial<UseTopTradersResult> = {},
-): UseTopTradersResult => ({
+const makeUseFollowedTradersResult = (
+  overrides: Partial<UseFollowedTradersResult> = {},
+): UseFollowedTradersResult => ({
   traders: MOCK_TRADERS,
   isLoading: false,
   error: null,
   refresh: jest.fn().mockResolvedValue(undefined),
-  toggleFollow: jest.fn(),
   ...overrides,
 });
 
@@ -100,7 +102,7 @@ const renderScreen = () =>
 describe('NotificationPreferencesView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTopTraders.mockReturnValue(makeUseTopTradersResult());
+    mockUseFollowedTraders.mockReturnValue(makeUseFollowedTradersResult());
     mockSelectCurrentCurrency.mockReturnValue('usd');
   });
 
@@ -238,23 +240,62 @@ describe('NotificationPreferencesView', () => {
         ),
       ).toBeOnTheScreen();
     });
+  });
 
-    it('renders no trader rows when there are no followed traders', () => {
-      mockUseTopTraders.mockReturnValue(
-        makeUseTopTradersResult({
-          traders: MOCK_TRADERS.map((t) => ({ ...t, isFollowing: false })),
+  describe('followed-traders async states', () => {
+    it('renders the loading indicator while followed traders are loading', () => {
+      mockUseFollowedTraders.mockReturnValue(
+        makeUseFollowedTradersResult({ traders: [], isLoading: true }),
+      );
+
+      renderScreen();
+
+      expect(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.TRADERS_LOADING,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the empty state when the user follows nobody', () => {
+      mockUseFollowedTraders.mockReturnValue(
+        makeUseFollowedTradersResult({ traders: [], isLoading: false }),
+      );
+
+      renderScreen();
+
+      expect(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.TRADERS_EMPTY,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings(
+            'social_leaderboard.notification_preferences.traders_you_follow_empty',
+          ),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the error banner and retries when the fetch fails', () => {
+      const refresh = jest.fn().mockResolvedValue(undefined);
+      mockUseFollowedTraders.mockReturnValue(
+        makeUseFollowedTradersResult({
+          traders: [],
+          isLoading: false,
+          error: 'boom',
+          refresh,
         }),
       );
 
       renderScreen();
 
-      MOCK_TRADERS.forEach((trader) => {
-        expect(
-          screen.queryByTestId(
-            NotificationPreferencesViewSelectorsIDs.TRADER_ROW(trader.id),
-          ),
-        ).not.toBeOnTheScreen();
-      });
+      expect(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.TRADERS_ERROR,
+        ),
+      ).toBeOnTheScreen();
     });
   });
 

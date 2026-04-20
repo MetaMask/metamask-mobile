@@ -29,10 +29,15 @@ import {
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { NotificationPreferencesViewSelectorsIDs } from './NotificationPreferencesView.testIds';
-import { useNotificationPreferences, TX_AMOUNT_THRESHOLDS } from './hooks';
-import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
+import {
+  useNotificationPreferences,
+  useFollowedTraders,
+  TX_AMOUNT_THRESHOLDS,
+} from './hooks';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+import { TradersFollowedSkeleton } from './components/Skeletons';
 
 const AVATAR_SIZE = 40;
 
@@ -216,7 +221,12 @@ const formatThreshold = (amount: number, currency: string): string => {
  * Lets the user control:
  * - Global push notification toggle (socialAI.enabled)
  * - Minimum trade size threshold (socialAI.txAmountLimit)
- * - Per-trader notification toggles (socialAI.traderProfileIds)
+ * - Per-trader notification opt-in (socialAI.traderProfileIds)
+ *
+ * The "Traders you follow" section is sourced from
+ * `SocialService:fetchFollowing` (via `useFollowedTraders`) so it surfaces
+ * every trader the user follows — not just the ones that happen to be in
+ * the cached top-leaderboard slice.
  */
 const NotificationPreferencesView = () => {
   const navigation = useNavigation();
@@ -225,15 +235,19 @@ const NotificationPreferencesView = () => {
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const { traders } = useTopTraders({ enabled: isEnabled });
-
-  const followedTraders = traders.filter((t) => t.isFollowing);
+  const {
+    traders: followedTraders,
+    isLoading: isLoadingFollowed,
+    error: followedError,
+    refresh: refreshFollowed,
+  } = useFollowedTraders({ enabled: isEnabled });
 
   const {
     preferences,
     setEnabled,
     setTxAmountLimit,
     toggleTraderNotification,
+    isTraderNotificationEnabled,
   } = useNotificationPreferences(followedTraders);
 
   const handleBack = useCallback(() => {
@@ -241,6 +255,13 @@ const NotificationPreferencesView = () => {
   }, [navigation]);
 
   const globalOff = !preferences.enabled;
+
+  const showFollowedError =
+    Boolean(followedError) && followedTraders.length === 0;
+  const showFollowedLoading =
+    !showFollowedError && isLoadingFollowed && followedTraders.length === 0;
+  const showFollowedEmpty =
+    !showFollowedError && !isLoadingFollowed && followedTraders.length === 0;
 
   return (
     <SafeAreaView
@@ -353,17 +374,49 @@ const NotificationPreferencesView = () => {
           </Text>
         </Box>
 
-        {followedTraders.map((trader) => (
-          <TraderNotificationRow
-            key={trader.id}
-            traderId={trader.id}
-            username={trader.username}
-            avatarUri={trader.avatarUri}
-            isEnabled={preferences.traderNotifications[trader.id] ?? true}
-            isDisabled={globalOff}
-            onToggle={toggleTraderNotification}
-          />
-        ))}
+        {showFollowedError ? (
+          <Box testID={NotificationPreferencesViewSelectorsIDs.TRADERS_ERROR}>
+            <ErrorState
+              title={strings(
+                'social_leaderboard.notification_preferences.error_loading_followed',
+              )}
+              onRetry={refreshFollowed}
+            />
+          </Box>
+        ) : showFollowedLoading ? (
+          <View
+            testID={NotificationPreferencesViewSelectorsIDs.TRADERS_LOADING}
+          >
+            <TradersFollowedSkeleton />
+          </View>
+        ) : showFollowedEmpty ? (
+          <Box
+            twClassName="px-4 py-6"
+            testID={NotificationPreferencesViewSelectorsIDs.TRADERS_EMPTY}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings(
+                'social_leaderboard.notification_preferences.traders_you_follow_empty',
+              )}
+            </Text>
+          </Box>
+        ) : (
+          followedTraders.map((trader) => (
+            <TraderNotificationRow
+              key={trader.id}
+              traderId={trader.id}
+              username={trader.username}
+              avatarUri={trader.avatarUri}
+              isEnabled={isTraderNotificationEnabled(trader.id)}
+              isDisabled={globalOff}
+              onToggle={toggleTraderNotification}
+            />
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );

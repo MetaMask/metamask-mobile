@@ -3,9 +3,8 @@ import {
   useNotificationPreferences,
   TX_AMOUNT_THRESHOLDS,
 } from './useNotificationPreferences';
-import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
 
-const makeTrader = (id: string): Pick<TopTrader, 'id'> => ({ id });
+const makeTrader = (id: string) => ({ id });
 
 const FOLLOWED_TRADERS = [
   makeTrader('trader-1'),
@@ -31,20 +30,25 @@ describe('useNotificationPreferences', () => {
       expect(result.current.preferences.txAmountLimit).toBe(500);
     });
 
-    it('initializes all followed traders with notifications enabled', () => {
+    it('initializes traderProfileIds with every followed trader opted in', () => {
       const { result } = renderHook(() =>
         useNotificationPreferences(FOLLOWED_TRADERS),
       );
 
+      expect(result.current.preferences.traderProfileIds).toEqual([
+        'trader-1',
+        'trader-2',
+        'trader-3',
+      ]);
       FOLLOWED_TRADERS.forEach(({ id }) => {
-        expect(result.current.preferences.traderNotifications[id]).toBe(true);
+        expect(result.current.isTraderNotificationEnabled(id)).toBe(true);
       });
     });
 
-    it('initializes with an empty traderNotifications map when given no traders', () => {
+    it('initializes with empty traderProfileIds when given no traders', () => {
       const { result } = renderHook(() => useNotificationPreferences([]));
 
-      expect(result.current.preferences.traderNotifications).toEqual({});
+      expect(result.current.preferences.traderProfileIds).toEqual([]);
     });
   });
 
@@ -95,40 +99,40 @@ describe('useNotificationPreferences', () => {
   });
 
   describe('toggleTraderNotification', () => {
-    it('toggles a trader notification from true to false', () => {
+    it('removes the trader id from traderProfileIds when toggled off', () => {
       const { result } = renderHook(() =>
         useNotificationPreferences(FOLLOWED_TRADERS),
       );
-      const traderId = 'trader-1';
 
       act(() => {
-        result.current.toggleTraderNotification(traderId);
+        result.current.toggleTraderNotification('trader-1');
       });
 
-      expect(result.current.preferences.traderNotifications[traderId]).toBe(
+      expect(result.current.preferences.traderProfileIds).not.toContain(
+        'trader-1',
+      );
+      expect(result.current.isTraderNotificationEnabled('trader-1')).toBe(
         false,
       );
     });
 
-    it('toggles a trader notification back to true on a second call', () => {
+    it('re-adds the trader id on a second call', () => {
       const { result } = renderHook(() =>
         useNotificationPreferences(FOLLOWED_TRADERS),
       );
-      const traderId = 'trader-1';
 
       act(() => {
-        result.current.toggleTraderNotification(traderId);
+        result.current.toggleTraderNotification('trader-1');
       });
       act(() => {
-        result.current.toggleTraderNotification(traderId);
+        result.current.toggleTraderNotification('trader-1');
       });
 
-      expect(result.current.preferences.traderNotifications[traderId]).toBe(
-        true,
-      );
+      expect(result.current.preferences.traderProfileIds).toContain('trader-1');
+      expect(result.current.isTraderNotificationEnabled('trader-1')).toBe(true);
     });
 
-    it('does not affect other traders when one is toggled', () => {
+    it('does not affect other trader opt-ins', () => {
       const { result } = renderHook(() =>
         useNotificationPreferences(FOLLOWED_TRADERS),
       );
@@ -137,35 +141,30 @@ describe('useNotificationPreferences', () => {
         result.current.toggleTraderNotification('trader-1');
       });
 
-      expect(result.current.preferences.traderNotifications['trader-2']).toBe(
-        true,
-      );
-      expect(result.current.preferences.traderNotifications['trader-3']).toBe(
-        true,
-      );
+      expect(result.current.isTraderNotificationEnabled('trader-2')).toBe(true);
+      expect(result.current.isTraderNotificationEnabled('trader-3')).toBe(true);
     });
   });
 
   describe('followed traders list changes', () => {
-    it('adds new traders as notification-enabled when the list grows', () => {
+    it('appends newly-followed trader ids as opted-in', () => {
       const initial = [makeTrader('trader-1')];
       const { result, rerender } = renderHook(
-        ({ traders }: { traders: Pick<TopTrader, 'id'>[] }) =>
+        ({ traders }: { traders: { id: string }[] }) =>
           useNotificationPreferences(traders),
         { initialProps: { traders: initial } },
       );
 
       rerender({ traders: [...initial, makeTrader('trader-2')] });
 
-      expect(result.current.preferences.traderNotifications['trader-2']).toBe(
-        true,
-      );
+      expect(result.current.preferences.traderProfileIds).toContain('trader-2');
+      expect(result.current.isTraderNotificationEnabled('trader-2')).toBe(true);
     });
 
-    it('preserves existing trader preferences when the list grows', () => {
+    it('preserves explicit opt-outs when the list grows', () => {
       const initial = [makeTrader('trader-1')];
       const { result, rerender } = renderHook(
-        ({ traders }: { traders: Pick<TopTrader, 'id'>[] }) =>
+        ({ traders }: { traders: { id: string }[] }) =>
           useNotificationPreferences(traders),
         { initialProps: { traders: initial } },
       );
@@ -176,23 +175,23 @@ describe('useNotificationPreferences', () => {
 
       rerender({ traders: [...initial, makeTrader('trader-2')] });
 
-      expect(result.current.preferences.traderNotifications['trader-1']).toBe(
+      expect(result.current.isTraderNotificationEnabled('trader-1')).toBe(
         false,
       );
     });
 
     it('does not change state reference when the same list is passed again', () => {
       const { result, rerender } = renderHook(
-        ({ traders }: { traders: Pick<TopTrader, 'id'>[] }) =>
+        ({ traders }: { traders: { id: string }[] }) =>
           useNotificationPreferences(traders),
         { initialProps: { traders: FOLLOWED_TRADERS } },
       );
 
-      const before = result.current.preferences.traderNotifications;
+      const before = result.current.preferences.traderProfileIds;
 
       rerender({ traders: FOLLOWED_TRADERS });
 
-      expect(result.current.preferences.traderNotifications).toBe(before);
+      expect(result.current.preferences.traderProfileIds).toBe(before);
     });
   });
 });
