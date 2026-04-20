@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import {
@@ -44,6 +44,10 @@ import TagBase, {
 } from '../../../../../component-library/base-components/TagBase';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+
+const styles = StyleSheet.create({
+  bonusTag: { borderRadius: 8, paddingHorizontal: 6 },
+});
 
 interface AssetOverviewClaimBonusProps {
   asset: TokenI;
@@ -117,10 +121,11 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     ? `+$${estimatedAnnualBonus.toFixed(2)}`
     : '+$0.00';
 
-  // Lifetime bonus
-  const formattedLifetimeBonus = lifetimeBonusClaimed
+  // Lifetime bonus: white $0.00 until first claim, then green +$X.
+  const hasLifetimeBonus = Number(lifetimeBonusClaimed) > 0;
+  const formattedLifetimeBonus = hasLifetimeBonus
     ? `+$${lifetimeBonusClaimed}`
-    : '+$0.00';
+    : '$0.00';
 
   // CTA state
   const { ctaLabel, ctaDisabled } = useMemo(() => {
@@ -273,6 +278,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
           </Box>
           <TagBase
             severity={TagSeverity.Success}
+            style={styles.bonusTag}
             testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG}
           >
             {strings('earn.percentage_bonus', {
@@ -315,7 +321,11 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
+            color={
+              hasLifetimeBonus
+                ? TextColor.SuccessDefault
+                : TextColor.TextDefault
+            }
             testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE}
           >
             {formattedLifetimeBonus}
