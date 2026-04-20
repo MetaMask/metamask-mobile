@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from '@metamask/react-native-webview';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard';
@@ -10,6 +10,11 @@ import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+
+const SAFE_AREA_EDGES =
+  Platform.OS === 'android'
+    ? (['top', 'bottom'] as const)
+    : (['bottom'] as const);
 
 // TODO: This will be replaced with the actual route params type once navigation is refactored
 type RouteParams = {
@@ -36,7 +41,8 @@ const SimpleWebView = () => {
   }, [url]);
 
   return (
-    <View
+    <SafeAreaView
+      edges={SAFE_AREA_EDGES}
       style={[
         baseStyles.flexGrow,
         { backgroundColor: colors.background.default },
@@ -47,10 +53,8 @@ const SimpleWebView = () => {
         onBack={() => navigation.goBack()}
         endButtonIconProps={[{ iconName: IconName.Share, onPress: share }]}
       />
-      <SafeAreaView edges={['bottom']} style={baseStyles.flexGrow}>
-        <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />
-      </SafeAreaView>
-    </View>
+      <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />
+    </SafeAreaView>
   );
 };
 

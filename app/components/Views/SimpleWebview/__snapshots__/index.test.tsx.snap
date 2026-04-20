@@ -2,6 +2,11 @@
 
 exports[`SimpleWebview renders correctly 1`] = `
 <View
+  edges={
+    [
+      "bottom",
+    ]
+  }
   style={
     [
       {
@@ -14,29 +19,16 @@ exports[`SimpleWebview renders correctly 1`] = `
   }
 >
   <View
-    edges={
-      [
-        "bottom",
-      ]
-    }
-    style={
+    containerStyle={
       {
         "flex": 1,
       }
     }
-  >
-    <View
-      containerStyle={
-        {
-          "flex": 1,
-        }
+    source={
+      {
+        "uri": "https://etherscan.io",
       }
-      source={
-        {
-          "uri": "https://etherscan.io",
-        }
-      }
-    />
-  </View>
+    }
+  />
 </View>
 `;
