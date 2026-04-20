@@ -1,24 +1,28 @@
-import type { AnalyticsUnfilteredProperties } from './analytics.types';
 import { OAuthError, OAuthErrorType } from '../../core/OAuthService/error';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../core/Engine/controllers/seedless-onboarding-controller/error';
 
+export interface SocialLoginFailureAnalyticsProperties {
+  failure_error_kind: 'oauth' | 'seedless' | 'generic';
+  failure_error_value: string;
+}
+
 export function getSocialLoginFailureAnalyticsProperties(
   error: unknown,
-): AnalyticsUnfilteredProperties {
+): SocialLoginFailureAnalyticsProperties {
   if (error instanceof OAuthError) {
     return {
       failure_error_kind: 'oauth',
-      oauth_error_type: OAuthErrorType[error.code] ?? String(error.code),
+      failure_error_value: OAuthErrorType[error.code] ?? String(error.code),
     };
   }
 
   if (error instanceof SeedlessOnboardingControllerError) {
     return {
       failure_error_kind: 'seedless',
-      seedless_error_type:
+      failure_error_value:
         SeedlessOnboardingControllerErrorType[error.code] ?? String(error.code),
     };
   }
@@ -26,13 +30,13 @@ export function getSocialLoginFailureAnalyticsProperties(
   if (error instanceof Error) {
     return {
       failure_error_kind: 'generic',
-      generic_error_name: error.name,
+      failure_error_value: error.name,
     };
   }
 
   return {
     failure_error_kind: 'generic',
-    generic_error_name: 'non_error_throwable',
+    failure_error_value: 'non_error_throwable',
   };
 }
 

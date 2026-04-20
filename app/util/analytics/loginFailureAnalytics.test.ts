@@ -19,7 +19,7 @@ describe('loginFailureAnalytics', () => {
       );
       expect(getSocialLoginFailureAnalyticsProperties(err)).toStrictEqual({
         failure_error_kind: 'oauth',
-        oauth_error_type: 'GoogleLoginNoCredential',
+        failure_error_value: 'GoogleLoginNoCredential',
       });
     });
 
@@ -30,7 +30,7 @@ describe('loginFailureAnalytics', () => {
       );
       expect(getSocialLoginFailureAnalyticsProperties(err)).toStrictEqual({
         failure_error_kind: 'seedless',
-        seedless_error_type: 'AuthenticationError',
+        failure_error_value: 'AuthenticationError',
       });
     });
 
@@ -38,14 +38,14 @@ describe('loginFailureAnalytics', () => {
       const err = new TypeError('fail');
       expect(getSocialLoginFailureAnalyticsProperties(err)).toStrictEqual({
         failure_error_kind: 'generic',
-        generic_error_name: 'TypeError',
+        failure_error_value: 'TypeError',
       });
     });
 
     it('returns generic dimensions for non-error throwables', () => {
       expect(getSocialLoginFailureAnalyticsProperties('string')).toStrictEqual({
         failure_error_kind: 'generic',
-        generic_error_name: 'non_error_throwable',
+        failure_error_value: 'non_error_throwable',
       });
     });
   });

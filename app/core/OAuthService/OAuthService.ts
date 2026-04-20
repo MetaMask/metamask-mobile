@@ -398,7 +398,8 @@ export class OAuthService {
         : 'false';
     }
 
-    const failureDetailProps = getSocialLoginFailureAnalyticsProperties(error);
+    const { failure_error_kind, failure_error_value } =
+      getSocialLoginFailureAnalyticsProperties(error);
 
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
@@ -412,7 +413,8 @@ export class OAuthService {
           is_rehydration: userClickedRehydration,
           failure_type: isUserCancelled ? 'user_cancelled' : 'error',
           error_category: errorCategory,
-          ...failureDetailProps,
+          failure_error_kind,
+          failure_error_value,
         })
         .build(),
     );
