@@ -3234,7 +3234,9 @@ describe('Rewards selectors', () => {
           'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(selectCampaignParticipantStatus(undefined, 'campaign-1')(state)).toBeNull();
+      expect(
+        selectCampaignParticipantStatus(undefined, 'campaign-1')(state),
+      ).toBeNull();
     });
 
     it('returns null when campaignId is undefined', () => {
@@ -3243,7 +3245,9 @@ describe('Rewards selectors', () => {
           'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(selectCampaignParticipantStatus('sub-1', undefined)(state)).toBeNull();
+      expect(
+        selectCampaignParticipantStatus('sub-1', undefined)(state),
+      ).toBeNull();
     });
 
     it('returns null when composite key has no status', () => {
@@ -3262,9 +3266,9 @@ describe('Rewards selectors', () => {
           'sub-1:campaign-1': status,
         },
       });
-      expect(selectCampaignParticipantStatus('sub-1', 'campaign-1')(state)).toEqual(
-        status,
-      );
+      expect(
+        selectCampaignParticipantStatus('sub-1', 'campaign-1')(state),
+      ).toEqual(status);
     });
 
     it('does not return status for a different subscriptionId', () => {
@@ -3273,7 +3277,9 @@ describe('Rewards selectors', () => {
           'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(selectCampaignParticipantStatus('sub-2', 'campaign-1')(state)).toBeNull();
+      expect(
+        selectCampaignParticipantStatus('sub-2', 'campaign-1')(state),
+      ).toBeNull();
     });
   });
 
@@ -3284,21 +3290,27 @@ describe('Rewards selectors', () => {
           'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(selectCampaignParticipantCount(undefined, 'campaign-1')(state)).toBeNull();
+      expect(
+        selectCampaignParticipantCount(undefined, 'campaign-1')(state),
+      ).toBeNull();
     });
 
     it('returns null when campaignId is undefined', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {},
       });
-      expect(selectCampaignParticipantCount('sub-1', undefined)(state)).toBeNull();
+      expect(
+        selectCampaignParticipantCount('sub-1', undefined)(state),
+      ).toBeNull();
     });
 
     it('returns null when composite key has no status', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {},
       });
-      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBeNull();
+      expect(
+        selectCampaignParticipantCount('sub-1', 'campaign-1')(state),
+      ).toBeNull();
     });
 
     it('returns participantCount for the correct subscriptionId:campaignId', () => {
@@ -3307,7 +3319,9 @@ describe('Rewards selectors', () => {
           'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(42);
+      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(
+        42,
+      );
     });
 
     it('returns 0 when participantCount is zero', () => {
@@ -3316,7 +3330,9 @@ describe('Rewards selectors', () => {
           'sub-1:campaign-1': { optedIn: false, participantCount: 0 },
         },
       });
-      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(0);
+      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(
+        0,
+      );
     });
   });
 

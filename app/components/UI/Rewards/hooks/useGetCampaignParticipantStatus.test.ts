@@ -44,9 +44,17 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockSetCampaignParticipantStatus =
   setCampaignParticipantStatus as unknown as jest.MockedFunction<
-    (payload: { subscriptionId: string; campaignId: string; status: CampaignParticipantStatusDto }) => {
+    (payload: {
+      subscriptionId: string;
+      campaignId: string;
+      status: CampaignParticipantStatusDto;
+    }) => {
       type: string;
-      payload: { subscriptionId: string; campaignId: string; status: CampaignParticipantStatusDto };
+      payload: {
+        subscriptionId: string;
+        campaignId: string;
+        status: CampaignParticipantStatusDto;
+      };
     }
   >;
 const mockSelectCampaignParticipantStatus =

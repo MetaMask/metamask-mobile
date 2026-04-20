@@ -26,7 +26,9 @@ export const useGetCampaignParticipantStatus = (
   campaignId: string | undefined,
 ): UseGetCampaignParticipantStatusResult => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const status = useSelector(selectCampaignParticipantStatus(subscriptionId, campaignId));
+  const status = useSelector(
+    selectCampaignParticipantStatus(subscriptionId, campaignId),
+  );
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(
     () => !status && Boolean(subscriptionId) && Boolean(campaignId),
@@ -46,7 +48,13 @@ export const useGetCampaignParticipantStatus = (
         campaignId,
         subscriptionId,
       );
-      dispatch(setCampaignParticipantStatus({ subscriptionId, campaignId, status: result }));
+      dispatch(
+        setCampaignParticipantStatus({
+          subscriptionId,
+          campaignId,
+          status: result,
+        }),
+      );
     } catch {
       setHasError(true);
     } finally {

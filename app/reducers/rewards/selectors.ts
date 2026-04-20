@@ -190,7 +190,9 @@ export const selectCampaignParticipantCount =
   (state: RootState) => {
     if (!subscriptionId || !campaignId) return null;
     const key = `${subscriptionId}:${campaignId}`;
-    return state.rewards.campaignParticipantStatuses?.[key]?.participantCount ?? null;
+    return (
+      state.rewards.campaignParticipantStatuses?.[key]?.participantCount ?? null
+    );
   };
 
 // Version guard selectors

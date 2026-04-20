@@ -4905,11 +4905,15 @@ describe('setCampaignParticipantStatus', () => {
       }),
     );
 
-    expect(currentState.campaignParticipantStatuses['sub-1:campaign-1']).toEqual({
+    expect(
+      currentState.campaignParticipantStatuses['sub-1:campaign-1'],
+    ).toEqual({
       optedIn: true,
       participantCount: 42,
     });
-    expect(currentState.campaignParticipantStatuses['sub-2:campaign-1']).toEqual({
+    expect(
+      currentState.campaignParticipantStatuses['sub-2:campaign-1'],
+    ).toEqual({
       optedIn: false,
       participantCount: 0,
     });
