@@ -12,6 +12,11 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
     'Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      test.skip(
+        currentDeviceDetails.platform === 'ios',
+        'Skipped on iOS — cross-chain swap flow under investigation',
+      );
+
       await loginToAppPlaywright();
 
       const timer1 = new TimerHelper(

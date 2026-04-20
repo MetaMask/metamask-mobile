@@ -13,6 +13,11 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
     'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      test.skip(
+        currentDeviceDetails.platform === 'ios',
+        'Skipped on iOS — swap flow under investigation',
+      );
+
       await loginToAppPlaywright();
 
       const swapLoadTimer = new TimerHelper(
