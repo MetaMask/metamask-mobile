@@ -146,6 +146,7 @@ jest.mock('../../../util/haptics', () => ({
   playImpact: jest.fn().mockResolvedValue(undefined),
   ImpactMoment: {
     SliderTick: 'sliderTick',
+    EdgeGestureEngage: 'edgeGestureEngage',
     TabChange: 'tabChange',
     PullToRefreshEngage: 'pullToRefreshEngage',
     PullToRefresh: 'pullToRefresh',
@@ -782,15 +783,17 @@ describe('GestureWebViewWrapper', () => {
     });
 
     describe('callback invocation via runOnJS', () => {
-      it('triggerHapticFeedback invokes playImpact', () => {
-        const { playImpact } = jest.requireMock('../../../util/haptics');
+      it('triggerHapticFeedback invokes playImpact with EdgeGestureEngage on left edge', () => {
+        const { playImpact, ImpactMoment } = jest.requireMock(
+          '../../../util/haptics',
+        );
         renderComponent({ backEnabled: true });
         const stateManager = createStateManager();
         const event = createTouchEvent(10, 200);
 
         capturedCallbacks.onTouchesDown?.(event, stateManager);
 
-        expect(playImpact).toHaveBeenCalled();
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.EdgeGestureEngage);
       });
     });
 

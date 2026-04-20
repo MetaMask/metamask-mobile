@@ -241,14 +241,14 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             swipeProgress.value = 0;
             swipeStartTime.current = Date.now();
             stateManager.activate();
-            runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+            runOnJS(triggerHapticFeedback)(ImpactMoment.EdgeGestureEngage);
           } else if (isRightEdge) {
             gestureType.value = 'forward';
             swipeDirection.value = 'forward';
             swipeProgress.value = 0;
             swipeStartTime.current = Date.now();
             stateManager.activate();
-            runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+            runOnJS(triggerHapticFeedback)(ImpactMoment.EdgeGestureEngage);
           } else if (canPullToRefresh) {
             gestureType.value = 'pending_refresh';
             initialTouchY.value = y;
