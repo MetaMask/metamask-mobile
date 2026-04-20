@@ -3,6 +3,7 @@ import {
   HASH_ZERO_BYTES32,
   NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
 } from '../constants';
+import Logger from '../../../../../../util/Logger';
 import {
   POLYMARKET_V1_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
@@ -12,15 +13,15 @@ import {
 
 describe('polymarket protocol definitions', () => {
   const originalBuilderCode = process.env.MM_PREDICT_BUILDER_CODE;
-  let warnSpy: jest.SpyInstance;
+  let logSpy: jest.SpyInstance;
 
   beforeEach(() => {
     delete process.env.MM_PREDICT_BUILDER_CODE;
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    logSpy = jest.spyOn(Logger, 'log').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
-    warnSpy.mockRestore();
+    logSpy.mockRestore();
   });
 
   afterAll(() => {
@@ -51,14 +52,14 @@ describe('polymarket protocol definitions', () => {
     expect(getClobV2BuilderCode()).toBe(
       '0x1111111111111111111111111111111111111111111111111111111111111111',
     );
-    expect(warnSpy).not.toHaveBeenCalled();
+    expect(logSpy).not.toHaveBeenCalled();
   });
 
   it('falls back to zero builder code when MM_PREDICT_BUILDER_CODE is missing', () => {
     process.env.MM_PREDICT_BUILDER_CODE = '';
 
     expect(getClobV2BuilderCode()).toBe(HASH_ZERO_BYTES32);
-    expect(warnSpy).toHaveBeenCalledWith(
+    expect(logSpy).toHaveBeenCalledWith(
       'Polymarket CLOB v2 builder code missing in MM_PREDICT_BUILDER_CODE; falling back to zero bytes32 value',
     );
   });
@@ -67,7 +68,7 @@ describe('polymarket protocol definitions', () => {
     process.env.MM_PREDICT_BUILDER_CODE = 'invalid';
 
     expect(getClobV2BuilderCode()).toBe(HASH_ZERO_BYTES32);
-    expect(warnSpy).toHaveBeenCalledWith(
+    expect(logSpy).toHaveBeenCalledWith(
       'Polymarket CLOB v2 builder code invalid in MM_PREDICT_BUILDER_CODE; falling back to zero bytes32 value',
     );
   });

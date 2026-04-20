@@ -10,7 +10,7 @@ import {
   NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
   USDC_E_ADDRESS,
 } from '../constants';
-import Logger from 'app/util/Logger';
+import Logger from '../../../../../../util/Logger';
 
 export type PolymarketProtocolKey = 'v1' | 'v2';
 export type DepositExecutionMode = 'usdce-transfer' | 'pusd-transfer';

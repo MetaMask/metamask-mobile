@@ -169,10 +169,18 @@ export function buildProtocolUnsignedOrder({
   }
 
   return {
-    ...baseOrder,
+    salt: baseOrder.salt,
+    maker: baseOrder.maker,
+    signer: baseOrder.signer,
     taker: '0x0000000000000000000000000000000000000000',
+    tokenId: baseOrder.tokenId,
+    makerAmount: baseOrder.makerAmount,
+    takerAmount: baseOrder.takerAmount,
+    expiration: baseOrder.expiration,
     nonce: '0',
     feeRateBps: preview.feeRateBps ?? '0',
+    side: baseOrder.side,
+    signatureType: baseOrder.signatureType,
   };
 }
 
