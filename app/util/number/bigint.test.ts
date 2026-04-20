@@ -495,6 +495,15 @@ describe('Number utils :: weiToFiat', () => {
     expect(weiToFiat(toWei('1'), null, 'usd')).toBeUndefined();
     expect(weiToFiat(toWei('1'), 0, 'usd')).toBeUndefined();
   });
+
+  it('returns zero fiat for NaN wei instead of throwing', () => {
+    expect(weiToFiat(NaN, 1, 'usd')).toEqual('$0.00');
+  });
+
+  it('returns zero fiat for Infinity wei instead of throwing', () => {
+    expect(weiToFiat(Infinity, 1, 'usd')).toEqual('$0.00');
+    expect(weiToFiat(-Infinity, 1, 'usd')).toEqual('$0.00');
+  });
 });
 
 describe('Number utils :: weiToFiatNumber', () => {
@@ -630,6 +639,14 @@ describe('Number utils :: balanceToFiat', () => {
 
   it('returns undefined when conversionRate is undefined', () => {
     expect(balanceToFiat(0.1, undefined, 0.1, 'usd')).toEqual(undefined);
+  });
+
+  it('returns formatted string when conversionRate is null (loading state)', () => {
+    expect(balanceToFiat(0.1, null, 0.1, 'usd')).toEqual('$0.00');
+  });
+
+  it('returns formatted string when conversionRate is 0', () => {
+    expect(balanceToFiat(0.1, 0, 0.1, 'usd')).toEqual('$0.00');
   });
 });
 

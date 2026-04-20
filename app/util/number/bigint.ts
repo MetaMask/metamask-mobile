@@ -531,6 +531,9 @@ export function weiToFiat(
   currencyCode: CurrencyCode,
 ) {
   if (!conversionRate) return undefined;
+  if (typeof wei === 'number' && !Number.isFinite(wei)) {
+    return addCurrencySymbol(0, currencyCode);
+  }
   const weiBigInt = typeof wei === 'number' ? BigInt(Math.trunc(wei)) : wei;
   if (!weiBigInt || !conversionRate) {
     return addCurrencySymbol(0, currencyCode);
@@ -732,12 +735,16 @@ export function balanceToFiat(
     balance === undefined ||
     balance === null ||
     exchangeRate === undefined ||
-    !conversionRate ||
+    conversionRate === undefined ||
     exchangeRate === 0
   ) {
     return undefined;
   }
-  const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
+  const fiatFixed = balanceToFiatNumber(
+    balance,
+    conversionRate ?? 0,
+    exchangeRate,
+  );
   return addCurrencySymbol(fiatFixed, currencyCode);
 }
 
