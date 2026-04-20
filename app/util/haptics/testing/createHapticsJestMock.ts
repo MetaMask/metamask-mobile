@@ -40,7 +40,6 @@ export function createHapticsJestMock(
     playErrorNotification,
     playWarningNotification,
     playImpact,
-    playNotification,
     playSelection,
   }));
 
