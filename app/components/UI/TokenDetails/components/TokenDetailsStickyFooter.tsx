@@ -48,13 +48,11 @@ const styles = StyleSheet.create({
 
 const BALANCE_THRESHOLD_USD = 100;
 
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
+const LIGHT_MODE_GREEN = '#00881A';
+
 const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
-const SECONDARY_TEXT_PROPS = { twClassName: 'text-success-default' } as const;
 const PRIMARY_ICON_PROPS = { size: IconSize.Md } as const;
-const SECONDARY_ICON_PROPS = {
-  size: IconSize.Md,
-  twClassName: 'text-success-default shrink-0',
-} as const;
 
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
@@ -87,7 +85,28 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === 'light';
+
+  const successBg = isLightMode
+    ? `bg-[${LIGHT_MODE_GREEN}]`
+    : 'bg-success-default';
+  const successBorder = isLightMode
+    ? `border-[${LIGHT_MODE_GREEN}]`
+    : 'border-success-default';
+  const successText = isLightMode
+    ? `text-[${LIGHT_MODE_GREEN}]`
+    : 'text-success-default';
+
+  const secondaryTextProps = useMemo(
+    () => ({ twClassName: successText }) as const,
+    [successText],
+  );
+  const secondaryIconProps = useMemo(
+    () =>
+      ({ size: IconSize.Md, twClassName: `${successText} shrink-0` }) as const,
+    [successText],
+  );
 
   const {
     onBuy,
@@ -247,16 +266,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             }
             style={styles.button}
             twClassName={
-              swapIsSuccess
-                ? 'bg-success-default'
-                : 'bg-transparent border-success-default'
+              swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
-            textProps={
-              swapIsSuccess ? SUCCESS_TEXT_PROPS : SECONDARY_TEXT_PROPS
-            }
+            textProps={swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
             startIconName={IconName.SwapVertical}
             startIconProps={
-              swapIsSuccess ? PRIMARY_ICON_PROPS : SECONDARY_ICON_PROPS
+              swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
             }
             onPress={() => {
               trackStickyFooterTapped({
@@ -279,14 +294,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             }
             style={showSwapButton ? styles.subsequentButton : styles.button}
             twClassName={
-              buyIsSuccess
-                ? 'bg-success-default'
-                : 'bg-transparent border-success-default'
+              buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
-            textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : SECONDARY_TEXT_PROPS}
+            textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
             startIconName={IconName.Bank}
             startIconProps={
-              buyIsSuccess ? PRIMARY_ICON_PROPS : SECONDARY_ICON_PROPS
+              buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
             }
             onPress={() => {
               trackStickyFooterTapped({

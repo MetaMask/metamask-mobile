@@ -43,6 +43,14 @@ const CHARTING_LIBRARY_ORIGIN = (() => {
 const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
+const LIGHT_MODE_CHART_GREEN = '#00881A';
+
+const getChartSuccessColor = (theme: Theme): string =>
+  theme.themeAppearance === 'light'
+    ? LIGHT_MODE_CHART_GREEN
+    : theme.colors.success.default;
+
 interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
@@ -62,7 +70,7 @@ window.CONFIG = {
     backgroundColor: '${theme.colors.background.default}',
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
     textColor: '${stripHexAlpha(theme.colors.text.muted)}',
-    successColor: '${theme.colors.success.default}',
+    successColor: '${getChartSuccessColor(theme)}',
     errorColor: '${theme.colors.error.default}',
     primaryColor: '${theme.colors.primary.default}'
   },
@@ -210,7 +218,7 @@ export const createAdvancedChartTemplate = (
          */
         #last-close-price-label {
             z-index: 50;
-            background: ${stripHexAlpha(theme.colors.success.default)};
+            background: ${stripHexAlpha(getChartSuccessColor(theme))};
             color: ${stripHexAlpha(theme.colors.success.inverse)};
         }
         /*
@@ -222,8 +230,8 @@ export const createAdvancedChartTemplate = (
         #custom-series-last-value-label {
             z-index: 55;
             background: transparent;
-            border: 1px solid ${stripHexAlpha(theme.colors.success.default)};
-            color: ${stripHexAlpha(theme.colors.success.default)};
+            border: 1px solid ${stripHexAlpha(getChartSuccessColor(theme))};
+            color: ${stripHexAlpha(getChartSuccessColor(theme))};
         }
         /*
          * Crosshair price pill draws above last-close when both share the same Y so text stays readable.

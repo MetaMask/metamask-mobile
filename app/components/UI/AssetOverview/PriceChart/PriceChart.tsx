@@ -21,6 +21,7 @@ import { AreaChart } from 'react-native-svg-charts';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useStyles } from '../../../../component-library/hooks';
+import { useTheme } from '../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -32,6 +33,9 @@ import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import { Box } from '@metamask/design-system-react-native';
+
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
+const LIGHT_MODE_CHART_GREEN = '#00881A';
 
 interface LineProps {
   line: string;
@@ -73,13 +77,15 @@ const PriceChart = ({
   /** Laid-out width of the chart row — used for touch mapping and skeleton (not screen width). */
   const [chartRowWidth, setChartRowWidth] = useState(0);
   const { styles, theme } = useStyles(styleSheet, { chartHeight });
+  const { themeAppearance } = useTheme();
+  const chartColor =
+    themeAppearance === 'light'
+      ? LIGHT_MODE_CHART_GREEN
+      : theme.colors.success.default;
 
   useEffect(() => {
     setPositionX(-1);
   }, [prices]);
-
-  /** Align with AdvancedChart / TradingView line: success up, error down (not legacy primary blue). */
-  const chartColor = theme.colors.success.default;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
