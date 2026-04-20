@@ -19,7 +19,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
 import { TooltipSizes } from '../../../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { IconName as IconNameLegacy } from '../../../../../../../component-library/components/Icons/Icon';
-import Skeleton from '../../../../../../../component-library/components/Skeleton/Skeleton';
+import Skeleton from '../../../../../../../component-library/components-temp/Skeleton/Skeleton';
 import {
   TextColor as LegacyTextColor,
   TextVariant as LegacyTextVariant,
