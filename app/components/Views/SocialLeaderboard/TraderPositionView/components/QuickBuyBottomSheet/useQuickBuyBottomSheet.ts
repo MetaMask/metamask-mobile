@@ -35,6 +35,7 @@ import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
 import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
+import { calcTokenValue } from '../../../../../../util/transactions';
 
 export interface UseQuickBuyBottomSheetResult {
   // refs
@@ -173,6 +174,7 @@ export function useQuickBuyBottomSheet(
     isNoQuotesAvailable,
     quoteFetchError,
     blockaidError,
+    isActiveQuoteForCurrentTokenPair,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -304,12 +306,51 @@ export function useQuickBuyBottomSheet(
     blockaidError || quoteFetchError || isNoQuotesAvailable,
   );
   const hasValidAmount = Boolean(usdAmount && Number(usdAmount) > 0);
+  const hasQuoteRequestableAmount = useMemo(() => {
+    const hasNonZeroInputAmount = Boolean(
+      sourceTokenAmount && Number(sourceTokenAmount) !== 0,
+    );
+
+    try {
+      return Boolean(
+        hasNonZeroInputAmount &&
+          (sourceToken?.decimals === undefined ||
+            calcTokenValue(sourceTokenAmount, sourceToken.decimals).toFixed(
+              0,
+            ) !== '0'),
+      );
+    } catch {
+      return hasNonZeroInputAmount;
+    }
+  }, [sourceTokenAmount, sourceToken?.decimals]);
+  const settledSourceTokenAmountRef = useRef(sourceTokenAmount);
+  const wasQuoteLoadingRef = useRef(isQuoteLoading);
+
+  useEffect(() => {
+    const loadingJustFinished = wasQuoteLoadingRef.current && !isQuoteLoading;
+
+    if (loadingJustFinished || hasError) {
+      settledSourceTokenAmountRef.current = sourceTokenAmount;
+    }
+
+    wasQuoteLoadingRef.current = isQuoteLoading;
+  }, [isQuoteLoading, sourceTokenAmount, hasError]);
+
+  const isAwaitingQuote =
+    hasQuoteRequestableAmount && !activeQuote && !isQuoteLoading && !hasError;
+  const isPendingQuoteRefresh =
+    settledSourceTokenAmountRef.current !== sourceTokenAmount &&
+    hasQuoteRequestableAmount;
+  const hasQuoteMismatch =
+    Boolean(activeQuote) && !isActiveQuoteForCurrentTokenPair;
 
   const isConfirmDisabled =
     !hasValidAmount ||
     isSetupLoading ||
     !destToken ||
-    (isQuoteLoading && !activeQuote) ||
+    !activeQuote ||
+    hasQuoteMismatch ||
+    isPendingQuoteRefresh ||
     hasInsufficientBalance ||
     hasSufficientGas === false ||
     isSubmittingTx ||
@@ -317,7 +358,10 @@ export function useQuickBuyBottomSheet(
     !walletAddress;
 
   const isConfirmLoading =
-    isSubmittingTx || (isQuoteLoading && !activeQuote && hasValidAmount);
+    isSubmittingTx ||
+    isAwaitingQuote ||
+    isPendingQuoteRefresh ||
+    (isQuoteLoading && !activeQuote && hasQuoteRequestableAmount);
 
   const getButtonLabel = useCallback(() => {
     if (isSetupLoading) return strings('social_leaderboard.quick_buy.loading');
