@@ -4598,6 +4598,38 @@ describe('PolymarketProvider', () => {
         'Failed to generate transfer data for deposit transaction',
       );
     });
+
+    it('adds a maintenance Safe transaction instead of v1 allowances when CLOB v2 is enabled', async () => {
+      jest.clearAllMocks();
+      const provider = createProvider({ predictClobV2Enabled: true });
+      mockComputeProxyAddress.mockReturnValue(
+        '0x1234567890123456789012345678901234567891',
+      );
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
+      mockGetRawBalance.mockResolvedValue(1n);
+
+      const result = await provider.prepareDeposit({
+        signer: mockSigner,
+      });
+
+      expect(result.transactions).toHaveLength(2);
+      expect(result.transactions[0]).toEqual({
+        params: {
+          to: USDC_E_ADDRESS,
+          data: '0xtransferData',
+        },
+        type: 'predictDeposit',
+      });
+      expect(result.transactions[1]).toEqual({
+        params: {
+          to: '0x1234567890123456789012345678901234567891',
+          data: '0xsignedsafeexec',
+        },
+        type: 'contractInteraction',
+      });
+      expect(getProxyWalletAllowancesTransaction).not.toHaveBeenCalled();
+    });
   });
 
   describe('Rate Limiting', () => {

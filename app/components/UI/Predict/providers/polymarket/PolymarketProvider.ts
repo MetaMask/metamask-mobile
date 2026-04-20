@@ -1978,16 +1978,17 @@ export class PolymarketProvider implements PredictProvider {
   public async prepareDeposit(
     params: PrepareDepositParams,
   ): Promise<PrepareDepositResponse> {
-    const transactions = [];
+    const transactions: PrepareDepositResponse['transactions'] = [];
     const { signer } = params;
+    const protocol = this.#getProtocol();
 
     if (!signer?.address) {
       throw new Error('Signer address is required for deposit preparation');
     }
 
-    const { collateral } = MATIC_CONTRACTS;
+    const depositTokenAddress = getProtocolDepositTokenAddress(protocol);
 
-    if (!collateral) {
+    if (!depositTokenAddress) {
       throw new Error('Collateral contract address not configured');
     }
 
@@ -2022,6 +2023,44 @@ export class PolymarketProvider implements PredictProvider {
       this.setPolymarketAccountCreatedTrait();
     }
 
+    const depositTransactionCallData = generateTransferData('transfer', {
+      toAddress: accountState.address,
+      amount: '0x0',
+    });
+
+    if (!depositTransactionCallData) {
+      throw new Error(
+        'Failed to generate transfer data for deposit transaction',
+      );
+    }
+
+    const depositTransaction = {
+      params: {
+        to: depositTokenAddress as Hex,
+        data: depositTransactionCallData as Hex,
+      },
+      type: TransactionType.predictDeposit,
+    };
+
+    if (protocol.key === 'v2') {
+      transactions.push(depositTransaction);
+
+      const maintenanceTransaction = await buildDepositMaintenanceTransaction({
+        signer,
+        safeAddress: accountState.address,
+        protocol,
+      });
+
+      if (maintenanceTransaction) {
+        transactions.push(maintenanceTransaction);
+      }
+
+      return {
+        chainId: CHAIN_IDS.POLYGON,
+        transactions,
+      };
+    }
+
     if (!accountState.hasAllowances) {
       const { feeCollection: depositFeeCollection } = this.#getFeatureFlags();
       const extraUsdcSpenders = depositFeeCollection.permit2Enabled
@@ -2046,24 +2085,7 @@ export class PolymarketProvider implements PredictProvider {
       transactions.push(allowanceTransaction);
     }
 
-    const depositTransactionCallData = generateTransferData('transfer', {
-      toAddress: accountState.address,
-      amount: '0x0',
-    });
-
-    if (!depositTransactionCallData) {
-      throw new Error(
-        'Failed to generate transfer data for deposit transaction',
-      );
-    }
-
-    transactions.push({
-      params: {
-        to: collateral as Hex,
-        data: depositTransactionCallData as Hex,
-      },
-      type: TransactionType.predictDeposit,
-    });
+    transactions.push(depositTransaction);
 
     return {
       chainId: CHAIN_IDS.POLYGON,
