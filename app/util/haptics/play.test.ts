@@ -11,16 +11,16 @@ import {
   playWarningNotification,
   playImpact,
   playSelection,
-} from '../play';
-import { ImpactMoment } from '../catalog';
-import { shouldPlayHaptic } from '../gates';
+} from './play';
+import { ImpactMoment } from './catalog';
+import { shouldPlayHaptic } from './gates';
 
-jest.mock('../gates', () => ({
-  ...jest.requireActual<typeof import('../gates')>('../gates'),
+jest.mock('./gates', () => ({
+  ...jest.requireActual<typeof import('./gates')>('./gates'),
   shouldPlayHaptic: jest.fn(),
 }));
 
-jest.mock('../../../core/redux', () => ({
+jest.mock('../../core/redux', () => ({
   __esModule: true,
   default: {
     store: {
@@ -76,6 +76,11 @@ describe('play.ts', () => {
 
     it('playImpact(SliderTick) calls impactAsync with Light', async () => {
       await playImpact(ImpactMoment.SliderTick);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+    });
+
+    it('playImpact(QuickAmountSelection) calls impactAsync with Light', async () => {
+      await playImpact(ImpactMoment.QuickAmountSelection);
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 

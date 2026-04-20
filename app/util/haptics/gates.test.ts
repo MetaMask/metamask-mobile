@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { shouldPlayHaptic, type HapticGateOptions } from '../gates';
+import { shouldPlayHaptic, type HapticGateOptions } from './gates';
 
 describe('shouldPlayHaptic', () => {
   const enabledOptions: HapticGateOptions = {

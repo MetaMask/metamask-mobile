@@ -7,8 +7,8 @@ import {
   selectionAsync,
 } from 'expo-haptics';
 import { useSelector } from 'react-redux';
-import { ImpactMoment } from '../catalog';
-import { useHaptics } from '../useHaptics';
+import { ImpactMoment } from './catalog';
+import { useHaptics } from './useHaptics';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
