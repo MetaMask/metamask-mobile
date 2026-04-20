@@ -515,6 +515,18 @@ export type RewardsControllerGetOndoCampaignDepositsAction = {
 };
 
 /**
+ * Fetch the winning code for the current user in a completed Ondo GM campaign.
+ *
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The winner's claim code, or null if unavailable.
+ */
+export type RewardsControllerGetOndoCampaignWinnerCodeAction = {
+  type: `RewardsController:getOndoCampaignWinnerCode`;
+  handler: RewardsController['getOndoCampaignWinnerCode'];
+};
+
+/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes.
@@ -751,6 +763,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction
+  | RewardsControllerGetOndoCampaignWinnerCodeAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
   | RewardsControllerGetOndoCampaignActivityAction

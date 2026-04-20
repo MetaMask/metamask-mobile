@@ -94,11 +94,8 @@ export function useMaybeShowCampaignEndToast(): void {
   }, [navigation, campaignId, ondoCampaign?.name]);
 
   const onCampaignEndWinnerLinkPress = useCallback(() => {
-    if (campaignId) {
-      dispatch(markCampaignEndToastShown(campaignId));
-    }
     navigateToOndoWinningScreen();
-  }, [campaignId, dispatch, navigateToOndoWinningScreen]);
+  }, [navigateToOndoWinningScreen]);
 
   const onCampaignEndEndedLinkPress = useCallback(() => {
     if (campaignId) {

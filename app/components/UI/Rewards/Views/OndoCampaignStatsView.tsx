@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -14,6 +14,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import OndoWinnerBanner from '../components/Campaigns/OndoWinnerBanner';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,11 +43,12 @@ import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import Routes from '../../../../constants/navigation/Routes';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectCampaignById } from '../../../../reducers/rewards/selectors';
+import { isOndoCampaignWinner } from '../hooks/useMaybeShowCampaignEndToast';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type OndoCampaignStatsRouteParams = {
-  OndoCampaignStats: { campaignId: string };
+  OndoCampaignStats: { campaignId: string; campaignName?: string };
 };
 
 export const ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS = {
@@ -66,7 +68,7 @@ const OndoCampaignStatsView: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<OndoCampaignStatsRouteParams, 'OndoCampaignStats'>>();
-  const { campaignId } = route.params;
+  const { campaignId, campaignName: routeCampaignName } = route.params;
 
   const selectCampaign = useMemo(
     () => selectCampaignById(campaignId),
@@ -182,6 +184,15 @@ const OndoCampaignStatsView: React.FC = () => {
     daysRemaining > 0 &&
     tierMinDeposit != null;
 
+  const isWinner = isOndoCampaignWinner(leaderboardPosition);
+
+  const navigateToWinningView = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
+      campaignId,
+      campaignName: campaign?.name ?? '',
+    });
+  }, [navigation, campaignId, campaign]);
+
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignStatsView">
       <SafeAreaView
@@ -285,8 +296,16 @@ const OndoCampaignStatsView: React.FC = () => {
               </Box>
             )}
 
+            {/* ── Winning banner ── */}
+            {isWinner && (
+              <OndoWinnerBanner
+                campaignName={campaign?.name ?? routeCampaignName ?? ''}
+                onPress={navigateToWinningView}
+              />
+            )}
+
             {/* ── Qualify for rank card (static) ── */}
-            {showQualifyCard && (
+            {!isWinner && showQualifyCard && (
               <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
                 <Text
                   variant={TextVariant.BodyMd}
@@ -312,28 +331,31 @@ const OndoCampaignStatsView: React.FC = () => {
             )}
 
             {/* ── You're qualified card ── */}
-            {!isIneligible && isQualified && tierMinDeposit != null && (
-              <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {strings('rewards.ondo_campaign_stats.qualified_title')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings(
-                    'rewards.ondo_campaign_stats.qualified_description',
-                    { minNetDeposit: formatUsd(tierMinDeposit) },
-                  )}
-                </Text>
-              </Box>
-            )}
+            {!isWinner &&
+              !isIneligible &&
+              isQualified &&
+              tierMinDeposit != null && (
+                <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {strings('rewards.ondo_campaign_stats.qualified_title')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings(
+                      'rewards.ondo_campaign_stats.qualified_description',
+                      { minNetDeposit: formatUsd(tierMinDeposit) },
+                    )}
+                  </Text>
+                </Box>
+              )}
 
             {/* ── Not eligible banner ── */}
-            {isIneligible && (
+            {!isWinner && isIneligible && (
               <Box
                 twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
                 testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}

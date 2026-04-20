@@ -8284,8 +8284,7 @@
     },
     "ondo_winning_banner": {
       "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!",
-      "dismiss_a11y": "Dismiss"
+      "description": "Claim your prize now!"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",
@@ -8294,8 +8293,12 @@
       "open_mail": "Open mail",
       "skip_for_now": "Skip for now",
       "mail_subject": "Ondo campaign prize claim",
-      "mail_body": "My referral code: {{code}}",
-      "close_a11y": "Close"
+      "mail_body": "My winning code: {{code}}",
+      "winning_code": "Winning code",
+      "close_a11y": "Close",
+      "error_title": "Could not load your winning code",
+      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
+      "error_retry": "Try again"
     }
   },
   "time": {

@@ -257,6 +257,11 @@ export interface RewardsDataServiceGetOndoCampaignDepositsAction {
   handler: RewardsDataService['getOndoCampaignDeposits'];
 }
 
+export interface RewardsDataServiceGetOndoCampaignWinnerCodeAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignWinnerCode`;
+  handler: RewardsDataService['getOndoCampaignWinnerCode'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -327,7 +332,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
-  | RewardsDataServiceGetOndoCampaignDepositsAction;
+  | RewardsDataServiceGetOndoCampaignDepositsAction
+  | RewardsDataServiceGetOndoCampaignWinnerCodeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -497,6 +503,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getOndoCampaignDeposits`,
       this.getOndoCampaignDeposits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignWinnerCode`,
+      this.getOndoCampaignWinnerCode.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1689,5 +1699,13 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as OndoGmCampaignDepositsDto;
+  }
+
+  async getOndoCampaignWinnerCode(
+    _campaignId: string,
+    _subscriptionId: string,
+  ): Promise<string> {
+    // TODO: implement when GET /ondo-gm/:campaignId/winner-code is available
+    return '';
   }
 }

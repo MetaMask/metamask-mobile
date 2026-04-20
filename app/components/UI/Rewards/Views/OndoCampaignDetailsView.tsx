@@ -5,10 +5,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
+
 import { Pressable, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -57,6 +63,7 @@ import {
   isCampaignIneligible,
 } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { isOndoCampaignWinner } from '../hooks/useMaybeShowCampaignEndToast';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
@@ -166,6 +173,42 @@ const OndoCampaignDetailsView: React.FC = () => {
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(
     isOptedIn && hasPositions ? effectiveCampaignId || undefined : undefined,
+  );
+
+  const isWinner = useMemo(
+    () => isOndoCampaignWinner(leaderboardPosition),
+    [leaderboardPosition],
+  );
+
+  const navigateToWinningView = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
+      campaignId: effectiveCampaignId,
+      campaignName: campaign?.name ?? '',
+    });
+  }, [navigation, effectiveCampaignId, campaign]);
+
+  const hasPresentedWinningViewRef = useRef(false);
+
+  useEffect(() => {
+    hasPresentedWinningViewRef.current = false;
+  }, [effectiveCampaignId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !hasPresentedWinningViewRef.current &&
+        campaign &&
+        getCampaignStatus(campaign) === 'complete' &&
+        isWinner &&
+        effectiveCampaignId
+      ) {
+        hasPresentedWinningViewRef.current = true;
+        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
+          campaignId: effectiveCampaignId,
+          campaignName: campaign.name ?? '',
+        });
+      }
+    }, [campaign, isWinner, effectiveCampaignId, navigation]),
   );
 
   const {
@@ -321,7 +364,10 @@ const OndoCampaignDetailsView: React.FC = () => {
                       onPress={() =>
                         navigation.navigate(
                           Routes.REWARDS_ONDO_CAMPAIGN_STATS,
-                          { campaignId: effectiveCampaignId },
+                          {
+                            campaignId: effectiveCampaignId,
+                            campaignName: campaign?.name ?? '',
+                          },
                         )
                       }
                     >
@@ -355,6 +401,9 @@ const OndoCampaignDetailsView: React.FC = () => {
                       }}
                       tierMinDeposit={tierMinDeposit}
                       isIneligible={notEligibleForCampaign}
+                      isWinner={isWinner}
+                      campaignName={campaign?.name ?? ''}
+                      onWinnerBannerPress={navigateToWinningView}
                     />
                   </Box>
                 </>

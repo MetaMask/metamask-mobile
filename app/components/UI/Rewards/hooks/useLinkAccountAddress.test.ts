@@ -82,6 +82,16 @@ describe('useLinkAccountAddress', () => {
       iconName: 'confirmation',
       hapticsType: 'success',
     }),
+    campaignWon: jest.fn().mockReturnValue({
+      variant: 'icon',
+      iconName: 'trophy',
+      hapticsType: 'success',
+    }),
+    campaignEnded: jest.fn().mockReturnValue({
+      variant: 'icon',
+      iconName: 'info',
+      hapticsType: 'warning',
+    }),
   };
 
   const mockAccount: InternalAccount = {

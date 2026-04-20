@@ -57,7 +57,7 @@ jest.mock('../RewardsErrorBanner', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, string>) => {
     const t: Record<string, string> = {
       'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
       'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
@@ -78,7 +78,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_stats.label_market_value': 'Market value',
       'rewards.ondo_campaign_stats.label_rank': 'Rank',
       'rewards.ondo_campaign_stats.label_tier': 'Tier',
+      'rewards.ondo_winning_banner.description': 'Claim your prize now!',
     };
+    if (key === 'rewards.ondo_winning_banner.title') {
+      return `You won the ${params?.campaignName ?? ''}`;
+    }
     return t[key] ?? key;
   },
   default: { locale: 'en-US' },
@@ -583,6 +587,48 @@ describe('CampaignStatsSummary', () => {
     const { queryByTestId } = render(<CampaignStatsSummary {...baseProps} />);
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeNull();
+  });
+
+  // ── Winning banner ────────────────────────────────────────────────
+
+  it('shows winning banner with campaign name when isWinner=true', () => {
+    const { getByTestId, getByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        isWinner
+        campaignName="Ondo Campaign"
+      />,
+    );
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.WINNING_BANNER),
+    ).toBeOnTheScreen();
+    expect(getByText('You won the Ondo Campaign')).toBeOnTheScreen();
+    expect(getByText('Claim your prize now!')).toBeOnTheScreen();
+  });
+
+  it('hides qualified card when isWinner=true', () => {
+    const { queryByText } = render(
+      <CampaignStatsSummary {...baseProps} isWinner tierMinDeposit={1000} />,
+    );
+    expect(
+      queryByText('rewards.ondo_campaign_stats.qualified_title'),
+    ).toBeNull();
+  });
+
+  it('hides not-eligible banner when isWinner=true', () => {
+    const { queryByTestId } = render(
+      <CampaignStatsSummary {...baseProps} isWinner isIneligible />,
+    );
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeNull();
+  });
+
+  it('does not show winning banner when isWinner=false', () => {
+    const { queryByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.WINNING_BANNER),
     ).toBeNull();
   });
 });
