@@ -118,13 +118,13 @@ const mockSharedValue = <T,>(initialValue: T) => ({
   modify: jest.fn(),
 });
 
-// Mock expo-haptics
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn().mockResolvedValue(undefined),
-  ImpactFeedbackStyle: {
-    Light: 'light',
-    Medium: 'medium',
-    Heavy: 'heavy',
+jest.mock('../../../util/haptics', () => ({
+  playImpact: jest.fn().mockResolvedValue(undefined),
+  ImpactMoment: {
+    SliderTick: 'sliderTick',
+    TabChange: 'tabChange',
+    PullToRefresh: 'pullToRefresh',
+    ChartCrosshair: 'chartCrosshair',
   },
 }));
 
@@ -757,9 +757,9 @@ describe('GestureWebViewWrapper', () => {
     });
 
     describe('callback invocation via runOnJS', () => {
-      it('triggerHapticFeedback invokes impactAsync', async () => {
-        const { impactAsync, ImpactFeedbackStyle } =
-          jest.requireMock('expo-haptics');
+      it('triggerHapticFeedback invokes playImpact', async () => {
+        const { playImpact, ImpactMoment } =
+          jest.requireMock('../../../util/haptics');
         renderComponent({ backEnabled: true });
         const stateManager = createStateManager();
         const event = createTouchEvent(10, 200);
@@ -769,7 +769,7 @@ describe('GestureWebViewWrapper', () => {
         // react-native-worklets' Jest mock schedules runOnJS callbacks via queueMicrotask
         await Promise.resolve();
 
-        expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderTick);
       });
     });
 
