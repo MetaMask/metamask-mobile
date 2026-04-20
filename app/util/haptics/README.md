@@ -15,16 +15,18 @@ Centralized haptic feedback module for MetaMask Mobile.
 
 ## Catalog
 
-| Moment               | Function                       | Underlying API               | Style  | Paired UI                      | Notes                                    |
-| -------------------- | ------------------------------ | ---------------------------- | ------ | ------------------------------ | ---------------------------------------- |
-| Success notification | `playSuccessNotification()`    | `notificationAsync(Success)` | —      | Toast / completion banner      | Non-negotiable #1                        |
-| Error notification   | `playErrorNotification()`      | `notificationAsync(Error)`   | —      | Error toast / failure banner   | Non-negotiable #2. System failures only. |
-| Warning notification | `playWarningNotification()`    | `notificationAsync(Warning)` | —      | Compliance / restriction modal |                                          |
-| Slider tick          | `playImpact('sliderTick')`     | `impactAsync(Light)`         | Light  | Slider step animation          |                                          |
-| Tab change           | `playImpact('tabChange')`      | `impactAsync(Medium)`        | Medium | Tab transition                 |                                          |
-| Pull to refresh      | `playImpact('pullToRefresh')`  | `impactAsync(Medium)`        | Medium | Pull-to-refresh trigger        |                                          |
-| Chart crosshair      | `playImpact('chartCrosshair')` | `impactAsync(Light)`         | Light  | OHLC data change               |                                          |
-| Selection            | `playSelection()`              | `selectionAsync()`           | —      | Discrete value picker          |                                          |
+| Moment               | Function                            | Underlying API               | Style  | Paired UI                         | Notes                                           |
+| -------------------- | ----------------------------------- | ---------------------------- | ------ | --------------------------------- | ----------------------------------------------- |
+| Success notification | `playSuccessNotification()`         | `notificationAsync(Success)` | —      | Toast / completion banner         | Non-negotiable #1                               |
+| Error notification   | `playErrorNotification()`           | `notificationAsync(Error)`   | —      | Error toast / failure banner      | Non-negotiable #2. System failures only.        |
+| Warning notification | `playWarningNotification()`         | `notificationAsync(Warning)` | —      | Compliance / restriction modal    |                                                 |
+| Slider tick          | `playImpact('sliderTick')`          | `impactAsync(Light)`         | Light  | Slider step animation             |                                                 |
+| Slider grip          | `playImpact('sliderGrip')`          | `impactAsync(Medium)`        | Medium | Slider thumb press / release      | Distinct from tick / threshold crossings        |
+| Tab change           | `playImpact('tabChange')`           | `impactAsync(Medium)`        | Medium | Tab transition                    |                                                 |
+| Pull refresh engage  | `playImpact('pullToRefreshEngage')` | `impactAsync(Light)`         | Light  | Pull stretch past early threshold | Lighter than commit; pairs with `pullToRefresh` |
+| Pull to refresh      | `playImpact('pullToRefresh')`       | `impactAsync(Medium)`        | Medium | Pull-to-refresh reload commit     |                                                 |
+| Chart crosshair      | `playImpact('chartCrosshair')`      | `impactAsync(Light)`         | Light  | OHLC data change                  |                                                 |
+| Selection            | `playSelection()`                   | `selectionAsync()`           | —      | Discrete value picker             |                                                 |
 
 ### Adding a new moment
 

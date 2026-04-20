@@ -134,6 +134,7 @@ jest.mock('../../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
   ImpactMoment: {
     SliderTick: 'sliderTick',
+    SliderGrip: 'sliderGrip',
     TabChange: 'tabChange',
     PullToRefresh: 'pullToRefresh',
     ChartCrosshair: 'chartCrosshair',

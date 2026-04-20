@@ -17,7 +17,9 @@ export const IMPACT_STYLE_MAP: Record<HapticImpactMoment, ImpactFeedbackStyle> =
   {
     [ImpactMoment.QuickAmountSelection]: ImpactFeedbackStyle.Light,
     [ImpactMoment.SliderTick]: ImpactFeedbackStyle.Light,
+    [ImpactMoment.SliderGrip]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.TabChange]: ImpactFeedbackStyle.Medium,
+    [ImpactMoment.PullToRefreshEngage]: ImpactFeedbackStyle.Light,
     [ImpactMoment.PullToRefresh]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.ChartCrosshair]: ImpactFeedbackStyle.Light,
   };
