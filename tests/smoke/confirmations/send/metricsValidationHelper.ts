@@ -3,6 +3,15 @@ import { AnvilManager } from '../../../seeder/anvil-manager';
 import { LocalNode } from '../../../framework';
 import { getEventsPayloads } from '../../../helpers/analytics/helpers';
 
+/**
+ * Validates the transaction hash in the Transaction Finalized Event.
+ * Important Note: This is intentionally kept as a legacy validation as we want to have more control over the transaction hash validation.
+ * Makes the test fail if the txHash is not matching with the latest transaction on the local node.
+ * @param localNodes - The local nodes to use for the test.
+ * @param mockServer - The mock server to use for the test.
+ * @returns void
+ * @throws Error if the transaction hash is not matching with the latest transaction on the local node.
+ */
 export const validateTransactionHashInTransactionFinalizedEvent = async (
   localNodes?: LocalNode[],
   mockServer?: Mockttp,
