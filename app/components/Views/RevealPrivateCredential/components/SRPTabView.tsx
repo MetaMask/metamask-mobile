@@ -24,7 +24,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const CustomTabView = ScrollView as any;
 
 const QR_SCALE = 0.65;
+const QR_MAX_SIZE = 320;
 const LOGO_SCALE = 0.2;
+const QR_WRAPPER_PADDING = 12;
+const QR_CONTENT_MARGIN_TOP = 16;
+const ANDROID_TAB_BAR_HEIGHT = 56;
+const ANDROID_TAB_VIEW_MIN_HEIGHT = 320;
 
 const SRPTabView = ({
   clipboardPrivateCredential,
@@ -35,8 +40,23 @@ const SRPTabView = ({
   onTabChange,
 }: SRPTabViewProps) => {
   const { width } = useWindowDimensions();
-  const qrSize = useMemo(() => Math.round(width * QR_SCALE), [width]);
+  const qrSize = useMemo(
+    () => Math.min(QR_MAX_SIZE, Math.round(width * QR_SCALE)),
+    [width],
+  );
   const logoSize = useMemo(() => Math.round(qrSize * LOGO_SCALE), [qrSize]);
+  const qrWrapperHeight = useMemo(
+    () => qrSize + QR_WRAPPER_PADDING * 2,
+    [qrSize],
+  );
+  const androidTabViewMinHeight = useMemo(
+    () =>
+      Math.max(
+        ANDROID_TAB_VIEW_MIN_HEIGHT,
+        qrWrapperHeight + QR_CONTENT_MARGIN_TOP + ANDROID_TAB_BAR_HEIGHT,
+      ),
+    [qrWrapperHeight],
+  );
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
 
@@ -61,7 +81,7 @@ const SRPTabView = ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onChangeTab={(event: any) => onTabChange(event)}
         style={tw.style(
-          `min-h-[${Platform.OS === 'android' ? 320 : 0}px] flex-grow flex-shrink-0 mb-[${Platform.OS === 'android' ? 20 : 0}px]`,
+          `min-h-[${Platform.OS === 'android' ? androidTabViewMinHeight : 0}px] flex-grow flex-shrink-0 mb-[${Platform.OS === 'android' ? 20 : 0}px]`,
         )}
       >
         <CustomTabView
@@ -84,6 +104,8 @@ const SRPTabView = ({
         <CustomTabView
           tabLabel={strings(`reveal_credential.qr_code`)}
           testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
+          scrollEnabled={false}
+          showsVerticalScrollIndicator={false}
         >
           <Box
             flexDirection={BoxFlexDirection.Column}
