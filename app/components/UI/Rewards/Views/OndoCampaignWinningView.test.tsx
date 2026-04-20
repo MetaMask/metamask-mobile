@@ -5,8 +5,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import OndoCampaignWinningView, {
   ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS,
 } from './OndoCampaignWinningView';
-import { useSelector } from 'react-redux';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useOndoCampaignWinnerCode } from '../hooks/useOndoCampaignWinnerCode';
 
 jest.mock('../../../../images/rewards/campaign_winning.png', () => ({
   __esModule: true,
@@ -22,9 +22,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (...args: unknown[]) => args;
+  tw.style = (...args: unknown[]) => args;
+  return { useTailwind: () => tw };
+});
 
 jest.mock('react-native-safe-area-context', () => {
   const actual = jest.requireActual('react-native-safe-area-context');
@@ -39,8 +41,6 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => jest.fn()),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -54,6 +54,22 @@ jest.mock('../../../Views/ErrorBoundary', () => {
 jest.mock('../hooks/useTrackRewardsPageView', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../../../core/Analytics', () => ({
+  MetaMetricsEvents: {
+    REWARDS_PAGE_BUTTON_CLICKED: 'REWARDS_PAGE_BUTTON_CLICKED',
+  },
+}));
+
+jest.mock('../utils', () => ({
+  RewardsMetricsButtons: {
+    COPY_REFERRAL_CODE: 'copy_referral_code',
+  },
+}));
+
+jest.mock('../hooks/useOndoCampaignWinnerCode', () => ({
+  useOndoCampaignWinnerCode: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -88,6 +104,11 @@ jest.mock('../hooks/useGetOndoLeaderboardPosition', () => ({
 const mockUseGetOndoLeaderboardPosition =
   useGetOndoLeaderboardPosition as jest.MockedFunction<
     typeof useGetOndoLeaderboardPosition
+  >;
+
+const mockUseOndoCampaignWinnerCode =
+  useOndoCampaignWinnerCode as jest.MockedFunction<
+    typeof useOndoCampaignWinnerCode
   >;
 
 jest.mock('../components/ReferralDetails/CopyableField', () => {
@@ -154,14 +175,10 @@ describe('OndoCampaignWinningView', () => {
       hasFetched: true,
       refetch: jest.fn(),
     });
-    mockUseSelector.mockImplementation((selector) =>
-      selector({
-        rewards: {
-          referralCode: 'LVL346',
-          referralDetailsLoading: false,
-        },
-      } as never),
-    );
+    mockUseOndoCampaignWinnerCode.mockReturnValue({
+      code: 'LVL346',
+      isLoading: false,
+    });
   });
 
   it('renders the main container', () => {
@@ -171,7 +188,7 @@ describe('OndoCampaignWinningView', () => {
     ).toBeTruthy();
   });
 
-  it('shows you won, prize, rank place, and rate from leaderboard position', () => {
+  it('shows you won, rank place, and rate from leaderboard position', () => {
     const { getByText } = render(<OndoCampaignWinningView />);
     expect(getByText('You won')).toBeTruthy();
     expect(getByText('3rd place')).toBeTruthy();

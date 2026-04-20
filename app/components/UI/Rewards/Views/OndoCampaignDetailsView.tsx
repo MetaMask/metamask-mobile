@@ -5,10 +5,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
+
 import { Pressable, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -57,6 +63,7 @@ import {
   isCampaignIneligible,
 } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { isOndoCampaignWinner } from '../hooks/useMaybeShowCampaignEndToast';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
@@ -166,6 +173,30 @@ const OndoCampaignDetailsView: React.FC = () => {
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(
     isOptedIn && hasPositions ? effectiveCampaignId || undefined : undefined,
+  );
+
+  const hasPresentedWinningViewRef = useRef(false);
+
+  useEffect(() => {
+    hasPresentedWinningViewRef.current = false;
+  }, [effectiveCampaignId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !hasPresentedWinningViewRef.current &&
+        campaign &&
+        getCampaignStatus(campaign) === 'complete' &&
+        isOndoCampaignWinner(leaderboardPosition) &&
+        effectiveCampaignId
+      ) {
+        hasPresentedWinningViewRef.current = true;
+        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
+          campaignId: effectiveCampaignId,
+          campaignName: campaign.name ?? '',
+        });
+      }
+    }, [campaign, leaderboardPosition, effectiveCampaignId, navigation]),
   );
 
   const {

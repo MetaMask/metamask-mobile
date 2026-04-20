@@ -21,23 +21,14 @@ import {
   TextButton,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  selectReferralCode,
-  selectReferralDetailsLoading,
-} from '../../../../reducers/rewards/selectors';
-import { useSelector } from 'react-redux';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { useOndoCampaignWinnerCode } from '../hooks/useOndoCampaignWinnerCode';
 import { strings } from '../../../../../locales/i18n';
 import CopyableField from '../components/ReferralDetails/CopyableField';
-import {
-  formatOrdinalRank,
-  formatPercentChange,
-  formatUsd,
-} from '../utils/formatUtils';
+import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
 import { RewardsMetricsButtons } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -81,8 +72,8 @@ const OndoCampaignWinningView: React.FC = () => {
   const { position, isLoading: positionLoading } =
     useGetOndoLeaderboardPosition(campaignId);
 
-  const referralCode = useSelector(selectReferralCode);
-  const referralCodeLoading = useSelector(selectReferralDetailsLoading);
+  const { code: referralCode, isLoading: referralCodeLoading } =
+    useOndoCampaignWinnerCode();
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_winning',
@@ -105,10 +96,12 @@ const OndoCampaignWinningView: React.FC = () => {
   }, [referralCode, trackEvent, createEventBuilder]);
 
   const handleOpenMail = useCallback(async () => {
-    const code = referralCode ?? '';
-    const subject = strings('rewards.ondo_campaign_winning.mail_subject');
+    const baseSubject = strings('rewards.ondo_campaign_winning.mail_subject');
+    const subject = referralCode
+      ? `${baseSubject} - ${referralCode}`
+      : baseSubject;
     const body = strings('rewards.ondo_campaign_winning.mail_body', {
-      code: code || '—',
+      code: referralCode || '—',
     });
     const url = `mailto:${PRIZE_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     try {
@@ -117,16 +110,6 @@ const OndoCampaignWinningView: React.FC = () => {
       // no-op: device may not have a mail handler
     }
   }, [referralCode]);
-
-  const prizeDisplay = useMemo(() => {
-    if (positionLoading && !position) {
-      return null;
-    }
-    if (!position) {
-      return '—';
-    }
-    return formatUsd(position.currentUsdValue);
-  }, [position, positionLoading]);
 
   const rankDisplay = useMemo(() => {
     if (positionLoading && !position) {
@@ -200,18 +183,6 @@ const OndoCampaignWinningView: React.FC = () => {
             >
               {strings('rewards.ondo_campaign_winning.you_won')}
             </Text>
-
-            {prizeDisplay !== null ? (
-              <Text
-                variant={TextVariant.DisplayLg}
-                fontWeight={FontWeight.Bold}
-                twClassName="text-center"
-              >
-                {prizeDisplay}
-              </Text>
-            ) : (
-              <Skeleton style={tw.style('h-12 w-48 rounded-lg')} />
-            )}
 
             {rankDisplay !== null ? (
               <Text

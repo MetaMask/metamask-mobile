@@ -1,6 +1,22 @@
 import { isOndoCampaignWinner } from './useMaybeShowCampaignEndToast';
 import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
+// Break transitive import chains that pull in Engine → @metamask/assets-controller
+jest.mock('./useRewardsToast', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ showToast: jest.fn(), RewardsToastOptions: {} })),
+}));
+
+jest.mock('./useGetOndoLeaderboardPosition', () => ({
+  useGetOndoLeaderboardPosition: jest.fn(() => ({
+    position: null,
+    isLoading: false,
+    hasError: false,
+    hasFetched: false,
+    refetch: jest.fn(),
+  })),
+}));
+
 const basePosition = {
   projectedTier: 'MID',
   totalInTier: 10,
