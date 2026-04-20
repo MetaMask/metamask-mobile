@@ -7,7 +7,7 @@ import AccountNetworkRow from '../../../../confirmations/components/modals/switc
 import { Hex } from '@metamask/utils';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './SmartAccountNetworkList.styles';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { SMART_ACCOUNT_NETWORK_LIST_TEST_IDS } from './SmartAccountNetworkList.testIds';
 
 interface SmartAccountNetworkListProps {
