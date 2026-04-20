@@ -66,6 +66,13 @@ export const ImpactMoment = {
   EdgeGestureEngage: 'edgeGestureEngage',
 
   /**
+   * Browser WebView history navigation completed (edge swipe back / forward committed).
+   * Medium impact, paired with the in-page navigation transition. Distinct from
+   * `TabChange` (tab bar) and `EdgeGestureEngage` (edge touch-down).
+   */
+  PageNavigation: 'pageNavigation',
+
+  /**
    * Slider thumb press or release — Medium impact (grab / let go).
    * Distinct from `SliderTick` (discrete ticks / threshold crossings).
    */

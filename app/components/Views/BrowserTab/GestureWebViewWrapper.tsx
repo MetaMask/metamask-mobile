@@ -150,7 +150,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             })
             .build(),
         );
-        triggerHapticFeedback(ImpactMoment.TabChange);
+        triggerHapticFeedback(ImpactMoment.PageNavigation);
       } else if (direction === 'forward' && forwardEnabled) {
         onGoForward();
         trackEvent(
@@ -161,7 +161,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             })
             .build(),
         );
-        triggerHapticFeedback(ImpactMoment.TabChange);
+        triggerHapticFeedback(ImpactMoment.PageNavigation);
       }
     },
     [
