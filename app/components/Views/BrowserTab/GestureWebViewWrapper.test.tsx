@@ -122,6 +122,7 @@ jest.mock('../../../util/haptics', () => ({
   playImpact: jest.fn().mockResolvedValue(undefined),
   ImpactMoment: {
     SliderTick: 'sliderTick',
+    EdgeGestureEngage: 'edgeGestureEngage',
     TabChange: 'tabChange',
     PullToRefreshEngage: 'pullToRefreshEngage',
     PullToRefresh: 'pullToRefresh',
@@ -758,9 +759,10 @@ describe('GestureWebViewWrapper', () => {
     });
 
     describe('callback invocation via runOnJS', () => {
-      it('triggerHapticFeedback invokes playImpact', async () => {
-        const { playImpact, ImpactMoment } =
-          jest.requireMock('../../../util/haptics');
+      it('triggerHapticFeedback invokes playImpact with EdgeGestureEngage on left edge', async () => {
+        const { playImpact, ImpactMoment } = jest.requireMock(
+          '../../../util/haptics',
+        );
         renderComponent({ backEnabled: true });
         const stateManager = createStateManager();
         const event = createTouchEvent(10, 200);
@@ -770,7 +772,7 @@ describe('GestureWebViewWrapper', () => {
         // react-native-worklets' Jest mock schedules runOnJS callbacks via queueMicrotask
         await Promise.resolve();
 
-        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderTick);
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.EdgeGestureEngage);
       });
     });
 
