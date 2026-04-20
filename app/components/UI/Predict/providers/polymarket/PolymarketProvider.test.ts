@@ -5259,7 +5259,9 @@ describe('PolymarketProvider', () => {
       mockComputeProxyAddress.mockReturnValue(
         '0x1234567890123456789012345678901234567891',
       );
-      mockGetRawBalance.mockResolvedValue(0n);
+      mockGetRawBalance
+        .mockResolvedValueOnce(0n)
+        .mockResolvedValueOnce(1_000_000n);
 
       const result = await provider.signWithdraw({
         callData:
@@ -5272,6 +5274,31 @@ describe('PolymarketProvider', () => {
         amount: 1,
       });
       expect(getWithdrawTransactionCallData).not.toHaveBeenCalled();
+    });
+
+    it('throws when Safe pUSD is insufficient for fallback v2 withdraw', async () => {
+      jest.clearAllMocks();
+      const provider = createProvider({ predictClobV2Enabled: true });
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue(
+        '0x1234567890123456789012345678901234567891',
+      );
+      mockGetRawBalance
+        .mockResolvedValueOnce(0n)
+        .mockResolvedValueOnce(999_999n);
+
+      await expect(
+        provider.signWithdraw({
+          callData:
+            '0xa9059cbb000000000000000000000000123456789012345678901234567890123456789000000000000000000000000000000000000000000000000000000000000f4240',
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('Insufficient Safe pUSD balance for fallback withdraw');
     });
   });
 

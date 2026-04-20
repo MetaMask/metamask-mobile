@@ -50,6 +50,17 @@ export async function planWithdraw({
       ? requestedAmountRaw - safeUsdceBalance
       : 0n;
 
+  if (mode === 'usdce-deficit-unwrap' && deficit > 0n) {
+    const safePusdBalance = await getRawTokenBalance({
+      address: safeAddress,
+      tokenAddress: protocol.collateral.tradingToken,
+    });
+
+    if (safePusdBalance < deficit) {
+      throw new Error('Insufficient Safe pUSD balance for fallback withdraw');
+    }
+  }
+
   return {
     requestedAmountRaw,
     safeUsdceBalance,
