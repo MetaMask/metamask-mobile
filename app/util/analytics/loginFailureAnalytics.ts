@@ -40,12 +40,6 @@ export function getSocialLoginFailureAnalyticsProperties(
   };
 }
 
-export function getSeedlessOnboardingControllerErrorTypeName(
-  code: SeedlessOnboardingControllerErrorType,
-): string {
-  return SeedlessOnboardingControllerErrorType[code] ?? String(code);
-}
-
 export function getRehydrationErrorTypeForSeedlessControllerCode(
   code: SeedlessOnboardingControllerErrorType,
 ): string {
@@ -65,9 +59,6 @@ export function getRehydrationErrorTypeForSeedlessControllerCode(
 
 export const SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE =
   'recovery_auth_failure';
-
-export const SEEDLESS_RECOVERY_ERROR_TYPE_TOO_MANY_ATTEMPTS =
-  'recovery_too_many_attempts';
 
 export enum ErrorOrigin {
   SeedlessRecovery = 'seedless_recovery',

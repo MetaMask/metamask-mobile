@@ -6,7 +6,6 @@ import {
 import {
   getRehydrationErrorTypeForSeedlessControllerCode,
   SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE,
-  getSeedlessOnboardingControllerErrorTypeName,
   getSocialLoginFailureAnalyticsProperties,
 } from './loginFailureAnalytics';
 
@@ -81,16 +80,6 @@ describe('loginFailureAnalytics', () => {
           SeedlessOnboardingControllerErrorType.UnknownError,
         ),
       ).toBe('seedless_unknown_error');
-    });
-  });
-
-  describe('getSeedlessOnboardingControllerErrorTypeName', () => {
-    it('returns enum member name', () => {
-      expect(
-        getSeedlessOnboardingControllerErrorTypeName(
-          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
-        ),
-      ).toBe('PasswordRecentlyUpdated');
     });
   });
 
