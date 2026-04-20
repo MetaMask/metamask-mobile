@@ -22,7 +22,10 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../types/musd.types';
+import {
+  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
+  MusdNavigationTarget,
+} from '../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
 import { providerErrors } from '@metamask/rpc-errors';
 
@@ -126,6 +129,13 @@ export interface MusdConversionConfig {
    * Optional navigation mode override for this initiation.
    */
   navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
+  /**
+   * When the education screen is shown for a first-time user, and this config has
+   * `returnTo`, the education screen's primary button routes to `returnTo` instead of
+   * continuing the conversion. Use this for navigation-only entry points (e.g.,
+   * pressing a section header that gates on education).
+   */
+  returnTo?: MusdNavigationTarget;
 }
 
 /**
@@ -422,6 +432,8 @@ export const useMusdConversion = () => {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken,
+          navigationOverride: config.navigationOverride,
+          returnTo: config.returnTo,
         },
       });
 
