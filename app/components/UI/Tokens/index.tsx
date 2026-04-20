@@ -30,10 +30,7 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  selectHomepageRedesignV1Enabled,
-  selectHomepageSectionsV1Enabled,
-} from '../../../selectors/featureFlagController/homepage';
+import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
@@ -89,10 +86,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
       null;
     const isSolanaSelected = selectedSolanaAccount !== null;
-
-    const isHomepageRedesignV1Enabled = useSelector(
-      selectHomepageRedesignV1Enabled,
-    );
 
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
@@ -230,8 +223,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       if (isFullView) {
         return undefined;
       }
-      return isHomepageRedesignV1Enabled ? 10 : undefined;
-    }, [isFullView, isHomepageRedesignV1Enabled]);
+      return 10;
+    }, [isFullView]);
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
@@ -311,19 +304,17 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     return (
       <Box
-        twClassName={
-          isHomepageRedesignV1Enabled && !isFullView
-            ? 'bg-default'
-            : 'flex-1 bg-default'
-        }
+        twClassName={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
-        <TokenListControlBar
-          goToAddToken={goToAddToken}
-          showAddToken={!showOnlyMusd}
-          hideSort={showOnlyMusd}
-          style={isFullView ? tw`px-4 pb-4` : undefined}
-        />
+        {!showOnlyMusd && (
+          <TokenListControlBar
+            goToAddToken={goToAddToken}
+            showAddToken={!showOnlyMusd}
+            hideSort={showOnlyMusd}
+            style={isFullView ? tw`px-4 pb-4` : undefined}
+          />
+        )}
         {tokenContent}
         <ScamWarningModal
           showScamWarningModal={showScamWarningModal}

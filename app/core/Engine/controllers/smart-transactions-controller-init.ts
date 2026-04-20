@@ -55,7 +55,7 @@ export const smartTransactionsControllerInit: MessengerClientInitFunction<
   const getBearerToken = async (): Promise<string | undefined> => {
     try {
       return await Promise.resolve(
-        initMessenger.call('AuthenticationController:getBearerToken'),
+        controllerMessenger.call('AuthenticationController:getBearerToken'),
       );
     } catch {
       return undefined;
@@ -74,7 +74,6 @@ export const smartTransactionsControllerInit: MessengerClientInitFunction<
     // transactions.
     getMetaMetricsProps: () => Promise.resolve({}),
     trackMetaMetricsEvent,
-    getBearerToken,
 
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,

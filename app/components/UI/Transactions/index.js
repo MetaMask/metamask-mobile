@@ -22,10 +22,10 @@ import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
+import ToastService from '../../../core/ToastService/ToastService';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
-import { TransactionError } from '../../../core/Transaction/TransactionError';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -72,10 +72,10 @@ import PriceChartContext, {
 } from '../AssetOverview/PriceChart/PriceChart.context';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import TransactionElement from '../TransactionElement';
-import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -219,10 +219,8 @@ class Transactions extends PureComponent {
     refreshing: false,
     cancelIsOpen: false,
     speedUpIsOpen: false,
-    retryIsOpen: false,
     confirmDisabled: false,
     rpcBlockExplorer: undefined,
-    errorMsg: undefined,
     isQRHardwareAccount: false,
     isLedgerAccount: false,
   };
@@ -564,18 +562,24 @@ class Transactions extends PureComponent {
 
   handleSpeedUpTransactionFailure = (e) => {
     const speedUpTxId = this.speedUpTxId;
-    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(message));
+    InteractionManager.runAfterInteractions(() => {
+      this.showTransactionUpdateErrorToast(e);
+    });
     this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
   };
 
   handleCancelTransactionFailure = (e) => {
     const cancelTxId = this.cancelTxId;
-    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(message));
+    InteractionManager.runAfterInteractions(() => {
+      this.showTransactionUpdateErrorToast(e);
+    });
     this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
+  };
+
+  showTransactionUpdateErrorToast = (error) => {
+    ToastService.showToast(getTransactionUpdateErrorToastOptions(error));
   };
 
   speedUpTransaction = async (transactionObject) => {
@@ -719,28 +723,6 @@ class Transactions extends PureComponent {
     />
   );
 
-  toggleRetry = (errorMsg) =>
-    this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg }));
-
-  retry = () => {
-    this.setState((state) => ({
-      retryIsOpen: !state.retryIsOpen,
-      errorMsg: undefined,
-    }));
-
-    //If the exitsing TX id true then it is a speed up retry
-    if (this.speedUpTxId) {
-      InteractionManager.runAfterInteractions(() => {
-        this.onSpeedUpAction(true, this.existingTx);
-      });
-    }
-    if (this.cancelTxId) {
-      InteractionManager.runAfterInteractions(() => {
-        this.onCancelAction(true, this.existingTx);
-      });
-    }
-  };
-
   get footer() {
     const {
       chainId,
@@ -857,12 +839,6 @@ class Transactions extends PureComponent {
             ? this.renderLoader()
             : this.renderList()}
         </View>
-        <RetryModal
-          onCancelPress={() => this.toggleRetry(undefined)}
-          onConfirmPress={this.retry}
-          retryIsOpen={this.state.retryIsOpen}
-          errorMsg={this.state.errorMsg}
-        />
       </PriceChartProvider>
     );
   };

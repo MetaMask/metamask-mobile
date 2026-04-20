@@ -9,6 +9,16 @@ import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames'
 const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
 
+const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
+  { key: string; value: string }[] | undefined,
+  []
+>(() => undefined);
+
+jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
+  useHomepageTrendingTransactionActiveAbTests: () =>
+    mockUseHomepageTrendingTransactionActiveAbTests(),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -213,6 +223,7 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       }),
     );
+    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
 
   it('renders section title when enabled', () => {
@@ -223,7 +234,7 @@ describe('PredictionsSection', () => {
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
-  it('navigates to predictions market list on title press', () => {
+  it('navigates with home_section entry_point when trending markets title is pressed', () => {
     renderWithProvider(
       <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
@@ -232,6 +243,9 @@ describe('PredictionsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      },
     });
   });
 
@@ -358,6 +372,30 @@ describe('PredictionsSection', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
+      });
+    });
+
+    it('navigates to market details without transactionActiveAbTests in default carousel', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Will ETH reach $5000?'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: { marketId: 'market-1' },
       });
     });
 
@@ -766,6 +804,34 @@ describe('PredictionsSection', () => {
       expect(screen.getByText('Will BTC reach 100k?')).toBeOnTheScreen();
     });
 
+    it('passes transactionActiveAbTests when trending-only and experiment is active', () => {
+      const abTests = [
+        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+      ];
+      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Will BTC reach 100k?'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: { marketId: 'market-1', transactionActiveAbTests: abTests },
+      });
+    });
+
     it('uses titleOverride when provided', () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: mockMarkets,
@@ -784,6 +850,32 @@ describe('PredictionsSection', () => {
       );
 
       expect(screen.getByText('Trending predictions')).toBeOnTheScreen();
+    });
+
+    it('navigates with home_section entry_point on title press', () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Predictions'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        },
+      });
     });
 
     it('returns null when no markets after loading', () => {

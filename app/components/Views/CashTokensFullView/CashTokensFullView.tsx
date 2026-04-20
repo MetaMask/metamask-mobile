@@ -34,12 +34,16 @@ import SectionRow from '../Homepage/components/SectionRow/SectionRow';
 import { AssetType } from '../confirmations/types/token';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
+import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { useSelector } from 'react-redux';
 
 const CashTokensFullView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { hasMusdBalanceOnAnyChain } = useMusdBalance();
   const { tokens: conversionTokens } = useMusdConversionTokens();
+
+  const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const hasConversionTokens = conversionTokens.length > 0;
 
@@ -144,51 +148,57 @@ const CashTokensFullView = () => {
           isFullView
           showOnlyMusd
           hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
-          listFooterComponent={bonusAndConvertSections}
+          listFooterComponent={
+            isMoneyHubEnabled ? bonusAndConvertSections : undefined
+          }
         />
       ) : (
         <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
           <SectionRow>
             <CashGetMusdEmptyState isFullView />
           </SectionRow>
-          {bonusAndConvertSections}
+          {isMoneyHubEnabled ? bonusAndConvertSections : undefined}
         </ScrollView>
       )}
-      {hasConversionTokens ? (
-        <Box twClassName="px-4 pt-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleConvertPress}
+      {isMoneyHubEnabled &&
+        (hasConversionTokens ? (
+          <Box twClassName="px-4 pt-4">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleConvertPress}
+            >
+              {strings('money.convert_stablecoins.convert_cta')}
+            </Button>
+          </Box>
+        ) : (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            twClassName="px-4 pt-4 gap-2"
           >
-            {strings('money.convert_stablecoins.convert_cta')}
-          </Button>
-        </Box>
-      ) : (
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-4 gap-2">
-          <Box twClassName="flex-1">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={() => goToSwaps()}
-            >
-              {strings('money.convert_stablecoins.swap')}
-            </Button>
+            <Box twClassName="flex-1">
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                onPress={() => goToSwaps()}
+              >
+                {strings('money.convert_stablecoins.swap')}
+              </Button>
+            </Box>
+            <Box twClassName="flex-1">
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                onPress={() => goToBuy()}
+              >
+                {strings('money.convert_stablecoins.buy')}
+              </Button>
+            </Box>
           </Box>
-          <Box twClassName="flex-1">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={() => goToBuy()}
-            >
-              {strings('money.convert_stablecoins.buy')}
-            </Button>
-          </Box>
-        </Box>
-      )}
+        ))}
     </SafeAreaView>
   );
 };
