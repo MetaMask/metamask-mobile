@@ -1,26 +1,10 @@
-import {
-  renderHook,
-  act,
-  waitFor,
-  cleanup,
-} from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { useQuery } from '@metamask/react-data-query';
-import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useFollowedTraders } from './useFollowedTraders';
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
-}));
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    AuthenticationController: {
-      getSessionProfile: jest
-        .fn()
-        .mockResolvedValue({ profileId: 'mock-profile-id' }),
-    },
-  },
 }));
 
 jest.mock('@metamask/react-data-query');
@@ -61,58 +45,31 @@ describe('useFollowedTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
-    (
-      Engine.context.AuthenticationController.getSessionProfile as jest.Mock
-    ).mockResolvedValue({ profileId: 'mock-profile-id' });
-  });
-
-  // Flush pending microtasks (and the resulting setProfileId call) before
-  // unmount to keep React Testing Library from emitting act() warnings on
-  // tests that only care about the initial synchronous behavior.
-  afterEach(async () => {
-    await act(async () => {
-      await Promise.resolve();
-    });
-    cleanup();
   });
 
   describe('query configuration', () => {
-    it('waits for the session profileId before enabling the query', () => {
-      mockUseQuery.mockReturnValue(makeQueryResult());
+    it('passes the correct queryKey to useQuery', () => {
       renderHook(() => useFollowedTraders());
 
-      // First render runs before the async session-profile resolves, so the
-      // query is still gated.
-      expect(mockUseQuery).toHaveBeenLastCalledWith(
+      expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({
-          enabled: false,
-          queryKey: ['SocialService:fetchFollowing', null],
+          queryKey: ['SocialService:fetchFollowing'],
         }),
       );
     });
 
-    it('enables the query with the session profileId once resolved', async () => {
-      const { rerender } = renderHook(() => useFollowedTraders());
+    it('enables the query by default', () => {
+      renderHook(() => useFollowedTraders());
 
-      await waitFor(() => {
-        expect(mockUseQuery).toHaveBeenCalledWith(
-          expect.objectContaining({
-            enabled: true,
-            queryKey: [
-              'SocialService:fetchFollowing',
-              { addressOrUid: 'mock-profile-id' },
-            ],
-          }),
-        );
-      });
-
-      rerender({});
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true }),
+      );
     });
 
     it('disables the query when the hook is called with enabled: false', () => {
       renderHook(() => useFollowedTraders({ enabled: false }));
 
-      expect(mockUseQuery).toHaveBeenLastCalledWith(
+      expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: false }),
       );
     });
@@ -142,24 +99,15 @@ describe('useFollowedTraders', () => {
   });
 
   describe('loading state', () => {
-    it('reports loading while the session profile is being resolved', () => {
+    it('reports loading when useQuery is loading', () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
       const { result } = renderHook(() => useFollowedTraders());
       expect(result.current.isLoading).toBe(true);
     });
 
-    it('reports loading when useQuery is loading', async () => {
-      mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
+    it('reports not-loading when the query is idle', () => {
       const { result } = renderHook(() => useFollowedTraders());
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(true);
-      });
-    });
-
-    it('reports not-loading when query is idle and profile resolved', async () => {
-      const { result } = renderHook(() => useFollowedTraders());
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
+      expect(result.current.isLoading).toBe(false);
     });
 
     it('reports not-loading when disabled', () => {
@@ -187,23 +135,6 @@ describe('useFollowedTraders', () => {
       expect(result.current.error).toBe('raw error');
     });
 
-    it('surfaces the session-profile fetch error', async () => {
-      (
-        Engine.context.AuthenticationController.getSessionProfile as jest.Mock
-      ).mockRejectedValue(new Error('no session'));
-
-      const { result } = renderHook(() => useFollowedTraders());
-
-      await waitFor(() => {
-        expect(result.current.error).toBe('no session');
-      });
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'useFollowedTraders: getSessionProfile failed',
-      );
-    });
-
     it('logs query errors', () => {
       const error = new Error('fetch failed');
       mockUseQuery.mockReturnValue(makeQueryResult({ error }));
@@ -217,34 +148,6 @@ describe('useFollowedTraders', () => {
     it('does not log when there is no error', () => {
       renderHook(() => useFollowedTraders());
       expect(Logger.error).not.toHaveBeenCalled();
-    });
-
-    it('clears a stale profileIdError when a subsequent getSessionProfile call succeeds', async () => {
-      const getSessionProfile = Engine.context.AuthenticationController
-        .getSessionProfile as jest.Mock;
-
-      getSessionProfile.mockRejectedValueOnce(new Error('no session'));
-
-      const { result, rerender } = renderHook(
-        ({ enabled }: { enabled: boolean }) => useFollowedTraders({ enabled }),
-        { initialProps: { enabled: true } },
-      );
-
-      await waitFor(() => {
-        expect(result.current.error).toBe('no session');
-      });
-
-      // Now simulate a successful retry by re-enabling the hook (enabled
-      // toggles false → true, triggering a fresh getSessionProfile call).
-      getSessionProfile.mockResolvedValueOnce({
-        profileId: 'mock-profile-id',
-      });
-      rerender({ enabled: false });
-      rerender({ enabled: true });
-
-      await waitFor(() => {
-        expect(result.current.error).toBeNull();
-      });
     });
   });
 
