@@ -351,6 +351,7 @@ describe('PaymentSelectionModal', () => {
       amount: 100,
       walletAddress: '0x123',
       assetId: 'eip155:1/slip44:60',
+      redirectUrl: expect.stringContaining('/regions/fake-callback'),
       providers: ['/providers/transak'],
       paymentMethods: [
         '/payments/debit-credit-card-1',
@@ -359,7 +360,7 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('filters out payment method when only custom-action quote matches', () => {
+  it('keeps payment method visible when only custom-action quote matches', () => {
     const customActionQuote = {
       provider: '/providers/transak',
       quote: {
@@ -378,11 +379,41 @@ describe('PaymentSelectionModal', () => {
       loading: false,
     }));
 
-    const { queryAllByText, getByText } = renderWithProvider(
+    const { queryAllByText, queryByText } = renderWithProvider(
       PaymentSelectionModal,
     );
-    // Payment methods with only custom-action quotes are filtered out
-    expect(queryAllByText('Debit or Credit').length).toBe(0);
-    expect(getByText('fiat_on_ramp.no_payment_methods_available')).toBeTruthy();
+    // debit-credit-card-1 matches the custom-action quote → visible.
+    // debit-credit-card-2 has no matching quote → filtered out.
+    expect(queryAllByText('Debit or Credit').length).toBe(1);
+    expect(queryByText('fiat_on_ramp.no_payment_methods_available')).toBeNull();
+  });
+
+  it('does not use custom-action quote amount for price preview', () => {
+    // amountOut would render as "0.12345..." text if the per-item matchedQuote
+    // find accepted custom-action quotes. It should be filtered out and no
+    // price text should render for the row.
+    const customActionQuote = {
+      provider: '/providers/transak',
+      quote: {
+        paymentMethod: '/payments/debit-credit-card-1',
+        amountOut: 0.12345,
+        amountOutInFiat: 67.89,
+        isCustomAction: true,
+      },
+    };
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [customActionQuote],
+        error: [],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { queryByText } = renderWithProvider(PaymentSelectionModal);
+    expect(queryByText(/0\.12345/)).toBeNull();
+    expect(queryByText(/67\.89/)).toBeNull();
   });
 });

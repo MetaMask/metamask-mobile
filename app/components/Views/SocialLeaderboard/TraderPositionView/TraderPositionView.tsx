@@ -36,6 +36,7 @@ import type { Hex } from '@metamask/utils';
 import { handleFetch } from '@metamask/controller-utils';
 import { strings } from '../../../../../locales/i18n';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
+import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
 import { chainNameToId } from '../utils/chainMapping';
 import {
   getAssetImageUrl,
@@ -227,6 +228,7 @@ const TraderPositionView = () => {
   const { traderName, tokenSymbol, position: positionParam } = route.params;
 
   const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
+  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
 
   const caipChainId = useMemo(
     () => (positionParam ? chainNameToId(positionParam.chain) : undefined),
@@ -386,6 +388,14 @@ const TraderPositionView = () => {
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleBuyPress = useCallback(() => {
+    setIsQuickBuyVisible(true);
+  }, []);
+
+  const handleQuickBuyClose = useCallback(() => {
+    setIsQuickBuyVisible(false);
+  }, []);
 
   const symbol = positionParam?.tokenSymbol ?? tokenSymbol;
   const isClosed =
@@ -646,12 +656,18 @@ const TraderPositionView = () => {
         <Button
           variant={ButtonVariant.Secondary}
           isFullWidth
-          onPress={() => undefined}
+          onPress={handleBuyPress}
           testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
         >
           {strings('social_leaderboard.trader_position.buy')}
         </Button>
       </Box>
+
+      <QuickBuyBottomSheet
+        isVisible={isQuickBuyVisible}
+        position={positionParam ?? null}
+        onClose={handleQuickBuyClose}
+      />
     </SafeAreaView>
   );
 };
