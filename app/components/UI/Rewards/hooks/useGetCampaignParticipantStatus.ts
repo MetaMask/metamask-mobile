@@ -27,7 +27,7 @@ export const useGetCampaignParticipantStatus = (
 ): UseGetCampaignParticipantStatusResult => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const status = useSelector(
-    selectCampaignParticipantStatus(subscriptionId, campaignId),
+    selectCampaignParticipantStatus(subscriptionId ?? undefined, campaignId),
   );
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(
