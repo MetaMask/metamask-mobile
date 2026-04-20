@@ -198,7 +198,8 @@
     "expo-web-browser@npm:~14.0.2": "patch:expo-web-browser@npm%3A14.0.2#~/.yarn/patches/expo-web-browser-npm-14.0.2-98d00ce880.patch",
     "@metamask/messenger@^0.3.0": "^1.0.0",
     "@metamask/accounts-controller": "^37.2.0",
-    "@metamask/profile-sync-controller": "^28.0.2"
+    "@metamask/profile-sync-controller": "^28.0.2",
+    "@metamask/transaction-controller@^63.0.0": "^64.2.0"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -225,7 +226,7 @@
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^9.0.0",
     "@metamask/assets-controller": "^5.0.0",
-    "@metamask/assets-controllers": "^103.1.0",
+    "@metamask/assets-controllers": "^104.0.0",
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.10.1",
     "@metamask/bridge-controller": "^70.0.0",
@@ -311,7 +312,7 @@
     "@metamask/selected-network-controller": "^25.0.0",
     "@metamask/signature-controller": "^39.2.0",
     "@metamask/slip44": "^4.2.0",
-    "@metamask/smart-transactions-controller": "^23.0.0",
+    "@metamask/smart-transactions-controller": "^24.0.0",
     "@metamask/snaps-controllers": "^20.0.1",
     "@metamask/snaps-execution-environments": "^11.0.2",
     "@metamask/snaps-rpc-methods": "^15.1.1",
@@ -325,7 +326,7 @@
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^64.2.0",
-    "@metamask/transaction-pay-controller": "^19.1.1",
+    "@metamask/transaction-pay-controller": "^19.2.1",
     "@metamask/tron-wallet-snap": "^1.25.2",
     "@metamask/utils": "^11.11.0",
     "@myx-trade/sdk": "^0.1.265",
