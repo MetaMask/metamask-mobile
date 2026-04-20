@@ -133,22 +133,13 @@ describe('NotificationPreferencesView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders the global toggle', () => {
-      renderScreen();
-
-      expect(
-        screen.getByTestId(
-          NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
-        ),
-      ).toBeOnTheScreen();
-    });
-
     it('renders the global toggle as enabled by default', () => {
       renderScreen();
 
       const toggle = screen.getByTestId(
         NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
       );
+      expect(toggle).toBeOnTheScreen();
       expect(toggle.props.value).toBe(true);
     });
 
