@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
@@ -17,6 +17,7 @@ import ProviderSelection from './ProviderSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
@@ -112,6 +113,7 @@ function ProviderSelectionModal() {
             amount,
             walletAddress,
             assetId,
+            redirectUrl: getRampCallbackBaseUrl(),
             providers: providerIds,
             paymentMethods: [selectedPaymentMethod.id],
           }
