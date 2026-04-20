@@ -82,8 +82,11 @@ const MusdAggregatedRow = () => {
       return;
     }
     if (!hasSeenConversionEducationScreen) {
-      navigation.navigate(Routes.EARN.MUSD.CONVERSION_EDUCATION, {
-        returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+        },
       });
       return;
     }
