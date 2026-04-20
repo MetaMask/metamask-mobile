@@ -93,6 +93,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         onPress={onPress}
         style={containerStyle}
         activeOpacity={0.7}
+        accessibilityLabel={typeof title === 'string' ? title : undefined}
       >
         {innerContent}
       </TouchableOpacity>
