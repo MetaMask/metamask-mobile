@@ -621,6 +621,7 @@ export class PolymarketProvider implements PredictProvider {
           operation: 'generate_allowances_tx_v2',
         }),
       );
+      throw new Error('Failed to prepare v2 trade preflight');
     }
 
     if (

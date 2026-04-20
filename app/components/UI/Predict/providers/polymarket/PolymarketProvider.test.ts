@@ -1338,6 +1338,28 @@ describe('PolymarketProvider', () => {
       expect(mockSubmitClobOrder).not.toHaveBeenCalled();
     });
 
+    it('aborts v2 order placement when trade preflight fails', async () => {
+      jest.clearAllMocks();
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        predictClobV2Enabled: true,
+      });
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: undefined,
+      });
+
+      mockGetRawBalance.mockRejectedValueOnce(new Error('balance read failed'));
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Failed to prepare v2 trade preflight');
+      expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
+    });
+
     it('returns error result when maker address is not found', async () => {
       // Arrange
       const provider = createProvider();
