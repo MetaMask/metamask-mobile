@@ -7,16 +7,7 @@ import {
   PanResponder,
   View,
 } from 'react-native';
-import {
-  Circle,
-  Defs,
-  G,
-  LinearGradient,
-  Path,
-  Rect,
-  Stop,
-  Line as SvgLine,
-} from 'react-native-svg';
+import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
@@ -29,7 +20,6 @@ import {
   TOKEN_OVERVIEW_CHART_HEIGHT,
 } from '../Price/tokenOverviewChart.constants';
 import styleSheet from './PriceChart.styles';
-import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import { Box } from '@metamask/design-system-react-native';
@@ -229,46 +219,6 @@ const PriceChart = ({
     );
   };
 
-  const NoDataGradient = () => {
-    // gradient with transparent center and grey edges
-    const gradient = (
-      <Defs key="gradient">
-        <LinearGradient id="gradient" x1="0" y1="1" x2="0" y2="0">
-          <Stop
-            offset="0"
-            stopColor={theme.colors.background.default}
-            stopOpacity="1"
-          />
-          <Stop
-            offset="0.5"
-            stopColor={theme.colors.background.default}
-            stopOpacity="0.5"
-          />
-          <Stop
-            offset="1"
-            stopColor={theme.colors.background.default}
-            stopOpacity="1"
-          />
-        </LinearGradient>
-      </Defs>
-    );
-
-    return (
-      <G key="no-data-gradient">
-        {gradient}
-        <Rect
-          x="0"
-          y="0"
-          width={
-            chartRowWidth > 0 ? chartRowWidth : Dimensions.get('window').width
-          }
-          height={chartHeight}
-          fill="url(#gradient)"
-        />
-      </G>
-    );
-  };
-
   const Tooltip = ({ x, y, height: svgHeight }: Partial<TooltipProps>) => {
     if (positionX < 0) {
       return null;
@@ -368,26 +318,26 @@ const PriceChart = ({
       <View
         style={styles.chartAreaWrapper}
         testID={chartHasData ? 'price-chart-area' : undefined}
-        {...panResponder.current.panHandlers}
+        {...(chartHasData ? panResponder.current.panHandlers : {})}
       >
-        {/* Chart is always rendered first (below overlays) to avoid Android rendering bug. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
-        <AreaChart
-          style={styles.chartArea}
-          data={chartHasData ? priceList : placeholderData}
-          contentInset={{
-            top: apx(40),
-            bottom: apx(40),
-            ...(chartHasData ? { right: endDotInsetRight } : {}),
-          }}
-          svg={chartHasData && !isLoading ? { fill: 'none' } : undefined}
-          yMin={isStablecoin && chartHasData ? yMin : undefined}
-          yMax={isStablecoin && chartHasData ? yMax : undefined}
-        >
-          {!isLoading && <Line lineStrokeActive={chartHasData} />}
-          {chartHasData ? null : <NoDataGradient />}
-          {chartHasData && !isLoading ? <Tooltip /> : null}
-          {chartHasData && !isLoading ? <EndDot /> : null}
-        </AreaChart>
+        {chartHasData ? (
+          <AreaChart
+            style={styles.chartArea}
+            data={priceList}
+            contentInset={{
+              top: apx(40),
+              bottom: apx(40),
+              right: endDotInsetRight,
+            }}
+            svg={!isLoading ? { fill: 'none' } : undefined}
+            yMin={isStablecoin ? yMin : undefined}
+            yMax={isStablecoin ? yMax : undefined}
+          >
+            {!isLoading && <Line lineStrokeActive />}
+            {!isLoading && <Tooltip />}
+            {!isLoading && <EndDot />}
+          </AreaChart>
+        ) : null}
         {isLoading && (
           <View style={styles.loadingOverlayContainer}>
             <LoadingOverlay />

@@ -123,16 +123,12 @@ export const createAdvancedChartTemplate = (
             position: relative;
         }
         /*
-         * Chart area sits below a small top inset (16px) so absolutely positioned pills
-         * that use top + translateY(-50%) for vertical centering are not clipped by
-         * body { overflow: hidden } when the crosshair is near the top of the chart.
+         * Chart area fills the entire WebView so TradingView gets the full
+         * height passed from React Native.
          */
         #chart_surface {
             position: absolute;
-            left: 0;
-            right: 0;
-            top: 16px;
-            bottom: 0;
+            inset: 0;
             width: 100%;
             box-sizing: border-box;
         }
