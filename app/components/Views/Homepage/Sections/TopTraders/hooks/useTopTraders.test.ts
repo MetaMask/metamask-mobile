@@ -18,13 +18,6 @@ jest.mock('../../../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    AuthenticationController: {
-      getSessionProfile: jest
-        .fn()
-        .mockResolvedValue({ profileId: 'mock-profile-id' }),
-    },
-  },
   controllerMessenger: {
     call: jest.fn(),
     subscribe: jest.fn(),
@@ -217,10 +210,7 @@ describe('useTopTraders', () => {
 
       expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
         'SocialController:followTrader',
-        {
-          addressOrUid: 'mock-profile-id',
-          targets: [mockTraders[0].profileId],
-        },
+        { targets: [mockTraders[0].profileId] },
       );
     });
 
@@ -234,10 +224,7 @@ describe('useTopTraders', () => {
 
       expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
         'SocialController:unfollowTrader',
-        {
-          addressOrUid: 'mock-profile-id',
-          targets: [mockTraders[0].profileId],
-        },
+        { targets: [mockTraders[0].profileId] },
       );
     });
 
