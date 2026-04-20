@@ -38,6 +38,7 @@ description: Identify code owners for changed files and map them to Slack group 
 | wallet-api-platform     | wallet-integrations-team     |
 | ramp                    | ramp-team                    |
 | predict                 | predict-team                 |
+| social-ai               | social-ai-team               |
 | rewards                 | rewards-team                 |
 | design-system-engineers | metamask-design-system-team  |
 | core-platform           | core-platform-team           |

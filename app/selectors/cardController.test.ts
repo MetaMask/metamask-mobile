@@ -9,8 +9,17 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardPrimaryToken,
+  selectCardAvailableTokens,
+  selectCardFundingTokens,
+  selectCardDelegationSettings,
 } from './cardController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
+import {
+  FundingAssetStatus,
+  type CardHomeData,
+} from '../core/Engine/controllers/card-controller/provider-types';
+import { FundingStatus } from '../components/UI/Card/types';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -309,5 +318,131 @@ describe('selectCardHomeDataStatus', () => {
       engine: { backgroundState: {} },
     } as unknown as RootState;
     expect(selectCardHomeDataStatus(state)).toBe('idle');
+  });
+});
+
+const mockPrimaryAsset = {
+  symbol: 'USDC',
+  name: 'USD Coin',
+  address: '0xusdc000000000000000000000000000000000001',
+  walletAddress: '0xwallet000000000000000000000000000000000002',
+  decimals: 6,
+  chainId: 'eip155:59144',
+  spendableBalance: '25.5',
+  spendingCap: '500',
+  priority: 1,
+  status: FundingAssetStatus.Limited,
+} as const;
+
+const mockCardHomeData: CardHomeData = {
+  primaryFundingAsset: mockPrimaryAsset,
+  fundingAssets: [
+    mockPrimaryAsset,
+    {
+      ...mockPrimaryAsset,
+      symbol: 'USDT',
+      address: '0xusdt000000000000000000000000000000000003',
+      priority: 2,
+    },
+  ],
+  availableFundingAssets: [mockPrimaryAsset],
+  card: null,
+  account: null,
+  alerts: [],
+  actions: [],
+  delegationSettings: {
+    networks: [
+      {
+        network: 'linea',
+        environment: 'production',
+        chainId: '59144',
+        delegationContract: '0xdeleg000000000000000000000000000000000004',
+        tokens: {},
+      },
+    ],
+    count: 1,
+    _links: { self: '/v1/delegation/chain/config' },
+  },
+};
+
+describe('selectCardPrimaryToken', () => {
+  it('returns null when cardHomeData is null', () => {
+    const state = createMockRootState({ cardHomeData: null });
+    expect(selectCardPrimaryToken(state)).toBeNull();
+  });
+
+  it('maps primaryFundingAsset through toCardFundingToken', () => {
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    const token = selectCardPrimaryToken(state);
+    expect(token).toEqual(
+      expect.objectContaining({
+        symbol: 'USDC',
+        caipChainId: 'eip155:59144',
+        fundingStatus: FundingStatus.Limited,
+        spendableBalance: '25.5',
+        spendingCap: '500',
+        walletAddress: mockPrimaryAsset.walletAddress,
+      }),
+    );
+  });
+});
+
+describe('selectCardAvailableTokens', () => {
+  it('returns empty array when cardHomeData is null', () => {
+    const state = createMockRootState({ cardHomeData: null });
+    expect(selectCardAvailableTokens(state)).toStrictEqual([]);
+  });
+
+  it('maps each availableFundingAsset through toCardFundingToken', () => {
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    const tokens = selectCardAvailableTokens(state);
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0]).toEqual(
+      expect.objectContaining({
+        symbol: 'USDC',
+        fundingStatus: FundingStatus.Limited,
+      }),
+    );
+  });
+});
+
+describe('selectCardFundingTokens', () => {
+  it('returns empty array when cardHomeData is null', () => {
+    const state = createMockRootState({ cardHomeData: null });
+    expect(selectCardFundingTokens(state)).toStrictEqual([]);
+  });
+
+  it('maps each fundingAsset through toCardFundingToken', () => {
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    const tokens = selectCardFundingTokens(state);
+    expect(tokens).toHaveLength(2);
+    expect(tokens[0]?.symbol).toBe('USDC');
+    expect(tokens[1]?.symbol).toBe('USDT');
+  });
+});
+
+describe('selectCardDelegationSettings', () => {
+  it('returns null when cardHomeData is null', () => {
+    const state = createMockRootState({ cardHomeData: null });
+    expect(selectCardDelegationSettings(state)).toBeNull();
+  });
+
+  it('returns delegationSettings from card home data', () => {
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardDelegationSettings(state)).toStrictEqual(
+      mockCardHomeData.delegationSettings,
+    );
   });
 });

@@ -75,7 +75,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'We had a problem loading your stats. Please try again later.',
       'rewards.ondo_campaign_stats.retry': 'Retry',
       'rewards.ondo_campaign_stats.label_return': 'Return',
-      'rewards.ondo_campaign_stats.label_market_value': 'Market Value',
+      'rewards.ondo_campaign_stats.label_market_value': 'Market value',
       'rewards.ondo_campaign_stats.label_rank': 'Rank',
       'rewards.ondo_campaign_stats.label_tier': 'Tier',
     };
@@ -148,31 +148,41 @@ describe('CampaignStatsSummary', () => {
     ).toBeDefined();
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
-    ).toBe('+15.20%');
+    ).toBe('+7.01%');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
     ).toBe('$13,057.58');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
-    ).toBe('5');
+    ).toBe('05');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
     ).toBe('Silver');
   });
 
-  it('displays dash for return, rank, and tier when leaderboard position is null', () => {
+  it('displays dash for rank and tier when leaderboard position is null but return from portfolio', () => {
     const { getByTestId } = render(
       <CampaignStatsSummary {...baseProps} leaderboardPosition={null} />,
     );
 
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
-    ).toBe('-');
+    ).toBe('+7.01%');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('-');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
+    ).toBe('-');
+  });
+
+  it('displays dash for return when portfolio summary is null', () => {
+    const { getByTestId } = render(
+      <CampaignStatsSummary {...baseProps} portfolioSummary={null} />,
+    );
+
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('-');
   });
 
@@ -186,13 +196,14 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
-    ).toBe('5');
+    ).toBe('05');
   });
 
-  it('uses error color for market value when portfolioPnl is negative, regardless of leaderboard position', () => {
+  it('uses error color for market value when return is negative', () => {
     const negativePortfolio: OndoGmPortfolioSummaryDto = {
       ...MOCK_SUMMARY,
       portfolioPnl: '-500.000000',
+      portfolioPnlPercent: '-0.04',
     };
 
     const { getByTestId } = render(
@@ -227,16 +238,16 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-');
   });
 
-  it('handles negative rate of return', () => {
-    const negativePosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      rateOfReturn: -0.05,
+  it('handles negative rate of return from portfolio', () => {
+    const negativeSummary: OndoGmPortfolioSummaryDto = {
+      ...MOCK_SUMMARY,
+      portfolioPnlPercent: '-0.05',
     };
 
     const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
-        leaderboardPosition={negativePosition}
+        portfolioSummary={negativeSummary}
       />,
     );
 
@@ -245,28 +256,16 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-5.00%');
   });
 
-  it('renders Stats title by default', () => {
-    const { getByText } = render(<CampaignStatsSummary {...baseProps} />);
-    expect(getByText('Stats')).toBeDefined();
-  });
-
-  it('hides Stats title when showHeader is false', () => {
-    const { queryByText } = render(
-      <CampaignStatsSummary {...baseProps} showHeader={false} />,
-    );
-    expect(queryByText('Stats')).toBeNull();
-  });
-
   // ── Pending / Qualified tags ────────────────────────────────────────
 
-  it('renders Pending tags next to rank and tier when qualified is false', () => {
+  it('renders Pending tag next to rank when qualified is false', () => {
     const pendingPosition: CampaignLeaderboardPositionDto = {
       ...MOCK_POSITION,
       qualified: false,
       qualifiedDays: 3,
     };
 
-    const { getAllByTestId, getAllByText } = render(
+    const { getByTestId, getAllByText } = render(
       <CampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
@@ -274,20 +273,19 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
-    ).toHaveLength(2);
-    expect(getAllByText('Pending')).toHaveLength(2);
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+    ).toBeOnTheScreen();
+    expect(getAllByText('Pending')).toHaveLength(1);
   });
 
-  it('renders Qualified tag on tier cell and no Pending tags when qualified is true', () => {
-    const { getByTestId, getByText, queryAllByText, queryByTestId } = render(
+  it('renders check icon on rank cell and no Pending tags when qualified is true', () => {
+    const { getByTestId, queryAllByText, queryByTestId } = render(
       <CampaignStatsSummary {...baseProps} />,
     );
 
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG),
     ).toBeOnTheScreen();
-    expect(getByText('Qualified')).toBeOnTheScreen();
     expect(queryAllByText('Pending')).toHaveLength(0);
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
@@ -315,10 +313,10 @@ describe('CampaignStatsSummary', () => {
       />,
     );
 
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
+    // Return and market value still render since portfolio is fine
+    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeDefined();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeNull();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER)).toBeNull();
-    // Market value still renders since portfolio is fine
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeDefined();
@@ -334,10 +332,10 @@ describe('CampaignStatsSummary', () => {
 
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
-    ).toBe('+15.20%');
+    ).toBe('+7.01%');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
-    ).toBe('5');
+    ).toBe('05');
   });
 
   // ── Portfolio loading ─────────────────────────────────────────────
@@ -354,8 +352,9 @@ describe('CampaignStatsSummary', () => {
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeNull();
+    // Return also shows skeleton since it now comes from portfolio
+    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
     // Leaderboard cells still render
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeDefined();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeDefined();
   });
 
@@ -488,114 +487,15 @@ describe('CampaignStatsSummary', () => {
     ).toHaveLength(1);
   });
 
-  // ── Qualify for rank card ─────────────────────────────────────────
-
-  it('shows the qualify card when position is pending and tierMinDeposit is provided', () => {
-    const pendingPosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      qualified: false,
-      qualifiedDays: 3,
-    };
-
-    const { getByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={pendingPosition}
-        tierMinDeposit={500}
-      />,
-    );
-
-    expect(
-      getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeDefined();
-  });
-
-  it('does not show the qualify card when position is qualified', () => {
-    const { queryByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={MOCK_POSITION}
-        tierMinDeposit={500}
-      />,
-    );
-
-    expect(
-      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeNull();
-  });
-
-  it('does not show the qualify card when tierMinDeposit is null', () => {
-    const pendingPosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      qualified: false,
-      qualifiedDays: 3,
-    };
-
-    const { queryByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={pendingPosition}
-        tierMinDeposit={null}
-      />,
-    );
-
-    expect(
-      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeNull();
-  });
-
-  it('does not show the qualify card when qualifiedDays meets the requirement', () => {
-    const pendingPosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      qualified: false,
-      qualifiedDays: 10, // equals ONDO_GM_REQUIRED_QUALIFIED_DAYS
-    };
-
-    const { queryByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={pendingPosition}
-        tierMinDeposit={500}
-      />,
-    );
-
-    expect(
-      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeNull();
-  });
-
-  it('calls onQualifyPress when the qualify card is pressed', () => {
-    const mockOnQualifyPress = jest.fn();
-    const pendingPosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      qualified: false,
-      qualifiedDays: 3,
-    };
-
-    const { getByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={pendingPosition}
-        tierMinDeposit={500}
-        onQualifyPress={mockOnQualifyPress}
-      />,
-    );
-
-    fireEvent.press(
-      getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    );
-    expect(mockOnQualifyPress).toHaveBeenCalledTimes(1);
-  });
-
   // ── Ineligible state ──────────────────────────────────────────────
 
-  it('shows ineligible tags on both rank and tier cells when isIneligible=true', () => {
+  it('shows ineligible tag on rank cell when isIneligible=true', () => {
     const pendingPosition: CampaignLeaderboardPositionDto = {
       ...MOCK_POSITION,
       qualified: false,
       qualifiedDays: 0,
     };
-    const { getAllByTestId, getAllByText } = render(
+    const { getByTestId, getAllByText } = render(
       <CampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
@@ -603,9 +503,9 @@ describe('CampaignStatsSummary', () => {
       />,
     );
     expect(
-      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
-    ).toHaveLength(2);
-    expect(getAllByText('Ineligible')).toHaveLength(2);
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
+    ).toBeOnTheScreen();
+    expect(getAllByText('Ineligible')).toHaveLength(1);
   });
 
   it('shows dash for rank and tier when isIneligible=true even with leaderboard data', () => {
@@ -659,24 +559,6 @@ describe('CampaignStatsSummary', () => {
       />,
     );
     expect(queryAllByText('Pending')).toHaveLength(0);
-  });
-
-  it('hides qualify card when isIneligible=true even with tierMinDeposit set', () => {
-    const { queryByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={{
-          ...MOCK_POSITION,
-          qualified: false,
-          qualifiedDays: 3,
-        }}
-        tierMinDeposit={500}
-        isIneligible
-      />,
-    );
-    expect(
-      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeNull();
   });
 
   it('does not show ineligible tags when isIneligible=false', () => {

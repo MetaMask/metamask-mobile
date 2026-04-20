@@ -31,6 +31,6 @@ export function pickPrimaryFromReordered(
 ): CardFundingAsset | null {
   if (assets.length === 0) return null;
   const first = assets[0];
-  if (parseFloat(first.balance) > 0) return first;
-  return assets.find((a) => parseFloat(a.balance) > 0) ?? first;
+  if (parseFloat(first.spendableBalance) > 0) return first;
+  return assets.find((a) => parseFloat(a.spendableBalance) > 0) ?? first;
 }
