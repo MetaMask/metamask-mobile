@@ -1001,28 +1001,6 @@ describe('usePerpsTransactionHistory', () => {
     });
   });
 
-  describe('logging', () => {
-    it('logs transaction data fetching', async () => {
-      renderHook(() => usePerpsTransactionHistory());
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Fetching comprehensive transaction history...',
-      );
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Transaction data fetched:',
-        { fills: mockFills, orders: mockOrders, funding: mockFunding },
-      );
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Combined transactions:',
-        expect.any(Array),
-      );
-    });
-  });
-
   describe('fill enrichment with detailedOrderType', () => {
     it('enriches fills with detailedOrderType when matching order exists', async () => {
       const fillsWithoutDetailedType = [

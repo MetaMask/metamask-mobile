@@ -17,7 +17,7 @@ interface UseUserHistoryResult {
   userHistory: UserHistoryItem[];
   isLoading: boolean;
   error: string | null;
-  refetch: (options?: { forceRefresh?: boolean }) => Promise<UserHistoryItem[]>;
+  refetch: () => Promise<UserHistoryItem[]>;
 }
 
 /**
@@ -32,57 +32,46 @@ export const useUserHistory = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserHistory = useCallback(
-    async (
-      options: { forceRefresh?: boolean } = {},
-    ): Promise<UserHistoryItem[]> => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetchUserHistory = useCallback(async (): Promise<UserHistoryItem[]> => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const controller = Engine.context.PerpsController;
-        if (!controller) {
-          throw new Error('PerpsController not available');
-        }
-
-        const params: GetUserHistoryParams = {
-          startTime,
-          endTime,
-          accountId,
-        };
-
-        DevLogger.log('Fetching user history with params:', params);
-
-        const provider = controller.getActiveProviderOrNull();
-        if (!provider) {
-          setIsLoading(false);
-          return [];
-        }
-
-        // `forceRefresh` is accepted for contract parity with the activity
-        // page refetch path. `getUserHistory` is not yet routed through the
-        // MarketDataService coalesce layer (REST throttling lives on the
-        // fills/orders/funding trio, which is the actual 429 source on HL);
-        // add a service wrapper here if user-history becomes a 429 source.
-        void options.forceRefresh;
-        const history = await provider.getUserHistory(params);
-
-        DevLogger.log('User history fetched successfully:', history);
-        setUserHistory(history);
-        return history;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to fetch user history';
-        DevLogger.log('Error fetching user history:', errorMessage);
-        setError(errorMessage);
-        setUserHistory([]);
-        return [];
-      } finally {
-        setIsLoading(false);
+      const controller = Engine.context.PerpsController;
+      if (!controller) {
+        throw new Error('PerpsController not available');
       }
-    },
-    [startTime, endTime, accountId],
-  );
+
+      const params: GetUserHistoryParams = {
+        startTime,
+        endTime,
+        accountId,
+      };
+
+      DevLogger.log('Fetching user history with params:', params);
+
+      const provider = controller.getActiveProviderOrNull();
+      if (!provider) {
+        setIsLoading(false);
+        return [];
+      }
+
+      const history = await provider.getUserHistory(params);
+
+      DevLogger.log('User history fetched successfully:', history);
+      setUserHistory(history);
+      return history;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to fetch user history';
+      DevLogger.log('Error fetching user history:', errorMessage);
+      setError(errorMessage);
+      setUserHistory([]);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [startTime, endTime, accountId]);
 
   return {
     userHistory,
