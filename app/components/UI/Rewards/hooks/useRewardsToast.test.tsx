@@ -79,7 +79,12 @@ describe('useRewardsToast', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(testConfig);
+      expect(mockShowToast).toHaveBeenCalledWith({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        labelOptions: [{ label: 'Test', isBold: true }],
+        hasNoTimeout: false,
+      });
       expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
     });
   });
