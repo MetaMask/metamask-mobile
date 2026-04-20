@@ -53,6 +53,7 @@ jobs:
               core.setFailed(
                 `stable-sync-release branch version (${headVer}) must match release branch (${baseVer})`,
               );
+              return;
             }
 
             core.setOutput('should_merge', 'true');
