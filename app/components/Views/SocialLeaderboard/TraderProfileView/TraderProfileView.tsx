@@ -183,7 +183,10 @@ const TraderProfileView = () => {
             {isLoading || !profile ? (
               <StatsRowSkeleton />
             ) : (
-              <StatsRow stats={profile.stats} />
+              <StatsRow
+                stats={profile.stats}
+                holdTimeMinutes={profile.stats.medianHoldMinutes}
+              />
             )}
 
             {!isLoading && profile && (

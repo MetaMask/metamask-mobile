@@ -209,4 +209,24 @@ describe('MoneyPotentialEarnings', () => {
 
     expect(onHeader).toHaveBeenCalledTimes(1);
   });
+
+  it('hides the gradient amount when apy is undefined', () => {
+    const { queryByTestId } = render(
+      <MoneyPotentialEarnings apy={undefined} tokens={[MOCK_USDC]} />,
+    );
+
+    expect(
+      queryByTestId(MoneyPotentialEarningsTestIds.AMOUNT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the per-token projected earning text when apy is zero', () => {
+    const { queryByText } = render(
+      <MoneyPotentialEarnings apy={0} tokens={[MOCK_USDC]} />,
+    );
+
+    // With apy=0 the projected multiplier is 0 so projectedFiatNumber is 0,
+    // which fails isPositiveNumber and hides the "+$..." text in each token row.
+    expect(queryByText(/^\+\$/)).not.toBeOnTheScreen();
+  });
 });

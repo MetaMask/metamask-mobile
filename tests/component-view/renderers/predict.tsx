@@ -6,6 +6,7 @@ import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import PredictFeed from '../../../app/components/UI/Predict/views/PredictFeed';
+import { PredictPreviewSheetProvider } from '../../../app/components/UI/Predict/contexts';
 import { initialStatePredict } from '../presets/predict';
 
 interface RenderPredictFeedOptions {
@@ -26,7 +27,9 @@ function createWrappedPredictFeed(): React.ComponentType {
 
   return (props: Record<string, unknown>) => (
     <QueryClientProvider client={queryClient}>
-      <PredictFeed {...(props as object)} />
+      <PredictPreviewSheetProvider>
+        <PredictFeed {...(props as object)} />
+      </PredictPreviewSheetProvider>
     </QueryClientProvider>
   );
 }

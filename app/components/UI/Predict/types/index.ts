@@ -193,7 +193,7 @@ export type PredictSportTeam = {
   logo: string;
   abbreviation: string; // e.g., "SEA", "DEN"
   color: string; // Team primary color (hex)
-  alias: string; // Team alias (e.g., "Seahawks")
+  alias?: string; // Team alias (e.g., "Seahawks")
 };
 
 // Parsed score data
@@ -282,6 +282,7 @@ export type PredictOutcome = {
   negRisk?: boolean;
   tickSize?: string;
   sportsMarketType?: string;
+  line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
 };
@@ -289,6 +290,7 @@ export type PredictOutcome = {
 export type PredictOutcomeToken = {
   id: string;
   title: string;
+  shortTitle?: string;
   price: number;
 };
 
