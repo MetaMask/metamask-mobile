@@ -100,9 +100,6 @@ import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedl
 import {
   ErrorOrigin,
   getRehydrationErrorTypeForSeedlessControllerCode,
-  getSeedlessOnboardingControllerErrorTypeName,
-  SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE,
-  SEEDLESS_RECOVERY_ERROR_TYPE_TOO_MANY_ATTEMPTS,
 } from '../../../util/analytics/loginFailureAnalytics';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -379,7 +376,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         trackRehydrationFailure({
           error_type: 'incorrect_password',
           error_origin: ErrorOrigin.SeedlessRecovery,
-          seedless_error_type: SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE,
         });
         setError(strings('login.invalid_password'));
         return true;
@@ -403,7 +399,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         failed_attempts: failedAttempts,
         error_type: 'too_many_login_attempts',
         error_origin: ErrorOrigin.SeedlessRecovery,
-        seedless_error_type: SEEDLESS_RECOVERY_ERROR_TYPE_TOO_MANY_ATTEMPTS,
       });
 
       if (typeof seedlessError.data?.remainingTime === 'number') {
@@ -433,9 +428,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             seedlessError.code,
           ),
           error_origin: ErrorOrigin.SeedlessController,
-          seedless_error_type: getSeedlessOnboardingControllerErrorTypeName(
-            seedlessError.code,
-          ),
         });
         setError(strings('login.seedless_password_outdated'));
         return true;
@@ -450,9 +442,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           seedlessError.code,
         ),
         error_origin: ErrorOrigin.SeedlessController,
-        seedless_error_type: getSeedlessOnboardingControllerErrorTypeName(
-          seedlessError.code,
-        ),
       });
 
       setError(sanitizeSeedlessControllerErrorMessage(seedlessError.message));
@@ -495,7 +484,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       trackRehydrationFailure({
         error_type: 'unknown_error',
         error_origin: ErrorOrigin.SeedlessUnclassified,
-        seedless_error_type: 'unclassified',
       });
       captureOrThrowOauthRehydrationError(seedlessError);
     },

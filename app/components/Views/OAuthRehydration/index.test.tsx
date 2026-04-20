@@ -495,7 +495,6 @@ describe('OAuthRehydration', () => {
             name: MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
             properties: expect.objectContaining({
               error_origin: 'seedless_controller',
-              seedless_error_type: 'AuthenticationError',
               error_type: 'seedless_authentication_error',
             }),
           }),
@@ -1028,7 +1027,6 @@ describe('OAuthRehydration', () => {
             properties: expect.objectContaining({
               error_type: 'unknown_error',
               error_origin: 'seedless_unclassified',
-              seedless_error_type: 'unclassified',
             }),
           }),
           expect.any(Function),
