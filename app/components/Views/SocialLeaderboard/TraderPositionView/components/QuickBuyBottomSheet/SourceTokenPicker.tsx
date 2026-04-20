@@ -21,30 +21,36 @@ import BadgeWrapper, {
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { getTokenKey } from './sourceTokenCandidates';
+import type { AssetType } from '../../../../confirmations/types/token';
 import { useTheme } from '../../../../../../util/theme';
 
 interface SourceTokenPickerProps {
-  options: BridgeToken[];
-  selectedToken: BridgeToken | undefined;
-  onSelect: (token: BridgeToken) => void;
+  options: AssetType[];
+  selectedAddress: string | undefined;
+  selectedChainId: string | undefined;
+  onSelect: (token: AssetType) => void;
 }
 
+export const getAssetKey = (token: AssetType): string =>
+  `${token.address?.toLowerCase() ?? ''}:${token.chainId ?? ''}`;
+
 /**
- * Inline dropdown list of source token options.
- * Renders directly inside the parent bottom sheet — no nested sheets.
+ * Inline dropdown list of Pay-eligible source tokens.
  */
 const SourceTokenPicker: React.FC<SourceTokenPickerProps> = ({
   options,
-  selectedToken,
+  selectedAddress,
+  selectedChainId,
   onSelect,
 }) => {
   const { colors } = useTheme();
-  const selectedKey = selectedToken ? getTokenKey(selectedToken) : undefined;
+  const selectedKey =
+    selectedAddress && selectedChainId
+      ? `${selectedAddress.toLowerCase()}:${selectedChainId}`
+      : undefined;
 
   const handleSelect = useCallback(
-    (token: BridgeToken) => {
+    (token: AssetType) => {
       onSelect(token);
     },
     [onSelect],
@@ -53,8 +59,11 @@ const SourceTokenPicker: React.FC<SourceTokenPickerProps> = ({
   return (
     <Box twClassName="pb-2">
       {options.map((item) => {
-        const key = getTokenKey(item);
+        const key = getAssetKey(item);
         const isSelected = key === selectedKey;
+        const fiatBalance = item.fiat?.balance;
+        const balanceFiat =
+          fiatBalance !== undefined ? `$${fiatBalance.toFixed(2)}` : undefined;
 
         return (
           <TouchableOpacity
@@ -78,23 +87,31 @@ const SourceTokenPicker: React.FC<SourceTokenPickerProps> = ({
                 alignItems={BoxAlignItems.Center}
                 gap={3}
               >
-                <BadgeWrapper
-                  badgePosition={BadgePosition.BottomRight}
-                  badgeElement={
-                    <BadgeNetwork
-                      name={item.symbol}
-                      imageSource={getNetworkImageSource({
-                        chainId: item.chainId,
-                      })}
+                {item.chainId ? (
+                  <BadgeWrapper
+                    badgePosition={BadgePosition.BottomRight}
+                    badgeElement={
+                      <BadgeNetwork
+                        name={item.symbol ?? ''}
+                        imageSource={getNetworkImageSource({
+                          chainId: item.chainId,
+                        })}
+                      />
+                    }
+                  >
+                    <AvatarToken
+                      name={item.symbol ?? ''}
+                      src={item.image ? { uri: item.image } : undefined}
+                      size={AvatarTokenSize.Sm}
                     />
-                  }
-                >
+                  </BadgeWrapper>
+                ) : (
                   <AvatarToken
-                    name={item.symbol}
+                    name={item.symbol ?? ''}
                     src={item.image ? { uri: item.image } : undefined}
                     size={AvatarTokenSize.Sm}
                   />
-                </BadgeWrapper>
+                )}
                 <Box>
                   <Text
                     variant={TextVariant.BodyMd}
@@ -120,13 +137,13 @@ const SourceTokenPicker: React.FC<SourceTokenPickerProps> = ({
                 gap={2}
               >
                 <Box alignItems={BoxAlignItems.End}>
-                  {item.balanceFiat && (
+                  {balanceFiat && (
                     <Text
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
                       color={TextColor.TextDefault}
                     >
-                      {item.balanceFiat}
+                      {balanceFiat}
                     </Text>
                   )}
                 </Box>

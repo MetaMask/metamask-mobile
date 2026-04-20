@@ -21,10 +21,10 @@ export interface QuickBuySetupResult {
 }
 
 /**
- * Resolves a Position from the Social API into a destination BridgeToken
- * that can be used by the Bridge/Swaps system.
- *
- * Source token selection is handled separately by useSourceTokenOptions.
+ * Resolves a Position from the Social API into a destination token
+ * descriptor. The result is consumed by the Pay-driven Quick Buy flow to
+ * build the self-transfer transaction on the destination chain. Pay itself
+ * handles source-token selection via `useTransactionPayAvailableTokens`.
  */
 export const useQuickBuySetup = (
   position: Position | null,

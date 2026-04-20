@@ -31,6 +31,7 @@ import { MoneyAccountDepositInfo } from '../info/money-account-deposit-info';
 import { MoneyAccountWithdrawInfo } from '../info/money-account-withdraw-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
+import { isQuickBuyTransactionType } from '../../../SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/quickBuyTransactionType';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -102,6 +103,15 @@ const Info = ({ route }: InfoProps) => {
 
   if (isSigningQRObject) {
     return <QRInfo />;
+  }
+
+  // Quick Buy owns its own bottom-sheet UI — render nothing in the shared
+  // confirmation root if it slips through.
+  if (
+    transactionMetadata &&
+    isQuickBuyTransactionType(transactionMetadata.type)
+  ) {
+    return null;
   }
 
   if (

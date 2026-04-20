@@ -11,9 +11,12 @@ import BottomSheet from '../../../../../../component-library/components/BottomSh
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
+import { useQuickBuyPay } from './useQuickBuyPay';
+import { QuickBuyTransactionProvider } from './QuickBuyTransactionProvider';
 import QuickBuyHeader from './QuickBuyHeader';
 import QuickBuyAmountInput from './QuickBuyAmountInput';
 import QuickBuyFooter from './QuickBuyFooter';
+import type { Hex } from '@metamask/utils';
 
 export interface QuickBuyBottomSheetProps {
   isVisible: boolean;
@@ -26,57 +29,76 @@ interface InnerProps {
   onClose: () => void;
 }
 
-const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
+/**
+ * Renders the content of the bottom sheet. Runs inside
+ * `QuickBuyTransactionProvider` so all Pay hooks resolve against the
+ * newly-created `quickBuy` transaction.
+ */
+const QuickBuyBottomSheetContent: React.FC<
+  InnerProps & {
+    transactionId: string | undefined;
+    destChainId: Hex | undefined;
+    destTokenAddress: Hex | undefined;
+    destTokenImage: string | undefined;
+    usdAmount: string;
+    hiddenInputRef: React.RefObject<import('react-native').TextInput>;
+    bottomSheetRef: React.RefObject<
+      import('../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types').BottomSheetRef
+    >;
+    isUnsupportedChain: boolean;
+    markConfirmed: () => void;
+    handlePresetPress: (preset: string) => void;
+    handleAmountAreaPress: () => void;
+    handleAmountChange: (text: string) => void;
+    handleClose: () => void;
+  }
+> = ({
   position,
   onClose,
+  transactionId,
+  destChainId,
+  destTokenAddress,
+  destTokenImage,
+  usdAmount,
+  hiddenInputRef,
+  bottomSheetRef,
+  isUnsupportedChain,
+  markConfirmed,
+  handlePresetPress,
+  handleAmountAreaPress,
+  handleAmountChange,
+  handleClose,
 }) => {
   const { colors } = useTheme();
+
   const {
-    bottomSheetRef,
-    hiddenInputRef,
-    destToken,
-    isUnsupportedChain,
-    sourceToken,
-    sourceChainId,
-    sourceTokenOptions,
-    selectedSourceToken,
-    isSourcePickerOpen,
-    setIsSourcePickerOpen,
-    setSelectedSourceToken,
-    usdAmount,
-    estimatedReceiveAmount,
-    sourceBalanceFiat,
     isQuoteLoading,
-    isSubmittingTx,
-    estimatedPoints,
-    isRewardsLoading,
-    shouldShowLiveRewardsEstimate,
-    shouldShowRewardsOptInCta,
-    shouldShowRewardsFallbackZero,
-    hasRewardsError,
-    rewardsAccountScope,
-    hasError,
     hasValidAmount,
     isConfirmDisabled,
     isConfirmLoading,
     getButtonLabel,
-    handleClose,
-    handlePresetPress,
-    handleAmountAreaPress,
-    handleAmountChange,
+    totalPayUsd,
+    targetAmountUsd,
     handleConfirm,
-  } = useQuickBuyBottomSheet(position, onClose);
+  } = useQuickBuyPay({
+    transactionId,
+    usdAmount,
+    destTokenAddress,
+    destChainId,
+    onClose,
+    markConfirmed,
+  });
 
   return (
     <BottomSheet
       ref={bottomSheetRef}
       shouldNavigateBack={false}
-      isInteractable={!isSubmittingTx}
+      isInteractable={!isConfirmLoading}
       onClose={handleClose}
     >
       <QuickBuyHeader
         position={position}
-        destToken={destToken}
+        destTokenImage={destTokenImage}
         onClose={handleClose}
       />
 
@@ -91,10 +113,9 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
           <QuickBuyAmountInput
             usdAmount={usdAmount}
             position={position}
-            estimatedReceiveAmount={estimatedReceiveAmount}
+            targetAmountUsd={targetAmountUsd}
             isQuoteLoading={isQuoteLoading}
             hasValidAmount={hasValidAmount}
-            hasError={hasError}
             hiddenInputRef={hiddenInputRef}
             onAmountAreaPress={handleAmountAreaPress}
             onAmountChange={handleAmountChange}
@@ -103,21 +124,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
 
           <QuickBuyFooter
             usdAmount={usdAmount}
-            sourceToken={sourceToken}
-            sourceChainId={sourceChainId}
-            sourceTokenOptions={sourceTokenOptions}
-            selectedSourceToken={selectedSourceToken}
-            isSourcePickerOpen={isSourcePickerOpen}
-            setIsSourcePickerOpen={setIsSourcePickerOpen}
-            setSelectedSourceToken={setSelectedSourceToken}
-            sourceBalanceFiat={sourceBalanceFiat}
-            estimatedPoints={estimatedPoints}
-            isRewardsLoading={isRewardsLoading}
-            shouldShowLiveRewardsEstimate={shouldShowLiveRewardsEstimate}
-            shouldShowRewardsOptInCta={shouldShowRewardsOptInCta}
-            shouldShowRewardsFallbackZero={shouldShowRewardsFallbackZero}
-            hasRewardsError={hasRewardsError}
-            rewardsAccountScope={rewardsAccountScope}
+            totalPayUsd={totalPayUsd}
             isConfirmDisabled={isConfirmDisabled}
             isConfirmLoading={isConfirmLoading}
             getButtonLabel={getButtonLabel}
@@ -132,9 +139,59 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
 };
 
 /**
- * Outer gate component — only mounts the inner sheet when visible.
- * This prevents the bridge hooks from running on an empty Redux state,
- * which causes reselect stability warnings.
+ * Outer component: creates the Pay transaction for this position and provides
+ * the transactionId context to the Pay-driven inner tree.
+ */
+const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
+  position,
+  onClose,
+}) => {
+  const {
+    bottomSheetRef,
+    hiddenInputRef,
+    transactionId,
+    destChainId,
+    destToken,
+    isUnsupportedChain,
+    usdAmount,
+    markConfirmed,
+    handleClose,
+    handlePresetPress,
+    handleAmountAreaPress,
+    handleAmountChange,
+  } = useQuickBuyBottomSheet(position, onClose);
+
+  const destChainHex =
+    typeof destChainId === 'string' && destChainId.startsWith('0x')
+      ? (destChainId as Hex)
+      : undefined;
+
+  return (
+    <QuickBuyTransactionProvider transactionId={transactionId}>
+      <QuickBuyBottomSheetContent
+        position={position}
+        onClose={onClose}
+        transactionId={transactionId}
+        destChainId={destChainHex}
+        destTokenAddress={destToken?.address as Hex | undefined}
+        destTokenImage={destToken?.image}
+        usdAmount={usdAmount}
+        hiddenInputRef={hiddenInputRef}
+        bottomSheetRef={bottomSheetRef}
+        isUnsupportedChain={isUnsupportedChain}
+        markConfirmed={markConfirmed}
+        handlePresetPress={handlePresetPress}
+        handleAmountAreaPress={handleAmountAreaPress}
+        handleAmountChange={handleAmountChange}
+        handleClose={handleClose}
+      />
+    </QuickBuyTransactionProvider>
+  );
+};
+
+/**
+ * Outer gate — only mounts the inner sheet when visible so the transaction
+ * lifecycle only runs while the sheet is on screen.
  */
 const QuickBuyBottomSheet: React.FC<QuickBuyBottomSheetProps> = ({
   isVisible,

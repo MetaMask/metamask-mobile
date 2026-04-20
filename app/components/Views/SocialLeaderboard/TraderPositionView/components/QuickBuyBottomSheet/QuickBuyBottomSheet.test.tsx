@@ -7,13 +7,21 @@ import {
   useQuickBuyBottomSheet,
   type UseQuickBuyBottomSheetResult,
 } from './useQuickBuyBottomSheet';
+import { useQuickBuyPay, type UseQuickBuyPayResult } from './useQuickBuyPay';
 
-// Mock the heavy hook so we can control all rendered state
 jest.mock('./useQuickBuyBottomSheet', () => ({
   useQuickBuyBottomSheet: jest.fn(),
 }));
 
-// Render children directly so inner component content is visible
+jest.mock('./useQuickBuyPay', () => ({
+  useQuickBuyPay: jest.fn(),
+}));
+
+jest.mock('./QuickBuyTransactionProvider', () => ({
+  QuickBuyTransactionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -42,7 +50,6 @@ jest.mock(
   },
 );
 
-// Mock sub-components so their own dep trees don't pollute these tests
 jest.mock('./QuickBuyHeader', () => {
   const ReactMock = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -94,44 +101,45 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 const mockCreateRef = () => ({ current: null });
 
-const buildHookResult = (
+const buildLifecycleResult = (
   overrides: Partial<UseQuickBuyBottomSheetResult> = {},
 ): UseQuickBuyBottomSheetResult => ({
   bottomSheetRef: mockCreateRef() as never,
   hiddenInputRef: mockCreateRef() as never,
-  destToken: undefined,
+  transactionId: 'tx-1',
   isSetupLoading: false,
   isUnsupportedChain: false,
-  sourceToken: undefined,
-  sourceChainId: '0x1',
-  sourceTokenOptions: [],
-  selectedSourceToken: undefined,
-  isSourcePickerOpen: false,
-  setIsSourcePickerOpen: jest.fn(),
-  setSelectedSourceToken: jest.fn(),
+  destChainId: '0x2105',
+  destToken: {
+    address: '0x1234567890123456789012345678901234567890',
+    symbol: 'PEPE',
+    name: 'Pepe',
+    decimals: 18,
+    image: undefined,
+    chainId: '0x2105',
+  } as never,
   usdAmount: '',
-  estimatedReceiveAmount: undefined,
-  sourceBalanceFiat: undefined,
-  isQuoteLoading: false,
-  isSubmittingTx: false,
-  estimatedPoints: null,
-  isRewardsLoading: false,
-  shouldShowLiveRewardsEstimate: false,
-  shouldShowRewardsOptInCta: false,
-  shouldShowRewardsFallbackZero: false,
-  hasRewardsError: false,
-  accountOptedIn: false,
-  rewardsAccountScope: null,
-  hasError: false,
-  hasValidAmount: false,
-  isConfirmDisabled: true,
-  isConfirmLoading: false,
-  getButtonLabel: () => 'social_leaderboard.trader_position.buy',
+  markConfirmed: jest.fn(),
   handleClose: jest.fn(),
   handlePresetPress: jest.fn(),
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
-  handleConfirm: jest.fn(),
+  ...overrides,
+});
+
+const buildPayResult = (
+  overrides: Partial<UseQuickBuyPayResult> = {},
+): UseQuickBuyPayResult => ({
+  isSubmitting: false,
+  hasInsufficientFunds: false,
+  isQuoteLoading: false,
+  hasValidAmount: false,
+  isConfirmDisabled: true,
+  isConfirmLoading: false,
+  getButtonLabel: () => 'social_leaderboard.trader_position.buy',
+  totalPayUsd: undefined,
+  targetAmountUsd: undefined,
+  handleConfirm: jest.fn().mockResolvedValue(undefined),
   ...overrides,
 });
 
@@ -157,7 +165,10 @@ const createPosition = (overrides: Partial<Position> = {}): Position =>
 describe('QuickBuyBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useQuickBuyBottomSheet as jest.Mock).mockReturnValue(buildHookResult());
+    (useQuickBuyBottomSheet as jest.Mock).mockReturnValue(
+      buildLifecycleResult(),
+    );
+    (useQuickBuyPay as jest.Mock).mockReturnValue(buildPayResult());
   });
 
   afterEach(() => {
@@ -206,7 +217,7 @@ describe('QuickBuyBottomSheet', () => {
 
     it('shows an unsupported chain message instead of the buy flow', () => {
       (useQuickBuyBottomSheet as jest.Mock).mockReturnValue(
-        buildHookResult({ isUnsupportedChain: true }),
+        buildLifecycleResult({ isUnsupportedChain: true }),
       );
 
       renderWithProvider(
@@ -226,7 +237,7 @@ describe('QuickBuyBottomSheet', () => {
 
     it('renders the amount input and footer for a supported chain', () => {
       (useQuickBuyBottomSheet as jest.Mock).mockReturnValue(
-        buildHookResult({ isUnsupportedChain: false }),
+        buildLifecycleResult({ isUnsupportedChain: false }),
       );
 
       renderWithProvider(

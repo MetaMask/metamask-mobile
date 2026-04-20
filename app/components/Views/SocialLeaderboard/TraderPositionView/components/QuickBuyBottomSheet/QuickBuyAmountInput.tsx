@@ -15,7 +15,6 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import { strings } from '../../../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 50 },
@@ -25,10 +24,10 @@ const styles = StyleSheet.create({
 interface QuickBuyAmountInputProps {
   usdAmount: string;
   position: Position;
-  estimatedReceiveAmount: string | undefined;
+  /** Pay-computed target amount in USD — used to confirm quote-validated value. */
+  targetAmountUsd: string | undefined;
   isQuoteLoading: boolean;
   hasValidAmount: boolean;
-  hasError: boolean;
   hiddenInputRef: React.RefObject<TextInput>;
   onAmountAreaPress: () => void;
   onAmountChange: (text: string) => void;
@@ -38,62 +37,65 @@ interface QuickBuyAmountInputProps {
 const QuickBuyAmountInput: React.FC<QuickBuyAmountInputProps> = ({
   usdAmount,
   position,
-  estimatedReceiveAmount,
+  targetAmountUsd,
   isQuoteLoading,
   hasValidAmount,
-  hasError,
   hiddenInputRef,
   onAmountAreaPress,
   onAmountChange,
   colors,
-}) => (
-  <TouchableOpacity
-    onPress={onAmountAreaPress}
-    activeOpacity={1}
-    testID="quick-buy-amount-area"
-  >
-    <Box
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      gap={1}
-      twClassName="py-12"
+}) => {
+  const subLine =
+    isQuoteLoading && hasValidAmount
+      ? undefined
+      : targetAmountUsd
+        ? `~$${parseFloat(targetAmountUsd).toFixed(2)} ${position.tokenSymbol}`
+        : `0 ${position.tokenSymbol}`;
+
+  return (
+    <TouchableOpacity
+      onPress={onAmountAreaPress}
+      activeOpacity={1}
+      testID="quick-buy-amount-area"
     >
-      <Text
-        style={styles.amountText}
-        fontWeight={FontWeight.Bold}
-        color={usdAmount ? TextColor.TextDefault : TextColor.TextAlternative}
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        gap={1}
+        twClassName="py-12"
       >
-        {`$${usdAmount || '0'}`}
-      </Text>
-
-      {isQuoteLoading && hasValidAmount ? (
-        <ActivityIndicator size="small" color={colors.text.alternative} />
-      ) : (
         <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
+          style={styles.amountText}
+          fontWeight={FontWeight.Bold}
+          color={usdAmount ? TextColor.TextDefault : TextColor.TextAlternative}
         >
-          {estimatedReceiveAmount
-            ? `${estimatedReceiveAmount} ${position.tokenSymbol}`
-            : hasError && hasValidAmount
-              ? strings('social_leaderboard.quick_buy.no_quotes')
-              : `0 ${position.tokenSymbol}`}
+          {`$${usdAmount || '0'}`}
         </Text>
-      )}
 
-      {/* Hidden TextInput for keyboard capture */}
-      <TextInput
-        ref={hiddenInputRef}
-        value={usdAmount}
-        onChangeText={onAmountChange}
-        keyboardType="decimal-pad"
-        returnKeyType="done"
-        style={styles.hiddenInput}
-        testID="quick-buy-amount-input"
-      />
-    </Box>
-  </TouchableOpacity>
-);
+        {isQuoteLoading && hasValidAmount ? (
+          <ActivityIndicator size="small" color={colors.text.alternative} />
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {subLine}
+          </Text>
+        )}
+
+        <TextInput
+          ref={hiddenInputRef}
+          value={usdAmount}
+          onChangeText={onAmountChange}
+          keyboardType="decimal-pad"
+          returnKeyType="done"
+          style={styles.hiddenInput}
+          testID="quick-buy-amount-input"
+        />
+      </Box>
+    </TouchableOpacity>
+  );
+};
 
 export default QuickBuyAmountInput;

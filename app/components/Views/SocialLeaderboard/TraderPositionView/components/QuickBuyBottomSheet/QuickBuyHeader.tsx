@@ -14,18 +14,17 @@ import {
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { strings } from '../../../../../../../locales/i18n';
 
 interface QuickBuyHeaderProps {
   position: Position;
-  destToken: BridgeToken | undefined;
+  destTokenImage: string | undefined;
   onClose: () => void;
 }
 
 const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
   position,
-  destToken,
+  destTokenImage,
   onClose,
 }) => (
   <Box
@@ -37,7 +36,7 @@ const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
     <Box twClassName="w-12 h-12 rounded-xl overflow-hidden">
       <AvatarToken
         name={position.tokenSymbol}
-        src={destToken?.image ? { uri: destToken.image } : undefined}
+        src={destTokenImage ? { uri: destTokenImage } : undefined}
         size={AvatarTokenSize.Lg}
       />
     </Box>
