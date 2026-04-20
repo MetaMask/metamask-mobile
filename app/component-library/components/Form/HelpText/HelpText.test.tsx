@@ -15,7 +15,7 @@ import { HelpTextSeverity } from './HelpText.types';
 describe('HelpText', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render HelpText', () => {
     const wrapper = shallow(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);

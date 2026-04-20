@@ -239,11 +239,13 @@ describe('MultichainAccountsConnectedList', () => {
   });
 
   it('renders component with different account group configurations', () => {
-    const { getByText } = renderMultichainAccountsConnectedList();
-
-    expect(getByText('Account 1')).toBeOnTheScreen();
-    expect(getByText('Account 2')).toBeOnTheScreen();
-    expect(getByText('Edit accounts')).toBeOnTheScreen();
+    const { toJSON, getByText } = renderMultichainAccountsConnectedList();
+    // Assert visible content (robust behavior check)
+    expect(getByText('Account 1')).toBeTruthy();
+    expect(getByText('Account 2')).toBeTruthy();
+    expect(getByText('Edit accounts')).toBeTruthy();
+    // Snapshot for structural regressions
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls handleEditAccountsButtonPress when edit button is pressed', () => {

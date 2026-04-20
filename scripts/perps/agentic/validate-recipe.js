@@ -14,16 +14,6 @@ const {
   normalizeWorkflowDocument,
   renderWorkflowMermaid,
 } = require('./lib/workflow');
-const { backgroundApp, foregroundApp, restartApp } = require('./lib/app-lifecycle');
-const {
-  applyAllowlist,
-  captureFromMetro,
-  computeReview,
-  countByLevel,
-  dedupeIssues,
-  normalizeAppBufferEntries,
-  writeArtifacts: writeIssueArtifacts,
-} = require('./lib/recipe-issues');
 const {
   getAppRoot,
   getTeamsDir,
@@ -39,23 +29,6 @@ const {
 
 const DEFAULT_LOG_LINES = 400;
 
-function validateSchemaOrThrow(appRoot, recipePath) {
-  const validatorPath = path.join(__dirname, 'validate-flow-schema.js');
-  const result = spawnSync('node', [validatorPath, recipePath], {
-    cwd: appRoot,
-    encoding: 'utf8',
-  });
-
-  if (result.status === 0) {
-    return;
-  }
-
-  const output = [result.stdout || '', result.stderr || '']
-    .join('\n')
-    .trim();
-  throw new Error(`Schema validation failed for ${recipePath}\n${output}`);
-}
-
 function timestampSlug() {
   return new Date()
     .toISOString()
@@ -69,8 +42,6 @@ function parseArgs(argv) {
     artifactsDir: '',
     dryRun: false,
     hud: true,
-    inputOverrides: {},
-    log: true,
     recipe: '',
     singleStep: '',
     skipManual: false,
@@ -91,9 +62,6 @@ function parseArgs(argv) {
       case '--no-hud':
         options.hud = false;
         break;
-      case '--no-log':
-        options.log = false;
-        break;
       case '--skip-manual':
         options.skipManual = true;
         break;
@@ -108,17 +76,6 @@ function parseArgs(argv) {
       case '--testnet':
         options.testnet = true;
         break;
-      case '--input': {
-        const kv = argv[i + 1] || '';
-        const eq = kv.indexOf('=');
-        if (eq < 1) throw new Error('--input expects key=value (e.g. --input test_restart=true)');
-        const k = kv.slice(0, eq);
-        const raw = kv.slice(eq + 1);
-        // Parse booleans and numbers
-        options.inputOverrides[k] = raw === 'true' ? true : raw === 'false' ? false : raw !== '' && Number.isFinite(Number(raw)) ? Number(raw) : raw;
-        i += 1;
-        break;
-      }
       case '--help':
       case '-h':
         printHelp();
@@ -154,7 +111,6 @@ function printHelp() {
     [--testnet]
     [--artifacts-dir <path>]
     [--dry-run]
-    [--no-log]
 
 The runner executes workflow files stored under:
   scripts/perps/agentic/teams/<team>/{flows,recipes}
@@ -164,8 +120,7 @@ Runtime features:
   - Scenarios use validate.workflow with explicit nodes, transitions, switch branches, and end nodes.
   - setup / teardown hooks live under validate.workflow.setup / validate.workflow.teardown.
   - Failures capture screenshots, route/state snapshots, eval refs, and recent logs.
-  - Successful runs emit workflow.json, workflow.mmd, trace.json, summary.json, and run.log artifacts.
-  - Console output is teed to run.log by default. Use --no-log to disable.`);
+  - Successful runs emit workflow.json, workflow.mmd, trace.json, and summary.json artifacts.`);
 }
 
 function resolveRecipeInput(appRoot, inputPath) {
@@ -372,12 +327,6 @@ function describeStep(step) {
       return `toggle testnet=${step.enabled !== undefined ? step.enabled : 'true'}`;
     case 'switch_provider':
       return `switch provider ${step.provider}`;
-    case 'app_background':
-      return `background app ${step.duration_ms || 5000}ms`;
-    case 'app_foreground':
-      return 'foreground app';
-    case 'app_restart':
-      return 'restart app';
     case 'switch':
       return step.description || 'evaluate branch';
     case 'end':
@@ -563,137 +512,28 @@ function ensureRunArtifacts(runOptions, recipePath) {
     return state.artifacts;
   }
 
-  const explicitArtifactsDir = runOptions.artifactsDir
-    ? path.resolve(runOptions.artifactsDir)
-    : '';
   const baseDir =
-    explicitArtifactsDir ||
+    runOptions.artifactsDir ||
     path.join(runOptions.appRoot, '.agent', 'recipe-runs');
   const recipeLabel = sanitizeFileSegment(path.basename(recipePath, path.extname(recipePath)));
-  const rootDir = explicitArtifactsDir || path.resolve(path.join(baseDir, `${timestampSlug()}_${recipeLabel}`));
+  const rootDir = path.resolve(path.join(baseDir, `${timestampSlug()}_${recipeLabel}`));
 
   const artifacts = {
     rootDir,
     screenshotsDir: path.join(rootDir, 'screenshots'),
     failuresDir: path.join(rootDir, 'failures'),
     logsDir: path.join(rootDir, 'logs'),
-    tracesDir: path.join(rootDir, 'traces'),
     tracePath: path.join(rootDir, 'trace.json'),
     workflowPath: path.join(rootDir, 'workflow.json'),
     workflowMermaidPath: path.join(rootDir, 'workflow.mmd'),
     summaryPath: path.join(rootDir, 'summary.json'),
-    runLogPath: path.join(rootDir, 'run.log'),
   };
 
-  [artifacts.rootDir, artifacts.screenshotsDir, artifacts.failuresDir, artifacts.logsDir, artifacts.tracesDir]
+  [artifacts.rootDir, artifacts.screenshotsDir, artifacts.failuresDir, artifacts.logsDir]
     .forEach((dirPath) => fs.mkdirSync(dirPath, { recursive: true }));
 
   state.artifacts = artifacts;
   return artifacts;
-}
-
-function resolveMetroLogPath(runOptions) {
-  if (process.env.METRO_LOG) {
-    return process.env.METRO_LOG;
-  }
-  return path.join(runOptions.appRoot, '.agent', 'metro.log');
-}
-
-function armIssueTracker(runOptions) {
-  const state = ensureExecutionState(runOptions);
-  if (state.issueTracker || runOptions.dryRun) {
-    return state.issueTracker;
-  }
-
-  const metroLogPath = resolveMetroLogPath(runOptions);
-  let startOffset = 0;
-  try {
-    startOffset = fs.existsSync(metroLogPath) ? fs.statSync(metroLogPath).size : 0;
-  } catch {
-    startOffset = 0;
-  }
-
-  // Install in-app console/exception hooks. Best-effort: if the CDP bridge
-  // isn't reachable yet (app booting, port not bound) we still fall back to
-  // metro-log scraping at collection time.
-  let armed = false;
-  try {
-    const armResponse = trySpawnBridge(runOptions.appRoot, ['issues-arm']);
-    if (armResponse && armResponse.ok && armResponse.result?.installed) {
-      armed = true;
-    }
-  } catch {
-    armed = false;
-  }
-
-  state.issueTracker = { metroLogPath, startOffset, armed };
-  return state.issueTracker;
-}
-
-function collectRecipeIssues(runOptions, document) {
-  const state = ensureExecutionState(runOptions);
-  const tracker = state.issueTracker;
-  if (!tracker || runOptions.dryRun) {
-    return null;
-  }
-
-  // Pull the in-app buffer (best-effort). Failures here don't mask the metro
-  // log — we still synthesize review from whatever channel reported.
-  let appEntries = [];
-  if (tracker.armed) {
-    try {
-      const resp = trySpawnBridge(runOptions.appRoot, ['issues-collect']);
-      if (resp && resp.ok && Array.isArray(resp.result?.entries)) {
-        appEntries = resp.result.entries;
-      }
-    } catch {
-      appEntries = [];
-    }
-  }
-
-  const metroIssues = captureFromMetro(tracker.metroLogPath, tracker.startOffset);
-  const appIssues = normalizeAppBufferEntries(appEntries);
-  const allIssues = [...appIssues, ...metroIssues];
-
-  const failOn =
-    document && typeof document.fail_on_unexpected === 'object'
-      ? document.fail_on_unexpected
-      : null;
-  const allowlist = failOn && Array.isArray(failOn.allowlist) ? failOn.allowlist : [];
-
-  const { unexpected, informational } = applyAllowlist(allIssues, allowlist);
-  const review = computeReview(unexpected, informational, failOn, {});
-
-  const runDir = state.artifacts?.rootDir;
-  let artifactFiles = {};
-  if (runDir) {
-    try {
-      artifactFiles = writeIssueArtifacts(runDir, { unexpected, informational, review });
-    } catch (error) {
-      console.error(`recipe-issues artifact write failed: ${String(error.message || error)}`);
-      artifactFiles = {};
-    }
-  }
-  review.artifactFiles = artifactFiles;
-
-  const captured = countByLevel(dedupeIssues(allIssues));
-  const unexpectedCounts = countByLevel(dedupeIssues(unexpected));
-
-  const recipeIssues = {
-    captured,
-    unexpected: unexpectedCounts,
-    failOn: {
-      levels: failOn && Array.isArray(failOn.levels) ? failOn.levels.slice() : [],
-      textMatches:
-        failOn && Array.isArray(failOn.textMatches)
-          ? failOn.textMatches.slice()
-          : [],
-    },
-    review,
-  };
-
-  state.recipeIssues = recipeIssues;
-  return recipeIssues;
 }
 
 function writeRunSummary(runOptions, summary) {
@@ -1237,52 +1077,6 @@ async function runExecutableNode(node, context, options = {}) {
     return { next: node.next || '' };
   }
 
-  // --- App lifecycle (delegated to lib/app-lifecycle.js) ---
-  if (node.action === 'app_background') {
-    const { bundleId } = backgroundApp();
-    const durationMs = Number(node.duration_ms || 5000);
-    await new Promise((resolve) => setTimeout(resolve, durationMs));
-    stats.passed += 1;
-    console.log(`  backgrounded for ${durationMs}ms`);
-    console.log('  PASS');
-    console.log('');
-    finalizeNodeRecord(context, node, {
-      next: node.next || '', result: { backgrounded: true, durationMs, bundleId }, startedAt,
-    });
-    context.currentStepRef.current = null;
-    return { next: node.next || '' };
-  }
-
-  if (node.action === 'app_foreground') {
-    const { bundleId } = foregroundApp();
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    stats.passed += 1;
-    console.log(`  foregrounded (${bundleId})`);
-    console.log('  PASS');
-    console.log('');
-    finalizeNodeRecord(context, node, {
-      next: node.next || '', result: { foregrounded: true, bundleId }, startedAt,
-    });
-    context.currentStepRef.current = null;
-    return { next: node.next || '' };
-  }
-
-  if (node.action === 'app_restart') {
-    const { bundleId } = restartApp();
-    const bootWaitMs = Number(node.boot_wait_ms || 15000);
-    console.log(`  waiting ${bootWaitMs}ms for app boot + Metro reconnect...`);
-    await new Promise((resolve) => setTimeout(resolve, bootWaitMs));
-    stats.passed += 1;
-    console.log(`  restarted (${bundleId})`);
-    console.log('  PASS');
-    console.log('');
-    finalizeNodeRecord(context, node, {
-      next: node.next || '', result: { restarted: true, bundleId }, startedAt,
-    });
-    context.currentStepRef.current = null;
-    return { next: node.next || '' };
-  }
-
   // --- Log watch ---
   if (node.action === 'log_watch') {
     const metroLogPath = process.env.METRO_LOG || path.join(appRoot, '.agent', 'metro.log');
@@ -1406,22 +1200,6 @@ async function runExecutableNode(node, context, options = {}) {
     case 'switch_provider':
       bridgeResult = handleSwitchProvider(node, appRoot);
       break;
-    case 'trace_start':
-      bridgeResult = spawnBridge(appRoot, ['profiler-start']);
-      break;
-    case 'trace_stop': {
-      const artifacts = ensureRunArtifacts(runOptions, context.recipePath);
-      const traceLabel = sanitizeFileSegment(node.label || node.id || 'trace');
-      const outPath = artifacts && artifacts.tracesDir
-        ? path.join(artifacts.tracesDir, `trace-${traceLabel}.cpuprofile`)
-        : '';
-      const stopArgs = ['profiler-stop', '--label', traceLabel];
-      if (outPath) {
-        stopArgs.push('--out', outPath);
-      }
-      bridgeResult = spawnBridge(appRoot, stopArgs);
-      break;
-    }
     default:
       throw new Error(`Unknown action "${node.action}"`);
   }
@@ -1518,27 +1296,6 @@ async function executeEndNode(node, context) {
 }
 
 async function executeWorkflowNode(node, context, options = {}) {
-  // Handle when-guard for switch/end nodes (runExecutableNode handles its own)
-  if ((node.action === 'switch' || node.action === 'end') && node.when && !evaluateWorkflowCondition(node.when, context)) {
-    const startedAt = new Date().toISOString();
-    context.currentStepRef.current = node;
-    if (shouldCountNode(node)) {
-      context.stats.total += 1;
-      context.stats.skipped += 1;
-    }
-    console.log(`[${node.id || '?'}] ${describeStep(node)}`);
-    console.log('  [SKIPPED - when condition did not match]');
-    console.log('');
-    finalizeNodeRecord(context, node, {
-      next: node.default || node.next || '',
-      note: 'when condition did not match',
-      startedAt,
-      status: 'skipped',
-    });
-    context.currentStepRef.current = null;
-    return { next: node.default || node.next || '' };
-  }
-
   if (node.action === 'end') {
     return executeEndNode(node, context);
   }
@@ -1634,9 +1391,6 @@ async function runRecipe(recipePath, runOptions, flowParams = {}, depth = 0) {
   if (!runOptions.dryRun) {
     ensureRunArtifacts(runOptions, recipePath);
     writeWorkflowArtifacts(context);
-    if (depth === 0) {
-      armIssueTracker(runOptions);
-    }
   }
 
   console.log(`${prefix}Running recipe: ${document.title || 'Untitled'}`);
@@ -1753,14 +1507,6 @@ async function runRecipe(recipePath, runOptions, flowParams = {}, depth = 0) {
   if (depth === 0 && !runOptions.dryRun) {
     clearHudStep(appRoot, runOptions);
     writeTraceArtifacts(context);
-    const recipeIssues = collectRecipeIssues(runOptions, document);
-    const gatingTriggered =
-      !!recipeIssues && recipeIssues.review?.status === 'gating';
-    if (gatingTriggered && !failureError) {
-      failureError = new Error(
-        `Recipe issue review gating: ${recipeIssues.review?.note || 'fail_on_unexpected matched'}`
-      );
-    }
     writeRunSummary(runOptions, {
       status: failureError ? 'FAIL' : 'PASS',
       title: document.title || '',
@@ -1771,20 +1517,7 @@ async function runRecipe(recipePath, runOptions, flowParams = {}, depth = 0) {
       workflowMermaidPath: state.artifacts?.workflowMermaidPath || '',
       workflowPath: state.artifacts?.workflowPath || '',
       availableEvalRefs: listEvalRefs(appRoot).map((entry) => entry.ref),
-      ...(recipeIssues ? { recipeIssues } : {}),
     });
-    if (recipeIssues) {
-      const { review } = recipeIssues;
-      if (review.status === 'review') {
-        console.log(
-          `recipe-issues: review — ${review.observed.total} unexpected event(s). See ${review.artifactFiles?.reviewMd || ''}`
-        );
-      } else if (review.status === 'gating') {
-        console.log(
-          `recipe-issues: GATING — ${review.gating.total} event(s) matched fail_on_unexpected. See ${review.artifactFiles?.reviewMd || ''}`
-        );
-      }
-    }
   }
 
   if (failureError) {
@@ -1807,7 +1540,6 @@ async function runRecipe(recipePath, runOptions, flowParams = {}, depth = 0) {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  let teardownLog = null;
   try {
     const options = parseArgs(process.argv.slice(2));
     const appRoot = getAppRoot();
@@ -1818,74 +1550,14 @@ async function main() {
       throw new Error(`No recipe teams directory found: ${teamsDir}`);
     }
 
-    validateSchemaOrThrow(appRoot, recipeInput.recipePath);
-
     const runOptions = {
       appRoot,
       artifactsDir: options.artifactsDir,
       dryRun: options.dryRun,
       hud: options.hud,
-      inputOverrides: options.inputOverrides,
-      log: options.log,
       singleStep: options.singleStep,
       skipManual: options.skipManual,
     };
-
-    // Set up log capture — tee stdout/stderr to a sanitized log file.
-    // Redacts tokens, secrets, passwords, and bearer strings before writing
-    // to avoid CodeQL clear-text-logging alerts.
-    if (options.log && !options.dryRun) {
-      const artifacts = ensureRunArtifacts(runOptions, recipeInput.recipePath);
-      if (artifacts) {
-        const REDACT_KEYS =
-          /token|secret|password|passwd|authorization|api[_-]?key|client[_-]?key|id[_-]?token|refresh[_-]?token|access[_-]?token/i;
-        const redactValue = (key, value) => {
-          if (REDACT_KEYS.test(String(key))) {
-            return '[REDACTED]';
-          }
-          return value;
-        };
-        const sanitizeArg = (arg) => {
-          if (arg instanceof Error) {
-            return `[${arg.name}] ${arg.message}`;
-          }
-          if (typeof arg === 'string') {
-            return arg.replace(
-              /(bearer\s+)[a-z0-9\-._~+/]+=*/gi,
-              '$1[REDACTED]',
-            );
-          }
-          if (arg && typeof arg === 'object') {
-            try {
-              return JSON.stringify(arg, redactValue);
-            } catch (_) {
-              return '[Unserializable Object]';
-            }
-          }
-          return String(arg);
-        };
-        const formatArgs = (args) => args.map(sanitizeArg).join(' ');
-
-        const logStream = fs.createWriteStream(artifacts.runLogPath, { flags: 'w' });
-        const origLog = console.log.bind(console);
-        const origError = console.error.bind(console);
-        console.log = (...args) => {
-          const formatted = formatArgs(args);
-          origLog(formatted);
-          logStream.write(formatted + '\n');
-        };
-        console.error = (...args) => {
-          const formatted = formatArgs(args);
-          origError(formatted);
-          logStream.write(formatted + '\n');
-        };
-        teardownLog = () => {
-          console.log = origLog;
-          console.error = origError;
-          logStream.end();
-        };
-      }
-    }
 
     // Apply CLI initial conditions before running the recipe
     if (!options.dryRun) {
@@ -1907,15 +1579,9 @@ async function main() {
       }
     }
 
-    await runRecipe(recipeInput.recipePath, runOptions, runOptions.inputOverrides);
-    if (teardownLog) {
-      teardownLog();
-    }
+    await runRecipe(recipeInput.recipePath, runOptions);
   } catch (error) {
     console.error(String(error.message || error));
-    if (teardownLog) {
-      teardownLog();
-    }
     process.exit(1);
   }
 }

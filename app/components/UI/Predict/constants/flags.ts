@@ -1,5 +1,4 @@
 import {
-  PredictExtendedSportsMarketsFlag,
   PredictFeeCollection,
   PredictHotTabFlag,
   PredictLiveSportsFlag,
@@ -23,13 +22,6 @@ export const DEFAULT_LIVE_SPORTS_FLAG: PredictLiveSportsFlag = {
   enabled: false,
   leagues: [],
 };
-
-export const DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG: PredictExtendedSportsMarketsFlag =
-  {
-    enabled: false,
-    minimumVersion: '',
-    leagues: [],
-  };
 
 export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
   enabled: false,

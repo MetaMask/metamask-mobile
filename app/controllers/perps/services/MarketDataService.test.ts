@@ -943,43 +943,5 @@ describe('MarketDataService', () => {
 
       expect(mockContext.stateManager?.update).toHaveBeenCalled();
     });
-
-    it('skips Sentry logging for abort errors', async () => {
-      const abortError = new Error('The operation was aborted');
-      abortError.name = 'AbortError';
-      mockProvider.fetchHistoricalCandles = jest
-        .fn()
-        .mockRejectedValue(abortError);
-
-      await expect(
-        marketDataService.fetchHistoricalCandles({
-          provider: mockProvider,
-          symbol: 'BTC',
-          interval: '1h' as CandlePeriod,
-          context: mockContext,
-        }),
-      ).rejects.toThrow();
-
-      expect(mockDeps.logger.error).not.toHaveBeenCalled();
-      expect(mockContext.stateManager?.update).not.toHaveBeenCalled();
-    });
-
-    it('logs to Sentry for real fetch failures', async () => {
-      const networkError = new Error('Network timeout');
-      mockProvider.fetchHistoricalCandles = jest
-        .fn()
-        .mockRejectedValue(networkError);
-
-      await expect(
-        marketDataService.fetchHistoricalCandles({
-          provider: mockProvider,
-          symbol: 'BTC',
-          interval: '1h' as CandlePeriod,
-          context: mockContext,
-        }),
-      ).rejects.toThrow('Network timeout');
-
-      expect(mockDeps.logger.error).toHaveBeenCalled();
-    });
   });
 });

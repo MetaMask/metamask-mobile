@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Animated, Easing, ViewProps, ViewStyle } from 'react-native';
+import ButtonBase from '../../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import {
-  ButtonBase,
-  ButtonBaseSize,
-  FontWeight,
-  IconName,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
+import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ResourceToggle.styles';
 
@@ -31,7 +31,7 @@ const ResourceToggle = ({
   style,
   ...rest
 }: ResourceToggleProps) => {
-  const { styles } = useStyles(styleSheet, {
+  const { styles, theme } = useStyles(styleSheet, {
     style: style as ViewStyle,
   });
   const isBandwidth = value === 'bandwidth';
@@ -69,36 +69,30 @@ const ResourceToggle = ({
           <View style={styles.buttonWrapper}>
             <ButtonBase
               onPress={() => onChange('energy')}
+              label={energyLabel}
               startIconName={IconName.Flash}
-              size={ButtonBaseSize.Md}
-              isFullWidth
-              textProps={{
-                variant: TextVariant.BodyMd,
-                fontWeight: FontWeight.Medium,
-              }}
+              size={ButtonSize.Md}
+              width={ButtonWidthTypes.Full}
+              labelTextVariant={TextVariant.BodyMDMedium}
+              labelColor={theme.colors.text.default}
               style={styles.buttonBase}
               testID={testIDEnergy}
               accessibilityLabel={energyLabel}
-            >
-              {energyLabel}
-            </ButtonBase>
+            />
           </View>
           <View style={styles.buttonWrapper}>
             <ButtonBase
               onPress={() => onChange('bandwidth')}
+              label={bandwidthLabel}
               startIconName={IconName.Connect}
-              size={ButtonBaseSize.Md}
-              isFullWidth
-              textProps={{
-                variant: TextVariant.BodyMd,
-                fontWeight: FontWeight.Medium,
-              }}
+              size={ButtonSize.Md}
+              width={ButtonWidthTypes.Full}
+              labelTextVariant={TextVariant.BodyMDMedium}
+              labelColor={theme.colors.text.default}
               style={styles.buttonBase}
               testID={testIDBandwidth}
               accessibilityLabel={bandwidthLabel}
-            >
-              {bandwidthLabel}
-            </ButtonBase>
+            />
           </View>
         </View>
       </View>

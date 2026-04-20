@@ -4,20 +4,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictionsSection from './PredictionsSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CLAIM_BUTTON_TEST_IDS } from '../../../../UI/Predict/components/PredictActionButtons/PredictClaimButton.testIds';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 
 const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
-
-const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
-  { key: string; value: string }[] | undefined,
-  []
->(() => undefined);
-
-jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
-  useHomepageTrendingTransactionActiveAbTests: () =>
-    mockUseHomepageTrendingTransactionActiveAbTests(),
-}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -85,9 +74,6 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
-    TRENDING_TOKENS: 'trending_tokens',
-    TRENDING_PERPS: 'trending_perps',
-    TRENDING_PREDICT: 'trending_predict',
   },
 }));
 
@@ -98,9 +84,6 @@ const mockUsePredictPositionsForHomepage =
 const mockSelectPrivacyMode = jest.requireMock(
   '../../../../../selectors/preferencesController',
 ).selectPrivacyMode as jest.Mock;
-const mockUseHomeViewedEvent = jest.requireMock(
-  '../../hooks/useHomeViewedEvent',
-).default as jest.Mock;
 
 const mockActivePositions = [
   {
@@ -160,28 +143,6 @@ const mockClaimablePositions = [
   },
 ];
 
-const mockMarkets = [
-  {
-    id: 'market-1',
-    title: 'Will BTC reach 100k?',
-    endDate: '2026-03-01',
-    outcomes: [
-      {
-        id: 'outcome-1',
-        title: 'Yes',
-        image: 'https://example.com/yes.png',
-        tokens: [{ title: 'Yes', price: 0.55 }],
-      },
-      {
-        id: 'outcome-2',
-        title: 'No',
-        image: 'https://example.com/no.png',
-        tokens: [{ title: 'No', price: 0.45 }],
-      },
-    ],
-  },
-];
-
 describe('PredictionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -223,7 +184,6 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       }),
     );
-    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
 
   it('renders section title when enabled', () => {
@@ -234,7 +194,7 @@ describe('PredictionsSection', () => {
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
-  it('navigates with home_section entry_point when trending markets title is pressed', () => {
+  it('navigates to predictions market list on title press', () => {
     renderWithProvider(
       <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
@@ -243,36 +203,6 @@ describe('PredictionsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-      },
-    });
-  });
-
-  it('navigates with homepage_positions entry_point when positions section title is pressed', () => {
-    mockUsePredictPositionsForHomepage.mockImplementation(
-      ({
-        claimable = false,
-      }: { maxPositions?: number; claimable?: boolean } = {}) => ({
-        positions: claimable ? [] : mockActivePositions,
-        isLoading: false,
-        error: null,
-        totalClaimableValue: 0,
-        refetch: jest.fn(),
-      }),
-    );
-
-    renderWithProvider(
-      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-
-    fireEvent.press(screen.getByText('Predictions'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-      },
     });
   });
 
@@ -372,30 +302,6 @@ describe('PredictionsSection', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
-      });
-    });
-
-    it('navigates to market details without transactionActiveAbTests in default carousel', async () => {
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: mockMarkets,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
-      });
-
-      fireEvent.press(screen.getByText('Will ETH reach $5000?'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: { marketId: 'market-1' },
       });
     });
 
@@ -682,219 +588,6 @@ describe('PredictionsSection', () => {
 
       expect(mockRefetchPositions).toHaveBeenCalled();
       expect(mockRefetchMarkets).toHaveBeenCalled();
-    });
-  });
-
-  describe('mode="positions-only"', () => {
-    it('renders positions when user has positions', () => {
-      mockUsePredictPositionsForHomepage.mockReturnValue({
-        positions: mockActivePositions,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
-    });
-
-    it('navigates with homepage_positions entry_point on title press', () => {
-      mockUsePredictPositionsForHomepage.mockReturnValue({
-        positions: mockActivePositions,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      fireEvent.press(screen.getByText('Predictions'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-        },
-      });
-    });
-
-    it('returns null when no positions after loading', () => {
-      mockUsePredictPositionsForHomepage.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: [],
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      const { toJSON } = renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      expect(toJSON()).toBeNull();
-    });
-
-    it('passes itemCount 0 when positions-only has no positions even if markets load', () => {
-      mockUsePredictPositionsForHomepage.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: mockMarkets,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({ itemCount: 0, isEmpty: true }),
-      );
-    });
-  });
-
-  describe('mode="trending-only"', () => {
-    it('renders markets carousel when markets are available', () => {
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: mockMarkets,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      expect(screen.getByText('Will BTC reach 100k?')).toBeOnTheScreen();
-    });
-
-    it('passes transactionActiveAbTests when trending-only and experiment is active', () => {
-      const abTests = [
-        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
-      ];
-      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: mockMarkets,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      fireEvent.press(screen.getByText('Will BTC reach 100k?'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: { marketId: 'market-1', transactionActiveAbTests: abTests },
-      });
-    });
-
-    it('uses titleOverride when provided', () => {
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: mockMarkets,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-          titleOverride="Trending predictions"
-        />,
-      );
-
-      expect(screen.getByText('Trending predictions')).toBeOnTheScreen();
-    });
-
-    it('navigates with home_section entry_point on title press', () => {
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: mockMarkets,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      fireEvent.press(screen.getByText('Predictions'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        },
-      });
-    });
-
-    it('returns null when no markets after loading', () => {
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: [],
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      const { toJSON } = renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      expect(toJSON()).toBeNull();
     });
   });
 });

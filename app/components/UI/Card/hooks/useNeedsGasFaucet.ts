@@ -12,7 +12,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { hexToBN } from '../../../../util/number';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
-import { CardFundingToken } from '../types';
+import { CardTokenAllowance } from '../types';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
 
 // Constants for gas estimation
@@ -41,7 +41,7 @@ interface UseNeedsGasFaucetResult {
  * @returns Object with needsFaucet boolean, loading state, error, and refetch function
  */
 export const useNeedsGasFaucet = (
-  token?: CardFundingToken | null,
+  token?: CardTokenAllowance | null,
 ): UseNeedsGasFaucetResult => {
   const [needsFaucet, setNeedsFaucet] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

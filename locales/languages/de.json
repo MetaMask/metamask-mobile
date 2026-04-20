@@ -243,6 +243,7 @@
     "import_wallet_button": "Wallet synchronisieren oder importieren",
     "new_to_crypto": "Crypto-Neuling?",
     "start_exploring_now": "Neues Wallet erstellen",
+    "unlock": "Entsperren",
     "new_to_metamask": "Neu bei MetaMask?",
     "already_have_wallet": "Sie haben bereits ein Wallet?",
     "optin_back_title": "Achtung!",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "Nachdem nun ein Wert Ihrem Wallet hinzugefügt wurde, schützen Sie Ihr Wallet durch die Festlegung eines Passwortes und indem Sie ihre geheime Wiederherstellungsphrase speichern (erforderlich).",
     "button": "Wallet schützen"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Transaktionsaktualisierung fehlgeschlagen",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "Transaktion {{index}}",
     "transaction": "Transaktion",
     "available_balance": "Verfügbares Guthaben: ",
+    "available_perps_balance": "Verfügbares Perps-Guthaben: ",
     "edit_amount_done": "Fortfahren",
     "deposit_edit_amount_done": "Gelder hinzufügen",
     "deposit_edit_amount_predict_withdraw": "Auszahlen",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Erneut versuchen",
       "label_return": "Gewinn",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Ausgezahlt",
       "label_rank": "Rang",
       "label_tier": "Tier",
       "label_your_return": "Your return",

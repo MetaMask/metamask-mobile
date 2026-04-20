@@ -3,44 +3,46 @@ import { render, fireEvent } from '@testing-library/react-native';
 import MoneyHowItWorks from './MoneyHowItWorks';
 import { MoneyHowItWorksTestIds } from './MoneyHowItWorks.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { MUSD_TOKEN } from '../../../Earn/constants/musd';
 
 describe('MoneyHowItWorks', () => {
   it('renders the section title', () => {
-    const { getByText } = render(<MoneyHowItWorks apy={4} />);
+    const { getByText } = render(<MoneyHowItWorks />);
 
     expect(getByText(strings('money.how_it_works.title'))).toBeOnTheScreen();
   });
 
-  it('renders the description with prefix, APY, and suffix', () => {
-    const { getByTestId } = render(<MoneyHowItWorks apy={4} />);
+  it('renders the mUSD token row', () => {
+    const { getByText } = render(<MoneyHowItWorks />);
 
-    const description = getByTestId(MoneyHowItWorksTestIds.DESCRIPTION);
-    expect(description).toHaveTextContent(
-      /Hold mUSD in your Money Account and auto-earn/,
-    );
-    expect(description).toHaveTextContent(
-      /dollar-backed, always liquid, and ready to spend, trade, or send anytime\./,
-    );
+    expect(getByText(MUSD_TOKEN.name)).toBeOnTheScreen();
+    expect(getByText(MUSD_TOKEN.symbol)).toBeOnTheScreen();
   });
 
-  it('renders the highlighted APY value', () => {
-    const { getByTestId } = render(<MoneyHowItWorks apy={4} />);
+  it('renders the Add mUSD button', () => {
+    const { getByTestId } = render(<MoneyHowItWorks />);
 
-    expect(getByTestId(MoneyHowItWorksTestIds.APY)).toHaveTextContent(
-      strings('money.apy_label', {
-        percentage: '4',
-      }),
-    );
+    expect(
+      getByTestId(MoneyHowItWorksTestIds.ADD_MUSD_BUTTON),
+    ).toBeOnTheScreen();
   });
 
-  it('calls onHeaderPress when the section header is tapped', () => {
-    const mockHeaderPress = jest.fn();
-    const { getByText } = render(
-      <MoneyHowItWorks apy={4} onHeaderPress={mockHeaderPress} />,
+  it('calls onAddMusdPress when Add mUSD button is pressed', () => {
+    const mockAddMusd = jest.fn();
+    const { getByTestId } = render(
+      <MoneyHowItWorks onAddMusdPress={mockAddMusd} />,
     );
 
-    fireEvent.press(getByText(strings('money.how_it_works.title')));
+    fireEvent.press(getByTestId(MoneyHowItWorksTestIds.ADD_MUSD_BUTTON));
 
-    expect(mockHeaderPress).toHaveBeenCalledTimes(1);
+    expect(mockAddMusd).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not throw when no callbacks are provided', () => {
+    const { getByTestId } = render(<MoneyHowItWorks />);
+
+    expect(() => {
+      fireEvent.press(getByTestId(MoneyHowItWorksTestIds.ADD_MUSD_BUTTON));
+    }).not.toThrow();
   });
 });

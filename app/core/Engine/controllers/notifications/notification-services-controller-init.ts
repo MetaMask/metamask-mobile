@@ -4,7 +4,7 @@ import {
   Controller as NotificationServicesController,
   defaultState,
 } from '@metamask/notification-services-controller/notification-services';
-import { MessengerClientInitFunction } from '../../types';
+import { ControllerInitFunction } from '../../types';
 import Logger from '../../../../util/Logger';
 import { createNotificationServicesController } from './create-notification-services-controller';
 
@@ -20,7 +20,7 @@ const logControllerCreation = (
   }
 };
 
-export const notificationServicesControllerInit: MessengerClientInitFunction<
+export const notificationServicesControllerInit: ControllerInitFunction<
   NotificationServicesController,
   NotificationServicesControllerMessenger
 > = (request) => {

@@ -61,7 +61,7 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
       'ExecutionService:outboundRequest',
       'ExecutionService:outboundResponse',
       'KeyringController:lock',
-      'SnapRegistryController:registryUpdated',
+      'SnapRegistryController:stateChange',
     ],
     messenger,
   });

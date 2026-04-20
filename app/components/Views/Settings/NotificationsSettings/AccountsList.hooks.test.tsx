@@ -179,7 +179,7 @@ describe('useNotificationAccountListProps', () => {
   it('returns correct loading state', async () => {
     const addresses = ['0x123', '0x456'];
     const { hook } = arrange(addresses);
-    expect(hook.result.current.shouldDisableSwitches).toBe(false);
+    expect(hook.result.current.isAnyAccountLoading).toBe(false);
   });
 
   it('returns correct account loading state', async () => {

@@ -8,9 +8,7 @@ import {
   selectUserState,
   selectMusdConversionEducationSeen,
   selectMusdConversionAssetDetailCtasSeen,
-  selectTokenOverviewChartType,
 } from './selectors';
-import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 
 // Mock the redux store state
 const mockState = {
@@ -20,7 +18,6 @@ const mockState = {
     isConnectionRemoved: false,
     musdConversionEducationSeen: false,
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
-    tokenOverviewChartType: ChartType.Line as ChartType,
   },
 };
 
@@ -119,39 +116,6 @@ describe('user state selectors', () => {
         '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
         '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
       });
-    });
-  });
-
-  describe('selectTokenOverviewChartType', () => {
-    it('returns ChartType.Line when chart type is set to Line', () => {
-      mockState.user.tokenOverviewChartType = ChartType.Line;
-
-      const { result } = renderHook(() =>
-        useSelector(selectTokenOverviewChartType),
-      );
-
-      expect(result.current).toBe(ChartType.Line);
-    });
-
-    it('returns ChartType.Candles when chart type is set to Candles', () => {
-      mockState.user.tokenOverviewChartType = ChartType.Candles;
-
-      const { result } = renderHook(() =>
-        useSelector(selectTokenOverviewChartType),
-      );
-
-      expect(result.current).toBe(ChartType.Candles);
-    });
-
-    it('returns ChartType.Line default when tokenOverviewChartType is not set', () => {
-      // @ts-expect-error - Testing undefined state
-      mockState.user.tokenOverviewChartType = undefined;
-
-      const { result } = renderHook(() =>
-        useSelector(selectTokenOverviewChartType),
-      );
-
-      expect(result.current).toBe(ChartType.Line);
     });
   });
 });

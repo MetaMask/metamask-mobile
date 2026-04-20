@@ -12,7 +12,7 @@ import {
 describe('BadgeStatus', () => {
   it('should render badge status correctly', () => {
     const wrapper = shallow(<BadgeStatus {...SAMPLE_BADGESTATUS_PROPS} />);
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render badge status', () => {
     const wrapper = shallow(<BadgeStatus {...SAMPLE_BADGESTATUS_PROPS} />);

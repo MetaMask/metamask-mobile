@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   NftController,
   type NftControllerMessenger,
@@ -11,7 +11,7 @@ import {
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const nftControllerInit: MessengerClientInitFunction<
+export const nftControllerInit: ControllerInitFunction<
   NftController,
   NftControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

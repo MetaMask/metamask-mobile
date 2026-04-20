@@ -22,13 +22,8 @@ interface UseHomeSessionSummaryParams {
 const useHomeSessionSummary = ({
   totalSectionsLoaded,
 }: UseHomeSessionSummaryParams) => {
-  const {
-    visitId,
-    entryPoint,
-    getViewedSectionCount,
-    getVisitMaxDepth,
-    appSessionId,
-  } = useHomepageScrollContext();
+  const { visitId, entryPoint, getViewedSectionCount } =
+    useHomepageScrollContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const sessionStartRef = useRef<number>(Date.now());
@@ -38,50 +33,42 @@ const useHomeSessionSummary = ({
     sessionStartRef.current = Date.now();
   }, [visitId]);
 
-  // Stable ref so the blur callback always reads the latest values without
-  // needing them in its dependency array (which would re-create the callback
-  // and trigger useFocusEffect cleanup → false blur events).
-  const latestRef = useRef({
-    visitId,
-    entryPoint,
-    totalSectionsLoaded,
-    appSessionId,
-  });
-  latestRef.current = {
-    visitId,
-    entryPoint,
-    totalSectionsLoaded,
-    appSessionId,
-  };
+  // Stable refs for the blur callback to avoid stale closure issues.
+  const visitIdRef = useRef(visitId);
+  const entryPointRef = useRef(entryPoint);
+  const totalSectionsLoadedRef = useRef(totalSectionsLoaded);
 
-  // active_ab_tests is auto-injected by the analytics registry via
-  // HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING in abTestConfig.ts
+  useEffect(() => {
+    visitIdRef.current = visitId;
+  }, [visitId]);
+  useEffect(() => {
+    entryPointRef.current = entryPoint;
+  }, [entryPoint]);
+  useEffect(() => {
+    totalSectionsLoadedRef.current = totalSectionsLoaded;
+  }, [totalSectionsLoaded]);
+
   useFocusEffect(
     useCallback(
       () => () => {
-        const snap = latestRef.current;
-        if (snap.visitId === 0) return;
+        if (visitIdRef.current === 0) return;
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,
         );
-
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
             .addProperties({
               interaction_type: 'session_summary',
               location: 'home',
               total_sections_viewed: getViewedSectionCount(),
-              total_sections_loaded: snap.totalSectionsLoaded,
-              entry_point: snap.entryPoint,
+              total_sections_loaded: totalSectionsLoadedRef.current,
+              entry_point: entryPointRef.current,
               session_time: sessionTime,
-              app_session_id: snap.appSessionId,
-              visit_number: snap.visitId,
-              max_scroll_depth_visit: getVisitMaxDepth(),
             })
             .build(),
         );
       },
-      [trackEvent, createEventBuilder, getViewedSectionCount, getVisitMaxDepth],
+      [trackEvent, createEventBuilder, getViewedSectionCount],
     ),
   );
 };

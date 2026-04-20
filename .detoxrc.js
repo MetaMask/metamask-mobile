@@ -81,9 +81,9 @@ module.exports = {
   devices: {
     'ios.simulator': {
       type: 'ios.simulator',
-      device: process.env.IOS_SIMULATOR
-        ? { name: process.env.IOS_SIMULATOR }
-        : { type: 'iPhone 16 Pro' },
+      device: {
+        type: 'iPhone 15 Pro',
+      },
     },
     'android.emulator': {
       type: 'android.emulator',

@@ -1,4 +1,3 @@
-import { ActivityIndicator } from 'react-native';
 import { waitFor, screen } from '@testing-library/react-native';
 import Root from './Root';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -83,11 +82,9 @@ describe('Root Component', () => {
     (useParams as jest.Mock).mockReturnValue(undefined);
   });
 
-  it('renders the loading indicator', () => {
+  it('render matches snapshot', () => {
     render(Root);
-    expect(
-      screen.UNSAFE_getAllByType(ActivityIndicator).length,
-    ).toBeGreaterThan(0);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('redirects to BUILD_QUOTE when no created orders exist after hydrating stored token', async () => {

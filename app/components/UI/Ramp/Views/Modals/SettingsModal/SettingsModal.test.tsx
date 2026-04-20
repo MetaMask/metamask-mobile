@@ -121,8 +121,8 @@ const mockInAppBrowser = InAppBrowser as jest.Mocked<typeof InAppBrowser>;
 let mockSelectedProvider: Provider | null = createMockProvider();
 const mockSetSelectedProvider = jest.fn();
 
-jest.mock('../../../hooks/useRampsProviders', () => ({
-  useRampsProviders: () => ({
+jest.mock('../../../hooks/useRampsController', () => ({
+  useRampsController: () => ({
     selectedProvider: mockSelectedProvider,
     setSelectedProvider: mockSetSelectedProvider,
   }),
@@ -174,6 +174,12 @@ describe('SettingsModal', () => {
       success: false,
       error: 'No token found',
     });
+  });
+
+  it('render matches snapshot', () => {
+    const { toJSON } = renderWithProvider(SettingsModal);
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays settings title in header', () => {
@@ -242,7 +248,7 @@ describe('SettingsModal', () => {
 
       const { queryByText } = renderWithProvider(SettingsModal);
 
-      expect(queryByText('Contact support')).not.toBeOnTheScreen();
+      expect(queryByText('Contact support')).toBeNull();
     });
   });
 
@@ -331,7 +337,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
+        expect(queryByText(/Log out of/)).toBeNull();
       });
     });
   });
@@ -349,7 +355,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText('Log out of Transak')).not.toBeOnTheScreen();
+        expect(queryByText('Log out of Transak')).toBeNull();
       });
     });
   });
@@ -362,7 +368,7 @@ describe('SettingsModal', () => {
     it('hides contact support option', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
-      expect(queryByText('Contact support')).not.toBeOnTheScreen();
+      expect(queryByText('Contact support')).toBeNull();
     });
 
     it('hides logout option even when authenticated', async () => {
@@ -378,7 +384,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
+        expect(queryByText(/Log out of/)).toBeNull();
       });
     });
   });

@@ -1,4 +1,5 @@
 import { RootState } from '../../reducers';
+import { selectIsPna25FlagEnabled } from '../featureFlagController/legalNotices';
 import { analytics } from '../../util/analytics/analytics';
 import { newPrivacyPolicyDate } from '../../reducers/legalNotices';
 import { selectCompletedOnboarding } from '../onboarding';
@@ -40,6 +41,7 @@ export const selectIsPna25Acknowledged = (state: RootState): boolean =>
 /**
  * Determines if the PNA25 notice should be shown based on:
  * - User has completed onboarding (completedOnboarding === true)
+ * - LaunchDarkly feature flag (extension-ux-pna25) is enabled (boolean)
  * - User is an existing user (pna25Acknowledged !== true)
  * - User has opted into metrics (participateInMetaMetrics === true)
  * New users will have pna25Acknowledged = true (PNA25 was shown during onboarding)
@@ -51,8 +53,9 @@ export const selectIsPna25Acknowledged = (state: RootState): boolean =>
 export const selectShouldShowPna25Notice = (state: RootState): boolean => {
   const completedOnboarding = selectCompletedOnboarding(state);
   const isPna25Acknowledged = selectIsPna25Acknowledged(state);
+  const isPna25Enabled = selectIsPna25FlagEnabled(state);
 
-  if (!completedOnboarding || isPna25Acknowledged) {
+  if (!completedOnboarding || !isPna25Enabled || isPna25Acknowledged) {
     return false;
   }
 

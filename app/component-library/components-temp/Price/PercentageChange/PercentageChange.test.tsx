@@ -4,38 +4,36 @@ import PercentageChange from './PercentageChange';
 import { mockTheme } from '../../../../util/theme';
 
 describe('PercentageChange', () => {
-  it('displays positive value with success color', () => {
+  it('should render correctly', () => {
+    const { toJSON } = render(<PercentageChange value={5.5} />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+  it('displays a positive value correctly', () => {
     const { getByText } = render(<PercentageChange value={5.5} />);
-
     const positiveText = getByText('+5.50%');
-
-    expect(positiveText).toBeOnTheScreen();
+    expect(positiveText).toBeTruthy();
     expect(positiveText.props.style).toMatchObject({
       color: mockTheme.colors.success.default,
     });
   });
 
-  it('displays negative value with error color', () => {
+  it('displays a negative value correctly', () => {
     const { getByText } = render(<PercentageChange value={-3.25} />);
-
     const negativeText = getByText('-3.25%');
-
-    expect(negativeText).toBeOnTheScreen();
+    expect(negativeText).toBeTruthy();
     expect(negativeText.props.style).toMatchObject({
       color: mockTheme.colors.error.default,
     });
   });
 
-  it('renders nothing when value is null', () => {
+  it('handles null value correctly', () => {
     const { queryByText } = render(<PercentageChange value={null} />);
-
     expect(queryByText(/\+/)).toBeNull();
     expect(queryByText(/-/)).toBeNull();
   });
 
-  it('renders nothing when value is undefined', () => {
+  it('handles undefined value correctly', () => {
     const { queryByText } = render(<PercentageChange value={undefined} />);
-
     expect(queryByText(/\+/)).toBeNull();
     expect(queryByText(/-/)).toBeNull();
   });

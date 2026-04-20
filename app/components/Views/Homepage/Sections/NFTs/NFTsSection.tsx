@@ -28,10 +28,7 @@ import { isNftFetchingProgressSelector } from '../../../../../reducers/collectib
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { Nft } from '@metamask/assets-controllers';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 const MAX_NFTS_DISPLAYED = 6;
 const NFTS_PER_ROW = 3;
@@ -69,7 +66,6 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
-    const { trackEvent, createEventBuilder } = useAnalytics();
     const ownedNfts = useOwnedNfts();
     const hasNfts = ownedNfts.length > 0;
     const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
@@ -133,13 +129,8 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const handleImportNfts = useCallback(() => {
       setIsAddNFTEnabled(false);
       navigation.navigate('AddAsset', { assetType: 'collectible' });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES)
-          .addProperties({ action: 'Wallet View', name: 'Add Collectibles' })
-          .build(),
-      );
       setTimeout(() => setIsAddNFTEnabled(true), 1000);
-    }, [navigation, trackEvent, createEventBuilder]);
+    }, [navigation]);
 
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
@@ -154,13 +145,6 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       totalSectionsLoaded,
       isEmpty: !hasNfts,
       itemCount: ownedNfts.length,
-    });
-
-    useSectionPerformance({
-      sectionId: HomeSectionNames.NFTS,
-      contentReady: !isLoadingSection,
-      isEmpty: !hasNfts,
-      isLoading: isLoadingSection,
     });
 
     return (

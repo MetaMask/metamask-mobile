@@ -45,12 +45,12 @@ jest.mock('@react-navigation/native', () => {
 
 describe('CollectibleMedia', () => {
   it('should render correctly', () => {
-    const { getByTestId } = renderWithProvider(
+    const wrapper = renderWithProvider(
       <CollectibleMedia
         collectible={{
           name: 'NAME',
-          image: 'https://',
-          imagePreview: 'https://',
+          image: 'IMAGE',
+          imagePreview: 'IMAGE',
           tokenId: '123',
           address: '0x123',
           backgroundColor: 'red',
@@ -62,7 +62,7 @@ describe('CollectibleMedia', () => {
       />,
       { state: mockInitialState },
     );
-    expect(getByTestId('nft-image')).toBeOnTheScreen();
+    expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
   it('should render collectible image if the ipfs gateway is enabled and display nft media is enabled', () => {

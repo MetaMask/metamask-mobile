@@ -89,9 +89,7 @@ describe('ProtectYourWallet', () => {
     expect(
       getByText(strings('reveal_credential.seed_phrase_title')),
     ).toBeDefined();
-    expect(
-      queryByText(strings('app_settings.learn_more')),
-    ).not.toBeOnTheScreen();
+    expect(queryByText(strings('app_settings.learn_more'))).toBeNull();
   });
 
   it('shows hint button when hint text is available', () => {

@@ -243,6 +243,7 @@
     "import_wallet_button": "Sincronizar o importar monedero",
     "new_to_crypto": "¿Primera vez que usa criptomonedas?",
     "start_exploring_now": "Crear una billetera nueva",
+    "unlock": "Desbloquear",
     "new_to_metamask": "¿Es nuevo en MetaMask?",
     "already_have_wallet": "¿Ya tiene un monedero?",
     "optin_back_title": "¡Atención!",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "Ahora que se agregó valor a su monedero, para protegerlo, establezca una contraseña y guarde la frase secreta de recuperación (obligatorio).",
     "button": "Proteger monedero"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Error en la actualización de la transacción",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "{{index}} de transacción",
     "transaction": "Transacción",
     "available_balance": "Saldo disponible: ",
+    "available_perps_balance": "Saldo disponible de contratos perpetuos: ",
     "edit_amount_done": "Continuar",
     "deposit_edit_amount_done": "Agregar fondos",
     "deposit_edit_amount_predict_withdraw": "Retirar",
@@ -8120,7 +8122,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Prize Pool",
       "current_label": "Actual",
       "next_label": "Siguiente",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Reintentar",
       "label_return": "Rendimiento",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Cobrado",
       "label_rank": "Rango",
       "label_tier": "Tier",
       "label_your_return": "Your return",

@@ -5,12 +5,13 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { useABTest } from '../../../../../hooks/useABTest';
+import { CARD_BUTTON_BADGE_AB_KEY } from './abTestConfig';
 
 const mockTrackEvent = jest.fn();
-const mockBuiltEvent = { name: 'Card Button Viewed', properties: {} };
-const mockBuild = jest.fn().mockReturnValue(mockBuiltEvent);
+const mockBuild = jest.fn().mockReturnValue({});
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  build: mockBuild,
+  addProperties: mockAddProperties,
 });
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -50,7 +51,9 @@ function renderWithProvider(
           },
         },
         card: {
+          cardholderAccounts: [],
           hasViewedCardButton: false,
+          isLoaded: false,
           ...cardState,
         },
       },
@@ -63,9 +66,10 @@ describe('CardButton Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockBuild.mockReturnValue(mockBuiltEvent);
+    mockBuild.mockReturnValue({});
+    mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
-      build: mockBuild,
+      addProperties: mockAddProperties,
     });
     mockUseABTest.mockReturnValue({
       variant: { showBadge: true },
@@ -74,8 +78,8 @@ describe('CardButton Component', () => {
     });
   });
 
-  it('renders with badge (not yet viewed)', () => {
-    const { getByTestId } = renderWithProvider(() => (
+  it('renders with badge (not yet viewed) and matches snapshot', () => {
+    const { toJSON, getByTestId } = renderWithProvider(() => (
       <CardButton
         onPress={mockOnPress}
         touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
@@ -85,6 +89,7 @@ describe('CardButton Component', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
     ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('dispatches setHasViewedCardButton(true) and hides badge on first press', () => {
@@ -100,9 +105,7 @@ describe('CardButton Component', () => {
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
     expect(store.getState().card.hasViewedCardButton).toBe(true);
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE)).toBeNull();
   });
 
   it('does not dispatch setHasViewedCardButton again if already viewed', () => {
@@ -124,7 +127,7 @@ describe('CardButton Component', () => {
   });
 
   it('renders without badge when already viewed', () => {
-    const { queryByTestId } = renderWithProvider(
+    const { toJSON, queryByTestId } = renderWithProvider(
       () => (
         <CardButton
           onPress={mockOnPress}
@@ -134,9 +137,8 @@ describe('CardButton Component', () => {
       { cardState: { hasViewedCardButton: true } },
     );
 
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE)).toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('A/B test: cardCARD338AbtestAttentionBadge', () => {
@@ -156,7 +158,7 @@ describe('CardButton Component', () => {
 
       expect(
         queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
-      ).not.toBeOnTheScreen();
+      ).toBeNull();
     });
 
     it('withBadge variant: shows badge when button has not been viewed', () => {
@@ -197,7 +199,7 @@ describe('CardButton Component', () => {
 
       expect(
         queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE),
-      ).not.toBeOnTheScreen();
+      ).toBeNull();
     });
 
     describe('analytics: CARD_BUTTON_VIEWED event', () => {
@@ -209,14 +211,7 @@ describe('CardButton Component', () => {
           />
         ));
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            category: 'Card Button Viewed',
-          }),
-        );
-        expect(mockBuild).toHaveBeenCalledTimes(1);
         expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-        expect(mockTrackEvent).toHaveBeenCalledWith(mockBuiltEvent);
       });
 
       it('does not fire event when flags are not yet resolved (cacheTimestamp = 0)', () => {
@@ -231,6 +226,44 @@ describe('CardButton Component', () => {
         );
 
         expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+
+      it('includes active_ab_tests when withBadge variant is active', () => {
+        mockUseABTest.mockReturnValue({
+          variant: { showBadge: true },
+          variantName: 'withBadge',
+          isActive: true,
+        });
+
+        renderWithProvider(() => (
+          <CardButton
+            onPress={mockOnPress}
+            touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+          />
+        ));
+
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          active_ab_tests: [
+            { key: CARD_BUTTON_BADGE_AB_KEY, value: 'withBadge' },
+          ],
+        });
+      });
+
+      it('omits active_ab_tests when control variant is inactive', () => {
+        mockUseABTest.mockReturnValue({
+          variant: { showBadge: false },
+          variantName: 'control',
+          isActive: false,
+        });
+
+        renderWithProvider(() => (
+          <CardButton
+            onPress={mockOnPress}
+            touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+          />
+        ));
+
+        expect(mockAddProperties).toHaveBeenCalledWith({});
       });
     });
   });

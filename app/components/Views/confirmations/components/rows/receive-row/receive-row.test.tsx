@@ -87,9 +87,4 @@ describe('ReceiveRow', () => {
     const { queryByText } = render();
     expect(queryByText(EXPECTED_RECEIVE_MOCK)).toBeNull();
   });
-
-  it('renders receive amount from totals without quotes', () => {
-    const { getByText } = render();
-    expect(getByText(EXPECTED_RECEIVE_MOCK)).toBeOnTheScreen();
-  });
 });

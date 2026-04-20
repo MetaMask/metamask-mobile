@@ -16,7 +16,6 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(SmokeTrade('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
@@ -61,11 +60,6 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
         ],
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-            homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-          });
-
           // Mock Accounts API V4 (flat array) so the app reports correct ETH balance.
           // Without this, the default mock returns 0 balance and the Earn button
           // is hidden (StakeButton returns null when balanceFiatNumber < 0.01).

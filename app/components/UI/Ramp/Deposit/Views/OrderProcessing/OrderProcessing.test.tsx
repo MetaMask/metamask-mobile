@@ -113,8 +113,7 @@ describe('OrderProcessing Component', () => {
         },
       },
     });
-    expect(screen.getByText('Close')).toBeOnTheScreen();
-    expect(screen.queryByText('Try again')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders error state correctly', () => {
@@ -128,8 +127,7 @@ describe('OrderProcessing Component', () => {
         },
       },
     });
-    expect(screen.getByText('Try again')).toBeOnTheScreen();
-    expect(screen.getByText('Contact support')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders processing state correctly', () => {
@@ -143,8 +141,7 @@ describe('OrderProcessing Component', () => {
         },
       },
     });
-    expect(screen.getByText('Close')).toBeOnTheScreen();
-    expect(screen.queryByText('Try again')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders created state correctly', () => {
@@ -158,8 +155,7 @@ describe('OrderProcessing Component', () => {
         },
       },
     });
-    expect(screen.getByText('Close')).toBeOnTheScreen();
-    expect(screen.queryByText('Try again')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders no order found state', () => {
@@ -172,8 +168,7 @@ describe('OrderProcessing Component', () => {
         },
       },
     });
-    expect(screen.queryByText('Close')).not.toBeOnTheScreen();
-    expect(screen.queryByText('Try again')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to correct screen on main button press', () => {

@@ -13,7 +13,7 @@ import styleSheet from '../../Deposit/Views/VerifyIdentity/VerifyIdentity.styles
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { getDepositNavbarOptions } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../Deposit/assets/verifyIdentityIllustration.png';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
@@ -44,7 +44,7 @@ export const createV2VerifyIdentityNavDetails =
 
 const V2VerifyIdentity = () => {
   const navigation = useNavigation();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
   const { amount, currency, assetId } = useParams<V2VerifyIdentityParams>();
@@ -57,17 +57,25 @@ const V2VerifyIdentity = () => {
     );
   }, [navigation, amount, currency, assetId]);
 
-  const handleHeaderBack = useCallback(() => {
-    navigation.goBack();
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-        .addProperties({
-          location: 'Verify Identity',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
+  useEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(
+        navigation,
+        { title: strings('deposit.verify_identity.navbar_title') },
+        theme,
+        () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Verify Identity',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
+        },
+      ),
     );
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation, theme, trackEvent, createEventBuilder]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -160,12 +168,6 @@ const V2VerifyIdentity = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
-          title={strings('deposit.verify_identity.navbar_title')}
-          onBack={handleHeaderBack}
-          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-          includesTopInset
-        />
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <ScreenLayout.Content grow>
             <Image

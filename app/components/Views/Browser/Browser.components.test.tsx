@@ -269,52 +269,6 @@ describe('Browser - Component Rendering', () => {
       );
     });
 
-    it('passes fromBenefit param to BrowserTab', () => {
-      const tabs = [
-        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
-      ];
-      const BrowserTabMock = jest.mocked(BrowserTab);
-
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={{ params: { fromBenefit: true } }}
-                    tabs={tabs}
-                    activeTab={1}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn()}
-                    closeTab={jest.fn()}
-                    setActiveTab={jest.fn()}
-                    updateTab={jest.fn()}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
-        {
-          state: {
-            ...mockInitialState,
-            browser: {
-              tabs,
-              activeTab: 1,
-            },
-          },
-        },
-      );
-
-      expect(BrowserTabMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          fromBenefit: true,
-        }),
-        {},
-      );
-    });
-
     it('passes linkType param to BrowserTab', () => {
       const tabs = [
         {

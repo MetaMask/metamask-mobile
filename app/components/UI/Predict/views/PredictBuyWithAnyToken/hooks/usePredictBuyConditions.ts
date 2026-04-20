@@ -40,7 +40,7 @@ export const usePredictBuyConditions = ({
     usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
 
-  const shouldWaitForPayFees = !isPredictBalanceSelected && currentValue > 0;
+  const shouldWaitForPayFees = !isPredictBalanceSelected;
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,

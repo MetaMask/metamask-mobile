@@ -1,5 +1,5 @@
 import { SnapInterfaceController } from '@metamask/snaps-controllers';
-import { MessengerClientInitFunction } from '../../types';
+import { ControllerInitFunction } from '../../types';
 import { SnapInterfaceControllerMessenger } from '../../messengers/snaps';
 
 /**
@@ -10,7 +10,7 @@ import { SnapInterfaceControllerMessenger } from '../../messengers/snaps';
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const snapInterfaceControllerInit: MessengerClientInitFunction<
+export const snapInterfaceControllerInit: ControllerInitFunction<
   SnapInterfaceController,
   SnapInterfaceControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

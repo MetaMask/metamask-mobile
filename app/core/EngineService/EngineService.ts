@@ -30,7 +30,6 @@ import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
 import { setExistingUser } from '../../actions/user';
-import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
 
 export class EngineService {
   private engineInitialized = false;
@@ -175,10 +174,6 @@ export class EngineService {
         Engine as unknown as TypedEngine,
         state as Record<string, unknown>,
       );
-
-      // Fire-and-forget: refresh social following state from the server.
-      // Non-blocking — persisted state covers the UI until this resolves.
-      hydrateSocialFollowing();
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',

@@ -4,8 +4,6 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import {
-  BottomSheet,
-  type BottomSheetRef,
   Text,
   TextVariant,
   TextColor,
@@ -17,6 +15,9 @@ import {
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
@@ -91,7 +92,7 @@ function ErrorDetailsModal() {
   }, [navigation, amount]);
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
       <HeaderCompactStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}

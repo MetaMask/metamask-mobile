@@ -12,42 +12,24 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  InteractionManager,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  useWindowDimensions,
-} from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
-import PredictChipList from '../PredictChipList';
 import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
+import PredictPicks from '../PredictPicks/PredictPicks';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
-import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
-import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
-import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
-
-const CHIPS_STICKY_INDEX = 2;
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -75,78 +57,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
-
-  const { data: activePositions = [] } = usePredictPositions({
-    marketId: market.id,
-    claimable: false,
-  });
-  const { data: claimablePositions = [] } = usePredictPositions({
-    marketId: market.id,
-    claimable: true,
-  });
-
-  const {
-    enabled: tabsEnabled,
-    showTabBar,
-    tabs,
-    activeTab,
-    handleTabPress,
-    chips,
-    groupMap,
-    activeChipKey,
-    handleChipSelect,
-    showChips,
-  } = useGameDetailsTabs({
-    activePositions,
-    claimablePositions,
-    league: game?.league,
-    outcomeGroups: market.outcomeGroups ?? [],
-  });
-
-  const { height: windowHeight } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
-  const [stickyHeaderY, setStickyHeaderY] = useState(0);
-  const pendingChipScroll = useRef(false);
-
-  const handleStickyHeaderLayout = useCallback(
-    (e: { nativeEvent: { layout: { y: number } } }) => {
-      setStickyHeaderY(e.nativeEvent.layout.y);
-    },
-    [],
-  );
-
-  const onChipSelect = useCallback(
-    (key: string) => {
-      scrollRef.current?.scrollTo({
-        y: stickyHeaderY,
-        animated: false,
-      });
-      handleChipSelect(key);
-      pendingChipScroll.current = true;
-    },
-    [handleChipSelect, stickyHeaderY],
-  );
-
-  // Guard: only scroll after an explicit chip selection (pendingChipScroll is
-  // set to true in onChipSelect). This prevents scrolling on initial render
-  // or when stickyHeaderY updates from layout measurements.
-  useEffect(() => {
-    if (!pendingChipScroll.current) return;
-    pendingChipScroll.current = false;
-    const handle = InteractionManager.runAfterInteractions(() => {
-      scrollRef.current?.scrollTo({
-        y: stickyHeaderY,
-        animated: false,
-      });
-    });
-    return () => handle.cancel();
-  }, [activeChipKey, stickyHeaderY]);
-
-  const showStickyHeader = showTabBar || showChips;
-  const stickyHeaderIndices = useMemo(
-    () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
-    [showStickyHeader],
-  );
 
   if (!outcome || !game) {
     return null;
@@ -193,10 +103,8 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       </Box>
 
       <ScrollView
-        ref={scrollRef}
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
-        stickyHeaderIndices={stickyHeaderIndices}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -220,37 +128,10 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           />
         </Box>
 
-        {showStickyHeader && (
-          <Box twClassName="bg-default" onLayout={handleStickyHeaderLayout}>
-            {showTabBar && (
-              <PredictMarketDetailsTabBar
-                tabs={tabs}
-                activeTab={activeTab}
-                onTabPress={handleTabPress}
-                tabTwStyle="flex-1"
-              />
-            )}
-            {showChips && (
-              <PredictChipList
-                chips={chips}
-                activeChipKey={activeChipKey}
-                onChipSelect={onChipSelect}
-              />
-            )}
-          </Box>
-        )}
-
-        <Box style={{ minHeight: windowHeight - stickyHeaderY }}>
-          <PredictGameDetailsTabsContent
+        <Box twClassName="px-4 py-2">
+          <PredictPicks
             market={market}
-            activeTab={activeTab}
-            tabs={tabs}
-            enabled={tabsEnabled}
-            showTabBar={showTabBar}
-            activePositions={activePositions}
-            claimablePositions={claimablePositions}
-            groupMap={groupMap}
-            activeChipKey={activeChipKey}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK}
           />
         </Box>
       </ScrollView>

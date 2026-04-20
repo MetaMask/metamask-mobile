@@ -33,6 +33,8 @@ export function getNftControllerMessenger(
       'AssetsContractController:getERC721AssetName',
       'AssetsContractController:getERC721AssetSymbol',
       'AssetsContractController:getERC721TokenURI',
+      'AssetsContractController:getERC721OwnerOf',
+      'AssetsContractController:getERC1155BalanceOf',
       'AssetsContractController:getERC1155TokenURI',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',

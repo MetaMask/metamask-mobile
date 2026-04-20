@@ -29,55 +29,46 @@ describe('CustomInput', () => {
 
   const renderComponent = () => shallow(<CustomInput {...props} />);
 
-  it('renders with default props', () => {
+  it('should render correctly', () => {
     const component = renderComponent();
-
-    expect(component.exists()).toBe(true);
+    expect(component).toMatchSnapshot();
   });
 
-  it('calls setMaxSelected when max button is pressed', () => {
+  it('should call setMaxSelected when max button is pressed', () => {
     const component = renderComponent();
-
     component
       .findWhere((node) => node.prop('testID') === CUSTOM_SPEND_CAP_MAX_TEST_ID)
       .simulate('press');
-
     expect(props.setMaxSelected).toHaveBeenCalled();
   });
 
-  it('calls setValue with integer input', () => {
+  it('should update value if input is integer', () => {
     const component = renderComponent();
-
     component
       .findWhere(
         (node) => node.prop('testID') === CUSTOM_SPEND_CAP_INPUT_INPUT_ID,
       )
       .simulate('changeText', '123');
-
     expect(props.setValue).toHaveBeenCalledWith('123');
   });
 
-  it('calls setValue with decimal input within tokenDecimal precision', () => {
+  it('should update value if input is decimal and decimal points are less than or equal to tokenDecimal', () => {
     const component = renderComponent();
-
     component
       .findWhere(
         (node) => node.prop('testID') === CUSTOM_SPEND_CAP_INPUT_INPUT_ID,
       )
       .simulate('changeText', '123.1234');
-
     expect(props.setValue).toHaveBeenCalledWith('123.1234');
   });
 
-  it('does not call setValue when decimal places exceed tokenDecimal', () => {
+  it('should not update value if input is decimal and decimal points are greater than tokenDecimal', () => {
     const component = renderComponent();
-
     component
       .findWhere(
         (node) => node.prop('testID') === CUSTOM_SPEND_CAP_INPUT_INPUT_ID,
       )
       .simulate('changeText', '123.1234567');
-
     expect(props.setValue).not.toHaveBeenCalled();
   });
 });

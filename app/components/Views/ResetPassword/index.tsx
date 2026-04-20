@@ -75,11 +75,6 @@ import {
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import Device from '../../../util/device';
 import SearchingFox from '../../../animations/Searching_Fox.json';
-import {
-  PASSWORD_GUIDE_URL,
-  RESET_PASSWORD_GUIDE_URL,
-  RESET_PASSWORD_SOCIAL_LOGIN_URL,
-} from '../../../constants/urls';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -391,8 +386,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       screen: 'SimpleWebview',
       params: {
         url: isSeedlessOnboardingLoginFlow
-          ? PASSWORD_GUIDE_URL
-          : RESET_PASSWORD_GUIDE_URL,
+          ? 'https://support.metamask.io/configure/wallet/passwords-and-metamask/'
+          : 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
         title: 'support.metamask.io',
       },
     });
@@ -402,7 +397,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: RESET_PASSWORD_SOCIAL_LOGIN_URL,
+        url: 'https://support.metamask.io/configure/wallet/how-can-i-reset-my-password/',
         title: 'support.metamask.io',
       },
     });

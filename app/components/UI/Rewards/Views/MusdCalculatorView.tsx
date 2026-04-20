@@ -6,13 +6,10 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import MusdCalculatorTab from '../components/Tabs/MusdCalculatorTab/MusdCalculatorTab';
 import { strings } from '../../../../../locales/i18n';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 const MusdCalculatorView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-
-  useTrackRewardsPageView({ page_type: 'musd_calculator' });
 
   return (
     <ErrorBoundary navigation={navigation} view="MusdCalculatorView">

@@ -41,12 +41,12 @@ function PlaceholderScreen({
 
 describe('Contacts', () => {
   it('renders correctly', () => {
-    const { getByText } = renderScreen(
+    const { toJSON } = renderScreen(
       Contacts,
       { name: 'ContactsSettings', options: { headerShown: false } },
       { state: initialState },
     );
-    expect(getByText(strings('app_settings.contacts_title'))).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders inline header with Contacts title', () => {

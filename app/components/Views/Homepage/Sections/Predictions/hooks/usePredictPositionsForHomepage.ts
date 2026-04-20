@@ -14,24 +14,23 @@ export interface UsePredictPositionsForHomepageResult {
 interface UsePredictPositionsForHomepageOptions {
   maxPositions?: number;
   claimable?: boolean;
-  enabled?: boolean;
 }
 
 /**
  * Lightweight wrapper around the Predict team's usePredictPositions hook,
  * adapted for homepage display with optional slicing and claimable value sum.
  *
- * Pass `enabled: false` when the Predict feature flag is off so the parent can
- * keep `PredictionsSection` mounted without subscribing to positions queries.
+ * The feature flag check is handled at the UI level (Homepage conditionally
+ * renders the Predictions section), so this hook assumes it is only called
+ * when predictions are enabled.
  */
 export const usePredictPositionsForHomepage = (
   options: UsePredictPositionsForHomepageOptions = {},
 ): UsePredictPositionsForHomepageResult => {
-  const { maxPositions, claimable = false, enabled = true } = options;
+  const { maxPositions, claimable = false } = options;
 
   const { data, isLoading, error, refetch } = usePredictPositions({
     claimable,
-    enabled,
   });
 
   const allPositions = useMemo(() => data ?? [], [data]);

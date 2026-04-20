@@ -8,7 +8,7 @@ import {
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 import {
   type AssetsControllerMessenger,
   type AssetsControllerInitMessenger,
@@ -84,10 +84,10 @@ function getApiClient(
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state of the extension.
  * @param request.initMessenger - The init messenger to use for the controller.
- * @param request.getMessengerClient - Function to get a controller by name.
+ * @param request.getController - Function to get a controller by name.
  * @returns The initialized controller.
  */
-export const assetsControllerInit: MessengerClientInitFunction<
+export const assetsControllerInit: ControllerInitFunction<
   AssetsController,
   AssetsControllerMessenger,
   AssetsControllerInitMessenger
@@ -95,7 +95,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
   controllerMessenger,
   persistedState,
   initMessenger,
-  getMessengerClient: _getController,
+  getController: _getController,
 }) => {
   /**
    * Check if the AssetsController feature is enabled based on the remote feature flag.

@@ -33,7 +33,7 @@ describe('PaymentMethodSelector', () => {
     renderWithProvider(<PaymentMethodSelector {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.getByText('Debit or Credit')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly if there are no icons', () => {
@@ -43,7 +43,7 @@ describe('PaymentMethodSelector', () => {
         state: defaultState,
       },
     );
-    expect(screen.getByText('Debit or Credit')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls onPress when pressed', () => {
@@ -62,7 +62,7 @@ describe('PaymentMethodSelector', () => {
     renderWithProvider(<PaymentMethodSelector {...mockProps} loading />, {
       state: defaultState,
     });
-    expect(screen.queryByText('Debit or Credit')).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('does not call onPress when loading', () => {

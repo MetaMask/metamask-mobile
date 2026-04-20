@@ -394,13 +394,7 @@ export default class TestHelpers {
   static async launchApp(launchOptions) {
     const config = await resolveConfig();
     const platform = device.getPlatform();
-    // Use debug launch for configs explicitly named 'debug' (original behavior)
-    // AND for any non-CI config (e.g. ios.sim.main which uses ios.debug app locally).
-    // CI configs (*.ci) use release apps and the normal recovery-based launch.
-    if (
-      config.configurationName.endsWith('debug') ||
-      !config.configurationName.endsWith('.ci')
-    ) {
+    if (config.configurationName.endsWith('debug')) {
       return this.launchAppForDebugBuild(platform, launchOptions);
     }
 
@@ -561,8 +555,6 @@ export default class TestHelpers {
   }
 
   static getDevLauncherPackagerUrl(platform) {
-    const port =
-      process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
-    return `http://localhost:${port}/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
+    return `http://localhost:8081/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
   }
 }

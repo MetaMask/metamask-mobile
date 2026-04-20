@@ -243,6 +243,7 @@
     "import_wallet_button": "Συγχρονισμός ή εισαγωγή πορτοφολιού",
     "new_to_crypto": "Νέος στα κρυπτονομίσματα;",
     "start_exploring_now": "Δημιουργήστε ένα καινούργιο πορτοφόλι",
+    "unlock": "Ξεκλείδωμα",
     "new_to_metamask": "Νέος στο MetaMask;",
     "already_have_wallet": "Έχετε ήδη πορτοφόλι;",
     "optin_back_title": "Προσοχή!",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "Τώρα που προστέθηκε η αξία στο πορτοφόλι σας, προστατέψτε το πορτοφόλι σας καθορίζοντας έναν κωδικό πρόσβασης και αποθηκεύοντας τη Μυστική Φράση Ανάκτησης (απαιτείται).",
     "button": "Προστασία πορτοφολιού"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Η ενημέρωση της συναλλαγής απέτυχε",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "Συναλλαγή {{index}}",
     "transaction": "Προστασία",
     "available_balance": "Διαθέσιμο υπόλοιπο: ",
+    "available_perps_balance": "Διαθέσιμο υπόλοιπο για Perps: ",
     "edit_amount_done": "Συνεχίστε",
     "deposit_edit_amount_done": "Προσθήκη κεφαλαίων",
     "deposit_edit_amount_predict_withdraw": "Ανάληψη",
@@ -8120,7 +8122,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Prize Pool",
       "current_label": "Τρέχουσα",
       "next_label": "Επόμενο",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Επανάληψη",
       "label_return": "Επιστροφή",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Εξαργυρώθηκε",
       "label_rank": "Κατάταξη",
       "label_tier": "Tier",
       "label_your_return": "Your return",

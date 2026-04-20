@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Linking, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import {
@@ -13,8 +13,10 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
   IconColor,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -29,25 +31,10 @@ import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
 import AppConstants from '../../../../../core/AppConstants';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from './AssetOverviewClaimBonus.testIds';
-import {
-  MUSD_CONVERSION_APY,
-  MUSD_TOKEN_ADDRESS_BY_CHAIN,
-  isMusdToken,
-} from '../../constants/musd';
-import useTokenBalance from '../../../TokenDetails/hooks/useTokenBalance';
-import { selectAsset } from '../../../../../selectors/assets/assets-list';
-import { toFormattedAddress } from '../../../../../util/address';
-import TagBase, {
-  TagSeverity,
-} from '../../../../../component-library/base-components/TagBase';
+import { MUSD_CONVERSION_APY } from '../../constants/musd';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
-
-const styles = StyleSheet.create({
-  bonusTag: { borderRadius: 8, paddingHorizontal: 6 },
-});
 
 interface AssetOverviewClaimBonusProps {
   asset: TokenI;
@@ -56,17 +43,13 @@ interface AssetOverviewClaimBonusProps {
 const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   asset,
 }) => {
-  const {
-    claimableReward,
-    lifetimeBonusClaimed,
-    hasPendingClaim,
-    isClaiming,
-    claimRewards,
-  } = useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
+  const { claimableReward, hasPendingClaim, isClaiming, claimRewards } =
+    useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
+  // Used to prevent duplicate presses of the claim button.
   const isClaimPressedRef = useRef(false);
   const isLoading = isClaiming || hasPendingClaim;
 
@@ -79,75 +62,6 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
-
-  // Use live balance from Redux store — route params may be stale.
-  const { balance: liveBalance } = useTokenBalance(asset);
-
-  // mUSD bonuses are distributed across both mainnet and Linea regardless of
-  // which chain's asset details screen we're rendering, so the estimate must
-  // sum the user's holdings on both chains. For non-mUSD eligible tokens we
-  // keep the per-chain balance from useTokenBalance.
-  const mainnetMusdAsset = useSelector((state: RootState) =>
-    selectAsset(state, {
-      address: toFormattedAddress(
-        MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET],
-      ),
-      chainId: CHAIN_IDS.MAINNET,
-    }),
-  );
-  const lineaMusdAsset = useSelector((state: RootState) =>
-    selectAsset(state, {
-      address: toFormattedAddress(
-        MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
-      ),
-      chainId: CHAIN_IDS.LINEA_MAINNET,
-    }),
-  );
-
-  // State derivation
-  const balance = isMusdToken(asset.address)
-    ? (parseFloat(mainnetMusdAsset?.balance ?? '0') || 0) +
-      (parseFloat(lineaMusdAsset?.balance ?? '0') || 0)
-    : parseFloat(liveBalance || asset.balance) || 0;
-  const hasBalance = balance > 0;
-  const hasClaimable = claimableReward !== null;
-
-  // Estimated annual bonus: token balance × APY% (mUSD is 1:1 with USD)
-  const estimatedAnnualBonus = useMemo(
-    () => balance * (MUSD_CONVERSION_APY / 100),
-    [balance],
-  );
-  const formattedAnnualBonus = hasBalance
-    ? `+$${estimatedAnnualBonus.toFixed(2)}`
-    : '+$0.00';
-
-  // Lifetime bonus: white $0.00 until first claim, then green +$X.
-  const hasLifetimeBonus = Number(lifetimeBonusClaimed) > 0;
-  const formattedLifetimeBonus = hasLifetimeBonus
-    ? `+$${lifetimeBonusClaimed}`
-    : '$0.00';
-
-  // CTA state
-  const { ctaLabel, ctaDisabled } = useMemo(() => {
-    if (hasClaimable) {
-      return {
-        ctaLabel: strings('earn.claim_amount_bonus', {
-          amount: claimableReward,
-        }),
-        ctaDisabled: false,
-      };
-    }
-    if (hasBalance) {
-      return {
-        ctaLabel: strings('earn.accruing_next_bonus'),
-        ctaDisabled: true,
-      };
-    }
-    return {
-      ctaLabel: strings('earn.no_accruing_bonus'),
-      ctaDisabled: true,
-    };
-  }, [hasClaimable, hasBalance, claimableReward]);
 
   const handleTermsPress = useCallback(() => {
     trackEvent(
@@ -162,30 +76,23 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
   }, [createEventBuilder, trackEvent]);
 
-  const handleLearnMorePress = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
-  }, []);
-
   const handleInfoPress = useCallback(() => {
     trackEvent(
       createEventBuilder(EVENT_NAME.TOOLTIP_OPENED)
         .addProperties({
           location: EVENT_LOCATIONS.ASSET_OVERVIEW,
-          tooltip_name: 'your_bonus_info',
-          related_text: 'Your bonus',
+          tooltip_name: 'claim_bonus_info',
+          related_text: 'Claimable bonus',
         })
         .build(),
     );
 
     openTooltipModal(
-      strings('earn.your_bonus'),
+      strings('earn.claimable_bonus'),
       <Text variant={TextVariant.BodyMd}>
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-          {strings('earn.your_bonus_tooltip_your_bonus')}
-        </Text>
-        {strings('earn.your_bonus_tooltip_your_bonus_desc', {
+        {strings('earn.claimable_bonus_tooltip_with_percentage', {
           percentage: MUSD_CONVERSION_APY,
-        })}
+        })}{' '}
         <Text
           variant={TextVariant.BodyMd}
           onPress={handleTermsPress}
@@ -193,31 +100,14 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
         >
           {strings('earn.musd_conversion.education.terms_apply')}
         </Text>
-        {'\n\n'}
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-          {strings('earn.your_bonus_tooltip_annual_bonus')}
-        </Text>
-        {strings('earn.your_bonus_tooltip_annual_bonus_desc')}
-        {'\n\n'}
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-          {strings('earn.your_bonus_tooltip_lifetime_bonus')}
-        </Text>
-        {strings('earn.your_bonus_tooltip_lifetime_bonus_desc')}
       </Text>,
       undefined,
-      strings('earn.learn_more'),
-      handleLearnMorePress,
+      strings('earn.sounds_good'),
     );
-  }, [
-    openTooltipModal,
-    handleTermsPress,
-    handleLearnMorePress,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [openTooltipModal, handleTermsPress, trackEvent, createEventBuilder]);
 
   const handleClaimPress = useCallback(() => {
-    if (isClaimPressedRef.current || isLoading || ctaDisabled) return;
+    if (isClaimPressedRef.current || isLoading) return;
     isClaimPressedRef.current = true;
 
     trackEvent(
@@ -225,7 +115,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
         .addProperties({
           location: EVENT_LOCATIONS.ASSET_OVERVIEW,
           action_type: 'claim_bonus',
-          button_text: ctaLabel,
+          button_text: strings('earn.claim'),
           network_chain_id: asset.chainId,
           network_name: network?.name,
           asset_symbol: asset.symbol,
@@ -235,8 +125,6 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     claimRewards();
   }, [
     isLoading,
-    ctaDisabled,
-    ctaLabel,
     trackEvent,
     createEventBuilder,
     asset.chainId,
@@ -245,109 +133,96 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     claimRewards,
   ]);
 
-  return (
-    <Box testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER}>
-      {/* Top divider — full-width */}
-      <Box twClassName="h-px bg-border-muted my-5" />
+  if (!claimableReward) {
+    return null;
+  }
 
-      {/* Content with horizontal padding */}
-      <Box twClassName="px-4">
-        {/* Header row: "Your bonus" + info icon | "3% bonus" tag */}
+  return (
+    <Box
+      twClassName="px-4"
+      testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER}
+    >
+      {/* Divider */}
+      <Box twClassName="h-px bg-border-muted my-4" />
+
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="pt-3 pb-4"
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="py-3"
-          testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.SECTION_HEADER}
+          twClassName="flex-1"
         >
           <Box
-            flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="h-10 w-10 rounded-full bg-muted mr-4"
           >
-            <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-              {strings('earn.your_bonus')}
-            </Text>
-            <ButtonIcon
-              iconName={IconName.Info}
-              size={ButtonIconSize.Sm}
-              iconProps={{ color: IconColor.IconAlternative }}
-              onPress={handleInfoPress}
-              testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON}
-            />
+            <Icon name={IconName.MoneyBag} size={IconSize.Lg} />
           </Box>
-          <TagBase
-            severity={TagSeverity.Success}
-            style={styles.bonusTag}
-            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG}
-          >
-            {strings('earn.percentage_bonus', {
-              percentage: String(MUSD_CONVERSION_APY),
-            })}
-          </TagBase>
+
+          <Box twClassName="flex-1">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="mb-1"
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                twClassName="mr-1"
+              >
+                {strings('earn.claimable_bonus')}
+              </Text>
+              <ButtonIcon
+                iconName={IconName.Info}
+                size={ButtonIconSize.Sm}
+                iconProps={{ color: IconColor.IconDefault }}
+                onPress={handleInfoPress}
+                testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON}
+              />
+            </Box>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.PrimaryDefault}
+            >
+              {strings('earn.percentage_bonus_on_linea', {
+                percentage: MUSD_CONVERSION_APY,
+              })}
+            </Text>
+          </Box>
         </Box>
 
-        {/* Row 1: Estimated annual bonus */}
         <Box
-          flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="py-2"
-          testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_ROW}
+          justifyContent={BoxJustifyContent.Center}
         >
-          <Text variant={TextVariant.BodyMd}>
-            {strings('earn.estimated_annual_bonus')}
-          </Text>
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE}
+            twClassName="text-text-default"
+            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIMABLE_AMOUNT}
           >
-            {formattedAnnualBonus}
+            ${claimableReward}
           </Text>
         </Box>
-
-        {/* Row 2: Lifetime bonus claimed */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="py-2"
-          testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_ROW}
-        >
-          <Text variant={TextVariant.BodyMd}>
-            {strings('earn.lifetime_bonus_claimed')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={
-              hasLifetimeBonus
-                ? TextColor.SuccessDefault
-                : TextColor.TextDefault
-            }
-            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE}
-          >
-            {formattedLifetimeBonus}
-          </Text>
-        </Box>
-
-        {/* CTA Button */}
-        <Button
-          testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON}
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          twClassName="w-full mt-4 mb-3"
-          onPress={handleClaimPress}
-          isDisabled={ctaDisabled || isLoading}
-          isLoading={isLoading}
-        >
-          {ctaLabel}
-        </Button>
       </Box>
 
-      {/* Bottom divider — full-width */}
-      <Box twClassName="h-px bg-border-muted my-5" />
+      <Button
+        testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON}
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        twClassName="w-full"
+        onPress={handleClaimPress}
+        isDisabled={isLoading}
+        isLoading={isLoading}
+      >
+        {strings('earn.claim')}
+      </Button>
     </Box>
   );
 };

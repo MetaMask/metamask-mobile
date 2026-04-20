@@ -8,7 +8,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
 import { analytics } from '../../../util/analytics/analytics';
-import { LEARN_MORE_URL } from '../../../constants/urls';
 
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
@@ -121,7 +120,7 @@ describe('ProtectYourWalletModal', () => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
           screen: 'SimpleWebview',
           params: {
-            url: LEARN_MORE_URL,
+            url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
             title: strings('protect_wallet_modal.title'),
           },
         });

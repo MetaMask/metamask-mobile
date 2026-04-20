@@ -1,7 +1,7 @@
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getStorageServiceMessenger } from '../../messengers/storage-service-messenger';
-import { MessengerClientInitRequest } from '../../types';
+import { ControllerInitRequest } from '../../types';
 import { storageServiceInit } from './storage-service-init';
 import {
   StorageService,
@@ -23,14 +23,14 @@ const mockDevice = jest.mocked(Device);
 const mockLogger = jest.mocked(Logger);
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<StorageServiceMessenger>
+  ControllerInitRequest<StorageServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getStorageServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };

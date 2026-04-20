@@ -58,14 +58,9 @@ let mockSelectedToken: unknown = {
   symbol: 'USDC',
 };
 
-jest.mock('../../../hooks/useRampsProviders', () => ({
-  useRampsProviders: () => ({
+jest.mock('../../../hooks/useRampsController', () => ({
+  useRampsController: () => ({
     selectedProvider: mockSelectedProvider,
-  }),
-}));
-
-jest.mock('../../../hooks/useRampsTokens', () => ({
-  useRampsTokens: () => ({
     selectedToken: mockSelectedToken,
   }),
 }));
@@ -76,12 +71,11 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
 
 let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    BottomSheet: ReactActual.forwardRef(
+jest.mock(
+  '../../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    return ReactActual.forwardRef(
       (
         {
           children,
@@ -98,9 +92,9 @@ jest.mock('@metamask/design-system-react-native', () => {
         }));
         return <>{children}</>;
       },
-    ),
-  };
-});
+    );
+  },
+);
 
 function render(component: React.ComponentType) {
   return renderScreen(
@@ -133,11 +127,10 @@ describe('TokenNotAvailableModal', () => {
     };
   });
 
-  it('renders modal with Change token and Change provider buttons', () => {
-    const { getByText } = render(TokenNotAvailableModal);
+  it('matches snapshot', () => {
+    const { toJSON } = render(TokenNotAvailableModal);
 
-    expect(getByText('Change token')).toBeOnTheScreen();
-    expect(getByText('Change provider')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to token selection when Change token is pressed', () => {
@@ -193,14 +186,13 @@ describe('TokenNotAvailableModal', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('renders modal when provider and token are null', () => {
+  it('matches snapshot with missing provider and token names', () => {
     mockSelectedProvider = null;
     mockSelectedToken = null;
 
-    const { getByText } = render(TokenNotAvailableModal);
+    const { toJSON } = render(TokenNotAvailableModal);
 
-    expect(getByText('Change token')).toBeOnTheScreen();
-    expect(getByText('Change provider')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('fires RAMPS_SCREEN_VIEWED analytics event on mount', () => {

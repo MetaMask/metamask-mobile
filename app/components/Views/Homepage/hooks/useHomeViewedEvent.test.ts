@@ -44,7 +44,6 @@ let mockContextValue = {
   visitId: 0,
   notifySectionViewed: mockNotifySectionViewed,
   getViewedSectionCount: jest.fn(() => 0),
-  appSessionId: 'test-app-session-id',
 };
 
 jest.mock('../context/HomepageScrollContext', () => ({
@@ -93,7 +92,6 @@ describe('useHomeViewedEvent', () => {
       visitId: 1, // Use 1 as default so "event fires" tests pass; 0 = pre-focus, no fire
       notifySectionViewed: mockNotifySectionViewed,
       getViewedSectionCount: jest.fn(() => 0),
-      appSessionId: 'test-app-session-id',
     };
   });
 
@@ -151,19 +149,6 @@ describe('useHomeViewedEvent', () => {
       rerender({ isLoading: false });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not fire the immediate path when fireImmediateWhenNoView is false', () => {
-      renderHook(() =>
-        useHomeViewedEvent({
-          ...defaultParams,
-          sectionRef: null,
-          isLoading: false,
-          fireImmediateWhenNoView: false,
-        }),
-      );
-
-      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
     it('only fires once even after multiple re-renders with null ref', () => {
@@ -319,41 +304,6 @@ describe('useHomeViewedEvent', () => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
 
-    it('does not subscribe or fire while isLoading is true even with a ref', () => {
-      const mockRef = createMockRef(0, 200);
-      renderHook(() =>
-        useHomeViewedEvent({
-          ...defaultParams,
-          sectionRef: mockRef,
-          isLoading: true,
-        }),
-      );
-
-      expect(mockSubscribeToScroll).not.toHaveBeenCalled();
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-    });
-
-    it('subscribes and fires after loading when ref is in viewport', () => {
-      const mockRef = createMockRef(0, 200);
-      const { rerender } = renderHook(
-        ({ loading }: { loading: boolean }) =>
-          useHomeViewedEvent({
-            ...defaultParams,
-            sectionRef: mockRef,
-            isLoading: loading,
-          }),
-        { initialProps: { loading: true } },
-      );
-
-      expect(mockSubscribeToScroll).not.toHaveBeenCalled();
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-
-      rerender({ loading: false });
-
-      expect(mockSubscribeToScroll).toHaveBeenCalledTimes(1);
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    });
-
     it('does not subscribe to scroll when viewportHeight is 0', () => {
       mockContextValue = { ...mockContextValue, viewportHeight: 0 };
       const mockRef = createMockRef(0, 200);
@@ -488,12 +438,6 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('includes all required properties', () => {
-      mockContextValue = {
-        ...mockContextValue,
-        visitId: 2,
-        appSessionId: 'test-app-session-id',
-      };
-
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
@@ -515,8 +459,6 @@ describe('useHomeViewedEvent', () => {
         is_empty: true,
         item_count: 0,
         entry_point: HomeEntryPointsValues.APP_OPENED,
-        app_session_id: 'test-app-session-id',
-        visit_number: 2,
       });
     });
 
@@ -546,85 +488,6 @@ describe('useHomeViewedEvent', () => {
       );
 
       expect(mockTrackEvent).toHaveBeenCalledWith(builtEvent);
-    });
-
-    it('does not manually include active_ab_tests (auto-injected by analytics registry)', () => {
-      renderHook(() =>
-        useHomeViewedEvent({
-          ...defaultParams,
-          sectionRef: null,
-        }),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.not.objectContaining({
-          active_ab_tests: expect.anything(),
-        }),
-      );
-    });
-  });
-
-  describe('new analytics properties', () => {
-    it('includes app_session_id from context', () => {
-      mockContextValue = {
-        ...mockContextValue,
-        appSessionId: 'session-xyz-456',
-      };
-
-      renderHook(() =>
-        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ app_session_id: 'session-xyz-456' }),
-      );
-    });
-
-    it('includes visit_number equal to visitId from context', () => {
-      mockContextValue = { ...mockContextValue, visitId: 3 };
-
-      renderHook(() =>
-        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ visit_number: 3 }),
-      );
-    });
-
-    it('calls notifySectionViewed with recordDepth=false for null-ref sections', () => {
-      renderHook(() =>
-        useHomeViewedEvent({
-          ...defaultParams,
-          sectionRef: null,
-          sectionName: HomeSectionNames.NFTS,
-          sectionIndex: 3,
-        }),
-      );
-
-      expect(mockNotifySectionViewed).toHaveBeenCalledWith(
-        HomeSectionNames.NFTS,
-        3,
-        false, // non-rendered section — must not inflate depth metrics
-      );
-    });
-
-    it('calls notifySectionViewed with recordDepth=true for rendered sections', () => {
-      const mockRef = createMockRef(0, 200); // fully visible
-      renderHook(() =>
-        useHomeViewedEvent({
-          ...defaultParams,
-          sectionRef: mockRef,
-          sectionName: HomeSectionNames.TOKENS,
-          sectionIndex: 1,
-        }),
-      );
-
-      expect(mockNotifySectionViewed).toHaveBeenCalledWith(
-        HomeSectionNames.TOKENS,
-        1,
-        true, // viewport-checked section — should update depth
-      );
     });
   });
 

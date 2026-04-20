@@ -50,21 +50,13 @@ export class AppStateEventListener {
   }
 
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
-    // Only fire APP_OPENED when transitioning from background to active.
-    // Transitioning from inactive (e.g. system permission dialogs, incoming calls)
-    // back to active should NOT count as the user opening the app.
-    if (nextAppState === 'active' && this.lastAppState === 'background') {
+    if (nextAppState === 'active' && this.lastAppState !== nextAppState) {
       // delay to allow time for the deeplink to be set
       setTimeout(() => {
         this.processAppStateChange();
       }, 2000);
     }
-    // On iOS, returning from background passes through an intermediate 'inactive'
-    // state before reaching 'active'. Don't overwrite 'background' with 'inactive'
-    // so the subsequent 'active' check above still sees the original 'background' state.
-    if (!(nextAppState === 'inactive' && this.lastAppState === 'background')) {
-      this.lastAppState = nextAppState;
-    }
+    this.lastAppState = nextAppState;
   };
 
   private identifyUserOnAppStart = () => {

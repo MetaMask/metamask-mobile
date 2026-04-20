@@ -28,7 +28,7 @@ Firstly, you need to have installed [Xcode for IOS](https://developer.apple.com/
 
 Ensure that following devices are set up:
 
-- **iOS**: iPhone 16 Pro
+- **iOS**: iPhone 15 Pro
 - **Android**: Pixel 5 API 34
 
 > **Note**: You can change the default devices at any time by updating the `device.type` in the Detox config located at `.detoxrc.js`.
@@ -38,7 +38,7 @@ Ensure that following devices are set up:
 1. Open Xcode
 2. Go to **Window** → **Devices and Simulators**
 3. Click the **+** button to add a new simulator
-4. Select **iPhone 16 Pro** and create the simulator
+4. Select **iPhone 15 Pro** and create the simulator
 
 **Android:**
 

@@ -422,11 +422,12 @@ describe('OnboardingStep Component', () => {
         description: '',
       };
 
-      const { queryByTestId } = render(
+      const { getByTestId } = render(
         <OnboardingStep {...propsWithEmptyDescription} />,
       );
 
-      expect(queryByTestId('onboarding-step-description')).toBeNull();
+      const description = getByTestId('onboarding-step-description');
+      expect(description.props.children).toBe('');
     });
   });
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import styleSheet from '../../Deposit/Views/OrderProcessing/OrderProcessing.styles';
@@ -7,7 +7,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { getDepositNavbarOptions } from '../../../Navbar';
 import { getOrderById } from '../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,25 +47,19 @@ const V2OrderProcessing = () => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
-  const headerTitle = useMemo(() => {
-    if (!order) {
-      return strings('deposit.order_processing.title');
-    }
-    if (order.state === FIAT_ORDER_STATES.COMPLETED) {
-      return strings('deposit.order_processing.success_title');
-    }
-    if (
-      order.state === FIAT_ORDER_STATES.CANCELLED ||
-      order.state === FIAT_ORDER_STATES.FAILED
-    ) {
-      return strings('deposit.order_processing.error_title');
-    }
-    return strings('deposit.order_processing.title');
-  }, [order]);
+  useEffect(() => {
+    const title =
+      order?.state === FIAT_ORDER_STATES.COMPLETED
+        ? strings('deposit.order_processing.success_title')
+        : order?.state === FIAT_ORDER_STATES.CANCELLED ||
+            order?.state === FIAT_ORDER_STATES.FAILED
+          ? strings('deposit.order_processing.error_title')
+          : strings('deposit.order_processing.title');
 
-  const handleHeaderBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    navigation.setOptions(
+      getDepositNavbarOptions(navigation, { title }, theme),
+    );
+  }, [navigation, theme, order?.state]);
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
@@ -76,15 +70,7 @@ const V2OrderProcessing = () => {
   if (!order) {
     return (
       <ScreenLayout>
-        <ScreenLayout.Body>
-          <HeaderCompactStandard
-            title={headerTitle}
-            onBack={handleHeaderBack}
-            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-            includesTopInset
-          />
-          <Loader size="large" color={theme.colors.primary.default} />
-        </ScreenLayout.Body>
+        <Loader size="large" color={theme.colors.primary.default} />
       </ScreenLayout>
     );
   }
@@ -92,12 +78,6 @@ const V2OrderProcessing = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
-          title={headerTitle}
-          onBack={handleHeaderBack}
-          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-          includesTopInset
-        />
         <ScreenLayout.Content style={styles.content}>
           <DepositOrderContent order={order} />
         </ScreenLayout.Content>

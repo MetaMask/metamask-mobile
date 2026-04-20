@@ -18,14 +18,11 @@ export const createSwapsKeypadStyles = (theme: Theme) =>
 export const quickPickButtonsStyles = StyleSheet.create({
   container: {
     display: 'flex',
-    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 12,
-    width: '100%',
+    flexDirection: 'row',
   },
   button: {
     flex: 1,
-    flexBasis: 0,
-    flexShrink: 1,
-    minWidth: 0,
   },
 });

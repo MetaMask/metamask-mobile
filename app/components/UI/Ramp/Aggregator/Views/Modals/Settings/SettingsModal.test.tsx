@@ -83,6 +83,11 @@ describe('SettingsModal', () => {
     });
   });
 
+  it('renders snapshot correctly', () => {
+    const { toJSON } = render();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('displays settings title in header', () => {
     const { getByText } = render();
 

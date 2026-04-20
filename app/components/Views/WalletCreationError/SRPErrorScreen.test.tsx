@@ -7,10 +7,6 @@ import SRPErrorScreen from './SRPErrorScreen';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import {
-  AccountType,
-  WalletCreationErrorCtaType,
-} from '../../../constants/onboarding';
 
 const mockTrackOnboarding = jest.fn();
 
@@ -74,30 +70,15 @@ describe('SRPErrorScreen', () => {
       expect(mockTrackOnboarding).toHaveBeenCalled();
     });
 
-    it('tracks screen viewed event with account_type, error_type, and error_message', () => {
+    it('tracks event with correct flow_type property', () => {
       renderWithProvider(<SRPErrorScreen error={mockError} />);
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            account_type: AccountType.Metamask,
-            error_type: 'WalletCreationError',
+            flow_type: 'srp',
+            error_name: 'WalletCreationError',
             error_message: 'Test wallet creation error',
-          }),
-        }),
-        expect.any(Function),
-      );
-    });
-
-    it('tracks screen viewed event with custom accountType when provided', () => {
-      renderWithProvider(
-        <SRPErrorScreen error={mockError} accountType={AccountType.Imported} />,
-      );
-
-      expect(mockTrackOnboarding).toHaveBeenCalledWith(
-        expect.objectContaining({
-          properties: expect.objectContaining({
-            account_type: AccountType.Imported,
           }),
         }),
         expect.any(Function),
@@ -184,11 +165,10 @@ describe('SRPErrorScreen', () => {
         fireEvent.press(getByText('Try again'));
       });
 
-      expect(mockTrackOnboarding).toHaveBeenLastCalledWith(
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            cta_type: WalletCreationErrorCtaType.Retry,
-            account_type: AccountType.Metamask,
+            flow_type: 'srp',
           }),
         }),
         expect.any(Function),
@@ -242,11 +222,10 @@ describe('SRPErrorScreen', () => {
 
       fireEvent.press(getByText('Send error report'));
 
-      expect(mockTrackOnboarding).toHaveBeenLastCalledWith(
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            cta_type: WalletCreationErrorCtaType.SendErrorReport,
-            account_type: AccountType.Metamask,
+            flow_type: 'srp',
           }),
         }),
         expect.any(Function),
@@ -309,15 +288,6 @@ describe('SRPErrorScreen', () => {
 
       fireEvent.press(getByText('MetaMask Support'));
 
-      expect(mockTrackOnboarding).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          properties: expect.objectContaining({
-            cta_type: WalletCreationErrorCtaType.ContactSupport,
-            account_type: AccountType.Metamask,
-          }),
-        }),
-        expect.any(Function),
-      );
       expect(Linking.openURL).toHaveBeenCalledWith(
         AppConstants.REVIEW_PROMPT.SUPPORT,
       );

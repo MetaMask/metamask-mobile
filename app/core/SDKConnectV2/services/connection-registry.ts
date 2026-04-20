@@ -18,30 +18,6 @@ import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
-import { analytics } from '../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
-import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
-import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
-
-/**
- * Fire-and-forget analytics helper. Never throws — a broken analytics
- * call must never abort connection establishment or error handling.
- */
-function trackMwpEvent(
-  event: IMetaMetricsEvent,
-  properties: Record<string, unknown>,
-): void {
-  try {
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-    );
-  } catch {
-    // Intentionally swallowed: analytics must not block MWP flows.
-  }
-}
 
 /**
  * Hard cap on the number of simultaneous active connections.
@@ -175,21 +151,8 @@ export class ConnectionRegistry {
     const conn = await this.store.get(id);
 
     if (conn) {
-      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
-        remote_session_id: conn.metadata?.analytics?.remote_session_id ?? id,
-        transport_type: TransportType.MWP,
-        sdk_version: conn.metadata?.sdk?.version,
-        sdk_platform: conn.metadata?.sdk?.platform,
-        found_in_store: true,
-      });
       return;
     }
-
-    trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
-      remote_session_id: id,
-      transport_type: TransportType.MWP,
-      found_in_store: false,
-    });
 
     logger.error(
       'Failed to find connection in store for simple deeplink with id:',
@@ -243,19 +206,9 @@ export class ConnectionRegistry {
 
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
-    let connReq: ConnectionRequest | undefined;
 
     try {
-      connReq = this.parseConnectionRequest(url);
-
-      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
-        remote_session_id:
-          connReq.metadata.analytics?.remote_session_id ??
-          connReq.sessionRequest.id,
-        transport_type: TransportType.MWP,
-        sdk_version: connReq.metadata.sdk.version,
-        sdk_platform: connReq.metadata.sdk.platform,
-      });
+      const connReq = this.parseConnectionRequest(url);
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
       // matches a known internal origin. This check is currently redundant
@@ -286,25 +239,10 @@ export class ConnectionRegistry {
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
-
       logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
-
-      // Track the failure before cleanup so the event fires even if
-      // disconnect() throws.
-      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
-        remote_session_id:
-          connReq?.metadata?.analytics?.remote_session_id ??
-          connReq?.sessionRequest?.id ??
-          'unknown',
-        transport_type: TransportType.MWP,
-        sdk_version: connReq?.metadata?.sdk?.version,
-        sdk_platform: connReq?.metadata?.sdk?.platform,
-        failure_reason: error instanceof Error ? error.message : String(error),
-      });
-
       if (conn) await this.disconnect(conn.id);
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);

@@ -82,12 +82,9 @@ describe('EnterEmail Component', () => {
     ];
   });
 
-  it('renders initial state with email input', () => {
+  it('render matches snapshot', () => {
     render(EnterEmail);
-    expect(screen.getByPlaceholderText('name@domain.com')).toBeOnTheScreen();
-    expect(
-      screen.getByRole('button', { name: 'Send email' }),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls setOptions when the component mounts', () => {
@@ -95,15 +92,13 @@ describe('EnterEmail Component', () => {
     expect(mockSetNavigationOptions).toHaveBeenCalled();
   });
 
-  it('renders loading state with disabled button', async () => {
+  it('renders loading state snapshot', async () => {
     mockUseDepositSdkMethodValues = [
       { ...mockResponse, isFetching: true },
       jest.fn(),
     ];
     render(EnterEmail);
-    expect(
-      screen.getByRole('button', { name: 'Send email' }),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to next screen on "Send email" button press with valid email', async () => {
@@ -132,18 +127,16 @@ describe('EnterEmail Component', () => {
     });
   });
 
-  it('shows validation error for invalid email', async () => {
+  it('renders validation error snapshot invalid email', async () => {
     render(EnterEmail);
     const emailInput = screen.getByPlaceholderText('name@domain.com');
     fireEvent.changeText(emailInput, 'invalid-email');
     fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
-    expect(
-      screen.getByText('Please enter a valid email address'),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('shows error message when API call fails', async () => {
+  it('renders error message snapshot when API call fails', async () => {
     mockSendEmail.mockRejectedValue(new Error('API Error'));
     render(EnterEmail);
     const emailInput = screen.getByPlaceholderText('name@domain.com');
@@ -152,7 +145,7 @@ describe('EnterEmail Component', () => {
     await waitFor(() => {
       expect(mockSendEmail).toHaveBeenCalledWith();
     });
-    expect(screen.getByText('API Error')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('shows error when response missing stateToken', async () => {

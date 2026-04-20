@@ -19,9 +19,12 @@ import { useStyles } from '../../../hooks/useStyles';
 import { RootState } from '../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Routes from '../../../../constants/navigation/Routes';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import { isMainnetByChainId } from '../../../../util/networks';
+import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { useTokenPrice } from '../hooks/useTokenPrice';
@@ -31,10 +34,18 @@ import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import { TraceName, endTrace } from '../../../../util/trace';
+import {
+  isNetworkRampNativeTokenSupported,
+  isNetworkRampSupported,
+} from '../../Ramp/Aggregator/utils';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import AppConstants from '../../../../core/AppConstants';
+import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
+import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
 
@@ -56,10 +67,13 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 /**
- * Fires TOKEN_DETAILS_OPENED for the Token Details view.
+ * Fires TOKEN_DETAILS_OPENED for both V2 and legacy Asset view.
+ * Includes ab_tests property when navigating from the token list and the
+ * token list layout A/B test is active.
  */
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { variantName, isTestActive } = useTokenDetailsABTest();
   const lastTrackedTokenKeyRef = useRef<string | null>(null);
 
   return useCallback(
@@ -67,12 +81,10 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       isMarketInsightsDisplayed,
       severity,
       hasPerpsMarket,
-      stickyButtonsShown,
     }: {
       isMarketInsightsDisplayed: boolean;
       severity: string | undefined;
       hasPerpsMarket: boolean;
-      stickyButtonsShown: 'both' | 'buy' | 'swap' | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
       const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
@@ -97,8 +109,11 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         market_insights_displayed: isMarketInsightsDisplayed,
         severity,
         has_perps_market: hasPerpsMarket,
-        ...(stickyButtonsShown !== undefined && {
-          sticky_buttons_shown: stickyButtonsShown,
+        // A/B test attribution — each experiment is independent
+        ...(isTestActive && {
+          ab_tests: {
+            assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+          },
         }),
       };
       const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
@@ -109,6 +124,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
     },
     [
       createEventBuilder,
+      isTestActive,
       params.address,
       params.balance,
       params.chainId,
@@ -116,6 +132,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.source,
       params.symbol,
       trackEvent,
+      variantName,
     ],
   );
 };
@@ -130,8 +147,7 @@ const TokenDetails: React.FC<{
     isDisplayed: boolean;
     severity: string | undefined;
   }) => void;
-  onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
-}> = ({ token, onMarketInsightsDisplayResolved, onStickyButtonsResolved }) => {
+}> = ({ token, onMarketInsightsDisplayResolved }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
@@ -159,6 +175,8 @@ const TokenDetails: React.FC<{
     prefetchedData: token.securityData,
   });
 
+  const { useNewLayout } = useTokenDetailsABTest();
+
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
   }, []);
@@ -168,6 +186,27 @@ const TokenDetails: React.FC<{
   );
   const networkName = networkConfigurationByChainId?.name;
 
+  const isNativeToken = token.isNative ?? token.isETH;
+  const isMainnet = isMainnetByChainId(token.chainId);
+  const { getBlockExplorerUrl } = useBlockExplorer(token.chainId);
+
+  const shouldShowMoreOptionsInNavBar =
+    isMainnet ||
+    !isNativeToken ||
+    (isNativeToken && getBlockExplorerUrl(token.address, token.chainId));
+
+  const openAssetOptions = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: 'AssetOptions',
+      params: {
+        isNativeCurrency: isNativeToken,
+        address: token.address,
+        chainId: token.chainId,
+        asset: token,
+      },
+    });
+  };
+
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   const {
@@ -176,28 +215,29 @@ const TokenDetails: React.FC<{
     comparePrice,
     prices,
     isLoading,
-    currentCurrency,
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
+    currentCurrency,
   } = useTokenPrice({ token });
 
   const {
     balance,
     fiatBalance,
-    balanceFiatUsd,
     tokenFormattedBalance,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronNative,
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
     ///: END:ONLY_INCLUDE_IF
-  } = useTokenBalance(token, { calculateUsdBalance: true });
+  } = useTokenBalance(token);
 
   const {
     onBuy,
     onSend,
     onReceive,
+    goToSwaps,
     handleStickySwapPress,
     hasEligibleSwapTokens,
   } = useTokenActions({
@@ -205,6 +245,12 @@ const TokenDetails: React.FC<{
     networkName,
     currentTokenBalance: balance,
   });
+
+  // Swaps view should always scroll to top when navigating from the token details view
+  const goToSwapsFromDetails = useCallback(
+    () => goToSwaps(undefined, undefined, undefined, true),
+    [goToSwaps],
+  );
 
   const {
     transactions,
@@ -223,6 +269,23 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
+  const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
+    asset: {
+      isETH: token.isETH ?? false,
+      isNative: token.isNative ?? false,
+      address: token.address ?? '',
+      chainId: token.chainId ?? '',
+    },
+  });
+  const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
+
+  const rampNetworks = useSelector(getRampNetworks);
+
+  const chainIdForRamp = token.chainId ?? '';
+  const isRampAvailable = isNativeToken
+    ? isNetworkRampNativeTokenSupported(chainIdForRamp, rampNetworks)
+    : isNetworkRampSupported(chainIdForRamp, rampNetworks);
+
   const renderHeader = () => (
     <>
       <AssetOverviewContent
@@ -239,10 +302,13 @@ const TokenDetails: React.FC<{
         setTimePeriod={setTimePeriod}
         chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
+        displayBuyButton={isRampAvailable}
+        displaySwapsButton={displaySwapsButton}
         currentCurrency={currentCurrency}
         onBuy={onBuy}
         onSend={onSend}
         onReceive={onReceive}
+        goToSwaps={goToSwapsFromDetails}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
         onMarketInsightsDisclaimerPress={() =>
           setIsInsightsDisclaimerVisible(true)
@@ -251,6 +317,7 @@ const TokenDetails: React.FC<{
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTronNative={isTronNative}
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}
@@ -274,7 +341,14 @@ const TokenDetails: React.FC<{
   );
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader onBackPress={() => navigation.goBack()} />
+      <TokenDetailsInlineHeader
+        onBackPress={() => navigation.goBack()}
+        onOptionsPress={
+          shouldShowMoreOptionsInNavBar && !useNewLayout
+            ? openAssetOptions
+            : undefined
+        }
+      />
 
       {txLoading ? (
         renderLoader()
@@ -309,15 +383,13 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && (
+      {useNewLayout && !txLoading && (
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
-          balanceFiatUsd={balanceFiatUsd}
           onBuy={onBuy}
           onSwap={handleStickySwapPress}
           hasEligibleSwapTokens={hasEligibleSwapTokens}
-          onStickyButtonsResolved={onStickyButtonsResolved}
         />
       )}
       {isInsightsDisclaimerVisible && (
@@ -340,11 +412,6 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { hasPerpsMarket, isLoading: isPerpsMarketLoading } =
     usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
-
-  // undefined = not yet resolved; null = footer won't render; string = resolved value
-  const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
-    'both' | 'buy' | 'swap' | null | undefined
-  >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
@@ -385,15 +452,10 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     if (isPerpsEnabled && isPerpsMarketLoading) {
       return;
     }
-    if (resolvedStickyButtons === undefined) {
-      // Wait until sticky buttons have settled before firing the event.
-      return;
-    }
     trackTokenDetailsOpened({
       isMarketInsightsDisplayed: pendingInsights.isDisplayed,
       severity: pendingInsights.severity,
       hasPerpsMarket: isPerpsEnabled ? hasPerpsMarket : false,
-      stickyButtonsShown: resolvedStickyButtons ?? undefined,
     });
     setPendingInsights(null);
   }, [
@@ -401,7 +463,6 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     hasPerpsMarket,
     isPerpsEnabled,
     isPerpsMarketLoading,
-    resolvedStickyButtons,
     tokenKey,
     trackTokenDetailsOpened,
   ]);
@@ -410,7 +471,6 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     <TokenDetails
       token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
-      onStickyButtonsResolved={setResolvedStickyButtons}
     />
   );
 };

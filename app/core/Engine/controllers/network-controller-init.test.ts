@@ -1,11 +1,11 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getNetworkControllerInitMessenger,
   getNetworkControllerMessenger,
   NetworkControllerInitMessenger,
 } from '../messengers/network-controller-messenger';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import {
   ADDITIONAL_DEFAULT_NETWORKS,
   getInitialNetworkControllerState,
@@ -44,13 +44,13 @@ function getInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): jest.Mocked<
-  MessengerClientInitRequest<
+  ControllerInitRequest<
     NetworkControllerMessenger,
     NetworkControllerInitMessenger
   >
 > {
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getNetworkControllerMessenger(baseMessenger),
     initMessenger: getNetworkControllerInitMessenger(baseMessenger),
   };

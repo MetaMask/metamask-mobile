@@ -20,7 +20,6 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import UnifiedTransactionsView from '../../page-objects/Transactions/UnifiedTransactionsView';
 
 // EVM-only account tree to prevent Solana snap from fetching live transactions
@@ -125,10 +124,6 @@ function createAccountsTestSpecificMock(
   transactions: Record<string, unknown>[] = [],
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
-    await setupRemoteFeatureFlagsMock(mockServer, {
-      homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-      homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-    });
     const mock = mockAccountsApi(transactions);
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',

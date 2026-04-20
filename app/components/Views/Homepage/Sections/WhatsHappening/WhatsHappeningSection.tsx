@@ -21,7 +21,6 @@ import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 
 const MAX_ITEMS_DISPLAYED = 5;
 
@@ -74,14 +73,6 @@ const WhatsHappeningSection = forwardRef<
     totalSectionsLoaded,
     isEmpty: items.length === 0,
     itemCount: items.length,
-  });
-
-  useSectionPerformance({
-    sectionId: HomeSectionNames.WHATS_HAPPENING,
-    contentReady: willRender,
-    isEmpty: items.length === 0,
-    isLoading,
-    enabled: isEnabled,
   });
 
   const navigateToDetail = useCallback(

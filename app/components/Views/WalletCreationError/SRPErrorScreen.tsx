@@ -41,21 +41,15 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { Authentication } from '../../../core';
-import {
-  AccountType,
-  WalletCreationErrorCtaType,
-} from '../../../constants/onboarding';
 
 interface SRPErrorScreenProps {
   error: Error;
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
-  accountType?: AccountType;
 }
 
 const SRPErrorScreen = ({
   error,
   saveOnboardingEvent,
-  accountType = AccountType.Metamask,
 }: SRPErrorScreenProps) => {
   const navigation = useNavigation();
   const tw = useTailwind();
@@ -77,25 +71,24 @@ const SRPErrorScreen = ({
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED,
       )
         .addProperties({
-          account_type: accountType,
-          error_type: error?.name || 'Unknown',
+          flow_type: 'srp',
+          error_name: error?.name || 'Unknown',
           error_message: error?.message || 'No message',
         })
         .build(),
       saveOnboardingEvent,
     );
-  }, [error, saveOnboardingEvent, accountType]);
+  }, [error, saveOnboardingEvent]);
 
   const errorReport = `View: ChoosePassword\nError: ${error?.name || 'Unknown'}\n${error?.message || 'No message'}`;
 
   const handleTryAgain = useCallback(async () => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+        MetaMetricsEvents.WALLET_CREATION_ERROR_RETRY_CLICKED,
       )
         .addProperties({
-          cta_type: WalletCreationErrorCtaType.Retry,
-          account_type: accountType,
+          flow_type: 'srp',
         })
         .build(),
       saveOnboardingEvent,
@@ -105,16 +98,15 @@ const SRPErrorScreen = ({
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
     });
-  }, [navigation, saveOnboardingEvent, accountType]);
+  }, [navigation, saveOnboardingEvent]);
 
   const handleSendErrorReport = useCallback(() => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+        MetaMetricsEvents.WALLET_CREATION_ERROR_REPORT_SENT,
       )
         .addProperties({
-          cta_type: WalletCreationErrorCtaType.SendErrorReport,
-          account_type: accountType,
+          flow_type: 'srp',
         })
         .build(),
       saveOnboardingEvent,
@@ -141,7 +133,7 @@ const SRPErrorScreen = ({
         },
       ],
     });
-  }, [navigation, error, saveOnboardingEvent, accountType]);
+  }, [navigation, error, saveOnboardingEvent]);
 
   const handleCopyError = useCallback(() => {
     Clipboard.setString(errorReport);
@@ -153,19 +145,8 @@ const SRPErrorScreen = ({
   }, [errorReport]);
 
   const handleContactSupport = useCallback(() => {
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
-      )
-        .addProperties({
-          cta_type: WalletCreationErrorCtaType.ContactSupport,
-          account_type: accountType,
-        })
-        .build(),
-      saveOnboardingEvent,
-    );
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [saveOnboardingEvent, accountType]);
+  }, []);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>

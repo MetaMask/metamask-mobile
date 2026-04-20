@@ -445,11 +445,7 @@ const PerpsTPSLView: React.FC = () => {
   }, [focusedInput, dismissKeypad, handleStopLossOff]);
 
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={['top', 'bottom']}
-      testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
-    >
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Simple header with back button and title */}
       <View style={styles.header}>
         <View style={styles.headerBackButton}>
@@ -922,7 +918,7 @@ const PerpsTPSLView: React.FC = () => {
                 onPress={handleConfirm}
                 isDisabled={confirmDisabled}
                 loading={isUpdating}
-                testID={PerpsTPSLViewSelectorsIDs.SET_BUTTON}
+                testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
               />
             </View>
           </View>

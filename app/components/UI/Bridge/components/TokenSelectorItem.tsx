@@ -73,14 +73,13 @@ const createStyles = ({
       flex: 1,
       flexShrink: 1,
       minWidth: 0,
-      marginLeft: 12,
+      marginLeft: 8,
     },
     container: {
       backgroundColor: vars.isSelected
         ? theme.colors.primary.muted
         : theme.colors.background.default,
       paddingVertical: 4,
-      minHeight: 72,
       paddingLeft: 16,
       paddingRight: 10,
     },
@@ -96,7 +95,7 @@ const createStyles = ({
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingVertical: 12,
+      paddingVertical: 10,
       alignItems: 'flex-start',
     },
     tokenMainInfo: {
@@ -299,7 +298,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     textColor: TextColor.Default,
   };
   const bottomRowBalanceTextStyle = {
-    textVariant: TextVariant.BodySM,
+    textVariant: TextVariant.BodyMD,
     textColor: TextColor.Alternative,
   };
 
@@ -344,7 +343,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <AvatarToken
               name={token.symbol}
               imageSource={getTokenImageSource(token.symbol, token.image)}
-              size={AvatarSize.Lg}
+              size={AvatarSize.Md}
               testID={
                 isNative
                   ? `network-logo-${token.symbol}`

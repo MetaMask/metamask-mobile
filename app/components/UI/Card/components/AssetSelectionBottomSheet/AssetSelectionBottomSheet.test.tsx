@@ -80,13 +80,9 @@ jest.mock('../../hooks/useAssetBalances', () => ({
   useAssetBalances: jest.fn(),
 }));
 
-jest.mock('../../hooks/useCardHomeData', () => ({
-  useCardHomeData: jest.fn(),
-}));
-
-const mockUpdateFundingPriority = jest.fn();
-jest.mock('../../hooks/useUpdateFundingPriority', () => ({
-  useUpdateFundingPriority: jest.fn(),
+const mockUpdateTokenPriority = jest.fn();
+jest.mock('../../hooks/useUpdateTokenPriority', () => ({
+  useUpdateTokenPriority: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger');
@@ -123,17 +119,17 @@ import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import AssetSelectionBottomSheet from './AssetSelectionBottomSheet';
 import {
-  FundingStatus,
-  CardFundingToken,
+  AllowanceState,
+  CardTokenAllowance,
   DelegationSettingsResponse,
+  CardExternalWalletDetail,
 } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import { useUpdateFundingPriority } from '../../hooks/useUpdateFundingPriority';
-import { useCardHomeData } from '../../hooks/useCardHomeData';
-import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
+import { useAssetBalances } from '../../hooks/useAssetBalances';
+import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -153,16 +149,16 @@ const renderWithToastContext = (component: React.ReactElement) =>
 
 // Helper function to create mock token
 const createMockToken = (
-  overrides: Partial<CardFundingToken> = {},
-): CardFundingToken => ({
+  overrides: Partial<CardTokenAllowance> = {},
+): CardTokenAllowance => ({
   address: '0x123',
   symbol: 'USDC',
   name: 'USD Coin',
   decimals: 6,
   caipChainId: 'eip155:59144' as CaipChainId,
   walletAddress: '0xwallet',
-  fundingStatus: FundingStatus.NotEnabled,
-  spendableBalance: '0',
+  allowanceState: AllowanceState.NotEnabled,
+  allowance: '0',
   priority: undefined,
   ...overrides,
 });
@@ -195,45 +191,19 @@ const createMockDelegationSettings = (): DelegationSettingsResponse => ({
   },
 });
 
-// Helper function to setup component with useParams and useCardHomeData
-const setupComponent = (paramsOverrides: Record<string, unknown> = {}) => {
-  const {
-    tokensWithAllowances = [],
-    fundingTokens: fundingTokensParam,
-    primaryToken = null,
-    delegationSettings = null,
-    balanceMap = new Map(),
-    navigateToCardHomeOnPriorityToken = false,
-    selectionOnly = false,
-    onTokenSelect = undefined,
-    callerRoute = undefined,
-    callerParams = undefined,
-    ...rest
-  } = paramsOverrides;
-
-  const tokens = tokensWithAllowances as CardFundingToken[];
-
-  // If fundingTokens was explicitly provided (even as null), use it; otherwise default to tokens
-  const resolvedFundingTokens =
-    'fundingTokens' in paramsOverrides ? fundingTokensParam : tokens;
-
+// Helper function to setup component with useParams
+const setupComponent = (paramsOverrides = {}) => {
   mockUseParams.mockReturnValue({
-    navigateToCardHomeOnPriorityToken,
-    selectionOnly,
-    onTokenSelect,
-    callerRoute,
-    callerParams,
-    ...rest,
+    tokensWithAllowances: [],
+    delegationSettings: null,
+    cardExternalWalletDetails: null,
+    navigateToCardHomeOnPriorityToken: false,
+    selectionOnly: false,
+    onTokenSelect: undefined,
+    callerRoute: undefined,
+    callerParams: undefined,
+    ...paramsOverrides,
   });
-
-  (useCardHomeData as jest.Mock).mockReturnValue({
-    availableTokens: tokens,
-    fundingTokens: resolvedFundingTokens,
-    primaryToken,
-    balanceMap,
-    data: { delegationSettings },
-  });
-
   return renderWithToastContext(<AssetSelectionBottomSheet />);
 };
 
@@ -241,7 +211,14 @@ describe('AssetSelectionBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelector.mockReturnValue(undefined);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector.toString().includes('selectUserCardLocation')) {
+        return 'international';
+      }
+      return undefined;
+    });
+
+    (useAssetBalances as jest.Mock).mockReturnValue(new Map());
 
     // Re-configure mockEventBuilder after resetAllMocks clears it
     mockEventBuilder.addProperties = jest.fn().mockReturnThis();
@@ -258,11 +235,11 @@ describe('AssetSelectionBottomSheet', () => {
       navigateToCardPage: mockNavigateToCardPage,
     });
 
-    // Mock useUpdateFundingPriority to call onSuccess by default
-    mockUpdateFundingPriority.mockImplementation(async () => true);
-    (useUpdateFundingPriority as jest.Mock).mockImplementation((params) => ({
-      updateFundingPriority: async (token: unknown) => {
-        const result = await mockUpdateFundingPriority(token);
+    // Mock useUpdateTokenPriority to call onSuccess by default
+    mockUpdateTokenPriority.mockImplementation(async () => true);
+    (useUpdateTokenPriority as jest.Mock).mockImplementation((params) => ({
+      updateTokenPriority: async (token: unknown, walletDetails: unknown) => {
+        const result = await mockUpdateTokenPriority(token, walletDetails);
         if (result && params?.onSuccess) {
           params.onSuccess();
         } else if (!result && params?.onError) {
@@ -274,22 +251,14 @@ describe('AssetSelectionBottomSheet', () => {
 
     // Default useParams mock
     mockUseParams.mockReturnValue({
+      tokensWithAllowances: [],
+      delegationSettings: null,
+      cardExternalWalletDetails: null,
       navigateToCardHomeOnPriorityToken: false,
       selectionOnly: false,
       onTokenSelect: undefined,
       callerRoute: undefined,
       callerParams: undefined,
-    });
-
-    // Default useCardHomeData mock
-    (useCardHomeData as jest.Mock).mockReturnValue({
-      availableTokens: [],
-      fundingTokens: [],
-      primaryToken: null,
-      balanceMap: new Map(),
-      data: {
-        delegationSettings: null,
-      },
     });
   });
 
@@ -314,7 +283,7 @@ describe('AssetSelectionBottomSheet', () => {
       });
 
       expect(UNSAFE_getByType('ActivityIndicator' as never)).toBeTruthy();
-      expect(queryByText('No tokens available')).not.toBeOnTheScreen();
+      expect(queryByText('No tokens available')).toBeNull();
     });
 
     it('displays no tokens message when no tokens available', () => {
@@ -345,7 +314,7 @@ describe('AssetSelectionBottomSheet', () => {
     it('renders token list when tokens are available', () => {
       const token = createMockToken({
         symbol: 'USDC',
-        fundingStatus: FundingStatus.Enabled,
+        allowanceState: AllowanceState.Enabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
@@ -361,7 +330,7 @@ describe('AssetSelectionBottomSheet', () => {
     it('displays limited state for tokens with limited allowance', () => {
       const token = createMockToken({
         symbol: 'USDT',
-        fundingStatus: FundingStatus.Limited,
+        allowanceState: AllowanceState.Limited,
       });
       const delegationSettings = createMockDelegationSettings();
 
@@ -376,7 +345,7 @@ describe('AssetSelectionBottomSheet', () => {
     it('displays not enabled state for tokens without allowance', () => {
       const token = createMockToken({
         symbol: 'DAI',
-        fundingStatus: FundingStatus.NotEnabled,
+        allowanceState: AllowanceState.NotEnabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
@@ -415,17 +384,22 @@ describe('AssetSelectionBottomSheet', () => {
 
   describe('token sorting', () => {
     it('sorts tokens by priority', () => {
-      mockUseSelector.mockReturnValue(undefined);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectUserCardLocation')) {
+          return 'international';
+        }
+        return undefined;
+      });
       const token1 = createMockToken({
         symbol: 'USDC',
         priority: 2,
-        fundingStatus: FundingStatus.Enabled,
+        allowanceState: AllowanceState.Enabled,
       });
       const token2 = createMockToken({
         symbol: 'USDT',
         address: '0x456',
         priority: 1,
-        fundingStatus: FundingStatus.Enabled,
+        allowanceState: AllowanceState.Enabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
@@ -444,12 +418,12 @@ describe('AssetSelectionBottomSheet', () => {
     it('sorts enabled tokens before not enabled tokens', () => {
       const notEnabledToken = createMockToken({
         symbol: 'DAI',
-        fundingStatus: FundingStatus.NotEnabled,
+        allowanceState: AllowanceState.NotEnabled,
       });
       const enabledToken = createMockToken({
         symbol: 'USDC',
         address: '0x456',
-        fundingStatus: FundingStatus.Enabled,
+        allowanceState: AllowanceState.Enabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
@@ -469,28 +443,33 @@ describe('AssetSelectionBottomSheet', () => {
       const highFiatToken = createMockToken({
         symbol: 'USDC',
         address: '0x111',
-        fundingStatus: FundingStatus.NotEnabled,
+        allowanceState: AllowanceState.NotEnabled,
       });
       const lowFiatToken = createMockToken({
         symbol: 'USDT',
         address: '0x222',
-        fundingStatus: FundingStatus.NotEnabled,
+        allowanceState: AllowanceState.NotEnabled,
       });
 
-      const balanceMap = new Map([
-        [
-          getAssetBalanceKey(highFiatToken),
-          {
-            rawTokenBalance: 100,
-            balanceFiat: '$100.00',
-            rawFiatNumber: 100,
-          },
-        ],
-        [
-          getAssetBalanceKey(lowFiatToken),
-          { rawTokenBalance: 10, balanceFiat: '$10.00', rawFiatNumber: 10 },
-        ],
-      ]);
+      const highFiatKey = `${highFiatToken.address?.toLowerCase()}-${highFiatToken.caipChainId}-${highFiatToken.walletAddress?.toLowerCase()}`;
+      const lowFiatKey = `${lowFiatToken.address?.toLowerCase()}-${lowFiatToken.caipChainId}-${lowFiatToken.walletAddress?.toLowerCase()}`;
+
+      (useAssetBalances as jest.Mock).mockReturnValue(
+        new Map([
+          [
+            highFiatKey,
+            {
+              rawTokenBalance: 100,
+              balanceFiat: '$100.00',
+              rawFiatNumber: 100,
+            },
+          ],
+          [
+            lowFiatKey,
+            { rawTokenBalance: 10, balanceFiat: '$10.00', rawFiatNumber: 10 },
+          ],
+        ]),
+      );
 
       const delegationSettings = createMockDelegationSettings();
 
@@ -498,7 +477,6 @@ describe('AssetSelectionBottomSheet', () => {
       const { toJSON } = setupComponent({
         tokensWithAllowances: [lowFiatToken, highFiatToken],
         delegationSettings,
-        balanceMap,
       });
 
       const renderedJson = JSON.stringify(toJSON());
@@ -519,38 +497,44 @@ describe('AssetSelectionBottomSheet', () => {
       const enabledToken = createMockToken({
         symbol: 'USDC',
         address: '0x111',
-        fundingStatus: FundingStatus.Enabled,
+        allowanceState: AllowanceState.Enabled,
         priority: 1,
       });
       const notEnabledHighFiat = createMockToken({
         symbol: 'USDT',
         address: '0x222',
-        fundingStatus: FundingStatus.NotEnabled,
+        allowanceState: AllowanceState.NotEnabled,
       });
       const notEnabledLowFiat = createMockToken({
         symbol: 'EURe',
         address: '0x333',
-        fundingStatus: FundingStatus.NotEnabled,
+        allowanceState: AllowanceState.NotEnabled,
       });
 
-      const balanceMap = new Map([
-        [
-          getAssetBalanceKey(enabledToken),
-          { rawTokenBalance: 5, balanceFiat: '$5.00', rawFiatNumber: 5 },
-        ],
-        [
-          getAssetBalanceKey(notEnabledHighFiat),
-          {
-            rawTokenBalance: 200,
-            balanceFiat: '$200.00',
-            rawFiatNumber: 200,
-          },
-        ],
-        [
-          getAssetBalanceKey(notEnabledLowFiat),
-          { rawTokenBalance: 1, balanceFiat: '$1.00', rawFiatNumber: 1 },
-        ],
-      ]);
+      const enabledKey = `${enabledToken.address?.toLowerCase()}-${enabledToken.caipChainId}-${enabledToken.walletAddress?.toLowerCase()}`;
+      const highFiatKey = `${notEnabledHighFiat.address?.toLowerCase()}-${notEnabledHighFiat.caipChainId}-${notEnabledHighFiat.walletAddress?.toLowerCase()}`;
+      const lowFiatKey = `${notEnabledLowFiat.address?.toLowerCase()}-${notEnabledLowFiat.caipChainId}-${notEnabledLowFiat.walletAddress?.toLowerCase()}`;
+
+      (useAssetBalances as jest.Mock).mockReturnValue(
+        new Map([
+          [
+            enabledKey,
+            { rawTokenBalance: 5, balanceFiat: '$5.00', rawFiatNumber: 5 },
+          ],
+          [
+            highFiatKey,
+            {
+              rawTokenBalance: 200,
+              balanceFiat: '$200.00',
+              rawFiatNumber: 200,
+            },
+          ],
+          [
+            lowFiatKey,
+            { rawTokenBalance: 1, balanceFiat: '$1.00', rawFiatNumber: 1 },
+          ],
+        ]),
+      );
 
       const delegationSettings = createMockDelegationSettings();
 
@@ -561,7 +545,6 @@ describe('AssetSelectionBottomSheet', () => {
           enabledToken,
         ],
         delegationSettings,
-        balanceMap,
       });
 
       const renderedJson = JSON.stringify(toJSON());
@@ -586,20 +569,25 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenWithFiat = createMockToken({
         symbol: 'USDC',
         address: '0x111',
-        fundingStatus: FundingStatus.NotEnabled,
+        allowanceState: AllowanceState.NotEnabled,
       });
       const tokenWithoutFiat = createMockToken({
         symbol: 'USDT',
         address: '0x222',
-        fundingStatus: FundingStatus.NotEnabled,
+        allowanceState: AllowanceState.NotEnabled,
       });
 
-      const balanceMap = new Map([
-        [
-          getAssetBalanceKey(tokenWithFiat),
-          { rawTokenBalance: 50, balanceFiat: '$50.00', rawFiatNumber: 50 },
-        ],
-      ]);
+      const withFiatKey = `${tokenWithFiat.address?.toLowerCase()}-${tokenWithFiat.caipChainId}-${tokenWithFiat.walletAddress?.toLowerCase()}`;
+
+      // Only provide balance data for the first token; second has no entry → rawFiatNumber undefined
+      (useAssetBalances as jest.Mock).mockReturnValue(
+        new Map([
+          [
+            withFiatKey,
+            { rawTokenBalance: 50, balanceFiat: '$50.00', rawFiatNumber: 50 },
+          ],
+        ]),
+      );
 
       const delegationSettings = createMockDelegationSettings();
 
@@ -607,7 +595,6 @@ describe('AssetSelectionBottomSheet', () => {
       const { toJSON } = setupComponent({
         tokensWithAllowances: [tokenWithoutFiat, tokenWithFiat],
         delegationSettings,
-        balanceMap,
       });
 
       const renderedJson = JSON.stringify(toJSON());
@@ -626,24 +613,26 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('balance display', () => {
-    it('displays token balance from balanceMap', () => {
+    it('displays token balance from useAssetBalances hook', () => {
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 
-      const balanceMap = new Map([
-        [
-          getAssetBalanceKey(token),
-          {
-            rawTokenBalance: 123.456789,
-            balanceFiat: '$123.45',
-          },
-        ],
-      ]);
+      const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
+      (useAssetBalances as jest.Mock).mockReturnValue(
+        new Map([
+          [
+            tokenKey,
+            {
+              rawTokenBalance: 123.456789,
+              balanceFiat: '$123.45',
+            },
+          ],
+        ]),
+      );
 
       const { getByText } = setupComponent({
         tokensWithAllowances: [token],
         delegationSettings,
-        balanceMap,
       });
 
       expect(getByText('$123.45')).toBeOnTheScreen();
@@ -653,6 +642,8 @@ describe('AssetSelectionBottomSheet', () => {
     it('displays zero balance when balance data is not available', () => {
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
+
+      (useAssetBalances as jest.Mock).mockReturnValue(new Map());
 
       const { getAllByText, getByText } = setupComponent({
         tokensWithAllowances: [token],
@@ -689,15 +680,15 @@ describe('AssetSelectionBottomSheet', () => {
           decimals: token.decimals,
           caipChainId: token.caipChainId,
           walletAddress: token.walletAddress,
-          fundingStatus: token.fundingStatus,
-          spendableBalance: token.spendableBalance,
+          allowanceState: token.allowanceState,
+          allowance: token.allowance,
         }),
       );
     });
 
     it('navigates to spending limit for not enabled token', () => {
       const token = createMockToken({
-        fundingStatus: FundingStatus.NotEnabled,
+        allowanceState: AllowanceState.NotEnabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
@@ -719,26 +710,54 @@ describe('AssetSelectionBottomSheet', () => {
             decimals: token.decimals,
             caipChainId: token.caipChainId,
             walletAddress: token.walletAddress,
-            fundingStatus: token.fundingStatus,
-            spendableBalance: token.spendableBalance,
+            allowanceState: token.allowanceState,
+            allowance: token.allowance,
           }),
+          priorityToken: undefined,
+          delegationSettings,
         }),
       );
     });
 
     it('updates priority for enabled token', async () => {
       const token = createMockToken({
-        fundingStatus: FundingStatus.Enabled,
+        allowanceState: AllowanceState.Enabled,
         priority: 2,
       });
       const delegationSettings = createMockDelegationSettings();
+      const cardExternalWalletDetails: {
+        walletDetails: CardExternalWalletDetail[];
+        mappedWalletDetails: CardTokenAllowance[];
+        priorityWalletDetail: CardTokenAllowance | undefined;
+      } = {
+        walletDetails: [
+          {
+            id: 1,
+            walletAddress: '0xwallet',
+            currency: 'USDC',
+            balance: '1000',
+            allowance: '500',
+            priority: 2,
+            tokenDetails: {
+              address: '0x123',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+            },
+            caipChainId: 'eip155:59144' as CaipChainId,
+            network: 'linea' as const,
+          },
+        ],
+        mappedWalletDetails: [token],
+        priorityWalletDetail: undefined,
+      };
 
-      mockUpdateFundingPriority.mockImplementation(async () => true);
+      mockUpdateTokenPriority.mockImplementation(async () => true);
 
       const { getByText } = setupComponent({
         tokensWithAllowances: [token],
         delegationSettings,
-        fundingTokens: [token],
+        cardExternalWalletDetails,
       });
 
       const tokenElement = getByText('USDC on Linea');
@@ -750,13 +769,14 @@ describe('AssetSelectionBottomSheet', () => {
 
       await waitFor(
         () => {
-          expect(mockUpdateFundingPriority).toHaveBeenCalledWith(
+          expect(mockUpdateTokenPriority).toHaveBeenCalledWith(
             expect.objectContaining({
               address: token.address,
               symbol: token.symbol,
               caipChainId: token.caipChainId,
               walletAddress: token.walletAddress,
             }),
+            cardExternalWalletDetails.walletDetails,
           );
         },
         { timeout: 3000 },
@@ -772,11 +792,16 @@ describe('AssetSelectionBottomSheet', () => {
     it('closes bottom sheet when already priority token is selected and navigateToCardHomeOnPriorityToken is false', () => {
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
+      const cardExternalWalletDetails = {
+        walletDetails: [],
+        mappedWalletDetails: [],
+        priorityWalletDetail: token,
+      };
 
       const { getByText } = setupComponent({
         tokensWithAllowances: [token],
         delegationSettings,
-        primaryToken: token,
+        cardExternalWalletDetails,
         navigateToCardHomeOnPriorityToken: false,
       });
 
@@ -786,18 +811,44 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('error handling', () => {
-    it('displays error toast when updateFundingPriority fails', async () => {
+    it('displays error toast when updateTokenPriority fails', async () => {
       const token = createMockToken({
-        fundingStatus: FundingStatus.Enabled,
+        allowanceState: AllowanceState.Enabled,
       });
       const delegationSettings = createMockDelegationSettings();
+      const cardExternalWalletDetails: {
+        walletDetails: CardExternalWalletDetail[];
+        mappedWalletDetails: CardTokenAllowance[];
+        priorityWalletDetail: CardTokenAllowance | undefined;
+      } = {
+        walletDetails: [
+          {
+            id: 1,
+            walletAddress: '0xwallet',
+            currency: 'USDC',
+            balance: '1000',
+            allowance: '500',
+            priority: 1,
+            tokenDetails: {
+              address: '0x123',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+            },
+            caipChainId: 'eip155:59144' as CaipChainId,
+            network: 'linea' as const,
+          },
+        ],
+        mappedWalletDetails: [token],
+        priorityWalletDetail: undefined,
+      };
 
-      mockUpdateFundingPriority.mockImplementation(async () => false);
+      mockUpdateTokenPriority.mockImplementation(async () => false);
 
       const { getByText } = setupComponent({
         tokensWithAllowances: [token],
         delegationSettings,
-        fundingTokens: [token],
+        cardExternalWalletDetails,
       });
 
       const tokenElement = getByText('USDC on Linea');
@@ -819,18 +870,16 @@ describe('AssetSelectionBottomSheet', () => {
       );
     });
 
-    it('displays error toast when funding asset is not found', async () => {
+    it('displays error toast when wallet details are not available', async () => {
       const token = createMockToken({
-        fundingStatus: FundingStatus.Enabled,
+        allowanceState: AllowanceState.Enabled,
       });
       const delegationSettings = createMockDelegationSettings();
-
-      mockUpdateFundingPriority.mockImplementation(async () => false);
 
       const { getByText } = setupComponent({
         tokensWithAllowances: [token],
         delegationSettings,
-        fundingTokens: [token],
+        cardExternalWalletDetails: null,
       });
 
       const tokenElement = getByText('USDC on Linea');
@@ -850,23 +899,50 @@ describe('AssetSelectionBottomSheet', () => {
         },
         { timeout: 3000 },
       );
+      expect(mockUpdateTokenPriority).not.toHaveBeenCalled();
     });
   });
 
   describe('metrics tracking', () => {
     it('tracks token selection event', async () => {
       const token = createMockToken({
-        fundingStatus: FundingStatus.Enabled,
-        spendableBalance: '1000',
+        allowanceState: AllowanceState.Enabled,
+        allowance: '1000',
       });
       const delegationSettings = createMockDelegationSettings();
+      const cardExternalWalletDetails: {
+        walletDetails: CardExternalWalletDetail[];
+        mappedWalletDetails: CardTokenAllowance[];
+        priorityWalletDetail: CardTokenAllowance | undefined;
+      } = {
+        walletDetails: [
+          {
+            id: 1,
+            walletAddress: '0xwallet',
+            currency: 'USDC',
+            balance: '1000',
+            allowance: '1000',
+            priority: 1,
+            tokenDetails: {
+              address: '0x123',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+            },
+            caipChainId: 'eip155:59144' as CaipChainId,
+            network: 'linea' as const,
+          },
+        ],
+        mappedWalletDetails: [token],
+        priorityWalletDetail: undefined,
+      };
 
-      mockUpdateFundingPriority.mockImplementation(async () => true);
+      mockUpdateTokenPriority.mockImplementation(async () => true);
 
       const { getByText } = setupComponent({
         tokensWithAllowances: [token],
         delegationSettings,
-        fundingTokens: [token],
+        cardExternalWalletDetails,
       });
 
       const tokenElement = getByText('USDC on Linea');
@@ -1009,20 +1085,15 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      expect(queryByText(/0x/)).not.toBeOnTheScreen();
+      expect(queryByText(/0x/)).toBeNull();
     });
   });
 
-  describe('token display from provider data', () => {
-    it('displays all available tokens including those from delegation settings', () => {
+  describe('token merging from delegation settings', () => {
+    it('adds supported tokens from delegation settings not in user wallet', () => {
       const userToken = createMockToken({
         symbol: 'mUSD',
         address: '0x123',
-      });
-      const delegationToken = createMockToken({
-        symbol: 'EURe',
-        address: '0x456',
-        fundingStatus: FundingStatus.NotEnabled,
       });
       const delegationSettings: DelegationSettingsResponse = {
         networks: [
@@ -1066,7 +1137,7 @@ describe('AssetSelectionBottomSheet', () => {
       ]);
 
       const { getByText } = setupComponent({
-        tokensWithAllowances: [userToken, delegationToken],
+        tokensWithAllowances: [userToken],
         delegationSettings,
       });
 
@@ -1126,6 +1197,11 @@ describe('AssetSelectionBottomSheet', () => {
         address: '0xeure',
       });
       const delegationSettings = createMockDelegationSettings();
+      const cardExternalWalletDetails = {
+        walletDetails: [],
+        mappedWalletDetails: [],
+        priorityWalletDetail: token,
+      };
 
       // Mock SDK to return EURe with proper casing
       mockSdk.getSupportedTokensByChainId.mockReturnValue([
@@ -1140,7 +1216,7 @@ describe('AssetSelectionBottomSheet', () => {
       const { getByTestId } = setupComponent({
         tokensWithAllowances: [token],
         delegationSettings,
-        primaryToken: token,
+        cardExternalWalletDetails,
       });
 
       const tokenItem = getByTestId(

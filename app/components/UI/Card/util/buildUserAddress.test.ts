@@ -181,7 +181,7 @@ describe('buildUserAddress utilities', () => {
       ).toBe('Card Holder');
     });
 
-    it('sanitizes special characters and decomposes accented names via NFD normalization', () => {
+    it('sanitizes special characters from names', () => {
       expect(
         buildCardholderName({
           id: 'test',
@@ -191,7 +191,7 @@ describe('buildUserAddress utilities', () => {
       ).toBe('Jose OBrien');
     });
 
-    it('sanitizes accented characters and preserves base letters', () => {
+    it('sanitizes accented characters and keeps alphanumeric', () => {
       expect(
         buildCardholderName({
           id: 'test',

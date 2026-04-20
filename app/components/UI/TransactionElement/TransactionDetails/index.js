@@ -8,10 +8,11 @@ import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import {
   getBlockExplorerName,
-  findBlockExplorerUrlForChain,
   isMainNet,
   isMultiLayerFeeNetwork,
   getBlockExplorerTxUrl,
+  findBlockExplorerForNonEvmChainId,
+  isLineaMainnetChainId,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -49,6 +50,7 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { hasGasFeeTokenSelected } from '../../../Views/confirmations/utils/transaction';
 import Avatar, {
   AvatarSize,
@@ -56,8 +58,15 @@ import Avatar, {
 } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  LINEA_MAINNET_BLOCK_EXPLORER,
+  LINEA_SEPOLIA_BLOCK_EXPLORER,
+  MAINNET_BLOCK_EXPLORER,
+  SEPOLIA_BLOCK_EXPLORER,
+} from '../../../../constants/urls';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
+import { PopularList } from '../../../../util/networks/customNetworks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -171,9 +180,41 @@ class TransactionDetails extends PureComponent {
    * @param {Object} networkConfigurations - The network configurations object
    * @returns {string} The block explorer URL
    */
-  getBlockExplorerForChain = (txChainId, networkConfigurations) =>
-    findBlockExplorerUrlForChain(txChainId, networkConfigurations) ??
-    NO_RPC_BLOCK_EXPLORER;
+  getBlockExplorerForChain = (txChainId, networkConfigurations) => {
+    // First check for network configuration block explorer
+    let blockExplorer =
+      networkConfigurations?.[txChainId]?.blockExplorerUrls[
+        networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
+      ] || NO_RPC_BLOCK_EXPLORER;
+
+    // Check for default block explorers based on chain ID
+    if (isMainNet(txChainId)) {
+      blockExplorer = MAINNET_BLOCK_EXPLORER;
+    } else if (isLineaMainnetChainId(txChainId)) {
+      blockExplorer = LINEA_MAINNET_BLOCK_EXPLORER;
+    } else if (txChainId === CHAIN_IDS.LINEA_SEPOLIA) {
+      blockExplorer = LINEA_SEPOLIA_BLOCK_EXPLORER;
+    } else if (txChainId === CHAIN_IDS.SEPOLIA) {
+      blockExplorer = SEPOLIA_BLOCK_EXPLORER;
+    }
+
+    // Check PopularList for additional networks (e.g. Arbitrum, Polygon, BNB)
+    if (blockExplorer === NO_RPC_BLOCK_EXPLORER) {
+      const popularNetwork = PopularList.find(
+        (network) => network.chainId === txChainId,
+      );
+      if (popularNetwork?.rpcPrefs?.blockExplorerUrl) {
+        blockExplorer = popularNetwork.rpcPrefs.blockExplorerUrl;
+      }
+    }
+
+    // Check for non-EVM chain block explorer
+    if (isNonEvmChainId(txChainId)) {
+      blockExplorer = findBlockExplorerForNonEvmChainId(txChainId);
+    }
+
+    return blockExplorer;
+  };
 
   /**
    * Updates transactionDetails for multilayer fee networks (e.g. for Optimism).
@@ -474,7 +515,6 @@ class TransactionDetails extends PureComponent {
             gasEstimationReady
             transactionType={updatedTransactionDetails.transactionType}
             chainId={chainId}
-            isGasFeeSponsored={transactionObject.isGasFeeSponsored}
           />
         </View>
         {updatedTransactionDetails.hash &&

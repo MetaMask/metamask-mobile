@@ -4,10 +4,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import ReduxService from '../../../../redux';
-import {
-  setOnboardingReferralCode,
-  setPendingDeeplink,
-} from '../../../../../reducers/rewards';
+import { setOnboardingReferralCode } from '../../../../../reducers/rewards';
 
 // Mock dependencies
 jest.mock('../../../../NavigationService');
@@ -27,12 +24,6 @@ jest.mock('../../../../../reducers/rewards', () => ({
     type: 'SET_ONBOARDING_REFERRAL_CODE',
     payload: code,
   })),
-  setPendingDeeplink: jest.fn(
-    (deeplink: { page?: string; campaign?: string } | null) => ({
-      type: 'SET_PENDING_DEEPLINK',
-      payload: deeplink,
-    }),
-  ),
 }));
 
 describe('handleRewardsUrl', () => {
@@ -94,109 +85,35 @@ describe('handleRewardsUrl', () => {
   });
 
   describe('without referral code', () => {
-    it('clears referral code and pending deeplink, then navigates to rewards view', async () => {
+    it('clears referral code and navigates to rewards view', async () => {
       await handleRewardsUrl({ rewardsPath: '' });
 
       expect(setOnboardingReferralCode).toHaveBeenCalledWith(null);
-      expect(setPendingDeeplink).toHaveBeenCalledWith(null);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_ONBOARDING_REFERRAL_CODE',
+        payload: null,
+      });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
 
-    it('clears referral code and pending deeplink when URL has no parameters', async () => {
+    it('clears referral code when URL has no parameters', async () => {
       await handleRewardsUrl({ rewardsPath: 'rewards' });
 
       expect(setOnboardingReferralCode).toHaveBeenCalledWith(null);
-      expect(setPendingDeeplink).toHaveBeenCalledWith(null);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_ONBOARDING_REFERRAL_CODE',
+        payload: null,
+      });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
 
-    it('clears referral code and pending deeplink when referral parameter is empty', async () => {
+    it('clears referral code when referral parameter is empty', async () => {
       await handleRewardsUrl({ rewardsPath: '?referral=' });
 
       expect(setOnboardingReferralCode).toHaveBeenCalledWith(null);
-      expect(setPendingDeeplink).toHaveBeenCalledWith(null);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-    });
-  });
-
-  describe('with page/campaign navigation params', () => {
-    it('dispatches pending deeplink and navigates to rewards view with page=campaigns param', async () => {
-      await handleRewardsUrl({ rewardsPath: '?page=campaigns' });
-
-      expect(setPendingDeeplink).toHaveBeenCalledWith({
-        page: 'campaigns',
-        campaign: undefined,
-      });
       expect(mockDispatch).toHaveBeenCalledWith({
-        type: 'SET_PENDING_DEEPLINK',
-        payload: { page: 'campaigns', campaign: undefined },
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-    });
-
-    it('dispatches pending deeplink and navigates to rewards view with campaign=ondo param', async () => {
-      await handleRewardsUrl({ rewardsPath: '?campaign=ondo' });
-
-      expect(setPendingDeeplink).toHaveBeenCalledWith({
-        page: undefined,
-        campaign: 'ondo',
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-    });
-
-    it('dispatches pending deeplink and navigates to rewards view with campaign=season1 param', async () => {
-      await handleRewardsUrl({ rewardsPath: '?campaign=season1' });
-
-      expect(setPendingDeeplink).toHaveBeenCalledWith({
-        page: undefined,
-        campaign: 'season1',
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-    });
-
-    it('dispatches pending deeplink and navigates to rewards view with page=musd param', async () => {
-      await handleRewardsUrl({ rewardsPath: '?page=musd' });
-
-      expect(setPendingDeeplink).toHaveBeenCalledWith({
-        page: 'musd',
-        campaign: undefined,
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-    });
-
-    it('dispatches pending deeplink and navigates to rewards view with page=benefits param', async () => {
-      await handleRewardsUrl({ rewardsPath: '?page=benefits' });
-
-      expect(setPendingDeeplink).toHaveBeenCalledWith({
-        page: 'benefits',
-        campaign: undefined,
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-    });
-
-    it('clears pending deeplink for unknown page value', async () => {
-      await handleRewardsUrl({ rewardsPath: '?page=unknown' });
-
-      expect(setPendingDeeplink).toHaveBeenCalledWith(null);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-    });
-
-    it('clears pending deeplink for unknown campaign value', async () => {
-      await handleRewardsUrl({ rewardsPath: '?campaign=unknown' });
-
-      expect(setPendingDeeplink).toHaveBeenCalledWith(null);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-    });
-
-    it('dispatches referral code and pending deeplink when both are present', async () => {
-      await handleRewardsUrl({
-        rewardsPath: '?referral=abc123&page=campaigns',
-      });
-
-      expect(setOnboardingReferralCode).toHaveBeenCalledWith('abc123');
-      expect(setPendingDeeplink).toHaveBeenCalledWith({
-        page: 'campaigns',
-        campaign: undefined,
+        type: 'SET_ONBOARDING_REFERRAL_CODE',
+        payload: null,
       });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });

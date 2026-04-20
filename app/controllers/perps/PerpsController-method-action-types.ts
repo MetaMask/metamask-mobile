@@ -9,10 +9,6 @@ import type { PerpsController } from './PerpsController';
  * Read cached market data for the currently active provider (or aggregated).
  * Returns null when no valid cache exists or when cache has expired.
  *
- * @param options - Optional settings.
- * @param options.skipTTL - When true, bypass the 5-minute TTL check.
- * Used during initial render so disk-hydrated structural data (with
- * placeholder prices) is returned regardless of age.
  * @returns The cached market data array, or null if no valid cache.
  */
 export type PerpsControllerGetCachedMarketDataForActiveProviderAction = {
@@ -25,10 +21,6 @@ export type PerpsControllerGetCachedMarketDataForActiveProviderAction = {
  * Returns null when no valid cache exists, cache has expired, or address
  * does not match the currently selected EVM account.
  *
- * @param options - Optional settings.
- * @param options.skipTTL - When true, bypass the 60s staleness check.
- * Used during initial render so disk-hydrated user data (positions/orders)
- * is returned regardless of age, avoiding a skeleton flash.
  * @returns The cached user data, or null if no valid cache.
  */
 export type PerpsControllerGetCachedUserDataForActiveProviderAction = {

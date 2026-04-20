@@ -71,14 +71,14 @@ describe('CopyableField', () => {
       );
 
       const copyButton = getByLabelText('Copy');
-      expect(copyButton).toBeDisabled();
+      expect(copyButton.props.disabled).toBe(true);
     });
 
     it('should enable copy button when value is provided', () => {
       const { getByLabelText } = render(<CopyableField {...defaultProps} />);
 
       const copyButton = getByLabelText('Copy');
-      expect(copyButton).toBeEnabled();
+      expect(copyButton.props.disabled).toBe(false);
     });
   });
 
@@ -101,7 +101,7 @@ describe('CopyableField', () => {
       expect(getByText('-')).toBeTruthy();
 
       const copyButton = getByLabelText('Copy');
-      expect(copyButton).toBeDisabled();
+      expect(copyButton.props.disabled).toBe(true);
     });
 
     it('should handle long values', () => {

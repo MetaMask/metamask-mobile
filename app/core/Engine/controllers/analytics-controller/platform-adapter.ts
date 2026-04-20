@@ -9,7 +9,6 @@ import {
   CountFlushPolicy,
   TimerFlushPolicy,
   type SegmentClient,
-  type Plugin,
 } from '@segment/analytics-react-native';
 import { segmentPersistor } from '../../../../util/analytics/SegmentPersistor';
 import Logger from '../../../../util/Logger';
@@ -43,19 +42,12 @@ const getSegmentClient = (): SegmentClient => {
 
 /**
  * Platform adapter for the AnalyticsController.
- *
- * @param segmentPlugins - Optional Segment plugins to add to the client.
  */
-export const createPlatformAdapter = (
-  segmentPlugins?: Plugin[],
-): AnalyticsPlatformAdapter => {
+export const createPlatformAdapter = (): AnalyticsPlatformAdapter => {
+  // Initialize Segment client
   const client = getSegmentClient();
 
   Logger.log('Analytics Adapter: Segment client initialized');
-
-  segmentPlugins?.forEach((plugin) => {
-    client.add({ plugin });
-  });
 
   return {
     track(eventName: string, properties?: AnalyticsEventProperties): void {
@@ -83,6 +75,7 @@ export const createPlatformAdapter = (
     },
 
     onSetupCompleted(analyticsId: string): void {
+      // Add privacy plugin with analytics ID after controller is initialized
       client.add({
         plugin: new MetaMetricsPrivacySegmentPlugin(analyticsId),
       });

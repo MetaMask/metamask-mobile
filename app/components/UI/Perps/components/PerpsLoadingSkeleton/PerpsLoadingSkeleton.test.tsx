@@ -37,6 +37,17 @@ jest.mock('../../hooks/usePerpsConnection', () => ({
   }),
 }));
 
+// Mock react-redux
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+// Mock the homepage redesign selector
+jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageRedesignV1Enabled: jest.fn(),
+}));
+
 // Mock the design system components
 jest.mock('@metamask/design-system-react-native', () => {
   const {
@@ -114,11 +125,13 @@ describe('PerpsLoadingSkeleton', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockReconnect.mockClear();
+    mockUseSelector.mockReturnValue(false);
   });
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
+    mockUseSelector.mockClear();
   });
 
   it('displays loading spinner initially', () => {

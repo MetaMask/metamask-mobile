@@ -243,6 +243,7 @@
     "import_wallet_button": "Đồng bộ hoặc nhập ví",
     "new_to_crypto": "Bạn mới tìm hiểu về tiền mã hóa?",
     "start_exploring_now": "Tạo một ví mới",
+    "unlock": "Mở khóa",
     "new_to_metamask": "Bạn mới sử dụng MetaMask?",
     "already_have_wallet": "Bạn đã có ví?",
     "optin_back_title": "Chú ý!",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "Giá trị đó giờ đã được cộng vào ví của bạn, hãy bảo vệ ví bằng cách cài đặt mật khẩu và lưu Cụm từ khôi phục bí mật (bắt buộc).",
     "button": "Bảo vệ ví"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Cập nhật giao dịch thất bại",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "Giao dịch {{index}}",
     "transaction": "Bảo vệ",
     "available_balance": "Số dư khả dụng: ",
+    "available_perps_balance": "Số dư Hợp đồng vĩnh cửu khả dụng: ",
     "edit_amount_done": "Tiếp tục",
     "deposit_edit_amount_done": "Nạp tiền",
     "deposit_edit_amount_predict_withdraw": "Rút tiền",
@@ -8120,7 +8122,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Prize Pool",
       "current_label": "Hiện tại",
       "next_label": "Tiếp theo",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Thử lại",
       "label_return": "Lợi nhuận",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Đã rút tiền",
       "label_rank": "Xếp hạng",
       "label_tier": "Tier",
       "label_your_return": "Your return",

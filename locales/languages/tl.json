@@ -243,6 +243,7 @@
     "import_wallet_button": "Mag-sync o mag-import ng wallet",
     "new_to_crypto": "Bago ka lang ba sa crypto?",
     "start_exploring_now": "Gumawa ng bagong wallet",
+    "unlock": "I-unlock",
     "new_to_metamask": "Bago ka ba sa MetaMask?",
     "already_have_wallet": "May wallet ka na ba?",
     "optin_back_title": "Paalala!",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "Ngayong nagdadag ng value sa iyong wallet, protektahan ang iyong wallet sa pamamagitan ng pagtakda ng password at pag-save ng iyong Lihim na Parirala sa Pagbawi (kinakailangan).",
     "button": "Protektahan ang wallet"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Nabigo ang pag-update sa transaksyon",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "Transaksyon {{index}}",
     "transaction": "Transaksyon",
     "available_balance": "Available na balanse: ",
+    "available_perps_balance": "Available na balanse sa Perps: ",
     "edit_amount_done": "Magpatuloy",
     "deposit_edit_amount_done": "Magdagdag ng pondo",
     "deposit_edit_amount_predict_withdraw": "Mag-withdraw",
@@ -8120,7 +8122,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Prize Pool",
       "current_label": "Kasalukuyan",
       "next_label": "Susunod",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Subukang muli",
       "label_return": "Tutubuin",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Nag-cash out",
       "label_rank": "Rank",
       "label_tier": "Tier",
       "label_your_return": "Your return",

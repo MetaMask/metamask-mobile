@@ -10,7 +10,6 @@ interface RampsButtonClicked {
   is_authenticated?: boolean;
   preferred_provider?: string;
   order_count?: number;
-  asset_symbol?: string;
 }
 
 interface RampsDepositCashButtonClicked {

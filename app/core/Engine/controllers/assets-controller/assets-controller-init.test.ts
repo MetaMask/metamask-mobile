@@ -5,8 +5,8 @@ import {
   type AssetsControllerInitMessenger,
   type AssetsControllerMessenger,
 } from '../../messengers/assets-controller';
-import type { MessengerClientInitRequest } from '../../types';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import type { ControllerInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { assetsControllerInit } from './assets-controller-init';
 import { AssetsController } from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -113,7 +113,7 @@ function getInitRequestMock(overrides?: {
   remoteFeatureFlagState?: RemoteFeatureFlagState;
   remoteFeatureFlagGetStateThrows?: boolean;
 }): jest.Mocked<
-  MessengerClientInitRequest<
+  ControllerInitRequest<
     AssetsControllerMessenger,
     AssetsControllerInitMessenger
   >
@@ -124,12 +124,12 @@ function getInitRequestMock(overrides?: {
   const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
 
   return {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger,
     initMessenger,
     persistedState: {},
   } as jest.Mocked<
-    MessengerClientInitRequest<
+    ControllerInitRequest<
       AssetsControllerMessenger,
       AssetsControllerInitMessenger
     >
@@ -342,7 +342,7 @@ describe('assetsControllerInit', () => {
       const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
 
       const requestMock = {
-        ...buildMessengerClientInitRequestMock(baseMessenger),
+        ...buildControllerInitRequestMock(baseMessenger),
         controllerMessenger,
         initMessenger,
         persistedState: {},

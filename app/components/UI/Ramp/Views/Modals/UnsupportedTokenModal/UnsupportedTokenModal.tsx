@@ -1,13 +1,10 @@
 import React, { useRef } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
-import {
-  BottomSheet,
-  type BottomSheetRef,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './UnsupportedTokenModal.styles';
@@ -23,11 +20,10 @@ export const createUnsupportedTokenModalNavigationDetails =
 
 function UnsupportedTokenModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
       <HeaderCompactStandard
         title={strings('deposit.token_modal.unsupported_token_title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

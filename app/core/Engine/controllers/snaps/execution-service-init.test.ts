@@ -1,8 +1,8 @@
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { MessengerClientInitRequest } from '../../types';
+import { ControllerInitRequest } from '../../types';
 import { getExecutionServiceMessenger } from '../../messengers/snaps';
 import { executionServiceInit } from './execution-service-init';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
@@ -15,14 +15,14 @@ jest.mock('@metamask/snaps-controllers/react-native');
 jest.mock('../../../Snaps');
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<ExecutionServiceMessenger>
+  ControllerInitRequest<ExecutionServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getExecutionServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };

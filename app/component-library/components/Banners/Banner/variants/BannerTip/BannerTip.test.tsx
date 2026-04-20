@@ -12,6 +12,7 @@ import {
 describe('BannerTip', () => {
   it('should render default settings correctly', () => {
     const wrapper = render(<BannerTip {...SAMPLE_BANNERTIP_PROPS} />);
+    expect(wrapper).toMatchSnapshot();
     expect(wrapper.queryByTestId(BANNERTIP_TEST_ID)).not.toBe(null);
   });
 });

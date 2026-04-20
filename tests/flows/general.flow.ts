@@ -15,7 +15,7 @@ const logger = createLogger({
  * These screens are expected to appear when running locally.
  */
 export const dismissDevScreens = async (): Promise<void> => {
-  const port = process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
+  const port = process.env.METRO_PORT_E2E || '8081';
   const host = process.env.METRO_HOST_E2E || 'localhost';
   const serverUrl = `http://${host}:${port}`;
 

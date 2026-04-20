@@ -6,11 +6,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import {
-  Button,
+import Button, {
+  ButtonVariants,
   ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 interface ISettingsButtonSectionProps {
   sectionTitle: string;
@@ -64,15 +64,14 @@ const SettingsButtonSection = ({
         </Text>
         <View style={styles.accessory}>
           <Button
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
             onPress={onButtonPress}
             isDisabled={buttonDisabled || modalVisible}
             testID={testID}
-          >
-            {sectionButtonText}
-          </Button>
+            label={sectionButtonText}
+          />
         </View>
       </View>
       {needsModal ? (

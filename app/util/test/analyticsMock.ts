@@ -5,7 +5,6 @@
  */
 
 import type { UseAnalyticsHook } from '../../components/hooks/useAnalytics/useAnalytics.types';
-import type { AnalyticsTrackingEvent } from '../analytics/AnalyticsEventBuilder';
 
 export interface MockAnalytics {
   isEnabled: jest.Mock<boolean, []>;
@@ -106,38 +105,4 @@ export const createMockUseAnalyticsHook = (
   isDataRecorded: jest.fn().mockReturnValue(true),
   getAnalyticsId: jest.fn().mockResolvedValue('mock-analytics-id'),
   ...overrides,
-});
-
-/**
- * Creates a fresh mock event-builder on every call.
- *
- * Mirrors the shape returned by `AnalyticsEventBuilder.createEventBuilder`.
- * Use this factory wherever a test needs a standalone builder double, keeping
- * each test isolated from shared state on jest mocks.
- *
- * @param buildReturnValue - Optional custom value for `build()` to return.
- * Defaults to a minimal `AnalyticsTrackingEvent`-compatible object.
- *
- * @example
- * const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
- * jest.mocked(useAnalytics).mockReturnValue(
- *   createMockUseAnalyticsHook({ createEventBuilder: mockCreateEventBuilder }),
- * );
- */
-export const createMockEventBuilder = (
-  buildReturnValue?: AnalyticsTrackingEvent,
-) => ({
-  addProperties: jest.fn().mockReturnThis(),
-  addSensitiveProperties: jest.fn().mockReturnThis(),
-  removeProperties: jest.fn().mockReturnThis(),
-  removeSensitiveProperties: jest.fn().mockReturnThis(),
-  setSaveDataRecording: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue(
-    buildReturnValue ?? {
-      name: 'mock-event',
-      properties: {},
-      sensitiveProperties: {},
-      saveDataRecording: false,
-    },
-  ),
 });

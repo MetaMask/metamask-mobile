@@ -11,7 +11,6 @@
 # Options:
 #   --core-path <path>   Path to Core repo (required)
 #   --skip-build         Skip the build step for faster iteration
-#   --skip-test          Skip the test step for faster iteration
 #   --verbose            Show full command output for every step
 #   --help               Print this help message and exit
 #
@@ -25,14 +24,13 @@ set -euo pipefail
 MOBILE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CORE_PATH=""
 SKIP_BUILD=false
-SKIP_TEST=false
 VERBOSE=false
 
 PERPS_SRC="app/controllers/perps"
 PERPS_DEST="packages/perps-controller/src"
 WORKSPACE="@metamask/perps-controller"
 
-STEP_COUNT=13
+STEP_COUNT=9
 STEP_RESULTS=()
 STEP_TIMES=()
 STEP_LABELS=()
@@ -116,7 +114,6 @@ run_step() {
   # fd 3 → real terminal so progress() calls in step functions are visible
   exec 3>&1
 
-  set +e
   if $VERBOSE; then
     "$func" 2>&1 | tee "$tmpfile"
     rc=${PIPESTATUS[0]}
@@ -124,7 +121,6 @@ run_step() {
     "$func" > "$tmpfile" 2>&1
     rc=$?
   fi
-  set -e
 
   exec 3>&-
 
@@ -158,7 +154,6 @@ while (( $# )); do
   case "$1" in
     --core-path) CORE_PATH="$2"; shift 2 ;;
     --skip-build) SKIP_BUILD=true; shift ;;
-    --skip-test) SKIP_TEST=true; shift ;;
     --verbose) VERBOSE=true; shift ;;
     --help|-h) usage ;;
     *) die "Unknown option: $1" ;;
@@ -170,12 +165,8 @@ if [[ -z "$CORE_PATH" ]]; then
   die "Missing --core-path <path>. Example: ./scripts/perps/validate-core-sync.sh --core-path ~/dev/metamask/core"
 fi
 
-# Adjust step count for skipped steps
 if $SKIP_BUILD; then
-  STEP_COUNT=$((STEP_COUNT - 1))
-fi
-if $SKIP_TEST; then
-  STEP_COUNT=$((STEP_COUNT - 1))
+  STEP_COUNT=8
 fi
 
 # ─── Step functions ─────────────────────────────────────────────────────────────
@@ -232,38 +223,6 @@ compute_source_checksum() {
 
 step_conflict_check() {
   local sync_state="$CORE_PATH/packages/perps-controller/.sync-state.json"
-
-  # Check freshness vs origin/main BEFORE looking at sync state.
-  # If someone else committed to packages/perps-controller on main while
-  # this branch was in review, we need to merge main first — otherwise
-  # the sync will silently overwrite their work. Hard-fail in that case.
-  (
-    cd "$CORE_PATH"
-    if git rev-parse --verify origin/main >/dev/null 2>&1; then
-      echo "OK: Fetching origin/main to check freshness..."
-      if git fetch origin main --quiet 2>/dev/null; then
-        local behind_count
-        behind_count=$(git rev-list --count HEAD..origin/main -- packages/perps-controller/ 2>/dev/null || echo "0")
-        if (( behind_count > 0 )); then
-          echo "FAIL: Current branch is behind origin/main by $behind_count commit(s) touching packages/perps-controller/"
-          echo "FAIL: Someone committed perps-controller changes to main after this branch started."
-          echo "FAIL: Merge or rebase origin/main before syncing, e.g.:"
-          echo "FAIL:   cd $CORE_PATH && git merge origin/main"
-          echo ""
-          echo "Offending commits:"
-          git log HEAD..origin/main --oneline -- packages/perps-controller/ | sed 's/^/  /'
-          exit 1
-        else
-          echo "OK: Current branch is current with origin/main for perps-controller"
-        fi
-      else
-        echo "WARN: Could not fetch origin/main (offline?) — skipping freshness check"
-      fi
-    else
-      echo "WARN: No origin/main ref in core repo — skipping freshness check"
-    fi
-  ) || return 1
-
   if [[ ! -f "$sync_state" ]]; then
     echo "OK: No previous sync state — first sync"
     return 0
@@ -370,34 +329,14 @@ step_eslint_fix() {
 
   local supp_file="$CORE_PATH/eslint-suppressions.json"
 
-  # Snapshot the baseline per-file/per-rule suppression counts for
-  # packages/perps-controller BEFORE we touch anything, so we can tell the
-  # difference between pre-existing suppressions and new violations that the
-  # current sync is introducing.
-  local baseline_json="/tmp/perps-suppressions-baseline-$$.json"
-  if [[ -f "$supp_file" ]]; then
-    jq '[to_entries[] | select(.key | startswith("packages/perps-controller/"))] | from_entries' \
-      "$supp_file" > "$baseline_json" 2>/dev/null || echo '{}' > "$baseline_json"
-  else
-    echo '{}' > "$baseline_json"
-  fi
-
   progress "  ├─ Running --fix"
   yarn eslint 'packages/perps-controller/src/**/*.ts' --fix || true
 
   progress "  ├─ Running --suppress-all"
   yarn eslint 'packages/perps-controller/src/**/*.ts' --suppress-all || true
 
-  progress "  ├─ Running --prune-suppressions"
+  progress "  └─ Running --prune-suppressions"
   yarn eslint 'packages/perps-controller/src/**/*.ts' --prune-suppressions || true
-
-  # Prettier formats eslint-suppressions.json differently than eslint
-  # writes it (trailing newline, key quoting), so run prettier afterwards
-  # to keep core's lint:misc:check happy.
-  if [[ -f "$supp_file" ]]; then
-    progress "  ├─ Running prettier on eslint-suppressions.json"
-    yarn prettier --write eslint-suppressions.json > /dev/null 2>&1 || true
-  fi
 
   # Count suppressions
   if [[ -f "$supp_file" ]]; then
@@ -405,60 +344,13 @@ step_eslint_fix() {
       '[to_entries[] | select(.key | startswith("packages/perps-controller/")) | .value | to_entries[].value.count] | add // 0' \
       "$supp_file" 2>/dev/null || echo "0")
     echo "Perps suppression count: $SUPPRESSION_COUNT"
+
+    if (( SUPPRESSION_COUNT > 20 )); then
+      echo "WARN: Suppression count ($SUPPRESSION_COUNT) is higher than expected (~7-15)"
+    fi
   else
     echo "WARN: eslint-suppressions.json not found"
     SUPPRESSION_COUNT=0
-  fi
-
-  # Per-file/per-rule delta check: hard-fail if any file's suppression count
-  # INCREASED compared to the baseline. Reducing counts is always allowed
-  # (that's what happens when a mobile fix removes a previously-suppressed
-  # violation). This is the canonical detection point for the problem that
-  # "it should have been detected locally!" — a new `'x' in y` use, a new
-  # `@typescript-eslint/*` violation, etc. will show up here BEFORE the
-  # core PR is opened.
-  progress "  └─ Checking per-file suppression delta"
-  local current_json="/tmp/perps-suppressions-current-$$.json"
-  if [[ -f "$supp_file" ]]; then
-    jq '[to_entries[] | select(.key | startswith("packages/perps-controller/"))] | from_entries' \
-      "$supp_file" > "$current_json" 2>/dev/null || echo '{}' > "$current_json"
-  else
-    echo '{}' > "$current_json"
-  fi
-
-  local delta_report
-  delta_report=$(jq -n \
-    --slurpfile baseline "$baseline_json" \
-    --slurpfile current "$current_json" \
-    '
-      ($baseline[0] // {}) as $b
-      | ($current[0] // {}) as $c
-      | [
-          ($c | to_entries[]) as $file
-          | ($file.value | to_entries[]) as $rule
-          | {
-              file: $file.key,
-              rule: $rule.key,
-              before: (($b[$file.key] // {})[$rule.key].count // 0),
-              after:  $rule.value.count
-            }
-          | select(.after > .before)
-        ]
-    ' 2>/dev/null || echo '[]')
-
-  rm -f "$baseline_json" "$current_json"
-
-  local delta_count
-  delta_count=$(echo "$delta_report" | jq 'length' 2>/dev/null || echo "0")
-  if (( delta_count > 0 )); then
-    echo "FAIL: $delta_count suppression(s) INCREASED vs baseline — this sync introduces new violations that must be fixed at source before syncing to core."
-    echo ""
-    echo "Offending entries:"
-    echo "$delta_report" | jq -r '.[] | "  - \(.file) [\(.rule)]: \(.before) → \(.after)"' 2>/dev/null || echo "$delta_report"
-    echo ""
-    echo "FAIL: Fix these violations in mobile (e.g. replace \`'x' in y\` with \`hasProperty(y, 'x')\` from \`@metamask/utils\`), then re-run the sync."
-    cd "$MOBILE_ROOT"
-    return 1
   fi
 
   cd "$MOBILE_ROOT"
@@ -467,74 +359,7 @@ step_eslint_fix() {
 
 step_build() {
   cd "$CORE_PATH"
-  yarn workspace "$WORKSPACE" build:all
-  cd "$MOBILE_ROOT"
-}
-
-step_verify_publish_artifact() {
-  cd "$CORE_PATH"
-
-  local esm="packages/perps-controller/dist/PerpsController.mjs"
-  local cjs="packages/perps-controller/dist/PerpsController.cjs"
-  local pkg="packages/perps-controller/package.json"
-
-  for file in "$esm" "$cjs"; do
-    if [[ ! -f "$file" ]]; then
-      echo "FAIL: Built file missing: $file"
-      cd "$MOBILE_ROOT"
-      return 1
-    fi
-
-    if ! grep -q "webpackIgnore: true" "$file"; then
-      echo "FAIL: webpackIgnore magic comment missing from built artifact: $file"
-      echo "This usually means ts-bridge rewrote the import argument and stripped the comment."
-      cd "$MOBILE_ROOT"
-      return 1
-    fi
-  done
-
-  if [[ ! -f "$pkg" ]]; then
-    echo "FAIL: Package manifest missing: $pkg"
-    cd "$MOBILE_ROOT"
-    return 1
-  fi
-
-  if grep -q '!dist/providers/MYXProvider\*' "$pkg"; then
-    progress "  ├─ Package excludes MYXProvider files from publish output"
-    progress "  ├─ Verifying source and built artifacts keep the webpackIgnore safeguard"
-
-    if ! grep -q "const myxModulePath = './providers/MYXProvider'" \
-      "packages/perps-controller/src/PerpsController.ts"; then
-      echo "FAIL: Source safeguard missing: expected myxModulePath workaround in PerpsController.ts"
-      cd "$MOBILE_ROOT"
-      return 1
-    fi
-  fi
-
-  echo "OK: Built artifacts preserve webpackIgnore safeguard for MYXProvider dynamic import"
-  cd "$MOBILE_ROOT"
-}
-
-step_format_fix() {
-  cd "$CORE_PATH"
-
-  # Core uses oxfmt (via yarn lint:misc) for TS formatting, NOT prettier.
-  # Mobile uses different formatting rules, so synced files arrive with
-  # wrong formatting. Run oxfmt --write to fix them.
-  progress "  ├─ Running oxfmt on perps-controller source"
-  yarn lint:misc --write 2>&1 | grep -E "packages/perps-controller" || true
-
-  # Verify formatting is clean
-  local fmt_issues
-  fmt_issues=$(yarn lint:misc --check 2>&1 | grep -c "packages/perps-controller" || true)
-  if (( fmt_issues > 0 )); then
-    echo "FAIL: $fmt_issues perps-controller file(s) still have formatting issues after oxfmt"
-    yarn lint:misc --check 2>&1 | grep "packages/perps-controller"
-    cd "$MOBILE_ROOT"
-    return 1
-  fi
-
-  echo "OK: All perps-controller files pass oxfmt formatting"
+  yarn workspace "$WORKSPACE" build
   cd "$MOBILE_ROOT"
 }
 
@@ -544,69 +369,6 @@ step_lint() {
   # all violations are either fixed or suppressed (exit 0 = clean).
   yarn eslint 'packages/perps-controller/src/**/*.ts'
   cd "$MOBILE_ROOT"
-}
-
-step_test() {
-  cd "$CORE_PATH"
-  yarn workspace "$WORKSPACE" test
-  cd "$MOBILE_ROOT"
-}
-
-step_changelog_check() {
-  local changelog="$CORE_PATH/packages/perps-controller/CHANGELOG.md"
-
-  if [[ ! -f "$changelog" ]]; then
-    echo "FAIL: CHANGELOG.md not found at $changelog"
-    return 1
-  fi
-
-  # Check if CHANGELOG.md differs from origin/main in any way:
-  # unstaged, staged, or already committed on this branch.
-  local changelog_modified=0
-  (
-    cd "$CORE_PATH"
-    # Unstaged or staged changes
-    local worktree_changes
-    worktree_changes=$(git diff --name-only -- packages/perps-controller/CHANGELOG.md 2>/dev/null | wc -l | tr -d ' ')
-    local staged_changes
-    staged_changes=$(git diff --cached --name-only -- packages/perps-controller/CHANGELOG.md 2>/dev/null | wc -l | tr -d ' ')
-    # Already committed on branch vs origin/main
-    local committed_changes=0
-    if git rev-parse --verify origin/main >/dev/null 2>&1; then
-      committed_changes=$(git diff --name-only origin/main...HEAD -- packages/perps-controller/CHANGELOG.md 2>/dev/null | wc -l | tr -d ' ')
-    fi
-
-    if (( worktree_changes + staged_changes + committed_changes > 0 )); then
-      exit 0  # modified
-    else
-      exit 1  # not modified
-    fi
-  ) && changelog_modified=1
-
-  if (( changelog_modified == 0 )); then
-    echo "FAIL: packages/perps-controller/CHANGELOG.md has NOT been updated."
-    echo ""
-    echo "Core CI requires changelog entries for every changed package."
-    echo "Add entries under '## [Unreleased]' with sections:"
-    echo "  ### Added    — new features, exports, files"
-    echo "  ### Fixed    — bug fixes"
-    echo "  ### Changed  — refactors, dependency bumps"
-    echo ""
-    echo "Each entry must link to the PR, e.g.:"
-    echo "  - Add disk-backed cold-start cache ([#NNNN](https://github.com/MetaMask/core/pull/NNNN))"
-    return 1
-  fi
-
-  echo "OK: CHANGELOG.md has been updated"
-
-  # Validate changelog format (section ordering, link format, etc.)
-  local validate_output
-  if ! validate_output=$(cd "$CORE_PATH" && yarn workspace "$WORKSPACE" changelog:validate 2>&1); then
-    echo "FAIL: Changelog format validation failed:"
-    echo "$validate_output"
-    return 1
-  fi
-  echo "OK: CHANGELOG.md format is valid"
 }
 
 step_write_sync_state() {
@@ -661,27 +423,13 @@ main() {
   step=$((step + 1))
   run_step $step "ESLint auto-fix + suppressions" step_eslint_fix
 
-  step=$((step + 1))
-  run_step $step "Format fix (oxfmt)" step_format_fix
-
   if ! $SKIP_BUILD; then
     step=$((step + 1))
     run_step $step "Build" step_build
-
-    step=$((step + 1))
-    run_step $step "Verify publish artifact" step_verify_publish_artifact
   fi
 
   step=$((step + 1))
   run_step $step "Lint" step_lint
-
-  if ! $SKIP_TEST; then
-    step=$((step + 1))
-    run_step $step "Test" step_test
-  fi
-
-  step=$((step + 1))
-  run_step $step "Changelog check" step_changelog_check
 
   step=$((step + 1))
   run_step $step "Write sync state" step_write_sync_state

@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
+import { useCardSDK } from '../sdk';
+import { CardDetailsTokenResponse, CardType } from '../types';
+import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
-import { CardType } from '../types';
-import type { CardSecureView } from '../../../../core/Engine/controllers/card-controller/provider-types';
-import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
-import Engine from '../../../../core/Engine';
 
 // Hex colors required by the external card details API
 /* eslint-disable @metamask/design-tokens/color-no-hex */
@@ -29,19 +28,33 @@ export const CARD_DETAILS_CSS = {
 };
 
 interface UseCardDetailsTokenResult {
+  /** Fetches a new card details token and returns the image URL */
   fetchCardDetailsToken: (
     cardType?: CardType,
-  ) => Promise<CardSecureView | null>;
+  ) => Promise<CardDetailsTokenResponse | null>;
+  /** Whether the fetch is in progress */
   isLoading: boolean;
+  /** Whether the image is still loading after URL is received */
   isImageLoading: boolean;
+  /** Callback to be called when the image finishes loading */
   onImageLoad: () => void;
+  /** Error from the last fetch attempt */
   error: Error | null;
+  /** The image URL from the last successful fetch */
   imageUrl: string | null;
+  /** Clears the current image URL */
   clearImageUrl: () => void;
 }
 
+/**
+ * Hook to generate a secure token for displaying sensitive card details as an image.
+ * The token is time-limited (~10 minutes) and single-use.
+ *
+ * @returns Object containing fetchCardDetailsToken function, loading state, error, and imageUrl
+ */
 const useCardDetailsToken = (): UseCardDetailsTokenResult => {
-  const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const { sdk } = useCardSDK();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
@@ -51,8 +64,8 @@ const useCardDetailsToken = (): UseCardDetailsTokenResult => {
   const fetchCardDetailsToken = useCallback(
     async (
       cardType: CardType = CardType.VIRTUAL,
-    ): Promise<CardSecureView | null> => {
-      if (!isAuthenticated) {
+    ): Promise<CardDetailsTokenResponse | null> => {
+      if (!sdk || !isAuthenticated) {
         return null;
       }
 
@@ -62,12 +75,8 @@ const useCardDetailsToken = (): UseCardDetailsTokenResult => {
 
       try {
         const customCss = CARD_DETAILS_CSS[cardType];
-        const response = await Engine.context.CardController.getCardDetailsView(
-          {
-            customCss,
-          },
-        );
-        setImageUrl(response.url);
+        const response = await sdk.generateCardDetailsToken({ customCss });
+        setImageUrl(response.imageUrl);
         return response;
       } catch (err) {
         setIsImageLoading(false);
@@ -79,7 +88,7 @@ const useCardDetailsToken = (): UseCardDetailsTokenResult => {
         setIsLoading(false);
       }
     },
-    [isAuthenticated],
+    [sdk, isAuthenticated],
   );
 
   const onImageLoad = useCallback(() => {

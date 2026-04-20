@@ -38,8 +38,7 @@ import {
 } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictPreviewSheet } from '../../contexts';
-
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
@@ -65,7 +64,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
   });
-  const { openBuySheet } = usePredictPreviewSheet();
+  const { navigateToBuyPreview } = usePredictNavigation();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -96,7 +95,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        openBuySheet({
+        navigateToBuyPreview({
           market,
           outcome,
           outcomeToken: token,

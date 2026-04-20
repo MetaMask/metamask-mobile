@@ -57,12 +57,15 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
 }));
 
 const mockDefaultUnifiedTxActionsReturn = {
+  retryIsOpen: false,
+  retryErrorMsg: '',
   speedUpIsOpen: false,
   cancelIsOpen: false,
   confirmDisabled: false,
   existingTx: null,
   speedUpTxId: null,
   cancelTxId: null,
+  toggleRetry: jest.fn(),
   onSpeedUpAction: jest.fn(),
   onCancelAction: jest.fn(),
   onSpeedUpCancelCompleted: jest.fn(),
@@ -148,6 +151,7 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
   };
 });
 
+jest.mock('../../UI/Transactions/RetryModal', () => 'RetryModal');
 jest.mock(
   '../../UI/Transactions/TransactionsFooter',
   () => 'TransactionsFooter',
@@ -387,8 +391,8 @@ describe('UnifiedTransactionsView - Speed up / Cancel modal', () => {
       state: initialState,
     });
 
-    expect(queryByTestId('speedup-modal')).not.toBeOnTheScreen();
-    expect(queryByTestId('cancel-modal')).not.toBeOnTheScreen();
+    expect(queryByTestId('speedup-modal')).toBeNull();
+    expect(queryByTestId('cancel-modal')).toBeNull();
   });
 
   it('renders CancelSpeedupModal as speed up when speedUpIsOpen is true', () => {
@@ -582,7 +586,7 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
     });
 
     // Transaction passes filter → data is non-empty → empty state is absent
-    expect(queryByText('You have no transactions')).not.toBeOnTheScreen();
+    expect(queryByText('You have no transactions')).toBeNull();
   });
 });
 

@@ -13,10 +13,6 @@ import {
 import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
 import { createAnalyticsQueueManager } from './queue';
 import Logger from '../Logger';
-import {
-  enrichWithABTests,
-  getRemoteFeatureFlagsFromState,
-} from './enrichWithABTests';
 
 /**
  * Analytics helper interface
@@ -54,18 +50,7 @@ const queueManager = createAnalyticsQueueManager({
  * @param event - AnalyticsTrackingEvent to track
  */
 const trackEvent = (event: AnalyticsTrackingEvent): void => {
-  let enrichedEvent: AnalyticsTrackingEvent;
-
-  try {
-    enrichedEvent = enrichWithABTests(
-      event,
-      getRemoteFeatureFlagsFromState(store.getState()),
-    );
-  } catch {
-    enrichedEvent = event;
-  }
-
-  queueManager.queueOperation('trackEvent', enrichedEvent).catch((error) => {
+  queueManager.queueOperation('trackEvent', event).catch((error) => {
     Logger.log('Analytics: Unhandled error in trackEvent', error);
   });
 };

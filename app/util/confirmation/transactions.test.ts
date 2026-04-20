@@ -1,18 +1,7 @@
 import BN from 'bnjs4';
-import { BoxBackgroundColor } from '@metamask/design-system-react-native';
+import { buildTransactionParams } from './transactions';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { TransactionEnvelopeType } from '@metamask/transaction-controller';
-import { ToastVariants } from '../../component-library/components/Toast';
-import {
-  IconColor,
-  IconName,
-} from '../../component-library/components/Icons/Icon';
-import { strings } from '../../../locales/i18n';
-import {
-  buildTransactionParams,
-  getTransactionUpdateErrorToastOptions,
-  resolveTransactionUpdateErrorMessage,
-} from './transactions';
 
 const ADDRESS_MOCK = '0x1399b0dab86bf1f995BB8aAD9c03D090dA6dFd27';
 
@@ -138,70 +127,6 @@ describe('Confirmation Transactions Utils', () => {
           gasPrice: '0xBB',
         }),
       );
-    });
-  });
-
-  describe('resolveTransactionUpdateErrorMessage', () => {
-    it('returns undefined for undefined', () => {
-      expect(resolveTransactionUpdateErrorMessage(undefined)).toBeUndefined();
-    });
-
-    it('maps nonce too low to friendly message', () => {
-      expect(
-        resolveTransactionUpdateErrorMessage(new Error('nonce too low')),
-      ).toBe(strings('transaction_update_toast.already_confirmed'));
-    });
-
-    it('maps nonce too low case-insensitively', () => {
-      expect(
-        resolveTransactionUpdateErrorMessage(new Error('Nonce Too LOW')),
-      ).toBe(strings('transaction_update_toast.already_confirmed'));
-    });
-
-    it('returns raw message for other errors', () => {
-      expect(
-        resolveTransactionUpdateErrorMessage(new Error('insufficient funds')),
-      ).toBe('insufficient funds');
-    });
-  });
-
-  describe('getTransactionUpdateErrorToastOptions', () => {
-    it('returns icon toast with title, styling, and description from error', () => {
-      expect(getTransactionUpdateErrorToastOptions(new Error('boom'))).toEqual(
-        expect.objectContaining({
-          variant: ToastVariants.Icon,
-          iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
-          backgroundColor: BoxBackgroundColor.Transparent,
-          labelOptions: [
-            {
-              label: strings('transaction_update_toast.title'),
-              isBold: true,
-            },
-          ],
-          descriptionOptions: { description: 'boom' },
-          hasNoTimeout: false,
-        }),
-      );
-    });
-
-    it('uses friendly description for nonce too low', () => {
-      const options = getTransactionUpdateErrorToastOptions(
-        new Error('nonce too low'),
-      );
-      expect(options).toEqual(
-        expect.objectContaining({
-          descriptionOptions: {
-            description: strings('transaction_update_toast.already_confirmed'),
-          },
-        }),
-      );
-    });
-
-    it('omits description when no message is available', () => {
-      expect(
-        getTransactionUpdateErrorToastOptions(undefined).descriptionOptions,
-      ).toBeUndefined();
     });
   });
 });

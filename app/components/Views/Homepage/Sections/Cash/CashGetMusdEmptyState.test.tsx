@@ -86,7 +86,6 @@ describe('CashGetMusdEmptyState', () => {
     mockUseMusdConversionFlowData.isMusdBuyableOnAnyChain = true;
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: null,
-      lifetimeBonusClaimed: null,
       hasPendingClaim: false,
       isClaiming: false,
       error: null,
@@ -147,7 +146,7 @@ describe('CashGetMusdEmptyState', () => {
     expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
   });
 
-  it('tracks MUSD_CONVERSION_CTA_CLICKED with home_section when Get mUSD is pressed on homepage', () => {
+  it('tracks MUSD_CONVERSION_CTA_CLICKED with home_cash_section when Get mUSD is pressed on homepage', () => {
     renderWithProvider(<CashGetMusdEmptyState />);
 
     fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON));
@@ -200,7 +199,7 @@ describe('CashGetMusdEmptyState', () => {
     ).toBeOnTheScreen();
   });
 
-  it('registers Merkl claim hook with home_section on homepage', () => {
+  it('registers Merkl claim hook with home_cash_section on homepage', () => {
     renderWithProvider(<CashGetMusdEmptyState />);
 
     expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
@@ -225,7 +224,6 @@ describe('CashGetMusdEmptyState', () => {
   it('shows Claim bonus secondary button when claimable reward exists', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '12.34',
-      lifetimeBonusClaimed: null,
       hasPendingClaim: false,
       isClaiming: false,
       error: null,
@@ -246,7 +244,6 @@ describe('CashGetMusdEmptyState', () => {
   it('hides Claim bonus button when no claimable reward', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: null,
-      lifetimeBonusClaimed: null,
       hasPendingClaim: false,
       isClaiming: false,
       error: null,
@@ -263,7 +260,6 @@ describe('CashGetMusdEmptyState', () => {
   it('calls claimRewards and tracks analytics when Claim bonus is pressed', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '1.00',
-      lifetimeBonusClaimed: null,
       hasPendingClaim: false,
       isClaiming: false,
       error: null,

@@ -17,7 +17,7 @@ export const AccountsList = () => {
 
   const { accountAvatarType, firstHDWalletGroups } = useAccountProps();
   const {
-    shouldDisableSwitches,
+    isAnyAccountLoading,
     isAccountLoading,
     isAccountEnabled,
     refetchAccountSettings,
@@ -43,7 +43,7 @@ export const AccountsList = () => {
             item={item}
             evmAddress={getEvmAddress(item.accounts)}
             icon={accountAvatarType}
-            disabledSwitch={shouldDisableSwitches}
+            disabledSwitch={isAnyAccountLoading}
             isLoading={isAccountLoading(item.accounts)}
             isEnabled={isAccountEnabled(item.accounts)}
             refetchNotificationAccounts={refetchAccountSettings}

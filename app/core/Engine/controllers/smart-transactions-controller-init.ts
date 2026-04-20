@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   getSmartTransactionMetricsProperties,
   SmartTransactionsController,
@@ -21,7 +21,7 @@ import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const smartTransactionsControllerInit: MessengerClientInitFunction<
+export const smartTransactionsControllerInit: ControllerInitFunction<
   SmartTransactionsController,
   SmartTransactionsControllerMessenger,
   SmartTransactionsControllerInitMessenger
@@ -55,7 +55,7 @@ export const smartTransactionsControllerInit: MessengerClientInitFunction<
   const getBearerToken = async (): Promise<string | undefined> => {
     try {
       return await Promise.resolve(
-        controllerMessenger.call('AuthenticationController:getBearerToken'),
+        initMessenger.call('AuthenticationController:getBearerToken'),
       );
     } catch {
       return undefined;
@@ -74,6 +74,7 @@ export const smartTransactionsControllerInit: MessengerClientInitFunction<
     // transactions.
     getMetaMetricsProps: () => Promise.resolve({}),
     trackMetaMetricsEvent,
+    getBearerToken,
 
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,

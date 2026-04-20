@@ -243,6 +243,7 @@
     "import_wallet_button": "Sinkronkan atau impor dompet",
     "new_to_crypto": "Baru mengenal kripto?",
     "start_exploring_now": "Buat dompet baru",
+    "unlock": "Buka",
     "new_to_metamask": "Baru mengenal MetaMask?",
     "already_have_wallet": "Sudah memiliki dompet?",
     "optin_back_title": "Perhatian!",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "Kini nilai tersebut telah ditambahkan ke dompet Anda, lindungi dompet dengan mengatur kata sandi dan menyimpan Frasa Pemulihan Rahasia (wajib).",
     "button": "Lindungi dompet"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Pembaruan transaksi gagal",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "Transaksi {{index}}",
     "transaction": "Transaksi",
     "available_balance": "Saldo tersedia: ",
+    "available_perps_balance": "Saldo Perp yang tersedia: ",
     "edit_amount_done": "Lanjutkan",
     "deposit_edit_amount_done": "Tambahkan dana",
     "deposit_edit_amount_predict_withdraw": "Tarik",
@@ -8120,7 +8122,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Prize Pool",
       "current_label": "Saat ini",
       "next_label": "Berikutnya",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Coba lagi",
       "label_return": "Laba",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Dicairkan",
       "label_rank": "Peringkat",
       "label_tier": "Tier",
       "label_your_return": "Your return",

@@ -4,6 +4,7 @@ import { useNftRefresh } from './useNftRefresh';
 import Engine from '../../../core/Engine';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
@@ -31,6 +32,13 @@ jest.mock('../../../selectors/networkController', () => ({
       defaultRpcEndpointIndex: 0,
       rpcEndpoints: [{ networkClientId: 'polygon-client' }],
     },
+  })),
+}));
+
+jest.mock('../../../selectors/preferencesController', () => ({
+  selectTokenNetworkFilter: jest.fn(() => ({
+    '0x1': true,
+    '0x89': true,
   })),
 }));
 
@@ -73,6 +81,12 @@ describe('useNftRefresh', () => {
             defaultRpcEndpointIndex: 0,
             rpcEndpoints: [{ networkClientId: 'polygon-client' }],
           },
+        };
+      }
+      if (selector === selectTokenNetworkFilter) {
+        return {
+          '0x1': true,
+          '0x89': true,
         };
       }
       return undefined;
@@ -125,51 +139,6 @@ describe('useNftRefresh', () => {
     expect(mockCheckAndUpdateAllNftsOwnershipStatus).toHaveBeenCalledTimes(2);
   });
 
-  it('calls checkAndUpdateAllNftsOwnershipStatus for all networks when "All popular networks" is selected', async () => {
-    mockUseNftDetection.mockReturnValue({
-      detectNfts: mockDetectNfts,
-      chainIdsToDetectNftsFor: ['0x1', '0x89', '0xa'],
-      abortDetection: jest.fn(),
-    });
-
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectEvmNetworkConfigurationsByChainId) {
-        return {
-          '0x1': {
-            defaultRpcEndpointIndex: 0,
-            rpcEndpoints: [{ networkClientId: 'mainnet-client' }],
-          },
-          '0x89': {
-            defaultRpcEndpointIndex: 0,
-            rpcEndpoints: [{ networkClientId: 'polygon-client' }],
-          },
-          '0xa': {
-            defaultRpcEndpointIndex: 0,
-            rpcEndpoints: [{ networkClientId: 'optimism-client' }],
-          },
-        };
-      }
-      return undefined;
-    });
-
-    const { result } = renderHook(() => useNftRefresh());
-
-    await act(async () => {
-      await result.current.onRefresh();
-    });
-
-    expect(mockCheckAndUpdateAllNftsOwnershipStatus).toHaveBeenCalledWith(
-      'mainnet-client',
-    );
-    expect(mockCheckAndUpdateAllNftsOwnershipStatus).toHaveBeenCalledWith(
-      'polygon-client',
-    );
-    expect(mockCheckAndUpdateAllNftsOwnershipStatus).toHaveBeenCalledWith(
-      'optimism-client',
-    );
-    expect(mockCheckAndUpdateAllNftsOwnershipStatus).toHaveBeenCalledTimes(3);
-  });
-
   it('handles errors gracefully and sets refreshing to false', async () => {
     const mockError = new Error('Detection failed');
     mockDetectNfts.mockRejectedValueOnce(mockError);
@@ -183,11 +152,12 @@ describe('useNftRefresh', () => {
     expect(result.current.refreshing).toBe(false);
   });
 
-  it('does not call checkAndUpdateAllNftsOwnershipStatus when no chains are enabled', async () => {
-    mockUseNftDetection.mockReturnValue({
-      detectNfts: mockDetectNfts,
-      chainIdsToDetectNftsFor: [],
-      abortDetection: jest.fn(),
+  it('does not call checkAndUpdateAllNftsOwnershipStatus when no network client IDs', async () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTokenNetworkFilter) {
+        return {};
+      }
+      return undefined;
     });
 
     const { result } = renderHook(() => useNftRefresh());
@@ -201,12 +171,6 @@ describe('useNftRefresh', () => {
   });
 
   it('skips network client IDs that are undefined', async () => {
-    mockUseNftDetection.mockReturnValue({
-      detectNfts: mockDetectNfts,
-      chainIdsToDetectNftsFor: ['0x1'],
-      abortDetection: jest.fn(),
-    });
-
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectEvmNetworkConfigurationsByChainId) {
         return {
@@ -215,6 +179,9 @@ describe('useNftRefresh', () => {
             rpcEndpoints: [{ networkClientId: undefined }],
           },
         };
+      }
+      if (selector === selectTokenNetworkFilter) {
+        return { '0x1': true };
       }
       return undefined;
     });

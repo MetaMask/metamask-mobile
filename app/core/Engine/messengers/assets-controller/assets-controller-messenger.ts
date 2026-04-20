@@ -10,12 +10,15 @@ import type {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
-import type { AccountsControllerAccountBalancesUpdatesEvent } from '@metamask/accounts-controller';
+import type {
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerAccountBalancesUpdatesEvent,
+} from '@metamask/accounts-controller';
 import type {
   NetworkEnablementControllerGetStateAction,
   NetworkEnablementControllerEvents,
 } from '@metamask/network-enablement-controller';
-import type { ClientControllerStateChangeEvent } from '@metamask/client-controller';
+import type { GetTokenListState } from '@metamask/assets-controllers';
 import type {
   KeyringControllerLockEvent,
   KeyringControllerUnlockEvent,
@@ -32,7 +35,6 @@ import type {
   GetPermissions,
   PermissionControllerStateChange,
 } from '@metamask/permission-controller';
-import type { PhishingControllerBulkScanTokensAction } from '@metamask/phishing-controller';
 import type {
   SnapControllerHandleRequestAction,
   SnapControllerGetRunnableSnapsAction,
@@ -52,13 +54,14 @@ import { RootExtendedMessenger, RootMessenger } from '../../types';
 type AssetsControllerAllowedActions =
   | NetworkControllerGetStateAction
   | NetworkControllerGetNetworkClientByIdAction
+  | AccountsControllerGetSelectedAccountAction
   | NetworkEnablementControllerGetStateAction
+  | GetTokenListState
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | BackendWebSocketServiceActions
   | SnapControllerHandleRequestAction
   | SnapControllerGetRunnableSnapsAction
-  | GetPermissions
-  | PhishingControllerBulkScanTokensAction;
+  | GetPermissions;
 /**
  * Events that AssetsController and its data sources subscribe to.
  * Aligned with extension: core + RpcDataSource + BackendWebsocketDataSource + SnapDataSource.
@@ -66,7 +69,6 @@ type AssetsControllerAllowedActions =
 type AssetsControllerAllowedEvents =
   | KeyringControllerUnlockEvent
   | KeyringControllerLockEvent
-  | ClientControllerStateChangeEvent
   | PreferencesControllerStateChangeEvent
   | AccountTreeControllerSelectedAccountGroupChangeEvent
   | NetworkEnablementControllerEvents
@@ -101,21 +103,21 @@ export function getAssetsControllerMessenger(
   });
   rootExtendedMessenger.delegate({
     actions: [
+      'AccountsController:getSelectedAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'NetworkEnablementController:getState',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
+      'TokenListController:getState',
       'BackendWebSocketService:subscribe',
       'BackendWebSocketService:getConnectionInfo',
       'BackendWebSocketService:findSubscriptionsByChannelPrefix',
       'SnapController:handleRequest',
       'SnapController:getRunnableSnaps',
       'PermissionController:getPermissions',
-      'PhishingController:bulkScanTokens',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',
-      'ClientController:stateChange',
       'NetworkEnablementController:stateChange',
       'KeyringController:lock',
       'KeyringController:unlock',

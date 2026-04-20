@@ -1,12 +1,10 @@
 import { StyleSheet } from 'react-native';
-import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = ({ theme }: { theme: Theme }) =>
+const styleSheet = () =>
   StyleSheet.create({
     container: {
       flex: 1,
       padding: 16,
-      backgroundColor: theme.colors.background.default,
     },
     listContainer: {
       flex: 1,

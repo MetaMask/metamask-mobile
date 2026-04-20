@@ -243,17 +243,17 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
 **Recognition Pattern in Controller Init Functions:**
 
 ```typescript
-export const transactionControllerInit = ({ getMessengerClient, ... }) => {
-  const networkController = getMessengerClient('NetworkController');  // ← Dependency!
-  const keyringController = getMessengerClient('KeyringController');  // ← Dependency!
+export const transactionControllerInit = ({ getController, ... }) => {
+  const networkController = getController('NetworkController');  // ← Dependency!
+  const keyringController = getController('KeyringController');  // ← Dependency!
   // ...
 };
 ```
 
 **What This Tells You:**
 
-- Each `getMessengerClient()` call = **Direct dependency**
-- More `getMessengerClient()` calls = More things that can break this controller
+- Each `getController()` call = **Direct dependency**
+- More `getController()` calls = More things that can break this controller
 - If dependency isn't initialized yet → Runtime error
 
 **Counting Dependencies:**
@@ -264,7 +264,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 
 ## Interpreting Investigation Findings
 
-### Finding: "15 files call getMessengerClient('NetworkController')"
+### Finding: "15 files call getController('NetworkController')"
 
 **Interpretation:**
 
@@ -298,7 +298,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 - **CRITICAL**: Initialization order changed
 - Must verify dependencies still initialize before dependents
 - Example: If TransactionController moved before NetworkController → BROKEN
-- Check all `getMessengerClient()` calls in affected controllers
+- Check all `getController()` calls in affected controllers
 
 ### Finding: "Direct import between two controller files"
 
@@ -325,9 +325,9 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 
 **Risk Assessment:** Critical - requires comprehensive testing
 
-### Pattern: Controller with Many getMessengerClient() References
+### Pattern: Controller with Many getController() References
 
-**Example: Found 20 files with `getMessengerClient('NetworkController')`**
+**Example: Found 20 files with `getController('NetworkController')`**
 
 **Impact Amplification:**
 
@@ -400,7 +400,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 **Look For:**
 
 - Controller moved earlier in controllerInitFunctions
-- getMessengerClient() calls to controllers initialized later
+- getController() calls to controllers initialized later
 - Phase reordering
 
 **Severity:** CRITICAL - App crashes on startup
@@ -570,7 +570,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 **When You Find:**
 
 - Phase 2 controller changed
-- 10+ getMessengerClient references
+- 10+ getController references
 - 5+ messenger subscribers
 - Changes to critical dependency chains
 
@@ -587,7 +587,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 **When You Find:**
 
 - Phase 6 controller changed
-- 0-2 getMessengerClient references
+- 0-2 getController references
 - No messenger subscribers outside domain
 - Isolated feature (Bridge, Earn, specific trading feature)
 
@@ -630,11 +630,11 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 ## Key Architectural Principles
 
 1. **Initialization order is sacred** - Dependencies must initialize before dependents
-2. **Never import controllers directly** - Always use messenger or getMessengerClient()
+2. **Never import controllers directly** - Always use messenger or getController()
 3. **Redux sync is automatic** - But only if controller is registered in constants
 4. **Messenger restrictions are type-safe** - Enforce through restricted messengers
 5. **Phase 2 controllers are critical** - Network and Keyring are foundational
-6. **Dependency counts matter** - More getMessengerClient() calls = wider impact
+6. **Dependency counts matter** - More getController() calls = wider impact
 7. **Event subscriptions are dependencies** - Subscribers depend on event structure
 8. **State schema changes cascade** - Properties used in selectors affect many components
 
@@ -643,7 +643,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 When you investigate core file changes:
 
 1. **Identify what changed** - Controller, Engine, messenger, state
-2. **Look for recognition patterns** - getMessengerClient calls, messenger usage, subscriptions
+2. **Look for recognition patterns** - getController calls, messenger usage, subscriptions
 3. **Count dependencies** - How many files reference this?
 4. **Check initialization phase** - Phase 2 = critical, Phase 6 = more isolated
 5. **Assess cascade potential** - Use dependency chains to predict impact

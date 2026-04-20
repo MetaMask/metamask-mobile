@@ -1,23 +1,18 @@
 import React, { useRef, useCallback, useEffect } from 'react';
 import {
-  AvatarBaseShape,
-  AvatarNetwork,
-  AvatarNetworkSize,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   FontWeight,
   Text,
-  TextColor,
   TextVariant,
-  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
-import { ImageSourcePropType } from 'react-native';
+import { Pressable, ImageSourcePropType } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../../locales/i18n';
-import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
-import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
 import { AssetType } from '../../types/token';
 import { useNetworks } from '../../hooks/send/useNetworks';
 import {
@@ -26,7 +21,6 @@ import {
 } from '../../hooks/send/useNetworkFilter';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
-  getNetworkFilterAvatarTestId,
   getNetworkFilterTestId,
   NETWORK_FILTER_ALL_TEST_ID,
 } from './network-filter.testIds';
@@ -34,7 +28,6 @@ import {
 interface NetworkFilterTabProps {
   label: string;
   imageSource?: ImageSourcePropType;
-  chainId?: string;
   isSelected: boolean;
   onPress: () => void;
   showIcon?: boolean;
@@ -44,7 +37,6 @@ interface NetworkFilterTabProps {
 const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
   label,
   imageSource,
-  chainId,
   isSelected,
   onPress,
   showIcon = false,
@@ -52,56 +44,34 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
 }) => {
   const tw = useTailwind();
 
-  if (!showIcon || !imageSource) {
-    return (
-      <ButtonToggle
-        label={label}
-        isActive={isSelected}
-        onPress={onPress}
-        size={ButtonSize.Md}
-        style={tw.style('rounded-xl py-2 px-3')}
-        testID={testID}
-      />
-    );
-  }
-
   return (
-    <ButtonToggle
-      label={
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-        >
-          <AvatarNetwork
-            src={imageSource as ImageOrSvgSrc}
-            size={AvatarNetworkSize.Xs}
-            name={label}
-            shape={AvatarBaseShape.Square}
-            twClassName="rounded translate-y-px"
-            testID={
-              chainId !== undefined
-                ? getNetworkFilterAvatarTestId(chainId)
-                : undefined
-            }
-          />
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={
-              isSelected ? TextColor.PrimaryInverse : TextColor.TextDefault
-            }
-          >
-            {label}
-          </Text>
-        </Box>
-      }
-      isActive={isSelected}
+    <Pressable
       onPress={onPress}
-      size={ButtonSize.Md}
-      style={tw.style('rounded-xl py-2 px-3')}
+      style={({ pressed }) =>
+        tw.style(
+          'flex-row items-center px-3 py-2 mr-2 rounded-lg min-h-8 border border-border-muted',
+          isSelected ? 'bg-background-pressed' : 'bg-transparent',
+          pressed && 'opacity-70',
+        )
+      }
+      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
       testID={testID}
-    />
+    >
+      {showIcon && imageSource && (
+        <Box twClassName="mr-2">
+          <Avatar
+            variant={AvatarVariant.Network}
+            size={AvatarSize.Xs}
+            imageSource={imageSource}
+            name={label}
+          />
+        </Box>
+      )}
+
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {label}
+      </Text>
+    </Pressable>
   );
 };
 
@@ -131,7 +101,6 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
   const hasActiveNetworkFilter = selectedNetworkFilter !== NETWORK_FILTER_ALL;
 
   const scrollViewRef = useRef<ScrollView>(null);
-  const tw = useTailwind();
 
   const clearNetworkFiltersWithScroll = useCallback(() => {
     setSelectedNetworkFilter(NETWORK_FILTER_ALL);
@@ -166,9 +135,8 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
         ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={tw.style('flex-grow-0')}
-        contentContainerStyle={tw.style('flex-row items-center gap-2')}
       >
+        {/* All Networks Tab */}
         <NetworkFilterTab
           label={strings('send.all_networks')}
           isSelected={selectedNetworkFilter === NETWORK_FILTER_ALL}
@@ -177,11 +145,11 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
           testID={NETWORK_FILTER_ALL_TEST_ID}
         />
 
+        {/* Individual Network Tabs */}
         {networksWithTokens.map((network) => (
           <NetworkFilterTab
             key={network.chainId}
             label={network.name}
-            chainId={network.chainId}
             imageSource={network.image}
             isSelected={selectedNetworkFilter === network.chainId}
             onPress={() => setSelectedNetworkFilter(network.chainId)}

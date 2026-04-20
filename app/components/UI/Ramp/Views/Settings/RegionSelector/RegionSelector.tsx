@@ -12,7 +12,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import Fuse from 'fuse.js';
 
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
@@ -28,17 +32,19 @@ import {
   FontWeight,
   Icon,
   IconName,
+  ButtonIcon,
+  ButtonIconSize,
 } from '@metamask/design-system-react-native';
 
-import styleSheet from './RegionSelector.styles';
+import styleSheet, {
+  styles as navigationOptionsStyles,
+} from './RegionSelector.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-import { CommonSelectorsIDs } from '../../../../../../util/Common.testIds';
+import { getNavigationOptionsTitle } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { Country, State } from '@metamask/ramps-controller';
-import { useRampsUserRegion } from '../../../hooks/useRampsUserRegion';
-import { useRampsCountries } from '../../../hooks/useRampsCountries';
+import useRampsController from '../../../hooks/useRampsController';
 import { REGION_SELECTOR_TEST_IDS } from './RegionSelector.testIds';
 
 const MAX_REGION_RESULTS = 20;
@@ -81,23 +87,55 @@ function isRegionSupported(supported: unknown): boolean {
   );
 }
 
+interface HeaderBackButtonProps {
+  onPress: () => void;
+  testID?: string;
+}
+
+function HeaderBackButton({ onPress, testID }: HeaderBackButtonProps) {
+  return (
+    <ButtonIcon
+      size={ButtonIconSize.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={onPress}
+      style={navigationOptionsStyles.headerLeft}
+      testID={testID}
+    />
+  );
+}
+
 function RegionSelector() {
   const navigation = useNavigation();
   const { colors } = useAppTheme();
   const listRef = useRef<FlatList<ListItem>>(null);
 
-  const { userRegion, setUserRegion } = useRampsUserRegion();
   const {
+    userRegion,
+    setUserRegion,
     countries,
-    isLoading: countriesLoading,
-    error: countriesError,
-  } = useRampsCountries();
+    countriesLoading,
+    countriesError,
+  } = useRampsController();
 
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
   const [currentData, setCurrentData] = useState<RegionItem[]>(countries);
   const [regionInTransit, setRegionInTransit] = useState<Country | null>(null);
   const { styles } = useStyles(styleSheet, {});
+
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        activeView === RegionViewType.COUNTRY
+          ? strings('fiat_on_ramp_aggregator.region.title')
+          : regionInTransit?.name ||
+              strings('fiat_on_ramp_aggregator.region.title'),
+        navigation,
+        false,
+        colors,
+      ),
+    );
+  }, [colors, navigation, activeView, regionInTransit]);
 
   useEffect(() => {
     if (countries.length > 0 && activeView === RegionViewType.COUNTRY) {
@@ -600,42 +638,38 @@ function RegionSelector() {
     navigation.goBack();
   }, [navigation]);
 
-  const headerTitle = useMemo(
-    () =>
-      activeView === RegionViewType.COUNTRY
-        ? strings('fiat_on_ramp_aggregator.region.title')
-        : regionInTransit?.name ||
-          strings('fiat_on_ramp_aggregator.region.title'),
-    [activeView, regionInTransit],
+  const stateHeaderLeft = useCallback(
+    () => (
+      <HeaderBackButton
+        onPress={handleRegionBackButton}
+        testID={REGION_SELECTOR_TEST_IDS.BACK_BUTTON}
+      />
+    ),
+    [handleRegionBackButton],
   );
 
-  const headerBackTestId = useMemo(
-    () =>
-      activeView === RegionViewType.STATE
-        ? REGION_SELECTOR_TEST_IDS.BACK_BUTTON
-        : CommonSelectorsIDs.BACK_ARROW_BUTTON,
-    [activeView],
+  const defaultHeaderLeft = useCallback(
+    () => <HeaderBackButton onPress={handleGoBack} />,
+    [handleGoBack],
   );
 
-  const handleHeaderBack = useCallback(() => {
+  useEffect(() => {
     if (activeView === RegionViewType.STATE) {
-      handleRegionBackButton();
+      navigation.setOptions({
+        headerLeft: stateHeaderLeft,
+      });
     } else {
-      handleGoBack();
+      navigation.setOptions({
+        headerLeft: defaultHeaderLeft,
+      });
     }
-  }, [activeView, handleRegionBackButton, handleGoBack]);
+  }, [activeView, navigation, stateHeaderLeft, defaultHeaderLeft]);
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <HeaderCompactStandard
-        title={headerTitle}
-        onBack={handleHeaderBack}
-        backButtonProps={{ testID: headerBackTestId }}
-        includesTopInset
-      />
       <View style={styles.searchContainer}>
         {activeView === RegionViewType.COUNTRY && (
           <Text
@@ -690,5 +724,20 @@ function RegionSelector() {
     </KeyboardAvoidingView>
   );
 }
+
+RegionSelector.navigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}) => ({
+  headerLeft: () => (
+    <ButtonIcon
+      size={ButtonIconSize.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={() => navigation.goBack()}
+      style={navigationOptionsStyles.headerLeft}
+    />
+  ),
+});
 
 export default RegionSelector;

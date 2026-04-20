@@ -18,7 +18,6 @@ import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalanc
 import {
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
-  useTransactionPayIsPostQuote,
 } from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import {
@@ -101,9 +100,6 @@ describe('useTransactionCustomAmount', () => {
   const useTransactionPayIsMaxAmountMock = jest.mocked(
     useTransactionPayIsMaxAmount,
   );
-  const useTransactionPayIsPostQuoteMock = jest.mocked(
-    useTransactionPayIsPostQuote,
-  );
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
   );
@@ -144,7 +140,6 @@ describe('useTransactionCustomAmount', () => {
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
     useTransactionPayTotalsMock.mockReturnValue(undefined);
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
-    useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
   });
 
@@ -276,29 +271,6 @@ describe('useTransactionCustomAmount', () => {
 
     await act(async () => {
       rerender({});
-    });
-
-    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
-      properties: {
-        mm_pay_quote_requested: true,
-      },
-    });
-  });
-
-  it('sets mm_pay_quote_requested metric when isPostQuote is true even if hasSourceAmount is false', async () => {
-    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
-    useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-
-    const { result } = runHook();
-
-    await act(async () => {
-      result.current.updatePendingAmount('123.45');
-    });
-
-    setConfirmationMetricMock.mockClear();
-
-    await act(async () => {
-      result.current.updateTokenAmount();
     });
 
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({

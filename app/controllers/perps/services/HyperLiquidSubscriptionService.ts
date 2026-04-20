@@ -1,5 +1,4 @@
 import type { CaipAccountId } from '@metamask/utils';
-import { hasProperty } from '@metamask/utils';
 import type {
   ISubscription,
   AllMidsWsEvent,
@@ -732,15 +731,6 @@ export class HyperLiquidSubscriptionService {
         // This ensures consistency with raw SDK order processing which uses triggerPx
         const tpslPrice = order.triggerPrice ?? order.price;
         if (order.isTrigger && tpslPrice) {
-          // When UsePositionBoundTpsl is enabled, only position-bound TP/SL orders
-          // should be shown on positions — skip normalTpsl children of limit orders
-          if (
-            TP_SL_CONFIG.UsePositionBoundTpsl &&
-            order.isPositionTpsl !== true
-          ) {
-            return;
-          }
-
           const isTakeProfit = order.detailedOrderType?.includes('Take Profit');
           const isStop = order.detailedOrderType?.includes('Stop');
 
@@ -2593,9 +2583,9 @@ export class HyperLiquidSubscriptionService {
             const isPerpsContext = (
               event: ActiveAssetCtxWsEvent | ActiveSpotAssetCtxWsEvent,
             ): event is ActiveAssetCtxWsEvent =>
-              hasProperty(event.ctx, 'funding') &&
-              hasProperty(event.ctx, 'openInterest') &&
-              hasProperty(event.ctx, 'oraclePx');
+              'funding' in event.ctx &&
+              'openInterest' in event.ctx &&
+              'oraclePx' in event.ctx;
 
             const { ctx } = data;
 
@@ -2914,7 +2904,7 @@ export class HyperLiquidSubscriptionService {
         // Use cached meta to map ctxs array indices to symbols (no REST API call!)
         validatedMeta.universe.forEach((asset, index) => {
           const ctx = data.ctxs[index];
-          if (ctx && hasProperty(ctx, 'funding')) {
+          if (ctx && 'funding' in ctx) {
             // This is a perps context
             const ctxPrice = ctx.midPx ?? ctx.markPx;
             const openInterestUSD = calculateOpenInterestUSD(
@@ -3686,74 +3676,21 @@ export class HyperLiquidSubscriptionService {
     this.#dexAccountCache.clear();
     this.#dexAssetCtxsCache.clear();
 
-    // Unsubscribe all active subscriptions before clearing references.
-    // Without this, orphaned subscriptions try to send unsubscribe frames
-    // on the closing WebSocket, causing SOCKET_NOT_CONNECTED errors.
-    if (this.#globalAllMidsSubscription) {
-      this.#globalAllMidsSubscription.unsubscribe().catch((error: Error) => {
-        this.#logErrorUnlessClearing(
-          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-          this.#getErrorContext('clearAll.globalAllMids'),
-        );
-      });
-    }
+    // Clear subscription references (actual cleanup handled by client service)
     this.#globalAllMidsSubscription = undefined;
     this.#globalAllMidsPromise = undefined;
-
-    this.#globalActiveAssetSubscriptions.forEach((sub, symbol) => {
-      sub.unsubscribe().catch((error: Error) => {
-        this.#logErrorUnlessClearing(
-          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-          this.#getErrorContext('clearAll.activeAsset', { symbol }),
-        );
-      });
-    });
     this.#globalActiveAssetSubscriptions.clear();
     this.#pendingActiveAssetPromises.clear();
-
-    this.#globalBboSubscriptions.forEach((sub, symbol) => {
-      sub.unsubscribe().catch((error: Error) => {
-        this.#logErrorUnlessClearing(
-          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-          this.#getErrorContext('clearAll.bbo', { symbol }),
-        );
-      });
-    });
     this.#globalBboSubscriptions.clear();
     this.#pendingBboPromises.clear();
-
-    this.#webData3Subscriptions.forEach((sub, dexName) => {
-      sub.unsubscribe().catch((error: Error) => {
-        this.#logErrorUnlessClearing(
-          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-          this.#getErrorContext('clearAll.webData3', { dex: dexName }),
-        );
-      });
-    });
     this.#webData3Subscriptions.clear();
     this.#webData3SubscriptionPromise = undefined;
 
-    // HIP-3: Clear assetCtxs subscriptions
-    this.#assetCtxsSubscriptions.forEach((sub, dexName) => {
-      sub.unsubscribe().catch((error: Error) => {
-        this.#logErrorUnlessClearing(
-          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-          this.#getErrorContext('clearAll.assetCtxs', { dex: dexName }),
-        );
-      });
-    });
+    // HIP-3: Clear assetCtxs subscriptions (clearinghouseState no longer needed with webData3)
     this.#assetCtxsSubscriptions.clear();
     this.#assetCtxsSubscriptionPromises.clear();
 
     // HIP-3: Clear per-DEX allMids subscriptions
-    this.#dexAllMidsSubscriptions.forEach((sub, dexName) => {
-      sub.unsubscribe().catch((error: Error) => {
-        this.#logErrorUnlessClearing(
-          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-          this.#getErrorContext('clearAll.dexAllMids', { dex: dexName }),
-        );
-      });
-    });
     this.#dexAllMidsSubscriptions.clear();
     this.#dexAllMidsSubscriptionPromises.clear();
 

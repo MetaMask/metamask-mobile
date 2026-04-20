@@ -29,20 +29,8 @@ export const getSmartTransactionMetricsProperties = async (
   transactionMeta: TransactionMeta | undefined,
   waitForSmartTransaction: boolean,
   controllerMessenger?: RootExtendedMessenger,
-  isSmartTransactionsUserOptIn?: boolean,
-  isSmartTransactionsAvailable?: boolean,
-  shouldUseSmartTransaction?: boolean,
 ) => {
-  const baseProperties = {
-    is_smart_transactions_user_opt_in: isSmartTransactionsUserOptIn ?? false,
-    is_smart_transactions_available: isSmartTransactionsAvailable ?? false,
-    is_smart_transaction: shouldUseSmartTransaction ?? false,
-  };
-
-  if (!transactionMeta || !baseProperties.is_smart_transaction) {
-    return baseProperties;
-  }
-
+  if (!transactionMeta) return {};
   let smartTransaction =
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
@@ -55,17 +43,21 @@ export const getSmartTransactionMetricsProperties = async (
     smartTransaction =
       await waitForSmartTransactionConfirmationDone(controllerMessenger);
   }
-  if (!smartTransaction?.statusMetadata) {
+  if (!smartTransaction) {
     // Still mark as smart transaction since this function is only called when
     // smart transactions are enabled for the chain. Cancelled/dropped smart
     // transactions won't have a mined tx hash, so the lookup above returns
     // nothing, but the transaction still went through the smart transaction flow.
-    return baseProperties;
+    return { is_smart_transaction: true };
   }
+  if (!smartTransaction?.statusMetadata) {
+    return { is_smart_transaction: true };
+  }
+  const { timedOut, proxied } = smartTransaction.statusMetadata;
   return {
-    ...baseProperties,
-    stx_original_transaction_status:
-      smartTransaction.statusMetadata.originalTransactionStatus,
+    smart_transaction_timed_out: timedOut,
+    smart_transaction_proxied: proxied,
+    is_smart_transaction: true,
   };
 };
 

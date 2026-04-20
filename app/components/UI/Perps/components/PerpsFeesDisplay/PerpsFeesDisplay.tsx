@@ -13,14 +13,12 @@ import { useTheme } from '../../../../../util/theme';
 interface PerpsFeesDisplayProps {
   feeDiscountPercentage?: number;
   formatFeeText: string;
-  testID?: string;
   variant?: TextVariant;
 }
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   feeDiscountPercentage,
   formatFeeText,
-  testID,
   variant = TextVariant.BodyMD,
 }) => {
   const { colors } = useTheme();
@@ -38,7 +36,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           </View>
         </TagColored>
       ) : null}
-      <Text variant={variant} color={TextColor.Alternative} testID={testID}>
+      <Text variant={variant} color={TextColor.Alternative}>
         {formatFeeText}
       </Text>
     </View>

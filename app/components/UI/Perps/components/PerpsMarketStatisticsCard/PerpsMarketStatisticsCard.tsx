@@ -253,21 +253,15 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             ),
           }}
           value={{
-            label: (
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE
-                }
-              >
-                {liveOraclePrice
-                  ? formatPerpsFiat(parseFloat(liveOraclePrice), {
-                      ranges: PRICE_RANGES_UNIVERSAL,
-                    })
-                  : '-'}
-              </Text>
-            ),
+            label: {
+              text: liveOraclePrice
+                ? formatPerpsFiat(parseFloat(liveOraclePrice), {
+                    ranges: PRICE_RANGES_UNIVERSAL,
+                  })
+                : '-',
+              variant: TextVariant.BodyMD,
+              color: TextColor.Default,
+            },
           }}
           style={styles.statsRowLast}
         />

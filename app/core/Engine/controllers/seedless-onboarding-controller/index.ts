@@ -1,5 +1,5 @@
 import type { Json } from '@metamask/utils';
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -107,7 +107,7 @@ const encryptorAdapter = {
  * @param request - The request object.
  * @returns The SeedlessOnboardingController.
  */
-export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
+export const seedlessOnboardingControllerInit: ControllerInitFunction<
   SeedlessOnboardingController<EncryptionKey>,
   SeedlessOnboardingControllerMessenger
 > = (request) => {

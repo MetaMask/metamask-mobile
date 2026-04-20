@@ -4,16 +4,23 @@ import { RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 import handleSendMessage from './handleSendMessage'; // Adjust the import path as necessary
-import { analytics } from '../../../util/analytics/analytics';
-import { MetaMetricsEvents } from '../../Analytics';
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { analytics } from '@metamask/sdk-analytics';
+import {
+  isAnalyticsTrackedRpcMethod,
+  OriginatorInfo,
+} from '@metamask/sdk-communication-layer';
 import Routes from '../../../constants/navigation/Routes';
 
 // --- Start of Mocks ---
-jest.mock('../../../util/analytics/analytics', () => ({
+jest.mock('@metamask/sdk-analytics', () => ({
   analytics: {
-    trackEvent: jest.fn(),
+    track: jest.fn(),
   },
+}));
+
+jest.mock('@metamask/sdk-communication-layer', () => ({
+  ...jest.requireActual('@metamask/sdk-communication-layer'), // Preserve other exports
+  isAnalyticsTrackedRpcMethod: jest.fn(),
 }));
 
 jest.mock('../../../util/device');
@@ -70,49 +77,47 @@ describe('handleSendMessage', () => {
   });
 
   describe('Analytics tracking', () => {
+    const mockIsAnalyticsTrackedRpcMethod =
+      isAnalyticsTrackedRpcMethod as jest.Mock;
+
     beforeEach(() => {
-      mockRpcQueueManagerGetId.mockReturnValue('eth_sendTransaction');
+      mockRpcQueueManagerGetId.mockReturnValue(RPC_METHODS.ETH_REQUESTACCOUNTS); // Example tracked method
+      mockIsAnalyticsTrackedRpcMethod.mockReturnValue(true);
       mockConnection.originatorInfo = {
         anonId: 'test-anon-id',
       } as OriginatorInfo;
     });
 
-    it('should track SDK Legacy RPC Request Approved when msg has no error', async () => {
+    it('should track wallet_action_user_approved when msg has no error', async () => {
       const msg = { data: { id: '123' } };
       await handleSendMessage({ msg, connection: mockConnection });
 
-      expect(analytics.trackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_APPROVED.category,
-          properties: expect.objectContaining({
-            transport_type: 'socket_relay',
-            rpc_method: 'eth_sendTransaction',
-            remote_session_id: 'test-anon-id',
-          }),
-        }),
+      expect(analytics.track).toHaveBeenCalledWith(
+        'wallet_action_user_approved',
+        {
+          anon_id: 'test-anon-id',
+        },
       );
     });
 
-    it('should track SDK Legacy RPC Request Rejected when msg has an error', async () => {
+    it('should track wallet_action_user_rejected when msg has an error', async () => {
       const msg = { data: { id: '123', error: 'User rejected' } };
       await handleSendMessage({ msg, connection: mockConnection });
 
-      expect(analytics.trackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_REJECTED.category,
-          properties: expect.objectContaining({
-            remote_session_id: 'test-anon-id',
-          }),
-        }),
+      expect(analytics.track).toHaveBeenCalledWith(
+        'wallet_action_user_rejected',
+        {
+          anon_id: 'test-anon-id',
+        },
       );
     });
 
     it('should not track if method is not analytics tracked', async () => {
-      mockRpcQueueManagerGetId.mockReturnValue('eth_chainId');
+      mockIsAnalyticsTrackedRpcMethod.mockReturnValue(false);
       const msg = { data: { id: '123' } };
       await handleSendMessage({ msg, connection: mockConnection });
 
-      expect(analytics.trackEvent).not.toHaveBeenCalled();
+      expect(analytics.track).not.toHaveBeenCalled();
     });
 
     it('should not track if msgId is undefined', async () => {
@@ -123,7 +128,7 @@ describe('handleSendMessage', () => {
       };
       await handleSendMessage({ msg, connection: mockConnection });
 
-      expect(analytics.trackEvent).not.toHaveBeenCalled();
+      expect(analytics.track).not.toHaveBeenCalled();
     });
 
     it('should not track if anonId is missing', async () => {
@@ -131,7 +136,7 @@ describe('handleSendMessage', () => {
       const msg = { data: { id: '123' } };
       await handleSendMessage({ msg, connection: mockConnection });
 
-      expect(analytics.trackEvent).not.toHaveBeenCalled();
+      expect(analytics.track).not.toHaveBeenCalled();
     });
   });
 

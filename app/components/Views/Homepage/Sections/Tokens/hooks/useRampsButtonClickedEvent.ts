@@ -20,39 +20,35 @@ export const useRampsButtonClickedEvent = () => {
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const region = useSelector(getDetectedGeolocation);
 
-  const trackBuyButtonClicked = useCallback(
-    (assetSymbol?: string) => {
-      const rampType = isV2UnifiedEnabled
-        ? 'UNIFIED_BUY_2'
-        : rampUnifiedV1Enabled
-          ? 'UNIFIED_BUY'
-          : 'BUY';
+  const trackBuyButtonClicked = useCallback(() => {
+    const rampType = isV2UnifiedEnabled
+      ? 'UNIFIED_BUY_2'
+      : rampUnifiedV1Enabled
+        ? 'UNIFIED_BUY'
+        : 'BUY';
 
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
-          .addProperties({
-            button_text: 'Buy',
-            location: 'TokensSection',
-            ramp_type: rampType,
-            region,
-            ramp_routing: buttonClickData.ramp_routing,
-            is_authenticated: buttonClickData.is_authenticated,
-            preferred_provider: buttonClickData.preferred_provider,
-            order_count: buttonClickData.order_count,
-            asset_symbol: assetSymbol,
-          })
-          .build(),
-      );
-    },
-    [
-      trackEvent,
-      createEventBuilder,
-      isV2UnifiedEnabled,
-      rampUnifiedV1Enabled,
-      region,
-      buttonClickData,
-    ],
-  );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
+        .addProperties({
+          button_text: 'Buy',
+          location: 'TokensSection',
+          ramp_type: rampType,
+          region,
+          ramp_routing: buttonClickData.ramp_routing,
+          is_authenticated: buttonClickData.is_authenticated,
+          preferred_provider: buttonClickData.preferred_provider,
+          order_count: buttonClickData.order_count,
+        })
+        .build(),
+    );
+  }, [
+    trackEvent,
+    createEventBuilder,
+    isV2UnifiedEnabled,
+    rampUnifiedV1Enabled,
+    region,
+    buttonClickData,
+  ]);
 
   return { trackBuyButtonClicked };
 };

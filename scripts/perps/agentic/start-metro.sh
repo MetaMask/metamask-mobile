@@ -159,12 +159,6 @@ fi
 # --- No Metro detected — start fresh ---
 > "$LOGFILE"
 
-# Clear Metro + Babel transpilation caches to ensure env vars are freshly inlined.
-# babel-plugin-transform-inline-environment-variables caches compiled values in
-# $TMPDIR/metro-cache. Without clearing, switching METAMASK_ENVIRONMENT between
-# 'e2e' and 'dev' may serve bundles with stale inlined values.
-rm -rf "${TMPDIR:-/tmp}/metro-cache" "${TMPDIR:-/tmp}/haste-map-"* 2>/dev/null || true
-
 echo "Starting Metro on port $PORT..."
 EXPO_NO_TYPESCRIPT_SETUP=1 yarn expo start --port "$PORT" >> "$LOGFILE" 2>&1 &
 METRO_PID=$!

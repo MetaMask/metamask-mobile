@@ -25,6 +25,7 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'predict.fee_summary.total': 'Total',
+      'predict.fee_summary.total_incl_fees': 'incl. fees',
       'predict.fee_summary.estimated_points': 'Estimated points',
       'predict.fee_summary.points_tooltip': 'Points tooltip',
       'predict.fee_summary.points_tooltip_content_1': 'content 1',
@@ -162,6 +163,7 @@ describe('PredictFeeSummary', () => {
     );
 
     expect(screen.getByText('Total')).toBeOnTheScreen();
+    expect(screen.getByText('incl. fees')).toBeOnTheScreen();
     expect(screen.getByText('$13.50')).toBeOnTheScreen();
 
     fireEvent.press(UNSAFE_getByType(TouchableOpacity));

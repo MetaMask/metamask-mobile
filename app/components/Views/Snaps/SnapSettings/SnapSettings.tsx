@@ -7,7 +7,10 @@ import Engine from '../../../../core/Engine';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 
 import stylesheet from './SnapSettings.styles';
 import {
@@ -176,15 +179,15 @@ const SnapSettings = () => {
             <Button
               testID={SNAP_SETTINGS_REMOVE_BUTTON}
               style={styles.removeButton}
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
+              label={strings(
+                'app_settings.snaps.snap_settings.remove_button_label',
+                { snapName: snap.manifest.proposedName },
+              )}
               isDanger
-              isFullWidth
+              width={ButtonWidthTypes.Full}
               onPress={handleRemoveSnap}
-            >
-              {strings('app_settings.snaps.snap_settings.remove_button_label', {
-                snapName: snap.manifest.proposedName,
-              })}
-            </Button>
+            />
           </View>
         </ScrollView>
       </SafeAreaView>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { query } from '@metamask/controller-utils';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import TransactionDetails from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -151,19 +151,23 @@ const renderComponent = ({
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    renderComponent({ state: initialState });
-    expect(screen.getByText('Nonce')).toBeOnTheScreen();
-    expect(screen.getByText('Total amount')).toBeOnTheScreen();
-    expect(screen.getByText('Date')).toBeOnTheScreen();
+    const { toJSON, getByText } = renderComponent({ state: initialState });
+    expect(toJSON()).toMatchSnapshot();
+    const nonceText = getByText('Nonce');
+    expect(nonceText).toBeDefined();
+    const totalAmountText = getByText('Total amount');
+    expect(totalAmountText).toBeDefined();
+    const dateText = getByText('Date');
+    expect(dateText).toBeDefined();
   });
 
-  it('should render correctly for multi-layer fee network', async () => {
+  it('should render correctly for multi-layer fee network', () => {
     jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
       timestamp: 1234,
       l1Fee: '0x1',
     });
 
-    renderComponent({
+    const { toJSON } = renderComponent({
       state: {
         ...initialState,
         engine: {
@@ -187,21 +191,14 @@ describe('TransactionDetails', () => {
         multiLayerL1FeeTotal: '0x1',
       },
     });
-    // Multi-layer fee networks (Optimism) show a block explorer link — this is
-    // absent in the base mainnet test and confirms the multi-layer path rendered.
-    await waitFor(() => {
-      expect(screen.getByText(/View on/i)).toBeOnTheScreen();
-    });
-    // The total amount row is always present once transactionDetails resolves.
-    expect(screen.getByText('Total amount')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
-
-  it('should render correctly for multi-layer fee network with no l1 fee', async () => {
+  it('should render correctly for multi-layer fee network with no l1 fee', () => {
     jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
       timestamp: 1234,
       l1Fee: '0x0',
     });
-    renderComponent({
+    const { toJSON } = renderComponent({
       state: {
         ...initialState,
         engine: {
@@ -222,16 +219,10 @@ describe('TransactionDetails', () => {
       },
       hash: '0x3',
       txParams: {
-        multiLayerL1FeeTotal: '0x0',
+        multiLayerL1FeeTotal: '0x1',
       },
     });
-    // Even with a zero L1 fee the multi-layer path still resolves and renders
-    // the Optimism block explorer link, confirming the async update completed.
-    await waitFor(() => {
-      expect(screen.getByText(/View on/i)).toBeOnTheScreen();
-    });
-    // With zero L1 fee the total amount row is still present (fee contribution is 0).
-    expect(screen.getByText('Total amount')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   const arrangeBlockExplorerTest = () => {
@@ -474,8 +465,8 @@ describe('TransactionDetails', () => {
       expect(getByText('Status')).toBeTruthy();
     });
 
-    expect(queryByText('Speed up')).not.toBeOnTheScreen();
-    expect(queryByText('Cancel')).not.toBeOnTheScreen();
+    expect(queryByText('Speed up')).toBeNull();
+    expect(queryByText('Cancel')).toBeNull();
   });
 
   it('should render `Batched transactions` tag if there are nested transactions', async () => {
@@ -485,23 +476,5 @@ describe('TransactionDetails', () => {
     });
 
     expect(getByText('Batched transactions')).toBeTruthy();
-  });
-
-  it('passes isGasFeeSponsored to TransactionSummary when true', () => {
-    renderComponent({
-      state: initialState,
-      transactionObj: { isGasFeeSponsored: true },
-    });
-
-    expect(screen.getByTestId('paid-by-metamask')).toBeOnTheScreen();
-    expect(screen.getByText('Paid by MetaMask')).toBeOnTheScreen();
-  });
-
-  it('does not show "Paid by MetaMask" when isGasFeeSponsored is false', () => {
-    renderComponent({
-      state: initialState,
-    });
-
-    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
   });
 });

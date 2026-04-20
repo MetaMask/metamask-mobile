@@ -243,6 +243,7 @@
     "import_wallet_button": "Sincronizar ou importar carteira",
     "new_to_crypto": "Novo nas criptomoedas?",
     "start_exploring_now": "Criar uma nova carteira",
+    "unlock": "Desbloquear",
     "new_to_metamask": "Novo na MetaMask?",
     "already_have_wallet": "Já tem uma carteira?",
     "optin_back_title": "Atenção!",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "Agora que sua carteira possui valores, proteja-a definindo uma senha e salvando sua Frase de Recuperação Secreta (obrigatório).",
     "button": "Proteger carteira"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Falha em atualizar a transação",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "Transação {{index}}",
     "transaction": "Transações",
     "available_balance": "Saldo disponível: ",
+    "available_perps_balance": "Saldo de perps disponível: ",
     "edit_amount_done": "Continuar",
     "deposit_edit_amount_done": "Adicionar fundos",
     "deposit_edit_amount_predict_withdraw": "Sacar",
@@ -8120,7 +8122,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Prize Pool",
       "current_label": "Atual",
       "next_label": "Avançar",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Tentar novamente",
       "label_return": "Retorno",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Sacado",
       "label_rank": "Classificação",
       "label_tier": "Tier",
       "label_your_return": "Your return",

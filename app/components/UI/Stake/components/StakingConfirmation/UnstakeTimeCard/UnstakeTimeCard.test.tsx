@@ -1,7 +1,5 @@
 import React from 'react';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
 import UnstakingTimeCard from './UnstakeTimeCard';
 import { strings } from '../../../../../../../locales/i18n';
 
@@ -16,14 +14,8 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 describe('UnstakingTimeCard', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
-  });
-
   it('render matches snapshot', () => {
     const { toJSON, getByText } = renderWithProvider(<UnstakingTimeCard />);
 

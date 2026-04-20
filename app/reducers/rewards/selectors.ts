@@ -2,7 +2,6 @@ import { createSelector } from 'reselect';
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
-import { SubscriptionBenefitDto } from '../../core/Engine/controllers/rewards-controller/types.ts';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -119,6 +118,9 @@ export const selectSeasonRewardById =
 export const selectPointsEvents = (state: RootState) =>
   state.rewards.pointsEvents;
 
+export const selectSeasonShouldInstallNewVersion = (state: RootState) =>
+  state.rewards.seasonShouldInstallNewVersion;
+
 // Bulk link selectors
 export const selectBulkLinkState = (state: RootState) => state.rewards.bulkLink;
 
@@ -151,18 +153,8 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
 
-// Benefits selectors
-export const selectBenefits = (state: RootState): SubscriptionBenefitDto[] =>
-  state.rewards.benefits;
-
-export const selectBenefitsLoading = (state: RootState): boolean =>
-  state.rewards.benefitsLoading;
-
 // Campaigns selectors
 export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
-
-export const selectCampaignById = (campaignId: string) => (state: RootState) =>
-  state.rewards.campaigns?.find((c) => c.id === campaignId) ?? null;
 
 export const selectCampaignsLoading = (state: RootState) =>
   state.rewards.campaignsLoading;
@@ -277,25 +269,3 @@ export const selectOndoCampaignPortfolioById =
           `${subscriptionId}:${campaignId}`
         ] ?? null)
       : null;
-
-export const selectOndoCampaignActivityById =
-  (subscriptionId: string | undefined, campaignId: string | undefined) =>
-  (state: RootState) =>
-    subscriptionId && campaignId && state.rewards.ondoCampaignActivity
-      ? (state.rewards.ondoCampaignActivity[
-          `${subscriptionId}:${campaignId}`
-        ] ?? null)
-      : null;
-
-// Campaign deposits selectors
-export const selectOndoCampaignDeposits = (state: RootState) =>
-  state.rewards.ondoCampaignDeposits;
-
-export const selectOndoCampaignDepositsLoading = (state: RootState) =>
-  state.rewards.ondoCampaignDepositsLoading;
-
-export const selectOndoCampaignDepositsError = (state: RootState) =>
-  state.rewards.ondoCampaignDepositsError;
-
-export const selectPendingDeeplink = (state: RootState) =>
-  state.rewards.pendingDeeplink;

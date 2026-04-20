@@ -9,11 +9,10 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import {
-  Box,
-  BoxFlexDirection,
-  ListItem,
-} from '@metamask/design-system-react-native';
+import ListItem from '../../../component-library/components/List/ListItem/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextVariant,
   TextColor,
@@ -98,7 +97,7 @@ const SettingsDrawer = ({
   return (
     <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
       <ListItem style={styles.root} gap={16}>
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
+        <ListItemColumn widthType={WidthType.Fill}>
           <Text variant={TextVariant.BodyLGMedium} color={titleColor}>
             {title}
           </Text>
@@ -123,15 +122,15 @@ const SettingsDrawer = ({
               </Text>
             </View>
           )}
-        </Box>
+        </ListItemColumn>
         {renderArrowRight && (
-          <Box>
+          <ListItemColumn>
             <Icon
               style={styles.action}
               size={IconSize.Md}
               name={IconName.ArrowRight}
             />
-          </Box>
+          </ListItemColumn>
         )}
       </ListItem>
     </TouchableOpacity>

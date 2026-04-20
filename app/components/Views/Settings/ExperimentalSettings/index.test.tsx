@@ -47,7 +47,18 @@ jest.mock('react-native-device-info', () => ({
   getBuildNumber: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/card', () => ({
+  selectCardExperimentalSwitch: jest.fn(() => false),
+}));
+
 jest.mock('../../../../core/redux/slices/card', () => ({
+  selectAlwaysShowCardButton: jest.fn(
+    (state) => state.card.alwaysShowCardButton,
+  ),
+  setAlwaysShowCardButton: jest.fn((value) => ({
+    type: 'card/setAlwaysShowCardButton',
+    payload: value,
+  })),
   selectIsDaimoDemo: jest.fn((state) => state.card.isDaimoDemo),
   setIsDaimoDemo: jest.fn((value) => ({
     type: 'card/setIsDaimoDemo',
@@ -75,6 +86,7 @@ const initialState = {
     isInitialized: true,
   },
   card: {
+    alwaysShowCardButton: false,
     isAuthenticatedCard: false,
     cardholderAccounts: [],
     isDaimoDemo: false,
@@ -94,7 +106,7 @@ describe('ExperimentalSettings', () => {
   });
 
   it('should render correctly', () => {
-    const { getByText } = render(
+    const wrapper = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <ExperimentalSettings
@@ -106,9 +118,7 @@ describe('ExperimentalSettings', () => {
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(
-      getByText(strings('app_settings.experimental_title')),
-    ).toBeOnTheScreen();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders inline HeaderCompactStandard with title and back button', () => {

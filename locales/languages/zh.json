@@ -243,6 +243,7 @@
     "import_wallet_button": "同步或导入钱包",
     "new_to_crypto": "新接触加密币？",
     "start_exploring_now": "创建新钱包",
+    "unlock": "登录",
     "new_to_metamask": "MetaMask 的新用户？",
     "already_have_wallet": "已有钱包？",
     "optin_back_title": "注意！",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "现在价值已经添加到您的钱包中，请设置密码和保存助记词，保护您的钱包（必要）。",
     "button": "保护钱包"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "交易更新失败",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "交易 {{index}}",
     "transaction": "交易",
     "available_balance": "可用余额: ",
+    "available_perps_balance": "可用永续合约余额： ",
     "edit_amount_done": "继续",
     "deposit_edit_amount_done": "充值",
     "deposit_edit_amount_predict_withdraw": "提取",
@@ -8120,7 +8122,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Prize Pool",
       "current_label": "当前",
       "next_label": "下一步",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "重试",
       "label_return": "回报率",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "已提现",
       "label_rank": "排名",
       "label_tier": "Tier",
       "label_your_return": "Your return",

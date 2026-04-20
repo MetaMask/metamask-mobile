@@ -27,10 +27,6 @@ import HeaderCompactStandard from '../../../component-library/components-temp/He
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
-import {
-  IMPORT_WALLET_PRIVATE_KEY_URL,
-  IMPORT_WALLET_GUIDE_URL,
-} from '../../../constants/urls';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -74,7 +70,9 @@ const ImportPrivateKey = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: isSRP ? IMPORT_WALLET_PRIVATE_KEY_URL : IMPORT_WALLET_GUIDE_URL,
+        url: isSRP
+          ? 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key'
+          : 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
         title: strings('drawer.metamask_support'),
       },
     });

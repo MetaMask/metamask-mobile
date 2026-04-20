@@ -201,7 +201,7 @@ describe('Settings', () => {
 
   it('renders correctly', () => {
     render(Settings);
-    expect(screen.getByText('Buy & sell crypto')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
     expect(withRampSDK).toHaveBeenCalled();
   });
 
@@ -224,9 +224,7 @@ describe('Settings', () => {
       isInternalBuild: true,
     };
     render(Settings);
-    expect(
-      screen.getByRole('button', { name: 'Add activation key' }),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   describe('Region', () => {
@@ -237,9 +235,7 @@ describe('Settings', () => {
 
       it('renders correctly when region is set', () => {
         render(Settings);
-        expect(
-          screen.getByRole('button', { name: 'Change region' }),
-        ).toBeOnTheScreen();
+        expect(screen.toJSON()).toMatchSnapshot();
       });
 
       it('renders correctly when region is not set', () => {
@@ -248,9 +244,7 @@ describe('Settings', () => {
           userRegion: null,
         };
         render(Settings);
-        expect(
-          screen.getByRole('button', { name: 'Change region' }),
-        ).toBeOnTheScreen();
+        expect(screen.toJSON()).toMatchSnapshot();
       });
 
       it('renders correctly when region has state', () => {
@@ -259,7 +253,7 @@ describe('Settings', () => {
           userRegion: createMockUserRegion('eu-fr'),
         };
         render(Settings);
-        expect(screen.getByText('FR')).toBeOnTheScreen();
+        expect(screen.toJSON()).toMatchSnapshot();
       });
 
       it('renders correctly when region is country only (no state)', () => {
@@ -268,9 +262,7 @@ describe('Settings', () => {
           userRegion: createMockUserRegion('fr'),
         };
         render(Settings);
-        expect(
-          screen.getByRole('button', { name: 'Change region' }),
-        ).toBeOnTheScreen();
+        expect(screen.toJSON()).toMatchSnapshot();
       });
 
       it('navigates to region selector when change region button is pressed', () => {
@@ -292,9 +284,7 @@ describe('Settings', () => {
 
       it('renders correctly when region is set', () => {
         render(Settings);
-        expect(
-          screen.getByRole('button', { name: 'Reset region' }),
-        ).toBeOnTheScreen();
+        expect(screen.toJSON()).toMatchSnapshot();
       });
 
       it('renders correctly when region is not set', () => {
@@ -302,7 +292,8 @@ describe('Settings', () => {
           ...mockuseRampSDKInitialValues,
           selectedRegion: null,
         };
-        expect(() => render(Settings)).not.toThrow();
+        render(Settings);
+        expect(screen.toJSON()).toMatchSnapshot();
       });
 
       it('calls reset region when reset button is pressed', () => {
@@ -331,6 +322,7 @@ describe('Settings', () => {
       };
 
       render(Settings);
+      expect(screen.toJSON()).toMatchSnapshot();
       const addActivationKeyButton = screen.getByRole('button', {
         name: 'Add activation key',
       });
@@ -350,9 +342,7 @@ describe('Settings', () => {
         activationKeys: [],
       };
       render(Settings);
-      expect(
-        screen.queryByRole('button', { name: 'Delete activation key' }),
-      ).not.toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('navigates to add activation key when pressing add new key', () => {

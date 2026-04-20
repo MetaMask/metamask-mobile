@@ -1,0 +1,150 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PaymentMethodPill matches snapshot 1`] = `
+<TouchableOpacity
+  activeOpacity={0.7}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "center",
+      "backgroundColor": "#b4b4b528",
+      "borderRadius": 100,
+      "flexDirection": "row",
+      "padding": 8,
+    }
+  }
+  testID="payment-method-pill"
+>
+  <View
+    style={
+      {
+        "padding": 4,
+      }
+    }
+  >
+    <SvgMock
+      fill="currentColor"
+      name="Card"
+      style={
+        [
+          {
+            "color": "#131416",
+            "height": 16,
+            "width": 16,
+          },
+          undefined,
+        ]
+      }
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Medium",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginLeft": 8,
+          "marginRight": 4,
+        },
+      ]
+    }
+  >
+    Debit card
+  </Text>
+  <View
+    style={
+      {
+        "padding": 4,
+      }
+    }
+  >
+    <SvgMock
+      fill="currentColor"
+      name="ArrowDown"
+      style={
+        [
+          {
+            "color": "#131416",
+            "height": 16,
+            "width": 16,
+          },
+          undefined,
+        ]
+      }
+    />
+  </View>
+</TouchableOpacity>
+`;
+
+exports[`PaymentMethodPill when isLoading is true matches snapshot when loading 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "backgroundColor": "#b4b4b528",
+        "borderRadius": 100,
+        "flexDirection": "row",
+        "padding": 8,
+      },
+      {
+        "justifyContent": "center",
+        "minWidth": 120,
+      },
+    ]
+  }
+  testID="payment-method-pill"
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "columnGap": 8,
+          "flexDirection": "row",
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "rotate": "0deg",
+              },
+            ],
+          },
+        ]
+      }
+      testID="spinner-animated-view"
+    >
+      <SvgMock
+        fill="currentColor"
+        name="Loading"
+        style={
+          [
+            {
+              "color": "#131416",
+              "height": 16,
+              "width": 16,
+            },
+            undefined,
+          ]
+        }
+        testID="spinner-icon"
+      />
+    </View>
+  </View>
+</View>
+`;

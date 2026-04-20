@@ -7,7 +7,6 @@
 #import <Firebase.h>
 #import <BrazeKit/BrazeKit-Swift.h>
 #import "BrazeReactBridge.h"
-#import "BrazeReactUtils.h"
 
 static Braze *_braze = nil;
 
@@ -54,11 +53,8 @@ static Braze *_braze = nil;
     // requestAuthorizationAtLaunch is NO so the existing permission flow (Firebase/Notifee) is preserved.
     configuration.push.automation = [[BRZConfigurationPushAutomation alloc] initEnablingAllAutomations:YES];
     configuration.push.automation.requestAuthorizationAtLaunch = NO;
-    configuration.forwardUniversalLinks = YES;
     Braze *braze = [BrazeReactBridge initBraze:configuration];
-    braze.delegate = self;
     AppDelegate.braze = braze;
-    [[BrazeReactUtils sharedInstance] populateInitialPayloadFromLaunchOptions:launchOptions];
   }
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
@@ -110,28 +106,6 @@ static Braze *_braze = nil;
 {
 
   return [super application:application didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
-}
-
-#pragma mark - BrazeDelegate
-
-// Route Braze deep link URLs ourselves instead of letting BrazeKit open them
-// via UIApplication.open (which would cause a duplicate delivery — once from
-// the Braze RN bridge JS event and once from the system URL handler).
-//
-// Universal links (Branch domains) are forwarded to Branch for proper routing.
-// All other URLs are suppressed here; they are handled exclusively through
-// the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE.
-- (BOOL)braze:(Braze *)braze shouldOpenURL:(BRZURLContext *)context {
-  NSString *host = context.url.host;
-  if (host &&
-      ([host containsString:@"app.link"] ||
-       [host containsString:@"test-app.link"] ||
-       [host containsString:@"link.metamask.io"] ||
-       [host containsString:@"link-test.metamask.io"])) {
-    [[Branch getInstance] handleDeepLink:context.url];
-    return NO;
-  }
-  return NO;
 }
 
 @end

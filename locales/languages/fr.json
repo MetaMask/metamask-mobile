@@ -243,6 +243,7 @@
     "import_wallet_button": "Synchroniser ou importer un portefeuille",
     "new_to_crypto": "Vous êtes novice en matière de cryptomonnaies ?",
     "start_exploring_now": "Créer un nouveau portefeuille",
+    "unlock": "Déverrouiller",
     "new_to_metamask": "Nouveau/Nouvelle sur MetaMask ?",
     "already_have_wallet": "Vous avez déjà un portefeuille ?",
     "optin_back_title": "Attention !",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "À présent que des fonds ont été ajoutés à votre portefeuille, protégez-le en définissant un mot de passe et en sauvegardant votre phrase secrète de récupération (obligatoire).",
     "button": "Protéger le portefeuille"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "Échec de la mise à jour de la transaction",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Protection des",
     "available_balance": "Solde disponible: ",
+    "available_perps_balance": "Solde disponible sur le compte de trading de contrats à terme perpétuels : ",
     "edit_amount_done": "Continuer",
     "deposit_edit_amount_done": "Ajouter des fonds",
     "deposit_edit_amount_predict_withdraw": "Retirer",
@@ -8120,7 +8122,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Prize Pool",
       "current_label": "Actuel",
       "next_label": "Suivant",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Réessayer",
       "label_return": "Rendement",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Encaissé",
       "label_rank": "Rang",
       "label_tier": "Tier",
       "label_your_return": "Your return",

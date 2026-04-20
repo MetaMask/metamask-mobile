@@ -58,15 +58,7 @@ export class BaanxService {
   }
 
   async request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
-    // Prefer explicit location override, then token-embedded location (set at
-    // login time), then the service-level currentLocation (set during initiateAuth
-    // for unauthenticated flows). Without this, cold-start requests use the
-    // 'international' default because initiateAuth is not called for already-
-    // authenticated users, causing x-us-env:false for US accounts.
-    const effectiveLocation =
-      opts.location ??
-      (opts.tokenSet?.location as CardLocation | undefined) ??
-      this.currentLocation;
+    const effectiveLocation = opts.location ?? this.currentLocation;
     const headers: Record<string, string> = {
       'x-us-env': String(effectiveLocation === 'us'),
       ...opts.headers,

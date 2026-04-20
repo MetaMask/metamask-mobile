@@ -348,18 +348,6 @@ class PerpsMarketDetailsView {
     });
   }
 
-  /** When the position is gone (manual close, SL, TP, liquidation), this CTA is removed from market details. */
-  async expectClosePositionButtonNotVisible() {
-    const closeBtn = Matchers.getElementByID(
-      PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-    ) as DetoxElement;
-    await Assertions.expectElementToNotBeVisible(closeBtn, {
-      description:
-        'Close position button should not be visible when there is no open position on this market',
-      timeout: 5000,
-    });
-  }
-
   async isContainerDisplayed(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {

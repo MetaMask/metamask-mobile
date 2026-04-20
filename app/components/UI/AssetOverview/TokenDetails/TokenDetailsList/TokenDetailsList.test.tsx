@@ -28,14 +28,15 @@ describe('TokenDetails', () => {
   });
 
   it('renders correctly', () => {
-    const { getByText } = renderComponent();
+    const { toJSON, getByText } = renderComponent();
 
-    expect(getByText('Token details')).toBeOnTheScreen();
-    expect(getByText('Contract address')).toBeOnTheScreen();
-    expect(getByText('0x935E7...05477')).toBeOnTheScreen();
-    expect(getByText('Token decimal')).toBeOnTheScreen();
-    expect(getByText('18')).toBeOnTheScreen();
-    expect(getByText('Token list')).toBeOnTheScreen();
-    expect(getByText('Metamask, Coinmarketcap')).toBeOnTheScreen();
+    expect(getByText('Token details')).toBeDefined();
+    expect(getByText('Contract address')).toBeDefined();
+    expect(getByText('0x935E7...05477')).toBeDefined();
+    expect(getByText('Token decimal')).toBeDefined();
+    expect(getByText('18')).toBeDefined();
+    expect(getByText('Token list')).toBeDefined();
+    expect(getByText('Metamask, Coinmarketcap')).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

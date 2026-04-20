@@ -148,9 +148,10 @@ function addTimeToComplete(
     return;
   }
 
-  const submittedTime =
-    getLatestChildSubmittedTime(transactionMeta, allTransactions) ??
-    transactionMeta.submittedTime;
+  const submittedTime = getLatestChildSubmittedTime(
+    transactionMeta,
+    allTransactions,
+  );
 
   if (typeof submittedTime !== 'number') {
     return;

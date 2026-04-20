@@ -1,6 +1,5 @@
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
-import { StackActions } from '@react-navigation/native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
@@ -96,13 +95,12 @@ jest.mock('../../hooks/useAccounts', () => ({
 // Mock navigation
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockDispatch = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
-    dispatch: mockDispatch,
+    dispatch: jest.fn(),
     isFocused: jest.fn(() => true),
   }),
 }));
@@ -251,7 +249,7 @@ describe('AccountSelector', () => {
       expect(addButton).toHaveTextContent('Add wallet');
     });
 
-    it('navigates to AddWallet page when Add wallet button is pressed', () => {
+    it('opens MultichainAddWalletActions when Add wallet button is pressed', () => {
       jest.useRealTimers();
 
       renderScreen(
@@ -266,7 +264,13 @@ describe('AccountSelector', () => {
       );
       fireEvent.press(addButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
+      // Header should change to "Add wallet" (replaces "Accounts")
+      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
+
+      // Import SRP button should be visible
+      expect(
+        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
+      ).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
@@ -438,7 +442,7 @@ describe('AccountSelector', () => {
   });
 
   describe('Navigation to Add Account Actions', () => {
-    it('navigates directly to AddWallet page when navigateToAddAccountActions is set', async () => {
+    it('navigates directly to MultichainAddWalletActions when navigateToAddAccountActions is set', () => {
       jest.useRealTimers();
 
       const routeWithNavigation: AccountSelectorProps['route'] = {
@@ -455,17 +459,8 @@ describe('AccountSelector', () => {
         { state: mockState },
       );
 
-      await waitFor(() =>
-        expect(mockDispatch).toHaveBeenCalledWith(
-          StackActions.replace(Routes.SHEET.ADD_WALLET),
-        ),
-      );
-
-      expect(
-        screen.queryByTestId(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-        ),
-      ).not.toBeOnTheScreen();
+      // Should already be on the add wallet actions screen
+      expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
@@ -611,7 +606,7 @@ describe('AccountSelector', () => {
       expect(addButton).toBeOnTheScreen();
     });
 
-    it('navigates to AddWallet page in full-page mode', () => {
+    it('opens add wallet bottom sheet overlay in full-page mode', () => {
       jest.useRealTimers();
 
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
@@ -628,7 +623,16 @@ describe('AccountSelector', () => {
       );
       fireEvent.press(addButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
+      // Should show the add wallet actions overlay (button in background + header in overlay)
+      // There should be at least 2 "Add wallet" texts - but we check for the overlay content
+      expect(
+        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
+      ).toBeOnTheScreen();
+
+      // Account list should still be visible in background
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
@@ -657,7 +661,7 @@ describe('AccountSelector', () => {
   });
 
   describe('Screen Navigation', () => {
-    it('navigates to AddWallet page when button is pressed', () => {
+    it('navigates to add wallet actions screen when button is pressed', () => {
       jest.useRealTimers();
 
       renderScreen(
@@ -673,7 +677,11 @@ describe('AccountSelector', () => {
       );
       fireEvent.press(addButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
+      // Verify we're on add wallet actions screen - header shows "Add wallet"
+      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
+
+      // Import wallet option should be visible
+      expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });

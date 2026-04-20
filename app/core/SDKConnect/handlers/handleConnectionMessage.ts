@@ -4,7 +4,10 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import {
   CommunicationLayerMessage,
+  isAnalyticsTrackedRpcMethod,
   MessageType,
+  SendAnalytics,
+  TrackingEvents,
 } from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
 import Engine from '../../Engine';
@@ -20,10 +23,23 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
-import { MetaMetricsEvents } from '../../Analytics';
-import { analytics } from '../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { ANALYTICS_TRACKED_RPC_METHODS } from '../SDKConnectConstants';
+import { analytics } from '@metamask/sdk-analytics';
+// eslint-disable-next-line
+const { version } = require('../../../../package.json');
+
+const lcLogguedRPCs = [
+  'eth_sendTransaction',
+  'eth_signTypedData',
+  'eth_signTransaction',
+  'personal_sign',
+  'wallet_requestPermissions',
+  'wallet_switchEthereumChain',
+  'eth_signTypedData_v3',
+  'eth_signTypedData_v4',
+  'metamask_connectSign',
+  'metamask_connectWith',
+  'metamask_batch',
+].map((method) => method.toLowerCase());
 
 export const handleConnectionMessage = async ({
   message,
@@ -66,25 +82,33 @@ export const handleConnectionMessage = async ({
 
   const anonId = connection.originatorInfo?.anonId;
 
-  if (anonId && ANALYTICS_TRACKED_RPC_METHODS.includes(message.method)) {
+  if (anonId && isAnalyticsTrackedRpcMethod(message.method)) {
     DevLogger.log(
-      `[MM SDK Analytics] event=${MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_RECEIVED.category} anonId=${anonId}`,
+      `[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`,
     );
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_RECEIVED,
-      )
-        .addProperties({
-          transport_type: 'socket_relay',
-          sdk_version: connection.originatorInfo?.apiVersion,
-          rpc_method: message.method,
-          remote_session_id: anonId,
-        })
-        .build(),
-    );
+    analytics.track('wallet_action_received', { anon_id: anonId });
   }
 
   connection.setLoading(false);
+
+  if (lcLogguedRPCs.includes(message.method.toLowerCase())) {
+    // Save analytics data on tracked methods
+    SendAnalytics(
+      {
+        id: connection.channelId,
+        event: TrackingEvents.SDK_RPC_REQUEST_RECEIVED,
+        sdkVersion: connection.originatorInfo?.apiVersion,
+        walletVersion: version,
+        params: {
+          method: message.method,
+          from: 'mobile_wallet',
+        },
+      },
+      connection.socketServerUrl,
+    ).catch((error) => {
+      Logger.error(error, 'SendAnalytics failed');
+    });
+  }
 
   // Wait for keychain to be unlocked before handling rpc calls.
   const keyringController = (

@@ -6,7 +6,6 @@ import {
   useAccessRestrictedModal,
 } from './AccessRestrictedContext';
 import { AccessRestrictedModalSelectorsIDs } from '../AccessRestrictedModal/AccessRestrictedModal.testIds';
-import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -129,7 +128,7 @@ describe('AccessRestrictedContext', () => {
       expect.any(String),
       expect.objectContaining({
         params: expect.objectContaining({
-          url: METAMASK_SUPPORT_URL,
+          url: 'https://support.metamask.io',
         }),
       }),
     );

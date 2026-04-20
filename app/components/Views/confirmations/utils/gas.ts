@@ -94,9 +94,7 @@ export function getFeesFromHex({
   );
 
   let currentCurrencyFee;
-  if (preciseCurrentCurrencyFeeNum === 0) {
-    currentCurrencyFee = fiatFormatter(new BigNumber(0));
-  } else if (preciseCurrentCurrencyFeeNum < 0.01) {
+  if (preciseCurrentCurrencyFeeNum < 0.01) {
     currentCurrencyFee = `< ${fiatFormatter(new BigNumber(0.01))}`;
   } else {
     currentCurrencyFee = fiatFormatter(

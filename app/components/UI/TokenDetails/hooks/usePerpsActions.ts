@@ -5,7 +5,6 @@ import {
   type UsePerpsMarketForAssetResult,
 } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Routes from '../../../../constants/navigation/Routes';
-import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { OrderDirection } from '@metamask/perps-controller';
 
 export interface UsePerpsActionsParams {
@@ -13,8 +12,8 @@ export interface UsePerpsActionsParams {
   symbol: string | null;
   /** When true, signals that navigation originated from the token details screen */
   fromTokenDetails?: boolean;
-  /** Homepage / explicit flow tests for Transaction Added attribution */
-  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+  abTestTokenDetailsLayout?: string;
 }
 
 export interface UsePerpsActionsResult extends UsePerpsMarketForAssetResult {
@@ -45,7 +44,7 @@ export interface UsePerpsActionsResult extends UsePerpsMarketForAssetResult {
 export const usePerpsActions = ({
   symbol,
   fromTokenDetails,
-  transactionActiveAbTests,
+  abTestTokenDetailsLayout,
 }: UsePerpsActionsParams): UsePerpsActionsResult => {
   const navigation = useNavigation();
 
@@ -64,11 +63,13 @@ export const usePerpsActions = ({
           direction,
           asset: marketData.symbol,
           fromTokenDetails,
-          ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
+          ...(abTestTokenDetailsLayout && {
+            assetsASSETS2493AbtestTokenDetailsLayout: abTestTokenDetailsLayout,
+          }),
         },
       });
     },
-    [navigation, marketData, fromTokenDetails, transactionActiveAbTests],
+    [navigation, marketData, fromTokenDetails, abTestTokenDetailsLayout],
   );
 
   return useMemo(

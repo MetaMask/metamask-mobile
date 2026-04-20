@@ -1,23 +1,21 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getSmartTransactionsControllerMessenger,
   getSmartTransactionsControllerInitMessenger,
 } from '../messengers/smart-transactions-controller-messenger';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { smartTransactionsControllerInit } from './smart-transactions-controller-init';
 import {
   SmartTransactionsController,
   SmartTransactionsControllerMessenger,
 } from '@metamask/smart-transactions-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
 
 jest.mock('@metamask/smart-transactions-controller');
-jest.mock('../../../util/transactions/sentinel-api');
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<
+  ControllerInitRequest<
     SmartTransactionsControllerMessenger,
     ReturnType<typeof getSmartTransactionsControllerInitMessenger>
   >
@@ -27,7 +25,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getSmartTransactionsControllerMessenger(baseMessenger),
     initMessenger: getSmartTransactionsControllerInitMessenger(baseMessenger),
   };
@@ -53,32 +51,28 @@ describe('SmartTransactionsControllerInit', () => {
       clientId: 'mobile',
       getMetaMetricsProps: expect.any(Function),
       trackMetaMetricsEvent: expect.any(Function),
+      getBearerToken: expect.any(Function),
       trace: expect.any(Function),
     });
   });
 
-  describe('sentinel API auth', () => {
-    const mockSetSentinelApiAuth = jest.mocked(setSentinelApiAuth);
-
-    beforeEach(() => {
-      mockSetSentinelApiAuth.mockClear();
-    });
-
-    it('configures sentinel API auth that returns token when AuthenticationController returns one', async () => {
+  describe('getBearerToken', () => {
+    it('passes getter that returns token when AuthenticationController returns one', async () => {
       const bearerToken = 'test-bearer-token';
       const request = getInitRequestMock();
       const mockCall = jest.fn().mockResolvedValue(bearerToken);
-      jest
-        .spyOn(request.controllerMessenger, 'call')
-        .mockImplementation(mockCall);
+      jest.spyOn(request.initMessenger, 'call').mockImplementation(mockCall);
 
       smartTransactionsControllerInit(request);
 
-      expect(mockSetSentinelApiAuth).toHaveBeenCalledWith(expect.any(Function));
-      const sentinelGetter = mockSetSentinelApiAuth.mock.calls[0][0] as (
-        ...args: unknown[]
-      ) => Promise<string | undefined>;
-      const result = await sentinelGetter();
+      const controllerMock = jest.mocked(SmartTransactionsController);
+      const constructorCall =
+        controllerMock.mock.calls[controllerMock.mock.calls.length - 1][0];
+      const getBearerToken = constructorCall.getBearerToken as () => Promise<
+        string | undefined
+      >;
+
+      const result = await getBearerToken();
 
       expect(result).toBe(bearerToken);
       expect(mockCall).toHaveBeenCalledWith(
@@ -86,36 +80,40 @@ describe('SmartTransactionsControllerInit', () => {
       );
     });
 
-    it('configures sentinel API auth that returns undefined when AuthenticationController returns undefined', async () => {
+    it('passes getter that returns undefined when AuthenticationController returns undefined', async () => {
       const request = getInitRequestMock();
       const mockCall = jest.fn().mockResolvedValue(undefined);
-      jest
-        .spyOn(request.controllerMessenger, 'call')
-        .mockImplementation(mockCall);
+      jest.spyOn(request.initMessenger, 'call').mockImplementation(mockCall);
 
       smartTransactionsControllerInit(request);
 
-      const sentinelGetter = mockSetSentinelApiAuth.mock.calls[0][0] as (
-        ...args: unknown[]
-      ) => Promise<string | undefined>;
-      const result = await sentinelGetter();
+      const controllerMock = jest.mocked(SmartTransactionsController);
+      const constructorCall =
+        controllerMock.mock.calls[controllerMock.mock.calls.length - 1][0];
+      const getBearerToken = constructorCall.getBearerToken as () => Promise<
+        string | undefined
+      >;
+
+      const result = await getBearerToken();
 
       expect(result).toBeUndefined();
     });
 
-    it('configures sentinel API auth that returns undefined when AuthenticationController throws', async () => {
+    it('passes getter that returns undefined when AuthenticationController throws', async () => {
       const request = getInitRequestMock();
       const mockCall = jest.fn().mockRejectedValue(new Error('auth error'));
-      jest
-        .spyOn(request.controllerMessenger, 'call')
-        .mockImplementation(mockCall);
+      jest.spyOn(request.initMessenger, 'call').mockImplementation(mockCall);
 
       smartTransactionsControllerInit(request);
 
-      const sentinelGetter = mockSetSentinelApiAuth.mock.calls[0][0] as (
-        ...args: unknown[]
-      ) => Promise<string | undefined>;
-      const result = await sentinelGetter();
+      const controllerMock = jest.mocked(SmartTransactionsController);
+      const constructorCall =
+        controllerMock.mock.calls[controllerMock.mock.calls.length - 1][0];
+      const getBearerToken = constructorCall.getBearerToken as () => Promise<
+        string | undefined
+      >;
+
+      const result = await getBearerToken();
 
       expect(result).toBeUndefined();
     });

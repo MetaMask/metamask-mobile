@@ -418,7 +418,6 @@ export {
   DECIMAL_PRECISION_CONFIG,
   MARKET_SORTING_CONFIG,
   PROVIDER_CONFIG,
-  FUNDING_RATE_CONFIG,
 } from './constants';
 export type { SortOptionId } from './constants';
 
@@ -431,7 +430,7 @@ export {
   aggregateAccountStates,
 } from './utils';
 export type { ReturnOnEquityInput } from './utils';
-export { ensureError, isAbortError } from './utils';
+export { ensureError } from './utils';
 export type {
   OrderBookCacheEntry,
   ProcessL2BookDataParams,
@@ -465,10 +464,15 @@ export {
 } from './utils';
 export type { HyperLiquidMarketData } from './utils';
 export {
-  getPerpsConnectionAttemptContext,
-  withPerpsConnectionAttemptContext,
-} from './utils/perpsConnectionAttemptContext';
-export type { PerpsConnectionAttemptContext } from './utils/perpsConnectionAttemptContext';
+  adaptMarketFromMYX,
+  adaptPriceFromMYX,
+  adaptMarketDataFromMYX,
+  filterMYXExclusiveMarkets,
+  isOverlappingMarket,
+  buildPoolSymbolMap,
+  buildSymbolPoolsMap,
+  extractSymbolFromPoolId,
+} from './utils';
 export {
   MAX_MARKET_PATTERN_LENGTH,
   escapeRegex,
@@ -535,18 +539,6 @@ export {
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
 } from './utils';
 export { getEnvironment } from './utils';
-export type { FiatRangeConfig } from './utils';
-export {
-  PRICE_THRESHOLD,
-  formatWithSignificantDigits,
-  PRICE_RANGES_MINIMAL_VIEW,
-  PRICE_RANGES_UNIVERSAL,
-  formatPerpsFiat,
-  formatPositionSize,
-  formatPnl,
-  formatPercentage,
-  formatFundingRate,
-} from './utils';
 
 // Error codes (explicit named exports)
 export { PERPS_ERROR_CODES } from './perpsErrorCodes';

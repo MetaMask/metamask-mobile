@@ -2,7 +2,6 @@ import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import {
   Box,
   Text,
@@ -32,8 +31,6 @@ const CampaignsView: React.FC = () => {
   const navigation = useNavigation();
   const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
     useRewardCampaigns();
-
-  useTrackRewardsPageView({ page_type: 'campaigns_overview' });
 
   const { active, upcoming, previous } = categorizedCampaigns;
   const hasCampaigns =

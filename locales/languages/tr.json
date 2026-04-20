@@ -243,6 +243,7 @@
     "import_wallet_button": "Cüzdanı senkronize et veya içe aktar",
     "new_to_crypto": "Kriptoda yeni misiniz?",
     "start_exploring_now": "Yeni bir cüzdan oluştur",
+    "unlock": "Kilidini Aç",
     "new_to_metamask": "MetaMask'te yeni misiniz?",
     "already_have_wallet": "Zaten bir cüzdanınız var mı?",
     "optin_back_title": "Dikkat!",
@@ -4875,7 +4876,7 @@
     "body_for_seedphrase": "Değer cüzdanınıza eklendiğine göre bir şifre belirleyerek ve Gizli Kurtarma İfadenizi (gereklidir) kaydederek cüzdanınızı koruyun.",
     "button": "Cüzdanı koru"
   },
-  "transaction_update_toast": {
+  "transaction_update_retry_modal": {
     "title": "İşlem güncellemesi başarısız oldu",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6765,6 +6766,7 @@
     "nested_transaction_heading": "{{index}} işlemi",
     "transaction": "İşlem",
     "available_balance": "Kullanılabilir bakiye: ",
+    "available_perps_balance": "Kullanılabilir Perps bakiyesi: ",
     "edit_amount_done": "Devam et",
     "deposit_edit_amount_done": "Fon ekle",
     "deposit_edit_amount_predict_withdraw": "Çek",
@@ -8120,7 +8122,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Prize Pool",
       "current_label": "Mevcut",
       "next_label": "Sonraki",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,7 +8211,9 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Tekrar Dene",
       "label_return": "Getiri",
-      "label_market_value": "Market value",
+      "label_market_value": "Market Value",
+      "label_net_deposited": "Net deposited",
+      "label_cashed_out": "Nakit çıkışı yapıldı",
       "label_rank": "Sıralama",
       "label_tier": "Tier",
       "label_your_return": "Your return",

@@ -5,8 +5,10 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useCallback, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
+import { safeToChecksumAddress } from '../../../../util/address';
 import useEarnToasts from './useEarnToasts';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -45,10 +47,13 @@ function getTransactionPayQuotes(transactionId: string) {
  */
 export const useMusdConversionStatus = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
+  const tokensChainsCache = useSelector(selectERC20TokensByChain);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const shownToastsRef = useRef<Set<string>>(new Set());
+  const tokensCacheRef = useRef(tokensChainsCache);
+  tokensCacheRef.current = tokensChainsCache;
 
   const submitConversionEvent = useCallback(
     (
@@ -97,15 +102,18 @@ export const useMusdConversionStatus = () => {
 
   useEffect(() => {
     const getTokenData = (chainId: Hex, tokenAddress: string) => {
-      const state = store.getState();
-      const token = selectSingleTokenByAddressAndChainId(
-        state,
-        tokenAddress as Hex,
-        chainId,
-      );
+      const chainTokens = tokensCacheRef.current?.[chainId]?.data;
+      if (!chainTokens) return { symbol: '', name: '' };
+
+      const checksumAddress = safeToChecksumAddress(tokenAddress);
+      const tokenData =
+        chainTokens[checksumAddress as string] ||
+        chainTokens[tokenAddress.toLowerCase()];
+
       return {
-        symbol: token?.symbol || '',
-        name: token?.name || '',
+        symbol: tokenData?.symbol || '',
+        iconUrl: tokenData?.iconUrl,
+        name: tokenData?.name || '',
       };
     };
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, screen, act } from '@testing-library/react-native';
-import { strings } from '../../../../../../../locales/i18n';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BasicInfo from './BasicInfo';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -139,38 +138,22 @@ describe('BasicInfo Component', () => {
     mockSubmitSsnDetails.mockClear();
   });
 
-  it('renders initial state with form fields', () => {
+  it('render matches snapshot', () => {
     render(BasicInfo);
-    expect(screen.getByTestId('first-name-input')).toBeOnTheScreen();
-    expect(screen.getByTestId('last-name-input')).toBeOnTheScreen();
-    expect(screen.getByTestId('date-of-birth-input')).toBeOnTheScreen();
-    expect(screen.getByTestId('ssn-input')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('shows required field errors when continue is pressed with empty fields', async () => {
+  it('snapshot matches validation errors when continue is pressed with empty fields', () => {
     render(BasicInfo);
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('continue-button'));
-    });
-    expect(
-      screen.getByText(strings('deposit.basic_info.first_name_required')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('deposit.basic_info.last_name_required')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('deposit.basic_info.mobile_number_required')),
-    ).toBeOnTheScreen();
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(screen.toJSON()).toMatchSnapshot();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('shows format validation errors when continue is pressed with invalid format fields', async () => {
+  it('snapshot matches validation errors when continue is pressed with invalid format fields', () => {
     render(BasicInfo);
 
-    fireEvent.changeText(
-      screen.getByTestId('first-name-input'),
-      'A'.repeat(36),
-    );
+    fireEvent.changeText(screen.getByTestId('first-name-input'), '   ');
     fireEvent.changeText(screen.getByTestId('last-name-input'), 'A'.repeat(36));
     fireEvent.changeText(
       screen.getByTestId('deposit-phone-field-test-id'),
@@ -181,29 +164,19 @@ describe('BasicInfo Component', () => {
       'invalid-date',
     );
 
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('continue-button'));
-    });
-    expect(
-      screen.getByText(strings('deposit.basic_info.first_name_invalid')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('deposit.basic_info.last_name_invalid')),
-    ).toBeOnTheScreen();
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(screen.toJSON()).toMatchSnapshot();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('does not show SSN field for non-US region and shows validation errors', async () => {
+  it('snapshot matches validation errors when continue is pressed with invalid format fields for non-US region', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: MOCK_CA_REGION,
     });
 
     render(BasicInfo);
 
-    fireEvent.changeText(
-      screen.getByTestId('first-name-input'),
-      'A'.repeat(36),
-    );
+    fireEvent.changeText(screen.getByTestId('first-name-input'), '   ');
     fireEvent.changeText(screen.getByTestId('last-name-input'), 'A'.repeat(36));
     fireEvent.changeText(
       screen.getByTestId('deposit-phone-field-test-id'),
@@ -214,13 +187,8 @@ describe('BasicInfo Component', () => {
       'invalid-date',
     );
 
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('continue-button'));
-    });
-    expect(screen.queryByTestId('ssn-input')).not.toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('deposit.basic_info.first_name_invalid')),
-    ).toBeOnTheScreen();
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(screen.toJSON()).toMatchSnapshot();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -236,6 +204,7 @@ describe('BasicInfo Component', () => {
     );
     fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
     fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+    expect(screen.toJSON()).toMatchSnapshot();
 
     await act(async () => {
       fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
@@ -308,12 +277,10 @@ describe('BasicInfo Component', () => {
 
     render(BasicInfo);
 
-    expect(screen.getByTestId('first-name-input').props.value).toBe('John');
-    expect(screen.getByTestId('last-name-input').props.value).toBe('Doe');
-    expect(screen.getByTestId('ssn-input')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('calls endTrace four times when component mounts', () => {
+  it('should call endTrace twice when component mounts', () => {
     const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
     mockEndTrace.mockClear();
 
@@ -406,7 +373,7 @@ describe('BasicInfo Component', () => {
       error: null,
     });
     render(BasicInfo);
-    expect(screen.getByTestId('deposit-phone-field-test-id')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   describe('when phone already registered error occurs', () => {
@@ -562,9 +529,7 @@ describe('BasicInfo Component', () => {
       await screen.findByText('Network error');
 
       // Verify logout button is NOT displayed for generic errors
-      expect(
-        screen.queryByTestId('basic-info-logout-button'),
-      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('basic-info-logout-button')).toBeNull();
     });
 
     it('calls logoutFromProvider and navigates to EnterEmail on logout click', async () => {

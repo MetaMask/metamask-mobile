@@ -39,34 +39,14 @@ interface HomepageScrollContextValue {
   visitId: number;
   /**
    * Called by each section immediately after its section_viewed event fires.
-   * Tracks the section name for total count and the section index for depth.
+   * Used to aggregate the total number of distinct sections viewed this visit.
    */
-  notifySectionViewed: (
-    sectionName: HomeSectionName,
-    sectionIndex: number,
-    /**
-     * When true, updates visit and session max scroll depth. Pass false for
-     * sections that fire without a viewport check (sectionRef === null) so that
-     * non-rendered sections do not inflate depth metrics.
-     */
-    recordDepth: boolean,
-  ) => void;
+  notifySectionViewed: (sectionName: HomeSectionName) => void;
   /**
    * Returns the number of distinct sections viewed during the current visit.
    * Intended for use in the session_summary event fired on blur.
    */
   getViewedSectionCount: () => number;
-  /**
-   * Returns the maximum section index reached during the current visit.
-   * Resets to -1 on each new homepage focus.
-   */
-  getVisitMaxDepth: () => number;
-  /**
-   * Ephemeral identifier for the current app launch. Generated once on app
-   * start and never persisted. Groups all homepage visits within one session,
-   * distinguishing "navigated away and back" from a fresh app launch.
-   */
-  appSessionId: string;
 }
 
 const noop = () => () => {
@@ -81,8 +61,6 @@ const defaultValue: HomepageScrollContextValue = {
   visitId: 0,
   notifySectionViewed: () => undefined,
   getViewedSectionCount: () => 0,
-  getVisitMaxDepth: () => -1,
-  appSessionId: '',
 };
 
 export const HomepageScrollContext =

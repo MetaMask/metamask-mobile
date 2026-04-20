@@ -7,6 +7,7 @@ export const getTokenDetails = (
   asset: TokenI,
   isNonEvmAsset: boolean,
   tokenContractAddress: string | undefined,
+  tokenMetadata: Record<string, string | number | string[]>,
 ): TokenDetails => {
   if (isNonEvmAsset) {
     // Use the same approach as useTokenHistoricalPrices
@@ -37,9 +38,12 @@ export const getTokenDetails = (
   }
   return {
     contractAddress: tokenContractAddress ?? null,
-    tokenDecimal: asset.decimals ?? null,
-    tokenList: Array.isArray(asset.aggregators)
-      ? asset.aggregators.join(', ')
+    tokenDecimal:
+      typeof tokenMetadata?.decimals === 'number'
+        ? tokenMetadata.decimals
+        : (asset.decimals ?? null),
+    tokenList: Array.isArray(tokenMetadata?.aggregators)
+      ? tokenMetadata.aggregators.join(', ')
       : null,
   };
 };

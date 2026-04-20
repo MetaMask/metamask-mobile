@@ -2,11 +2,7 @@ import type {
   TransactionMetrics,
   TransactionMetricsBuilderRequest,
 } from '../types';
-import {
-  selectShouldUseSmartTransaction,
-  selectSmartTransactionsEnabled,
-} from '../../../../../selectors/smartTransactionsController';
-import { selectSmartTransactionsOptInStatus } from '../../../../../selectors/preferencesController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { RootExtendedMessenger } from '../../../types';
 import { createProjectLogger } from '@metamask/utils';
@@ -22,44 +18,29 @@ export async function getStxMetricsProperties({
   initMessenger,
   smartTransactionsController,
 }: TransactionMetricsBuilderRequest): Promise<TransactionMetrics> {
+  if (!isFinalizedEvent(eventType)) {
+    return EMPTY_METRICS;
+  }
+
   try {
-    const state = getState();
-    const isSmartTransactionsUserOptIn =
-      selectSmartTransactionsOptInStatus(state);
-    const isSmartTransactionsAvailable = selectSmartTransactionsEnabled(
-      state,
-      transactionMeta.chainId,
-    );
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-      state,
+      getState(),
       transactionMeta.chainId,
     );
 
-    if (!shouldUseSmartTransaction || !isFinalizedEvent(eventType)) {
+    if (shouldUseSmartTransaction) {
+      const smartMetrics = await getSmartTransactionMetricsProperties(
+        smartTransactionsController,
+        transactionMeta,
+        true,
+        initMessenger as unknown as RootExtendedMessenger,
+      );
+
       return {
-        properties: {
-          is_smart_transactions_user_opt_in: isSmartTransactionsUserOptIn,
-          is_smart_transactions_available: isSmartTransactionsAvailable,
-          is_smart_transaction: shouldUseSmartTransaction,
-        },
+        properties: smartMetrics,
         sensitiveProperties: {},
       };
     }
-
-    const smartMetrics = await getSmartTransactionMetricsProperties(
-      smartTransactionsController,
-      transactionMeta,
-      true,
-      initMessenger as unknown as RootExtendedMessenger,
-      isSmartTransactionsUserOptIn,
-      isSmartTransactionsAvailable,
-      shouldUseSmartTransaction,
-    );
-
-    return {
-      properties: smartMetrics,
-      sensitiveProperties: {},
-    };
   } catch (error) {
     log('Error getting smart transaction metrics', error);
   }

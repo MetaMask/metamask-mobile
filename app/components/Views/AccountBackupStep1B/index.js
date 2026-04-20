@@ -37,7 +37,6 @@ import Device from '../../../util/device';
 import ActionModal from '../../UI/ActionModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import { LEARN_MORE_URL } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { useTheme } from '../../../util/theme';
@@ -118,7 +117,7 @@ const AccountBackupStep1B = (props) => {
     props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: LEARN_MORE_URL,
+        url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
         title: strings('drawer.metamask_support'),
       },
     });

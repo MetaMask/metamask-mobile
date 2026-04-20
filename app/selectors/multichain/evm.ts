@@ -35,6 +35,7 @@ import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
+import { selectTokenList } from '../tokenListController';
 import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 
@@ -461,6 +462,36 @@ export const selectEvmTokenFiatBalances = createDeepEqualSelector(
             currentCurrency || '',
           ).balanceFiatCalculation;
     }),
+);
+
+export const selectEvmTokenMarketData = createDeepEqualSelector(
+  [
+    selectTokenList,
+    selectTokenMarketData,
+    (_state: RootState, params: { chainId: Hex; tokenAddress?: string }) =>
+      params.chainId,
+    (_state: RootState, params: { chainId: Hex; tokenAddress?: string }) =>
+      params.tokenAddress,
+  ],
+  (tokenList, marketData, chainId, tokenAddress) => {
+    // Handle native token case (no address)
+    if (!tokenAddress) {
+      return marketData?.[chainId]?.[zeroAddress() as Hex];
+    }
+
+    // Get checksummed address
+    const checksumAddress = safeToChecksumAddress(tokenAddress);
+    if (!checksumAddress) return null;
+
+    // Get token metadata and market data
+    const tokenMetadata = tokenList?.[checksumAddress.toLowerCase()];
+    const tokenMarketData = marketData?.[chainId]?.[checksumAddress as Hex];
+
+    return {
+      metadata: tokenMetadata,
+      marketData: tokenMarketData,
+    };
+  },
 );
 
 /**

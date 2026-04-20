@@ -176,10 +176,18 @@ export function useSwitchNotificationLoadingText(): string | undefined {
     selectIsMetaMaskPushNotificationsLoading,
   );
 
+  const accountsLoading = useSelector(
+    selectIsUpdatingMetamaskNotificationsAccount,
+  );
+
   const loading = useContiguousLoading(
     notificationsLoading,
     pushNotificationsLoading,
   );
+
+  if (accountsLoading.length > 0) {
+    return strings('app_settings.updating_account_settings');
+  }
 
   if (notificationsLoading || pushNotificationsLoading || loading) {
     return strings('app_settings.updating_notifications');

@@ -24,11 +24,6 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.REWARDS_VIEW).toBeDefined();
   });
 
-  it('has rewards benefit routes defined', () => {
-    expect(Routes.REWARD_BENEFITS_FULL_VIEW).toBeDefined();
-    expect(Routes.REWARD_BENEFIT_FULL_VIEW).toBeDefined();
-  });
-
   it('has trending view route defined', () => {
     expect(Routes.TRENDING_VIEW).toBeDefined();
   });

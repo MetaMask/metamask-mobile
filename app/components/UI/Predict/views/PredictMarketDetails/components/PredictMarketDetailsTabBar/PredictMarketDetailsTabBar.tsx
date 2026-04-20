@@ -19,16 +19,10 @@ export interface PredictMarketDetailsTabBarProps {
   tabs: { label: string; key: PredictMarketDetailsTabKey }[];
   activeTab: number | null;
   onTabPress: (tabIndex: number) => void;
-  tabTwStyle?: string;
 }
 
 const PredictMarketDetailsTabBar = memo(
-  ({
-    tabs,
-    activeTab,
-    tabTwStyle,
-    onTabPress,
-  }: PredictMarketDetailsTabBarProps) => {
+  ({ tabs, activeTab, onTabPress }: PredictMarketDetailsTabBarProps) => {
     const tw = useTailwind();
 
     return (
@@ -48,7 +42,6 @@ const PredictMarketDetailsTabBar = memo(
               style={tw.style(
                 'w-1/3 py-3',
                 activeTab === index ? 'border-b-2 border-default' : '',
-                tabTwStyle,
               )}
               testID={getPredictMarketDetailsSelector.tabBarTab(tab.key)}
             >

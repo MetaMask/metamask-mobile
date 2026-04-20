@@ -5,10 +5,7 @@ import {
   HYPERLIQUID_ASSET_CONFIGS,
   WITHDRAWAL_CONSTANTS,
 } from '@metamask/perps-controller';
-import {
-  parseCurrencyString,
-  truncateToTwoDecimals,
-} from '../utils/formatUtils';
+import { parseCurrencyString } from '../utils/formatUtils';
 import { usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';
 
@@ -28,10 +25,12 @@ export const useWithdrawValidation = ({
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
 
-  // Truncate to 2 decimal places so validation matches the displayed balance.
+  // Available balance from perps account
   const availableBalance = useMemo(() => {
     const balance = account?.availableBalance || '0';
-    return truncateToTwoDecimals(parseCurrencyString(balance)).toString();
+    // Use parseCurrencyString to properly parse formatted currency
+    // Return as string to maintain compatibility with components
+    return parseCurrencyString(balance).toString();
   }, [account]);
 
   // Get withdrawal route for constraints

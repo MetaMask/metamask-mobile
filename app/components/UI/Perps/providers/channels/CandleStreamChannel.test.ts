@@ -12,7 +12,6 @@ const mockGetIsInitialized = jest.fn().mockReturnValue(true);
 
 jest.mock('../../../../../core/Engine');
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
-jest.mock('../../../../../util/Logger');
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 
@@ -987,39 +986,6 @@ describe('CandleStreamChannel', () => {
           TimeDuration.OneDay,
         ),
       ).rejects.toThrow('Network error');
-    });
-
-    it('skips Sentry logging for abort errors', async () => {
-      const Logger = jest.requireMock('../../../../../util/Logger').default;
-      let capturedCallback: ((data: CandleData) => void) | undefined;
-      mockSubscribeToCandles.mockImplementation(({ callback }) => {
-        capturedCallback = callback;
-        return jest.fn();
-      });
-
-      channel.subscribe({
-        symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
-        duration: TimeDuration.OneDay,
-        callback: jest.fn(),
-      });
-      flushConnectDebounce();
-
-      capturedCallback?.(mockCandleData);
-
-      const abortError = new Error('The operation was aborted');
-      abortError.name = 'AbortError';
-      mockFetchHistoricalCandles.mockRejectedValue(abortError);
-
-      await expect(
-        channel.fetchHistoricalCandles(
-          'BTC',
-          CandlePeriod.OneHour,
-          TimeDuration.OneDay,
-        ),
-      ).rejects.toThrow();
-
-      expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('returns early when no additional candles available', async () => {
