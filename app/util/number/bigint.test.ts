@@ -103,17 +103,14 @@ describe('Number utils :: toWei', () => {
     expect(() => toWei('1.337e-15')).toThrow(Error);
   });
 
-  // bnjs4 do not support decimals, so tests here only cover integers
-  it('toWei using BN number', () => {
+  it('toWei using BigInt', () => {
     expect(toWei(BigInt(1337)).toString()).toEqual('1337000000000000000000');
 
-    // Tests for expected limitations of BN.js
-
-    // BN.js do not support decimals
+    // BigInt does not support decimals
     expect(() => toWei(BigInt(1.337e-15)).toString()).toThrow(Error);
-    // For some reason this returns 8338418000000000000000000 wei
-    expect(toWei(BigInt(1.337e18))).not.toEqual(
-      '1337000000000000000000000000000000000',
+    // BigInt(1.337e18) converts exactly to 1337000000000000000n (no precision loss)
+    expect(toWei(BigInt(1.337e18))).toEqual(
+      BigInt('1337000000000000000000000000000000000'),
     );
   });
 });
