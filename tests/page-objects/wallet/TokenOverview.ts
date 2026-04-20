@@ -85,7 +85,7 @@ class TokenOverview {
           TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByAccessibilityId(
+        PlaywrightMatchers.getElementById(
           TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
         ),
     });

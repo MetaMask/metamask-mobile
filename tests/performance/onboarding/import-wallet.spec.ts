@@ -155,13 +155,13 @@ test.describe(PerformanceOnboarding, () => {
         timer3,
         timer4,
         timer5,
-        timer6,
+        timer7,
       );
       if (
         predictGtmOnboardingModalEnabled &&
         predictGtmOnboardingModalEnabled === true
       ) {
-        performanceTracker.addTimer(timer7);
+        performanceTracker.addTimer(timer6);
       }
     },
   );
