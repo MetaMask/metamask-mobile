@@ -49,6 +49,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.onboarding.step_confirm': 'Next',
+      'rewards.onboarding.step_finish': "Let's go",
       'rewards.onboarding.step_skip': 'Skip',
     };
     return map[key] ?? key;
@@ -220,6 +221,17 @@ describe('CampaignTourStepView', () => {
         campaignId: 'campaign-1',
       }),
     );
+  });
+
+  it("shows the Let's go label on the last step", () => {
+    const { getByText, queryByText } = render(<CampaignTourStepView />);
+
+    // Advance to last step
+    fireEvent.press(getByText('Next'));
+    fireEvent.press(getByText('Next'));
+
+    expect(getByText("Let's go")).toBeOnTheScreen();
+    expect(queryByText('Next')).toBeNull();
   });
 
   it('navigates to campaign details when Skip is pressed', () => {

@@ -1558,7 +1558,7 @@ export class PolymarketProvider implements PredictProvider {
         apiKey: signerApiKey,
       });
 
-      const { success, response, error } = await submitClobOrder({
+      const orderResult = await submitClobOrder({
         headers,
         clobOrder,
         feeAuthorization,
@@ -1566,14 +1566,14 @@ export class PolymarketProvider implements PredictProvider {
         allowancesTx,
       });
 
-      if (!success) {
+      if (!orderResult.success) {
         DevLogger.log('PolymarketProvider: Place order failed', {
-          error,
+          error: orderResult.error,
           errorDetails: undefined,
           side,
           outcomeTokenId,
         });
-        if (error.includes(`order couldn't be fully filled`)) {
+        if (orderResult.error.includes(`order couldn't be fully filled`)) {
           throw new Error(
             side === Side.BUY
               ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
@@ -1581,22 +1581,25 @@ export class PolymarketProvider implements PredictProvider {
           );
         }
         if (
-          error.includes(`not available in your region`) ||
-          error.includes(`unable to access this provider`)
+          orderResult.error.includes(`not available in your region`) ||
+          orderResult.error.includes(`unable to access this provider`)
         ) {
           throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
         }
-        throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
+        throw new Error(
+          orderResult.error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        );
       }
+
+      const { response: orderResponse } = orderResult;
 
       if (side === Side.BUY) {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
 
-        // Create optimistic position update
-        if (response.makingAmount && response.takingAmount) {
+        if (orderResponse.makingAmount && orderResponse.takingAmount) {
           try {
-            const spentAmount = parseFloat(response.makingAmount);
-            const receivedAmount = parseFloat(response.takingAmount);
+            const spentAmount = parseFloat(orderResponse.makingAmount);
+            const receivedAmount = parseFloat(orderResponse.takingAmount);
 
             await this.createOrUpdateOptimisticPosition({
               address: signer.address,
@@ -1612,7 +1615,6 @@ export class PolymarketProvider implements PredictProvider {
               preview,
             });
           } catch (optimisticError) {
-            // Log but don't fail the order
             DevLogger.log(
               'PolymarketProvider: Failed to create optimistic position update',
               optimisticError,
@@ -1630,7 +1632,6 @@ export class PolymarketProvider implements PredictProvider {
           }
         }
       } else if (positionId) {
-        // SELL order - mark position for optimistic removal
         this.removeOptimisticPosition({
           address: signer.address,
           positionId,
@@ -1640,14 +1641,13 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       return {
-        success,
+        success: true,
         response: {
-          id: response.orderID,
-          spentAmount: response.makingAmount,
-          receivedAmount: response.takingAmount,
-          txHashes: response.transactionsHashes,
+          id: orderResponse.orderID ?? '',
+          spentAmount: orderResponse.makingAmount ?? '0',
+          receivedAmount: orderResponse.takingAmount ?? '0',
+          txHashes: orderResponse.transactionsHashes,
         },
-        error,
       } as OrderResult;
     } catch (error) {
       // Catch all errors and return them in consistent format

@@ -100,6 +100,7 @@ _secrets: &secrets # Infrastructure
   MM_BRAZE_SDK_ENDPOINT: 'MM_BRAZE_SDK_ENDPOINT'
   # Expo
   EXPO_PROJECT_ID: 'EXPO_PROJECT_ID'
+  EXPO_TOKEN: 'EXPO_TOKEN'
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)

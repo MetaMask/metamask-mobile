@@ -30,12 +30,18 @@ interface IConnectQRInstructionProps {
   navigation: any;
   onConnect: () => void;
   renderAlert: () => React.JSX.Element;
+  hideMarketingContent?: boolean;
 }
 
 // eslint-disable-next-line import-x/no-commonjs
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
-  const { onConnect, renderAlert, navigation } = props;
+  const {
+    onConnect,
+    renderAlert,
+    navigation,
+    hideMarketingContent = false,
+  } = props;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -81,94 +87,98 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
           <Text style={styles.text}>
             {strings('connect_qr_hardware.description1')}
           </Text>
-          <Text
-            style={[styles.text, styles.link]}
-            onPress={() =>
-              navigateToWebview({
-                url: KEYSTONE_SUPPORT_VIDEO,
-                title: 'connect_qr_hardware.description2',
-                trackingProperties: {
-                  device_type: HARDWARE_WALLET_DEVICE_TYPE.Keystone,
-                  button_type: HARDWARE_WALLET_BUTTON_TYPE.TUTORIAL,
-                },
-              })
-            }
-          >
-            {strings('connect_qr_hardware.description2')}
-          </Text>
-          <Text style={styles.text}>
-            {strings('connect_qr_hardware.description3')}
-          </Text>
-          <Text style={styles.keystone}>
-            {strings('connect_qr_hardware.keystone')}
-          </Text>
-          <View style={styles.buttonGroup}>
-            <Text
-              style={[styles.text, styles.link, styles.linkMarginRight]}
-              onPress={() =>
-                navigateToWebview({
-                  url: KEYSTONE_LEARN_MORE,
-                  title: 'connect_qr_hardware.keystone',
-                  trackingProperties: {
-                    device_type: HARDWARE_WALLET_DEVICE_TYPE.Keystone,
-                    button_type: HARDWARE_WALLET_BUTTON_TYPE.LEARN_MORE,
-                  },
-                })
-              }
-            >
-              {strings('connect_qr_hardware.learnMore')}
-            </Text>
-            <Text
-              style={[styles.text, styles.link]}
-              onPress={() =>
-                navigateToWebview({
-                  url: KEYSTONE_SUPPORT,
-                  title: 'connect_qr_hardware.description4',
-                  trackingProperties: {
-                    device_type: HARDWARE_WALLET_DEVICE_TYPE.Keystone,
-                    button_type: HARDWARE_WALLET_BUTTON_TYPE.TUTORIAL,
-                  },
-                })
-              }
-            >
-              {strings('connect_qr_hardware.tutorial')}
-            </Text>
-          </View>
-          <Text style={styles.keystone}>
-            {strings('connect_qr_hardware.ngravezero')}
-          </Text>
-          <View style={styles.buttonGroup}>
-            <Text
-              style={[styles.text, styles.link, styles.linkMarginRight]}
-              onPress={() =>
-                navigateToWebview({
-                  url: NGRAVE_LEARN_MORE,
-                  title: 'connect_qr_hardware.ngravezero',
-                  trackingProperties: {
-                    device_type: HARDWARE_WALLET_DEVICE_TYPE.NgraveZero,
-                    button_type: HARDWARE_WALLET_BUTTON_TYPE.LEARN_MORE,
-                  },
-                })
-              }
-            >
-              {strings('connect_qr_hardware.learnMore')}
-            </Text>
-            <Text
-              style={[styles.text, styles.link]}
-              onPress={() =>
-                navigateToWebview({
-                  url: NGRAVE_BUY,
-                  title: 'connect_qr_hardware.ngravezero',
-                  trackingProperties: {
-                    device_type: HARDWARE_WALLET_DEVICE_TYPE.NgraveZero,
-                    button_type: HARDWARE_WALLET_BUTTON_TYPE.BUY_NOW,
-                  },
-                })
-              }
-            >
-              {strings('connect_qr_hardware.buyNow')}
-            </Text>
-          </View>
+          {!hideMarketingContent && (
+            <>
+              <Text
+                style={[styles.text, styles.link]}
+                onPress={() =>
+                  navigateToWebview({
+                    url: KEYSTONE_SUPPORT_VIDEO,
+                    title: 'connect_qr_hardware.description2',
+                    trackingProperties: {
+                      device_type: HARDWARE_WALLET_DEVICE_TYPE.Keystone,
+                      button_type: HARDWARE_WALLET_BUTTON_TYPE.TUTORIAL,
+                    },
+                  })
+                }
+              >
+                {strings('connect_qr_hardware.description2')}
+              </Text>
+              <Text style={styles.text}>
+                {strings('connect_qr_hardware.description3')}
+              </Text>
+              <Text style={styles.keystone}>
+                {strings('connect_qr_hardware.keystone')}
+              </Text>
+              <View style={styles.buttonGroup}>
+                <Text
+                  style={[styles.text, styles.link, styles.linkMarginRight]}
+                  onPress={() =>
+                    navigateToWebview({
+                      url: KEYSTONE_LEARN_MORE,
+                      title: 'connect_qr_hardware.keystone',
+                      trackingProperties: {
+                        device_type: HARDWARE_WALLET_DEVICE_TYPE.Keystone,
+                        button_type: HARDWARE_WALLET_BUTTON_TYPE.LEARN_MORE,
+                      },
+                    })
+                  }
+                >
+                  {strings('connect_qr_hardware.learnMore')}
+                </Text>
+                <Text
+                  style={[styles.text, styles.link]}
+                  onPress={() =>
+                    navigateToWebview({
+                      url: KEYSTONE_SUPPORT,
+                      title: 'connect_qr_hardware.description4',
+                      trackingProperties: {
+                        device_type: HARDWARE_WALLET_DEVICE_TYPE.Keystone,
+                        button_type: HARDWARE_WALLET_BUTTON_TYPE.TUTORIAL,
+                      },
+                    })
+                  }
+                >
+                  {strings('connect_qr_hardware.tutorial')}
+                </Text>
+              </View>
+              <Text style={styles.keystone}>
+                {strings('connect_qr_hardware.ngravezero')}
+              </Text>
+              <View style={styles.buttonGroup}>
+                <Text
+                  style={[styles.text, styles.link, styles.linkMarginRight]}
+                  onPress={() =>
+                    navigateToWebview({
+                      url: NGRAVE_LEARN_MORE,
+                      title: 'connect_qr_hardware.ngravezero',
+                      trackingProperties: {
+                        device_type: HARDWARE_WALLET_DEVICE_TYPE.NgraveZero,
+                        button_type: HARDWARE_WALLET_BUTTON_TYPE.LEARN_MORE,
+                      },
+                    })
+                  }
+                >
+                  {strings('connect_qr_hardware.learnMore')}
+                </Text>
+                <Text
+                  style={[styles.text, styles.link]}
+                  onPress={() =>
+                    navigateToWebview({
+                      url: NGRAVE_BUY,
+                      title: 'connect_qr_hardware.ngravezero',
+                      trackingProperties: {
+                        device_type: HARDWARE_WALLET_DEVICE_TYPE.NgraveZero,
+                        button_type: HARDWARE_WALLET_BUTTON_TYPE.BUY_NOW,
+                      },
+                    })
+                  }
+                >
+                  {strings('connect_qr_hardware.buyNow')}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
       </ScrollView>
       <View style={styles.bottom}>

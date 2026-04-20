@@ -319,7 +319,7 @@ describe('AssetOverviewClaimBonus', () => {
       ).toHaveTextContent('+$0.00');
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE),
-      ).toHaveTextContent('+$0.00');
+      ).toHaveTextContent('$0.00');
     });
   });
 

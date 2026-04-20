@@ -65,6 +65,15 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
+  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
+  REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
+  REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
+
+  // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
+  SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
+  SDK_LEGACY_RPC_REQUEST_APPROVED = 'SDK Legacy RPC Request Approved',
+  SDK_LEGACY_RPC_REQUEST_REJECTED = 'SDK Legacy RPC Request Rejected',
+
   // Phishing
   PHISHING_PAGE_DISPLAYED = 'Phishing Page Displayed',
   PROCEED_ANYWAY_CLICKED = 'Proceed Anyway Clicked',
@@ -161,9 +170,7 @@ enum EVENT_NAME {
   WALLET_GOOGLE_IOS_WARNING_VIEWED = 'Wallet Google Ios Warning Viewed',
   WALLET_GOOGLE_IOS_ERROR_VIEWED = 'Wallet Google Ios Error Viewed',
   WALLET_CREATION_ERROR_SCREEN_VIEWED = 'Wallet Creation Error Screen Viewed',
-  WALLET_CREATION_ERROR_RETRY_CLICKED = 'Wallet Creation Error Retry Clicked',
-  WALLET_CREATION_ERROR_REPORT_SENT = 'Wallet Creation Error Report Sent',
-  WALLET_CREATION_ERROR_SUPPORT_CLICKED = 'Wallet Creation Error Support Clicked',
+  WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED = 'Wallet Creation Error Screen CTA Clicked',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
   SOCIAL_LOGIN_FAILED = 'Social Login Failed',
@@ -788,6 +795,25 @@ const events = {
   ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
 
+  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
+  REMOTE_CONNECTION_REQUEST_RECEIVED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_RECEIVED,
+  ),
+  REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
+  ),
+
+  // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
+  SDK_LEGACY_RPC_REQUEST_RECEIVED: generateOpt(
+    EVENT_NAME.SDK_LEGACY_RPC_REQUEST_RECEIVED,
+  ),
+  SDK_LEGACY_RPC_REQUEST_APPROVED: generateOpt(
+    EVENT_NAME.SDK_LEGACY_RPC_REQUEST_APPROVED,
+  ),
+  SDK_LEGACY_RPC_REQUEST_REJECTED: generateOpt(
+    EVENT_NAME.SDK_LEGACY_RPC_REQUEST_REJECTED,
+  ),
+
   // Phishing events
   PHISHING_PAGE_DISPLAYED: generateOpt(EVENT_NAME.PHISHING_PAGE_DISPLAYED),
   PROCEED_ANYWAY_CLICKED: generateOpt(EVENT_NAME.PROCEED_ANYWAY_CLICKED),
@@ -894,14 +920,8 @@ const events = {
   WALLET_CREATION_ERROR_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.WALLET_CREATION_ERROR_SCREEN_VIEWED,
   ),
-  WALLET_CREATION_ERROR_RETRY_CLICKED: generateOpt(
-    EVENT_NAME.WALLET_CREATION_ERROR_RETRY_CLICKED,
-  ),
-  WALLET_CREATION_ERROR_REPORT_SENT: generateOpt(
-    EVENT_NAME.WALLET_CREATION_ERROR_REPORT_SENT,
-  ),
-  WALLET_CREATION_ERROR_SUPPORT_CLICKED: generateOpt(
-    EVENT_NAME.WALLET_CREATION_ERROR_SUPPORT_CLICKED,
+  WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED: generateOpt(
+    EVENT_NAME.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
   ),
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
