@@ -211,7 +211,9 @@ const EarnMusdConversionEducationView = () => {
     let redirectsTo = isQuickConvertEnabled
       ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
       : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
-    if (deeplinkState?.action === 'navigate_home') {
+    if (returnTo) {
+      redirectsTo = EVENT_LOCATIONS.MONEY_HUB;
+    } else if (deeplinkState?.action === 'navigate_home') {
       redirectsTo = EVENT_LOCATIONS.HOME_SCREEN;
     } else if (deeplinkState?.action === 'buy') {
       redirectsTo = EVENT_LOCATIONS.BUY_SCREEN;
@@ -231,11 +233,13 @@ const EarnMusdConversionEducationView = () => {
     );
   }, [
     isQuickConvertEnabled,
+    returnTo,
     EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
     EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
     EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
     EVENT_LOCATIONS.HOME_SCREEN,
     EVENT_LOCATIONS.BUY_SCREEN,
+    EVENT_LOCATIONS.MONEY_HUB,
     deeplinkState?.action,
     trackEvent,
     createEventBuilder,
