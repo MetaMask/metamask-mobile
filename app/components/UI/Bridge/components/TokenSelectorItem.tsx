@@ -307,6 +307,24 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     ? ACCOUNT_TYPE_LABELS[token.accountType]
     : undefined;
 
+  const securityType = token.securityData?.type;
+  const securityTag =
+    securityType === 'Warning' || securityType === 'Spam'
+      ? {
+          severity: TagSeverity.Warning,
+          label: strings('bridge.token_suspicious'),
+          iconName: IconName.Danger,
+          iconColor: IconColor.WarningDefault,
+        }
+      : securityType === 'Malicious'
+        ? {
+            severity: TagSeverity.Danger,
+            label: strings('bridge.token_malicious'),
+            iconName: IconName.Warning,
+            iconColor: IconColor.ErrorDefault,
+          }
+        : null;
+
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -384,6 +402,23 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                     />
                   )}
                 </Box>
+                {securityTag && (
+                  <TagBase
+                    shape={TagShape.Pill}
+                    severity={securityTag.severity}
+                    startAccessory={
+                      <Icon
+                        name={securityTag.iconName}
+                        size={IconSize.Sm}
+                        color={securityTag.iconColor}
+                      />
+                    }
+                    textProps={{ variant: TextVariant.BodySM }}
+                    style={styles.noFeeBadge}
+                  >
+                    {securityTag.label}
+                  </TagBase>
+                )}
                 {label && <Tag label={label} />}
                 {showNoFeeBadge && (
                   <TagBase

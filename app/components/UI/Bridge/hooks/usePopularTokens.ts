@@ -6,6 +6,25 @@ import { TokenRwaData } from '@metamask/assets-controllers';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
 
+export interface SecurityFeature {
+  featureId: string;
+  type: 'Warning' | 'Spam';
+  description: string;
+}
+
+export type SecurityDataType =
+  | 'Info'
+  | 'Benign'
+  | 'Verified'
+  | 'Warning'
+  | 'Spam'
+  | 'Malicious';
+
+export interface SecurityData {
+  type: SecurityDataType;
+  metadata?: { features: SecurityFeature[] };
+}
+
 export interface PopularToken {
   assetId: CaipAssetType;
   decimals: number;
@@ -17,6 +36,7 @@ export interface PopularToken {
     isSource: boolean;
     isDestination: boolean;
   };
+  securityData?: SecurityData;
 }
 
 export interface IncludeAsset {
