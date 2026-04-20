@@ -21,8 +21,9 @@ jobs:
         run: |
           # Block any manual merge UI path for stable → release sync PRs.
           # These must be merged via "Merge my PR" (merge commit) like stable → main.
-          if [[ "$TARGET_BRANCH" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ && "$SOURCE_BRANCH" == stable-sync-release-* ]]; then
-            echo "❌ ERROR: Manual merge from stable-sync-release-* branches to release/* is not allowed!"
+          # Match stable-main blocker: require exact semver tail on head (not only prefix).
+          if [[ "$TARGET_BRANCH" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ && "$SOURCE_BRANCH" =~ ^stable-sync-release-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ ERROR: Manual merge from stable-sync-release-X.Y.Z branches to release/* is not allowed!"
             echo "Source branch '$SOURCE_BRANCH' targets '$TARGET_BRANCH'."
             echo "Comment 'Merge my PR' (org member) after release-team approval to merge with a merge commit."
             exit 1

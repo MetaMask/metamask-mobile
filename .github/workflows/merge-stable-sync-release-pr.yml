@@ -18,8 +18,9 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      should-merge: ${{ steps.validate.outputs.should-merge }}
-      base-branch: ${{ steps.validate.outputs.base-branch }}
+      # Underscore names: hyphenated keys break `needs.*.outputs.*` dot expressions.
+      should_merge: ${{ steps.validate.outputs.should_merge }}
+      base_branch: ${{ steps.validate.outputs.base_branch }}
     steps:
       - name: Validate PR head/base for stable → release sync
         id: validate
@@ -42,8 +43,8 @@ jobs:
               core.info(
                 `Skip: PR #${prNumber} is not stable-sync-release-* -> release/* (${head} -> ${base})`,
               );
-              core.setOutput('should-merge', 'false');
-              core.setOutput('base-branch', '');
+              core.setOutput('should_merge', 'false');
+              core.setOutput('base_branch', '');
               return;
             }
 
@@ -55,18 +56,18 @@ jobs:
               );
             }
 
-            core.setOutput('should-merge', 'true');
-            core.setOutput('base-branch', base);
+            core.setOutput('should_merge', 'true');
+            core.setOutput('base_branch', base);
             core.info(`Validated stable sync release merge: ${head} -> ${base}`);
 
   merge-pr:
     name: Merge with merge commit (via github-tools)
     needs: prepare-stable-sync-release-merge
-    if: needs.prepare-stable-sync-release-merge.outputs.should-merge == 'true'
+    if: needs.prepare-stable-sync-release-merge.outputs.should_merge == 'true'
     uses: MetaMask/github-tools/.github/workflows/merge-approved-pr.yml@v1
     with:
       pr-number: ${{ github.event.issue.number }}
-      required-base-branch: ${{ needs.prepare-stable-sync-release-merge.outputs.base-branch }}
+      required-base-branch: ${{ needs.prepare-stable-sync-release-merge.outputs.base_branch }}
       head-branch-pattern: '^stable-sync-release-[0-9]+\.[0-9]+\.[0-9]+$'
       merge-method: merge
     secrets:
