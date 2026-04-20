@@ -28,14 +28,7 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('../../../../../util/haptics', () => ({
-  playImpact: jest.fn(),
-  ImpactMoment: {
-    SliderTick: 'sliderTick',
-    SliderGrip: 'sliderGrip',
-    TabChange: 'tabChange',
-  },
-}));
+jest.mock('../../../../../util/haptics');
 
 // Mock component library hooks
 jest.mock('../../../../../component-library/hooks', () => ({
