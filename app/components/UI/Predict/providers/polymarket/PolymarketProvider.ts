@@ -1842,6 +1842,7 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<ClaimOrderResponse> {
     try {
       const { positions, signer } = params;
+      const protocol = this.#getProtocol();
 
       if (!positions || positions.length === 0) {
         throw new Error('No positions provided for claim');
@@ -1851,18 +1852,12 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Signer address is required for claim');
       }
 
-      const signerBalance = await getBalance({ address: signer.address });
-
-      let includeTransferTransaction = false;
-
-      if (signerBalance < MIN_COLLATERAL_BALANCE_FOR_CLAIM) {
-        includeTransferTransaction = true;
-      }
-
       // Get safe address from cache or fetch it
       let safeAddress: string | undefined;
       try {
-        safeAddress = computeProxyAddress(signer.address);
+        safeAddress =
+          this.#accountStateByAddress.get(signer.address)?.address ??
+          computeProxyAddress(signer.address);
       } catch (error) {
         throw new Error(
           `Failed to retrieve account state: ${
@@ -1874,6 +1869,24 @@ export class PolymarketProvider implements PredictProvider {
       if (!safeAddress) {
         throw new Error('Safe address not found for claim');
       }
+
+      if (protocol.key === 'v2') {
+        const claimTransaction = await buildClaimTransaction({
+          signer,
+          positions,
+          safeAddress,
+          protocol,
+        });
+
+        return {
+          chainId: POLYGON_MAINNET_CHAIN_ID,
+          transactions: [claimTransaction],
+        };
+      }
+
+      const signerBalance = await getBalance({ address: signer.address });
+      const includeTransferTransaction =
+        signerBalance < MIN_COLLATERAL_BALANCE_FOR_CLAIM;
 
       // Generate claim transaction
       let claimTransaction;

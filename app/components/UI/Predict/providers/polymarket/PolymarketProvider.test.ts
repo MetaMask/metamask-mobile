@@ -3087,6 +3087,69 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  it('builds a signed Safe claim transaction when CLOB v2 is enabled', async () => {
+    jest.clearAllMocks();
+    const provider = createProvider({ predictClobV2Enabled: true });
+    const signer = {
+      address: '0x1234567890123456789012345678901234567890',
+      signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
+    };
+    const position = {
+      id: 'position-1',
+      providerId: POLYMARKET_PROVIDER_ID,
+      marketId: 'market-1',
+      outcomeId:
+        '0x1111111111111111111111111111111111111111111111111111111111111111',
+      outcomeIndex: 0,
+      outcome: 'Yes',
+      outcomeTokenId: '0',
+      title: 'Test Market Position',
+      icon: 'test-icon.png',
+      amount: 1.5,
+      price: 0.5,
+      size: 1.5,
+      negRisk: false,
+      redeemable: true,
+      status: PredictPositionStatus.OPEN,
+      realizedPnl: 0,
+      curPrice: 0.5,
+      conditionId: 'outcome-456',
+      percentPnl: 0,
+      cashPnl: 0,
+      initialValue: 0.5,
+      avgPrice: 0.5,
+      currentValue: 0.5,
+      endDate: '2025-01-01T00:00:00Z',
+      claimable: false,
+    };
+
+    mockComputeProxyAddress.mockReturnValue(
+      '0x1234567890123456789012345678901234567891',
+    );
+    mockGetRawBalance.mockResolvedValue(0n);
+
+    const result = await provider.prepareClaim({
+      positions: [position],
+      signer,
+    });
+
+    expect(result).toEqual({
+      chainId: 137,
+      transactions: [
+        {
+          params: {
+            to: '0x1234567890123456789012345678901234567891',
+            data: '0xsignedsafeexec',
+          },
+          type: 'predictClaim',
+        },
+      ],
+    });
+    expect(mockGetClaimTransaction).not.toHaveBeenCalled();
+    expect(mockGetBalance).not.toHaveBeenCalled();
+  });
+
   describe('isEligible', () => {
     const originalFetch = globalThis.fetch;
 
