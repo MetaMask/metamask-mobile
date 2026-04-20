@@ -153,10 +153,18 @@ export function buildProtocolUnsignedOrder({
     }
 
     return {
-      ...baseOrder,
+      salt: baseOrder.salt,
+      maker: baseOrder.maker,
+      signer: baseOrder.signer,
+      tokenId: baseOrder.tokenId,
+      makerAmount: baseOrder.makerAmount,
+      takerAmount: baseOrder.takerAmount,
+      expiration: baseOrder.expiration,
       timestamp: `${nowInSeconds}`,
       metadata: protocol.order.metadata,
       builder,
+      side: baseOrder.side,
+      signatureType: baseOrder.signatureType,
     };
   }
 
@@ -291,7 +299,7 @@ export function serializeProtocolRelayerOrder({
   const order = {
     ...signedOrder,
     side,
-    salt: parseInt(signedOrder.salt, 16),
+    salt: parseInt(signedOrder.salt),
   };
 
   if ('builder' in signedOrder) {

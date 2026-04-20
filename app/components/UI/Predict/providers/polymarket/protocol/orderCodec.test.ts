@@ -74,6 +74,20 @@ describe('polymarket protocol order codec', () => {
     expect(order).not.toHaveProperty('taker');
     expect(order).not.toHaveProperty('nonce');
     expect(order).not.toHaveProperty('feeRateBps');
+    expect(Object.keys(order)).toEqual([
+      'salt',
+      'maker',
+      'signer',
+      'tokenId',
+      'makerAmount',
+      'takerAmount',
+      'expiration',
+      'timestamp',
+      'metadata',
+      'builder',
+      'side',
+      'signatureType',
+    ]);
   });
 
   it('builds v2 typed data with domain version 2 and bytes32 fields', () => {
