@@ -329,21 +329,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [],
   );
 
-  const showNoInternetErrorSheet = useCallback(() => {
-    const params: SuccessErrorSheetParams = {
-      title: strings(`error_sheet.no_internet_connection_title`),
-      description: strings(`error_sheet.no_internet_connection_description`),
-      descriptionAlign: 'left',
-      primaryButtonLabel: strings(`error_sheet.no_internet_connection_button`),
-      closeOnPrimaryButtonPress: true,
-      type: 'error',
-    };
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params,
-    });
-  }, [navigation]);
-
   const captureOrThrowOauthRehydrationError = useCallback(
     (seedlessError: Error) => {
       if (!isComingFromOauthOnboarding) {
@@ -377,7 +362,22 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
 
       if (!netInfo.isConnected || !netInfo.isInternetReachable) {
-        showNoInternetErrorSheet();
+        const params: SuccessErrorSheetParams = {
+          title: strings(`error_sheet.no_internet_connection_title`),
+          description: strings(
+            `error_sheet.no_internet_connection_description`,
+          ),
+          descriptionAlign: 'left',
+          primaryButtonLabel: strings(
+            `error_sheet.no_internet_connection_button`,
+          ),
+          closeOnPrimaryButtonPress: true,
+          type: 'error',
+        };
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params,
+        });
         return;
       }
 
@@ -480,9 +480,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       isComingFromOauthOnboarding,
       isMetricsEnabled,
       netInfo,
+      navigation,
       promptSeedlessRelogin,
       rehydrationFailedAttempts,
-      showNoInternetErrorSheet,
       tooManyAttemptsError,
       trackRehydrationFailure,
     ],
