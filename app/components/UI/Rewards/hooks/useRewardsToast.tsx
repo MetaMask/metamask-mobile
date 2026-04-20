@@ -58,8 +58,9 @@ const useRewardsToast = (): {
 
   const showToast = useCallback(
     (config: RewardsToastOptions) => {
-      toastRef?.current?.showToast(config);
-      playNotification(config.hapticsType);
+      const { hapticsType, ...toastOptions } = config;
+      toastRef?.current?.showToast(toastOptions as ToastOptions);
+      playNotification(hapticsType);
     },
     [toastRef],
   );
