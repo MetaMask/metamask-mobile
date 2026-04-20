@@ -84,6 +84,11 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
+    it('playImpact(PageNavigation) calls impactAsync with Medium', async () => {
+      await playImpact(ImpactMoment.PageNavigation);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+    });
+
     it('playImpact(QuickAmountSelection) calls impactAsync with Light', async () => {
       await playImpact(ImpactMoment.QuickAmountSelection);
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
