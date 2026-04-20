@@ -509,7 +509,7 @@ describe('TokenSelectorItem', () => {
           <TokenSelectorItem token={token} onPress={mockOnPress} />,
         );
 
-        expect(getByText('bridge.token_suspicious')).toBeTruthy();
+        expect(getByText('bridge.token_suspicious')).toBeOnTheScreen();
       },
     );
 
@@ -522,7 +522,7 @@ describe('TokenSelectorItem', () => {
         <TokenSelectorItem token={token} onPress={mockOnPress} />,
       );
 
-      expect(getByText('bridge.token_malicious')).toBeTruthy();
+      expect(getByText('bridge.token_malicious')).toBeOnTheScreen();
     });
 
     it.each([
