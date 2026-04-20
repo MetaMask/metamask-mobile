@@ -26,6 +26,7 @@ import MusdAggregatedRow from './MusdAggregatedRow';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import Logger from '../../../../../util/Logger';
 import { SectionRefreshHandle } from '../../types';
+import { useMusdConversion } from '../../../../UI/Earn/hooks/useMusdConversion';
 
 interface CashSectionProps {
   sectionIndex: number;
@@ -47,6 +48,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     );
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
     const { hasMusdBalanceOnAnyChain } = useMusdBalance();
+    const { hasSeenConversionEducationScreen } = useMusdConversion();
     const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
 
     const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
@@ -54,10 +56,21 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     const handleViewCashTokens = useCallback(() => {
       if (isMoneyHomeEnabled) {
         navigation.navigate(Routes.MONEY.ROOT);
-      } else {
-        navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
+        return;
       }
-    }, [navigation, isMoneyHomeEnabled]);
+
+      if (!hasSeenConversionEducationScreen) {
+        navigation.navigate(Routes.EARN.ROOT, {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+          },
+        });
+        return;
+      }
+
+      navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
+    }, [isMoneyHomeEnabled, hasSeenConversionEducationScreen, navigation]);
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
