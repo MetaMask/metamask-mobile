@@ -243,7 +243,7 @@ describe('wallet_watchAsset', () => {
     });
   });
 
-  it('should sanitize pageMeta properties with undefined values before passing to watchAsset', async () => {
+  it('sanitizes pageMeta properties with undefined values before passing to watchAsset', async () => {
     jest
       .spyOn(transactionsUtils, 'isSmartContractAddress')
       .mockResolvedValue(true);
