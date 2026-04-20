@@ -1,4 +1,8 @@
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  playNotification,
+  NotificationMoment,
+  type HapticNotificationMoment,
+} from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
@@ -25,7 +29,7 @@ export type EarnToastOptions = Omit<
   Extract<ToastOptions, { variant: ToastVariants.Icon }>,
   'labelOptions'
 > & {
-  hapticsType: NotificationFeedbackType;
+  hapticsType: HapticNotificationMoment;
   // Overwriting ToastOptions.labelOptions to also support ReactNode since this works.
   labelOptions?: {
     label: string | React.ReactNode;
@@ -124,7 +128,7 @@ const useEarnToasts = (): {
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
         iconColor: theme.colors.success.default,
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
         startAccessory: (
           <View style={toastStyles.iconWrapper}>
             <Icon
@@ -139,7 +143,7 @@ const useEarnToasts = (): {
         ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Loading,
-        hapticsType: NotificationFeedbackType.Warning,
+        hapticsType: NotificationMoment.Warning,
         hasNoTimeout: true,
         startAccessory: (
           <View style={toastStyles.iconWrapper}>
@@ -152,7 +156,7 @@ const useEarnToasts = (): {
         variant: ToastVariants.Icon,
         iconName: IconName.CircleX,
         iconColor: theme.colors.error.default,
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
         startAccessory: (
           <View style={toastStyles.iconWrapper}>
             <Icon
@@ -171,7 +175,7 @@ const useEarnToasts = (): {
     (config: EarnToastOptions) => {
       const { hapticsType, ...toastOptions } = config;
       toastRef?.current?.showToast(toastOptions as ToastOptions);
-      notificationAsync(hapticsType);
+      playNotification(hapticsType);
     },
     [toastRef],
   );

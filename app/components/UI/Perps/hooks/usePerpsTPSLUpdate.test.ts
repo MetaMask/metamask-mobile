@@ -30,9 +30,9 @@ jest.mock('../../../../component-library/components/Buttons/Button', () => ({
     Secondary: 'secondary',
   },
 }));
-jest.mock('expo-haptics', () => ({
-  notificationAsync: jest.fn(),
-  NotificationFeedbackType: {
+jest.mock('../../../../util/haptics', () => ({
+  playNotification: jest.fn(),
+  NotificationMoment: {
     Success: 'success',
     Error: 'error',
     Warning: 'warning',

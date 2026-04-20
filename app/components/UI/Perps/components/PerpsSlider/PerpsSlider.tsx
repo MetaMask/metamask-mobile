@@ -12,7 +12,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import {
+  playImpact,
+  ImpactMoment,
+  type HapticImpactMoment,
+} from '../../../../../util/haptics';
 import LinearGradient from 'react-native-linear-gradient';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -133,13 +137,9 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     [onValueChange],
   );
 
-  // Haptic feedback callbacks
-  const triggerHapticFeedback = useCallback(
-    (impactStyle: ImpactFeedbackStyle) => {
-      impactAsync(impactStyle);
-    },
-    [],
-  );
+  const triggerHapticFeedback = useCallback((moment: HapticImpactMoment) => {
+    playImpact(moment);
+  }, []);
 
   // Check if value crosses 25/50/75 thresholds
   const checkThresholdCrossing = useCallback(
@@ -157,7 +157,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
           (prevPercentage < threshold && newPercentage >= threshold) ||
           (prevPercentage > threshold && newPercentage <= threshold)
         ) {
-          runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+          runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
           break;
         }
       }
@@ -172,7 +172,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     .enabled(!disabled)
     .onBegin(() => {
       isPressed.value = true;
-      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
+      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
     })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
@@ -187,7 +187,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
-      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
+      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
     })
     .onFinalize(() => {
       isPressed.value = false;

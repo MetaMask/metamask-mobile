@@ -129,13 +129,14 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
-// Mock expo-haptics
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn(() => Promise.resolve()),
-  ImpactFeedbackStyle: {
-    Light: 'Light',
-    Medium: 'Medium',
-    Heavy: 'Heavy',
+jest.mock('../../../../../util/haptics', () => ({
+  playImpact: jest.fn(() => Promise.resolve()),
+  playSelection: jest.fn(() => Promise.resolve()),
+  ImpactMoment: {
+    SliderTick: 'sliderTick',
+    TabChange: 'tabChange',
+    PullToRefresh: 'pullToRefresh',
+    ChartCrosshair: 'chartCrosshair',
   },
 }));
 

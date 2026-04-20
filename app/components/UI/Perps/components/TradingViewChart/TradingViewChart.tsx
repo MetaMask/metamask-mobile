@@ -17,7 +17,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { playImpact, ImpactMoment } from '../../../../../util/haptics';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
   formatPerpsFiat,
@@ -269,7 +269,7 @@ const TradingViewChart = React.forwardRef<
                   message.data.low !== ohlcData.low ||
                   message.data.close !== ohlcData.close)
               ) {
-                impactAsync(ImpactFeedbackStyle.Light);
+                playImpact(ImpactMoment.ChartCrosshair);
               }
               setOhlcData(message.data);
               break;

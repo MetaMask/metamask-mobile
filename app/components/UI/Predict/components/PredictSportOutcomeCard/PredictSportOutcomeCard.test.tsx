@@ -32,9 +32,9 @@ jest.mock('@react-native-masked-view/masked-view', () =>
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn(),
-  ImpactFeedbackStyle: { Light: 'light' },
+jest.mock('../../../../../util/haptics', () => ({
+  playSelection: jest.fn(),
+  playImpact: jest.fn(),
 }));
 
 const createButtons = (

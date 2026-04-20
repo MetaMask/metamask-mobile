@@ -24,6 +24,7 @@ import {
   setPrimaryCurrency,
   setAvatarAccountType,
   setHideZeroBalanceTokens,
+  setHapticsEnabled,
 } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
 import AvatarAccount, {
@@ -213,6 +214,14 @@ class Settings extends PureComponent {
      * Whether push notifications are currently enabled
      */
     isPushNotificationsEnabled: PropTypes.bool,
+    /**
+     * Whether haptics are currently enabled
+     */
+    hapticsEnabled: PropTypes.bool,
+    /**
+     * Called to toggle haptics
+     */
+    setHapticsEnabled: PropTypes.func,
   };
 
   state = {
@@ -252,6 +261,10 @@ class Settings extends PureComponent {
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
     this.props.setHideZeroBalanceTokens(toggleHideZeroBalanceTokens);
+  };
+
+  toggleHapticsEnabled = (hapticsEnabled) => {
+    this.props.setHapticsEnabled(hapticsEnabled);
   };
 
   componentDidMount = () => {
@@ -317,6 +330,7 @@ class Settings extends PureComponent {
       setAvatarAccountType,
       selectedAddress,
       hideZeroBalanceTokens,
+      hapticsEnabled,
       navigation,
     } = this.props;
     const themeTokens = this.context || mockTheme;
@@ -458,6 +472,33 @@ class Settings extends PureComponent {
               </Text>
             </View>
             <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.haptic_feedback_title')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    value={hapticsEnabled}
+                    onValueChange={this.toggleHapticsEnabled}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={themeTokens.brandColors.white}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                  />
+                </View>
+              </View>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.haptic_feedback_desc')}
+              </Text>
+            </View>
+            <View style={styles.setting}>
               <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.accounts_identicon_title')}
               </Text>
@@ -560,6 +601,7 @@ const mapStateToProps = (state) => ({
   avatarAccountType: state.settings.avatarAccountType,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+  hapticsEnabled: state.settings.hapticsEnabled !== false,
   isPushNotificationsEnabled: selectIsMetaMaskPushNotificationsEnabled(state),
   // appTheme: state.user.appTheme,
 });
@@ -572,6 +614,8 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setAvatarAccountType(avatarAccountType)),
   setHideZeroBalanceTokens: (hideZeroBalanceTokens) =>
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
+  setHapticsEnabled: (hapticsEnabled) =>
+    dispatch(setHapticsEnabled(hapticsEnabled)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Settings);

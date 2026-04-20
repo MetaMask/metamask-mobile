@@ -483,6 +483,31 @@ module.exports = {
         ],
       },
     },
+    {
+      files: ['app/**/*.{ts,tsx}'],
+      excludedFiles: ['app/util/haptics/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: [
+              {
+                name: 'expo-haptics',
+                message:
+                  'Import from app/util/haptics instead of expo-haptics directly.',
+              },
+            ],
+            patterns: [
+              {
+                group: ['expo-haptics/*'],
+                message:
+                  'Import from app/util/haptics instead of expo-haptics directly.',
+              },
+            ],
+          },
+        ],
+      },
+    },
   ],
 
   globals: {
