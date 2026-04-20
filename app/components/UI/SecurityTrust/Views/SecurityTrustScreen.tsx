@@ -632,6 +632,7 @@ const SecurityTrustScreen: React.FC = () => {
         token={params}
         securityData={securityData}
         networkName={networkName}
+        sourcePage="SecurityTrustView"
       />
     </View>
   );

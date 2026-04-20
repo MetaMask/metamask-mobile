@@ -311,6 +311,7 @@ const TokenDetails: React.FC<{
           networkName={networkName}
           currentTokenBalance={balance}
           onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
         />
       )}
       {isInsightsDisclaimerVisible && (

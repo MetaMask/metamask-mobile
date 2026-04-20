@@ -787,6 +787,7 @@ const MarketInsightsView: React.FC = () => {
               buyTestID={MarketInsightsSelectorsIDs.BUY_BUTTON}
               onSwapPress={handleStickySwapPress}
               onBuyPress={handleStickyBuyPress}
+              sourcePage="MarketInsightsView"
             />
             <Box alignItems={BoxAlignItems.Center}>
               <Text

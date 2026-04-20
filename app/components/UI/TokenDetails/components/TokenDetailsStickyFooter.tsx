@@ -71,6 +71,8 @@ interface TokenStickyFooterProps {
   onSwapPress?: () => void;
   /** Optional callback fired when the buy button is pressed (for additional tracking by the parent). */
   onBuyPress?: () => void;
+  /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
+  sourcePage?: string;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -85,6 +87,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   buyTestID,
   onSwapPress,
   onBuyPress,
+  sourcePage,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -120,6 +123,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     token,
     networkName,
     currentTokenBalance,
+    sourcePage,
   });
 
   const { isBuyable } = useTokenBuyability(token);
