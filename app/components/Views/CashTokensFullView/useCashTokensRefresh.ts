@@ -21,8 +21,8 @@ export const useCashTokensRefresh = (refetchMerklBonus?: () => void) => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await performEvmTokenRefresh(evmNetworkConfigurationsByChainId);
       refetchMerklBonus?.();
+      await performEvmTokenRefresh(evmNetworkConfigurationsByChainId);
     } catch (error) {
       Logger.error(error as Error, 'useCashTokensRefresh: refresh failed');
     } finally {

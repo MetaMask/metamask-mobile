@@ -75,6 +75,7 @@ const CashTokensFullView = () => {
   const { refetch: refetchMerklBonus } = useMerklBonusClaim(
     MUSD_MAINNET_ASSET_FOR_DETAILS,
     'CashTokensFullView',
+    false,
   );
   const { refreshing, onRefresh } = useCashTokensRefresh(refetchMerklBonus);
 
