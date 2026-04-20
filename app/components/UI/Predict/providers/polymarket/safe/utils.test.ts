@@ -758,7 +758,11 @@ describe('safe utils', () => {
 
       expect(result).toBe(true);
       expect(mockGetAllowance).toHaveBeenCalled();
-      expect(mockGetIsApprovedForAll).toHaveBeenCalled();
+      expect(mockGetIsApprovedForAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tokenAddress: MATIC_CONTRACTS.conditionalTokens,
+        }),
+      );
     });
 
     it('returns false when some allowances are zero', async () => {

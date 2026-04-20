@@ -48,14 +48,21 @@ describe('inspectMissingRequirements', () => {
   });
 
   it('returns missing erc1155 requirements', async () => {
+    const readIsApprovedForAll = jest.fn().mockResolvedValue(false);
+
     const missing = await inspectMissingRequirements({
       address: '0x1111111111111111111111111111111111111111',
       requirements,
       readAllowance: jest.fn().mockResolvedValue(1n),
-      readIsApprovedForAll: jest.fn().mockResolvedValue(false),
+      readIsApprovedForAll,
     });
 
     expect(missing).toEqual([requirements[2]]);
+    expect(readIsApprovedForAll).toHaveBeenCalledWith({
+      tokenAddress: '0x4000000000000000000000000000000000000000',
+      owner: '0x1111111111111111111111111111111111111111',
+      operator: '0x5000000000000000000000000000000000000000',
+    });
   });
 
   it('returns mixed missing requirements without reordering', async () => {

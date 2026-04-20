@@ -25,6 +25,7 @@ export async function inspectMissingRequirements({
       }
 
       const approved = await readIsApprovedForAll({
+        tokenAddress: requirement.tokenAddress,
         owner: address,
         operator: requirement.operator,
       });

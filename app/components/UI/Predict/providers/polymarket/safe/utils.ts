@@ -756,6 +756,7 @@ export const hasAllowances = async ({
   for (const spender of outcomeTokenSpenders) {
     isApprovedForAllCalls.push(
       getIsApprovedForAll({
+        tokenAddress: MATIC_CONTRACTS.conditionalTokens,
         owner: address,
         operator: spender,
       }),

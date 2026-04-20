@@ -1630,9 +1630,11 @@ export const getAllowance = async ({
 };
 
 export const getIsApprovedForAll = async ({
+  tokenAddress,
   owner,
   operator,
 }: {
+  tokenAddress: string;
   owner: string;
   operator: string;
 }): Promise<boolean> => {
@@ -1644,9 +1646,6 @@ export const getIsApprovedForAll = async ({
     NetworkController.getNetworkClientById(networkClientId).provider,
   );
 
-  // Get the conditional tokens contract address
-  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
-
   // Encode the isApprovedForAll function call
   const data = new Interface([
     'function isApprovedForAll(address owner, address operator) external view returns (bool)',
@@ -1655,7 +1654,7 @@ export const getIsApprovedForAll = async ({
   // Make the contract call
   const res = await query(ethQuery, 'call', [
     {
-      to: contractConfig.conditionalTokens,
+      to: tokenAddress,
       data,
     },
   ]);
