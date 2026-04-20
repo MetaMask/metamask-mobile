@@ -367,129 +367,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [isComingFromOauthOnboarding, isMetricsEnabled, setErrorToThrow],
   );
 
-  const handleRecoveryError = useCallback(
-    (seedlessError: SeedlessOnboardingControllerRecoveryError): boolean => {
-      if (
-        seedlessError.message ===
-        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
-      ) {
-        trackRehydrationFailure({
-          error_type: 'incorrect_password',
-          error_origin: ErrorOrigin.SeedlessRecovery,
-        });
-        setError(strings('login.invalid_password'));
-        return true;
-      }
-
-      if (
-        seedlessError.message !==
-        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
-      ) {
-        return false;
-      }
-
-      const failedAttempts =
-        seedlessError.data?.numberOfAttempts ?? rehydrationFailedAttempts;
-
-      if (seedlessError.data?.numberOfAttempts !== undefined) {
-        setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
-      }
-
-      trackRehydrationFailure({
-        failed_attempts: failedAttempts,
-        error_type: 'too_many_login_attempts',
-        error_origin: ErrorOrigin.SeedlessRecovery,
-      });
-
-      if (typeof seedlessError.data?.remainingTime === 'number') {
-        tooManyAttemptsError(seedlessError.data.remainingTime).catch(
-          () => null,
-        );
-      }
-
-      return true;
-    },
-    [
-      rehydrationFailedAttempts,
-      setRehydrationFailedAttempts,
-      tooManyAttemptsError,
-      trackRehydrationFailure,
-    ],
-  );
-
-  const handleSeedlessControllerError = useCallback(
-    (seedlessError: SeedlessOnboardingControllerError): boolean => {
-      if (
-        seedlessError.code ===
-        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
-      ) {
-        trackRehydrationFailure({
-          error_type: getRehydrationErrorTypeForSeedlessControllerCode(
-            seedlessError.code,
-          ),
-          error_origin: ErrorOrigin.SeedlessController,
-        });
-        setError(strings('login.seedless_password_outdated'));
-        return true;
-      }
-
-      if (!isComingFromOauthOnboarding) {
-        return false;
-      }
-
-      trackRehydrationFailure({
-        error_type: getRehydrationErrorTypeForSeedlessControllerCode(
-          seedlessError.code,
-        ),
-        error_origin: ErrorOrigin.SeedlessController,
-      });
-
-      setError(sanitizeSeedlessControllerErrorMessage(seedlessError.message));
-      captureOrThrowOauthRehydrationError(seedlessError);
-      return true;
-    },
-    [
-      captureOrThrowOauthRehydrationError,
-      isComingFromOauthOnboarding,
-      trackRehydrationFailure,
-    ],
-  );
-
-  const handleNonOauthSeedlessFailure = useCallback(
-    (seedlessError: Error): boolean => {
-      if (isComingFromOauthOnboarding) {
-        return false;
-      }
-
-      if (isMetricsEnabled()) {
-        captureException(seedlessError, {
-          tags: {
-            view: 'Re-login',
-            context:
-              'seedless flow unlock wallet failed - user consented to analytics',
-          },
-        });
-      }
-
-      Logger.error(seedlessError, 'Error in Unlock Screen');
-      promptSeedlessRelogin();
-      return true;
-    },
-    [isComingFromOauthOnboarding, isMetricsEnabled, promptSeedlessRelogin],
-  );
-
-  const handleUnknownOauthSeedlessFailure = useCallback(
-    (seedlessError: Error) => {
-      setError(sanitizeSeedlessControllerErrorMessage(seedlessError.message));
-      trackRehydrationFailure({
-        error_type: 'unknown_error',
-        error_origin: ErrorOrigin.SeedlessUnclassified,
-      });
-      captureOrThrowOauthRehydrationError(seedlessError);
-    },
-    [captureOrThrowOauthRehydrationError, trackRehydrationFailure],
-  );
-
   const handleSeedlessOnboardingControllerError = useCallback(
     (
       seedlessError:
@@ -504,38 +381,110 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         return;
       }
 
-      if (
-        seedlessError instanceof SeedlessOnboardingControllerRecoveryError &&
-        handleRecoveryError(seedlessError)
-      ) {
-        return;
-      }
-
       if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
-        handleUnknownOauthSeedlessFailure(seedlessError);
+        if (
+          seedlessError.message ===
+          SeedlessOnboardingControllerErrorMessage.IncorrectPassword
+        ) {
+          trackRehydrationFailure({
+            error_type: 'incorrect_password',
+            error_origin: ErrorOrigin.SeedlessRecovery,
+          });
+          setError(strings('login.invalid_password'));
+          return;
+        }
+
+        if (
+          seedlessError.message ===
+          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
+        ) {
+          const failedAttempts =
+            seedlessError.data?.numberOfAttempts ?? rehydrationFailedAttempts;
+
+          if (seedlessError.data?.numberOfAttempts !== undefined) {
+            setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+          }
+
+          trackRehydrationFailure({
+            failed_attempts: failedAttempts,
+            error_type: 'too_many_login_attempts',
+            error_origin: ErrorOrigin.SeedlessRecovery,
+          });
+
+          if (typeof seedlessError.data?.remainingTime === 'number') {
+            tooManyAttemptsError(seedlessError.data.remainingTime).catch(
+              () => null,
+            );
+          }
+
+          return;
+        }
+      }
+
+      if (seedlessError instanceof SeedlessOnboardingControllerError) {
+        if (
+          seedlessError.code ===
+          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+        ) {
+          trackRehydrationFailure({
+            error_type: getRehydrationErrorTypeForSeedlessControllerCode(
+              seedlessError.code,
+            ),
+            error_origin: ErrorOrigin.SeedlessController,
+          });
+          setError(strings('login.seedless_password_outdated'));
+          return;
+        }
+
+        if (isComingFromOauthOnboarding) {
+          trackRehydrationFailure({
+            error_type: getRehydrationErrorTypeForSeedlessControllerCode(
+              seedlessError.code,
+            ),
+            error_origin: ErrorOrigin.SeedlessController,
+          });
+
+          setError(
+            sanitizeSeedlessControllerErrorMessage(seedlessError.message),
+          );
+          captureOrThrowOauthRehydrationError(seedlessError);
+          return;
+        }
+      }
+
+      if (!isComingFromOauthOnboarding) {
+        if (isMetricsEnabled()) {
+          captureException(seedlessError, {
+            tags: {
+              view: 'Re-login',
+              context:
+                'seedless flow unlock wallet failed - user consented to analytics',
+            },
+          });
+        }
+
+        Logger.error(seedlessError, 'Error in Unlock Screen');
+        promptSeedlessRelogin();
         return;
       }
 
-      if (
-        seedlessError instanceof SeedlessOnboardingControllerError &&
-        handleSeedlessControllerError(seedlessError)
-      ) {
-        return;
-      }
-
-      if (handleNonOauthSeedlessFailure(seedlessError)) {
-        return;
-      }
-
-      handleUnknownOauthSeedlessFailure(seedlessError);
+      setError(sanitizeSeedlessControllerErrorMessage(seedlessError.message));
+      trackRehydrationFailure({
+        error_type: 'unknown_error',
+        error_origin: ErrorOrigin.SeedlessUnclassified,
+      });
+      captureOrThrowOauthRehydrationError(seedlessError);
     },
     [
-      handleNonOauthSeedlessFailure,
-      handleRecoveryError,
-      handleSeedlessControllerError,
-      handleUnknownOauthSeedlessFailure,
+      captureOrThrowOauthRehydrationError,
+      isComingFromOauthOnboarding,
+      isMetricsEnabled,
       netInfo,
+      promptSeedlessRelogin,
+      rehydrationFailedAttempts,
       showNoInternetErrorSheet,
+      tooManyAttemptsError,
+      trackRehydrationFailure,
     ],
   );
 
