@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
@@ -50,6 +50,8 @@ import {
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import Logger from '../../../../util/Logger';
+import PriceChart from '../../../UI/AssetOverview/PriceChart';
+import { PriceChartProvider } from '../../../UI/AssetOverview/PriceChart/PriceChart.context';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -58,15 +60,18 @@ import Logger from '../../../../util/Logger';
 const TIME_PERIODS = ['1H', '1D', '1W', '1M', 'All'] as const;
 type TimePeriod = (typeof TIME_PERIODS)[number];
 
-// Maps UI time period labels to the historical-prices API `timePeriod` param.
-// 1H reuses the '1d' data set; derivePercentChange picks the point closest
-// to T-1h for the calculation.
-const PERIOD_TO_API: Record<TimePeriod, string> = {
-  '1H': '1d',
-  '1D': '1d',
-  '1W': '7d',
-  '1M': '1m',
-  All: '1y',
+// Maps UI time period labels to the historical-prices API params.
+// `timePeriod` controls the date range, `interval` controls data point granularity.
+// 1H fetches 1d of 5-minute data; derivePercentChange picks the point closest to T-1h.
+const PERIOD_CONFIG: Record<
+  TimePeriod,
+  { timePeriod: string; interval: string }
+> = {
+  '1H': { timePeriod: '1d', interval: '5m' },
+  '1D': { timePeriod: '1d', interval: 'hourly' },
+  '1W': { timePeriod: '7d', interval: 'daily' },
+  '1M': { timePeriod: '1m', interval: 'daily' },
+  All: { timePeriod: '1y', interval: 'daily' },
 };
 
 /**
@@ -283,16 +288,18 @@ const TraderPositionView = () => {
   const [allPrices, setAllPrices] = useState<
     Partial<Record<TimePeriod, TokenPrice[]>>
   >({});
+  const [isPricesLoading, setIsPricesLoading] = useState(true);
 
   useEffect(() => {
     if (!positionParam || !caipChainId) return;
+    setIsPricesLoading(true);
     const assetIdentifier = `erc20:${positionParam.tokenAddress}`;
     const vsCurrency = currentCurrency.toLowerCase();
     let cancelled = false;
 
     const fetchPeriod = async (period: TimePeriod) => {
-      const apiPeriod = PERIOD_TO_API[period];
-      const uri = `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
+      const { timePeriod, interval } = PERIOD_CONFIG[period];
+      const uri = `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${timePeriod}&interval=${interval}&vsCurrency=${vsCurrency}`;
       try {
         const response = await fetch(uri);
         if (response.status === 204 || !response.ok)
@@ -308,17 +315,14 @@ const TraderPositionView = () => {
       }
     };
 
-    // 1H and 1D share the same API period ('1d') — fetch once, reuse.
-    const uniquePeriods: TimePeriod[] = ['1D', '1W', '1M', 'All'];
-
-    Promise.all(uniquePeriods.map(fetchPeriod)).then((results) => {
+    Promise.all(TIME_PERIODS.map(fetchPeriod)).then((results) => {
       if (cancelled) return;
       const cache: Partial<Record<TimePeriod, TokenPrice[]>> = {};
       for (const { period, prices } of results) {
         cache[period] = prices;
-        if (period === '1D') cache['1H'] = prices;
       }
       setAllPrices(cache);
+      setIsPricesLoading(false);
     });
 
     return () => {
@@ -326,7 +330,25 @@ const TraderPositionView = () => {
     };
   }, [positionParam, caipChainId, currentCurrency]);
 
-  const historicalPrices = allPrices[activeTimePeriod] ?? [];
+  // For 1H, truncate the 1d/5m data to the last 60 minutes since the
+  // historical-prices API doesn't support a 1-hour time period directly.
+  const historicalPrices = useMemo(() => {
+    const prices = allPrices[activeTimePeriod] ?? [];
+    if (activeTimePeriod !== '1H' || !prices.length) return prices;
+    const oneHourAgo = Date.now() - 60 * 60 * 1000;
+    return prices.filter((pt) => Number(pt[0]) >= oneHourAgo);
+  }, [allPrices, activeTimePeriod]);
+
+  const priceDiff = useMemo(() => {
+    if (historicalPrices.length < 2) return 0;
+    return (
+      historicalPrices[historicalPrices.length - 1][1] - historicalPrices[0][1]
+    );
+  }, [historicalPrices]);
+
+  const handleChartIndexChange = useCallback((_index: number) => {
+    // Future: update displayed price on scrub
+  }, []);
 
   const pricePercentChange = derivePercentChange(
     historicalPrices,
@@ -451,8 +473,17 @@ const TraderPositionView = () => {
           </Box>
         </Box>
 
-        {/* Chart Placeholder */}
-        <View style={tw.style('mx-4 my-3 h-48 bg-muted rounded-xl')} />
+        {/* Price Chart */}
+        <PriceChartProvider>
+          <Box twClassName="mx-4 my-3">
+            <PriceChart
+              prices={historicalPrices}
+              priceDiff={priceDiff}
+              isLoading={isPricesLoading}
+              onChartIndexChange={handleChartIndexChange}
+            />
+          </Box>
+        </PriceChartProvider>
 
         {/* Timeline Selector */}
         <Box

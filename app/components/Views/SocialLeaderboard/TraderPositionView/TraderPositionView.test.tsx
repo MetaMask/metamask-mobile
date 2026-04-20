@@ -76,6 +76,13 @@ jest.mock('@metamask/controller-utils', () => ({
   handleFetch: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => {
+  const { createMockUseAnalyticsHook } = jest.requireActual(
+    '../../../../util/test/analyticsMock',
+  );
+  return { useAnalytics: () => createMockUseAnalyticsHook() };
+});
+
 // Mock fetch for historical prices API
 global.fetch = jest.fn().mockResolvedValue({
   ok: true,
