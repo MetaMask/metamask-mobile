@@ -718,6 +718,16 @@ export type GetOrdersParams = {
   userAddress?: string; // Optional: required when standalone is true - user address to query orders for
 };
 
+/**
+ * Options for cache-aware provider read calls (getOrders, getOrderFills, etc.).
+ * Provider-agnostic: providers without inner caches can ignore; providers that
+ * cache at the service layer (e.g. HyperLiquid) must honor forceRefresh.
+ */
+export type PerpsReadOptions = {
+  /** Bypass any provider-internal cache. Used for user-initiated refresh (pull-to-refresh). */
+  forceRefresh?: boolean;
+}
+
 export type GetFundingParams = {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
@@ -973,7 +983,10 @@ export type PerpsProvider = {
    * Purpose: Track what actually happened when orders were executed.
    * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
    */
-  getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+  getOrderFills(
+    params?: GetOrderFillsParams,
+    options?: PerpsReadOptions,
+  ): Promise<OrderFill[]>;
 
   /**
    * Get fills using WebSocket cache first, falling back to REST API.
@@ -1000,7 +1013,10 @@ export type PerpsProvider = {
    * Purpose: Track the complete journey of orders from request to completion.
    * Example: Limit buy 1 ETH @ $48,000 → Order with status 'open' → 'filled' when executed
    */
-  getOrders(params?: GetOrdersParams): Promise<Order[]>;
+  getOrders(
+    params?: GetOrdersParams,
+    options?: PerpsReadOptions,
+  ): Promise<Order[]>;
 
   /**
    * Currently active open orders (real-time status).
@@ -1015,7 +1031,10 @@ export type PerpsProvider = {
    * Purpose: Track ongoing expenses and income from position maintenance.
    * Example: Holding long ETH position → Funding payment of -$5.00 (you pay the funding)
    */
-  getFunding(params?: GetFundingParams): Promise<Funding[]>;
+  getFunding(
+    params?: GetFundingParams,
+    options?: PerpsReadOptions,
+  ): Promise<Funding[]>;
 
   /**
    * Get user non-funding ledger updates (deposits, transfers, withdrawals)

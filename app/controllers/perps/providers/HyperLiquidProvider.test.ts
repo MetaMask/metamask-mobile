@@ -371,6 +371,7 @@ describe('HyperLiquidProvider', () => {
       ensureInitialized: jest.fn(),
       getExchangeClient: jest.fn().mockReturnValue(createMockExchangeClient()),
       getInfoClient: jest.fn().mockReturnValue(createMockInfoClient()),
+      fetchHistoricalOrders: jest.fn().mockResolvedValue([]),
       disconnect: jest.fn().mockResolvedValue(undefined),
       toggleTestnet: jest.fn(),
       setTestnetMode: jest.fn(),
@@ -6240,66 +6241,71 @@ describe('HyperLiquidProvider', () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         historicalOrders: jest.fn().mockResolvedValue(null),
       });
+      mockClientService.fetchHistoricalOrders = jest.fn().mockResolvedValue([]);
 
       const result = await provider.getOrders();
       expect(result).toEqual([]);
     });
 
     it('properly transform getOrders with reduceOnly and isTrigger fields', async () => {
+      const historicalOrdersData = [
+        {
+          order: {
+            oid: 123,
+            coin: 'BTC',
+            side: 'A',
+            sz: '0.5',
+            origSz: '1.0',
+            limitPx: '50000',
+            orderType: 'Limit',
+            reduceOnly: false,
+            isTrigger: false,
+          },
+          status: 'filled',
+          statusTimestamp: 1640995200000,
+        },
+        {
+          order: {
+            oid: 124,
+            coin: 'ETH',
+            side: 'A',
+            sz: '0.0',
+            origSz: '2.0',
+            limitPx: '3500',
+            orderType: 'Take Profit Limit',
+            reduceOnly: true,
+            isTrigger: true,
+          },
+          status: 'filled',
+          statusTimestamp: 1640995300000,
+        },
+        {
+          order: {
+            oid: 125,
+            coin: 'BTC',
+            side: 'B',
+            sz: '0.1',
+            origSz: '0.1',
+            limitPx: '45000',
+            orderType: 'Stop Market',
+            reduceOnly: true,
+            isTrigger: true,
+          },
+          status: 'triggered',
+          statusTimestamp: 1640995400000,
+        },
+      ];
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         maxBuilderFee: jest.fn().mockResolvedValue(1),
         referral: jest.fn().mockResolvedValue({
           referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
           referredBy: { code: 'MMCSI' },
         }),
-        historicalOrders: jest.fn().mockResolvedValue([
-          {
-            order: {
-              oid: 123,
-              coin: 'BTC',
-              side: 'A',
-              sz: '0.5',
-              origSz: '1.0',
-              limitPx: '50000',
-              orderType: 'Limit',
-              reduceOnly: false,
-              isTrigger: false,
-            },
-            status: 'filled',
-            statusTimestamp: 1640995200000,
-          },
-          {
-            order: {
-              oid: 124,
-              coin: 'ETH',
-              side: 'A',
-              sz: '0.0',
-              origSz: '2.0',
-              limitPx: '3500',
-              orderType: 'Take Profit Limit',
-              reduceOnly: true,
-              isTrigger: true,
-            },
-            status: 'filled',
-            statusTimestamp: 1640995300000,
-          },
-          {
-            order: {
-              oid: 125,
-              coin: 'BTC',
-              side: 'B',
-              sz: '0.1',
-              origSz: '0.1',
-              limitPx: '45000',
-              orderType: 'Stop Market',
-              reduceOnly: true,
-              isTrigger: true,
-            },
-            status: 'triggered',
-            statusTimestamp: 1640995400000,
-          },
-        ]),
+        historicalOrders: jest.fn().mockResolvedValue(historicalOrdersData),
       });
+      mockClientService.fetchHistoricalOrders = jest
+        .fn()
+        .mockResolvedValue(historicalOrdersData);
 
       const result = await provider.getOrders();
 
@@ -6859,7 +6865,7 @@ describe('HyperLiquidProvider', () => {
         },
       ]);
 
-      const mockHistoricalOrders = jest.fn().mockResolvedValue([
+      const historicalOrdersData = [
         {
           order: {
             oid: 100,
@@ -6890,7 +6896,10 @@ describe('HyperLiquidProvider', () => {
           status: 'filled',
           statusTimestamp: Date.now(),
         },
-      ]);
+      ];
+      const mockHistoricalOrders = jest
+        .fn()
+        .mockResolvedValue(historicalOrdersData);
 
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -6898,6 +6907,9 @@ describe('HyperLiquidProvider', () => {
           historicalOrders: mockHistoricalOrders,
         }),
       );
+      mockClientService.fetchHistoricalOrders = jest
+        .fn()
+        .mockResolvedValue(historicalOrdersData);
 
       const fills = await provider.getOrderFills();
 
@@ -6929,6 +6941,9 @@ describe('HyperLiquidProvider', () => {
           historicalOrders: jest.fn().mockRejectedValue(new Error('API error')),
         }),
       );
+      mockClientService.fetchHistoricalOrders = jest
+        .fn()
+        .mockRejectedValue(new Error('API error'));
 
       const fills = await provider.getOrderFills();
 

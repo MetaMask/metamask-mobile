@@ -135,6 +135,37 @@ export const PERFORMANCE_CONFIG = {
   // Prevents WS subscription churn during rapid market switching (#28141)
   CandleConnectDebounceMs: 500,
 
+  // Candle WS teardown delay (milliseconds)
+  // When the last subscriber for a cacheKey unsubscribes, wait this long before
+  // tearing down the WS. A subsequent subscribe inside the window cancels the
+  // teardown so rapid back-and-forth switches do not churn the connection.
+  CandleTeardownDelayMs: 150,
+
+  // Perps REST coalesce TTL (milliseconds)
+  //
+  // Window in which identical GET-style REST calls (getOrderFills, getOrders,
+  // getFunding, historicalOrders) share a single in-flight promise / cached
+  // result. `forceRefresh` still bypasses the cache end-to-end (hooks →
+  // controller → MarketDataService → provider → HyperLiquidClientService), so
+  // pull-to-refresh always hits the network.
+  //
+  // Why 60 s: HyperLiquid's documented rate limit is 1200 weight / IP /
+  // rolling 60 s window. Sizing TTL = window length caps each endpoint-per-
+  // account at ≤1 REST hit per window under any UI activity pattern — rapid
+  // market switching, re-mounts (usePerpsMarketFills, usePerpsTransactionHistory),
+  // and multi-tab scans all share a single request. Live fills/orders/prices
+  // still flow via WS subscriptions, so REST is seed/backfill only — cache
+  // staleness inside the 60 s window is never user-visible.
+  PerpsRestCoalesceTtlMs: 60_000,
+
+  // Candle snapshot REST coalesce TTL (milliseconds).
+  // Longer than PerpsRestCoalesceTtlMs because WS stream keeps live candles
+  // fresh — the REST snapshot only seeds the chart on initial subscribe. A
+  // 30 s window lets rapid market switching (pass 1 → pass 2 of a stress
+  // loop) share the same snapshot per (symbol, interval), cutting
+  // candleSnapshot REST weight roughly in half.
+  PerpsCandleCoalesceTtlMs: 30_000,
+
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs

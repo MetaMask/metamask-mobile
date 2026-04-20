@@ -5,6 +5,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
+import { resetPerpsRestCacheForTests } from '@metamask/perps-controller/utils/coalescePerpsRestRequest';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
@@ -174,6 +175,7 @@ describe('usePerpsTransactionHistory', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPerpsRestCacheForTests();
 
     // Mock Redux selectors: first call = wallet transactions, second = selected address
     mockUseSelector.mockImplementation(() => {
@@ -188,10 +190,23 @@ describe('usePerpsTransactionHistory', () => {
       getFunding: jest.fn().mockResolvedValue(mockFunding),
     };
 
-    // Mock controller
+    // Mock controller — delegates read-only data-fetching methods to the
+    // provider mock so existing tests that assert on `mockProvider.*` keep
+    // passing. Real controller routes through MarketDataService (coalesce
+    // layer) → provider; this mock collapses that hop but preserves the
+    // provider-facing contract the tests exercise.
     mockController = {
       getActiveProvider: jest.fn().mockReturnValue(mockProvider),
       getActiveProviderOrNull: jest.fn().mockReturnValue(mockProvider),
+      getOrderFills: jest.fn((params) => mockProvider.getOrderFills(params)),
+      getOrders: jest.fn((params) => mockProvider.getOrders(params)),
+      getFunding: jest.fn((params) => mockProvider.getFunding(params)),
+    } as typeof mockController & {
+      getOrderFills: jest.MockedFunction<
+        (...args: unknown[]) => Promise<unknown>
+      >;
+      getOrders: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+      getFunding: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
     };
 
     // Mock Engine context

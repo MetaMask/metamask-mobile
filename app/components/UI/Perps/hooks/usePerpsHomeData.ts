@@ -108,12 +108,15 @@ export const usePerpsHomeData = ({
     const fetchFills = async () => {
       try {
         const controller = Engine.context.PerpsController;
-        const provider = controller?.getActiveProviderOrNull();
-        if (!provider) {
+        if (!controller?.getActiveProviderOrNull()) {
           return;
         }
 
-        const fills = await provider.getOrderFills({ aggregateByTime: false });
+        // Route through the controller so the MarketDataService request-coalesce
+        // layer absorbs bursty mounts (mobile parity with extension PR #41917).
+        const fills = await controller.getOrderFills({
+          aggregateByTime: false,
+        });
         if (isMounted) {
           setRestFills(fills);
         }

@@ -25,6 +25,7 @@ import type { CandleData } from '../types/perps-types';
 
 import { MarketDataService } from './MarketDataService';
 import type { ServiceContext } from './ServiceContext';
+import { resetPerpsRestCacheForTests } from '../utils/coalescePerpsRestRequest';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
@@ -43,6 +44,9 @@ describe('MarketDataService', () => {
       errorContext: { controller: 'MarketDataService', method: 'test' },
     });
     jest.clearAllMocks();
+    // REST coalesce cache is module-scoped and persists across tests; reset
+    // so each test starts from a clean slate.
+    resetPerpsRestCacheForTests();
   });
 
   afterEach(() => {
@@ -211,7 +215,9 @@ describe('MarketDataService', () => {
         context: mockContext,
       });
 
-      expect(mockProvider.getOrderFills).toHaveBeenCalledWith(params);
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith(params, {
+        forceRefresh: undefined,
+      });
     });
   });
 
@@ -319,6 +325,114 @@ describe('MarketDataService', () => {
       ).rejects.toThrow('Funding data unavailable');
 
       expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('REST request coalesce', () => {
+    beforeEach(() => {
+      // Global testSetup.js stubs Date.now via jest.fn, and the outer
+      // beforeEach's jest.clearAllMocks() strips that implementation. Restore
+      // a deterministic Date.now so the coalesce TTL math produces finite
+      // numbers instead of NaN.
+      (Date.now as jest.Mock).mockImplementation(() => 1_700_000_000_000);
+    });
+
+    it('dedupes concurrent getOrderFills calls with identical params', async () => {
+      let resolveFetch: (value: OrderFill[]) => void = () => undefined;
+      mockProvider.getOrderFills.mockImplementation(
+        () =>
+          new Promise<OrderFill[]>((resolve) => {
+            resolveFetch = resolve;
+          }),
+      );
+
+      const a = marketDataService.getOrderFills({
+        provider: mockProvider,
+        params: { aggregateByTime: false },
+        context: mockContext,
+      });
+      const b = marketDataService.getOrderFills({
+        provider: mockProvider,
+        params: { aggregateByTime: false },
+        context: mockContext,
+      });
+
+      resolveFetch([]);
+      await Promise.all([a, b]);
+
+      expect(mockProvider.getOrderFills).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns cached result for second getOrders call within TTL', async () => {
+      mockProvider.getOrders.mockResolvedValue([]);
+
+      await marketDataService.getOrders({
+        provider: mockProvider,
+        context: mockContext,
+      });
+      await marketDataService.getOrders({
+        provider: mockProvider,
+        context: mockContext,
+      });
+
+      expect(mockProvider.getOrders).toHaveBeenCalledTimes(1);
+    });
+
+    it('bypasses cache when forceRefresh is true on getFunding', async () => {
+      mockProvider.getFunding.mockResolvedValue([]);
+
+      await marketDataService.getFunding({
+        provider: mockProvider,
+        context: mockContext,
+      });
+      await marketDataService.getFunding({
+        provider: mockProvider,
+        context: mockContext,
+        forceRefresh: true,
+      });
+
+      expect(mockProvider.getFunding).toHaveBeenCalledTimes(2);
+    });
+
+    it('bypasses coalesce for paginated getOrderFills (limit/endTime)', async () => {
+      mockProvider.getOrderFills.mockResolvedValue([]);
+
+      await marketDataService.getOrderFills({
+        provider: mockProvider,
+        params: { limit: 50 },
+        context: mockContext,
+      });
+      await marketDataService.getOrderFills({
+        provider: mockProvider,
+        params: { limit: 50 },
+        context: mockContext,
+      });
+
+      expect(mockProvider.getOrderFills).toHaveBeenCalledTimes(2);
+    });
+
+    it('buckets getOrderFills by startTime day so 90d and all-history callers do not collide', async () => {
+      mockProvider.getOrderFills
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      // Caller A — unbounded (no startTime)
+      await marketDataService.getOrderFills({
+        provider: mockProvider,
+        params: { aggregateByTime: false },
+        context: mockContext,
+      });
+      // Caller B — 90-day window (startTime set)
+      await marketDataService.getOrderFills({
+        provider: mockProvider,
+        params: {
+          aggregateByTime: false,
+          startTime: Date.now() - 90 * 86_400_000,
+        },
+        context: mockContext,
+      });
+
+      expect(mockProvider.getOrderFills).toHaveBeenCalledTimes(2);
     });
   });
 

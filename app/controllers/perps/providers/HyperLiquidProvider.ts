@@ -99,6 +99,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
   RawLedgerUpdate,
+  PerpsReadOptions,
 } from '../types';
 import type {
   SDKOrderParams,
@@ -4918,9 +4919,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Get historical user fills (trade executions)
    *
    * @param params - The operation parameters.
+   * @param options - Optional cache-control modifiers for this read.
    * @returns A promise that resolves to the result.
    */
-  async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
+  async getOrderFills(
+    params?: GetOrderFillsParams,
+    options?: PerpsReadOptions,
+  ): Promise<OrderFill[]> {
     try {
       this.#deps.debugLogger.log(
         'Getting user fills via HyperLiquid SDK:',
@@ -4957,16 +4962,20 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Start fetching historical orders in parallel with fill transformation.
       // The fills API does not return order type, so we cross-reference
       // with historical orders to enable TP/SL pill rendering in activity.
-      const historicalOrdersPromise = (
-        infoClient.historicalOrders?.({ user: userAddress }) ??
-        Promise.resolve(null)
-      ).catch((enrichError: unknown) => {
-        this.#deps.debugLogger.log(
-          'Warning: failed to enrich fills with order types:',
-          enrichError,
-        );
-        return null;
-      });
+      // Routed through the client-service coalesce so the enrichment sidecar
+      // rides the same cache as an explicit getOrders call, preventing a
+      // second REST fire under rapid market switching.
+      const historicalOrdersPromise = this.#clientService
+        .fetchHistoricalOrders(userAddress, {
+          forceRefresh: options?.forceRefresh,
+        })
+        .catch((enrichError: unknown) => {
+          this.#deps.debugLogger.log(
+            'Warning: failed to enrich fills with order types:',
+            enrichError,
+          );
+          return null;
+        });
 
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
@@ -5035,9 +5044,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Get historical orders (order lifecycle)
    *
    * @param params - The operation parameters.
+   * @param options - Optional cache-control modifiers for this read.
    * @returns A promise that resolves to the result.
    */
-  async getOrders(params?: GetOrdersParams): Promise<Order[]> {
+  async getOrders(
+    params?: GetOrdersParams,
+    options?: PerpsReadOptions,
+  ): Promise<Order[]> {
     try {
       this.#deps.debugLogger.log(
         'Getting user orders via HyperLiquid SDK:',
@@ -5048,14 +5061,14 @@ export class HyperLiquidProvider implements PerpsProvider {
       await this.#ensureClientsInitialized();
       this.#clientService.ensureInitialized();
 
-      const infoClient = this.#clientService.getInfoClient();
       const userAddress = await this.#walletService.getUserAddressWithDefault(
         params?.accountId,
       );
 
-      const rawOrders = await infoClient.historicalOrders({
-        user: userAddress,
-      });
+      const rawOrders = await this.#clientService.fetchHistoricalOrders(
+        userAddress,
+        { forceRefresh: options?.forceRefresh },
+      );
 
       this.#deps.debugLogger.log('User orders received:', {
         count: rawOrders?.length ?? 0,
@@ -5253,9 +5266,14 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Get user funding history
    *
    * @param params - The operation parameters.
+   * @param _options - Cache-control modifiers (unused — funding has no
+   * provider-internal cache; coalescing happens at MarketDataService).
    * @returns A promise that resolves to the result.
    */
-  async getFunding(params?: GetFundingParams): Promise<Funding[]> {
+  async getFunding(
+    params?: GetFundingParams,
+    _options?: PerpsReadOptions,
+  ): Promise<Funding[]> {
     try {
       this.#deps.debugLogger.log(
         'Getting user funding via HyperLiquid SDK:',

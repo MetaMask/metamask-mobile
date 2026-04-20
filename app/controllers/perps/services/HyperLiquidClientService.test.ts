@@ -8,6 +8,7 @@
 
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { CandlePeriod } from '../constants/chartConfig';
+import { resetPerpsRestCacheForTests } from '../utils/coalescePerpsRestRequest';
 
 import { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { ValidCandleInterval } from './HyperLiquidClientService';
@@ -21,6 +22,7 @@ const mockInfoClientWs = {
   initialized: true,
   transport: 'websocket',
   candleSnapshot: jest.fn(),
+  historicalOrders: jest.fn(),
 };
 const mockInfoClientHttp = {
   initialized: true,
@@ -512,6 +514,10 @@ describe('HyperLiquidClientService', () => {
   describe('fetchHistoricalCandles', () => {
     beforeEach(async () => {
       await service.initialize(mockWallet);
+      // Reset module-level coalesce cache so each test starts clean — without
+      // this, the first test populates the cache and subsequent tests with
+      // matching (symbol, interval, limit) skip the underlying REST call.
+      resetPerpsRestCacheForTests();
     });
 
     it('fetches historical candles successfully', async () => {
@@ -555,18 +561,15 @@ describe('HyperLiquidClientService', () => {
           },
         ],
       });
-      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith(
-        {
-          coin: 'BTC', // SDK uses 'coin' terminology
-          interval: '1h',
-          startTime: expect.any(Number),
-          endTime: expect.any(Number),
-        },
-        undefined,
-      );
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith({
+        coin: 'BTC', // SDK uses 'coin' terminology
+        interval: '1h',
+        startTime: expect.any(Number),
+        endTime: expect.any(Number),
+      });
     });
 
-    it('uses the default limit and forwards an explicit abort signal', async () => {
+    it('uses the default limit when no signal is aborted', async () => {
       const abortController = new AbortController();
       mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
 
@@ -576,18 +579,55 @@ describe('HyperLiquidClientService', () => {
         signal: abortController.signal,
       });
 
-      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith(
-        {
-          coin: 'BTC',
-          interval: '1h',
-          startTime: expect.any(Number),
-          endTime: expect.any(Number),
-        },
-        abortController.signal,
-      );
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith({
+        coin: 'BTC',
+        interval: '1h',
+        startTime: expect.any(Number),
+        endTime: expect.any(Number),
+      });
 
       const request = mockInfoClientHttp.candleSnapshot.mock.calls[0][0];
       expect(request.endTime - request.startTime).toBe(100 * 60 * 60 * 1000);
+    });
+
+    it('throws AbortError and skips the REST call when signal is already aborted', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+      mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      await expect(
+        service.fetchHistoricalCandles({
+          symbol: 'BTC',
+          interval: '1h' as ValidCandleInterval,
+          signal: abortController.signal,
+        }),
+      ).rejects.toMatchObject({ name: 'AbortError' });
+
+      expect(mockInfoClientHttp.candleSnapshot).not.toHaveBeenCalled();
+    });
+
+    it('coalesces concurrent identical fetches into one REST call', async () => {
+      mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      await Promise.all([
+        service.fetchHistoricalCandles({
+          symbol: 'BTC',
+          interval: '1h' as ValidCandleInterval,
+          limit: 100,
+        }),
+        service.fetchHistoricalCandles({
+          symbol: 'BTC',
+          interval: '1h' as ValidCandleInterval,
+          limit: 100,
+        }),
+        service.fetchHistoricalCandles({
+          symbol: 'BTC',
+          interval: '1h' as ValidCandleInterval,
+          limit: 100,
+        }),
+      ]);
+
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledTimes(1);
     });
 
     it('handles empty candles response', async () => {
@@ -650,15 +690,12 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Assert
-      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith(
-        {
-          coin: 'ETH', // SDK uses 'coin' terminology
-          interval: '5m',
-          startTime: expect.any(Number),
-          endTime: expect.any(Number),
-        },
-        undefined,
-      );
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith({
+        coin: 'ETH', // SDK uses 'coin' terminology
+        interval: '5m',
+        startTime: expect.any(Number),
+        endTime: expect.any(Number),
+      });
 
       // Verify time range calculation
       const callArgs = mockInfoClientHttp.candleSnapshot.mock.calls[0][0];
@@ -764,10 +801,56 @@ describe('HyperLiquidClientService', () => {
     });
   });
 
+  describe('fetchHistoricalOrders', () => {
+    const userAddress = '0x1234567890123456789012345678901234567890' as const;
+
+    beforeEach(async () => {
+      await service.initialize(mockWallet);
+      jest.clearAllMocks();
+      resetPerpsRestCacheForTests();
+    });
+
+    it('fetches historical orders and coalesces concurrent calls', async () => {
+      const mockOrders = [{ order: { oid: 1 } }];
+      mockInfoClientWs.historicalOrders.mockResolvedValue(mockOrders);
+
+      const [a, b] = await Promise.all([
+        service.fetchHistoricalOrders(userAddress),
+        service.fetchHistoricalOrders(userAddress),
+      ]);
+
+      expect(a).toEqual(mockOrders);
+      expect(b).toEqual(mockOrders);
+      // Coalesce ensures only one underlying REST call
+      expect(mockInfoClientWs.historicalOrders).toHaveBeenCalledTimes(1);
+    });
+
+    it('bypasses coalesce cache when forceRefresh is true', async () => {
+      const mockOrders = [{ order: { oid: 1 } }];
+      mockInfoClientWs.historicalOrders.mockResolvedValue(mockOrders);
+
+      // First call populates cache
+      await service.fetchHistoricalOrders(userAddress);
+      // Second call with forceRefresh should bypass cache
+      await service.fetchHistoricalOrders(userAddress, { forceRefresh: true });
+
+      expect(mockInfoClientWs.historicalOrders).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns empty array when SDK returns null', async () => {
+      mockInfoClientWs.historicalOrders.mockResolvedValue(null);
+
+      const result = await service.fetchHistoricalOrders(userAddress);
+
+      expect(result).toEqual([]);
+    });
+  });
+
   describe('subscribeToCandles', () => {
     beforeEach(async () => {
       await service.initialize(mockWallet);
       jest.clearAllMocks();
+      resetPerpsRestCacheForTests();
     });
 
     it('throws error when service not initialized', () => {
@@ -854,7 +937,6 @@ describe('HyperLiquidClientService', () => {
           coin: 'BTC',
           interval: '1h',
         }),
-        expect.any(AbortSignal),
       );
 
       // Assert - callback invoked with historical data

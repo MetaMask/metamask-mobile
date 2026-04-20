@@ -33,6 +33,7 @@ import type {
   PerpsPlatformDependencies,
 } from '../types';
 import type { CandleData } from '../types/perps-types';
+import { coalescePerpsRestRequest } from '../utils/coalescePerpsRestRequest';
 import { ensureError, isAbortError } from '../utils/errorUtils';
 
 /**
@@ -135,63 +136,96 @@ export class MarketDataService {
    * @param options.provider - The perps provider instance.
    * @param options.params - The operation parameters.
    * @param options.context - The service context for dependencies.
+   * @param options.forceRefresh - Bypass the request-coalesce cache end-to-end
+   * (user-initiated refresh).
    * @returns The result of the operation.
    */
   async getOrderFills(options: {
     provider: PerpsProvider;
     params?: GetOrderFillsParams;
     context: ServiceContext;
+    /**
+     * Bypass the request-coalesce cache. Use for user-initiated refresh
+     * (pull-to-refresh, polling tick) so the fetch runs fresh.
+     */
+    forceRefresh?: boolean;
   }): Promise<OrderFill[]> {
-    const { provider, params, context } = options;
-    const traceId = uuidv4();
-    let traceData: { success: boolean; error?: string } | undefined;
+    const { provider, params, context, forceRefresh } = options;
+    const run = async (): Promise<OrderFill[]> => {
+      const traceId = uuidv4();
+      let traceData: { success: boolean; error?: string } | undefined;
 
-    try {
-      this.#deps.tracer.trace({
-        name: PerpsTraceNames.OrderFillsFetch,
-        id: traceId,
-        op: PerpsTraceOperations.Operation,
-        tags: {
-          provider: context.tracingContext.provider,
-          isTestnet: String(context.tracingContext.isTestnet),
-        },
-      });
-
-      const result = await provider.getOrderFills(params);
-
-      traceData = { success: true };
-      return result;
-    } catch (error) {
-      this.#deps.logger.error(
-        ensureError(error, 'MarketDataService.getOrderFills'),
-        {
+      try {
+        this.#deps.tracer.trace({
+          name: PerpsTraceNames.OrderFillsFetch,
+          id: traceId,
+          op: PerpsTraceOperations.Operation,
           tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
             provider: context.tracingContext.provider,
-            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+            isTestnet: String(context.tracingContext.isTestnet),
           },
-          context: {
-            name: context.errorContext.controller,
-            data: {
-              method: context.errorContext.method,
-              params,
+        });
+
+        const result = await provider.getOrderFills(params, { forceRefresh });
+
+        traceData = { success: true };
+        return result;
+      } catch (error) {
+        this.#deps.logger.error(
+          ensureError(error, 'MarketDataService.getOrderFills'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: context.tracingContext.provider,
+              network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+            },
+            context: {
+              name: context.errorContext.controller,
+              data: {
+                method: context.errorContext.method,
+                params,
+              },
             },
           },
-        },
-      );
+        );
 
-      traceData = {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-      throw error;
-    } finally {
-      this.#deps.tracer.endTrace({
-        name: PerpsTraceNames.OrderFillsFetch,
-        id: traceId,
-        data: traceData,
-      });
+        traceData = {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+        throw error;
+      } finally {
+        this.#deps.tracer.endTrace({
+          name: PerpsTraceNames.OrderFillsFetch,
+          id: traceId,
+          data: traceData,
+        });
+      }
+    };
+
+    // Pagination / explicit end-window callers bypass the shared cache so
+    // their specific page never collides with the default "recent fills"
+    // bucket.
+    const isPaginated =
+      params?.limit !== undefined || params?.endTime !== undefined;
+    if (isPaginated) {
+      return run();
     }
+
+    // Include a day-granular startTime bucket in the key so a caller that
+    // asks for the last ~90d (usePerpsMarketFills) never shares a cached
+    // payload with a caller that asks for all-history (usePerpsTransactionHistory).
+    const cacheKey = [
+      context.tracingContext.provider,
+      context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+      'getOrderFills',
+      params?.accountId ?? 'default',
+      params?.aggregateByTime === true ? 'agg' : 'raw',
+      params?.startTime === undefined
+        ? 'unbounded'
+        : `s${Math.floor(params.startTime / 86_400_000)}`,
+    ].join('|');
+    return coalescePerpsRestRequest(cacheKey, run, { forceRefresh });
   }
 
   /**
@@ -202,63 +236,87 @@ export class MarketDataService {
    * @param options.provider - The perps provider instance.
    * @param options.params - The operation parameters.
    * @param options.context - The service context for dependencies.
+   * @param options.forceRefresh - Bypass the request-coalesce cache end-to-end
+   * (user-initiated refresh).
    * @returns The result of the operation.
    */
   async getOrders(options: {
     provider: PerpsProvider;
     params?: GetOrdersParams;
     context: ServiceContext;
+    /**
+     * Bypass the request-coalesce cache. Use for user-initiated refresh.
+     */
+    forceRefresh?: boolean;
   }): Promise<Order[]> {
-    const { provider, params, context } = options;
-    const traceId = uuidv4();
-    let traceData: { success: boolean; error?: string } | undefined;
+    const { provider, params, context, forceRefresh } = options;
+    const run = async (): Promise<Order[]> => {
+      const traceId = uuidv4();
+      let traceData: { success: boolean; error?: string } | undefined;
 
-    try {
-      this.#deps.tracer.trace({
-        name: PerpsTraceNames.OrdersFetch,
-        id: traceId,
-        op: PerpsTraceOperations.Operation,
-        tags: {
-          provider: context.tracingContext.provider,
-          isTestnet: String(context.tracingContext.isTestnet),
-        },
-      });
-
-      const result = await provider.getOrders(params);
-
-      traceData = { success: true };
-      return result;
-    } catch (error) {
-      this.#deps.logger.error(
-        ensureError(error, 'MarketDataService.getOrders'),
-        {
+      try {
+        this.#deps.tracer.trace({
+          name: PerpsTraceNames.OrdersFetch,
+          id: traceId,
+          op: PerpsTraceOperations.Operation,
           tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
             provider: context.tracingContext.provider,
-            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+            isTestnet: String(context.tracingContext.isTestnet),
           },
-          context: {
-            name: context.errorContext.controller,
-            data: {
-              method: context.errorContext.method,
-              params,
+        });
+
+        const result = await provider.getOrders(params, { forceRefresh });
+
+        traceData = { success: true };
+        return result;
+      } catch (error) {
+        this.#deps.logger.error(
+          ensureError(error, 'MarketDataService.getOrders'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: context.tracingContext.provider,
+              network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+            },
+            context: {
+              name: context.errorContext.controller,
+              data: {
+                method: context.errorContext.method,
+                params,
+              },
             },
           },
-        },
-      );
+        );
 
-      traceData = {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-      throw error;
-    } finally {
-      this.#deps.tracer.endTrace({
-        name: PerpsTraceNames.OrdersFetch,
-        id: traceId,
-        data: traceData,
-      });
+        traceData = {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+        throw error;
+      } finally {
+        this.#deps.tracer.endTrace({
+          name: PerpsTraceNames.OrdersFetch,
+          id: traceId,
+          data: traceData,
+        });
+      }
+    };
+
+    const isPaginated =
+      params?.limit !== undefined ||
+      params?.offset !== undefined ||
+      params?.endTime !== undefined;
+    if (isPaginated) {
+      return run();
     }
+
+    const cacheKey = [
+      context.tracingContext.provider,
+      context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+      'getOrders',
+      params?.accountId ?? 'default',
+    ].join('|');
+    return coalescePerpsRestRequest(cacheKey, run, { forceRefresh });
   }
 
   /**
@@ -344,63 +402,88 @@ export class MarketDataService {
    * @param options.provider - The perps provider instance.
    * @param options.params - The operation parameters.
    * @param options.context - The service context for dependencies.
+   * @param options.forceRefresh - Bypass the request-coalesce cache end-to-end
+   * (user-initiated refresh).
    * @returns The result of the operation.
    */
   async getFunding(options: {
     provider: PerpsProvider;
     params?: GetFundingParams;
     context: ServiceContext;
+    /**
+     * Bypass the request-coalesce cache. Use for user-initiated refresh.
+     */
+    forceRefresh?: boolean;
   }): Promise<Funding[]> {
-    const { provider, params, context } = options;
-    const traceId = uuidv4();
-    let traceData: { success: boolean; error?: string } | undefined;
+    const { provider, params, context, forceRefresh } = options;
+    const run = async (): Promise<Funding[]> => {
+      const traceId = uuidv4();
+      let traceData: { success: boolean; error?: string } | undefined;
 
-    try {
-      this.#deps.tracer.trace({
-        name: PerpsTraceNames.FundingFetch,
-        id: traceId,
-        op: PerpsTraceOperations.Operation,
-        tags: {
-          provider: context.tracingContext.provider,
-          isTestnet: String(context.tracingContext.isTestnet),
-        },
-      });
-
-      const result = await provider.getFunding(params);
-
-      traceData = { success: true };
-      return result;
-    } catch (error) {
-      this.#deps.logger.error(
-        ensureError(error, 'MarketDataService.getFunding'),
-        {
+      try {
+        this.#deps.tracer.trace({
+          name: PerpsTraceNames.FundingFetch,
+          id: traceId,
+          op: PerpsTraceOperations.Operation,
           tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
             provider: context.tracingContext.provider,
-            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+            isTestnet: String(context.tracingContext.isTestnet),
           },
-          context: {
-            name: context.errorContext.controller,
-            data: {
-              method: context.errorContext.method,
-              params,
+        });
+
+        const result = await provider.getFunding(params, { forceRefresh });
+
+        traceData = { success: true };
+        return result;
+      } catch (error) {
+        this.#deps.logger.error(
+          ensureError(error, 'MarketDataService.getFunding'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: context.tracingContext.provider,
+              network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+            },
+            context: {
+              name: context.errorContext.controller,
+              data: {
+                method: context.errorContext.method,
+                params,
+              },
             },
           },
-        },
-      );
+        );
 
-      traceData = {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-      throw error;
-    } finally {
-      this.#deps.tracer.endTrace({
-        name: PerpsTraceNames.FundingFetch,
-        id: traceId,
-        data: traceData,
-      });
+        traceData = {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+        throw error;
+      } finally {
+        this.#deps.tracer.endTrace({
+          name: PerpsTraceNames.FundingFetch,
+          id: traceId,
+          data: traceData,
+        });
+      }
+    };
+
+    const isPaginated =
+      params?.limit !== undefined ||
+      params?.offset !== undefined ||
+      params?.startTime !== undefined ||
+      params?.endTime !== undefined;
+    if (isPaginated) {
+      return run();
     }
+
+    const cacheKey = [
+      context.tracingContext.provider,
+      context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+      'getFunding',
+      params?.accountId ?? 'default',
+    ].join('|');
+    return coalescePerpsRestRequest(cacheKey, run, { forceRefresh });
   }
 
   /**

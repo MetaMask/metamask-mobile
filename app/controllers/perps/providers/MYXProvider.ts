@@ -82,6 +82,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
   RawLedgerUpdate,
+  PerpsReadOptions,
 } from '../types';
 import { MYXOrderStatusEnum } from '../types/myx-types';
 import type {
@@ -695,7 +696,10 @@ export class MYXProvider implements PerpsProvider {
     }
   }
 
-  async getOrders(_params?: GetOrdersParams): Promise<Order[]> {
+  async getOrders(
+    _params?: GetOrdersParams,
+    _options?: PerpsReadOptions,
+  ): Promise<Order[]> {
     try {
       await this.#ensureAuthenticated();
       const address = this.#getWalletService().getUserAddress();
@@ -738,7 +742,10 @@ export class MYXProvider implements PerpsProvider {
     }
   }
 
-  async getOrderFills(_params?: GetOrderFillsParams): Promise<OrderFill[]> {
+  async getOrderFills(
+    _params?: GetOrderFillsParams,
+    _options?: PerpsReadOptions,
+  ): Promise<OrderFill[]> {
     try {
       await this.#ensureAuthenticated();
       const address = this.#getWalletService().getUserAddress();
@@ -773,7 +780,10 @@ export class MYXProvider implements PerpsProvider {
     return this.getOrderFills(_params);
   }
 
-  async getFunding(_params?: GetFundingParams): Promise<Funding[]> {
+  async getFunding(
+    _params?: GetFundingParams,
+    _options?: PerpsReadOptions,
+  ): Promise<Funding[]> {
     try {
       await this.#ensureAuthenticated();
       const address = this.#getWalletService().getUserAddress();

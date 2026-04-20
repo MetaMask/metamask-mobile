@@ -83,15 +83,17 @@ export const usePerpsMarketFills = ({
     }
 
     try {
-      const provider = controller?.getActiveProviderOrNull();
-      if (!provider) {
+      if (!controller.getActiveProviderOrNull()) {
         return;
       }
 
-      // Use time-filtered API to limit data fetched for active traders
+      // Use time-filtered API to limit data fetched for active traders.
+      // Route through the controller so the MarketDataService request-coalesce
+      // layer absorbs rapid market-switch bursts (mobile parity with extension
+      // PR #41917, service-layer variant).
       const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
 
-      const fills = await provider.getOrderFills({
+      const fills = await controller.getOrderFills({
         aggregateByTime: false,
         startTime,
       });

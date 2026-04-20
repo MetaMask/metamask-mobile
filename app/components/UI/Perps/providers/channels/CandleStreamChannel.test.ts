@@ -60,6 +60,9 @@ describe('CandleStreamChannel', () => {
 
   // Flush the debounce delay used by connect() → deferConnect() (#28141)
   const flushConnectDebounce = () => jest.advanceTimersByTime(500);
+  // Flush the deferred WS teardown delay (mobile parity with extension PR #41917).
+  const flushTeardownDelay = () =>
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.CandleTeardownDelayMs);
 
   describe('Cache Management', () => {
     it('should generate correct cache key', () => {
@@ -325,6 +328,9 @@ describe('CandleStreamChannel', () => {
       expect(mockUnsubscribe).not.toHaveBeenCalled();
 
       unsubscribe2();
+      // Teardown is deferred to coalesce rapid market switches — flush the
+      // delay before asserting the WS actually closed (#41917 mobile parity).
+      flushTeardownDelay();
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
@@ -351,6 +357,7 @@ describe('CandleStreamChannel', () => {
       flushConnectDebounce();
 
       btcUnsubscribe();
+      flushTeardownDelay();
 
       expect(mockBtcUnsubscribe).toHaveBeenCalled();
       expect(mockEthUnsubscribe).not.toHaveBeenCalled();
@@ -437,6 +444,10 @@ describe('CandleStreamChannel', () => {
       capturedCallback?.(mockCandleData);
 
       unsubscribe();
+      // Let the deferred teardown fire so the next subscribe reopens the WS
+      // rather than reusing the pending one (this test exercises the
+      // reconnect-with-cached-data path).
+      flushTeardownDelay();
 
       channel.subscribe({
         symbol: 'BTC',
@@ -468,6 +479,7 @@ describe('CandleStreamChannel', () => {
       flushConnectDebounce();
 
       unsubscribe();
+      flushTeardownDelay();
 
       expect(mockUnsubscribe).toHaveBeenCalled();
     });

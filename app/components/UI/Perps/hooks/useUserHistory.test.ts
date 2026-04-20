@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { useUserHistory } from './useUserHistory';
+import { resetPerpsRestCacheForTests } from '@metamask/perps-controller/utils/coalescePerpsRestRequest';
 import type { CaipAccountId } from '@metamask/utils';
 
 // Mock dependencies
@@ -45,6 +46,9 @@ describe('useUserHistory', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // REST coalesce module cache persists across tests; reset so each test
+    // starts from a clean slate.
+    resetPerpsRestCacheForTests();
 
     // Mock provider
     mockProvider = {
@@ -221,9 +225,12 @@ describe('useUserHistory', () => {
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(1);
 
-      // Call refetch again
+      // Call refetch again — default is cache-friendly (TTL window active),
+      // so the second call is served from the REST coalesce cache. Force
+      // a refresh to confirm the hook can re-hit the provider on demand
+      // (mobile parity with extension PR #41917's invalidate-on-refetch).
       await act(async () => {
-        await result.current.refetch();
+        await result.current.refetch({ forceRefresh: true });
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(2);
