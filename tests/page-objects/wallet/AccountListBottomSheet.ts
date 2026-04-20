@@ -3,6 +3,7 @@ import {
   AccountListBottomSheetSelectorsIDs,
   AccountListBottomSheetSelectorsText,
 } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
 import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
@@ -56,6 +57,11 @@ class AccountListBottomSheet {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
     );
+  }
+
+  /** Header back control (same testID as CommonView.backButton / AccountSelector HeaderCompactStandard). */
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
   /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
@@ -177,6 +183,12 @@ class AccountListBottomSheet {
   async tapAddAccountButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.addAccountButton, {
       description: 'Add Account button',
+    });
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Account list header back button',
     });
   }
 

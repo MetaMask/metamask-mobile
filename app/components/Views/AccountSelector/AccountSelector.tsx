@@ -49,6 +49,7 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
@@ -323,17 +324,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [handleBackToSelector],
   );
 
-  const renderAccountScreens = useCallback(() => {
-    switch (screen) {
-      case AccountSelectorScreens.AccountSelector:
-        return renderAccountSelector();
-      case AccountSelectorScreens.AddAccountActions:
-        return renderAddAccountActions();
-      default:
-        return renderAccountSelector();
-    }
-  }, [screen, renderAccountSelector, renderAddAccountActions]);
-
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
@@ -371,6 +361,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           <HeaderCompactStandard
             title={strings('accounts.accounts_title')}
             onBack={closeModal}
+            backButtonProps={{
+              testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
+            }}
           />
           {renderAccountSelector()}
         </Animated.View>
@@ -398,6 +391,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
                   : strings('multichain_accounts.add_wallet')
               }
               onBack={handleBackToSelector}
+              backButtonProps={{
+                testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
+              }}
             />
             {screen === AccountSelectorScreens.AddAccountActions
               ? renderAddAccountActions()

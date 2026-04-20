@@ -102,7 +102,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
 
         // Phase 2: Disable account sync and create third account
         // V2 multichain account list stacks Add Wallet actions; two swipes fully dismiss.
-        await AccountListBottomSheet.dismissAccountListModalV2();
+        await AccountListBottomSheet.tapBackButton();
         await Assertions.expectElementToNotBeVisible(
           AccountListBottomSheet.accountList,
         );
