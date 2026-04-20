@@ -280,16 +280,18 @@ function Quotes() {
 
   const handleOnCustomActionPress = useCallback(
     (customAction: PaymentCustomAction) => {
+      if (isQuoteLoading) return;
       setProviderId(customAction?.buy?.provider.id);
     },
-    [],
+    [isQuoteLoading],
   );
 
   const handleOnQuotePress = useCallback(
     (quote: QuoteResponse | SellQuoteResponse) => {
+      if (isQuoteLoading) return;
       setProviderId(quote.provider.id);
     },
-    [],
+    [isQuoteLoading],
   );
 
   const handleInfoPress = useCallback(
@@ -547,7 +549,9 @@ function Quotes() {
           : appConfig.POLLING_INTERVAL;
       });
     },
-    { delay: isInPolling && !isFetchingQuotes ? 1000 : null },
+    {
+      delay: isInPolling && !isFetchingQuotes && !isQuoteLoading ? 1000 : null,
+    },
   );
 
   useEffect(() => {

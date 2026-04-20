@@ -11,8 +11,9 @@ export interface UseFollowToggleManyResult {
 
 /**
  * Shared primitive that optimistically toggles follow/unfollow state for one
- * or more traders against `SocialController`, using the current session's
- * `profileId` from `AuthenticationController`.
+ * or more traders against `SocialController`. The caller is identified
+ * server-side from the JWT attached by `SocialService`, so no `profileId`
+ * needs to be passed from the UI.
  *
  * Local optimistic overrides are kept per trader id and cleared automatically
  * once Redux catches up with the intended value, or when the underlying
@@ -51,9 +52,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
       }));
 
       try {
-        const { profileId } =
-          await Engine.context.AuthenticationController.getSessionProfile();
-        const opts = { addressOrUid: profileId, targets: [addressOrId] };
+        const opts = { targets: [addressOrId] };
         await (Engine.controllerMessenger.call as CallableFunction)(
           nextValue
             ? 'SocialController:followTrader'
