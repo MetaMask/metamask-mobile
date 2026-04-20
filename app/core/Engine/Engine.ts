@@ -364,10 +364,10 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
-        // ClientController must be initialized before AssetsController
-        // because AssetsController listens to ClientController:stateChange.
-        ClientController: clientControllerInit,
+        // AssetsController must be initialized before ClientController so it
+        // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
+        ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
