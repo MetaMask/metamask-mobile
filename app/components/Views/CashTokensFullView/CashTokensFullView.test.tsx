@@ -277,6 +277,7 @@ describe('CashTokensFullView', () => {
 
   it('empty-state Buy button passes mUSD assetId to goToBuy', () => {
     mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
     renderWithProvider(<CashTokensFullView />);
     fireEvent.press(screen.getByText('Buy'));
     expect(mockGoToBuy).toHaveBeenCalledWith({

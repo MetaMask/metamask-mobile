@@ -22,7 +22,10 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../types/musd.types';
+import {
+  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
+  MusdNavigationTarget,
+} from '../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
 import { providerErrors } from '@metamask/rpc-errors';
 
@@ -132,10 +135,7 @@ export interface MusdConversionConfig {
    * continuing the conversion. Use this for navigation-only entry points (e.g.,
    * pressing a section header that gates on education).
    */
-  returnTo?: {
-    screen: string;
-    params?: Record<string, unknown>;
-  };
+  returnTo?: MusdNavigationTarget;
 }
 
 /**

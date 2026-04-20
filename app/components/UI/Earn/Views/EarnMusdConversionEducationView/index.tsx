@@ -40,7 +40,10 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import AppConstants from '../../../../../core/AppConstants';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
+import {
+  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
+  MusdNavigationTarget,
+} from '../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
@@ -71,10 +74,7 @@ interface EarnMusdConversionEducationViewRouteParams {
    * skips conversion entirely. Use for entry points that only needed the education
    * screen as a gate (e.g., home -> Money Hub).
    */
-  returnTo?: {
-    screen: string;
-    params?: Record<string, unknown>;
-  };
+  returnTo?: MusdNavigationTarget;
 }
 
 /**
@@ -267,7 +267,7 @@ const EarnMusdConversionEducationView = () => {
 
       // returnTo wins: pure navigation, no conversion.
       if (returnTo) {
-        navigation.replace(returnTo.screen as never, returnTo.params as never);
+        navigation.replace(returnTo.screen, returnTo.params);
         return;
       }
 

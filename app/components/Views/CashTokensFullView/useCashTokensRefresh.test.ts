@@ -47,24 +47,9 @@ jest.mock('../../UI/Tokens/util/tokenRefreshUtils', () => {
   };
 });
 
-const mockRefetchMerklBonus = jest.fn();
-
-jest.mock(
-  '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
-  () => ({
-    useMerklBonusClaim: jest.fn(() => ({
-      claimableReward: null,
-      lifetimeBonusClaimed: null,
-      hasPendingClaim: false,
-      isClaiming: false,
-      error: null,
-      claimRewards: jest.fn(),
-      refetch: mockRefetchMerklBonus,
-    })),
-  }),
-);
-
 describe('useCashTokensRefresh', () => {
+  const mockRefetchMerklBonus = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
     // Reset the mock implementation to delegate to the real util by default.
@@ -87,7 +72,9 @@ describe('useCashTokensRefresh', () => {
   });
 
   it('invokes each registered refresher on onRefresh', async () => {
-    const { result } = renderHook(() => useCashTokensRefresh());
+    const { result } = renderHook(() =>
+      useCashTokensRefresh(mockRefetchMerklBonus),
+    );
 
     await act(async () => {
       await result.current.onRefresh();
@@ -103,6 +90,16 @@ describe('useCashTokensRefresh', () => {
       Engine.context.TokenRatesController.updateExchangeRates,
     ).toHaveBeenCalledTimes(1);
     expect(mockRefetchMerklBonus).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fail when no refetchMerklBonus is provided', async () => {
+    const { result } = renderHook(() => useCashTokensRefresh());
+
+    await act(async () => {
+      await result.current.onRefresh();
+    });
+
+    expect(result.current.refreshing).toBe(false);
   });
 
   it('flips refreshing back to false and logs when performEvmTokenRefresh rejects', async () => {
