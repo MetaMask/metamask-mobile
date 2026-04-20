@@ -1665,7 +1665,7 @@ describe('BuildQuote', () => {
     });
 
     it('navigates to token unavailable modal after debounce when payment methods are empty', () => {
-      mockUnavailableController({});
+      mockUnavailableController({ providers: [transakProvider] });
       renderWithProvider(<BuildQuote />, { state: initialRootState });
       act(() => {
         jest.advanceTimersByTime(650);
@@ -1728,7 +1728,7 @@ describe('BuildQuote', () => {
         assetId: TOKEN_ASSET,
         buyFlowOrigin: 'tokenInfo' as const,
       });
-      mockUnavailableController({});
+      mockUnavailableController({ providers: [transakProvider] });
       renderWithProvider(<BuildQuote />, { state: initialRootState });
       act(() => {
         jest.advanceTimersByTime(650);
@@ -1764,16 +1764,18 @@ describe('BuildQuote', () => {
     });
 
     it('navigates when token is missing from supportedCryptoCurrencies', () => {
-      mockUnavailableController({
-        selectedProvider: {
-          id: '/providers/banxa',
-          name: 'Banxa',
-          supportedCryptoCurrencies: {
-            // TOKEN_ASSET is NOT in the map — treated as unsupported
-            'eip155:1/erc20:0xsomeother': true,
-          },
-          links: [],
+      const banxaProvider = {
+        id: '/providers/banxa',
+        name: 'Banxa',
+        supportedCryptoCurrencies: {
+          // TOKEN_ASSET is NOT in the map — treated as unsupported
+          'eip155:1/erc20:0xsomeother': true,
         },
+        links: [],
+      };
+      mockUnavailableController({
+        selectedProvider: banxaProvider,
+        providers: [banxaProvider],
       });
       renderWithProvider(<BuildQuote />, { state: initialRootState });
       act(() => {
@@ -1788,13 +1790,15 @@ describe('BuildQuote', () => {
     });
 
     it('re-navigates when provider id changes', () => {
+      const providerA = {
+        id: '/providers/a',
+        name: 'A',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+        links: [],
+      };
       mockUnavailableController({
-        selectedProvider: {
-          id: '/providers/a',
-          name: 'A',
-          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
-          links: [],
-        },
+        selectedProvider: providerA,
+        providers: [providerA],
       });
       const { rerender } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -1804,13 +1808,15 @@ describe('BuildQuote', () => {
       });
       expect(mockNavigate).toHaveBeenCalled();
       mockNavigate.mockClear();
+      const providerB = {
+        id: '/providers/b',
+        name: 'B',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+        links: [],
+      };
       mockUnavailableController({
-        selectedProvider: {
-          id: '/providers/b',
-          name: 'B',
-          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
-          links: [],
-        },
+        selectedProvider: providerB,
+        providers: [providerB],
       });
       rerender(<BuildQuote />);
       act(() => {
@@ -1824,7 +1830,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    describe('auto-switch when providerAutoSelected', () => {
+    describe('auto-switch when current provider does not support selected token', () => {
       const BTC_ASSET = 'eip155:1/slip44:0';
 
       const paypalProvider = {
@@ -1909,7 +1915,7 @@ describe('BuildQuote', () => {
         );
       });
 
-      it('shows modal when provider was not auto-selected', () => {
+      it('auto-switches even when provider was manually selected', () => {
         mockUnavailableController({
           selectedProvider: paypalProvider,
           providers: [paypalProvider, coinbaseProvider],
@@ -1926,8 +1932,10 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
+          autoSelected: true,
+        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
             screen: 'RampTokenNotAvailableModal',
