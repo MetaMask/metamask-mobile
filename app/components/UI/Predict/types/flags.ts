@@ -31,6 +31,7 @@ export interface PredictFeatureFlags {
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
+  predictClobV2Enabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
