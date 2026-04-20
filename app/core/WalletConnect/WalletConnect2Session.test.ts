@@ -1173,7 +1173,7 @@ describe('WalletConnect2Session', () => {
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
     });
 
-    it('handles eth_sendTransaction correctly with valid chainId that it has permissions for', async () => {
+    it('handles eth_sendTransaction correctly with valid chainId and tracks request topic mapping', async () => {
       jest.mock('./wc-utils', () => jest.requireActual('./wc-utils'));
       const requestId = Math.floor(Math.random() * 1000000);
       const request: WalletKitTypes.SessionRequest = {
@@ -1468,6 +1468,75 @@ describe('WalletConnect2Session', () => {
       expect(chainIds).toContain('eip155:137');
       expect(chainIds).toContain('tron:728126428');
       expect(chainIds).toHaveLength(3);
+    });
+
+    it('normalizes missing namespace chains from account prefixes', () => {
+      const sessionWithMissingChains = {
+        ...mockSession,
+        namespaces: {
+          [KnownCaipNamespace.Tron]: {
+            methods: ['tron_signTransaction'],
+            events: [],
+            accounts: ['tron:728126428:TJ4ExampleAddress'],
+          },
+          [KnownCaipNamespace.Eip155]: {
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged'],
+            accounts: ['eip155:1:0x123'],
+          },
+        },
+      } as any;
+
+      const normalizedSession = new WalletConnect2Session({
+        web3Wallet: mockClient,
+        session: sessionWithMissingChains,
+        channelId: 'test-channel',
+        deeplink: true,
+        navigation: mockNavigation,
+      });
+
+      const chainIds = normalizedSession.getAllowedChainIds;
+      expect(chainIds).toContain('tron:728126428');
+      expect(chainIds).toContain('eip155:1');
+    });
+
+    it('merges requested optional tron chains into updated session namespaces', async () => {
+      session.session = {
+        ...mockSession,
+        optionalNamespaces: {
+          [KnownCaipNamespace.Tron]: {
+            chains: ['tron:0x94a9059e'],
+            methods: ['tron_signTransaction', 'tron_signMessage'],
+            events: [],
+          },
+        },
+        namespaces: {
+          [KnownCaipNamespace.Eip155]: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged', 'accountsChanged'],
+            accounts: ['eip155:1:0x123'],
+          },
+          [KnownCaipNamespace.Tron]: {
+            chains: ['tron:728126428', 'tron:0x2b6653dc'],
+            methods: ['tron_signTransaction', 'tron_signMessage'],
+            events: [],
+            accounts: ['tron:728126428:TENH9XL11i2qyDQUEvXsYf51aY2ALnEXeG'],
+          },
+        },
+      } as any;
+
+      const mockUpdateSession = jest
+        .spyOn(mockClient, 'updateSession')
+        .mockResolvedValue({ acknowledged: () => Promise.resolve() });
+
+      await session.updateSession({ chainId: 1, accounts: ['0x123'] });
+
+      const updateCall = mockUpdateSession.mock.calls.find(
+        ([payload]) => payload?.topic === mockSession.topic,
+      )?.[0];
+      const tronChains = updateCall?.namespaces?.tron?.chains ?? [];
+      expect(tronChains).toEqual(expect.arrayContaining(['tron:0x94a9059e']));
     });
 
     it('handles eth_signTypedData_v3 correctly with valid chainId that it has permissions for', async () => {
