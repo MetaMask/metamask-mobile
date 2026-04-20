@@ -9,10 +9,14 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  playNotification,
+  NotificationMoment,
+  type HapticNotificationMoment,
+} from '../../../../util/haptics';
 
 export type RewardsToastOptions = ToastOptions & {
-  hapticsType: NotificationFeedbackType;
+  hapticsType: HapticNotificationMoment;
 };
 
 export interface RewardsToastConfig {
@@ -55,7 +59,7 @@ const useRewardsToast = (): {
   const showToast = useCallback(
     (config: RewardsToastOptions) => {
       toastRef?.current?.showToast(config);
-      notificationAsync(config.hapticsType);
+      playNotification(config.hapticsType);
     },
     [toastRef],
   );
@@ -68,7 +72,7 @@ const useRewardsToast = (): {
         iconName: IconName.Confirmation,
         iconColor: theme.colors.success.default,
         backgroundColor: 'transparent',
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
         hasNoTimeout: false,
@@ -86,7 +90,7 @@ const useRewardsToast = (): {
         iconName: IconName.Danger,
         iconColor: theme.colors.error.default,
         backgroundColor: 'transparent',
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
         hasNoTimeout: false,
@@ -105,7 +109,7 @@ const useRewardsToast = (): {
         iconName: IconName.Lock,
         iconColor: theme.colors.icon.default,
         backgroundColor: 'transparent',
-        hapticsType: NotificationFeedbackType.Warning,
+        hapticsType: NotificationMoment.Warning,
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
         hasNoTimeout: false,

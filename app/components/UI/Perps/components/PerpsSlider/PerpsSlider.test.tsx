@@ -53,10 +53,9 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-// Mock haptics
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn(),
-  ImpactFeedbackStyle: { Light: 'light', Medium: 'medium' },
+jest.mock('../../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  ImpactMoment: { SliderTick: 'sliderTick', TabChange: 'tabChange' },
 }));
 
 // Mock component library hooks
@@ -498,33 +497,33 @@ describe('PerpsSlider', () => {
     });
 
     it('triggers haptic feedback when crossing thresholds upward', () => {
-      const { impactAsync } = jest.requireMock('expo-haptics');
+      const { playImpact } = jest.requireMock('../../../../../util/haptics');
       // Start below thresholds
       render(<PerpsSlider {...defaultProps} value={0} />);
       // Press 50% (crosses 25 and 50)
       fireEvent.press(screen.getByText('50%'));
-      expect(impactAsync).toHaveBeenCalled();
+      expect(playImpact).toHaveBeenCalled();
     });
 
     it('triggers haptic feedback when crossing thresholds downward', () => {
-      const { impactAsync } = jest.requireMock('expo-haptics');
-      impactAsync.mockClear();
+      const { playImpact } = jest.requireMock('../../../../../util/haptics');
+      playImpact.mockClear();
       // Start above thresholds
       render(<PerpsSlider {...defaultProps} value={75} />);
       // Press 25% (crosses 50 & 25 downward)
       fireEvent.press(screen.getByText('25%'));
-      expect(impactAsync).toHaveBeenCalled();
+      expect(playImpact).toHaveBeenCalled();
     });
 
     it('triggers haptic feedback via quick value buttons threshold crossing', () => {
-      const { impactAsync } = jest.requireMock('expo-haptics');
-      impactAsync.mockClear();
+      const { playImpact } = jest.requireMock('../../../../../util/haptics');
+      playImpact.mockClear();
       render(
         <PerpsSlider {...defaultProps} value={10} quickValues={[5, 30]} />,
       );
       // 30 crosses 25 threshold
       fireEvent.press(screen.getByText('30x'));
-      expect(impactAsync).toHaveBeenCalled();
+      expect(playImpact).toHaveBeenCalled();
     });
   });
 
