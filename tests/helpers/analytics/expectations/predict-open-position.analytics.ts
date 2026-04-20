@@ -1,23 +1,21 @@
 import type { AnalyticsExpectations } from '../../../framework';
 
 const MARKET_DETAILS_OPENED = 'Predict Market Details Opened';
-const POSITION_VIEWED = 'Predict Position Viewed';
-const ACTIVITY_VIEWED = 'Predict Activity Viewed';
+const PREDICT_FEED_VIEWED = 'Predict Feed Viewed';
 
 export const predictOpenPositionAnalyticsExpectations: AnalyticsExpectations = {
-  eventNames: [MARKET_DETAILS_OPENED, POSITION_VIEWED, ACTIVITY_VIEWED],
+  eventNames: [MARKET_DETAILS_OPENED, PREDICT_FEED_VIEWED],
   events: [
     {
       name: MARKET_DETAILS_OPENED,
       requiredDefinedPropertyKeys: ['entry_point', 'market_details_viewed'],
     },
     {
-      name: POSITION_VIEWED,
-      requiredDefinedPropertyKeys: ['open_positions_count'],
-    },
-    {
-      name: ACTIVITY_VIEWED,
-      containProperties: { activity_type: 'activity_list' },
+      name: PREDICT_FEED_VIEWED,
+      containProperties: {
+        predict_feed_tab: 'trending',
+        entry_point: 'main_trade_button',
+      },
     },
   ],
 };
