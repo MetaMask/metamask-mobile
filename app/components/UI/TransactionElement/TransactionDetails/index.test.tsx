@@ -151,8 +151,15 @@ const renderComponent = ({
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    renderComponent({ state: initialState });
+    renderComponent({ state: initialState, txParams: { nonce: '0x1a' } });
     expect(screen.getByText('Nonce')).toBeOnTheScreen();
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
+    expect(screen.getByText('Date')).toBeOnTheScreen();
+  });
+
+  it('should render correctly without nonce', () => {
+    renderComponent({ state: initialState, txParams: { nonce: undefined } });
+    expect(screen.queryByText('Nonce')).not.toBeOnTheScreen();
     expect(screen.getByText('Total amount')).toBeOnTheScreen();
     expect(screen.getByText('Date')).toBeOnTheScreen();
   });
