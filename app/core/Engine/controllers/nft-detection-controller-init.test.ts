@@ -25,7 +25,7 @@ function getInitRequestMock(): jest.Mocked<
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getController.mockImplementation((name: string) => {
+  requestMock.getMessengerClient.mockImplementation((name: string) => {
     if (name === 'NftController') {
       return {
         addNfts: jest.fn(),

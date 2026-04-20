@@ -125,12 +125,10 @@ const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
 
 const interstitialWhitelistUrls = [] as const;
 
-// This is used when links originate from within the app itself
-const inAppLinkSources = [
+// Deeplinks from these sources are sent by MetaMask and won't show the interstitial modal
+const trustedInAppSources = [
   AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
-  AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-  AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
   AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_BRAZE,
 ] as string[];
@@ -384,9 +382,10 @@ async function handleUniversalLink({
         validatedUrlString.startsWith(u),
       );
       const linkInstanceType = linkType();
-      const isInAppSourceWithPrivateLink =
-        inAppLinkSources.includes(source) &&
-        linkInstanceType === DeepLinkModalLinkType.PRIVATE;
+      const isTrustedInAppSource =
+        trustedInAppSources.includes(source) &&
+        (linkInstanceType === DeepLinkModalLinkType.PRIVATE ||
+          linkInstanceType === DeepLinkModalLinkType.PUBLIC);
 
       // Build analytics context - interstitialShown starts as false, set to true when modal is actually shown
       // interstitialAction will be set when user takes action
@@ -401,8 +400,8 @@ async function handleUniversalLink({
         // interstitialAction is undefined initially, set when user takes action
       };
 
-      // Track analytics for skipped cases (whitelisted URLs or in-app sources with private links)
-      if (isWhitelistedUrl || isInAppSourceWithPrivateLink) {
+      // Track analytics for skipped cases (whitelisted URLs or trusted in-app sources)
+      if (isWhitelistedUrl || isTrustedInAppSource) {
         analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
         // Track analytics asynchronously without blocking
         trackDeepLinkAnalytics(analyticsContext);

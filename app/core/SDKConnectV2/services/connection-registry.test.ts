@@ -7,6 +7,9 @@ import { Connection } from './connection';
 import { ConnectionRequest } from '../types/connection-request';
 import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
+import { analytics } from '../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../Analytics';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -15,6 +18,11 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -23,6 +31,8 @@ jest.mock('../../../store', () => ({
     })),
   },
 }));
+
+const mockTrackEvent = analytics.trackEvent as jest.Mock;
 
 // Factory functions for creating mock objects
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -285,6 +295,17 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.get).toHaveBeenCalledWith('mock-conn-id');
 
       expect(mockHostApp.showNotFoundError).not.toHaveBeenCalled();
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const trackedEvent = mockTrackEvent.mock.calls[0][0];
+      expect(trackedEvent.name).toBe('Remote Connection Request Received');
+      expect(trackedEvent.properties).toEqual(
+        expect.objectContaining({
+          remote_session_id: 'mock-conn-id',
+          transport_type: TransportType.MWP,
+          found_in_store: true,
+        }),
+      );
     });
 
     describe('when the connection is not found in the store', () => {
@@ -296,11 +317,24 @@ describe('ConnectionRegistry', () => {
           mockStore,
         );
 
+        const eventName =
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED.category;
         await registry.handleSimpleDeeplink('mock-conn-id');
         await jest.advanceTimersByTimeAsync(1000);
 
         expect(mockStore.get).toHaveBeenCalledWith('mock-conn-id');
         expect(mockHostApp.showNotFoundError).toHaveBeenCalled();
+
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        const trackedEvent = mockTrackEvent.mock.calls[0][0];
+        expect(trackedEvent.name).toBe(eventName);
+        expect(trackedEvent.properties).toEqual(
+          expect.objectContaining({
+            remote_session_id: 'mock-conn-id',
+            transport_type: TransportType.MWP,
+            found_in_store: false,
+          }),
+        );
       });
 
       it('should show error if the keyring is not unlocked but becomes unlocked later', async () => {
@@ -348,6 +382,9 @@ describe('ConnectionRegistry', () => {
         mockStore,
       );
 
+      const eventName =
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED.category;
+
       await registry.handleConnectDeeplink(validDeeplink);
 
       // UI loading state is properly managed
@@ -392,6 +429,19 @@ describe('ConnectionRegistry', () => {
           id: mockConnectionInfo.id,
           metadata: mockConnectionInfo.metadata,
           expiresAt: expect.any(Number),
+        }),
+      );
+
+      // Analytics: "received" event is tracked via MetaMetrics pipeline
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const trackedEvent = mockTrackEvent.mock.calls[0][0];
+      expect(trackedEvent.name).toBe(eventName);
+      expect(trackedEvent.properties).toEqual(
+        expect.objectContaining({
+          remote_session_id: mockConnectionRequest.sessionRequest.id,
+          transport_type: TransportType.MWP,
+          sdk_version: '2.0.0',
+          sdk_platform: 'JavaScript',
         }),
       );
     });
@@ -491,6 +541,8 @@ describe('ConnectionRegistry', () => {
       mockConnection.connect.mockRejectedValue(connectionError);
 
       const disconnectSpy = jest.spyOn(registry, 'disconnect');
+      const eventName =
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED.category;
 
       await registry.handleConnectDeeplink(validDeeplink);
 
@@ -520,6 +572,18 @@ describe('ConnectionRegistry', () => {
           id: mockConnectionInfo.id,
           metadata: mockConnectionInfo.metadata,
           expiresAt: expect.any(Number),
+        }),
+      );
+
+      // Analytics: both "received" and "failed" events are tracked
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      const failedEvent = mockTrackEvent.mock.calls[1][0];
+      expect(failedEvent.name).toBe(eventName);
+      expect(failedEvent.properties).toEqual(
+        expect.objectContaining({
+          remote_session_id: mockConnectionRequest.sessionRequest.id,
+          transport_type: TransportType.MWP,
+          failure_reason: 'Connection failed',
         }),
       );
 
