@@ -1,6 +1,6 @@
 // eslint-disable-next-line import-x/no-nodejs-modules
 import path from 'path';
-import { SmokeWalletPlatform } from '../../../tags.js';
+import { SmokeBrowser } from '../../../tags.js';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../flows/browser.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -59,7 +59,7 @@ const getOriginFromURL = (url: string): string => {
   }
 };
 
-describe(SmokeWalletPlatform('Browser Navigation'), () => {
+describe(SmokeBrowser('Browser Navigation'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

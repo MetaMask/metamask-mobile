@@ -59,6 +59,8 @@ import fiatOrderReducer, {
   getDetectedGeolocation,
   getRampRoutingDecision,
   setRampRoutingDecision,
+  setHasAgreedTransakNativePolicy,
+  selectHasAgreedTransakNativePolicy,
   UnifiedRampRoutingType,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
@@ -415,6 +417,29 @@ describe('fiatOrderReducer', () => {
     );
     expect(stateWithStartedTrue.getStartedDeposit).toEqual(true);
     expect(stateWithStartedFalse.getStartedDeposit).toEqual(false);
+  });
+
+  it('sets hasAgreedTransakNativePolicy to true', () => {
+    const next = fiatOrderReducer(
+      initialState,
+      setHasAgreedTransakNativePolicy(true),
+    );
+
+    expect(next.hasAgreedTransakNativePolicy).toEqual(true);
+  });
+
+  it('sets hasAgreedTransakNativePolicy to false', () => {
+    const agreedState = {
+      ...initialState,
+      hasAgreedTransakNativePolicy: true,
+    };
+
+    const next = fiatOrderReducer(
+      agreedState,
+      setHasAgreedTransakNativePolicy(false),
+    );
+
+    expect(next.hasAgreedTransakNativePolicy).toEqual(false);
   });
 
   it('should set the selected region', () => {
@@ -1087,6 +1112,34 @@ describe('selectors', () => {
       });
 
       expect(fiatOrdersGetStartedDeposit(state)).toEqual(true);
+    });
+  });
+
+  describe('selectHasAgreedTransakNativePolicy', () => {
+    it('returns true for state with hasAgreedTransakNativePolicy true', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          hasAgreedTransakNativePolicy: true,
+        },
+      });
+
+      expect(selectHasAgreedTransakNativePolicy(state)).toEqual(true);
+    });
+
+    it('returns false for state with hasAgreedTransakNativePolicy false', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          hasAgreedTransakNativePolicy: false,
+        },
+      });
+
+      expect(selectHasAgreedTransakNativePolicy(state)).toEqual(false);
+    });
+
+    it('returns false for initial root state default fiatOrders', () => {
+      expect(selectHasAgreedTransakNativePolicy(initialRootState)).toEqual(
+        false,
+      );
     });
   });
 

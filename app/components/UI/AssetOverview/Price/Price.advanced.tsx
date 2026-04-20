@@ -159,6 +159,8 @@ const PriceAdvanced = ({
       if (range === timeRange) {
         return;
       }
+      // Clear crosshair data when changing timeframes to reset price/percentage display
+      setCrosshairData(null);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
@@ -377,7 +379,7 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <Box twClassName="mt-3 w-full overflow-hidden">
+      <Box twClassName="mt-3 w-full">
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}

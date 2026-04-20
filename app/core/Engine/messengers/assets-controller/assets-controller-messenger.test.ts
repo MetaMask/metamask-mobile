@@ -40,6 +40,7 @@ describe('getAssetsControllerMessenger', () => {
           'SnapController:getRunnableSnaps',
           'PermissionController:getPermissions',
           'PhishingController:bulkScanTokens',
+          'AccountsController:getSelectedAccount',
         ]),
       }),
     );
@@ -66,6 +67,7 @@ describe('getAssetsControllerMessenger', () => {
           'BackendWebSocketService:connectionStateChanged',
           'AccountsController:accountBalancesUpdated',
           'PermissionController:stateChange',
+          'TransactionController:unapprovedTransactionAdded',
         ]),
       }),
     );
