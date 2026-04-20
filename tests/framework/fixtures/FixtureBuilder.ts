@@ -1976,17 +1976,6 @@ class FixtureBuilder {
     return this;
   }
 
-  withEarnController(
-    earnControllerState: Record<string, unknown> = {
-      pooled_staking: { isEligible: true },
-    },
-  ) {
-    merge(this.fixture.state.engine.backgroundState, {
-      EarnController: earnControllerState,
-    });
-    return this;
-  }
-
   /**
    * Sets mUSD conversion fixture state: user flags, fiat orders, currency rates,
    * and Mainnet token balances (USDC, optional MUSD) and native ETH for the default account.

@@ -26,7 +26,6 @@ class TokensView {
 
   async tapAllPopularNetworks(): Promise<void> {
     await NetworkManager.tapSelectAllPopularNetworks();
-    await NetworkManager.closeNetworkManager();
   }
 
   async tapEarnCta(): Promise<void> {
