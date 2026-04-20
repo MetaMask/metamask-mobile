@@ -1676,10 +1676,9 @@ describe('BackgroundBridge', () => {
 
     it('unsubscribes every PermissionController:stateChange handler that was subscribed in the constructor', () => {
       const bridge = setupBackgroundBridge('https://www.mock.io');
-      const subscribedHandlers =
-        Engine.controllerMessenger.subscribe.mock.calls
-          .filter((call) => call[0] === 'PermissionController:stateChange')
-          .map((call) => call[1]);
+      const subscribedHandlers = Engine.controllerMessenger.subscribe.mock.calls
+        .filter((call) => call[0] === 'PermissionController:stateChange')
+        .map((call) => call[1]);
 
       expect(subscribedHandlers.length).toBeGreaterThan(0);
 
