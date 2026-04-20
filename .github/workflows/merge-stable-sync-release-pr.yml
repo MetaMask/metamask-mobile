@@ -18,7 +18,6 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      # Underscore names: hyphenated keys break `needs.*.outputs.*` dot expressions.
       should_merge: ${{ steps.validate.outputs.should_merge }}
       base_branch: ${{ steps.validate.outputs.base_branch }}
     steps:
