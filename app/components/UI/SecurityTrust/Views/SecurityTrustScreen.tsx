@@ -170,14 +170,14 @@ const SecurityTrustScreen: React.FC = () => {
   const tokenType = params?.isNative ? 'Native' : 'ERC-20';
 
   const openLink = useCallback(
-    (url: string, itemType: string) => {
-      // Track item tap
+    (url: string, ctaType: string) => {
+      // Track CTA click
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.SECURITY_PAGE_ITEM_TAPPED)
+        createEventBuilder(MetaMetricsEvents.SECURITY_PAGE_CTA_CLICKED)
           .addProperties({
             token_symbol: params.symbol,
             chain_id: params.chainId,
-            item_type: itemType,
+            cta_type: ctaType,
             severity: securityData?.resultType || 'unknown',
           })
           .build(),

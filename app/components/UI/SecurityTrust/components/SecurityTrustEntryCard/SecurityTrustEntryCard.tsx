@@ -55,7 +55,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
       hasTrackedView.current = true;
       trackEvent(
         createEventBuilder(
-          MetaMetricsEvents.TOKEN_DETAIL_SECURITY_SECTION_VIEWED,
+          MetaMetricsEvents.TOKEN_DETAILS_SECURITY_SECTION_VIEWED,
         )
           .addProperties({
             token_symbol: token.symbol,
@@ -79,7 +79,9 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
 
     // Track tap event
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.TOKEN_DETAIL_SECURITY_SECTION_TAPPED)
+      createEventBuilder(
+        MetaMetricsEvents.TOKEN_DETAILS_SECURITY_SECTION_CLICKED,
+      )
         .addProperties({
           token_symbol: token.symbol,
           chain_id: token.chainId,
