@@ -10,6 +10,7 @@ import {
   NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
   USDC_E_ADDRESS,
 } from '../constants';
+import Logger from 'app/util/Logger';
 
 export type PolymarketProtocolKey = 'v1' | 'v2';
 export type DepositExecutionMode = 'usdce-transfer' | 'pusd-transfer';
@@ -63,8 +64,7 @@ export function getClobV2BuilderCode(): string {
 
   const reason = value ? 'invalid' : 'missing';
 
-  // eslint-disable-next-line no-console
-  console.warn(
+  Logger.log(
     `Polymarket CLOB v2 builder code ${reason} in ${BUILDER_CODE_ENV}; falling back to zero bytes32 value`,
   );
 
