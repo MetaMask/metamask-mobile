@@ -24,7 +24,6 @@ import {
   GestureWebViewWrapper,
   type GestureWebViewWrapperProps,
 } from './GestureWebViewWrapper';
-
 // Captured gesture handler callbacks for testing
 type GestureCallback = (...args: unknown[]) => void;
 const capturedCallbacks: {
@@ -142,17 +141,7 @@ jest.mock('react-native-reanimated', () => ({
   },
 }));
 
-jest.mock('../../../util/haptics', () => ({
-  playImpact: jest.fn().mockResolvedValue(undefined),
-  ImpactMoment: {
-    SliderTick: 'sliderTick',
-    EdgeGestureEngage: 'edgeGestureEngage',
-    TabChange: 'tabChange',
-    PullToRefreshEngage: 'pullToRefreshEngage',
-    PullToRefresh: 'pullToRefresh',
-    ChartCrosshair: 'chartCrosshair',
-  },
-}));
+jest.mock('../../../util/haptics');
 
 // Mock useTheme
 jest.mock('../../../util/theme', () => {

@@ -6,7 +6,6 @@ import PredictSportOutcomeCard, {
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { PREDICT_SPORT_OUTCOME_CARD_TEST_IDS } from './PredictSportOutcomeCard.testIds';
-
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -32,10 +31,7 @@ jest.mock('@react-native-masked-view/masked-view', () =>
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('../../../../../util/haptics', () => ({
-  playSelection: jest.fn(),
-  playImpact: jest.fn(),
-}));
+jest.mock('../../../../../util/haptics');
 
 const createButtons = (
   overrides: Partial<PredictSportOutcomeButton>[] = [],

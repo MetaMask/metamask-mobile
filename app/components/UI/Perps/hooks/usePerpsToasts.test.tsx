@@ -10,7 +10,6 @@ import {
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
-
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -20,14 +19,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../util/haptics', () => ({
-  playNotification: jest.fn(),
-  NotificationMoment: {
-    Success: 'success',
-    Warning: 'warning',
-    Error: 'error',
-  },
-}));
+jest.mock('../../../../util/haptics');
 
 jest.mock('../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../util/theme');

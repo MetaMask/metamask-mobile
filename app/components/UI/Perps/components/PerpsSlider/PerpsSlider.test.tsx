@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsSlider from './PerpsSlider';
 import { mockTheme } from '../../../../../util/theme';
-
 // Mock dependencies - only what's absolutely necessary
 jest.mock('react-native-reanimated', () => {
   const View = jest.requireActual('react-native').View;
@@ -53,14 +52,7 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('../../../../../util/haptics', () => ({
-  playImpact: jest.fn(),
-  ImpactMoment: {
-    SliderTick: 'sliderTick',
-    SliderGrip: 'sliderGrip',
-    TabChange: 'tabChange',
-  },
-}));
+jest.mock('../../../../../util/haptics');
 
 // Mock component library hooks
 jest.mock('../../../../../component-library/hooks', () => ({
