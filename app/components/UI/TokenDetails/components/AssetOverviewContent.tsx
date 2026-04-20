@@ -40,7 +40,6 @@ import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
-import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
@@ -117,14 +116,6 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.warning.muted,
       padding: 20,
     } as ViewStyle,
-    chartNavigationWrapper: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      paddingHorizontal: 10,
-      paddingTop: 20,
-      marginBottom: 16,
-    } as ViewStyle,
     tokenDetailsWrapper: {
       marginBottom: 20,
       paddingHorizontal: 16,
@@ -149,7 +140,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
 export interface AssetOverviewContentProps {
   // Asset
-  token: TokenI;
+  token: TokenDetailsRouteParams;
 
   // Balance data
   balance: string | number | undefined;
@@ -247,9 +238,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
-  const isTokenOverviewAdvancedChartEnabled = useSelector(
-    selectTokenOverviewAdvancedChartEnabled,
-  );
   const {
     hasPerpsMarket,
     marketData,
@@ -258,6 +246,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
     fromTokenDetails: true,
+    transactionActiveAbTests: token.transactionActiveAbTests,
   });
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -349,7 +338,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       case 'Verified':
         return {
           icon: IconName.VerifiedFilled,
-          iconColor: IconColor.IconDefault,
+          iconColor: IconColor.PrimaryDefault,
           label: null,
           bg: null,
           textColor: undefined,
@@ -592,28 +581,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     }
   }, [marketData, navigation]);
 
-  const handleSelectTimePeriod = useCallback(
-    (period: TimePeriod) => {
-      setTimePeriod(period);
-    },
-    [setTimePeriod],
-  );
-
-  const renderChartNavigationButton = useCallback(
-    () =>
-      chartNavigationButtons.map((label) => (
-        <ChartNavigationButton
-          key={label}
-          label={strings(
-            `asset_overview.chart_time_period_navigation.${label}`,
-          )}
-          onPress={() => handleSelectTimePeriod(label)}
-          selected={timePeriod === label}
-        />
-      )),
-    [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
-  );
-
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
       <TouchableOpacity
@@ -687,7 +654,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </Text>
                 </Box>
                 {securityBadge && securityBadge.label === null && (
-                  <Box twClassName="shrink-0">
+                  <Box twClassName="shrink-0 pb-[2px]">
                     <TouchableOpacity
                       onPress={handleSecurityBadgePress}
                       testID="security-badge-verified"
@@ -701,7 +668,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </Box>
                 )}
                 {securityBadge && securityBadge.label !== null && (
-                  <Box twClassName="shrink-0">
+                  <Box twClassName="shrink-0 pb-[2px]">
                     <TouchableOpacity
                       onPress={handleSecurityBadgePress}
                       testID={
@@ -802,18 +769,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             asset={token}
             prices={prices}
             timePeriod={timePeriod}
+            chartNavigationButtons={chartNavigationButtons}
+            setTimePeriod={setTimePeriod}
             priceDiff={priceDiff}
             currentCurrency={currentCurrency}
             currentPrice={currentPrice}
             comparePrice={comparePrice}
             isLoading={isLoading}
           />
-          {/* Same as main: chart period tabs under the legacy line chart. Omitted when the advanced chart is on (range selector lives inside Price). */}
-          {!isTokenOverviewAdvancedChartEnabled && (
-            <View style={styles.chartNavigationWrapper}>
-              {renderChartNavigationButton()}
-            </View>
-          )}
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton

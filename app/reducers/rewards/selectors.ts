@@ -296,3 +296,6 @@ export const selectOndoCampaignDepositsLoading = (state: RootState) =>
 
 export const selectOndoCampaignDepositsError = (state: RootState) =>
   state.rewards.ondoCampaignDepositsError;
+
+export const selectPendingDeeplink = (state: RootState) =>
+  state.rewards.pendingDeeplink;

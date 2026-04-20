@@ -80,6 +80,9 @@ export interface PerpsCloseSummaryProps {
     feesTooltip?: string;
     receiveTooltip?: string;
     pointsTooltip?: string;
+    marginValue?: string;
+    feesValue?: string;
+    receiveValue?: string;
   };
 }
 
@@ -164,7 +167,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
           </Text>
         </View>
         <View style={styles.summaryValue}>
-          <Text variant={TextVariant.BodyMD}>
+          <Text testID={testIDs?.marginValue} variant={TextVariant.BodyMD}>
             {formatPerpsFiat(totalMargin, {
               ranges: PRICE_RANGES_MINIMAL_VIEW,
             })}
@@ -231,6 +234,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
               formatFeeText={`-${formatPerpsFiat(totalFees, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}`}
+              testID={testIDs?.feesValue}
               variant={TextVariant.BodyMD}
             />
           ) : (
@@ -264,7 +268,11 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
           )}
         </View>
         <View style={styles.summaryValue}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            testID={testIDs?.receiveValue}
+          >
             {formatPerpsFiat(receiveAmount, {
               ranges: PRICE_RANGES_MINIMAL_VIEW,
             })}
