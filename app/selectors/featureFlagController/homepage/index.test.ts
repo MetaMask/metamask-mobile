@@ -106,6 +106,9 @@ describe('Homepage Feature Flag Selectors', () => {
         coreMCU589AbtestHubPageDiscoveryTabs: 'unknown_variant',
       });
       expect(result).toEqual({ variantName: 'control', isActive: false });
+    });
+  });
+
   describe('selectWalletHomeOnboardingStepsEnabled', () => {
     it('returns true when remote flag is valid and enabled', () => {
       const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({
