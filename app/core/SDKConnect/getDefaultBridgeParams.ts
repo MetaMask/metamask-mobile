@@ -43,6 +43,7 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
         platform:
           clientInfo.originatorInfo.platform ??
           AppConstants.MM_SDK.UNKNOWN_PARAM,
+        remote_session_id: clientInfo.originatorInfo?.anonId ?? '',
       },
     }),
   isMainFrame: true,

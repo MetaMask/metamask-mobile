@@ -511,6 +511,7 @@ const Onboarding = () => {
                 [PREVIOUS_SCREEN]: ONBOARDING,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: onboardingTraceCtx.current,
+                provider,
               },
             )
           : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
