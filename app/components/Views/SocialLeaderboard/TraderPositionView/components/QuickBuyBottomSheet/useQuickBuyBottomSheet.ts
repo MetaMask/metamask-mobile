@@ -216,11 +216,12 @@ export function useQuickBuyBottomSheet(
 
   const { submitBridgeTx } = useSubmitBridgeTx();
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
+  const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
   const hasValidQuoteInputs = Boolean(
     sourceToken &&
       destToken &&
       sourceTokenAmount &&
-      (!hasDestinationPicker || destAddress),
+      !isDestinationAddressMissing,
   );
 
   useEffect(() => {
@@ -336,18 +337,26 @@ export function useQuickBuyBottomSheet(
     wasQuoteLoadingRef.current = isQuoteLoading;
   }, [isQuoteLoading, sourceTokenAmount, hasError]);
 
+  const hasCompleteQuoteInputs = Boolean(
+    sourceToken &&
+      destToken &&
+      hasQuoteRequestableAmount &&
+      !isDestinationAddressMissing,
+  );
   const isAwaitingQuote =
-    hasQuoteRequestableAmount && !activeQuote && !isQuoteLoading && !hasError;
+    hasCompleteQuoteInputs && !activeQuote && !isQuoteLoading && !hasError;
   const isPendingQuoteRefresh =
     settledSourceTokenAmountRef.current !== sourceTokenAmount &&
-    hasQuoteRequestableAmount;
+    hasCompleteQuoteInputs;
   const hasQuoteMismatch =
     Boolean(activeQuote) && !isActiveQuoteForCurrentTokenPair;
 
   const isConfirmDisabled =
     !hasValidAmount ||
     isSetupLoading ||
+    !sourceToken ||
     !destToken ||
+    isDestinationAddressMissing ||
     !activeQuote ||
     hasQuoteMismatch ||
     isPendingQuoteRefresh ||
@@ -361,7 +370,7 @@ export function useQuickBuyBottomSheet(
     isSubmittingTx ||
     isAwaitingQuote ||
     isPendingQuoteRefresh ||
-    (isQuoteLoading && !activeQuote && hasQuoteRequestableAmount);
+    (isQuoteLoading && !activeQuote && hasCompleteQuoteInputs);
 
   const getButtonLabel = useCallback(() => {
     if (isSetupLoading) return strings('social_leaderboard.quick_buy.loading');

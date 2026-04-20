@@ -317,6 +317,55 @@ describe('useQuickBuyBottomSheet', () => {
       expect(result.current.isConfirmDisabled).toBe(true);
     });
 
+    it('is disabled when the source token is missing even if a quote exists', () => {
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [],
+        isLoading: false,
+      });
+      (useBridgeQuoteData as jest.Mock).mockReturnValue({
+        activeQuote: createActiveQuote(),
+        isLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        blockaidError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.isConfirmLoading).toBe(false);
+    });
+
+    it('is disabled when a destination address is required but missing', () => {
+      (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(true);
+      (useBridgeQuoteData as jest.Mock).mockReturnValue({
+        activeQuote: createActiveQuote(),
+        isLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        blockaidError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.isConfirmLoading).toBe(false);
+    });
+
     it('is enabled after quote loading settles for the entered amount', () => {
       const quoteState: {
         activeQuote: ReturnType<typeof createActiveQuote> | null;

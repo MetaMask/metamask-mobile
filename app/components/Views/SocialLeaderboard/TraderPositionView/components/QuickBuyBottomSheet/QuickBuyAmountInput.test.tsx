@@ -38,11 +38,14 @@ describe('QuickBuyAmountInput', () => {
   });
 
   it('renders the zero state when no amount has been entered', () => {
-    renderWithProvider(<QuickBuyAmountInput {...defaultProps} />);
+    const { UNSAFE_queryByType } = renderWithProvider(
+      <QuickBuyAmountInput {...defaultProps} />,
+    );
+    const { ActivityIndicator } = jest.requireActual('react-native');
 
     expect(screen.getByText('$0')).toBeOnTheScreen();
     expect(screen.getByText('0 BTC')).toBeOnTheScreen();
-    expect(screen.queryByTestId('activity-indicator')).toBeNull();
+    expect(UNSAFE_queryByType(ActivityIndicator)).toBeNull();
   });
 
   it('renders the entered USD amount', () => {
