@@ -58,10 +58,22 @@ export const ImpactMoment = {
   /** Slider step / tick — Light impact. Paired with slider animation. */
   SliderTick: 'sliderTick',
 
+  /**
+   * Slider thumb press or release — Medium impact (grab / let go).
+   * Distinct from `SliderTick` (discrete ticks / threshold crossings).
+   */
+  SliderGrip: 'sliderGrip',
+
   /** Tab bar press — Medium impact. Paired with tab transition animation. */
   TabChange: 'tabChange',
 
-  /** Pull-to-refresh trigger point — Medium impact. */
+  /**
+   * Pull-to-refresh stretch engaged — Light impact (early pull feedback).
+   * Distinct from `PullToRefresh` (Medium), which fires when the reload commits.
+   */
+  PullToRefreshEngage: 'pullToRefreshEngage',
+
+  /** Pull-to-refresh reload committed — Medium impact. */
   PullToRefresh: 'pullToRefresh',
 
   /** Chart crosshair / OHLC data point change — Light impact. */

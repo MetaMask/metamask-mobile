@@ -79,9 +79,19 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
+    it('playImpact(SliderGrip) calls impactAsync with Medium', async () => {
+      await playImpact(ImpactMoment.SliderGrip);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+    });
+
     it('playImpact(TabChange) calls impactAsync with Medium', async () => {
       await playImpact(ImpactMoment.TabChange);
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+    });
+
+    it('playImpact(PullToRefreshEngage) calls impactAsync with Light', async () => {
+      await playImpact(ImpactMoment.PullToRefreshEngage);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
     it('playImpact(PullToRefresh) calls impactAsync with Medium', async () => {

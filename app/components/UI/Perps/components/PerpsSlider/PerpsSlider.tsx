@@ -172,7 +172,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     .enabled(!disabled)
     .onBegin(() => {
       isPressed.value = true;
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
     })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
@@ -187,7 +187,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
     })
     .onFinalize(() => {
       isPressed.value = false;

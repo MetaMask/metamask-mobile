@@ -215,7 +215,7 @@ const LeverageSlider: React.FC<{
   const panGesture = Gesture.Pan()
     .onBegin(() => {
       isPressed.value = true;
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
       runOnJS(onDragStart)();
     })
     .onUpdate((event) => {
@@ -231,7 +231,7 @@ const LeverageSlider: React.FC<{
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
       runOnJS(onDragEnd)(currentValue);
     })
     .onFinalize(() => {
