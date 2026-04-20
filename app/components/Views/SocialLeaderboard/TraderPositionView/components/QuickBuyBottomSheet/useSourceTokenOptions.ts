@@ -176,7 +176,11 @@ export const useSourceTokenOptions = (
 
       if (isNativeToken(candidate.address)) {
         exchangeRate = nativeConversionRate;
-        fiatValue = balanceNum * nativeConversionRate;
+        if (exchangeRate <= 0) {
+          continue;
+        }
+
+        fiatValue = balanceNum * exchangeRate;
       } else {
         const tokenPrice = getTokenPrice(
           tokenMarketData,
@@ -184,12 +188,21 @@ export const useSourceTokenOptions = (
           candidate.address,
         );
 
-        if (tokenPrice && nativeConversionRate) {
+        if (tokenPrice !== undefined) {
+          if (nativeConversionRate <= 0) {
+            continue;
+          }
+
           exchangeRate = tokenPrice * nativeConversionRate;
         } else {
-          // Fallback for stablecoins: assume ~$1.00
+          // Fallback for stablecoins: assume ~$1.00 when token price is unavailable.
           exchangeRate = 1.0;
         }
+
+        if (exchangeRate <= 0) {
+          continue;
+        }
+
         fiatValue = balanceNum * exchangeRate;
       }
 

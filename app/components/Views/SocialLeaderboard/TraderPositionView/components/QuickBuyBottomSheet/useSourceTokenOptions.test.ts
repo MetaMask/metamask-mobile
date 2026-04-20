@@ -155,4 +155,51 @@ describe('useSourceTokenOptions', () => {
       tokenFiatAmount: 250,
     });
   });
+
+  it('skips ERC20 candidates when the computed exchange rate is zero', () => {
+    const accountAddress = '0x742d35cc6634c0532925a3b844bc454e4438f44e';
+    const checksummedAccountAddress = toChecksumAddress(accountAddress);
+    const usdcAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const checksummedUsdcAddress = toChecksumAddress(usdcAddress);
+
+    mockGetSourceTokenCandidates.mockReturnValue([
+      createCandidate({
+        address: usdcAddress,
+        chainId: '0x1',
+        decimals: 6,
+        symbol: 'USDC',
+        name: 'USD Coin',
+      }),
+    ]);
+    mockSelectorValues({
+      accountAddress,
+      tokenBalances: {
+        [checksummedAccountAddress]: {
+          '0x1': {
+            [checksummedUsdcAddress]: toHexBalance(250n * 10n ** 6n),
+          },
+        },
+      },
+      tokenMarketData: {
+        '0x1': {
+          [checksummedUsdcAddress]: {
+            price: 0,
+          },
+        },
+      },
+      currencyRates: {
+        ETH: { usdConversionRate: 2000 },
+      },
+      allNetworkConfigs: {
+        '0x1': { nativeCurrency: 'ETH' },
+      },
+    });
+
+    const { result } = renderHook(() => useSourceTokenOptions('0x1'));
+
+    expect(result.current).toEqual({
+      isLoading: false,
+      options: [],
+    });
+  });
 });
