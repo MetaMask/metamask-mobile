@@ -136,7 +136,10 @@ describe('PermissionApproval', () => {
         createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       }),
     );
-    (useOriginSource as jest.Mock).mockImplementation(() => 'IN_APP_BROWSER');
+    (useOriginSource as jest.Mock).mockImplementation(() => ({
+      source: 'IN_APP_BROWSER',
+      requestSource: 'In-App-Browser',
+    }));
     (
       getAllScopesFromPermission as jest.MockedFn<
         typeof getAllScopesFromPermission
@@ -209,6 +212,7 @@ describe('PermissionApproval', () => {
       .addProperties({
         number_of_accounts: 3,
         source: 'IN_APP_BROWSER',
+        request_source: 'In-App-Browser',
         chain_id_list: [],
         method: MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS,
         api_source: MetaMetricsRequestedThrough.EthereumProvider,
