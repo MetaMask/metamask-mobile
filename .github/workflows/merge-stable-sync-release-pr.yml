@@ -1,0 +1,73 @@
+name: Merge Stable Sync Release PR
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  prepare-stable-sync-release-merge:
+    name: Validate stable-sync-release PR for merge
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.comment.body == 'Merge my PR' &&
+      (
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'OWNER'
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      should-merge: ${{ steps.validate.outputs.should-merge }}
+      base-branch: ${{ steps.validate.outputs.base-branch }}
+    steps:
+      - name: Validate PR head/base for stable → release sync
+        id: validate
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.issue.number;
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            const head = pr.head.ref;
+            const base = pr.base.ref;
+            const headRe = /^stable-sync-release-[0-9]+\.[0-9]+\.[0-9]+$/;
+            const baseRe = /^release\/[0-9]+\.[0-9]+\.[0-9]+$/;
+
+            if (!headRe.test(head) || !baseRe.test(base)) {
+              core.info(
+                `Skip: PR #${prNumber} is not stable-sync-release-* -> release/* (${head} -> ${base})`,
+              );
+              core.setOutput('should-merge', 'false');
+              core.setOutput('base-branch', '');
+              return;
+            }
+
+            const headVer = head.replace(/^stable-sync-release-/, '');
+            const baseVer = base.replace(/^release\//, '');
+            if (headVer !== baseVer) {
+              core.setFailed(
+                `stable-sync-release branch version (${headVer}) must match release branch (${baseVer})`,
+              );
+            }
+
+            core.setOutput('should-merge', 'true');
+            core.setOutput('base-branch', base);
+            core.info(`Validated stable sync release merge: ${head} -> ${base}`);
+
+  merge-pr:
+    name: Merge with merge commit (via github-tools)
+    needs: prepare-stable-sync-release-merge
+    if: needs.prepare-stable-sync-release-merge.outputs.should-merge == 'true'
+    uses: MetaMask/github-tools/.github/workflows/merge-approved-pr.yml@v1
+    with:
+      pr-number: ${{ github.event.issue.number }}
+      required-base-branch: ${{ needs.prepare-stable-sync-release-merge.outputs.base-branch }}
+      head-branch-pattern: '^stable-sync-release-[0-9]+\.[0-9]+\.[0-9]+$'
+      merge-method: merge
+    secrets:
+      github-token: ${{ secrets.METAMASK_MOBILE_BRANCH_SYNC_TOKEN }}
