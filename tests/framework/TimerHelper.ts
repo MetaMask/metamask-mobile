@@ -1,6 +1,10 @@
 import { Device } from 'appwright';
 import TimerStore from './TimerStore';
 import AppwrightSelectors from './AppwrightSelectors';
+import {
+  startOverheadTracking,
+  stopOverheadTracking,
+} from './PlaywrightUtilities';
 
 /** Platform-specific threshold values in milliseconds. */
 export interface PlatformThreshold {
@@ -119,12 +123,53 @@ class TimerHelper {
   }
 
   /**
-   * Measures the execution time of an async action.
-   * Starts the timer before the action and stops it after completion (or failure).
+   * Measures the execution time of an async action and automatically
+   * subtracts Appium infrastructure overhead to approximate real app latency.
+   *
+   * ### How it works
+   *
+   * 1. Activates overhead tracking (`startOverheadTracking`).
+   * 2. Runs the action while the timer is running.
+   * 3. During the action, framework methods (e.g. `expectElementToBeVisible`,
+   * `waitAndTap`) call `addOverhead()` to register time spent on WebDriver
+   * HTTP calls that represent pure infra cost — not app work.
+   * 4. After stopping the timer the accumulated overhead is subtracted so the
+   * reported duration is closer to what a human would observe visually.
+   *
+   * Overhead is only tracked while a `measure()` call is active; outside of
+   * it `addOverhead()` is a no-op.
+   *
    * @param action - Async function to measure
    * @returns This TimerHelper instance for chaining
    */
   async measure(action: () => Promise<void>): Promise<TimerHelper> {
+    startOverheadTracking();
+    this.start();
+    try {
+      await action();
+    } finally {
+      this.stop();
+    }
+    const overhead = stopOverheadTracking();
+    if (overhead > 0) {
+      this.subtractOverhead(overhead);
+    }
+    return this;
+  }
+
+  /**
+   * Measures wall-clock execution time of an async action **without**
+   * subtracting Appium infrastructure overhead.
+   *
+   * Use this instead of {@link measure} when the overhead model does not
+   * apply — for example when the action includes a tap whose Appium
+   * round-trip overlaps with real app loading, making it impossible to
+   * separate infra cost from app work.
+   *
+   * @param action - Async function to measure
+   * @returns This TimerHelper instance for chaining
+   */
+  async measureRaw(action: () => Promise<void>): Promise<TimerHelper> {
     this.start();
     try {
       await action();
@@ -150,6 +195,21 @@ class TimerHelper {
   /** Returns whether this timer has a threshold defined. */
   hasThreshold(): boolean {
     return this._baseThreshold !== null;
+  }
+
+  /**
+   * Subtracts a measured overhead (e.g. Appium roundtrip) from the recorded duration.
+   * Useful to isolate real app performance from test framework latency.
+   * @param overheadMs - Overhead in milliseconds to subtract
+   */
+  subtractOverhead(overheadMs: number): void {
+    const timer = TimerStore.getTimer(this.id);
+    if (timer.duration === null) {
+      throw new Error(
+        `Timer "${this.id}" has no duration yet. Call stop() first.`,
+      );
+    }
+    timer.duration = Math.max(0, timer.duration - overheadMs);
   }
 
   /** The unique identifier for this timer. */

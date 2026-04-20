@@ -218,9 +218,6 @@ const createStyles = ({ colors }: Theme) =>
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
     },
-    headerEndAccessoryContainer: {
-      alignItems: 'flex-end',
-    },
     headerActionButtonsContainer: {
       flexDirection: 'row',
       gap: 8,
@@ -362,6 +359,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'tokens-tab',
       tabLabel: strings('wallet.tokens'),
+      testID: WalletViewSelectorsIDs.TOKENS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -371,6 +369,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
+      testID: WalletViewSelectorsIDs.PERPS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -380,6 +379,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'predict-tab',
       tabLabel: strings('wallet.predict'),
+      testID: WalletViewSelectorsIDs.PREDICT_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -389,6 +389,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'defi-tab',
       tabLabel: strings('wallet.defi'),
+      testID: WalletViewSelectorsIDs.DEFI_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -398,6 +399,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'nfts-tab',
       tabLabel: strings('wallet.collectibles'),
+      testID: WalletViewSelectorsIDs.NFTS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -566,6 +568,7 @@ const WalletTokensTabView = forwardRef<
         ref={tabsListRef}
         onChangeTab={handleTabChange}
         tabsListContentTwClassName={'!flex-initial'}
+        testID={WalletViewSelectorsIDs.WALLET_TABS}
       >
         {tabsToRender}
       </TabsList>
@@ -1299,7 +1302,7 @@ const Wallet = ({
 
   const content = (
     <>
-      <View style={styles.banner}>
+      <View style={styles.banner} accessible={false}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
@@ -1329,9 +1332,14 @@ const Wallet = ({
           swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
           sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
           receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+          containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
         />
 
-        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+        {isCarouselBannersEnabled && (
+          <View accessible={false}>
+            <Carousel style={styles.carousel} />
+          </View>
+        )}
 
         {isHomepageSectionsV1Enabled ? (
           <>
@@ -1380,48 +1388,31 @@ const Wallet = ({
               <HeaderRoot
                 testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
                 endAccessory={
-                  <View style={styles.headerEndAccessoryContainer}>
-                    <View style={styles.headerActionButtonsContainer}>
-                      <View
-                        testID={
-                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
+                  <View
+                    style={styles.headerActionButtonsContainer}
+                    accessible={false}
+                  >
+                    <AddressCopy
+                      testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+                      hitSlop={touchAreaSlop}
+                    />
+                    <CardButton
+                      onPress={handleCardPress}
+                      touchAreaSlop={touchAreaSlop}
+                    />
+                    {isNotificationsFeatureEnabled() ? (
+                      <BadgeWrapper
+                        position={BadgeWrapperPosition.TopRight}
+                        positionAnchorShape={
+                          BadgeWrapperPositionAnchorShape.Circular
+                        }
+                        badge={
+                          isNotificationEnabled &&
+                          unreadNotificationCount > 0 ? (
+                            <BadgeStatus status={BadgeStatusStatus.Attention} />
+                          ) : null
                         }
                       >
-                        <AddressCopy hitSlop={touchAreaSlop} />
-                      </View>
-                      <CardButton
-                        onPress={handleCardPress}
-                        touchAreaSlop={touchAreaSlop}
-                      />
-                      {isNotificationsFeatureEnabled() ? (
-                        <BadgeWrapper
-                          position={BadgeWrapperPosition.TopRight}
-                          positionAnchorShape={
-                            BadgeWrapperPositionAnchorShape.Circular
-                          }
-                          badge={
-                            isNotificationEnabled &&
-                            unreadNotificationCount > 0 ? (
-                              <BadgeStatus
-                                status={BadgeStatusStatus.Attention}
-                              />
-                            ) : null
-                          }
-                        >
-                          <ButtonIcon
-                            iconProps={{
-                              color: MMDSIconColor.IconDefault,
-                            }}
-                            onPress={handleHamburgerPress}
-                            iconName={MMDSIconName.Menu}
-                            size={ButtonIconSize.Md}
-                            testID={
-                              WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
-                            }
-                            hitSlop={touchAreaSlop}
-                          />
-                        </BadgeWrapper>
-                      ) : (
                         <ButtonIcon
                           iconProps={{
                             color: MMDSIconColor.IconDefault,
@@ -1434,8 +1425,21 @@ const Wallet = ({
                           }
                           hitSlop={touchAreaSlop}
                         />
-                      )}
-                    </View>
+                      </BadgeWrapper>
+                    ) : (
+                      <ButtonIcon
+                        iconProps={{
+                          color: MMDSIconColor.IconDefault,
+                        }}
+                        onPress={handleHamburgerPress}
+                        iconName={MMDSIconName.Menu}
+                        size={ButtonIconSize.Md}
+                        testID={
+                          WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
+                        }
+                        hitSlop={touchAreaSlop}
+                      />
+                    )}
                   </View>
                 }
                 twClassName="pl-1 pr-3"

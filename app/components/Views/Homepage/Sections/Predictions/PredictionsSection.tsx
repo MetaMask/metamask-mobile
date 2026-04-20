@@ -195,49 +195,44 @@ const HomepagePredictPositions = ({
   onPositionPress,
 }: HomepagePredictPositionsProps) => (
   <Box gap={3}>
-    <Box gap={1}>
-      <SectionHeader
-        title={title}
-        onPress={onViewAll}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+    <SectionHeader
+      title={title}
+      onPress={onViewAll}
+      testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+    />
+    {predictHomepageUnrealizedPnl.show && (
+      <HomepageSectionUnrealizedPnlRow
+        marginTop={1}
+        isLoading={predictHomepageUnrealizedPnl.isLoading}
+        valueText={predictHomepageUnrealizedPnl.valueText}
+        tone={predictHomepageUnrealizedPnl.tone}
+        label={strings('predict.unrealized_pnl_label')}
+        testID="homepage-predict-unrealized-pnl"
       />
-      {predictHomepageUnrealizedPnl.show && (
-        <HomepageSectionUnrealizedPnlRow
-          isLoading={predictHomepageUnrealizedPnl.isLoading}
-          valueText={predictHomepageUnrealizedPnl.valueText}
-          tone={predictHomepageUnrealizedPnl.tone}
-          label={strings('predict.unrealized_pnl_label')}
-          testID="homepage-predict-unrealized-pnl"
+    )}
+    {isLoadingPositions ? (
+      <>
+        <PredictPositionRowSkeleton />
+        <PredictPositionRowSkeleton />
+      </>
+    ) : (
+      positions.map((position) => (
+        <PredictPositionRow
+          key={`${position.outcomeId}:${position.outcomeIndex}`}
+          position={position}
+          onPress={onPositionPress}
+          privacyMode={Boolean(privacyMode)}
         />
-      )}
-    </Box>
-    <Box>
-      {isLoadingPositions ? (
-        <>
-          <PredictPositionRowSkeleton />
-          <PredictPositionRowSkeleton />
-        </>
-      ) : (
-        positions.map((position) => (
-          <PredictPositionRow
-            key={`${position.outcomeId}:${position.outcomeIndex}`}
-            position={position}
-            onPress={onPositionPress}
-            privacyMode={Boolean(privacyMode)}
-          />
-        ))
-      )}
-      {!isLoadingPositions &&
-        !isLoadingClaimable &&
-        totalClaimableValue > 0 && (
-          <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-            <PredictClaimButton
-              amount={privacyMode ? undefined : totalClaimableValue}
-              onPress={onClaim}
-            />
-          </Box>
-        )}
-    </Box>
+      ))
+    )}
+    {!isLoadingPositions && !isLoadingClaimable && totalClaimableValue > 0 && (
+      <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+        <PredictClaimButton
+          amount={privacyMode ? undefined : totalClaimableValue}
+          onPress={onClaim}
+        />
+      </Box>
+    )}
   </Box>
 );
 

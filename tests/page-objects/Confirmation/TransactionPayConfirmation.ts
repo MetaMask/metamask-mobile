@@ -320,12 +320,17 @@ class TransactionPayConfirmation {
 
         if (await PlatformDetector.isIOS()) {
           await PlaywrightGestures.dblTap(resolvedFilter);
-          return;
+        } else {
+          await PlaywrightGestures.waitAndTap(resolvedFilter, {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
         }
 
-        await PlaywrightGestures.waitAndTap(resolvedFilter, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
+        await PlaywrightGestures.waitForElementStable(resolvedFilter, {
+          timeout: 3000,
+          interval: 200,
+          stableCount: 4,
         });
       },
     });

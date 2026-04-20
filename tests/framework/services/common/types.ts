@@ -19,5 +19,8 @@ export interface CommonCapabilities {
   'appium:fullReset'?: boolean;
   'appium:deviceOrientation'?: string;
   'appium:settings[snapshotMaxDepth]'?: number;
+  'appium:settings[snapshotMaxChildren]'?: number;
+  'appium:settings[useFirstMatch]'?: boolean;
+  'appium:settings[pageSourceExcludedAttributes]'?: string;
   platformName?: string;
 }

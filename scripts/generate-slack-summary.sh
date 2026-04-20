@@ -6,9 +6,9 @@
 SUMMARY_FILE="${1:-aggregated-reports/summary.json}"
 
 if [ -f "$SUMMARY_FILE" ]; then
-    # Get device information matching main branch format
-    androidDevices=$(jq -r '.platformDevices.Android[]? // empty' "$SUMMARY_FILE" | sed 's/+/ /g' | sed 's/\([^0-9]\)\([0-9][0-9]*\)/\1(\2)/g')
-    iosDevices=$(jq -r '.platformDevices.iOS[]? // empty' "$SUMMARY_FILE" | sed 's/+/ /g' | sed 's/\([^0-9]\)\([0-9][0-9]*\)/\1(\2)/g')
+    # Get device information
+    androidDevices=$(jq -r '.platformDevices.Android[]? // empty' "$SUMMARY_FILE")
+    iosDevices=$(jq -r '.platformDevices.iOS[]? // empty' "$SUMMARY_FILE")
     
     # Count devices
     androidCount=$(jq -r '.platformDevices.Android | length' "$SUMMARY_FILE")
@@ -17,7 +17,7 @@ if [ -f "$SUMMARY_FILE" ]; then
     
     # Get build type (normal vs experimental)
     buildType=$(jq -r '.buildType // "Normal"' "$SUMMARY_FILE")
-    totalTests=$(jq -r '.totalTests // 0' "$SUMMARY_FILE")
+    totalTests=$(jq -r '.uniqueTests // .totalTests // 0' "$SUMMARY_FILE")
 
     # Get failed tests statistics
     totalFailedTests=$(jq -r '.failedTestsStats.totalFailedTests // 0' "$SUMMARY_FILE")
@@ -43,11 +43,11 @@ if [ -f "$SUMMARY_FILE" ]; then
                 local exists=$(echo "$jobStatuses" | jq -r ".jobs[] | select(.name | contains(\"$platform\") and contains(\"$test_type\")) | .name" | wc -l)
                 
                 if [ "$conclusion" = "failure" ]; then
-                    echo ":x: FAILED"
+                    echo "❌ FAILED"
                 elif [ "$conclusion" = "skipped" ] || [ "$exists" -eq 0 ]; then
-                    echo ":fast_forward: SKIPPED"
+                    echo "⏭️ SKIPPED"
                 else
-                    echo ":white_check_mark: PASSED"
+                    echo "✅ PASSED"
                 fi
             }
             
@@ -57,134 +57,190 @@ if [ -f "$SUMMARY_FILE" ]; then
             androidImportedWalletStatus=$(get_job_status "Android" "Imported Wallet")
             iosImportedWalletStatus=$(get_job_status "iOS" "Imported Wallet")
         else
-            # Fallback if API call fails
-            androidOnboardingStatus=":question: UNKNOWN"
-            iosOnboardingStatus=":question: UNKNOWN"
-            androidImportedWalletStatus=":question: UNKNOWN"
-            iosImportedWalletStatus=":question: UNKNOWN"
+            androidOnboardingStatus="❓ UNKNOWN"
+            iosOnboardingStatus="❓ UNKNOWN"
+            androidImportedWalletStatus="❓ UNKNOWN"
+            iosImportedWalletStatus="❓ UNKNOWN"
         fi
     else
-        # Fallback: check for test failure indicators in files
         if [ -d "test-results" ] && find test-results -name "*.json" -exec grep -l '"testFailed": true' {} \; | grep -q .; then
-            androidOnboardingStatus=":x: FAILED"
-            iosOnboardingStatus=":x: FAILED"
-            androidImportedWalletStatus=":x: FAILED"
-            iosImportedWalletStatus=":x: FAILED"
+            androidOnboardingStatus="❌ FAILED"
+            iosOnboardingStatus="❌ FAILED"
+            androidImportedWalletStatus="❌ FAILED"
+            iosImportedWalletStatus="❌ FAILED"
         else
-            androidOnboardingStatus=":white_check_mark: PASSED"
-            iosOnboardingStatus=":white_check_mark: PASSED"
-            androidImportedWalletStatus=":white_check_mark: PASSED"
-            iosImportedWalletStatus=":white_check_mark: PASSED"
+            androidOnboardingStatus="✅ PASSED"
+            iosOnboardingStatus="✅ PASSED"
+            androidImportedWalletStatus="✅ PASSED"
+            iosImportedWalletStatus="✅ PASSED"
         fi
     fi
     
-    # Build type label with emoji (Normal = stable, Experimental = flask)
+    # Build type label
     if [ "$buildType" = "Experimental" ]; then
-        buildTypeEmoji="🧪"
         buildTypeLabel="Experimental"
     else
-        buildTypeEmoji="🔷"
         buildTypeLabel="Normal"
     fi
 
-    # One-line overview (devices + tests + failures if any)
-    overviewParts="${totalDevices} device(s)"
-    [ "$totalTests" -gt 0 ] && overviewParts="${overviewParts} • ${totalTests} test(s)"
-    [ "$totalFailedTests" -gt 0 ] && overviewParts="${overviewParts} • ${totalFailedTests} failed"
-
-    # Create formatted summary with clear sections and emojis
-    SUMMARY="*🚀 Performance E2E Tests* — ${buildTypeEmoji} _${buildTypeLabel} Build_\n"
-    SUMMARY+="\`${overviewParts}\`\n\n"
-    
-    SUMMARY+="*📱 Devices tested*\n"
-    
-    # Function to add device list for a platform
-    add_device_list() {
-        local emoji="$1"
-        local platform="$2"
-        local devices="$3"
-        local count="$4"
-        
-        if [ "$count" -gt 0 ]; then
-            SUMMARY+="${emoji} *${platform}:* "
-            local first=1
-            while IFS= read -r device; do
-                if [ -n "$device" ]; then
-                    [ "$first" -eq 0 ] && SUMMARY+=", "
-                    SUMMARY+="${device}"
-                    first=0
-                fi
-            done <<< "$devices"
-            SUMMARY+="\n"
+    # Helper: format device key "DeviceName+OSVersion" -> "DeviceName (vOSVersion)"
+    format_device_name() {
+        local device="$1"
+        if [[ "$device" == *"+"* ]]; then
+            local ver="${device##*+}"
+            local name="${device%+*}"
+            echo "${name} (v${ver})"
+        else
+            echo "$device"
         fi
     }
-    
-    add_device_list "🍎" "iOS" "$iosDevices" "$iosCount"
-    add_device_list "🤖" "Android" "$androidDevices" "$androidCount"
-    SUMMARY+="\n"
-    
-    SUMMARY+="*✅ Test results*\n"
-    SUMMARY+="• _Onboarding:_ iOS $iosOnboardingStatus · Android $androidOnboardingStatus\n"
-    SUMMARY+="• _Imported Wallet:_ iOS $iosImportedWalletStatus · Android $androidImportedWalletStatus\n\n"
-    
-    # Add failed tests section: iOS first, then Android; within each platform, failed tests by team with ✗.
+
+    # --- Build the formatted message ---
+
+    SUMMARY="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+    SUMMARY+="*🔄 Performance E2E Tests — ${buildTypeLabel} Build*\n"
+    SUMMARY+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+
+    # Executive Summary
+    SUMMARY+="*📊 SUMMARY*\n"
     if [ "$totalFailedTests" -gt 0 ]; then
-        SUMMARY+="*❌ Failed tests* (${totalFailedTests})\n\n"
-        
-        prevPlatform=""
-        prevMention=""
-        while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            platform=$(echo "$line" | cut -f1)
-            mention=$(echo "$line" | cut -f2)
-            name=$(echo "$line" | cut -f3)
-            reasonDisplay=$(echo "$line" | cut -f4)
-            recordings=$(echo "$line" | cut -f5-)
-            
-            if [ "$platform" != "$prevPlatform" ]; then
-                [ -n "$prevPlatform" ] && SUMMARY+="\n"
-                if [ "$platform" = "iOS" ]; then
-                    SUMMARY+="*🍎 iOS*\n"
+        SUMMARY+="├─ 🚫 Status: FAILED (${totalFailedTests} errors)\n"
+    else
+        SUMMARY+="├─ ✅ Status: PASSED\n"
+    fi
+    SUMMARY+="├─ 📱 Devices: ${totalDevices}\n"
+    SUMMARY+="└─ 🧪 Total tests: ${totalTests}\n\n"
+
+    # Devices Tested
+    SUMMARY+="*📱 DEVICES TESTED*\n"
+
+    ios_device_arr=()
+    while IFS= read -r line; do
+        [ -n "$line" ] && ios_device_arr+=("$line")
+    done <<< "$iosDevices"
+
+    android_device_arr=()
+    while IFS= read -r line; do
+        [ -n "$line" ] && android_device_arr+=("$line")
+    done <<< "$androidDevices"
+
+    if [ "$iosCount" -gt 0 ]; then
+        if [ "$androidCount" -gt 0 ]; then
+            SUMMARY+="├─ *iOS* (${iosCount})\n"
+            for i in "${!ios_device_arr[@]}"; do
+                dev=$(format_device_name "${ios_device_arr[$i]}")
+                if [ $((i + 1)) -eq ${#ios_device_arr[@]} ]; then
+                    SUMMARY+="│  └─ ${dev}\n"
                 else
-                    SUMMARY+="*🤖 Android*\n"
+                    SUMMARY+="│  ├─ ${dev}\n"
                 fi
-                prevPlatform="$platform"
-                prevMention=""
+            done
+        else
+            SUMMARY+="└─ *iOS* (${iosCount})\n"
+            for i in "${!ios_device_arr[@]}"; do
+                dev=$(format_device_name "${ios_device_arr[$i]}")
+                if [ $((i + 1)) -eq ${#ios_device_arr[@]} ]; then
+                    SUMMARY+="   └─ ${dev}\n"
+                else
+                    SUMMARY+="   ├─ ${dev}\n"
+                fi
+            done
+        fi
+    fi
+
+    if [ "$androidCount" -gt 0 ]; then
+        SUMMARY+="└─ *Android* (${androidCount})\n"
+        for i in "${!android_device_arr[@]}"; do
+            dev=$(format_device_name "${android_device_arr[$i]}")
+            if [ $((i + 1)) -eq ${#android_device_arr[@]} ]; then
+                SUMMARY+="   └─ ${dev}\n"
+            else
+                SUMMARY+="   ├─ ${dev}\n"
             fi
-            
-            if [ "$mention" != "$prevMention" ]; then
-                SUMMARY+="${mention}:\n"
-                prevMention="$mention"
-            fi
-            
-            SUMMARY+="  └ ✗ ${name} — ${reasonDisplay}\n    ${recordings}\n"
-        done <<< "$(jq -r '
-          ["iOS", "Android"] as $platformOrder |
-          $platformOrder[] as $plat |
-          .failedTestsStats.failedTestsByTeam | to_entries[] |
-          .value.team.slackMention as $mention |
-          (.value.tests | map(select(.platform == $plat)) | group_by(.testName)[] |
-            if length > 0 then
-              (.[0].testName) as $name |
-              (.[0].failureReason) as $reason |
-              ($reason | if . == "quality_gates_exceeded" then "Quality gates FAILED" elif . == "timedOut" then "Test timed out" elif . == "test_error" or . == "failed" then "Test error" else . end) as $reasonDisplay |
-              ([ .[] |
-                (if .device != null and .device != "" then (if (.device | type) == "object" then ((.device.name // "") + (if .device.osVersion != null and .device.osVersion != "" then " (" + .device.osVersion + ")" else "" end)) else (.device | tostring) end) else .platform end) as $deviceLabel |
-                if .recordingLink != null and .recordingLink != "" then "<" + .recordingLink + "|Recording (" + $deviceLabel + ")>" else (if .sessionId != null and .sessionId != "" then "Recording (" + $deviceLabel + ") (session: " + .sessionId + ")" else "—" end) end
-              ] | join(" · ")) as $recordings |
-              [$plat, $mention, $name, $reasonDisplay, $recordings] | @tsv
-            else empty end
-          )
-        ' "$SUMMARY_FILE" 2>/dev/null)"
-        
+        done
+    fi
+
+    SUMMARY+="\n"
+
+    # Results by Category
+    SUMMARY+="*📋 RESULTS BY CATEGORY*\n"
+    SUMMARY+="├─ Onboarding: ${iosOnboardingStatus} iOS · ${androidOnboardingStatus} Android\n"
+    SUMMARY+="└─ Imported Wallet: ${iosImportedWalletStatus} iOS · ${androidImportedWalletStatus} Android\n\n"
+
+    # Failed Tests Section
+    if [ "$totalFailedTests" -gt 0 ]; then
+        SUMMARY+="*❌ FAILED TESTS (${totalFailedTests})*\n"
+
+        iosFailedCount=$(jq -r '.metadata.failedTestsByPlatform.ios // 0' "$SUMMARY_FILE")
+        androidFailedCount=$(jq -r '.metadata.failedTestsByPlatform.android // 0' "$SUMMARY_FILE")
+
+        for platData in "iOS|🍎|$iosFailedCount" "Android|🤖|$androidFailedCount"; do
+            IFS='|' read -r platName platEmoji platFailCount <<< "$platData"
+            [ "$platFailCount" -eq 0 ] && continue
+
+            SUMMARY+="\n┌─ *${platEmoji} ${platName}* (${platFailCount} failures)\n│\n"
+
+            prevMention=""
+            while IFS=$'\t' read -r mention teamCount name reasonDisplay recordings; do
+                [ -z "$mention" ] && continue
+
+                if [ "$mention" != "$prevMention" ]; then
+                    SUMMARY+="├─ ${mention} (${teamCount})\n"
+                    prevMention="$mention"
+                fi
+
+                SUMMARY+="│  ├─ ❌ ${name} — ${reasonDisplay}\n"
+                if [ -n "$recordings" ] && [ "$recordings" != "—" ]; then
+                    SUMMARY+="│  │  └─ 📹 ${recordings}\n"
+                fi
+            done <<< "$(jq -r --arg plat "$platName" '
+              .failedTestsStats.failedTestsByTeam | to_entries[] |
+              .value.team.slackMention as $mention |
+              (.value.tests | map(select(.platform == $plat)) | group_by(.testName)) as $grouped |
+              select(($grouped | length) > 0) |
+              ($grouped | map(length) | add) as $teamCount |
+
+              $grouped[] |
+              if length > 0 then
+                (.[0].testName) as $name |
+                (.[0].failureReason |
+                  if . == "quality_gates_exceeded" then "Quality gates FAILED"
+                  elif . == "timedOut" then "Test timed out"
+                  elif . == "test_error" or . == "failed" then "Test error"
+                  else . // "Unknown" end
+                ) as $reasonDisplay |
+                ([.[] |
+                  (if .device != null and .device != "" then
+                    (if (.device | type) == "object" then (.device.name // "")
+                    else (.device | tostring | split("+") | if length > 1 then .[:-1] | join("+") else .[0] end)
+                    end)
+                  else .platform end
+                  | gsub("Google "; "") | gsub("Samsung "; "")) as $shortName |
+                  if .recordingLink != null and .recordingLink != "" then
+                    "<" + .recordingLink + "|" + $shortName + ">"
+                  else
+                    (if .sessionId != null and .sessionId != "" then
+                      $shortName
+                    else "—" end)
+                  end
+                ] | join(" | ")) as $recordings |
+                [$mention, ($teamCount | tostring), $name, $reasonDisplay, $recordings] | @tsv
+              else empty end
+            ' "$SUMMARY_FILE" 2>/dev/null)"
+        done
+
         SUMMARY+="\n"
     fi
-    
-    SUMMARY+="*📦 Build info*\n"
-    SUMMARY+="• Build: ${buildTypeEmoji} _${buildTypeLabel}_\n"
-    SUMMARY+="• Branch: \`$GITHUB_REF_NAME\` · Commit: \`${GITHUB_SHA:0:7}\`\n\n"
-    SUMMARY+="<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|📋 View full results>"
-    
+
+    # Build Info
+    SUMMARY+="*🔧 BUILD INFO*\n"
+    SUMMARY+="├─ Build: ${buildTypeLabel}\n"
+    SUMMARY+="├─ Branch: \`$GITHUB_REF_NAME\`\n"
+    SUMMARY+="└─ Commit: \`${GITHUB_SHA:0:7}\`\n\n"
+
+    SUMMARY+="<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|🔗 View full results>\n"
+    SUMMARY+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
     echo "$SUMMARY"
 else
     echo "🚀 *Performance E2E Tests*"

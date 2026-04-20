@@ -1389,6 +1389,69 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
   });
 
+  describe('iOS accessibility tree - secondary balance wrapper', () => {
+    const assetKey: FlashListAssetKey = {
+      address: '0x456',
+      chainId: '0x1',
+      isStaked: false,
+    };
+
+    it('renders a View (not TouchableOpacity) when there is no secondary action', () => {
+      // Simulates Bitcoin/ETH case: only % change, no Earn/mUSD action.
+      // A nested disabled TouchableOpacity inside accessible={true} causes iOS
+      // to not create an individual accessibility element for the row, grouping
+      // the entire section into one VoiceOver element instead.
+      prepareMocks({
+        asset: defaultAsset,
+        pricePercentChange1d: 5.67,
+        isMusdConversionEnabled: false,
+        isStablecoinLendingEnabled: false,
+        isTokenWithCta: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      const wrapper = getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID);
+      // Must be a plain View: no onPress, no accessible prop
+      expect(wrapper.props.onPress).toBeUndefined();
+      expect(wrapper.props.disabled).toBeUndefined();
+    });
+
+    it('renders a TouchableOpacity with accessible={false} when there is a secondary action', () => {
+      // Simulates USDC case: has mUSD conversion CTA.
+      // accessible={false} prevents the inner button from conflicting with
+      // the outer row's accessible={true} grouping while keeping it pressable.
+      prepareMocks({
+        asset: defaultAsset,
+        isMusdConversionEnabled: true,
+        isTokenWithCta: true,
+        isGeoEligible: true,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      const wrapper = getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID);
+      expect(wrapper.props.onPress).toBeDefined();
+      expect(wrapper.props.accessible).toBe(false);
+    });
+  });
+
   describe('Component Edge Cases', () => {
     it('returns null when asset is not found', () => {
       prepareMocks({

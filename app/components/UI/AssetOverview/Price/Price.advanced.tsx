@@ -348,6 +348,7 @@ const PriceAdvanced = ({
             </View>
           ) : displayDiff !== null && dynamicComparePrice !== null ? (
             <Text
+              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={

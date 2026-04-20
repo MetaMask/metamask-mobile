@@ -164,6 +164,7 @@ const TokenListComponent = ({
     <Box
       twClassName={'bg-default'}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+      accessible={false}
     >
       {displayTokenKeys.map((item, index) => (
         <TokenListItem
@@ -183,6 +184,7 @@ const TokenListComponent = ({
             variant={ButtonVariant.Secondary}
             onPress={handleViewAllTokens}
             isFullWidth
+            testID={WalletViewSelectorsIDs.VIEW_ALL_TOKENS_BUTTON}
           >
             {strings('wallet.view_all_tokens')}
           </Button>

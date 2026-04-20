@@ -2,6 +2,7 @@ import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper.js';
 import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 
@@ -20,7 +21,12 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       );
 
       await WalletView.tapWalletSwapButton();
-      await timer1.measure(() => QuoteView.isVisible());
+
+      await timer1.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+          asPlaywrightElement(QuoteView.amountInput),
+        );
+      });
 
       await QuoteView.selectNetworkAndTokenTo('Solana', 'SOL');
       await QuoteView.enterSourceTokenAmount('1');

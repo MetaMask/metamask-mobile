@@ -215,6 +215,17 @@ class WalletView {
     );
   }
 
+  async checkActiveAccount(
+    expectedName: string,
+    timeout = 10_000,
+  ): Promise<void> {
+    await PlaywrightAssertions.expectElementText(
+      asPlaywrightElement(this.accountNameLabelText),
+      expectedName,
+      { timeout },
+    );
+  }
+
   get accountNameLabelInput(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -420,10 +431,17 @@ class WalletView {
   tokenRow(token: string, index = 0): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(token, index),
-      appium: () =>
-        PlaywrightMatchers.getElementById(getAssetTestId(token), {
-          exact: true,
-        }),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(getAssetTestId(token), {
+            exact: true,
+          }),
+        // iOS: TokenListItem sets accessibilityLabel to "Name, $fiat, balance"
+        // so the iOS predicate `name` (= accessibilityLabel) differs from testID.
+        // Use `~testID` which maps to accessibilityIdentifier (= testID).
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(getAssetTestId(token)),
+      },
     });
   }
 
@@ -763,11 +781,19 @@ class WalletView {
   get tokensSection(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(
-          WalletViewSelectorsText.TOKENS_SECTION,
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER,
         ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            `${WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}`,
+          ),
+      },
     });
   }
 

@@ -59,12 +59,34 @@ class TokenOverview {
   get todaysChange(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByText(
-          TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.TODAYS_CHANGE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.TODAYS_CHANGE,
+        ),
+    });
+  }
+
+  get priceChartDotEnd(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END,
+        ),
+    });
+  }
+
+  get priceChartContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByCatchAll(
-          TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
         ),
     });
   }
