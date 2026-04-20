@@ -38,17 +38,19 @@ jest.mock(
       onClose,
       onActionSelect,
       position,
+      testID,
     }: {
       onClose: () => void;
       onActionSelect: (action: string) => void;
       position?: Position;
+      testID?: string;
     }) {
       const ReactModule = jest.requireActual('react');
       const { View, Text, TouchableOpacity } =
         jest.requireActual('react-native');
       return ReactModule.createElement(
         View,
-        { testID: 'modify-action-sheet' },
+        { testID: testID || 'modify-action-sheet' },
         ReactModule.createElement(Text, null, 'Modify Position'),
         position &&
           ReactModule.createElement(
@@ -124,6 +126,12 @@ describe('PerpsSelectModifyActionView', () => {
     render(<PerpsSelectModifyActionView />);
 
     expect(screen.getByTestId('modify-action-sheet')).toBeOnTheScreen();
+  });
+
+  it('passes testID through to the modify action sheet', () => {
+    render(<PerpsSelectModifyActionView testID="custom-modify-sheet" />);
+
+    expect(screen.getByTestId('custom-modify-sheet')).toBeOnTheScreen();
   });
 
   it('renders add to position option', () => {

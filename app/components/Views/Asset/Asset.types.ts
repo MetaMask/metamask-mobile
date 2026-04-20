@@ -26,6 +26,5 @@ export interface AssetViewParams {
   isETH?: boolean;
   aggregators?: string[];
   source?: string;
-  scrollToMerklRewards?: boolean;
   rwaData?: TokenRwaData;
 }

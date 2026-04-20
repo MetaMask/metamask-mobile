@@ -782,7 +782,6 @@
       "seasonEndDate": null,
       "seasonId": null,
       "seasonName": null,
-      "seasonShouldInstallNewVersion": null,
       "seasonStartDate": null,
       "seasonStatusError": null,
       "seasonStatusLoading": false,

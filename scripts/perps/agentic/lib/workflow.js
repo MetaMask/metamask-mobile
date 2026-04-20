@@ -22,6 +22,13 @@ const EXECUTABLE_ACTIONS = new Set([
   'select_account',
   'toggle_testnet',
   'switch_provider',
+  // App lifecycle actions
+  'app_background',
+  'app_foreground',
+  'app_restart',
+  // Profiler / trace capture (Hermes sampling profiler via CDP)
+  'trace_start',
+  'trace_stop',
 ]);
 
 const CONTROL_ACTIONS = new Set(['switch', 'end']);

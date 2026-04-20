@@ -24,6 +24,7 @@ import AvatarGroup from '../../../../../component-library/components/Avatars/Ava
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
 import { buildTokenIconUrl } from '../../../Card/util/buildTokenIconUrl';
 import ConvertTokenRow from '../../../Earn/components/Musd/ConvertTokenRow';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -67,34 +68,43 @@ const STABLECOIN_AVATAR_PROPS = [
   },
 ];
 
-const FeatureTags = () => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    twClassName="flex-wrap gap-2 mt-4"
-    testID={MoneyConvertStablecoinsTestIds.FEATURE_TAGS}
-  >
-    {FEATURE_TAGS.map((tag) => (
-      <TagBase
-        key={tag}
-        shape={TagShape.Rectangle}
-        severity={TagSeverity.Neutral}
-        gap={4}
-        startAccessory={
-          <Icon
-            name={IconName.CheckBold}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        }
-        textProps={{
-          variant: ComponentTextVariant.BodySMMedium,
-        }}
-      >
-        {strings(tag)}
-      </TagBase>
-    ))}
-  </Box>
-);
+const FeatureTags = () => {
+  const { themeAppearance } = useTheme();
+  const tagBackgroundColor =
+    themeAppearance === 'dark'
+      ? 'rgba(255, 255, 255, 0.04)'
+      : 'rgba(0, 0, 0, 0.04)';
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      twClassName="flex-wrap gap-2 mt-4"
+      testID={MoneyConvertStablecoinsTestIds.FEATURE_TAGS}
+    >
+      {FEATURE_TAGS.map((tag) => (
+        <TagBase
+          key={tag}
+          style={{ backgroundColor: tagBackgroundColor }}
+          shape={TagShape.Rectangle}
+          severity={TagSeverity.Neutral}
+          gap={4}
+          startAccessory={
+            <Icon
+              name={IconName.CheckBold}
+              size={IconSize.Sm}
+              color={IconColor.SuccessDefault}
+            />
+          }
+          textProps={{
+            variant: ComponentTextVariant.BodySMMedium,
+          }}
+        >
+          {strings(tag)}
+        </TagBase>
+      ))}
+    </Box>
+  );
+};
 
 const Description = () => (
   <Text
@@ -126,7 +136,7 @@ const MoneyConvertStablecoins = ({
 
   return (
     <Box testID={MoneyConvertStablecoinsTestIds.CONTAINER}>
-      <Box twClassName="px-4">
+      <Box twClassName="px-4 pt-3">
         {!hasTokens && (
           <Box
             twClassName="mb-4"

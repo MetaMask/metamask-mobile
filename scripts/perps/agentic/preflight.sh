@@ -37,6 +37,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/../../.."
+ROOT_DIR="$(pwd)"
 # Source .js.env but only for vars not already set, so caller env takes precedence.
 if [ -f .js.env ]; then
   while IFS= read -r _line || [ -n "$_line" ]; do
@@ -49,10 +50,22 @@ if [ -f .js.env ]; then
   unset _line _key
 fi
 
+resolve_path() {
+  case "$1" in
+    /*) printf '%s\n' "$1" ;;
+    *) printf '%s/%s\n' "$ROOT_DIR" "$1" ;;
+  esac
+}
+
 PORT="${WATCHER_PORT:-8081}"
 SCRIPTS="scripts/perps/agentic"
-LOGFILE=".agent/metro.log"
-CDP_TIMEOUT=90
+LOGFILE="$(resolve_path '.agent/metro.log')"
+LOG_DIR="$(resolve_path "${PREP_LOG_DIR:-.agent/preflight-logs}")"
+DEPS_LOG="${LOG_DIR}/deps.log"
+POD_INSTALL_LOG="${LOG_DIR}/pod-install.log"
+CDP_LOG="${LOG_DIR}/cdp.log"
+WALLET_LOG="${LOG_DIR}/wallet-setup.log"
+CDP_WAIT_TIMEOUT=90
 CDP_RETRY=0
 
 # Flags
@@ -106,13 +119,14 @@ GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'; BLUE='\033[0;34m'; BO
 ok()   { echo -e "  ${GREEN}✓${NC} $*"; }
 warn() { echo -e "  ${YELLOW}⚠${NC} $*"; }
 fail() { echo -e "  ${RED}✗${NC} $*"; exit 1; }
+stage_log() { echo -e "  ${DIM}Log: $1${NC}"; }
 
 # Kill a process and all its descendants.
 # We need this because `$!` after `eval "$EXPO_CMD" &` points at the yarn
 # corepack wrapper, not the deep child (yarn → corepack → yarn.cjs → node
 # expo/cli) that actually binds $PORT. Killing just the wrapper leaves the
 # child alive and still holding the port. Scoped strictly to descendants of
-# the given PID — safe for parallel worktrees / farmslot slots.
+# the given PID — safe for parallel worktrees.
 collect_tree() {
   local parent=$1
   local children
@@ -135,6 +149,82 @@ kill_tree() {
     t=$((t + 1))
   done
   for p in $pids; do kill -KILL "$p" 2>/dev/null || true; done
+}
+
+# Live tail: refresh the last N lines of a log file in-place while a PID is
+# running. TTY-gated so piped runs / CI see no ANSI escapes. Called as a
+# background job; kill it once the watched process has exited.
+#
+# Frame invariant: always owns exactly N terminal rows. Reserves the frame
+# up-front, then every tick does the same symmetric cursor-up-N → redraw.
+# Truncates each line strictly below terminal width to prevent wrap (a
+# wrapped row would break the cursor-up anchor and cause accumulating scroll).
+watch_log() {
+  local log="$1" watcher_of="$2" N="${3:-3}"
+  [ -t 1 ] || return 0
+  local cols width i cleanup_done=0
+  cols=$(tput cols 2>/dev/null || echo 120)
+  width=$((cols - 6))
+  [ "$width" -lt 20 ] && width=20
+
+  watch_log_cleanup() {
+    [ "$cleanup_done" -eq 1 ] && return
+    cleanup_done=1
+    printf '\033[%dA\033[J' "$N" 2>/dev/null || true
+    tput cnorm 2>/dev/null || true
+  }
+
+  # Reserve N rows once; every subsequent tick starts with cursor-up N.
+  i=0
+  while [ $i -lt $N ]; do printf '\n'; i=$((i + 1)); done
+  # Hide cursor during tail to avoid blink/drift artifacts.
+  tput civis 2>/dev/null || true
+  trap 'watch_log_cleanup' EXIT
+  trap 'watch_log_cleanup; exit 0' TERM INT
+
+  while kill -0 "$watcher_of" 2>/dev/null; do
+    # Move cursor up N rows and clear from cursor to end of screen.
+    printf '\033[%dA\033[J' "$N"
+    if [ -f "$log" ]; then
+      local lines padded
+      lines=$(tail -n "$N" "$log" 2>/dev/null \
+        | tr -d '\r' \
+        | sed -E $'s/\x1b\\[[0-9;]*[A-Za-z]//g; s/\t/  /g' \
+        | awk -v w="$width" '{ if (length($0) > w) print substr($0, 1, w); else print }')
+      i=0
+      if [ -n "$lines" ]; then
+        while IFS= read -r l; do
+          printf '    \033[2m%s\033[0m\n' "$l"
+          i=$((i + 1))
+        done <<< "$lines"
+      fi
+      # Pad to exactly N rows so the frame size never shrinks.
+      while [ $i -lt $N ]; do printf '\n'; i=$((i + 1)); done
+    else
+      i=0
+      while [ $i -lt $N ]; do printf '\n'; i=$((i + 1)); done
+    fi
+    sleep 0.75
+  done
+
+  # Final clear: leave N blank rows behind so the caller can print its status.
+  watch_log_cleanup
+  trap - EXIT TERM INT
+}
+
+# Run a command in the background while tailing its log file live. Returns
+# the command's exit status. Usage: run_with_live_log "$LOG" "$CMD_STRING"
+run_with_live_log() {
+  local log="$1" cmd="$2"
+  bash -c "$cmd" >>"$log" 2>&1 &
+  local cmd_pid=$!
+  watch_log "$log" "$cmd_pid" 3 &
+  local watch_pid=$!
+  local rc=0
+  wait "$cmd_pid" || rc=$?
+  kill "$watch_pid" 2>/dev/null || true
+  wait "$watch_pid" 2>/dev/null || true
+  return $rc
 }
 
 # ── Early fixture validation (fail fast before long pipeline) ────────
@@ -170,6 +260,8 @@ if $DO_WALLET_SETUP; then
   done
   ok "Fixture validated: $WALLET_FIXTURE (password + ${FIX_ACCT_COUNT} accounts)"
 fi
+
+mkdir -p "$LOG_DIR"
 
 # Timing
 PREFLIGHT_START=$(python3 -c "import time; print(int(time.time()))")
@@ -228,6 +320,13 @@ sweep_port() {
   holder_pid=$(lsof -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)
   [ -z "$holder_pid" ] && return 0
 
+  # Probe /status first — if Metro responds, it's alive and reusable regardless of process name
+  if curl -sf "http://localhost:$port/status" >/dev/null 2>&1; then
+    ok "Port $port ($label) — Metro already running (PID $holder_pid), reusing"
+    # start-metro.sh will detect running Metro and only launch the app
+    return 0
+  fi
+
   local holder_cmd
   holder_cmd=$(ps -p "$holder_pid" -o command= 2>/dev/null || echo unknown)
 
@@ -263,7 +362,14 @@ if $DO_CLEAN; then
     echo "  Cleaning Android build artifacts..."
     rm -rf android/app/build
   fi
-  yarn setup 2>&1 | tail -3
+  stage_log "$DEPS_LOG"
+  printf '$ yarn setup\n' > "$DEPS_LOG"
+  if ! run_with_live_log "$DEPS_LOG" "yarn setup"; then
+    echo ""
+    echo -e "  ${RED}Dependencies failed — see $DEPS_LOG${NC}"
+    tail -20 "$DEPS_LOG" | sed 's/^/    /'
+    fail "yarn setup failed"
+  fi
   ok "yarn setup complete"
 fi
 
@@ -306,7 +412,13 @@ if [ "$PLAT" = "ios" ]; then
     echo ""
 
     echo "  Running pod install via bundler..."
-    (cd ios && bundle exec pod install --repo-update --ansi 2>&1 | tail -3) || warn "pod install had issues"
+    stage_log "$POD_INSTALL_LOG"
+    printf '$ (cd ios && bundle exec pod install --repo-update --ansi)\n' > "$POD_INSTALL_LOG"
+    if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
+      ok "pod install complete"
+    else
+      warn "pod install had issues — see $POD_INSTALL_LOG"
+    fi
 
     # Must pass --port (never --no-bundler): @expo/cli rejects that combo
     # (resolveBundlerProps.js), and without --port expo's headless bundler silently
@@ -323,14 +435,18 @@ if [ "$PLAT" = "ios" ]; then
     # subprocess tree. We must walk the tree (yarn → corepack → yarn.cjs → node
     # expo/cli) because killing only $! leaves the deep child alive and orphaned,
     # still holding $PORT — which would defeat start-metro.sh and break CDP.
-    BUILD_LOG=".agent/ios-expo-build.log"
+    BUILD_LOG="$(resolve_path '.agent/ios-expo-build.log')"
     mkdir -p "$(dirname "$BUILD_LOG")"
     : > "$BUILD_LOG"
+    stage_log "$BUILD_LOG"
     BUILD_START=$(date +%s)
 
     set +e
     eval "$EXPO_CMD" >"$BUILD_LOG" 2>&1 &
     EXPO_PID=$!
+
+    watch_log "$BUILD_LOG" "$EXPO_PID" 3 &
+    WATCH_PID=$!
 
     APP_PATH=""
     BUILD_TIMEOUT=900
@@ -338,6 +454,7 @@ if [ "$PLAT" = "ios" ]; then
       NOW=$(date +%s)
       ELAPSED=$((NOW - BUILD_START))
       if [ $ELAPSED -ge $BUILD_TIMEOUT ]; then
+        kill "$WATCH_PID" 2>/dev/null || true; wait "$WATCH_PID" 2>/dev/null || true
         kill_tree "$EXPO_PID"
         wait $EXPO_PID 2>/dev/null || true
         echo ""
@@ -363,6 +480,7 @@ if [ "$PLAT" = "ios" ]; then
           fi
         done < <(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/MetaMask-*/Build/Products/Debug-iphonesimulator/MetaMask.app" -maxdepth 5 -prune 2>/dev/null)
         if [ -n "$APP_PATH" ]; then
+          kill "$WATCH_PID" 2>/dev/null || true; wait "$WATCH_PID" 2>/dev/null || true
           echo -e "  ${GREEN}→${NC} Build Succeeded (${ELAPSED}s)"
           kill_tree "$EXPO_PID"
           wait $EXPO_PID 2>/dev/null || true
@@ -372,6 +490,7 @@ if [ "$PLAT" = "ios" ]; then
 
       # Surface fatal CLI errors only after confirming build hasn't succeeded.
       if grep -qE 'CommandError:|BUILD FAILED' "$BUILD_LOG" 2>/dev/null; then
+        kill "$WATCH_PID" 2>/dev/null || true; wait "$WATCH_PID" 2>/dev/null || true
         kill_tree "$EXPO_PID"
         wait $EXPO_PID 2>/dev/null || true
         echo ""
@@ -382,6 +501,7 @@ if [ "$PLAT" = "ios" ]; then
 
       # If expo exited on its own before we found a fresh .app, treat as failure.
       if ! kill -0 $EXPO_PID 2>/dev/null; then
+        kill "$WATCH_PID" 2>/dev/null || true; wait "$WATCH_PID" 2>/dev/null || true
         echo ""
         echo -e "  ${RED}expo run:ios exited without producing a fresh .app${NC}"
         echo -e "  ${RED}Build log tail:${NC}"
@@ -396,11 +516,19 @@ if [ "$PLAT" = "ios" ]; then
     # Wait for expo's Metro on $PORT to actually release the socket — kill_tree
     # already SIGKILLed any stragglers, but the kernel takes a moment to free the
     # port. start-metro.sh probes /status and would race an orphaned bundler.
-    for _ in $(seq 1 10); do
+    #
+    # Exception: zombie sweep may have preserved a reused Metro on $PORT (healthy
+    # /status). In that case the port is expected to stay bound and we accept it.
+    for _ in $(seq 1 20); do
       lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1 || break
+      if curl -sf --max-time 1 "http://localhost:$PORT/status" >/dev/null 2>&1; then
+        ok "Port $PORT held by healthy Metro (reused) — continuing"
+        break
+      fi
       sleep 1
     done
-    if lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    if lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1 \
+       && ! curl -sf --max-time 1 "http://localhost:$PORT/status" >/dev/null 2>&1; then
       HOLDER=$(lsof -iTCP:"$PORT" -sTCP:LISTEN -Fc 2>/dev/null | grep '^c' | head -1)
       fail "Port $PORT still held after expo teardown ($HOLDER) — aborting to avoid CDP misrouting"
     fi
@@ -495,17 +623,21 @@ else
       echo -n "$GOOGLE_SERVICES_B64_ANDROID" | base64 -d > ./android/app/google-services.json
     fi
 
-    BUILD_LOG=".agent/android-build.log"
+    BUILD_LOG="$(resolve_path '.agent/android-build.log')"
+    stage_log "$BUILD_LOG"
+    : > "$BUILD_LOG"
     set +e
-    (cd android && SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew app:assembleProdDebug -PreactNativeArchitectures=arm64-v8a) 2>&1 | tee "$BUILD_LOG" | while IFS= read -r line; do
-      case "$line" in
-        *"BUILD SUCCESSFUL"*) echo -e "  ${GREEN}→${NC} $line" ;;
-        *"BUILD FAILED"*)     echo -e "  ${RED}→${NC} $line" ;;
-        *"error:"*)           echo -e "  ${RED}→${NC} $line" ;;
-        *"FAILURE"*)          echo -e "  ${RED}→${NC} $line" ;;
-      esac
-    done
+    run_with_live_log "$BUILD_LOG" "cd android && SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew app:assembleProdDebug -PreactNativeArchitectures=arm64-v8a"
+    GRADLE_RC=$?
     set -e
+    if grep -q 'BUILD SUCCESSFUL' "$BUILD_LOG" 2>/dev/null; then
+      echo -e "  ${GREEN}→${NC} BUILD SUCCESSFUL"
+    elif [ "$GRADLE_RC" -ne 0 ] || grep -qE 'BUILD FAILED|FAILURE|error:' "$BUILD_LOG" 2>/dev/null; then
+      echo ""
+      echo -e "  ${RED}Build log tail:${NC}"
+      tail -30 "$BUILD_LOG" | sed 's/^/    /'
+      fail "Gradle build failed — see $BUILD_LOG"
+    fi
 
     # Find the APK and install via adb
     APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" -path "*/debug/*" 2>/dev/null | head -1)
@@ -531,6 +663,9 @@ fi
 
 # ── Step: Metro ─────────────────────────────────────────────────────
 step "Starting Metro" "Bundler on port $PORT → logs at $LOGFILE"
+stage_log "$LOGFILE"
+# start-metro.sh detects running Metro and skips start. With --launch it
+# opens the app via expo deeplink for the target platform regardless.
 bash "$SCRIPTS/start-metro.sh" --platform "$PLAT" $($DO_LAUNCH && echo "--launch" || echo "")
 ok "Metro running on port $PORT"
 
@@ -540,8 +675,12 @@ ok "Metro running on port $PORT"
 
 # ── Step: CDP ───────────────────────────────────────────────────────
 step "Connecting CDP" "Waiting for app to expose debug target"
-while [ $CDP_RETRY -lt $CDP_TIMEOUT ]; do
-  if node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null | grep -q '"route"' 2>/dev/null; then
+stage_log "$CDP_LOG"
+printf '$ node %s/cdp-bridge.js status\n' "$SCRIPTS" > "$CDP_LOG"
+while [ $CDP_RETRY -lt $CDP_WAIT_TIMEOUT ]; do
+  CDP_STATUS_OUTPUT=$(node "$SCRIPTS/cdp-bridge.js" status 2>&1 || true)
+  printf '[attempt %s]\n%s\n' "$((CDP_RETRY + 1))" "$CDP_STATUS_OUTPUT" >>"$CDP_LOG"
+  if echo "$CDP_STATUS_OUTPUT" | grep -q '"route"' 2>/dev/null; then
     ok "CDP connected"
     break
   fi
@@ -550,7 +689,7 @@ while [ $CDP_RETRY -lt $CDP_TIMEOUT ]; do
   [ $CDP_RETRY -eq 5 ] && echo -e "  ${DIM}Still waiting... app may still be loading JS bundle${NC}"
   [ $CDP_RETRY -eq 15 ] && echo -e "  ${DIM}Taking longer than usual — check device${NC}"
 done
-if [ $CDP_RETRY -ge $CDP_TIMEOUT ]; then
+if [ $CDP_RETRY -ge $CDP_WAIT_TIMEOUT ]; then
   # Diagnostic: probe candidate ports before failing. The symptom we hit most
   # often is the app registering its Hermes inspector on 8081 instead of our
   # $PORT when a stale expo dev server lingers — surface that explicitly so we
@@ -586,13 +725,15 @@ for p in json.loads(sys.stdin.read() or "[]"):
     echo -e "  ${DIM}A stale 'expo run:ios' without --port is likely holding 8081.${NC}"
     echo -e "  ${DIM}Run: pgrep -fl 'expo run:ios' to confirm, then kill it and retry.${NC}"
   fi
-  fail "CDP did not become available after ${CDP_TIMEOUT}s"
+  fail "CDP did not become available after ${CDP_WAIT_TIMEOUT}s — see $CDP_LOG"
 fi
 
-# Verify CDP is connected to the right platform
-CDP_PLATFORM=$(node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null | jq -r '.platform // empty' || true)
-if [ -n "$CDP_PLATFORM" ] && [ "$CDP_PLATFORM" != "$PLAT" ]; then
-  fail "CDP connected to $CDP_PLATFORM app but expected $PLAT — launch the $PLAT app first"
+# Verify CDP is connected to the right platform (status may return object or array)
+CDP_STATUS=$(node "$SCRIPTS/cdp-bridge.js" status 2>>"$CDP_LOG" || true)
+printf '[final-status]\n%s\n' "$CDP_STATUS" >>"$CDP_LOG"
+CDP_HAS_PLAT=$(echo "$CDP_STATUS" | jq -r 'if type == "array" then [.[].platform] else [.platform] end | map(select(. == "'"$PLAT"'")) | length' 2>/dev/null || echo 0)
+if [ "$CDP_HAS_PLAT" = "0" ]; then
+  warn "CDP did not find $PLAT app — it may still be loading"
 fi
 
 # Brief stabilization
@@ -604,7 +745,14 @@ if $DO_WALLET_SETUP; then
   FIXTURE_FLAG=""
   [ "$WALLET_FIXTURE" != ".agent/wallet-fixture.json" ] && FIXTURE_FLAG="--fixture $WALLET_FIXTURE"
   if [ -f "$WALLET_FIXTURE" ] || [ -n "$FIXTURE_FLAG" ]; then
-    bash "$SCRIPTS/setup-wallet.sh" $FIXTURE_FLAG && ok "Wallet configured" || warn "Wallet setup failed — check fixture file"
+    stage_log "$WALLET_LOG"
+    printf '$ bash %s/setup-wallet.sh %s\n' "$SCRIPTS" "$FIXTURE_FLAG" > "$WALLET_LOG"
+    if bash "$SCRIPTS/setup-wallet.sh" $FIXTURE_FLAG >>"$WALLET_LOG" 2>&1; then
+      tail -12 "$WALLET_LOG" | sed 's/^/  /'
+      ok "Wallet configured"
+    else
+      warn "Wallet setup failed — see $WALLET_LOG"
+    fi
   else
     warn "No fixture at $WALLET_FIXTURE"
     echo -e "  ${DIM}cp scripts/perps/agentic/wallet-fixture.example.json .agent/wallet-fixture.json${NC}"
@@ -628,6 +776,7 @@ echo -e "  Platform ${DIM}$PLAT${NC}"
 echo -e "  Metro    ${DIM}http://localhost:$PORT/status${NC}"
 echo -e "  Logs     ${DIM}tail -f $LOGFILE${NC}"
 echo -e "  CDP      ${DIM}node $SCRIPTS/cdp-bridge.js status${NC}"
+echo -e "  Stage logs ${DIM}$LOG_DIR${NC}"
 echo ""
 echo -e "${DIM}Timing:${NC}"
 echo -e "$STEP_TIMES"

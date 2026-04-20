@@ -27,6 +27,7 @@ import { store } from '../../store';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
+import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
@@ -198,6 +199,19 @@ export const checkActiveAccountAndChainId = async ({
   }
 };
 
+/**
+ * Attach `remote_session_id` only when the upstream bridge supplied one.
+ * Don't inline as `analytics?.remote_session_id`: bridges emit `''` for older
+ * SDKs without an anonId, and the schema requires the property be absent on
+ * non-remote paths.
+ */
+const withRemoteSessionId = (
+  analytics: { remote_session_id?: string } | undefined,
+): Partial<{ remote_session_id: string }> =>
+  analytics?.remote_session_id
+    ? { remote_session_id: analytics.remote_session_id }
+    : {};
+
 const generateRawSignature = async ({
   version,
   req,
@@ -244,6 +258,7 @@ const generateRawSignature = async ({
       analytics: {
         request_source: getSource(),
         request_platform: analytics?.platform,
+        ...withRemoteSessionId(analytics),
       },
     },
   };
@@ -359,6 +374,7 @@ export const getRpcMethodMiddlewareHooks = ({
                   analytics: {
                     request_source: getSource(),
                     request_platform: analytics?.platform,
+                    ...withRemoteSessionId(analytics),
                   },
                 },
               },
@@ -414,8 +430,11 @@ export const getRpcMethodMiddleware = ({
   const origin = channelId ?? hostname;
 
   const getSource = () => {
-    if (analytics?.isRemoteConn)
-      return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    if (analytics?.isRemoteConn) {
+      return analytics?.transport === TransportType.MWP
+        ? AppConstants.REQUEST_SOURCES.MM_CONNECT
+        : AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    }
     if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
     return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
   };
@@ -474,6 +493,7 @@ export const getRpcMethodMiddleware = ({
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         },
@@ -678,6 +698,7 @@ export const getRpcMethodMiddleware = ({
         const transactionAnalytics = {
           dapp_url: url.current,
           request_source: getSource(),
+          ...withRemoteSessionId(analytics),
         };
         return RPCMethods.eth_sendTransaction({
           hostname,
@@ -727,6 +748,7 @@ export const getRpcMethodMiddleware = ({
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         };
@@ -791,6 +813,7 @@ export const getRpcMethodMiddleware = ({
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         };
@@ -946,6 +969,7 @@ export const getRpcMethodMiddleware = ({
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         }),
@@ -980,6 +1004,7 @@ export const getRpcMethodMiddleware = ({
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,
+            ...withRemoteSessionId(analytics),
           },
           hooks,
         });
@@ -993,6 +1018,7 @@ export const getRpcMethodMiddleware = ({
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,
+            ...withRemoteSessionId(analytics),
           },
           hooks,
         });
