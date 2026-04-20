@@ -60,18 +60,27 @@ import { PriceChartProvider } from '../../../UI/AssetOverview/PriceChart/PriceCh
 const TIME_PERIODS = ['1H', '1D', '1W', '1M', 'All'] as const;
 type TimePeriod = (typeof TIME_PERIODS)[number];
 
-// Maps UI time period labels to the historical-prices API params.
-// `timePeriod` controls the date range, `interval` controls data point granularity.
-// 1H fetches 1d of 5-minute data; derivePercentChange picks the point closest to T-1h.
-const PERIOD_CONFIG: Record<
-  TimePeriod,
-  { timePeriod: string; interval: string }
-> = {
-  '1H': { timePeriod: '1d', interval: '5m' },
-  '1D': { timePeriod: '1d', interval: 'hourly' },
-  '1W': { timePeriod: '7d', interval: 'daily' },
-  '1M': { timePeriod: '1m', interval: 'daily' },
-  All: { timePeriod: '1y', interval: 'daily' },
+// Maps UI time period labels to the historical-prices API `timePeriod` param.
+// The API returns a sensible default granularity per period (e.g. ~289 points
+// for 1d, ~169 for 7d). We don't pass `interval` — it's not consistently
+// supported across all tokens/chains. 1H reuses the '1d' data truncated to
+// the last 60 minutes.
+// Fallback durations in ms for trade filtering when no historical price
+// data is available (unindexed tokens returning 204).
+const PERIOD_DURATION_MS: Record<TimePeriod, number> = {
+  '1H': 60 * 60 * 1000,
+  '1D': 24 * 60 * 60 * 1000,
+  '1W': 7 * 24 * 60 * 60 * 1000,
+  '1M': 30 * 24 * 60 * 60 * 1000,
+  All: 3 * 365 * 24 * 60 * 60 * 1000,
+};
+
+const PERIOD_TO_API: Record<TimePeriod, string> = {
+  '1H': '1d',
+  '1D': '1d',
+  '1W': '7d',
+  '1M': '1m',
+  All: '3y',
 };
 
 /**
@@ -298,14 +307,19 @@ const TraderPositionView = () => {
     let cancelled = false;
 
     const fetchPeriod = async (period: TimePeriod) => {
-      const { timePeriod, interval } = PERIOD_CONFIG[period];
-      const uri = `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${timePeriod}&interval=${interval}&vsCurrency=${vsCurrency}`;
+      const apiPeriod = PERIOD_TO_API[period];
+      const uri = `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
       try {
         const response = await fetch(uri);
         if (response.status === 204 || !response.ok)
           return { period, prices: [] as TokenPrice[] };
-        const data: { prices: TokenPrice[] } = await response.json();
-        return { period, prices: data.prices ?? [] };
+        const data: { prices: [number, number][] } = await response.json();
+        // Normalize to TokenPrice format [string, number]
+        const prices: TokenPrice[] = (data.prices ?? []).map(
+          ([timestamp, price]) =>
+            [timestamp.toString(), Number(price)] as TokenPrice,
+        );
+        return { period, prices };
       } catch (err) {
         Logger.error(
           err as Error,
@@ -315,11 +329,15 @@ const TraderPositionView = () => {
       }
     };
 
-    Promise.all(TIME_PERIODS.map(fetchPeriod)).then((results) => {
+    // 1H and 1D share the same API call ('1d') — fetch once, reuse.
+    const uniquePeriods: TimePeriod[] = ['1D', '1W', '1M', 'All'];
+
+    Promise.all(uniquePeriods.map(fetchPeriod)).then((results) => {
       if (cancelled) return;
       const cache: Partial<Record<TimePeriod, TokenPrice[]>> = {};
       for (const { period, prices } of results) {
         cache[period] = prices;
+        if (period === '1D') cache['1H'] = prices;
       }
       setAllPrices(cache);
       setIsPricesLoading(false);
@@ -330,13 +348,23 @@ const TraderPositionView = () => {
     };
   }, [positionParam, caipChainId, currentCurrency]);
 
-  // For 1H, truncate the 1d/5m data to the last 60 minutes since the
-  // historical-prices API doesn't support a 1-hour time period directly.
+  // Resolve historical prices for the active period with fallbacks:
+  // - 1H: truncate 1d data to last 60 min; if < 5 points, use full 1d
+  // - All: if 3y returns empty, cascade through 1M → 1W → 1D
   const historicalPrices = useMemo(() => {
-    const prices = allPrices[activeTimePeriod] ?? [];
-    if (activeTimePeriod !== '1H' || !prices.length) return prices;
-    const oneHourAgo = Date.now() - 60 * 60 * 1000;
-    return prices.filter((pt) => Number(pt[0]) >= oneHourAgo);
+    let prices = allPrices[activeTimePeriod] ?? [];
+
+    if (activeTimePeriod === 'All' && !prices.length) {
+      prices = allPrices['1M'] ?? allPrices['1W'] ?? allPrices['1D'] ?? [];
+    }
+
+    if (activeTimePeriod === '1H' && prices.length) {
+      const oneHourAgo = Date.now() - 60 * 60 * 1000;
+      const lastHour = prices.filter((pt) => Number(pt[0]) >= oneHourAgo);
+      return lastHour.length >= 5 ? lastHour : prices;
+    }
+
+    return prices;
   }, [allPrices, activeTimePeriod]);
 
   const priceDiff = useMemo(() => {
@@ -360,11 +388,31 @@ const TraderPositionView = () => {
   }, [navigation]);
 
   const symbol = positionParam?.tokenSymbol ?? tokenSymbol;
-  const positionValue = positionParam?.currentValueUSD;
-  const pnlValue = positionParam?.pnlValueUsd;
-  const pnlPercent = positionParam?.pnlPercent;
+  const isClosed =
+    positionParam != null &&
+    positionParam.positionAmount === 0 &&
+    positionParam.soldUsd > 0;
+
+  // For open positions: show current value + unrealized P&L
+  // For closed positions: show realized P&L (sum of all exits) + percentage
+  const positionValue = isClosed ? null : positionParam?.currentValueUSD;
+  const pnlValue = isClosed
+    ? positionParam?.realizedPnl
+    : positionParam?.pnlValueUsd;
+  const pnlPercent = isClosed
+    ? positionParam?.boughtUsd
+      ? (positionParam.realizedPnl / positionParam.boughtUsd) * 100
+      : null
+    : positionParam?.pnlPercent;
   const isPnlPositive = (pnlValue ?? 0) >= 0;
-  const trades = positionParam?.trades ?? [];
+  // Filter trades to the active chart time range. Uses PERIOD_DURATION_MS
+  // (calendar time from now) so trades aren't excluded just because the
+  // price API has a shorter history.
+  const trades = (positionParam?.trades ?? []).filter((t) => {
+    const tsMs =
+      t.timestamp > 0 && t.timestamp < 1e12 ? t.timestamp * 1000 : t.timestamp;
+    return tsMs >= Date.now() - PERIOD_DURATION_MS[activeTimePeriod];
+  });
 
   return (
     <SafeAreaView
@@ -507,24 +555,34 @@ const TraderPositionView = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            alignItems={BoxAlignItems.Start}
+            alignItems={BoxAlignItems.Center}
           >
-            <Box>
+            {isClosed ? (
               <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
-              >
-                {formatUsd(positionValue)}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >
-                {strings('social_leaderboard.trader_position.position')}
+                {strings('social_leaderboard.trader_position.closed_position')}
               </Text>
-            </Box>
+            ) : (
+              <Box>
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  fontWeight={FontWeight.Bold}
+                  color={TextColor.TextDefault}
+                >
+                  {formatUsd(positionValue)}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('social_leaderboard.trader_position.position')}
+                </Text>
+              </Box>
+            )}
             <Box alignItems={BoxAlignItems.End}>
               <Text
                 variant={TextVariant.HeadingMd}

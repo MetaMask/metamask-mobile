@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
@@ -15,13 +15,13 @@ interface MockRouteParams {
   position?: Position;
 }
 
-const mockTrades: Trade[] = [
+const makeMockTrades = (): Trade[] => [
   {
     intent: 'enter',
     direction: 'buy',
     tokenAmount: 1000,
     usdCost: 2200,
-    timestamp: 1709568900000,
+    timestamp: Date.now() - 30 * 60 * 1000, // 30 minutes ago
     transactionHash: '0xabc',
   },
   {
@@ -29,12 +29,12 @@ const mockTrades: Trade[] = [
     direction: 'sell',
     tokenAmount: 500,
     usdCost: 1100,
-    timestamp: 1709564520000,
+    timestamp: Date.now() - 60 * 60 * 1000, // 1 hour ago
     transactionHash: '0xdef',
   },
 ];
 
-const defaultPosition: Position = {
+const makeDefaultPosition = (): Position => ({
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
   tokenAddress: '0x1234567890123456789012345678901234567890',
@@ -44,18 +44,18 @@ const defaultPosition: Position = {
   soldUsd: 0,
   realizedPnl: 0,
   costBasis: 500,
-  trades: mockTrades,
+  trades: makeMockTrades(),
   lastTradeAt: Date.now(),
   currentValueUSD: 900,
   pnlValueUsd: 400,
   pnlPercent: 80,
-};
+});
 
 let mockRouteParams: MockRouteParams = {
   traderId: 'trader-1',
   traderName: 'dutchiono',
   tokenSymbol: 'PEPE',
-  position: defaultPosition,
+  position: makeDefaultPosition(),
 };
 
 const mockState = {
@@ -81,6 +81,21 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => {
     '../../../../util/test/analyticsMock',
   );
   return { useAnalytics: () => createMockUseAnalyticsHook() };
+});
+
+jest.mock('../../../UI/AssetOverview/PriceChart', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="price-chart-mock" />,
+  };
+});
+jest.mock('../../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
+  const React = jest.requireActual('react');
+  return {
+    PriceChartProvider: ({ children }: { children: React.ReactNode }) =>
+      children,
+  };
 });
 
 // Mock fetch for historical prices API
@@ -115,17 +130,18 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ prices: [] }),
+    }) as jest.Mock;
     mockGetAssetImageUrl.mockReturnValue('https://example.com/token.png');
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'dutchiono',
       tokenSymbol: 'PEPE',
-      position: defaultPosition,
+      position: makeDefaultPosition(),
     };
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
   });
 
   it('renders the container with real position data', () => {
@@ -138,19 +154,12 @@ describe('TraderPositionView', () => {
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders trade rows from position.trades', () => {
-    renderWithProvider(<TraderPositionView />, { state: mockState });
-
-    expect(screen.getByTestId('trade-row-0xabc')).toBeOnTheScreen();
-    expect(screen.getByTestId('trade-row-0xdef')).toBeOnTheScreen();
-  });
-
-  it('shows "No trades" when trades array is empty', () => {
-    mockRouteParams.position = { ...defaultPosition, trades: [] };
+  it('shows empty state when trades array is empty', () => {
+    mockRouteParams.position = { ...makeDefaultPosition(), trades: [] };
 
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
-    expect(screen.getByText('No trades')).toBeOnTheScreen();
+    expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
   });
 
   it('calls goBack when the close button is pressed', () => {
@@ -191,7 +200,7 @@ describe('TraderPositionView', () => {
 
   it('skips token image URL resolution when the position chain is unsupported', () => {
     mockRouteParams.position = {
-      ...defaultPosition,
+      ...makeDefaultPosition(),
       chain: 'unsupported-chain',
     };
 

@@ -1044,7 +1044,8 @@
       "buy": "Buy",
       "bought": "{{name}} bought",
       "sold": "{{name}} sold",
-      "no_trades": "No trades"
+      "no_trades": "No trades for this interval",
+      "closed_position": "Closed position"
     }
   },
   "perps": {

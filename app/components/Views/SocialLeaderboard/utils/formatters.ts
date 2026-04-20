@@ -25,5 +25,18 @@ export function formatPercent(value: number | null | undefined): string {
 }
 
 export function formatTradeDate(timestamp: number): string {
-  return formatOrderCardDate(timestamp);
+  // Trade timestamps from the social API are in seconds.
+  const ms = timestamp < 1e12 ? timestamp * 1000 : timestamp;
+  const date = new Date(ms);
+  const dateStr = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+  const timeStr = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+  return `${dateStr} at ${timeStr}`;
 }
