@@ -40,6 +40,7 @@ import AssetOverviewClaimBonus from '../../UI/Earn/components/AssetOverviewClaim
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import CashGetMusdEmptyState from '../Homepage/Sections/Cash/CashGetMusdEmptyState';
 import SectionRow from '../Homepage/components/SectionRow/SectionRow';
+import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import CashTokensFullViewSkeleton from './CashTokensFullViewSkeleton';
 import { useCashTokensRefresh } from './useCashTokensRefresh';
 import { AssetType } from '../confirmations/types/token';
@@ -71,7 +72,11 @@ const CashTokensFullView = () => {
     return () => handle.cancel();
   }, []);
 
-  const { refreshing, onRefresh } = useCashTokensRefresh();
+  const { refetch: refetchMerklBonus } = useMerklBonusClaim(
+    MUSD_MAINNET_ASSET_FOR_DETAILS,
+    'CashTokensFullView',
+  );
+  const { refreshing, onRefresh } = useCashTokensRefresh(refetchMerklBonus);
 
   const { initiateMaxConversion, initiateCustomConversion } =
     useMusdConversion();
