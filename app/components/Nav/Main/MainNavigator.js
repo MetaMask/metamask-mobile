@@ -864,11 +864,19 @@ const HomeTabs = () => {
   );
 };
 
-const Webview = () => (
-  <Stack.Navigator>
-    <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
-  </Stack.Navigator>
-);
+const Webview = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
+    </Stack.Navigator>
+  );
+};
 
 /* eslint-disable react/prop-types */
 const NftDetailsModeView = (props) => (
