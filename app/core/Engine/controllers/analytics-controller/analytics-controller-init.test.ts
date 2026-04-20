@@ -4,7 +4,10 @@ import {
   AnalyticsControllerMessenger,
 } from '@metamask/analytics-controller';
 import { MessengerClientInitRequest } from '../../types';
-import { AnalyticsControllerInitMessenger , getAnalyticsControllerMessenger } from '../../messengers/analytics-controller-messenger';
+import {
+  AnalyticsControllerInitMessenger,
+  getAnalyticsControllerMessenger,
+} from '../../messengers/analytics-controller-messenger';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
@@ -239,9 +242,9 @@ describe('analyticsControllerInit', () => {
       const mockFlags = {
         remoteFeatureFlags: { brazeSegmentForwarding: { allowedEvents: [] } },
       };
-      const result = (selector as (state: typeof mockFlags) => unknown)(
-        mockFlags,
-      );
+      const result = (
+        selector as unknown as (state: typeof mockFlags) => unknown
+      )(mockFlags);
       expect(result).toBe(mockFlags.remoteFeatureFlags.brazeSegmentForwarding);
     });
   });
@@ -289,9 +292,9 @@ describe('analyticsControllerInit', () => {
       const mockState = {
         internalAccounts: { accounts: buildMockAccounts() },
       };
-      const result = (selector as (state: typeof mockState) => unknown)(
-        mockState,
-      );
+      const result = (
+        selector as unknown as (state: typeof mockState) => unknown
+      )(mockState);
       expect(result).toBe(mockState.internalAccounts.accounts);
     });
 
