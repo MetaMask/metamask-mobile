@@ -215,7 +215,7 @@ runs:
       with:
         path: |
           node_modules
-        key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('yarn.lock') }}
 
     - name: Install JavaScript dependencies with retry
       id: yarn-install
@@ -228,6 +228,25 @@ runs:
       env:
         NODE_OPTIONS: --max-old-space-size=4096
         YARN_ENABLE_GLOBAL_CACHE: 'true'
+
+    - name: Rebuild native Node.js addons (iOS)
+      if: ${{ inputs.platform == 'ios' }}
+      shell: bash
+      run: |
+        # Yarn caches node_modules verbatim, so when a warm cache is restored
+        # the bigint-buffer install lifecycle script does not re-run. If the
+        # cached build/ artefact is missing or was compiled for a different
+        # Node.js / architecture, require('bindings')('bigint_buffer') fails
+        # silently and bigint-buffer falls back to pure JS — adding measurable
+        # overhead to every chain interaction in the iOS E2E suite.
+        # Explicitly rebuilding here ensures the native addon is always compiled
+        # for the exact runtime present on this runner.
+        echo "Rebuilding bigint-buffer native addon for iOS..."
+        if npm rebuild bigint-buffer 2>&1; then
+          echo "✅ bigint-buffer native addon rebuilt successfully"
+        else
+          echo "⚠️  bigint-buffer native rebuild failed — pure JS fallback will be active"
+        fi
 
     - name: Install Foundry
       shell: bash
