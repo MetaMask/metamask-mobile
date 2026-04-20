@@ -28,9 +28,11 @@ function getCompositionFingerprint(accounts: InternalAccounts): string {
     .map(([id, acct]) => {
       const keyringType = acct.metadata?.keyring?.type ?? '';
       const entropy = (
-        acct.options as { entropy?: { id?: string; groupIndex?: number } }
+        acct.options as {
+          entropy?: { type?: string; id?: string; groupIndex?: number };
+        }
       )?.entropy;
-      return `${id}|${keyringType}|${entropy?.id ?? ''}|${entropy?.groupIndex ?? ''}`;
+      return `${id}|${keyringType}|${entropy?.type ?? ''}|${entropy?.id ?? ''}|${entropy?.groupIndex ?? ''}`;
     })
     .sort((a, b) => a.localeCompare(b))
     .join(';');
