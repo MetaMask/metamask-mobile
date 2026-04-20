@@ -192,19 +192,20 @@ export function buildProtocolUnsignedOrder({
   signerAddress: string;
   nowInSeconds?: number;
 }): ProtocolUnsignedOrder {
-  const baseOrder = {
-    salt: generateSalt(),
-    maker: makerAddress,
-    signer: signerAddress,
-    tokenId: preview.outcomeTokenId,
-    makerAmount: parseUnits(preview.maxAmountSpent.toString(), 6).toString(),
-    takerAmount: getTakerAmountWithSlippage(preview),
-    expiration: '0',
-  };
-  const orderSignerFields = {
-    side: preview.side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL,
-    signatureType: SignatureType.POLY_GNOSIS_SAFE,
-  };
+  // NOTE: Field order matters for EIP-712 signing. Do NOT use object spread
+  // (e.g. `...baseOrder`) to build these return objects — it causes fields like
+  // `taker` (v1) to land in the wrong position, resulting in an "invalid API" error.
+  const salt = generateSalt();
+  const maker = makerAddress;
+  const signer = signerAddress;
+  const tokenId = preview.outcomeTokenId;
+  const makerAmount = parseUnits(
+    preview.maxAmountSpent.toString(),
+    6,
+  ).toString();
+  const takerAmount = getTakerAmountWithSlippage(preview);
+  const side = preview.side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL;
+  const signatureType = SignatureType.POLY_GNOSIS_SAFE;
 
   if (protocol.key === 'v2') {
     const builder = protocol.order.getBuilderCode?.();
@@ -214,20 +215,34 @@ export function buildProtocolUnsignedOrder({
     }
 
     return {
-      ...baseOrder,
+      salt,
+      maker,
+      signer,
+      tokenId,
+      makerAmount,
+      takerAmount,
+      expiration: '0',
       timestamp: `${nowInSeconds}`,
       metadata: protocol.order.metadata,
       builder,
-      ...orderSignerFields,
+      side,
+      signatureType,
     };
   }
 
   return {
-    ...baseOrder,
+    salt,
+    maker,
+    signer,
     taker: ZERO_ADDRESS,
+    tokenId,
+    makerAmount,
+    takerAmount,
+    expiration: '0',
     nonce: '0',
     feeRateBps: preview.feeRateBps ?? '0',
-    ...orderSignerFields,
+    side,
+    signatureType,
   };
 }
 
