@@ -15,15 +15,12 @@ import { regex } from '../regex';
 import { formatSubscriptNotation } from './subscriptNotation';
 
 const MAX_DECIMALS_FOR_TOKENS = 36;
-// File-scoped subclass with 36 d.p. — does not mutate the shared BigNumber global default (20 d.p.)
-const ScopedBigNumber = BigNumber.clone({
-  DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS,
-});
+BigNumber.config({ DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS });
 
 // Big Number Constants
-const BIG_NUMBER_WEI_MULTIPLIER = new ScopedBigNumber('1000000000000000000');
-const BIG_NUMBER_GWEI_MULTIPLIER = new ScopedBigNumber('1000000000');
-const BIG_NUMBER_ETH_MULTIPLIER = new ScopedBigNumber('1');
+const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
+const BIG_NUMBER_GWEI_MULTIPLIER = new BigNumber('1000000000');
+const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
 
 /**
  * Converts a hex string to a BN object.
@@ -53,9 +50,9 @@ export function BNToHex(inputBn) {
 
 // Setter Maps
 export const toBigNumber = {
-  hex: (n) => new ScopedBigNumber(stripHexPrefix(n), 16),
-  dec: (n) => new ScopedBigNumber(String(n), 10),
-  BN: (n) => new ScopedBigNumber(n.toString(16), 16),
+  hex: (n) => new BigNumber(stripHexPrefix(n), 16),
+  dec: (n) => new BigNumber(String(n), 10),
+  BN: (n) => new BigNumber(n.toString(16), 16),
 };
 const toNormalizedDenomination = {
   WEI: (bigNumber) => bigNumber.div(BIG_NUMBER_WEI_MULTIPLIER),
@@ -72,27 +69,22 @@ const toSpecifiedDenomination = {
 };
 const baseChange = {
   hex: (n) => n.toString(16),
-  dec: (n) => new ScopedBigNumber(n).toString(10),
+  dec: (n) => new BigNumber(n).toString(10),
   BN: (n) => new BN4(n.toString(16)),
 };
 
 /**
  * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
- * Non-string values are returned unchanged.
  *
- * @param {unknown} str - The value to prefix. Non-string values are returned as-is.
- * @returns {string} The prefixed string, or the original value cast as string if not a string input.
+ * @param {string} str - The string to prefix.
+ * @returns {string} The prefixed string.
  */
 export const addHexPrefix = (str) => {
-  if (typeof str !== 'string') {
+  if (typeof str !== 'string' || str.match(regex.hexPrefix)) {
     return str;
   }
 
   if (str.match(regex.hexPrefix)) {
-    return str;
-  }
-
-  if (str.match(/^-?0X/u)) {
     return str.replace('0X', '0x');
   }
 
@@ -821,7 +813,7 @@ export function renderWei(value) {
  */
 export function renderNumber(number) {
   const index = number.indexOf('.');
-  if (index === -1) return number;
+  if (index === 0) return number;
   return number.substring(0, index + 6);
 }
 
@@ -869,7 +861,7 @@ const converter = ({
     }
     let rate = toBigNumber.dec(conversionRate);
     if (invertConversionRate) {
-      rate = new ScopedBigNumber(1.0).div(conversionRate);
+      rate = new BigNumber(1.0).div(conversionRate);
     }
     convertedValue = convertedValue.times(rate);
   }
@@ -947,8 +939,8 @@ export const calculateEthFeeForMultiLayer = ({
     fromDenomination: 'WEI',
     toDenomination: 'ETH',
   });
-  return new ScopedBigNumber(multiLayerL1FeeTotalDecEth)
-    .plus(new ScopedBigNumber(ethFee ?? 0))
+  return new BigNumber(multiLayerL1FeeTotalDecEth)
+    .plus(new BigNumber(ethFee ?? 0))
     .toString(10);
 };
 
