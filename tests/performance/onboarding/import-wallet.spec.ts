@@ -8,7 +8,6 @@ import {
   PlatformDetector,
   PlaywrightAssertions,
   PlaywrightGestures,
-  withSnapshotSettings,
 } from '../../framework';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';

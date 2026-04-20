@@ -2,11 +2,7 @@ import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper.js';
 import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-  withSnapshotSettings,
-} from '../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 

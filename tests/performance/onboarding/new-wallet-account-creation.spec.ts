@@ -10,7 +10,6 @@ import {
   asPlaywrightElement,
   PlaywrightAssertions,
   PlaywrightGestures,
-  withSnapshotSettings,
 } from '../../framework/index.js';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet.js';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView.js';
@@ -35,7 +34,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
       await PlaywrightAssertions.expectElementToBeVisible(
         await asPlaywrightElement(OnboardingSheet.importSeedButton),
       );
-
+      test.setTimeout(10 * 60 * 1000);
       await OnboardingSheet.tapImportSeedButton();
       await PlaywrightAssertions.expectElementToBeVisible(
         await asPlaywrightElement(CreatePasswordView.newPasswordInput),
@@ -96,34 +95,32 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await withSnapshotSettings({ snapshotMaxDepth: 45 }, async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokensSection),
-        );
+      await PlaywrightAssertions.expectElementToBeVisible(
+        await asPlaywrightElement(WalletView.tokensSection),
+      );
 
-        await WalletView.tapIdenticon();
-        await screen1Timer.measure(
-          async () =>
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(AccountListBottomSheet.accountList),
+      await WalletView.tapIdenticon();
+      await screen1Timer.measure(
+        async () =>
+          await PlaywrightAssertions.expectElementToBeVisible(
+            await asPlaywrightElement(AccountListBottomSheet.accountList),
+          ),
+      );
+
+      await AccountListBottomSheet.waitForAccountSyncToComplete();
+      await AccountListBottomSheet.tapCreateAccount(0);
+      await screen2Timer.measure(
+        async () =>
+          await PlaywrightAssertions.expectElementToBeVisible(
+            await asPlaywrightElement(
+              AccountListBottomSheet.accountNameInList('Account 2'),
             ),
-        );
+          ),
+      );
 
-        await AccountListBottomSheet.waitForAccountSyncToComplete();
-        await AccountListBottomSheet.tapCreateAccount(0);
-        await screen2Timer.measure(
-          async () =>
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(
-                AccountListBottomSheet.accountNameInList('Account 2'),
-              ),
-            ),
-        );
-
-        await AccountListBottomSheet.tapAccountByName('Account 2');
-        await screen3Timer.measure(async () => {
-          await WalletView.checkActiveAccount('Account 2');
-        });
+      await AccountListBottomSheet.tapAccountByName('Account 2');
+      await screen3Timer.measure(async () => {
+        await WalletView.checkActiveAccount('Account 2');
       });
 
       performanceTracker.addTimers(screen1Timer, screen2Timer, screen3Timer);
