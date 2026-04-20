@@ -104,6 +104,21 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it('renders the notification button', () => {
+    renderWithProvider(<TopTradersView />);
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to NotificationPreferencesView when notification button is pressed', () => {
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith('NotificationPreferencesView');
+  });
+
   it('renders all traders', () => {
     renderWithProvider(<TopTradersView />);
     fixtureTraders.forEach((trader) => {

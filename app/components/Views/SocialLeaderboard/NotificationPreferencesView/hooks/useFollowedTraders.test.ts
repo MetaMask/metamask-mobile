@@ -218,6 +218,34 @@ describe('useFollowedTraders', () => {
       renderHook(() => useFollowedTraders());
       expect(Logger.error).not.toHaveBeenCalled();
     });
+
+    it('clears a stale profileIdError when a subsequent getSessionProfile call succeeds', async () => {
+      const getSessionProfile = Engine.context.AuthenticationController
+        .getSessionProfile as jest.Mock;
+
+      getSessionProfile.mockRejectedValueOnce(new Error('no session'));
+
+      const { result, rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) => useFollowedTraders({ enabled }),
+        { initialProps: { enabled: true } },
+      );
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('no session');
+      });
+
+      // Now simulate a successful retry by re-enabling the hook (enabled
+      // toggles false → true, triggering a fresh getSessionProfile call).
+      getSessionProfile.mockResolvedValueOnce({
+        profileId: 'mock-profile-id',
+      });
+      rerender({ enabled: false });
+      rerender({ enabled: true });
+
+      await waitFor(() => {
+        expect(result.current.error).toBeNull();
+      });
+    });
   });
 
   describe('refresh', () => {

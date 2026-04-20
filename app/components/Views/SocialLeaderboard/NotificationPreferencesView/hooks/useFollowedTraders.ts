@@ -65,6 +65,7 @@ export const useFollowedTraders = (
         const session =
           await Engine.context.AuthenticationController.getSessionProfile();
         if (!cancelled) {
+          setProfileIdError(null);
           setProfileId(session.profileId);
         }
       } catch (err) {
