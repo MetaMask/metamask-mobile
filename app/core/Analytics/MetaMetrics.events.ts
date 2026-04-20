@@ -67,6 +67,7 @@ enum EVENT_NAME {
 
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
+  REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
   SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
@@ -173,6 +174,8 @@ enum EVENT_NAME {
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
   SOCIAL_LOGIN_FAILED = 'Social Login Failed',
+  SOCIAL_LOGIN_IOS_SUCCESS_VIEWED = 'Social Login iOS Success Viewed',
+  SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED = 'Social Login iOS Success CTA Clicked',
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
   ACCOUNT_NOT_FOUND_PAGE_VIEWED = 'Account Not Found Page Viewed',
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
@@ -798,6 +801,9 @@ const events = {
   REMOTE_CONNECTION_REQUEST_RECEIVED: generateOpt(
     EVENT_NAME.REMOTE_CONNECTION_REQUEST_RECEIVED,
   ),
+  REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
+  ),
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
   SDK_LEGACY_RPC_REQUEST_RECEIVED: generateOpt(
@@ -922,6 +928,12 @@ const events = {
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
   SOCIAL_LOGIN_FAILED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_FAILED),
+  SOCIAL_LOGIN_IOS_SUCCESS_VIEWED: generateOpt(
+    EVENT_NAME.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED,
+  ),
+  SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED: generateOpt(
+    EVENT_NAME.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED,
+  ),
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED: generateOpt(
     EVENT_NAME.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
   ),
