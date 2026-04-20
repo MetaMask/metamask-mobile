@@ -50,7 +50,7 @@ const MoneyActivityList = ({
         />
       ))}
       {onViewAllPress && (
-        <Box twClassName="px-3 my-3">
+        <Box twClassName="px-4 my-3">
           <Button
             variant={ButtonVariant.Secondary}
             isFullWidth

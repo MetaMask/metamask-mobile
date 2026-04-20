@@ -6,7 +6,7 @@ import {
   type AssetsControllerMessenger,
 } from '../../messengers/assets-controller';
 import type { MessengerClientInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { assetsControllerInit } from './assets-controller-init';
 import { AssetsController } from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -124,7 +124,7 @@ function getInitRequestMock(overrides?: {
   const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
 
   return {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger,
     initMessenger,
     persistedState: {},
@@ -342,7 +342,7 @@ describe('assetsControllerInit', () => {
       const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
 
       const requestMock = {
-        ...buildControllerInitRequestMock(baseMessenger),
+        ...buildMessengerClientInitRequestMock(baseMessenger),
         controllerMessenger,
         initMessenger,
         persistedState: {},

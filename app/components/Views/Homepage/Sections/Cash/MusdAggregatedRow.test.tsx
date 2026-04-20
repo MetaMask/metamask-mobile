@@ -12,13 +12,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const mockClaimRewards = jest.fn();
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn(),
-}));
-
 const mockUseMusdBalance = jest.fn(() => ({
   tokenBalanceAggregated: '1800.5',
   fiatBalanceAggregatedFormatted: '$1,800.50',
@@ -28,33 +21,8 @@ jest.mock('../../../../UI/Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: () => mockUseMusdBalance(),
 }));
 
-const mockUseMerklBonusClaim = jest.fn(() => ({
-  claimableReward: '10' as string | null,
-  hasPendingClaim: false,
-  claimRewards: mockClaimRewards,
-  isClaiming: false,
-  error: null as string | null,
-}));
-jest.mock(
-  '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
-  () => ({
-    useMerklBonusClaim: () => mockUseMerklBonusClaim(),
-  }),
-);
-
 jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: () => false,
-}));
-
-jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
-  useNetworkName: () => 'Linea Mainnet',
-}));
-
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
 }));
 
 const mockSelectMoneyHomeScreenEnabledFlag = jest.fn().mockReturnValue(false);
@@ -62,6 +30,24 @@ jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHomeScreenEnabledFlag: (state: unknown) =>
     mockSelectMoneyHomeScreenEnabledFlag(state),
 }));
+
+const mockClaimRewards = jest.fn();
+const mockUseMerklBonusClaim = jest.fn(
+  (_asset?: unknown, _location?: unknown, _isVisible?: unknown) => ({
+    claimableReward: null as string | null,
+    hasPendingClaim: false,
+    isClaiming: false,
+    claimRewards: mockClaimRewards,
+    lifetimeBonusClaimed: '0',
+  }),
+);
+jest.mock(
+  '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
+  () => ({
+    useMerklBonusClaim: (...args: [unknown, unknown, unknown?]) =>
+      mockUseMerklBonusClaim(...args),
+  }),
+);
 
 describe('MusdAggregatedRow', () => {
   beforeEach(() => {
@@ -72,11 +58,11 @@ describe('MusdAggregatedRow', () => {
       hasMusdBalanceOnAnyChain: false,
     });
     mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward: '10',
+      claimableReward: null,
       hasPendingClaim: false,
-      claimRewards: mockClaimRewards,
       isClaiming: false,
-      error: null,
+      claimRewards: mockClaimRewards,
+      lifetimeBonusClaimed: '0',
     });
   });
 
@@ -88,52 +74,46 @@ describe('MusdAggregatedRow', () => {
     expect(screen.getByText(/1,800\.5\s*mUSD/)).toBeOnTheScreen();
   });
 
-  it('renders Claim bonus when claimable and taps call claimRewards and trackEvent', () => {
+  it('shows green "3% bonus" when no claimable reward', () => {
     renderWithProvider(<MusdAggregatedRow />);
 
-    const claimButton = screen.getByText('Claim bonus');
-    expect(claimButton).toBeOnTheScreen();
+    expect(screen.queryByText('Claim 3% bonus')).toBeNull();
+    expect(screen.getByText('3% bonus')).toBeOnTheScreen();
+  });
 
-    fireEvent.press(claimButton);
+  it('shows blue "Claim 3% bonus" when claimable reward exists', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: '0.02',
+      hasPendingClaim: false,
+      isClaiming: false,
+      claimRewards: mockClaimRewards,
+      lifetimeBonusClaimed: '0',
+    });
 
-    expect(mockClaimRewards).toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockCreateEventBuilder).toHaveBeenCalled();
+    renderWithProvider(<MusdAggregatedRow />);
+
+    expect(screen.getByText('Claim 3% bonus')).toBeOnTheScreen();
+    expect(screen.queryByText('3% bonus')).toBeNull();
+  });
+
+  it('calls claimRewards when "Claim 3% bonus" is tapped', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: '0.02',
+      hasPendingClaim: false,
+      isClaiming: false,
+      claimRewards: mockClaimRewards,
+      lifetimeBonusClaimed: '0',
+    });
+
+    renderWithProvider(<MusdAggregatedRow />);
+
+    fireEvent.press(screen.getByText('Claim 3% bonus'));
+    expect(mockClaimRewards).toHaveBeenCalledTimes(1);
   });
 
   it('has cash-section-musd-row testID', () => {
     renderWithProvider(<MusdAggregatedRow />);
     expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
-  });
-
-  it('shows Spinner when isClaiming is true', () => {
-    mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward: '10',
-      hasPendingClaim: false,
-      claimRewards: mockClaimRewards,
-      isClaiming: true,
-      error: null,
-    });
-
-    renderWithProvider(<MusdAggregatedRow />);
-
-    expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
-    expect(screen.queryByText('Claim bonus')).toBeNull();
-  });
-
-  it('shows green "3% bonus" when not claimable', () => {
-    mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward: null,
-      hasPendingClaim: false,
-      claimRewards: mockClaimRewards,
-      isClaiming: false,
-      error: null,
-    });
-
-    renderWithProvider(<MusdAggregatedRow />);
-
-    expect(screen.queryByText('Claim bonus')).toBeNull();
-    expect(screen.getByText('3% bonus')).toBeOnTheScreen();
   });
 
   describe('handleTokenRowPress', () => {
@@ -157,66 +137,6 @@ describe('MusdAggregatedRow', () => {
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
-    });
-  });
-
-  describe('claimable bonus threshold (min $0.01)', () => {
-    it('hides Claim bonus when claimable reward is "< 0.01"', () => {
-      mockUseMerklBonusClaim.mockReturnValue({
-        claimableReward: null,
-        hasPendingClaim: false,
-        claimRewards: mockClaimRewards,
-        isClaiming: false,
-        error: null,
-      });
-
-      renderWithProvider(<MusdAggregatedRow />);
-
-      expect(screen.queryByText('Claim bonus')).toBeNull();
-      expect(screen.getByText('3% bonus')).toBeOnTheScreen();
-    });
-
-    it('shows Claim bonus when claimable reward is exactly 0.01', () => {
-      mockUseMerklBonusClaim.mockReturnValue({
-        claimableReward: '0.01',
-        hasPendingClaim: false,
-        claimRewards: mockClaimRewards,
-        isClaiming: false,
-        error: null,
-      });
-
-      renderWithProvider(<MusdAggregatedRow />);
-
-      expect(screen.getByText('Claim bonus')).toBeOnTheScreen();
-    });
-
-    it('hides Claim bonus when claimable reward is below 0.01', () => {
-      mockUseMerklBonusClaim.mockReturnValue({
-        claimableReward: null,
-        hasPendingClaim: false,
-        claimRewards: mockClaimRewards,
-        isClaiming: false,
-        error: null,
-      });
-
-      renderWithProvider(<MusdAggregatedRow />);
-
-      expect(screen.queryByText('Claim bonus')).toBeNull();
-      expect(screen.getByText('3% bonus')).toBeOnTheScreen();
-    });
-
-    it('shows Claim bonus when claimable reward is above 0.01', () => {
-      mockUseMerklBonusClaim.mockReturnValue({
-        claimableReward: '0.02',
-        hasPendingClaim: false,
-        claimRewards: mockClaimRewards,
-        isClaiming: false,
-        error: null,
-      });
-
-      renderWithProvider(<MusdAggregatedRow />);
-
-      expect(screen.getByText('Claim bonus')).toBeOnTheScreen();
     });
   });
 });

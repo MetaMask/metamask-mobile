@@ -1,4 +1,6 @@
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+} from '../../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import SendView from '../../../page-objects/Send/RedesignedSendView';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
@@ -84,12 +86,16 @@ const SIMULATION_RESPONSE = {
 };
 
 const setupCommonMocks = async (mockServer: Mockttp) => {
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.urlEndpoint,
-    response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
-    responseCode: 200,
-  });
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
+      responseCode: 200,
+    },
+    1000,
+  );
 
   // Mock infura_simulateTransactions
   await setupMockPostRequest(
@@ -108,12 +114,7 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
     SIMULATION_RESPONSE,
     {
       statusCode: 200,
-      ignoreFields: [
-        'id',
-        'params.0.blockOverrides',
-        'params.0.transactions',
-        'params.0.suggestFees',
-      ],
+      ignoreFields: ['id', 'params'],
       priority: 1000,
     },
   );
@@ -122,6 +123,28 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
     mockServer,
     Object.assign({}, ...remoteFeatureEip7702),
   );
+
+  await setupMockRequest(mockServer, {
+    url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
+    response: {
+      balances: [
+        {
+          object: 'token',
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'ETH',
+          name: 'Ether',
+          type: 'native',
+          decimals: 18,
+          chainId: 1337,
+          balance: '10.000000000000000000',
+          accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
+        },
+      ],
+      unprocessedNetworks: [],
+    },
+    requestMethod: 'GET',
+    responseCode: 200,
+  });
 };
 
 const createFixture = ({ localNodes }: { localNodes?: LocalNode[] }) => {

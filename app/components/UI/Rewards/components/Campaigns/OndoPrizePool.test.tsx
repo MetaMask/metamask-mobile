@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import OndoPrizePool, { ONDO_PRIZE_POOL_TEST_IDS } from './OndoPrizePool';
+import OndoPrizePool, {
+  ONDO_PRIZE_POOL_TEST_IDS,
+  getCurrentPrize,
+} from './OndoPrizePool';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -54,6 +57,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_prize_pool.next_label': 'Next',
       'rewards.ondo_campaign_prize_pool.volume_subtext':
         '{{current}} of {{target}} volume',
+      'rewards.ondo_campaign_prize_pool.max_tier_subtext':
+        '{{maxThreshold}}+ TVL — all milestones reached',
+      'rewards.ondo_campaign_prize_pool.max_badge': 'Max',
     };
     let result = t[key] ?? key;
     if (params) {
@@ -130,11 +136,30 @@ describe('OndoPrizePool', () => {
 
     expect(getByText('$100,000.00')).toBeDefined();
     expect(queryByText('Next')).toBeNull();
-    expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.SUBTEXT)).toBeDefined();
+
+    const subtext = getByTestId(ONDO_PRIZE_POOL_TEST_IDS.SUBTEXT);
+    expect(subtext.props.children).toBe('$6M+ TVL — all milestones reached');
 
     const progressBar = getByTestId(ONDO_PRIZE_POOL_TEST_IDS.PROGRESS_BAR);
     const innerBar = progressBar.props.children;
     expect(innerBar.props.style).toEqual({ width: '100%' });
+  });
+
+  it('shows max badge when at max tier', () => {
+    const { getByTestId, getByText } = render(
+      <OndoPrizePool {...baseProps} totalUsdDeposited="7000000" />,
+    );
+
+    expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
+    expect(getByText('Max')).toBeDefined();
+  });
+
+  it('does not show max badge when not at max tier', () => {
+    const { queryByTestId } = render(
+      <OndoPrizePool {...baseProps} totalUsdDeposited="2000000" />,
+    );
+
+    expect(queryByTestId(ONDO_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeNull();
   });
 
   it('calculates correct progress for $2M deposits (between $1.5M and $3.5M)', () => {
@@ -191,5 +216,42 @@ describe('OndoPrizePool', () => {
       getByTestId(`${ONDO_PRIZE_POOL_TEST_IDS.ERROR_BANNER}-retry`),
     );
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getCurrentPrize', () => {
+  it('returns $25,000 for $0 deposits', () => {
+    expect(getCurrentPrize(0)).toBe(25_000);
+  });
+
+  it('returns $25,000 for deposits below $1.5M', () => {
+    expect(getCurrentPrize(500_000)).toBe(25_000);
+    expect(getCurrentPrize(1_499_999)).toBe(25_000);
+  });
+
+  it('returns $50,000 at exactly $1.5M', () => {
+    expect(getCurrentPrize(1_500_000)).toBe(50_000);
+  });
+
+  it('returns $50,000 for deposits between $1.5M and $3.5M', () => {
+    expect(getCurrentPrize(2_000_000)).toBe(50_000);
+    expect(getCurrentPrize(3_499_999)).toBe(50_000);
+  });
+
+  it('returns $75,000 at exactly $3.5M', () => {
+    expect(getCurrentPrize(3_500_000)).toBe(75_000);
+  });
+
+  it('returns $75,000 for deposits between $3.5M and $6M', () => {
+    expect(getCurrentPrize(4_500_000)).toBe(75_000);
+    expect(getCurrentPrize(5_999_999)).toBe(75_000);
+  });
+
+  it('returns $100,000 at exactly $6M', () => {
+    expect(getCurrentPrize(6_000_000)).toBe(100_000);
+  });
+
+  it('returns $100,000 for deposits above $6M', () => {
+    expect(getCurrentPrize(10_000_000)).toBe(100_000);
   });
 });

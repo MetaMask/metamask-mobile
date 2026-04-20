@@ -47,6 +47,10 @@ window.ohlcvPagination = {
 };
 /** Bumped on each \`SET_OHLCV_DATA\` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
+/** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
+window.visibleFromMs = null;
+/** Visible-range end (ms) from RN; anchors the timeframe \`to\` to the last candle instead of Date.now(). */
+window.visibleToMs = null;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
@@ -432,6 +436,10 @@ function handleSetOHLCVData(payload) {
 
   var visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
+  window.visibleFromMs = visibleFromMs;
+
+  var visibleToMs = payload.visibleToMs != null ? payload.visibleToMs : null;
+  window.visibleToMs = visibleToMs;
 
   var newResolution = detectResolution(window.ohlcvData);
 
@@ -450,10 +458,13 @@ function handleSetOHLCVData(payload) {
       var toSec = lastBar
         ? Math.ceil(lastBar.time / 1000)
         : Math.ceil(Date.now() / 1000);
+      // Pad \`to\` forward by 2 bar durations so the end dot clears the price axis.
+      // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
+      var barPadSec = getApproxBarDurationSec() * 2;
       try {
         chart.setVisibleRange(
-          { from: fromSec, to: toSec },
-          { percentRightMargin: 5 },
+          { from: fromSec, to: toSec + barPadSec },
+          { percentRightMargin: 0 },
         );
       } catch (e) {
         // setVisibleRange can fail if chart is mid-teardown
@@ -752,7 +763,6 @@ function scheduleLineChartLayoutReflow() {
     if (!window.chartWidget || window.currentChartType !== 2) return;
     try {
       syncMainSeriesToRightScale();
-      syncTimeScaleRightMargin(true);
     } catch (e) {}
   }
   try {
@@ -790,15 +800,13 @@ function applyChartScaleLayout(type) {
       'timeScale.borderColor': axisLineColor,
       'scalesProperties.lineColor': axisLineColor,
       'paneProperties.separatorColor': theme.backgroundColor,
-      'paneProperties.topMargin': 8,
-      // Same margin in both modes so scale padding (and logo anchor) does not shift on toggle.
+      'paneProperties.topMargin': 12,
       'paneProperties.bottomMargin': 8,
     });
   } catch (e) {}
 
   removeLineChartMarkupStyle();
   syncMainSeriesToRightScale();
-  syncTimeScaleRightMargin(isLineChart);
   if (isLineChart) {
     scheduleLineChartLayoutReflow();
   }
@@ -1124,27 +1132,34 @@ function hideCustomSeriesLastValueLabelDom() {
 }
 
 /**
- * Updates \`#custom-series-last-value-label\`: **close price of the rightmost OHLCV bar whose time
- * still lies inside the chart’s visible bars range**, positioned on the price scale like the
- * last-close pill. Shown only when:
- * - \`getLineChrome().useCustomPriceLabels\`, and
- * - chart is ready with data, and
- * - chart type is candle or line, and
- * - the **series tail** (latest bar) is **not** in the visible time window (e.g. user panned left),
- * - and we successfully resolve a visible-edge bar and a Y coordinate.
- *
- * When the outline’s chart Y would overlap the filled last-close pill, nudges the outline
- * **up or down** (smaller vs larger Y) so the higher price stays above the lower on the pane.
- *
- * Candlestick: outline border + text use theme success (close >= open) or error (down bar).
- * Line chart: success color only (matches single-series stroke).
+ * Whether to hide the outline price pill: {@link isCustomLineEndMarkerVisibleInPlot} (geometry) plus
+ * {@link isSeriesTailOffScreenByData} so panning to old history (newest bar not in visible window) still
+ * shows the outline when coordinateToTime alone would wrongly hide it.
+ */
+function shouldHideVisibleEdgeOutlinePill(chart, tailSec, ohlcvData) {
+  if (tailSec === null || !isFinite(Number(tailSec))) {
+    return true;
+  }
+  const geo = isCustomLineEndMarkerVisibleInPlot(chart, Number(tailSec));
+  const dataOff = ohlcvData?.length
+    ? isSeriesTailOffScreenByData(chart, ohlcvData)
+    : null;
+  if (geo === false || dataOff === true) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Outline pill: shown when geometry or data says the series tail is off-screen (see
+ * {@link shouldHideVisibleEdgeOutlinePill}).
  */
 function updateVisibleEdgeOutlinePriceLabel() {
-  var elOut = document.getElementById('custom-series-last-value-label');
+  const elOut = document.getElementById('custom-series-last-value-label');
   if (!elOut) {
     return;
   }
-  var w = window;
+  const w = window;
   if (
     !getLineChrome().useCustomPriceLabels ||
     !w.chartWidget ||
@@ -1155,45 +1170,54 @@ function updateVisibleEdgeOutlinePriceLabel() {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var ct = w.currentChartType;
+  const ct = w.currentChartType;
   if (ct !== 1 && ct !== 2) {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var chart = w.chartWidget.activeChart();
-  var tailBar = w.ohlcvData[w.ohlcvData.length - 1];
-  if (isSeriesTailBarTimeVisibleOnChart(chart, tailBar.time)) {
+  const chart = w.chartWidget.activeChart();
+  const tailBar = w.ohlcvData[w.ohlcvData.length - 1];
+  const tailSec = normalizeChartUnixSec(tailBar.time);
+  if (shouldHideVisibleEdgeOutlinePill(chart, tailSec, w.ohlcvData)) {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var edgeBar = getRightmostOhlcvBarInVisibleTimeRange(chart, w.ohlcvData);
+  const edgeBar = getVisibleEdgeOutlineBar(chart, w.ohlcvData);
   if (!edgeBar) {
     hideCustomSeriesLastValueLabelDom();
     return;
   }
-  var price = edgeBar.close;
-  var y = getPriceYForLastCloseOverlay(chart, price);
+  let price = Number(edgeBar.close);
+  if (ct === 2) {
+    const tEdgeMs = getVisiblePlotRightEdgeTimeMs(chart);
+    if (tEdgeMs !== null) {
+      const pLine = interpolateCloseAlongLineAtTimeMs(w.ohlcvData, tEdgeMs);
+      if (pLine !== null && isFinite(pLine)) {
+        price = pLine;
+      }
+    }
+  }
+  const y = getPriceYForLastCloseOverlay(chart, price);
   if (y === null || y === undefined || isNaN(y)) {
     elOut.style.display = 'none';
     elOut.style.borderColor = '';
     elOut.style.color = '';
     return;
   }
-  var lastBarClose = w.ohlcvData[w.ohlcvData.length - 1];
-  var resolvedLast = resolveLineEndOverlayPoint(chart);
-  var lastClosePrice =
+  const resolvedLast = resolveLineEndOverlayPoint(chart);
+  const lastClosePrice =
     resolvedLast && isFinite(resolvedLast.price)
       ? resolvedLast.price
-      : lastBarClose.close;
-  var yLastClose = getPriceYForLastCloseOverlay(chart, lastClosePrice);
+      : tailBar.close;
+  const yLastClose = getPriceYForLastCloseOverlay(chart, lastClosePrice);
 
-  var theme = (w.CONFIG && w.CONFIG.theme) || {};
-  var upColor = theme.successColor || '#0C9F76';
-  var downColor = theme.errorColor || '#E06470';
-  var outlineColor = upColor;
+  const theme = (w.CONFIG && w.CONFIG.theme) || {};
+  const upColor = theme.successColor || '#0C9F76';
+  const downColor = theme.errorColor || '#E06470';
+  let outlineColor = upColor;
   if (ct === 1) {
-    var o = Number(edgeBar.open);
-    var c = Number(edgeBar.close);
+    const o = Number(edgeBar.open);
+    const c = Number(edgeBar.close);
     if (isFinite(o) && isFinite(c) && c < o) {
       outlineColor = downColor;
     }
@@ -1202,16 +1226,17 @@ function updateVisibleEdgeOutlinePriceLabel() {
   elOut.style.color = outlineColor;
   elOut.textContent = formatCrosshairPrice(price);
   elOut.style.display = 'flex';
-  var overlayOut = document.getElementById('custom-crosshair-overlay');
+  const overlayOut = document.getElementById('custom-crosshair-overlay');
 
-  var yPos = y;
+  let yPos = y;
   positionPricePillAtPlotPriceBoundary(elOut, overlayOut, yPos);
-  var gapPx = 4;
-  var elLast = document.getElementById('last-close-price-label');
-  var hO = elOut.offsetHeight;
+  const gapPx = 4;
+  const elLast = document.getElementById('last-close-price-label');
+  let hO = elOut.offsetHeight;
   if (!hO || hO < 8) {
     hO = 24;
   }
+  /* Nudge outline if it overlaps last-close pill: higher price → above, else below (ties = below). */
   if (
     elLast &&
     elLast.style.display !== 'none' &&
@@ -1220,18 +1245,18 @@ function updateVisibleEdgeOutlinePriceLabel() {
     yLastClose !== undefined &&
     !isNaN(yLastClose)
   ) {
-    var hF = elLast.offsetHeight;
-    var half = (hF + hO) / 2 + gapPx;
+    const hF = elLast.offsetHeight;
+    const half = (hF + hO) / 2 + gapPx;
     if (Math.abs(y - yLastClose) < half) {
-      var minCenter = hO / 2 + 2;
-      var maxCenter =
+      const minCenter = hO / 2 + 2;
+      const maxCenter =
         overlayOut && overlayOut.clientHeight > 0
           ? overlayOut.clientHeight - hO / 2 - 2
           : Infinity;
-      var edgeAboveFilled =
-        y < yLastClose ||
-        (Math.abs(y - yLastClose) < 1 &&
-          Number(price) > Number(lastClosePrice));
+      const pOut = Number(price);
+      const pLast = Number(lastClosePrice);
+      const edgeAboveFilled =
+        isFinite(pOut) && isFinite(pLast) ? pOut > pLast : y < yLastClose;
       if (edgeAboveFilled) {
         yPos = yLastClose - hF / 2 - gapPx - hO / 2;
         if (yPos < minCenter) {
@@ -1249,39 +1274,47 @@ function updateVisibleEdgeOutlinePriceLabel() {
 }
 
 /**
- * Y pixel for a price (same space as crosshair \`offsetY\`). Uses
- * \`priceToCoordinate\` / \`priceToPixels\` when present; else visible range → pane height.
+ * Y pixel for a price (crosshair overlay space). \`getVisiblePriceRange\` + \`getHeight\` + \`isInverted\`;
+ * \`getMode() === 1\` (log) uses log mapping.
  */
 function getPriceYForLastCloseOverlay(chart, price) {
   if (!chart || price === undefined || price === null || isNaN(Number(price))) {
     return null;
   }
-  var p = Number(price);
+  const p = Number(price);
   try {
-    var panes = chart.getPanes();
+    const panes = chart.getPanes();
     if (!panes || !panes.length) return null;
-    var pane = panes[0];
-    var scale = pane.getMainSourcePriceScale();
+    const pane = panes[0];
+    const scale = pane.getMainSourcePriceScale();
     if (!scale) return null;
 
-    var y;
-    if (typeof scale.priceToCoordinate === 'function') {
-      y = scale.priceToCoordinate(p);
-    } else if (typeof scale.priceToPixels === 'function') {
-      y = scale.priceToPixels(p);
-    }
-    if (y !== null && y !== undefined && !isNaN(y)) return y;
-
-    var range = scale.getVisiblePriceRange();
+    const range = scale.getVisiblePriceRange();
     if (!range || range.from === undefined || range.to === undefined) {
       return null;
     }
-    var lo = Math.min(range.from, range.to);
-    var hi = Math.max(range.from, range.to);
-    if (p < lo || p > hi) return null;
-    var h = pane.getHeight();
+    const lo = Math.min(range.from, range.to);
+    const hi = Math.max(range.from, range.to);
+    const h = pane.getHeight();
     if (!h || h <= 0) return null;
-    return ((hi - p) / (hi - lo)) * h;
+    const pClamped = Math.min(hi, Math.max(lo, p));
+    const inverted =
+      typeof scale.isInverted === 'function' && scale.isInverted();
+    const mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
+    if (mode === 1 && lo > 0 && hi > 0 && pClamped > 0) {
+      const logLo = Math.log(lo);
+      const logHi = Math.log(hi);
+      const logP = Math.log(pClamped);
+      if (logHi === logLo) {
+        return inverted ? 0 : h / 2;
+      }
+      const t = (logP - logLo) / (logHi - logLo);
+      return inverted ? t * h : (1 - t) * h;
+    }
+    if (inverted) {
+      return ((pClamped - lo) / (hi - lo)) * h;
+    }
+    return ((hi - pClamped) / (hi - lo)) * h;
   } catch (e) {
     return null;
   }
@@ -1417,27 +1450,6 @@ function subscribeLastCloseLabelUpdates() {
           scheduleLineEndDotAfterVisibleRangeChange();
         }
       });
-  } catch (e) {}
-}
-
-/**
- * Line chart: small right gap so the end dot isn’t flush/clipped against the pane edge.
- * Candle: small offset so createLastPriceLine isn’t clipped at the Y-axis.
- * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ITimeScaleApi/
- */
-var LINE_CHART_RIGHT_OFFSET_BARS = 1;
-var CANDLE_CHART_RIGHT_GAP_BARS = 1;
-
-function syncTimeScaleRightMargin(isLineChart) {
-  if (!window.chartWidget) return;
-  try {
-    var ts = window.chartWidget.activeChart().getTimeScale();
-    ts.usePercentageRightOffset().setValue(false);
-    var gap = isLineChart
-      ? LINE_CHART_RIGHT_OFFSET_BARS
-      : CANDLE_CHART_RIGHT_GAP_BARS;
-    ts.defaultRightOffset().setValue(gap);
-    ts.setRightOffset(gap);
   } catch (e) {}
 }
 
@@ -2459,27 +2471,41 @@ function resolveLineEndOverlayPoint(chart) {
  * Normalize TV/chart timestamps to unix **seconds** (library mixes sec/ms in places).
  */
 function normalizeChartUnixSec(t) {
-  var n = Number(t);
+  const n = Number(t);
   if (!isFinite(n)) {
     return null;
   }
   return n >= 1e12 ? Math.floor(n / 1000) : Math.floor(n);
 }
 
+/** Raw TV timestamp → unix ms (keeps sub-second precision vs {@link normalizeChartUnixSec}). */
+function chartRawTimeToUnixMs(rawT) {
+  const n = Number(rawT);
+  if (!isFinite(n)) {
+    return null;
+  }
+  if (n >= 1e12) {
+    return n;
+  }
+  return n * 1000;
+}
+
 /**
  * Step between last two OHLCV bars in seconds (for visible-range alignment checks).
  */
 function getApproxBarDurationSec() {
-  var d = window.ohlcvData;
+  const d = window.ohlcvData;
   if (!d || d.length < 2) {
     return 300;
   }
-  var ms = Math.abs(d[d.length - 1].time - d[d.length - 2].time);
+  const ms = Math.abs(d[d.length - 1].time - d[d.length - 2].time);
   return Math.max(60, Math.round(ms / 1000));
 }
 
-/** Pixels inset from time-scale right so \`coordinateToTime\` samples left of the price scale (16px dot + margin). */
+/** Time-scale inset from right so line-end icon stays on-screen (not under price scale). */
 var LINE_END_ICON_TIME_INSET_PX = 40;
+/** Outline edge sample inset (0 = rightmost pixel; not the line-icon inset). */
+var OUTLINE_EDGE_TIME_INSET_PX = 0;
 var LINE_END_ICON_PROBE_STEP_PX = 8;
 var LINE_END_ICON_MAX_PROBES = 14;
 
@@ -2487,7 +2513,7 @@ var LINE_END_ICON_MAX_PROBES = 14;
  * Skip extrapolation during interval switches / odd zoom: too few bars, incoherent visible range vs data.
  */
 function shouldSkipLineEndIconTimeExtrapolation(chart, lastBarTimeSec) {
-  var d = window.ohlcvData;
+  const d = window.ohlcvData;
   if (!d || d.length < 2) {
     return true;
   }
@@ -2495,18 +2521,18 @@ function shouldSkipLineEndIconTimeExtrapolation(chart, lastBarTimeSec) {
     return true;
   }
   try {
-    var br = chart.getVisibleBarsRange();
+    const br = chart.getVisibleBarsRange();
     if (!br || br.from === undefined || br.to === undefined) {
       return true;
     }
-    var brFromSec = normalizeChartUnixSec(br.from);
-    var brToSec = normalizeChartUnixSec(br.to);
+    const brFromSec = normalizeChartUnixSec(br.from);
+    const brToSec = normalizeChartUnixSec(br.to);
     if (brFromSec === null || brToSec === null) {
       return true;
     }
-    var barDur = getApproxBarDurationSec();
-    var visibleSpan = Math.abs(brToSec - brFromSec);
-    var n = d.length;
+    const barDur = getApproxBarDurationSec();
+    const visibleSpan = Math.abs(brToSec - brFromSec);
+    const n = d.length;
     if (visibleSpan > barDur * Math.max(n, 1) * 96) {
       return true;
     }
@@ -2524,15 +2550,15 @@ function shouldSkipLineEndIconTimeExtrapolation(chart, lastBarTimeSec) {
 
 function trailingVisibleBarMatchesSeriesLast(chart, lastBarTimeSec) {
   try {
-    var br = chart.getVisibleBarsRange();
+    const br = chart.getVisibleBarsRange();
     if (!br || br.to === undefined || br.to === null) {
       return false;
     }
-    var brToSec = normalizeChartUnixSec(br.to);
+    const brToSec = normalizeChartUnixSec(br.to);
     if (brToSec === null) {
       return false;
     }
-    var barDur = getApproxBarDurationSec();
+    const barDur = getApproxBarDurationSec();
     return (
       lastBarTimeSec <= brToSec + barDur &&
       lastBarTimeSec >= brToSec - 2 * barDur
@@ -2542,59 +2568,162 @@ function trailingVisibleBarMatchesSeriesLast(chart, lastBarTimeSec) {
   }
 }
 
+/** Helpers for {@link isCustomLineEndMarkerVisibleInPlot} (time ↔ x on the time scale). */
+
 /**
- * Reads TradingView’s current visible bars range and returns normalized **Unix seconds** bounds
- * \`{ lo, hi }\` (always \`lo <= hi\`). Used by both “is tail visible?” and “which bars intersect?”.
+ * @param {object} ts - \`chart.getTimeScale()\`
+ * @param {number} x
+ * @returns {number | null} unix seconds
+ */
+function timeScaleCoordinateToTimeSec(ts, x) {
+  const raw = ts.coordinateToTime(x);
+  if (raw == null || raw === undefined) {
+    return null;
+  }
+  return normalizeChartUnixSec(raw);
+}
+
+/**
+ * Smallest x in [0, maxX] with coordinate time ≥ tNorm (binary search; assumes time increases with x).
+ *
+ * @returns {number | null}
+ */
+function findSmallestXWhereTimeGte(ts, maxX, tNorm) {
+  const tLo = timeScaleCoordinateToTimeSec(ts, 0);
+  const tHi = timeScaleCoordinateToTimeSec(ts, maxX);
+  if (tLo === null || tHi === null) {
+    return null;
+  }
+  if (tHi < tNorm) {
+    return null;
+  }
+  if (tLo >= tNorm) {
+    return 0;
+  }
+  let lo = 0;
+  let hi = maxX;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    const tm = timeScaleCoordinateToTimeSec(ts, mid);
+    if (tm === null) {
+      return null;
+    }
+    if (tm < tNorm) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+  return lo;
+}
+
+/**
+ * Single source of truth for “would the custom line-end marker appear in the plot before the chrome
+ * inset?” — same horizontal rules as {@link getLineEndIconTimeSec} + {@link LINE_END_ICON_TIME_INSET_PX}
+ * (inverse of \`coordinateToTime\` via {@link findSmallestXWhereTimeGte}).
  *
  * @param {object} chart - \`widget.activeChart()\`
- * @returns {{ lo: number, hi: number } | null} null if range unavailable or timestamps invalid
+ * @param {number} lastBarTimeSec - unix seconds, OHLCV tail (same as line overlay)
+ * @returns {boolean | null} true = marker visible in plot (hide outline pill), false = not visible (show outline), null = unknown (hide outline)
  */
-function getVisibleTimeRangeSecFromChart(chart) {
+function isCustomLineEndMarkerVisibleInPlot(chart, lastBarTimeSec) {
+  if (!chart || lastBarTimeSec == null || !isFinite(Number(lastBarTimeSec))) {
+    return null;
+  }
   try {
-    var br = chart.getVisibleBarsRange();
-    if (!br || br.from === undefined || br.to === undefined) {
+    const ts = chart.getTimeScale();
+    if (
+      !ts ||
+      typeof ts.coordinateToTime !== 'function' ||
+      typeof ts.width !== 'function'
+    ) {
       return null;
     }
-    var fromSec = normalizeChartUnixSec(br.from);
-    var toSec = normalizeChartUnixSec(br.to);
-    if (fromSec === null || toSec === null) {
+    const plotW = ts.width();
+    if (!(plotW > LINE_END_ICON_TIME_INSET_PX + 4)) {
       return null;
     }
-    return {
-      lo: Math.min(fromSec, toSec),
-      hi: Math.max(fromSec, toSec),
-    };
+    const markerTimeSec = getLineEndIconTimeSec(chart, Number(lastBarTimeSec));
+    const tNorm = normalizeChartUnixSec(markerTimeSec);
+    if (tNorm === null) {
+      return null;
+    }
+    const xCut = Math.max(
+      0,
+      Math.floor(plotW - LINE_END_ICON_TIME_INSET_PX - 1),
+    );
+    const maxX = Math.max(0, Math.floor(plotW - 1));
+
+    const tMax = timeScaleCoordinateToTimeSec(ts, maxX);
+    const tMin = timeScaleCoordinateToTimeSec(ts, 0);
+    if (tMin === null || tMax === null) {
+      return null;
+    }
+    /* Marker time past the right edge of the plot → not visible (panned off). */
+    if (tNorm > tMax) {
+      return false;
+    }
+    /* Same conservative branch as before: treat as visible for outline (hide pill). */
+    if (tNorm < tMin) {
+      return true;
+    }
+
+    const xFirst = findSmallestXWhereTimeGte(ts, maxX, tNorm);
+    if (xFirst === null) {
+      return null;
+    }
+    return xFirst <= xCut;
   } catch (e) {
     return null;
   }
 }
 
 /**
- * True if the **dataset’s last bar** (by time) lies inside—or immediately adjacent to—the visible
- * bars range (using \`getApproxBarDurationSec\` slack). When false, the user has panned/zoomed so the
- * “current” candle/line endpoint is no longer on-screen (typical: panned left, tail off the right).
+ * Reads TradingView’s visible time window as **Unix seconds** \`{ lo, hi }\` (\`lo <= hi\`).
+ * Prefer \`getVisibleBarsRange()\`; if it is null mid-scroll, fall back to \`getVisibleRange()\`.
  *
- * Returns **true** if we cannot read the range (fail-safe: do not show the outline pill).
- *
- * @param {object} chart
- * @param {number} lastBarTimeMs - \`ohlcvData\` tail \`.time\` (milliseconds)
+ * @param {object} chart - \`widget.activeChart()\`
+ * @returns {{ lo: number, hi: number } | null} null if range unavailable or timestamps invalid
  */
-function isSeriesTailBarTimeVisibleOnChart(chart, lastBarTimeMs) {
-  var range = getVisibleTimeRangeSecFromChart(chart);
-  if (!range) {
-    return true;
+function getVisibleTimeRangeSecFromChart(chart) {
+  let fromSec;
+  let toSec;
+  try {
+    const br = chart.getVisibleBarsRange();
+    if (br?.from !== undefined && br?.to !== undefined) {
+      fromSec = normalizeChartUnixSec(br.from);
+      toSec = normalizeChartUnixSec(br.to);
+      if (fromSec !== null && toSec !== null) {
+        return {
+          lo: Math.min(fromSec, toSec),
+          hi: Math.max(fromSec, toSec),
+        };
+      }
+    }
+  } catch (eBr) {
+    void eBr;
   }
-  var lastSec = normalizeChartUnixSec(lastBarTimeMs);
-  if (lastSec === null) {
-    return true;
+  try {
+    const vr = chart.getVisibleRange?.();
+    if (vr?.from !== undefined && vr?.to !== undefined) {
+      fromSec = normalizeChartUnixSec(vr.from);
+      toSec = normalizeChartUnixSec(vr.to);
+      if (fromSec !== null && toSec !== null) {
+        return {
+          lo: Math.min(fromSec, toSec),
+          hi: Math.max(fromSec, toSec),
+        };
+      }
+    }
+  } catch (eVr) {
+    return null;
   }
-  var slack = getApproxBarDurationSec() * 2;
-  return lastSec >= range.lo - slack && lastSec <= range.hi + slack;
+  return null;
 }
 
 /**
  * Among bars in \`data\`, returns the one with the **maximum \`time\`** that still falls inside the
- * visible range (milliseconds, with the same slack as \`isSeriesTailBarTimeVisibleOnChart\`). This is
+ * visible range (milliseconds, slack from \`getApproxBarDurationSec\`). This is
  * the **rightmost historical bar still drawn** in the viewport—the “visible edge” for the outline
  * pill’s close price.
  *
@@ -2603,18 +2732,17 @@ function isSeriesTailBarTimeVisibleOnChart(chart, lastBarTimeMs) {
  * @returns {object | null} bar object or null if none intersect
  */
 function getRightmostOhlcvBarInVisibleTimeRange(chart, data) {
-  var range = getVisibleTimeRangeSecFromChart(chart);
+  const range = getVisibleTimeRangeSecFromChart(chart);
   if (!range || !data || !data.length) {
     return null;
   }
-  var slackSec = getApproxBarDurationSec() * 2;
-  var loMs = (range.lo - slackSec) * 1000;
-  var hiMs = (range.hi + slackSec) * 1000;
-  var best = null;
-  var i;
-  for (i = 0; i < data.length; i++) {
-    var b = data[i];
-    var t = b.time;
+  const slackSec = getApproxBarDurationSec() * 2;
+  const loMs = (range.lo - slackSec) * 1000;
+  const hiMs = (range.hi + slackSec) * 1000;
+  let best = null;
+  for (let i = 0; i < data.length; i++) {
+    const b = data[i];
+    const t = b.time;
     if (t >= loMs && t <= hiMs) {
       if (!best || t > best.time) {
         best = b;
@@ -2622,6 +2750,143 @@ function getRightmostOhlcvBarInVisibleTimeRange(chart, data) {
     }
   }
   return best;
+}
+
+/**
+ * True when the **newest** OHLCV bar is **not** among the bars intersecting the visible time range:
+ * the rightmost visible bar is strictly older than the series tail (user panned the tail off-screen).
+ *
+ * @param {object} chart - \`widget.activeChart()\`
+ * @param {Array<{ time: number }>} data - \`window.ohlcvData\`
+ * @returns {boolean | null} true = tail off-screen by data, false = tail still in range, null = unknown
+ */
+function isSeriesTailOffScreenByData(chart, data) {
+  if (!chart || !data || !data.length) {
+    return null;
+  }
+  const tail = data[data.length - 1];
+  const tailMs = tail.time;
+  const rightmost = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
+  if (!rightmost) {
+    return null;
+  }
+  if (rightmost === tail || rightmost.time === tailMs) {
+    return false;
+  }
+  const barDurMs = getApproxBarDurationSec() * 1000;
+  const halfBarSlackMs = Math.max(1, barDurMs * 0.5);
+  if (tailMs - rightmost.time <= halfBarSlackMs) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Bar for the outline pill’s price: same as {@link getRightmostOhlcvBarInVisibleTimeRange}, then
+ * if that is null (gaps at scroll limits), retry with looser slack so the pill does not vanish
+ * when the tail is still off-screen.
+ *
+ * @param {object} chart
+ * @param {Array<{ time: number, close: number }>} data - \`window.ohlcvData\`
+ * @returns {object | null}
+ */
+function getVisibleEdgeOutlineBar(chart, data) {
+  const primary = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
+  if (primary) {
+    return primary;
+  }
+  const range = getVisibleTimeRangeSecFromChart(chart);
+  if (!range || !data || !data.length) {
+    return null;
+  }
+  const barDur = getApproxBarDurationSec();
+  const looseSlackSec = barDur * 6;
+  const loMs = (range.lo - looseSlackSec) * 1000;
+  const hiMs = (range.hi + looseSlackSec) * 1000;
+  let best = null;
+  for (let i = 0; i < data.length; i++) {
+    const b = data[i];
+    const t = b.time;
+    if (t >= loMs && t <= hiMs) {
+      if (!best || t > best.time) {
+        best = b;
+      }
+    }
+  }
+  return best;
+}
+
+/** \`coordinateToTime\` at plot right edge (see {@link OUTLINE_EDGE_TIME_INSET_PX}); capped to \`visibleRange.to\`. */
+function getVisiblePlotRightEdgeTimeMs(chart) {
+  if (!chart) {
+    return null;
+  }
+  try {
+    const ts = chart.getTimeScale();
+    if (
+      !ts ||
+      typeof ts.coordinateToTime !== 'function' ||
+      typeof ts.width !== 'function'
+    ) {
+      return null;
+    }
+    const w = ts.width();
+    if (!(w > OUTLINE_EDGE_TIME_INSET_PX + 2)) {
+      return null;
+    }
+    const x = Math.max(0, Math.floor(w - OUTLINE_EDGE_TIME_INSET_PX - 1));
+    const rawT = ts.coordinateToTime(x);
+    if (rawT === null || rawT === undefined) {
+      return null;
+    }
+    let tMs = chartRawTimeToUnixMs(rawT);
+    if (tMs === null) {
+      return null;
+    }
+    const vr = chart.getVisibleRange?.();
+    if (vr?.to !== undefined && vr?.to !== null) {
+      const capMs = chartRawTimeToUnixMs(vr.to);
+      if (capMs !== null && tMs > capMs) {
+        tMs = capMs;
+      }
+    }
+    return tMs;
+  } catch (e) {
+    return null;
+  }
+}
+
+/** Interpolate close between consecutive bars (line chart path). */
+function interpolateCloseAlongLineAtTimeMs(data, tMs) {
+  if (!data || !data.length || !isFinite(tMs)) {
+    return null;
+  }
+  const first = data[0];
+  const last = data[data.length - 1];
+  if (tMs <= first.time) {
+    const c0 = Number(first.close);
+    return isFinite(c0) ? c0 : null;
+  }
+  if (tMs >= last.time) {
+    const cL = Number(last.close);
+    return isFinite(cL) ? cL : null;
+  }
+  for (let i = 0; i < data.length - 1; i++) {
+    const t0 = data[i].time;
+    const t1 = data[i + 1].time;
+    if (tMs >= t0 && tMs <= t1) {
+      const a = Number(data[i].close);
+      const b = Number(data[i + 1].close);
+      if (!isFinite(a) || !isFinite(b)) {
+        return null;
+      }
+      if (t1 === t0) {
+        return a;
+      }
+      return a + ((b - a) * (tMs - t0)) / (t1 - t0);
+    }
+  }
+  return null;
 }
 
 /**
@@ -2639,7 +2904,7 @@ function getLineEndIconTimeSec(chart, lastBarTimeSec) {
     return lastBarTimeSec;
   }
   try {
-    var ts = chart.getTimeScale();
+    const ts = chart.getTimeScale();
     if (
       !ts ||
       typeof ts.coordinateToTime !== 'function' ||
@@ -2647,32 +2912,31 @@ function getLineEndIconTimeSec(chart, lastBarTimeSec) {
     ) {
       return lastBarTimeSec;
     }
-    var w = ts.width();
+    const w = ts.width();
     if (!(w > LINE_END_ICON_TIME_INSET_PX + 4)) {
       return lastBarTimeSec;
     }
-    var vr = chart.getVisibleRange();
-    var capSec =
-      vr && vr.to !== undefined && vr.to !== null
+    const vr = chart.getVisibleRange?.();
+    const capSec =
+      vr?.to !== undefined && vr?.to !== null
         ? normalizeChartUnixSec(vr.to)
         : null;
-    var k;
-    for (k = 0; k < LINE_END_ICON_MAX_PROBES; k++) {
-      var x = Math.max(
+    for (let k = 0; k < LINE_END_ICON_MAX_PROBES; k++) {
+      const x = Math.max(
         0,
         Math.floor(
           w - LINE_END_ICON_TIME_INSET_PX - k * LINE_END_ICON_PROBE_STEP_PX,
         ),
       );
-      var rawT = ts.coordinateToTime(x);
+      const rawT = ts.coordinateToTime(x);
       if (rawT === null || rawT === undefined) {
         continue;
       }
-      var numT = Number(rawT);
+      const numT = Number(rawT);
       if (!isFinite(numT)) {
         continue;
       }
-      var tNorm = normalizeChartUnixSec(numT);
+      let tNorm = normalizeChartUnixSec(numT);
       if (tNorm === null) {
         continue;
       }
@@ -3028,6 +3292,7 @@ var OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
  */
 function fetchOlderBars(pending) {
   var pag = window.ohlcvPagination;
+
   if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
     pending.onResult([], { noData: true });
     if (window.__mmLayoutSettlePending) {
@@ -3037,15 +3302,15 @@ function fetchOlderBars(pending) {
   }
 
   var gen = window.ohlcvGeneration;
-  var url =
-    OHLCV_BASE_URL +
-    '/' +
-    encodeURIComponent(pag.assetId) +
-    '?nextCursor=' +
-    encodeURIComponent(pag.nextCursor);
+  // Build URL using the same approach as RN: construct then add query params
+  // AssetId contains "/" which should be preserved in the path
+  var url = OHLCV_BASE_URL + '/' + pag.assetId;
+  var queryParams = [];
+  queryParams.push('nextCursor=' + encodeURIComponent(pag.nextCursor));
   if (pag.vsCurrency) {
-    url += '&vsCurrency=' + encodeURIComponent(pag.vsCurrency);
+    queryParams.push('vsCurrency=' + encodeURIComponent(pag.vsCurrency));
   }
+  url = url + '?' + queryParams.join('&');
 
   fetch(url)
     .then(function (response) {
@@ -3308,9 +3573,25 @@ function initChart() {
       disabledFeatures.push('context_menus');
     }
 
+    var visibleToSec = Math.ceil(
+      (window.visibleToMs != null ? window.visibleToMs : Date.now()) / 1000,
+    );
+    // Pad \`to\` by 2 bar durations so the end dot clears the price axis.
+    // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
+    var initBarPadSec = getApproxBarDurationSec() * 2;
+    var tfOption =
+      window.visibleFromMs != null
+        ? {
+            type: 'time-range',
+            from: Math.floor(window.visibleFromMs / 1000),
+            to: visibleToSec + initBarPadSec,
+          }
+        : undefined;
+
     window.chartWidget = new TradingView.widget({
       symbol: window.currentSymbol,
       interval: window.currentResolution || '5',
+      timeframe: tfOption,
       container: 'tv_chart_container',
       datafeed: customDatafeed,
       library_path: window.CONFIG.libraryUrl,
@@ -3427,7 +3708,6 @@ function initChart() {
                 applyChartContainerOverflowUnclip();
                 scheduleLastCloseLabelUpdate();
                 if (window.currentChartType === 2) {
-                  syncTimeScaleRightMargin(true);
                   try {
                     requestAnimationFrame(refreshLineChartOverlays);
                   } catch (rafDot) {}

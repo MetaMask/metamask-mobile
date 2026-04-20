@@ -73,10 +73,14 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "CardController": {
         "activeProviderId": "baanx",
+        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
+      },
+      "ClientController": {
+        "isUiOpen": false,
       },
       "ComplianceController": {},
       "ConnectivityController": {
@@ -145,6 +149,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "pooled_staking": {
           "isEligible": false,
         },
+        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -790,6 +795,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "SocialController": {
         "followingAddresses": [],
+        "followingProfileIds": [],
         "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
@@ -904,10 +910,14 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "CardController": {
         "activeProviderId": "baanx",
+        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
+      },
+      "ClientController": {
+        "isUiOpen": false,
       },
       "ComplianceController": {},
       "ConnectivityController": {
@@ -976,6 +986,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "pooled_staking": {
           "isEligible": false,
         },
+        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -1604,6 +1615,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "SocialController": {
         "followingAddresses": [],
+        "followingProfileIds": [],
         "leaderboardEntries": [],
       },
       "SubjectMetadataController": {

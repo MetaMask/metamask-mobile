@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
 import {
   PredictMarket,
@@ -10,6 +10,54 @@ import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn() }),
+}));
+
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: (action: () => void) => action(),
+    isEligible: true,
+  }),
+}));
+
+const mockNavigateToBuyPreview = jest.fn();
+jest.mock('../../hooks/usePredictNavigation', () => ({
+  usePredictNavigation: () => ({
+    navigateToBuyPreview: mockNavigateToBuyPreview,
+  }),
+}));
+
+jest.mock('./PredictGameOutcomesTab', () => {
+  const { View, Pressable, Text } = jest.requireActual('react-native');
+  const { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS: IDS } = jest.requireActual(
+    './PredictGameDetailsContent.testIds',
+  );
+  return {
+    __esModule: true,
+    default: (
+      props: Record<string, ((...args: unknown[]) => void) | undefined>,
+    ) => {
+      const mockBuyPress = props.onBuyPress;
+      return (
+        <View testID={IDS.OUTCOMES_CONTENT}>
+          <Pressable
+            testID="mock-buy-button"
+            onPress={() =>
+              mockBuyPress?.(
+                { id: 'outcome-1', title: 'Test' },
+                { id: 'token-1', title: 'Yes' },
+              )
+            }
+          >
+            <Text>Buy</Text>
+          </Pressable>
+        </View>
+      );
+    },
+  };
+});
 
 jest.mock('../PredictPicks/PredictPicks', () => {
   const { View } = jest.requireActual('react-native');
@@ -92,6 +140,8 @@ const createMockMarket = (
 
 const mockActivePositions = [{ id: 'pos-1' }] as PredictPosition[];
 
+const emptyGroupMap = new Map();
+
 const positionsTabs: { label: string; key: PredictMarketDetailsTabKey }[] = [
   { label: 'Positions', key: 'positions' },
   { label: 'Outcomes', key: 'outcomes' },
@@ -115,6 +165,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
@@ -133,6 +185,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
@@ -151,6 +205,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
@@ -162,7 +218,7 @@ describe('PredictGameDetailsTabs', () => {
       expect(picks.props.accessibilityHint).toBe('marketId:test-market-id');
     });
 
-    it('does not render outcomes placeholder when positions exist', () => {
+    it('does not render outcomes content when positions exist', () => {
       const market = createMockMarket();
 
       const { queryByTestId } = render(
@@ -174,22 +230,22 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
       expect(
-        queryByTestId(
-          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER,
-        ),
+        queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).not.toBeOnTheScreen();
     });
   });
 
   describe('enabled, no positions (no tab bar)', () => {
-    it('renders outcomes placeholder directly', () => {
+    it('renders outcome group chips directly', () => {
       const market = createMockMarket();
 
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <PredictGameDetailsTabsContent
           market={market}
           activeTab={0}
@@ -198,13 +254,14 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
       expect(
-        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER),
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).toBeOnTheScreen();
-      expect(getByText('Outcomes coming soon')).toBeOnTheScreen();
     });
 
     it('does not render PredictPicks', () => {
@@ -219,6 +276,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
@@ -239,12 +298,42 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
       expect(
         queryByText('predict.market_details.your_picks'),
       ).not.toBeOnTheScreen();
+    });
+
+    it('calls navigateToBuyPreview when buy button is pressed', () => {
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={0}
+          tabs={[]}
+          enabled
+          showTabBar={false}
+          activePositions={[]}
+          claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
+        />,
+      );
+
+      fireEvent.press(getByTestId('mock-buy-button'));
+
+      expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market,
+          outcome: { id: 'outcome-1', title: 'Test' },
+          outcomeToken: { id: 'token-1', title: 'Yes' },
+        }),
+      );
     });
   });
 
@@ -261,6 +350,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
@@ -276,10 +367,10 @@ describe('PredictGameDetailsTabs', () => {
       expect(picks.props.accessibilityHint).toBe('marketId:test-market-id');
     });
 
-    it('renders outcomes placeholder when active tab key is outcomes', () => {
+    it('renders outcome group chips when active tab key is outcomes', () => {
       const market = createMockMarket();
 
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <PredictGameDetailsTabsContent
           market={market}
           activeTab={1}
@@ -288,13 +379,14 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
       expect(
-        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER),
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).toBeOnTheScreen();
-      expect(getByText('Outcomes coming soon')).toBeOnTheScreen();
     });
 
     it('renders nothing when activeTab is out of bounds', () => {
@@ -309,6 +401,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 
@@ -316,9 +410,7 @@ describe('PredictGameDetailsTabs', () => {
         queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.TAB_CONTENT),
       ).not.toBeOnTheScreen();
       expect(
-        queryByTestId(
-          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER,
-        ),
+        queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).not.toBeOnTheScreen();
     });
 
@@ -334,6 +426,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
         />,
       );
 

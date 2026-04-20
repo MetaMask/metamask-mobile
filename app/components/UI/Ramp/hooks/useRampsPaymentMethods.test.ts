@@ -516,5 +516,39 @@ describe('useRampsPaymentMethods', () => {
         Engine.context.RampsController.setSelectedPaymentMethod,
       ).toHaveBeenCalledWith(mockPaymentMethods[0]);
     });
+
+    it('keeps isLoading true during stale-selection fallback to prevent UI flash', async () => {
+      const removedMethod: PaymentMethod = {
+        id: '/payments/removed',
+        paymentType: 'removed',
+        name: 'Removed',
+        score: 0,
+        icon: 'removed',
+      };
+      const store = createMockStore({
+        paymentMethods: {
+          ...baseRampsState.paymentMethods,
+          selected: removedMethod,
+        },
+      });
+      const { Wrapper } = createWrapper(store);
+
+      (
+        Engine.context.RampsController.getPaymentMethods as jest.Mock
+      ).mockResolvedValue({ payments: mockPaymentMethods });
+
+      const { result } = renderHook(() => useRampsPaymentMethods(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      // isLoading should remain true because the stale selection is not in the
+      // new list — the useEffect will correct it, but until Redux updates,
+      // isLoading must stay true to prevent the stale name from flashing.
+      expect(result.current.isLoading).toBe(true);
+    });
   });
 });

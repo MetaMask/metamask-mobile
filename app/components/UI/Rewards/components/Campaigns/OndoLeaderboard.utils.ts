@@ -1,4 +1,5 @@
 import { strings } from '../../../../../../locales/i18n';
+import type { OndoCampaignTier } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Re-export shared helpers so existing consumers keep working
 export {
@@ -19,6 +20,17 @@ const TIER_I18N_KEYS: Record<string, string> = {
  * Returns the raw key when no mapping is found.
  */
 export const formatTierDisplayName = (tier: string): string => {
-  const key = TIER_I18N_KEYS[tier];
+  const key = TIER_I18N_KEYS[tier.toUpperCase()];
   return key ? strings(key) : tier;
 };
+
+/**
+ * Looks up the minNetDeposit for a tier from campaign config tiers.
+ * Returns null when the tier or config is missing.
+ */
+export const getTierMinNetDeposit = (
+  tiers: OndoCampaignTier[] | undefined,
+  tierName: string,
+): number | null =>
+  tiers?.find((t) => t.name.toUpperCase() === tierName.toUpperCase())
+    ?.minNetDeposit ?? null;
