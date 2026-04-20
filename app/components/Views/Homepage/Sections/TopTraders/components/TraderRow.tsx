@@ -105,7 +105,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
             >
               {trader.username}
             </Text>
-            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+            >
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
@@ -150,6 +154,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
         }
         size={ButtonSize.Sm}
         onPress={() => onFollowPress(trader.id)}
+        twClassName="min-w-[96px]"
       >
         {trader.isFollowing
           ? strings('social_leaderboard.following')
@@ -159,4 +164,4 @@ const TraderRow: React.FC<TraderRowProps> = ({
   );
 };
 
-export default TraderRow;
+export default React.memo(TraderRow);

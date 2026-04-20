@@ -4,14 +4,12 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -23,10 +21,9 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import {
   StatCell,
-  PendingTag,
-  IneligibleTag,
   CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from '../components/Campaigns/CampaignStatsSummary';
+import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import {
   formatTierDisplayName,
@@ -39,7 +36,6 @@ import {
   isCampaignIneligible,
 } from '../utils/ondoCampaignConstants';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
-import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
@@ -103,10 +99,6 @@ const OndoCampaignStatsView: React.FC = () => {
     hasError: hasLeaderboardPositionError,
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
-
-  useGetOndoLeaderboard(campaignId, {
-    defaultTier: leaderboardPosition?.projectedTier,
-  });
 
   const leaderboardLoading =
     isLeaderboardPositionLoading && !leaderboardPosition;
@@ -217,47 +209,15 @@ const OndoCampaignStatsView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
         >
-          <Box twClassName="p-4 gap-3">
-            {/* ── Top section: Your rank ── */}
-            <Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-2"
-              >
-                <Text variant={TextVariant.HeadingMd}>
-                  {strings('rewards.ondo_campaign_stats.label_your_rank')}
-                </Text>
-                {isIneligible && (
-                  <IneligibleTag
-                    testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
-                  />
-                )}
-                {!isIneligible && isPending && <PendingTag />}
-                {!isIneligible && isQualified && <CheckIcon />}
-              </Box>
-
-              {leaderboardLoading ? (
-                <Skeleton style={tw.style('h-9 w-28 rounded')} />
-              ) : (
-                <Text
-                  variant={TextVariant.DisplayLg}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {rankValue}
-                </Text>
-              )}
-            </Box>
-
-            {/* Tier */}
-            <Box flexDirection={BoxFlexDirection.Row}>
-              <StatCell
-                label={strings('rewards.ondo_campaign_stats.label_tier')}
-                value={tierValue}
-                isLoading={leaderboardLoading}
-              />
-              <Box twClassName="flex-1" />
-            </Box>
+          <Box twClassName="p-4">
+            <LeaderboardPositionHeader
+              rank={rankValue}
+              tier={tierValue}
+              isLoading={leaderboardLoading}
+              isPending={isPending}
+              isQualified={isQualified}
+              isIneligible={isIneligible}
+            />
           </Box>
 
           {/* ── Divider ── */}

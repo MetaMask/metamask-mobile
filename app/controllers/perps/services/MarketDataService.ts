@@ -33,7 +33,7 @@ import type {
   PerpsPlatformDependencies,
 } from '../types';
 import type { CandleData } from '../types/perps-types';
-import { ensureError } from '../utils/errorUtils';
+import { ensureError, isAbortError } from '../utils/errorUtils';
 
 /**
  * MarketDataService
@@ -779,33 +779,36 @@ export class MarketDataService {
           ? error.message
           : 'Failed to fetch historical candles';
 
-      this.#deps.logger.error(
-        ensureError(error, 'MarketDataService.fetchHistoricalCandles'),
-        {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: context.tracingContext.provider,
-            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-          },
-          context: {
-            name: context.errorContext.controller,
-            data: {
-              method: context.errorContext.method,
-              symbol,
-              interval,
-              limit,
-              endTime,
+      // Expected cancellation — skip Sentry and state updates
+      if (!isAbortError(error)) {
+        this.#deps.logger.error(
+          ensureError(error, 'MarketDataService.fetchHistoricalCandles'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: context.tracingContext.provider,
+              network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+            },
+            context: {
+              name: context.errorContext.controller,
+              data: {
+                method: context.errorContext.method,
+                symbol,
+                interval,
+                limit,
+                endTime,
+              },
             },
           },
-        },
-      );
+        );
 
-      // Update error state (if stateManager is provided)
-      if (context.stateManager) {
-        context.stateManager.update((state) => {
-          state.lastError = errorMessage;
-          state.lastUpdateTimestamp = Date.now();
-        });
+        // Update error state (if stateManager is provided)
+        if (context.stateManager) {
+          context.stateManager.update((state) => {
+            state.lastError = errorMessage;
+            state.lastUpdateTimestamp = Date.now();
+          });
+        }
       }
 
       traceData = {

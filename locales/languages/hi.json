@@ -8120,7 +8120,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize Pool",
+      "title": "Prize pool",
       "current_label": "मौजूदा",
       "next_label": "आगे",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,9 +8209,7 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "फिर से प्रयास करें",
       "label_return": "कमाई",
-      "label_market_value": "Market Value",
-      "label_net_deposited": "Net deposited",
-      "label_cashed_out": "कैश आउट किया गया",
+      "label_market_value": "Market value",
       "label_rank": "रैंक",
       "label_tier": "Tier",
       "label_your_return": "Your return",
