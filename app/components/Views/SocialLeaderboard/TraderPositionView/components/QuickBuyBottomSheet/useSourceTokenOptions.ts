@@ -168,7 +168,7 @@ export const useSourceTokenOptions = (
       const networkConfig = allNetworkConfigs?.[chainId];
       const nativeTicker = networkConfig?.nativeCurrency;
       const nativeConversionRate = nativeTicker
-        ? (currencyRates?.[nativeTicker]?.conversionRate ?? 0)
+        ? (currencyRates?.[nativeTicker]?.usdConversionRate ?? 0)
         : 0;
 
       let exchangeRate: number;

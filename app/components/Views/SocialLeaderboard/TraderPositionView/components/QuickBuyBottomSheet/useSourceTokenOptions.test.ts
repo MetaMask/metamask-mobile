@@ -128,7 +128,7 @@ describe('useSourceTokenOptions', () => {
         },
       },
       currencyRates: {
-        ETH: { conversionRate: 2000 },
+        ETH: { usdConversionRate: 2000 },
       },
       allNetworkConfigs: {
         '0x1': { nativeCurrency: 'ETH' },

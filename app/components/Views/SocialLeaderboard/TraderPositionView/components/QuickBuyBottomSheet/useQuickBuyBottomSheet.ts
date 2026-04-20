@@ -46,7 +46,7 @@ export interface UseQuickBuyBottomSheetResult {
   isUnsupportedChain: boolean;
   // source token
   sourceToken: BridgeToken | undefined;
-  sourceChainId: Hex;
+  sourceChainId: Hex | undefined;
   sourceTokenOptions: BridgeToken[];
   selectedSourceToken: BridgeToken | undefined;
   isSourcePickerOpen: boolean;
@@ -122,7 +122,7 @@ export function useQuickBuyBottomSheet(
   }, [sourceTokenOptions, selectedSourceToken]);
 
   const sourceToken = selectedSourceToken;
-  const sourceChainId = (sourceToken?.chainId as Hex) ?? '0x1';
+  const sourceChainId = sourceToken?.chainId as Hex | undefined;
 
   useRefreshSmartTransactionsLiveness(sourceChainId);
   useIsGasIncludedSTXSendBundleSupported(sourceChainId);
@@ -168,6 +168,7 @@ export function useQuickBuyBottomSheet(
 
   const {
     activeQuote,
+    destTokenAmount: estimatedReceiveAmount,
     isLoading: isQuoteLoading,
     isNoQuotesAvailable,
     quoteFetchError,
@@ -273,7 +274,8 @@ export function useQuickBuyBottomSheet(
       await submitBridgeTx({ quoteResponse: activeQuote });
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    } catch {
+    } catch (error) {
+      console.error('Error submitting QuickBuy tx', error);
       // Keep sheet open on error
     } finally {
       dispatch(setIsSubmittingTx(false));
@@ -286,8 +288,6 @@ export function useQuickBuyBottomSheet(
     onClose,
     navigation,
   ]);
-
-  const estimatedReceiveAmount = activeQuote?.quote?.destTokenAmount;
 
   const sourceBalanceFiat = useMemo(() => {
     if (

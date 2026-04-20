@@ -38,7 +38,7 @@ const USD_PRESETS = ['1', '20', '50', '100'];
 interface QuickBuyFooterProps {
   usdAmount: string;
   sourceToken: BridgeToken | undefined;
-  sourceChainId: Hex;
+  sourceChainId: Hex | undefined;
   sourceTokenOptions: BridgeToken[];
   selectedSourceToken: BridgeToken | undefined;
   isSourcePickerOpen: boolean;
@@ -138,12 +138,14 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
               <BadgeWrapper
                 badgePosition={BadgePosition.BottomRight}
                 badgeElement={
-                  <BadgeNetwork
-                    name={sourceToken?.symbol ?? ''}
-                    imageSource={getNetworkImageSource({
-                      chainId: sourceChainId,
-                    })}
-                  />
+                  sourceChainId ? (
+                    <BadgeNetwork
+                      name={sourceToken?.symbol ?? ''}
+                      imageSource={getNetworkImageSource({
+                        chainId: sourceChainId,
+                      })}
+                    />
+                  ) : null
                 }
               >
                 <AvatarToken
