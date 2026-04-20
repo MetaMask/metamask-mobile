@@ -216,13 +216,15 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
+    this._handleLock = this.onLock.bind(this);
+    this._handleUnlock = this.onUnlock.bind(this);
     Engine.controllerMessenger.subscribe(
       'KeyringController:lock',
-      this.onLock.bind(this),
+      this._handleLock,
     );
     Engine.controllerMessenger.subscribe(
       'KeyringController:unlock',
-      this.onUnlock.bind(this),
+      this._handleUnlock,
     );
 
     // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
@@ -249,17 +251,18 @@ export class BackgroundBridge extends EventEmitter {
     try {
       const pc = Engine.context.PermissionController;
       const controllerMessenger = Engine.controllerMessenger;
+      this._handlePermissionControllerStateChange = (subjectWithPermission) => {
+        DevLogger.log(
+          `PermissionController:stateChange event`,
+          subjectWithPermission,
+        );
+        // Inform dapp about updated permissions
+        const selectedAddress = this.getState().selectedAddress;
+        this.notifySelectedAddressChanged(selectedAddress);
+      };
       controllerMessenger.subscribe(
         `${pc.name}:stateChange`,
-        (subjectWithPermission) => {
-          DevLogger.log(
-            `PermissionController:stateChange event`,
-            subjectWithPermission,
-          );
-          // Inform dapp about updated permissions
-          const selectedAddress = this.getState().selectedAddress;
-          this.notifySelectedAddressChanged(selectedAddress);
-        },
+        this._handlePermissionControllerStateChange,
         (state) => state.subjects[this.channelId],
       );
     } catch (err) {
@@ -489,11 +492,14 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onDisconnect = () => {
+    if (this.disconnected) return;
+    this.disconnected = true;
+
     const {
       controllerMessenger,
       context: { AccountsController, PermissionController },
     } = Engine;
-    this.disconnected = true;
+
     controllerMessenger.tryUnsubscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
@@ -506,35 +512,50 @@ export class BackgroundBridge extends EventEmitter {
       'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
+    controllerMessenger.tryUnsubscribe(
+      'SelectedNetworkController:stateChange',
+      this.sendStateUpdate,
+    );
+    controllerMessenger.tryUnsubscribe(
+      'KeyringController:lock',
+      this._handleLock,
+    );
+    controllerMessenger.tryUnsubscribe(
+      'KeyringController:unlock',
+      this._handleUnlock,
+    );
+    controllerMessenger.tryUnsubscribe(
+      `${PermissionController.name}:stateChange`,
+      this._handlePermissionControllerStateChange,
+    );
 
-    // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
     if (!(this.isMMSDK && this.sdkVersion === 'v1') && !this.isWalletConnect) {
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleSolanaAccountChangedFromScopeChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${AccountsController.name}:selectedAccountChange`,
         this.handleSolanaAccountChangedFromSelectedAccountChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
       );
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleTronAccountChangedFromScopeChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${AccountsController.name}:selectedAccountChange`,
         this.handleTronAccountChangedFromSelectedAccountChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleTronAccountChangedFromSelectedAccountGroupChanges,
       );

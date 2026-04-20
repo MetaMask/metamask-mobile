@@ -45,12 +45,14 @@ jest.mock('../Engine', () => ({
   },
   context: {
     AccountsController: {
+      name: 'AccountsController',
       listAccounts: jest.fn(),
       listMultichainAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),
       getAccountByAddress: jest.fn(),
     },
     PermissionController: {
+      name: 'PermissionController',
       createPermissionMiddleware: jest.fn(),
       requestPermissions: jest.fn(),
       getCaveat: jest.fn(),
@@ -1639,6 +1641,85 @@ describe('BackgroundBridge', () => {
       );
       expect(handleTronAccountSpy).toHaveBeenCalledWith(mockTronAccount1);
       expect(handleTronAccountSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('onDisconnect', () => {
+    const eventsUnsubscribedByStableRef = [
+      [AppConstants.NETWORK_STATE_CHANGE_EVENT],
+      ['PreferencesController:stateChange'],
+      ['AccountsController:selectedAccountChange'],
+      ['SelectedNetworkController:stateChange'],
+      ['KeyringController:lock'],
+      ['KeyringController:unlock'],
+    ];
+
+    it.each(eventsUnsubscribedByStableRef)(
+      'unsubscribes from %s using the handler reference that was subscribed',
+      (eventName) => {
+        const bridge = setupBackgroundBridge('https://www.mock.io');
+        const subscribeCall =
+          Engine.controllerMessenger.subscribe.mock.calls.find(
+            (call) => call[0] === eventName,
+          );
+        expect(subscribeCall).toBeDefined();
+        const subscribedHandler = subscribeCall[1];
+
+        bridge.onDisconnect();
+
+        expect(Engine.controllerMessenger.tryUnsubscribe).toHaveBeenCalledWith(
+          eventName,
+          subscribedHandler,
+        );
+      },
+    );
+
+    it('unsubscribes every PermissionController:stateChange handler that was subscribed in the constructor', () => {
+      const bridge = setupBackgroundBridge('https://www.mock.io');
+      const subscribedHandlers =
+        Engine.controllerMessenger.subscribe.mock.calls
+          .filter((call) => call[0] === 'PermissionController:stateChange')
+          .map((call) => call[1]);
+
+      expect(subscribedHandlers.length).toBeGreaterThan(0);
+
+      bridge.onDisconnect();
+
+      const unsubscribedHandlers = [
+        ...Engine.controllerMessenger.tryUnsubscribe.mock.calls,
+        ...Engine.controllerMessenger.unsubscribe.mock.calls,
+      ]
+        .filter((call) => call[0] === 'PermissionController:stateChange')
+        .map((call) => call[1]);
+
+      subscribedHandlers.forEach((handler) => {
+        expect(unsubscribedHandlers).toContain(handler);
+      });
+    });
+
+    it('does not throw when called multiple times', () => {
+      const bridge = setupBackgroundBridge('https://www.mock.io');
+
+      expect(() => {
+        bridge.onDisconnect();
+        bridge.onDisconnect();
+      }).not.toThrow();
+    });
+
+    it('does not repeat teardown work on subsequent calls', () => {
+      const bridge = setupBackgroundBridge('https://www.mock.io');
+
+      bridge.onDisconnect();
+      const firstCallCount =
+        Engine.controllerMessenger.tryUnsubscribe.mock.calls.length +
+        Engine.controllerMessenger.unsubscribe.mock.calls.length;
+
+      bridge.onDisconnect();
+      const secondCallCount =
+        Engine.controllerMessenger.tryUnsubscribe.mock.calls.length +
+        Engine.controllerMessenger.unsubscribe.mock.calls.length;
+
+      expect(secondCallCount).toBe(firstCallCount);
     });
   });
 });
