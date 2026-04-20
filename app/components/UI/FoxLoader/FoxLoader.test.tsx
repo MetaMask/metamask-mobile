@@ -9,7 +9,7 @@ const mockFireState = jest.fn();
 let mockRiveCallbacks: {
   onPlay?: () => void;
   onStateChanged?: (machine: string, state: string) => void;
-  onError?: () => void;
+  onError?: (error: { message: string; type: string }) => void;
 } = {};
 
 jest.mock('rive-react-native', () => {
@@ -161,7 +161,10 @@ describe('FoxLoader', () => {
 
     // onError fires before onPlay — Rive failed to load the asset
     act(() => {
-      mockRiveCallbacks.onError?.();
+      mockRiveCallbacks.onError?.({
+        message: 'File not found',
+        type: 'FileNotFound',
+      });
     });
 
     expect(onAnimationComplete).toHaveBeenCalledTimes(1);
@@ -181,7 +184,10 @@ describe('FoxLoader', () => {
     });
     // onError fires mid-playback — treated as non-fatal
     act(() => {
-      mockRiveCallbacks.onError?.();
+      mockRiveCallbacks.onError?.({
+        message: 'Runtime error',
+        type: 'MalformedFile',
+      });
     });
 
     expect(onAnimationComplete).not.toHaveBeenCalled();
