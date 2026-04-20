@@ -24,6 +24,7 @@ import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
+import { normalizeAssetIdForApi } from '../../utils/normalizeAssetIdForApi';
 import { useProviderLimits } from '../../hooks/useProviderLimits';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
@@ -432,7 +433,7 @@ function BuildQuote() {
       selectedPaymentMethod &&
       selectedProvider
         ? {
-            assetId: selectedToken.assetId,
+            assetId: normalizeAssetIdForApi(selectedToken.assetId),
             amount: debouncedPollingAmount,
             walletAddress,
             redirectUrl: getRampCallbackBaseUrl(),
