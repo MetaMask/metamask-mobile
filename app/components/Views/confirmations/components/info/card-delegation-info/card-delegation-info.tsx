@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import {
   useFocusEffect,
   useNavigation,
@@ -41,8 +41,8 @@ import {
   setDelegationLimit,
 } from '../../../../../../core/redux/slices/card';
 import { BAANX_MAX_LIMIT } from '../../../../../UI/Card/constants';
-import { createSpendingLimitOptionsNavigationDetails } from '../../../../../UI/Card/Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../../../../UI/Card/components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import LimitOptionItem from '../../../../../UI/Card/Views/SpendingLimit/components/LimitOptionItem';
 import type { LimitType, CardFundingToken } from '../../../../../UI/Card/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { sanitizeCustomLimit } from '../../../../../UI/Card/util/sanitizeCustomLimit';
@@ -62,9 +62,13 @@ import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Bala
 
 interface RouteParams {
   returnedSelectedToken?: CardFundingToken;
-  returnedLimitType?: LimitType;
-  returnedCustomLimit?: string;
 }
+
+const styles = StyleSheet.create({
+  tokenIcon: {
+    alignSelf: 'center',
+  },
+});
 
 export function CardDelegationInfo() {
   useNavbar('');
@@ -83,6 +87,7 @@ export function CardDelegationInfo() {
   );
   const [limitType, setLimitType] = useState<LimitType>('full');
   const [customLimit, setCustomLimit] = useState('');
+  const [isLimitExpanded, setIsLimitExpanded] = useState(false);
 
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -147,47 +152,7 @@ export function CardDelegationInfo() {
     [transactionMetadata, limitType, customLimit],
   );
 
-  const updateTransactionWithNewLimit = useCallback(
-    async (newLimitType: LimitType, newCustomLimit: string) => {
-      if (!transactionMetadata?.id || !selectedToken?.delegationContract) {
-        return;
-      }
-
-      try {
-        const amount =
-          newLimitType === 'full' ? BAANX_MAX_LIMIT : newCustomLimit || '0';
-
-        const amountInMinimalUnits = toTokenMinimalUnit(
-          amount,
-          selectedToken.decimals ?? 18,
-        ).toString();
-
-        const transactionData = encodeApproveTransaction(
-          selectedToken.delegationContract,
-          amountInMinimalUnits,
-        );
-
-        Engine.context.TransactionController.updateTransaction(
-          {
-            ...transactionMetadata,
-            txParams: {
-              ...transactionMetadata.txParams,
-              data: transactionData,
-            },
-          },
-          'Card delegation limit update',
-        );
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'CardDelegationInfo: Failed to update transaction with new limit',
-        );
-      }
-    },
-    [transactionMetadata, selectedToken],
-  );
-
-  // Handle returns from AssetSelectionBottomSheet and SpendingLimitOptionsSheet
+  // Handle returns from AssetSelectionBottomSheet
   useFocusEffect(
     useCallback(() => {
       const params = route.params as RouteParams | undefined;
@@ -201,33 +166,17 @@ export function CardDelegationInfo() {
           returnedSelectedToken: undefined,
         } as Record<string, unknown>);
       }
-
-      if (params?.returnedLimitType !== undefined) {
-        const newLimitType = params.returnedLimitType;
-        const newCustomLimit = sanitizeCustomLimit(
-          params.returnedCustomLimit ?? '',
-        );
-        setLimitType(newLimitType);
-        setCustomLimit(newCustomLimit);
-        dispatch(
-          setDelegationLimit({
-            limitType: newLimitType,
-            customLimit: newCustomLimit,
-          }),
-        );
-        updateTransactionWithNewLimit(
-          newLimitType,
-          params.returnedCustomLimit ?? '',
-        );
-        navigation.setParams({
-          returnedLimitType: undefined,
-          returnedCustomLimit: undefined,
-        } as Record<string, unknown>);
-      }
       // eslint-disable-next-line react-compiler/react-compiler
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route.params]),
   );
+
+  // EVM: rendered inside REDESIGNED_CONFIRMATIONS (transactionMetadata exists).
+  // Solana: rendered inside SolanaCardDelegationScreen (no EVM tx, no metadata).
+  // Sheets must navigate back to the correct caller screen.
+  const callerRoute = transactionMetadata
+    ? Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+    : Routes.CARD.SOLANA_CARD_DELEGATION;
 
   const handleTokenSelect = useCallback(() => {
     const excludedTokens = selectedToken ? [selectedToken] : [];
@@ -235,22 +184,28 @@ export function CardDelegationInfo() {
       ...createAssetSelectionModalNavigationDetails({
         selectionOnly: true,
         excludedTokens,
-        callerRoute: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        callerRoute,
         callerParams: {},
       }),
     );
-  }, [navigation, selectedToken]);
+  }, [navigation, selectedToken, callerRoute]);
 
-  const handleLimitSelect = useCallback(() => {
-    navigation.navigate(
-      ...createSpendingLimitOptionsNavigationDetails({
-        currentLimitType: limitType,
-        currentCustomLimit: customLimit,
-        callerRoute: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        callerParams: {},
-      }),
-    );
-  }, [navigation, limitType, customLimit]);
+  const handleLimitTypeChange = useCallback(
+    (newLimitType: LimitType) => {
+      setLimitType(newLimitType);
+      dispatch(setDelegationLimit({ limitType: newLimitType, customLimit }));
+    },
+    [customLimit, dispatch],
+  );
+
+  const handleCustomLimitChange = useCallback(
+    (value: string) => {
+      const sanitized = sanitizeCustomLimit(value);
+      setCustomLimit(sanitized);
+      dispatch(setDelegationLimit({ limitType, customLimit: sanitized }));
+    },
+    [limitType, dispatch],
+  );
 
   return (
     <Box testID={ConfirmationInfoComponentIDs.CARD_DELEGATION}>
@@ -272,6 +227,7 @@ export function CardDelegationInfo() {
                 <Box twClassName="flex-row items-center gap-2 shrink">
                   {tokenIconUrl && (
                     <BadgeWrapper
+                      style={styles.tokenIcon}
                       badgePosition={BadgePosition.BottomRight}
                       badgeElement={
                         <Badge
@@ -313,6 +269,7 @@ export function CardDelegationInfo() {
               <Box twClassName="flex-row items-center gap-2 shrink">
                 {tokenIconUrl && (
                   <BadgeWrapper
+                    style={styles.tokenIcon}
                     badgePosition={BadgePosition.BottomRight}
                     badgeElement={
                       <Badge
@@ -366,9 +323,9 @@ export function CardDelegationInfo() {
         </InfoSection>
       )}
 
-      {/* Spending limit row */}
+      {/* Spending limit row — toggles inline panel */}
       <TouchableOpacity
-        onPress={handleLimitSelect}
+        onPress={() => setIsLimitExpanded((prev) => !prev)}
         activeOpacity={0.7}
         testID="card-delegation-limit-row"
       >
@@ -385,7 +342,7 @@ export function CardDelegationInfo() {
                 {spendingLimitLabel}
               </Text>
               <Icon
-                name={IconName.ArrowDown}
+                name={isLimitExpanded ? IconName.ArrowUp : IconName.ArrowDown}
                 size={IconSize.Sm}
                 color={IconColor.IconDefault}
               />
@@ -394,11 +351,38 @@ export function CardDelegationInfo() {
         </InfoSection>
       </TouchableOpacity>
 
-      {/* Gas fees */}
-      <GasFeesDetailsRow />
+      {/* Inline spending limit options */}
+      {isLimitExpanded && (
+        <InfoSection>
+          <LimitOptionItem
+            title={strings('card.card_spending_limit.full_access_title')}
+            description={strings(
+              'card.card_spending_limit.full_access_description',
+            )}
+            isSelected={limitType === 'full'}
+            onPress={() => handleLimitTypeChange('full')}
+            testID="limit-option-full"
+          />
+          <LimitOptionItem
+            title={strings('card.card_spending_limit.restricted_limit_title')}
+            description={strings(
+              'card.card_spending_limit.restricted_limit_description',
+            )}
+            isSelected={limitType === 'restricted'}
+            showInput
+            inputValue={customLimit}
+            onInputChange={handleCustomLimitChange}
+            onPress={() => handleLimitTypeChange('restricted')}
+            testID="limit-option-restricted"
+          />
+        </InfoSection>
+      )}
 
-      {/* Advanced details */}
-      <AdvancedDetailsRow />
+      {/* Gas fees — EVM only */}
+      {transactionMetadata && <GasFeesDetailsRow />}
+
+      {/* Advanced details — EVM only */}
+      {transactionMetadata && <AdvancedDetailsRow />}
     </Box>
   );
 }

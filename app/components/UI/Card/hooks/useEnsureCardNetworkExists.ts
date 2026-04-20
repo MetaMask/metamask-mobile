@@ -30,7 +30,14 @@ export const useEnsureCardNetworkExists = () => {
       const existingConfig = networkConfigurations[hexChainId];
       if (existingConfig) {
         const { rpcEndpoints, defaultRpcEndpointIndex } = existingConfig;
-        return rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
+        const networkClientId =
+          rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId;
+        if (!networkClientId) {
+          throw new Error(
+            `Missing networkClientId for existing network ${caipChainId}`,
+          );
+        }
+        return networkClientId;
       }
 
       // Network is missing — find it in PopularList and add it
@@ -46,26 +53,40 @@ export const useEnsureCardNetworkExists = () => {
 
       const { NetworkController } = Engine.context;
 
-      const addedNetwork = await NetworkController.addNetwork({
-        chainId: hexChainId,
-        blockExplorerUrls: popularEntry.rpcPrefs?.blockExplorerUrl
-          ? [popularEntry.rpcPrefs.blockExplorerUrl]
-          : [],
-        defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: popularEntry.rpcPrefs?.blockExplorerUrl
-          ? 0
-          : undefined,
-        name: popularEntry.nickname,
-        nativeCurrency: popularEntry.ticker,
-        rpcEndpoints: [
-          {
-            url: popularEntry.rpcUrl,
-            failoverUrls: popularEntry.failoverRpcUrls,
-            name: popularEntry.nickname,
-            type: RpcEndpointType.Custom,
-          },
-        ],
-      });
+      const NETWORK_ADD_TIMEOUT_MS = 10_000;
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(`Timed out adding network for chain ID ${caipChainId}`),
+            ),
+          NETWORK_ADD_TIMEOUT_MS,
+        ),
+      );
+
+      const addedNetwork = await Promise.race([
+        NetworkController.addNetwork({
+          chainId: hexChainId,
+          blockExplorerUrls: popularEntry.rpcPrefs?.blockExplorerUrl
+            ? [popularEntry.rpcPrefs.blockExplorerUrl]
+            : [],
+          defaultRpcEndpointIndex: 0,
+          defaultBlockExplorerUrlIndex: popularEntry.rpcPrefs?.blockExplorerUrl
+            ? 0
+            : undefined,
+          name: popularEntry.nickname,
+          nativeCurrency: popularEntry.ticker,
+          rpcEndpoints: [
+            {
+              url: popularEntry.rpcUrl,
+              failoverUrls: popularEntry.failoverRpcUrls,
+              name: popularEntry.nickname,
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        }),
+        timeout,
+      ]);
 
       // Enable the newly added network in the network filter
       enableNetwork(caipChainId as CaipChainId);

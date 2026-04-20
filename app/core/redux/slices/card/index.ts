@@ -18,6 +18,7 @@ export interface CardDelegationState {
   selectedToken: CardFundingToken | null;
   limitType: LimitType;
   customLimit: string;
+  isSubmitting: boolean;
 }
 
 export interface CardSliceState {
@@ -41,6 +42,7 @@ export const initialState: CardSliceState = {
     selectedToken: null,
     limitType: 'full',
     customLimit: '',
+    isSubmitting: false,
   },
 };
 
@@ -98,6 +100,9 @@ const slice = createSlice({
       state.delegation.limitType = action.payload.limitType;
       state.delegation.customLimit = action.payload.customLimit;
     },
+    setDelegationSubmitting: (state, action: PayloadAction<boolean>) => {
+      state.delegation.isSubmitting = action.payload;
+    },
     resetDelegationState: (state) => {
       state.delegation = initialState.delegation;
     },
@@ -141,6 +146,11 @@ export const selectCardDelegationState = createSelector(
   (card) => card.delegation,
 );
 
+export const selectDelegationIsSubmitting = createSelector(
+  selectCardState,
+  (card) => card.delegation.isSubmitting,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -153,5 +163,6 @@ export const {
   setDelegationFlow,
   setDelegationSelectedToken,
   setDelegationLimit,
+  setDelegationSubmitting,
   resetDelegationState,
 } = actions;

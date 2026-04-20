@@ -36,7 +36,7 @@ const LimitOptionItem: React.FC<LimitOptionItemProps> = ({
   onInputChange,
   testID,
 }) => (
-  <Box twClassName="py-3">
+  <Box twClassName="p-2">
     <RadioButton
       isChecked={isSelected}
       onPress={onPress}

@@ -21,7 +21,6 @@ import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfi
 const log = createProjectLogger('transaction-confirm');
 
 export const GO_BACK_TYPES = [
-  TransactionType.cardDelegation,
   TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
@@ -132,8 +131,12 @@ export function useTransactionConfirm() {
         options?.onError?.(error);
       }
 
-      // Perps deposit-and-order: caller handles navigation (e.g. order flow)
-      if (type === TransactionType.perpsDepositAndOrder) {
+      // Card delegation and perps deposit-and-order: caller handles navigation.
+      // 'cardDelegation' is not yet in TransactionType, so compare as plain string.
+      if (
+        (type as string) === 'cardDelegation' ||
+        type === TransactionType.perpsDepositAndOrder
+      ) {
         return;
       } else if (type === TransactionType.perpsDeposit) {
         navigation.navigate(Routes.PERPS.ROOT, {
@@ -143,7 +146,10 @@ export function useTransactionConfirm() {
         musdConversionNavigateOnConfirm();
       } else if (
         isFullScreenConfirmation &&
-        !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+        !hasTransactionType(
+          transactionMetadata,
+          GO_BACK_TYPES as readonly TransactionType[],
+        )
       ) {
         navigation.navigate(Routes.TRANSACTIONS_VIEW);
       } else {

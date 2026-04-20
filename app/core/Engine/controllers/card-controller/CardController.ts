@@ -1086,7 +1086,7 @@ export class CardController extends BaseController<
       {
         networkClientId,
         origin: TransactionTypes.MMM_CARD,
-        type: TransactionType.cardDelegation,
+        type: 'cardDelegation' as TransactionType,
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         requireApproval: true,
       },
@@ -1135,7 +1135,8 @@ export class CardController extends BaseController<
     /** On-chain delegation contract address. Required for Solana snap call. */
     delegationContract?: string;
     amount: string;
-    transactionId: string;
+    /** EVM only — the pre-queued tx ID from queueDelegationApproval. Unused for Solana. */
+    transactionId?: string;
     flow: 'onboarding' | 'manage' | 'enable' | null;
     useGasFaucet?: boolean;
   }): Promise<void> {
@@ -1200,6 +1201,9 @@ export class CardController extends BaseController<
         caipChainId,
       });
     } else {
+      if (!transactionId) {
+        throw new Error('transactionId is required for EVM delegation');
+      }
       this.#registerEvmDelegationListener({
         transactionId,
         session,
@@ -1248,55 +1252,87 @@ export class CardController extends BaseController<
       flow,
     } = listenerParams;
 
-    const handler = (meta: TransactionMeta) => {
-      if (meta.id !== transactionId) return;
+    const delegationTxListeners = {
+      unsubscribeBoth: () => {
+        try {
+          this.messenger.unsubscribe(
+            'TransactionController:transactionConfirmed',
+            delegationTxListeners.confirmedHandler,
+          );
+        } catch {
+          // Already unsubscribed — safe to ignore
+        }
+        try {
+          this.messenger.unsubscribe(
+            'TransactionController:transactionFailed',
+            delegationTxListeners.failedHandler,
+          );
+        } catch {
+          // Already unsubscribed — safe to ignore
+        }
+      },
+      confirmedHandler: (meta: TransactionMeta) => {
+        if (meta.id !== transactionId) return;
 
-      // Unsubscribe immediately — we only want this to fire once
-      try {
-        this.messenger.unsubscribe(
-          'TransactionController:transactionConfirmed',
-          handler,
-        );
-      } catch {
-        // Already unsubscribed — safe to ignore
-      }
+        delegationTxListeners.unsubscribeBoth();
 
-      provider
-        .approveDelegation?.(
-          {
-            address,
-            chainId: caipChainId,
-            tokenSymbol,
-            amount,
-            txHash: meta.hash ?? '',
-            proofSignature,
-            proofMessage,
-            sessionId: session.sessionId,
-          },
-          tokens,
-        )
-        .then(() => this.fetchCardHomeData())
-        .then(() => {
-          this.messenger.publish('CardController:delegationCompleted', {
-            flow,
-          });
-        })
-        .catch((error: Error) => {
-          Logger.error(error, {
-            tags: { feature: 'card' },
-            context: {
-              name: 'CardController',
-              data: {
-                method: '#registerEvmDelegationListener/approveDelegation',
-              },
+        provider
+          .approveDelegation?.(
+            {
+              address,
+              chainId: caipChainId,
+              tokenSymbol,
+              amount,
+              txHash: meta.hash ?? '',
+              proofSignature,
+              proofMessage,
+              sessionId: session.sessionId,
             },
+            tokens,
+          )
+          .then(() => this.fetchCardHomeData())
+          .then(() => {
+            this.messenger.publish('CardController:delegationCompleted', {
+              flow,
+            });
+          })
+          .catch((error: Error) => {
+            Logger.error(error, {
+              tags: { feature: 'card' },
+              context: {
+                name: 'CardController',
+                data: {
+                  method: '#registerEvmDelegationListener/approveDelegation',
+                },
+              },
+            });
           });
+      },
+      failedHandler: ({
+        transactionMeta,
+        error,
+      }: {
+        transactionMeta: TransactionMeta;
+        error: string;
+      }) => {
+        if (transactionMeta.id !== transactionId) return;
+
+        delegationTxListeners.unsubscribeBoth();
+
+        this.messenger.publish('CardController:delegationFailed', {
+          flow,
+          error,
         });
+      },
     };
 
     this.messenger.subscribe(
       'TransactionController:transactionConfirmed',
-      handler,
+      delegationTxListeners.confirmedHandler,
+    );
+    this.messenger.subscribe(
+      'TransactionController:transactionFailed',
+      delegationTxListeners.failedHandler,
     );
   }
 

@@ -40,6 +40,7 @@ export function getCardControllerMessenger(
       'AccountTreeController:stateChange',
       'KeyringController:unlock',
       'TransactionController:transactionConfirmed',
+      'TransactionController:transactionFailed',
       'MultichainTransactionsController:stateChange',
     ],
   });

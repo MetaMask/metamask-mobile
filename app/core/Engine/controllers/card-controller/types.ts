@@ -18,6 +18,7 @@ import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metam
 import type {
   TransactionControllerAddTransactionAction,
   TransactionControllerTransactionConfirmedEvent,
+  TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
 import type { SnapControllerHandleRequestAction } from '@metamask/snaps-controllers';
 import type { MultichainTransactionsControllerStateChange } from '@metamask/multichain-transactions-controller';
@@ -65,12 +66,18 @@ interface CardDelegationCompletedEvent {
   payload: [{ flow: 'onboarding' | 'manage' | 'enable' | null }];
 }
 
+interface CardDelegationFailedEvent {
+  type: 'CardController:delegationFailed';
+  payload: [{ flow: 'onboarding' | 'manage' | 'enable' | null; error: string }];
+}
+
 export type CardControllerEvents =
   | ControllerStateChangedEvent<
       typeof CARD_CONTROLLER_NAME,
       CardControllerState
     >
-  | CardDelegationCompletedEvent;
+  | CardDelegationCompletedEvent
+  | CardDelegationFailedEvent;
 
 type CardControllerAllowedActions =
   | AccountsControllerGetStateAction
@@ -85,6 +92,7 @@ type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
   | KeyringControllerUnlockEvent
   | TransactionControllerTransactionConfirmedEvent
+  | TransactionControllerTransactionFailedEvent
   | MultichainTransactionsControllerStateChange;
 
 export type CardControllerMessenger = Messenger<

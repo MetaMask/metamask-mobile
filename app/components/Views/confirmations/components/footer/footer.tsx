@@ -43,7 +43,7 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
-  TransactionType.cardDelegation,
+  'cardDelegation',
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
@@ -187,17 +187,20 @@ export const Footer = () => {
     },
   ];
 
+  if (transactionMetadata?.origin === TransactionTypes.MMM_CARD) {
+    return <CardDelegationFooter />;
+  }
+
   const isFooterVisible =
     isFooterVisibleFlag ??
     (!transactionMetadata ||
-      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
+      !hasTransactionType(
+        transactionMetadata,
+        HIDE_FOOTER_BY_DEFAULT_TYPES as readonly TransactionType[],
+      ));
 
   if (!isFooterVisible) {
     return null;
-  }
-
-  if (transactionMetadata?.origin === TransactionTypes.MMM_CARD) {
-    return <CardDelegationFooter />;
   }
 
   if (

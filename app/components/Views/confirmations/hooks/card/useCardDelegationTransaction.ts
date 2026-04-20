@@ -4,11 +4,20 @@ import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useEnsureCardNetworkExists } from '../../../../UI/Card/hooks/useEnsureCardNetworkExists';
-import { BAANX_MAX_LIMIT } from '../../../../UI/Card/constants';
+import {
+  BAANX_MAX_LIMIT,
+  isEvmChain,
+  isSolanaChain,
+} from '../../../../UI/Card/constants';
 import type { CardFundingToken } from '../../../../UI/Card/types';
-import { setDelegationFlow } from '../../../../../core/redux/slices/card';
+import type { CaipChainId } from '@metamask/utils';
+import {
+  setDelegationFlow,
+  resetDelegationState,
+} from '../../../../../core/redux/slices/card';
 import { useConfirmNavigation } from '../useConfirmNavigation';
 import { ConfirmationLoader } from '../../components/confirm/confirm-component';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export interface PrepareAndNavigateParams {
   flow: 'onboarding' | 'manage' | 'enable';
@@ -18,10 +27,12 @@ export interface PrepareAndNavigateParams {
 
 /**
  * Hook to prepare a cardDelegation transaction and navigate to the
- * CardDelegationInfo confirmation screen.
+ * appropriate confirmation screen.
  *
- * Delegates token resolution and transaction queuing to CardController.
- * Keeps only UI concerns: network setup, navigation, Redux flow state.
+ * EVM: navigates to the redesigned confirmations flow (shows skeleton while
+ * the network is ensured and the ERC-20 approve tx is queued).
+ * Solana: navigates to the standalone SolanaCardDelegationScreen (shows
+ * skeleton while the token is resolved); no EVM tx is involved.
  */
 export function useCardDelegationTransaction() {
   const dispatch = useDispatch();
@@ -38,46 +49,56 @@ export function useCardDelegationTransaction() {
     }: PrepareAndNavigateParams) => {
       setIsLoading(true);
 
-      // Navigate immediately so the skeleton shows while we do async work
-      navigateToConfirmation({ loader: ConfirmationLoader.CardDelegation });
+      // Clear stale state from any previous delegation session
+      dispatch(resetDelegationState());
+
+      // Determine chain early from the provided token so we can navigate
+      // immediately and show a skeleton while async work runs.
+      const isSolana =
+        !!providedToken &&
+        isSolanaChain(providedToken.caipChainId as CaipChainId);
+
+      if (isSolana) {
+        navigation.navigate(Routes.CARD.SOLANA_CARD_DELEGATION as never);
+      } else {
+        navigateToConfirmation({ loader: ConfirmationLoader.CardDelegation });
+      }
 
       try {
-        // Resolve the delegation token via the controller (fetches list if none provided)
         const token =
           await Engine.context.CardController.resolveDelegationToken(
             flow,
             providedToken,
           );
 
-        // Ensure the card network exists in the user's network list
-        const networkClientId = await ensureNetworkExists(
-          token.caipChainId ?? '',
+        // Store flow metadata before queuing the tx so CardDelegationInfo
+        // gets the correct token on first mount (approval appears in the
+        // same React flush as the setDelegationFlow dispatch).
+        dispatch(
+          setDelegationFlow({ flow, canChangeToken, selectedToken: token }),
         );
 
-        // Encode and queue the ERC-20 approve tx
-        const { transactionId } =
-          await Engine.context.CardController.queueDelegationApproval(
-            token,
-            networkClientId,
-            BAANX_MAX_LIMIT,
+        if (isEvmChain(token.caipChainId as CaipChainId)) {
+          // Ensure the card network exists in the user's network list
+          const networkClientId = await ensureNetworkExists(
+            token.caipChainId ?? '',
           );
 
-        // Store flow metadata in Redux so CardDelegationInfo can read it
-        dispatch(
-          setDelegationFlow({
-            flow,
-            canChangeToken,
-            selectedToken: token,
-          }),
-        );
+          // Encode and queue the ERC-20 approve tx
+          const { transactionId } =
+            await Engine.context.CardController.queueDelegationApproval(
+              token,
+              networkClientId,
+              BAANX_MAX_LIMIT,
+            );
 
-        return transactionId;
+          return transactionId;
+        }
       } catch (error) {
         Logger.error(
           error as Error,
           'useCardDelegationTransaction: Failed to prepare delegation',
         );
-        // Go back from the skeleton screen since setup failed
         navigation.goBack();
         throw error;
       } finally {

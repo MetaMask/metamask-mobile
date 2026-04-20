@@ -83,7 +83,7 @@ export function getTransactionTypeValue(
   }
 
   switch (transactionType) {
-    case TransactionType.cardDelegation:
+    case 'cardDelegation' as TransactionType:
       return 'card_delegation';
     case TransactionType.bridgeApproval:
       return 'bridge_approval';
