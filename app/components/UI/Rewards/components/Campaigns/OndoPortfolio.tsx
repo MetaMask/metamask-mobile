@@ -7,13 +7,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -50,21 +43,20 @@ import {
   isPnlNonNegative,
   sanitizeOndoTokenName,
 } from './OndoPortfolio.utils';
-import { formatComputedAt } from './OndoLeaderboard.utils';
-import { selectCurrentSubscriptionAccounts } from '../../../../../selectors/rewards';
 import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
+import { selectInternalAccounts } from '../../../../../selectors/accountsController';
+import { selectCurrentSubscriptionAccounts } from '../../../../../selectors/rewards';
 import {
   selectAccountToGroupMap,
-  selectResolvedSelectedAccountGroup,
+  selectSelectedAccountGroup,
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
-import Engine from '../../../../../core/Engine';
 import RewardsNoPositionsImage from '../../../../../images/rewards/rewards-no-positions.svg';
+import type { InternalAccount } from '@metamask/keyring-internal-api/dist/types.d.cts';
 
 const styles = StyleSheet.create({
   skeletonLg: { height: 128, borderRadius: 12 },
@@ -166,48 +158,53 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 }) => {
   const navigation = useNavigation();
 
+  const allInternalAccounts = useSelector(selectInternalAccounts);
   const subscriptionAccounts = useSelector(selectCurrentSubscriptionAccounts);
   const allTokenBalances = useSelector(selectAllTokenBalances);
   const allTokens = useSelector(selectAllTokens);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
-  const selectedGroup = useSelector(selectResolvedSelectedAccountGroup);
-  const resolveAccountsByAddresses = useSelector(
-    selectInternalAccountByAddresses,
-  );
+  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const grouped = useMemo(
     () =>
       portfolio ? groupPortfolioPositionsByAsset(portfolio.positions) : [],
     [portfolio],
   );
 
-  /** Returns InternalAccounts from the subscription that hold a non-zero balance of the given token. */
+  /** Returns InternalAccounts that hold a non-zero balance of the given token. */
   const getAccountsWithBalance = useCallback(
-    (row: OndoGmPortfolioPositionDto) => {
-      if (!subscriptionAccounts) return [];
+    (row: OndoGmPortfolioPositionDto): InternalAccount[] => {
       const parsed = parseCaip19(row.tokenAsset);
       if (!parsed || parsed.namespace !== 'eip155') return [];
       const chainHex = caipChainIdToHex(
         `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
       );
       const tokenHex = parsed.assetReference.toLowerCase() as Hex;
-      const addresses = subscriptionAccounts.flatMap((a) => {
-        const address = parseCaipAccountId(a.account).address;
-        const bal =
-          allTokenBalances?.[address.toLowerCase() as Hex]?.[chainHex]?.[
-            tokenHex
-          ];
-        return bal !== undefined && !!parseInt(bal, 16) ? [address] : [];
+      const subscriptionAddresses = new Set(
+        (subscriptionAccounts ?? []).map((a) =>
+          parseCaipAccountId(a.account).address.toLowerCase(),
+        ),
+      );
+      return (allInternalAccounts ?? []).filter((account) => {
+        if (!subscriptionAddresses.has(account.address.toLowerCase())) {
+          return false;
+        }
+        const chainBalances =
+          allTokenBalances?.[account.address.toLowerCase() as Hex]?.[chainHex];
+        const balEntry = chainBalances
+          ? Object.entries(chainBalances).find(
+              ([key]) => key.toLowerCase() === tokenHex,
+            )
+          : undefined;
+        const bal = balEntry?.[1];
+        return bal !== undefined && !!parseInt(bal, 16);
       });
-      return resolveAccountsByAddresses(addresses);
     },
-    [subscriptionAccounts, allTokenBalances, resolveAccountsByAddresses],
+    [allInternalAccounts, subscriptionAccounts, allTokenBalances],
   );
 
   /** Returns unique AccountGroups from a pre-computed list of accounts. */
   const getGroupsFromAccounts = useCallback(
-    (
-      accounts: ReturnType<typeof resolveAccountsByAddresses>,
-    ): AccountGroupObject[] => {
+    (accounts: InternalAccount[]): AccountGroupObject[] => {
       const seenGroups = new Map<string, AccountGroupObject>();
       for (const account of accounts) {
         const group = accountToGroupMap[account.id];
@@ -240,7 +237,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   const getGroupBalance = useCallback(
     (
       group: AccountGroupObject,
-      accounts: ReturnType<typeof resolveAccountsByAddresses>,
+      accounts: InternalAccount[],
       row: OndoGmPortfolioPositionDto,
       decimals: number,
     ): string => {
@@ -255,10 +252,13 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       );
       let total = new BigNumber(0);
       for (const account of groupAccounts) {
-        const hexBal =
-          allTokenBalances?.[account.address.toLowerCase() as Hex]?.[
-            chainHex
-          ]?.[tokenHex];
+        const chainBalances =
+          allTokenBalances?.[account.address.toLowerCase() as Hex]?.[chainHex];
+        const hexBal = chainBalances
+          ? Object.entries(chainBalances).find(
+              ([key]) => key.toLowerCase() === tokenHex,
+            )?.[1]
+          : undefined;
         if (hexBal) {
           try {
             total = total.plus(new BigNumber(hexBal).shiftedBy(-decimals));
@@ -301,18 +301,17 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
         navigateToSwap(row);
         return;
       }
-      if (groupsForRow.length === 1) {
-        const [group] = groupsForRow;
-        if (group.id !== selectedGroup?.id) {
-          Engine.context.AccountTreeController.setSelectedAccountGroup(
-            group.id,
-          );
-        }
+
+      if (
+        groupsForRow.length === 1 &&
+        selectedAccountGroup?.id === groupsForRow[0].id
+      ) {
+        // Already on the only group that holds this token — no picker needed
         navigateToSwap(row);
         return;
       }
 
-      // Multiple groups hold this token — delegate picker to parent
+      // Multiple groups or current group differs — delegate picker to parent
       const decimals = resolveTokenDecimals(row);
       onOpenAccountPicker({
         row,
@@ -330,9 +329,9 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       getAccountsWithBalance,
       getGroupsFromAccounts,
       getGroupBalance,
-      selectedGroup,
       onOpenAccountPicker,
       resolveTokenDecimals,
+      selectedAccountGroup,
     ],
   );
 
