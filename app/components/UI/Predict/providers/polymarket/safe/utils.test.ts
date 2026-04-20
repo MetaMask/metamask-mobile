@@ -32,6 +32,7 @@ import {
   getClaimTransaction,
   getWithdrawTransactionCallData,
   getSafeUsdcAmount,
+  getSafeUsdcAmountRaw,
 } from './utils';
 import { OperationType } from './types';
 import { Signer } from '../../types';
@@ -1448,6 +1449,17 @@ describe('safe utils', () => {
       });
 
       expect(callData).toMatch(/^0x[a-f0-9]+$/);
+    });
+  });
+
+  describe('getSafeUsdcAmountRaw', () => {
+    it('decodes the raw ERC20 amount without a float round-trip', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000000186a00';
+
+      const amount = getSafeUsdcAmountRaw(data);
+
+      expect(amount).toBe(1600000n);
     });
   });
 

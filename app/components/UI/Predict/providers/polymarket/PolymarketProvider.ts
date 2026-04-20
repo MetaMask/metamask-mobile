@@ -2192,6 +2192,7 @@ export class PolymarketProvider implements PredictProvider {
     params: PrepareWithdrawParams,
   ): Promise<PrepareWithdrawResponse> {
     const { signer } = params;
+    const protocol = this.#getProtocol();
 
     if (!signer.address) {
       throw new Error('Signer address is required');
@@ -2200,6 +2201,8 @@ export class PolymarketProvider implements PredictProvider {
     const safeAddress =
       this.#accountStateByAddress.get(signer.address)?.address ??
       (await this.getAccountState({ ownerAddress: signer.address })).address;
+
+    const withdrawTokenAddress = getProtocolWithdrawTokenAddress(protocol);
 
     const callData = encodeErc20Transfer({
       to: signer.address,
@@ -2210,7 +2213,7 @@ export class PolymarketProvider implements PredictProvider {
       chainId: CHAIN_IDS.POLYGON,
       transaction: {
         params: {
-          to: MATIC_CONTRACTS.collateral as Hex,
+          to: withdrawTokenAddress as Hex,
           data: callData,
           gas: numberToHex(SAFE_EXEC_GAS_LIMIT) as Hex,
         },
@@ -2224,6 +2227,7 @@ export class PolymarketProvider implements PredictProvider {
     params: SignWithdrawParams,
   ): Promise<SignWithdrawResponse> {
     const { callData, signer } = params;
+    const protocol = this.#getProtocol();
 
     if (!signer.address) {
       throw new Error('Signer address is required');
@@ -2233,13 +2237,29 @@ export class PolymarketProvider implements PredictProvider {
       this.#accountStateByAddress.get(signer.address)?.address ??
       computeProxyAddress(signer.address);
 
+    const amount = getSafeUsdcAmount(callData);
+    const requestedAmountRaw = getSafeUsdcAmountRaw(callData);
+
+    if (protocol.key === 'v2') {
+      const signedWithdrawTransaction = await buildWithdrawTransaction({
+        signer,
+        safeAddress,
+        requestedAmountRaw,
+        mode: protocol.workflow.withdrawMode,
+        protocol,
+      });
+
+      return {
+        callData: signedWithdrawTransaction.params.data,
+        amount,
+      };
+    }
+
     const signedCallData = await getWithdrawTransactionCallData({
       data: callData,
       signer,
       safeAddress,
     });
-
-    const amount = getSafeUsdcAmount(callData);
 
     return {
       callData: signedCallData,

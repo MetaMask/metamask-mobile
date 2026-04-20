@@ -5043,6 +5043,27 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  it('aggregates Safe USDC.e and pUSD balances when CLOB v2 is enabled', async () => {
+    jest.clearAllMocks();
+    const provider = createProvider({ predictClobV2Enabled: true });
+    (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
+    mockGetBalance.mockResolvedValueOnce(12.5).mockResolvedValueOnce(7.25);
+
+    const result = await provider.getBalance({
+      address: '0x1234567890123456789012345678901234567890',
+    });
+
+    expect(result).toBe(19.75);
+    expect(mockGetBalance).toHaveBeenNthCalledWith(1, {
+      address: '0xSafeAddress',
+      tokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+    });
+    expect(mockGetBalance).toHaveBeenNthCalledWith(2, {
+      address: '0xSafeAddress',
+      tokenAddress: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+    });
+  });
+
   describe('prepareWithdraw', () => {
     it('prepares withdraw transaction successfully', async () => {
       const provider = createProvider();
@@ -5107,6 +5128,26 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  it('prepares a legacy USDC.e edit transaction when CLOB v2 is enabled', async () => {
+    const provider = createProvider({ predictClobV2Enabled: true });
+    const mockSigner = {
+      address: '0x1234567890123456789012345678901234567890',
+      signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
+    };
+
+    mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+    (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+    (hasAllowances as jest.Mock).mockResolvedValue(true);
+
+    const result = await provider.prepareWithdraw({
+      signer: mockSigner,
+    });
+
+    expect(result.predictAddress).toBe('0xSafeAddress');
+    expect(result.transaction.params.to).toBe(USDC_E_ADDRESS);
+  });
+
   describe('prepareWithdrawConfirmation', () => {
     it('prepares withdraw confirmation successfully', async () => {
       const provider = createProvider();
@@ -5142,6 +5183,58 @@ describe('PolymarketProvider', () => {
         }),
       ).rejects.toThrow('Signer address is required');
     });
+  });
+
+  it('builds a signed Safe withdraw execution when CLOB v2 is enabled', async () => {
+    jest.clearAllMocks();
+    const provider = createProvider({ predictClobV2Enabled: true });
+    const mockSigner = {
+      address: '0x1234567890123456789012345678901234567890',
+      signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
+    };
+
+    mockComputeProxyAddress.mockReturnValue(
+      '0x1234567890123456789012345678901234567891',
+    );
+    mockGetRawBalance
+      .mockResolvedValueOnce(0n)
+      .mockResolvedValueOnce(1_000_000n);
+
+    const result = await provider.signWithdraw({
+      callData:
+        '0xa9059cbb000000000000000000000000123456789012345678901234567890123456789000000000000000000000000000000000000000000000000000000000000f4240',
+      signer: mockSigner,
+    });
+
+    expect(result).toEqual({
+      callData: '0xsignedsafeexec',
+      amount: 1,
+    });
+    expect(getWithdrawTransactionCallData).not.toHaveBeenCalled();
+  });
+
+  it('throws when Safe pUSD is insufficient for fallback v2 withdraw', async () => {
+    jest.clearAllMocks();
+    const provider = createProvider({ predictClobV2Enabled: true });
+    const mockSigner = {
+      address: '0x1234567890123456789012345678901234567890',
+      signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
+    };
+
+    mockComputeProxyAddress.mockReturnValue(
+      '0x1234567890123456789012345678901234567891',
+    );
+    mockGetRawBalance.mockResolvedValueOnce(0n).mockResolvedValueOnce(999_999n);
+
+    await expect(
+      provider.signWithdraw({
+        callData:
+          '0xa9059cbb000000000000000000000000123456789012345678901234567890123456789000000000000000000000000000000000000000000000000000000000000f4240',
+        signer: mockSigner,
+      }),
+    ).rejects.toThrow('Insufficient Safe pUSD balance for fallback withdraw');
   });
 
   describe('fetchActivity', () => {

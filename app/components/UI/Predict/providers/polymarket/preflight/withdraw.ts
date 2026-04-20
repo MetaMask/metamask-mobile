@@ -1,0 +1,167 @@
+import { TransactionType } from '@metamask/transaction-controller';
+import type { Signer } from '../../types';
+import {
+  POLYMARKET_V2_PROTOCOL,
+  type PolymarketProtocolDefinition,
+  type WithdrawExecutionMode,
+} from '../protocol/definitions';
+import { OperationType, type SafeTransaction } from '../safe/types';
+import { encodeErc20Transfer } from '../utils';
+import {
+  buildSignedSafeExecution,
+  buildUnwrapTransaction,
+  getRawTokenBalance,
+} from './core';
+import { compileRequirementTransactions } from './compileRequirementTransactions';
+import { inspectMissingRequirements } from './inspectMissingRequirements';
+import { getCanonicalV2AllowanceRequirements } from './v2AllowanceRequirements';
+
+export interface WithdrawPlan {
+  requestedAmountRaw: bigint;
+  safeUsdceBalance: bigint;
+  deficit: bigint;
+  missingRequirements: ReturnType<typeof getCanonicalV2AllowanceRequirements>;
+  transactions: SafeTransaction[];
+}
+
+export async function planWithdraw({
+  signer,
+  safeAddress,
+  requestedAmountRaw,
+  mode,
+  protocol = POLYMARKET_V2_PROTOCOL,
+}: {
+  signer: Signer;
+  safeAddress: string;
+  requestedAmountRaw: bigint;
+  mode: WithdrawExecutionMode;
+  protocol?: PolymarketProtocolDefinition;
+}): Promise<WithdrawPlan> {
+  const [missingRequirements, safeUsdceBalance] = await Promise.all([
+    inspectMissingRequirements({
+      address: safeAddress,
+      requirements: getCanonicalV2AllowanceRequirements(protocol),
+    }),
+    getRawTokenBalance({
+      address: safeAddress,
+      tokenAddress: protocol.collateral.legacyUsdceToken,
+    }),
+  ]);
+
+  const deficit =
+    mode === 'usdce-deficit-unwrap' && requestedAmountRaw > safeUsdceBalance
+      ? requestedAmountRaw - safeUsdceBalance
+      : 0n;
+
+  if (mode === 'usdce-deficit-unwrap' && deficit > 0n) {
+    const safePusdBalance = await getRawTokenBalance({
+      address: safeAddress,
+      tokenAddress: protocol.collateral.tradingToken,
+    });
+
+    if (safePusdBalance < deficit) {
+      throw new Error('Insufficient Safe pUSD balance for fallback withdraw');
+    }
+  }
+
+  return {
+    requestedAmountRaw,
+    safeUsdceBalance,
+    deficit,
+    missingRequirements,
+    transactions: compileWithdrawTransactions({
+      signer,
+      safeAddress,
+      requestedAmountRaw,
+      deficit,
+      missingRequirements,
+      mode,
+      protocol,
+    }),
+  };
+}
+
+export function compileWithdrawTransactions({
+  signer,
+  safeAddress,
+  requestedAmountRaw,
+  deficit,
+  missingRequirements,
+  mode,
+  protocol = POLYMARKET_V2_PROTOCOL,
+}: {
+  signer: Signer;
+  safeAddress: string;
+  requestedAmountRaw: bigint;
+  deficit: bigint;
+  missingRequirements: ReturnType<typeof getCanonicalV2AllowanceRequirements>;
+  mode: WithdrawExecutionMode;
+  protocol?: PolymarketProtocolDefinition;
+}): SafeTransaction[] {
+  const transactions = compileRequirementTransactions(missingRequirements);
+
+  if (mode === 'pusd-transfer') {
+    transactions.push({
+      to: protocol.collateral.tradingToken,
+      data: encodeErc20Transfer({
+        to: signer.address,
+        value: requestedAmountRaw,
+      }),
+      operation: OperationType.Call,
+      value: '0',
+    });
+
+    return transactions;
+  }
+
+  const unwrapTransaction = buildUnwrapTransaction({
+    recipientAddress: safeAddress,
+    amount: deficit,
+    protocol,
+  });
+
+  if (unwrapTransaction) {
+    transactions.push(unwrapTransaction);
+  }
+
+  transactions.push({
+    to: protocol.collateral.legacyUsdceToken,
+    data: encodeErc20Transfer({
+      to: signer.address,
+      value: requestedAmountRaw,
+    }),
+    operation: OperationType.Call,
+    value: '0',
+  });
+
+  return transactions;
+}
+
+export async function buildWithdrawTransaction({
+  signer,
+  safeAddress,
+  requestedAmountRaw,
+  mode,
+  protocol = POLYMARKET_V2_PROTOCOL,
+}: {
+  signer: Signer;
+  safeAddress: string;
+  requestedAmountRaw: bigint;
+  mode: WithdrawExecutionMode;
+  protocol?: PolymarketProtocolDefinition;
+}) {
+  const plan = await planWithdraw({
+    signer,
+    safeAddress,
+    requestedAmountRaw,
+    mode,
+    protocol,
+  });
+
+  return buildSignedSafeExecution({
+    signer,
+    safeAddress,
+    transactions: plan.transactions,
+    type: TransactionType.predictWithdraw,
+  });
+}
