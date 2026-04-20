@@ -367,7 +367,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
   );
 
-  const eventSource = useOriginSource({ origin: channelIdOrHostname });
+  const originSource = useOriginSource({ origin: channelIdOrHostname });
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -413,7 +413,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
           .addProperties({
             number_of_accounts: accountsLength,
-            source: eventSource,
+            source: originSource?.source,
+            request_source: originSource?.requestSource,
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
@@ -428,7 +429,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       anonId,
       trackEvent,
       createEventBuilder,
-      eventSource,
+      originSource,
       hostInfo.metadata.isEip1193Request,
       hostInfo.permissions,
     ],
@@ -523,7 +524,8 @@ const AccountConnect = (props: AccountConnectProps) => {
             number_of_accounts: accountsLength,
             number_of_accounts_connected: connectedAccountLength,
             account_type: getAddressAccountType(activeAddress),
-            source: eventSource,
+            source: originSource?.source,
+            request_source: originSource?.requestSource,
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
@@ -552,7 +554,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [
     anonId,
-    eventSource,
+    originSource,
     selectedAddresses,
     hostInfo,
     toastRef,
