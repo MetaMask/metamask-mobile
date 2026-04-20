@@ -26,7 +26,10 @@ import {
   UnrealizedPnL,
 } from '../types';
 import { Hex } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  RequiredAsset,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { PredictFeatureFlags } from '../types/flags';
 
 // Re-export shared types so existing provider-layer imports continue to work
@@ -68,6 +71,7 @@ export interface PrepareWithdrawParams {
 
 export interface PrepareDepositResponse {
   chainId: Hex;
+  requiredAssets?: RequiredAsset[];
   transactions: {
     params: {
       to: Hex;

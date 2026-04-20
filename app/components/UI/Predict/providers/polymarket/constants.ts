@@ -77,12 +77,37 @@ export const MATIC_CONTRACTS: ContractConfig = {
   exchange: '0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E',
   negRiskAdapter: '0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296',
   negRiskExchange: '0xC5d563A36AE78145C45a50134d48A1215220f80a',
-  collateral: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+  collateral: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+  collateralUnderlying: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+  collateralOnramp: '0x93070a847efEf7F70739046A929D47a521F5B8ee',
   conditionalTokens: '0x4D97DCd97eC945f40cF65F87097ACe5EA0476045',
 };
 
+/**
+ * ABI fragment for the Collateral Onramp wrap function.
+ * Wraps USDC/USDC.e into pUSD and sends to recipient.
+ * Selector: 0x62355638
+ *
+ * @param token - The input token address (USDC or USDC.e)
+ * @param to - The recipient address for minted pUSD
+ * @param amount - The amount to wrap
+ */
+export const COLLATERAL_ONRAMP_WRAP_ABI = [
+  {
+    inputs: [
+      { name: 'token', type: 'address' },
+      { name: 'to', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'wrap',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
 export const POLYGON_USDC_CAIP_ASSET_ID =
-  `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS.collateral}` as const;
+  `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS.collateralUnderlying}` as const;
 
 export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   first_half_moneyline: 'first_half',

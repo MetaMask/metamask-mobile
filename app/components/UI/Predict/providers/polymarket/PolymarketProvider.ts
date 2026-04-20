@@ -4,12 +4,14 @@ import {
 } from '@metamask/keyring-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
+import { Interface } from '@ethersproject/abi';
 import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
+  generateApprovalData,
   generateTransferData,
   isSmartContractAddress,
 } from '../../../../../util/transactions';
@@ -60,6 +62,7 @@ import {
   SignWithdrawResponse,
 } from '../types';
 import {
+  COLLATERAL_ONRAMP_WRAP_ABI,
   MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   ORDER_RATE_LIMIT_MS,
@@ -1879,27 +1882,45 @@ export class PolymarketProvider implements PredictProvider {
       transactions.push(allowanceTransaction);
     }
 
-    const depositTransactionCallData = generateTransferData('transfer', {
-      toAddress: accountState.address,
-      amount: '0x0',
-    });
+    const { collateralUnderlying, collateralOnramp } = MATIC_CONTRACTS;
 
-    if (!depositTransactionCallData) {
-      throw new Error(
-        'Failed to generate transfer data for deposit transaction',
-      );
-    }
+    const approveOnrampCallData = generateApprovalData({
+      spender: collateralOnramp,
+      value: '0x0',
+    });
 
     transactions.push({
       params: {
-        to: collateral as Hex,
-        data: depositTransactionCallData as Hex,
+        to: collateralUnderlying as Hex,
+        data: approveOnrampCallData as Hex,
+      },
+    });
+
+    const onrampInterface = new Interface(COLLATERAL_ONRAMP_WRAP_ABI);
+
+    const wrapCallData = onrampInterface.encodeFunctionData('wrap', [
+      collateralUnderlying,
+      accountState.address,
+      '0x0',
+    ]);
+
+    transactions.push({
+      params: {
+        to: collateralOnramp as Hex,
+        data: wrapCallData as Hex,
       },
       type: TransactionType.predictDeposit,
     });
 
     return {
       chainId: CHAIN_IDS.POLYGON,
+      requiredAssets: [
+        {
+          address: collateralUnderlying as Hex,
+          amount: '0x0' as Hex,
+          standard: 'erc20',
+        },
+      ],
       transactions,
     };
   }

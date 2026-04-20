@@ -60,6 +60,7 @@ import {
   MATIC_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
 } from '../providers/polymarket/constants';
+
 import { Signer } from '../providers/types';
 
 import {
@@ -1760,7 +1761,7 @@ export class PredictController extends BaseController<
         throw new Error('Deposit preparation returned undefined');
       }
 
-      const { transactions, chainId } = depositPreparation;
+      const { transactions, chainId, requiredAssets } = depositPreparation;
 
       if (!transactions || transactions.length === 0) {
         throw new Error('No transactions returned from deposit preparation');
@@ -1804,6 +1805,7 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         skipInitialGasEstimate: true,
+        requiredAssets,
         transactions,
       });
 
@@ -1896,7 +1898,7 @@ export class PredictController extends BaseController<
         throw new Error('Deposit preparation returned undefined');
       }
 
-      const { transactions, chainId } = depositPreparation;
+      const { transactions, chainId, requiredAssets } = depositPreparation;
 
       if (!transactions || transactions.length === 0) {
         throw new Error('No transactions returned from deposit preparation');
@@ -1949,6 +1951,7 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         skipInitialGasEstimate: true,
+        requiredAssets,
         transactions: depositAndOrderTransactions,
       });
 

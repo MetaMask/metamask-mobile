@@ -220,6 +220,8 @@ export interface ContractConfig {
   negRiskAdapter: string;
   negRiskExchange: string;
   collateral: string;
+  collateralUnderlying: string;
+  collateralOnramp: string;
   conditionalTokens: string;
 }
 

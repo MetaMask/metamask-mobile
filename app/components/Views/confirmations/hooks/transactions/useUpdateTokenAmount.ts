@@ -14,9 +14,13 @@ import {
 } from '../../../../../util/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
-import { getTokenTransferData } from '../../utils/transaction-pay';
+import {
+  getTokenAddress,
+  getTokenTransferData,
+} from '../../utils/transaction-pay';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import Logger from '../../../../../util/Logger';
+import { updateTransactionPayData } from '../../utils/external/update-transaction-pay-data';
 
 export function useUpdateTokenAmount() {
   const dispatch = useDispatch();
@@ -26,21 +30,30 @@ export function useUpdateTokenAmount() {
   const transactionId = transactionMeta?.id ?? '';
   const [previousAmountRaw, setPreviousAmountRaw] = useState<string>();
 
-  const {
-    data,
-    to,
-    index: nestedCallIndex,
-  } = (transactionMeta && getTokenTransferData(transactionMeta)) ?? {};
+  const { data, index: nestedCallIndex } =
+    (transactionMeta && getTokenTransferData(transactionMeta)) ?? {};
+
+  const tokenAddress = getTokenAddress(transactionMeta);
 
   const { decimals } =
     useSelector((state: RootState) =>
-      selectSingleTokenByAddressAndChainId(state, to as Hex, chainId as Hex),
+      selectSingleTokenByAddressAndChainId(
+        state,
+        tokenAddress as Hex,
+        chainId as Hex,
+      ),
     ) ?? {};
 
   const amountRaw = useMemo(() => {
+    const requiredAssetAmount = transactionMeta?.requiredAssets?.[0]?.amount;
+
+    if (requiredAssetAmount) {
+      return new BigNumber(requiredAssetAmount).toString(10);
+    }
+
     const transactionData = parseStandardTokenTransactionData(data);
     return new BigNumber(transactionData?.args?._value.toString()).toString(10);
-  }, [data]);
+  }, [data, transactionMeta]);
 
   const isUpdating =
     Boolean(previousAmountRaw) && amountRaw === previousAmountRaw;
@@ -64,15 +77,28 @@ export function useUpdateTokenAmount() {
         return;
       }
 
+      const newAmountHex = newAmountRaw.toString(16);
+
+      setPreviousAmountRaw(amountRaw);
+
+      if (
+        transactionMeta &&
+        updateTransactionPayData({
+          transactionId,
+          transactionMeta,
+          amountHex: newAmountHex,
+        })
+      ) {
+        return;
+      }
+
       const transactionData = parseStandardTokenTransactionData(data);
       const recipient = transactionData?.args?._to;
 
       const newData = generateTransferData('transfer', {
         toAddress: recipient,
-        amount: newAmountRaw.toString(16),
+        amount: newAmountHex,
       }) as Hex;
-
-      setPreviousAmountRaw(amountRaw);
 
       if (nestedCallIndex !== undefined) {
         updateAtomicBatchData({
@@ -94,7 +120,14 @@ export function useUpdateTokenAmount() {
         updateType: false,
       });
     },
-    [amountRaw, data, decimals, nestedCallIndex, transactionId],
+    [
+      amountRaw,
+      data,
+      decimals,
+      nestedCallIndex,
+      transactionId,
+      transactionMeta,
+    ],
   );
 
   return {
