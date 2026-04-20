@@ -551,7 +551,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const { faviconURI: faviconSource } = useFavicon(dappUrl);
 
-  const eventSource = useOriginSource({ origin: channelIdOrHostname });
+  const originSource = useOriginSource({ origin: channelIdOrHostname });
 
   const suggestedAccountGroupIds = useMemo(
     () =>
@@ -597,7 +597,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
           .addProperties({
             number_of_accounts: accountsLength,
-            source: eventSource,
+            source: originSource?.source,
+            request_source: originSource?.requestSource,
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
@@ -612,7 +613,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       anonId,
       trackEvent,
       createEventBuilder,
-      eventSource,
+      originSource,
       hostInfo.metadata.isEip1193Request,
       hostInfo.permissions,
     ],
@@ -703,7 +704,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             number_of_accounts_connected: connectedAccountLength,
             // TODO: Fix this. Not accurate
             account_type: 'multichain',
-            source: eventSource,
+            source: originSource?.source,
+            request_source: originSource?.requestSource,
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
@@ -742,7 +744,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     trackEvent,
     createEventBuilder,
     accountsLength,
-    eventSource,
+    originSource,
     toastRef,
     faviconSource,
     referrer,

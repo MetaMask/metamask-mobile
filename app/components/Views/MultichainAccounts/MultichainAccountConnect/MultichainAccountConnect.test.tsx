@@ -33,11 +33,10 @@ import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock'
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnValue({
-    build: jest.fn(),
-  }),
-});
+const mockAddProperties = jest.fn().mockReturnValue({ build: jest.fn() });
+const mockCreateEventBuilder = jest
+  .fn()
+  .mockReturnValue({ addProperties: mockAddProperties });
 const mockGetNextAvailableAccountName = jest.fn().mockReturnValue('Account 3');
 
 // Generate consistent UUIDs for testing
@@ -166,7 +165,9 @@ jest.mock('../../../hooks/useFavicon/useFavicon', () =>
   jest.fn(() => 'favicon-url'),
 );
 
-jest.mock('../../../hooks/useOriginSource', () => jest.fn(() => 'test-source'));
+jest.mock('../../../hooks/useOriginSource', () =>
+  jest.fn(() => ({ source: 'in-app browser', requestSource: 'In-App-Browser' })),
+);
 
 jest.mock('../../../hooks/useSDKV2Connection/useSDKV2Connection', () => ({
   useSDKV2Connection: jest.fn(() => undefined),
@@ -623,6 +624,12 @@ describe('MultichainAccountConnect', () => {
       sendTerminate: true,
     });
     expect(mockCreateEventBuilder).toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'in-app browser',
+        request_source: 'In-App-Browser',
+      }),
+    );
   });
 
   it('handles confirm button press correctly', async () => {
@@ -675,6 +682,15 @@ describe('MultichainAccountConnect', () => {
           permissions: expect.objectContaining({
             [Caip25EndowmentPermissionName]: expect.any(Object),
           }),
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'in-app browser',
+          request_source: 'In-App-Browser',
         }),
       );
     });
