@@ -138,7 +138,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
 
   const [password, setPassword] = useState('');
-  const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(
@@ -329,7 +328,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [],
   );
 
-  const captureOrThrowOauthRehydrationError = useCallback(
+  const captureOauthRehydrationError = useCallback(
     (seedlessError: Error) => {
       if (!isComingFromOauthOnboarding) {
         return;
@@ -344,12 +343,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         });
         return;
       }
-
-      setErrorToThrow(
-        new Error(`OAuth rehydration failed: ${seedlessError.message}`),
-      );
     },
-    [isComingFromOauthOnboarding, isMetricsEnabled, setErrorToThrow],
+    [isComingFromOauthOnboarding, isMetricsEnabled],
   );
 
   const handleSeedlessOnboardingControllerError = useCallback(
@@ -447,7 +442,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           setError(
             sanitizeSeedlessControllerErrorMessage(seedlessError.message),
           );
-          captureOrThrowOauthRehydrationError(seedlessError);
+          captureOauthRehydrationError(seedlessError);
           return;
         }
       }
@@ -473,10 +468,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         error_type: 'unknown_error',
         error_origin: ErrorOrigin.SeedlessUnclassified,
       });
-      captureOrThrowOauthRehydrationError(seedlessError);
+      captureOauthRehydrationError(seedlessError);
     },
     [
-      captureOrThrowOauthRehydrationError,
+      captureOauthRehydrationError,
       isComingFromOauthOnboarding,
       isMetricsEnabled,
       netInfo,
@@ -762,13 +757,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     downloadStateLogs(fullState, false);
   };
 
-  const ThrowErrorIfNeeded = () => {
-    if (errorToThrow) {
-      throw errorToThrow;
-    }
-    return null;
-  };
-
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);
     setError(null);
@@ -845,12 +833,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       </Button>
     );
   return (
-    <ErrorBoundary
-      navigation={navigation}
-      view="OAuthRehydration"
-      useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
-    >
-      <ThrowErrorIfNeeded />
+    <ErrorBoundary navigation={navigation} view="OAuthRehydration">
       <SafeAreaView
         style={[
           tw.style('flex-1'),
