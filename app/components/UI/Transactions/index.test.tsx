@@ -17,6 +17,7 @@ import {
   findBlockExplorerUrlForChain,
   getHexEvmChainId,
 } from '../../../util/networks';
+import { TransactionEnvelopeType } from '@metamask/transaction-controller';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { isHardwareAccount } from '../../../util/address';
@@ -255,6 +256,194 @@ const defaultTestProps = {
     medium: { suggestedMaxFeePerGas: '20' },
   },
 };
+
+const getMediumGasPriceHexMock = jest.requireMock(
+  '../../../util/confirmation/gas',
+).getMediumGasPriceHex as jest.Mock;
+const getGasValuesForReplacementMock = jest.requireMock(
+  '../../../util/confirmation/gas',
+).getGasValuesForReplacement as jest.Mock;
+const speedUpTransactionMock = jest.requireMock(
+  '../../../util/transaction-controller',
+).speedUpTransaction as jest.Mock;
+const stopTransactionMock = Engine.context.TransactionController
+  .stopTransaction as jest.Mock;
+
+interface TransactionsHarness {
+  setState: jest.Mock;
+  onSpeedUpAction: (open: boolean, tx: unknown) => void;
+  onCancelAction: (open: boolean, tx: unknown) => void;
+  speedUpTransaction: (override?: Record<string, unknown>) => Promise<void>;
+  cancelTransaction: (override?: Record<string, unknown>) => Promise<void>;
+}
+
+const createTransactionsInstance = (): TransactionsHarness => {
+  const instance = new UnconnectedTransactions(
+    defaultTestProps,
+  ) as unknown as TransactionsHarness;
+  instance.setState = jest.fn();
+  return instance;
+};
+
+describe('Transactions speed up / cancel)', () => {
+  let instance: TransactionsHarness;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getMediumGasPriceHexMock.mockReturnValue('0x123');
+    getGasValuesForReplacementMock.mockImplementation((gasValues) => gasValues);
+    mockIsNonEvmChainId.mockReturnValue(false);
+    mockIsHardwareAccount.mockReturnValue(false);
+
+    instance = createTransactionsInstance();
+  });
+
+  it('sends EIP-1559 fee fields from medium estimate when speeding up a fee market transaction with no override', async () => {
+    const tx = {
+      id: 'feemarket-1',
+      txParams: {
+        type: TransactionEnvelopeType.feeMarket,
+        maxFeePerGas: '0x10',
+        maxPriorityFeePerGas: '0x5',
+      },
+    };
+    instance.onSpeedUpAction(true, tx);
+
+    await instance.speedUpTransaction();
+
+    expect(speedUpTransactionMock).toHaveBeenCalledWith('feemarket-1', {
+      maxFeePerGas: '0x123',
+      maxPriorityFeePerGas: '0x123',
+    });
+    expect(speedUpTransactionMock.mock.calls[0][1]).not.toHaveProperty(
+      'gasPrice',
+    );
+  });
+
+  it('sends EIP-1559 fee fields when the override carries gasPrice 0x0 for a fee market transaction', async () => {
+    const tx = {
+      id: 'feemarket-zero',
+      txParams: {
+        type: TransactionEnvelopeType.feeMarket,
+        maxFeePerGas: '0x10',
+        maxPriorityFeePerGas: '0x5',
+      },
+    };
+    instance.onSpeedUpAction(true, tx);
+
+    await instance.speedUpTransaction({ gasPrice: '0x0' });
+
+    expect(speedUpTransactionMock).toHaveBeenCalledWith('feemarket-zero', {
+      maxFeePerGas: '0x123',
+      maxPriorityFeePerGas: '0x123',
+    });
+  });
+
+  it('passes undefined gas values when the medium estimate is missing for a fee market transaction', async () => {
+    getMediumGasPriceHexMock.mockReturnValue(undefined);
+    const tx = {
+      id: 'feemarket-no-estimate',
+      txParams: { type: TransactionEnvelopeType.feeMarket },
+    };
+    instance.onSpeedUpAction(true, tx);
+
+    await instance.speedUpTransaction();
+
+    expect(speedUpTransactionMock).toHaveBeenCalledWith(
+      'feemarket-no-estimate',
+      undefined,
+    );
+  });
+
+  it('sends legacy gasPrice from medium estimate when speeding up a legacy transaction with gasPrice 0x0', async () => {
+    const tx = {
+      id: 'legacy-zero',
+      txParams: {
+        type: TransactionEnvelopeType.legacy,
+        gasPrice: '0x0',
+      },
+    };
+    instance.onSpeedUpAction(true, tx);
+
+    await instance.speedUpTransaction();
+
+    expect(speedUpTransactionMock).toHaveBeenCalledWith('legacy-zero', {
+      gasPrice: '0x123',
+    });
+  });
+
+  it('passes undefined gas values when speeding up a legacy transaction whose on-chain gasPrice is non-zero and no override is provided', async () => {
+    const tx = {
+      id: 'legacy-nonzero',
+      txParams: {
+        type: TransactionEnvelopeType.legacy,
+        gasPrice: '0x64',
+      },
+    };
+    instance.onSpeedUpAction(true, tx);
+
+    await instance.speedUpTransaction();
+
+    expect(speedUpTransactionMock).toHaveBeenCalledWith(
+      'legacy-nonzero',
+      undefined,
+    );
+  });
+
+  it('passes an override with non-zero gasPrice straight through without invoking the medium estimate', async () => {
+    const tx = {
+      id: 'override-legacy',
+      txParams: {
+        type: TransactionEnvelopeType.legacy,
+        gasPrice: '0x0',
+      },
+    };
+    instance.onSpeedUpAction(true, tx);
+
+    await instance.speedUpTransaction({ gasPrice: '0x999' });
+
+    expect(speedUpTransactionMock).toHaveBeenCalledWith('override-legacy', {
+      gasPrice: '0x999',
+    });
+    expect(getMediumGasPriceHexMock).not.toHaveBeenCalled();
+  });
+
+  it('sends EIP-1559 fee fields when cancelling a fee market transaction', async () => {
+    const tx = {
+      id: 'cancel-feemarket',
+      txParams: {
+        type: TransactionEnvelopeType.feeMarket,
+        maxFeePerGas: '0x10',
+        maxPriorityFeePerGas: '0x5',
+      },
+    };
+    instance.onCancelAction(true, tx);
+
+    await instance.cancelTransaction();
+
+    expect(stopTransactionMock).toHaveBeenCalledWith('cancel-feemarket', {
+      maxFeePerGas: '0x123',
+      maxPriorityFeePerGas: '0x123',
+    });
+  });
+
+  it('sends legacy gasPrice when cancelling a legacy transaction with gasPrice 0x0', async () => {
+    const tx = {
+      id: 'cancel-legacy-zero',
+      txParams: {
+        type: TransactionEnvelopeType.legacy,
+        gasPrice: '0x0',
+      },
+    };
+    instance.onCancelAction(true, tx);
+
+    await instance.cancelTransaction();
+
+    expect(stopTransactionMock).toHaveBeenCalledWith('cancel-legacy-zero', {
+      gasPrice: '0x123',
+    });
+  });
+});
 
 describe('Transactions', () => {
   beforeEach(() => {
