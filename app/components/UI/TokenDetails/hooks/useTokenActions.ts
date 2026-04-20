@@ -47,6 +47,7 @@ import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickDat
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
 import { TokenDetailsSource } from '../constants/constants';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -101,7 +102,9 @@ export interface UseTokenActionsResult {
 }
 
 export interface UseTokenActionsParams {
-  token: TokenI;
+  token: TokenI & {
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  };
   networkName?: string;
   /** Optional up-to-date token balance from Token Details balance hook */
   currentTokenBalance?: string;
@@ -154,6 +157,7 @@ export const useTokenActions = ({
     sourceToken,
     destToken,
     abTestContext: {},
+    transactionActiveAbTests: token.transactionActiveAbTests,
     skipLocationUpdate: isFromBridgeAssetPicker,
   });
 

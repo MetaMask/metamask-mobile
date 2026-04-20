@@ -140,7 +140,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
 export interface AssetOverviewContentProps {
   // Asset
-  token: TokenI;
+  token: TokenDetailsRouteParams;
 
   // Balance data
   balance: string | number | undefined;
@@ -246,6 +246,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
     fromTokenDetails: true,
+    transactionActiveAbTests: token.transactionActiveAbTests,
   });
 
   const isEligible = useSelector(selectPerpsEligibility);
