@@ -1,5 +1,5 @@
-import React from 'react';
-import { Dimensions, ScrollView, Platform } from 'react-native';
+import React, { useMemo } from 'react';
+import { ScrollView, Platform, useWindowDimensions } from 'react-native';
 import {
   Box,
   BoxJustifyContent,
@@ -23,8 +23,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
 
-const QR_SIZE = Math.round(Dimensions.get('window').width * 0.65);
-const LOGO_SIZE = Math.round(QR_SIZE * 0.2);
+const QR_SCALE = 0.65;
+const LOGO_SCALE = 0.2;
 
 const SRPTabView = ({
   clipboardPrivateCredential,
@@ -34,6 +34,9 @@ const SRPTabView = ({
   onCopyToClipboard,
   onTabChange,
 }: SRPTabViewProps) => {
+  const { width } = useWindowDimensions();
+  const qrSize = useMemo(() => Math.round(width * QR_SCALE), [width]);
+  const logoSize = useMemo(() => Math.round(qrSize * LOGO_SCALE), [qrSize]);
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
 
@@ -100,13 +103,12 @@ const SRPTabView = ({
               >
                 <QRCode
                   value={clipboardPrivateCredential}
-                  size={QR_SIZE}
+                  size={qrSize}
                   color={qrForeground}
                   backgroundColor={qrBackground}
                   logo={logo}
-                  logoSize={LOGO_SIZE}
+                  logoSize={logoSize}
                   logoBackgroundColor={qrBackground}
-                  logoBorderRadius={8}
                   logoMargin={4}
                 />
               </Box>
