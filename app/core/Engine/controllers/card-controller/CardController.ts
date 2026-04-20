@@ -1089,6 +1089,7 @@ export class CardController extends BaseController<
         type: 'cardDelegation' as TransactionType,
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         requireApproval: true,
+        skipInitialGasEstimate: true,
       },
     );
 
