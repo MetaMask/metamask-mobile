@@ -103,10 +103,20 @@ if [ -f "$SUMMARY_FILE" ]; then
     SUMMARY+="*🔄 Performance E2E Tests — ${buildTypeLabel} Build*\n"
     SUMMARY+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
 
+    # Count job-level failures (jobs that failed before producing test results)
+    jobFailures=0
+    for status in "$androidOnboardingStatus" "$iosOnboardingStatus" "$androidImportedWalletStatus" "$iosImportedWalletStatus"; do
+        if [[ "$status" == *"FAILED"* ]]; then
+            ((jobFailures++))
+        fi
+    done
+
     # Executive Summary
     SUMMARY+="*📊 SUMMARY*\n"
     if [ "$uniqueFailedTests" -gt 0 ]; then
         SUMMARY+="├─ 🚫 Status: FAILED (${uniqueFailedTests} errors)\n"
+    elif [ "$jobFailures" -gt 0 ]; then
+        SUMMARY+="├─ 🚫 Status: FAILED (${jobFailures} job failures)\n"
     else
         SUMMARY+="├─ ✅ Status: PASSED\n"
     fi
