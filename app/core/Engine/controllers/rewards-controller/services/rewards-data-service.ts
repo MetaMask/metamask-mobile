@@ -34,6 +34,7 @@ import type {
   OndoGmPortfolioDto,
   PaginatedOndoGmActivityDto,
   OndoGmCampaignDepositsDto,
+  OndoGmWinnerCodeDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -257,6 +258,11 @@ export interface RewardsDataServiceGetOndoCampaignDepositsAction {
   handler: RewardsDataService['getOndoCampaignDeposits'];
 }
 
+export interface RewardsDataServiceGetOndoCampaignWinnerCodeAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignWinnerCode`;
+  handler: RewardsDataService['getOndoCampaignWinnerCode'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -327,7 +333,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
-  | RewardsDataServiceGetOndoCampaignDepositsAction;
+  | RewardsDataServiceGetOndoCampaignDepositsAction
+  | RewardsDataServiceGetOndoCampaignWinnerCodeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -497,6 +504,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getOndoCampaignDeposits`,
       this.getOndoCampaignDeposits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignWinnerCode`,
+      this.getOndoCampaignWinnerCode.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1689,5 +1700,24 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as OndoGmCampaignDepositsDto;
+  }
+
+  async getOndoCampaignWinnerCode(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmWinnerCodeDto> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/winner-code`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Ondo campaign winner code failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as OndoGmWinnerCodeDto;
   }
 }

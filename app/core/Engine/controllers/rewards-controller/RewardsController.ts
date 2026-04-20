@@ -28,6 +28,7 @@ import {
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
   type OndoGmCampaignDepositsDto,
+  type OndoGmWinnerCodeDto,
   type PaginatedOndoGmActivityDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
@@ -403,6 +404,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getOndoCampaignLeaderboardPosition',
   'getOndoCampaignActivity',
   'getOndoCampaignPortfolioPosition',
+  'getOndoCampaignWinnerCode',
   'getOptInStatus',
   'getPerpsDiscountForAccount',
   'getPointsEvents',
@@ -3707,6 +3709,40 @@ export class RewardsController extends BaseController<
       },
     });
     return result;
+  }
+
+  /**
+   * Fetch the winning code for the current user in a completed Ondo GM campaign.
+   * This is an authenticated, no-cache endpoint — called only when the winner
+   * screen is shown, so freshness is guaranteed.
+   */
+  async getOndoCampaignWinnerCode(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<string | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+    try {
+      const result: OndoGmWinnerCodeDto = await this.#withAuthRetry(
+        async () => {
+          Logger.log('RewardsController: Fetching Ondo campaign winner code');
+          return this.messenger.call(
+            'RewardsDataService:getOndoCampaignWinnerCode',
+            campaignId,
+            subscriptionId,
+          );
+        },
+        subscriptionId,
+      );
+      return result.code;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get Ondo campaign winner code:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return null;
+    }
   }
 
   /**

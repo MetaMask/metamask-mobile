@@ -73,7 +73,7 @@ const OndoCampaignWinningView: React.FC = () => {
     useGetOndoLeaderboardPosition(campaignId);
 
   const { code: referralCode, isLoading: referralCodeLoading } =
-    useOndoCampaignWinnerCode();
+    useOndoCampaignWinnerCode(campaignId);
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_winning',
