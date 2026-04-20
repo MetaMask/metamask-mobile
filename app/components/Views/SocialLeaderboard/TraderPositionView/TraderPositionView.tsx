@@ -31,6 +31,7 @@ import {
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
+import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import type { Hex } from '@metamask/utils';
 import { handleFetch } from '@metamask/controller-utils';
 import { strings } from '../../../../../locales/i18n';
@@ -67,8 +68,6 @@ const PERIOD_TO_API: Record<TimePeriod, string> = {
   '1M': '1m',
   All: '1y',
 };
-
-type TokenPrice = [string, number];
 
 /**
  * Derives percentage change from historical price data points.
@@ -247,6 +246,7 @@ const TraderPositionView = () => {
     const assetId = toAssetId(positionParam.tokenAddress, caipChainId);
     if (!assetId) return;
 
+    let cancelled = false;
     (async () => {
       try {
         const url = `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
@@ -261,7 +261,7 @@ const TraderPositionView = () => {
           Record<string, unknown>
         >;
         const cap = response?.[assetId]?.marketCap;
-        if (typeof cap === 'number') {
+        if (!cancelled && typeof cap === 'number') {
           setFetchedMarketCap(cap);
         }
       } catch (err) {
@@ -271,6 +271,9 @@ const TraderPositionView = () => {
         );
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [cachedMarket?.marketCap, positionParam, caipChainId, currentCurrency]);
 
   const marketCap = cachedMarket?.marketCap ?? fetchedMarketCap;
