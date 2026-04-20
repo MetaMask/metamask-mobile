@@ -8,6 +8,20 @@ When something else (a PR template comment, a Cursor rule, or a PR-related AI
 skill) appears to define `ready for review` differently, this document wins and
 the other location should be updated to match.
 
+## TL;DR
+
+Before marking a PR as "Ready for review":
+
+- [ ] You have personally tested the change
+- [ ] Template is materially complete: real description, linked issue or explicit rationale, real testing steps or `N/A`, screenshots/recordings or `N/A`, valid changelog
+- [ ] Author checklist is fully resolved (every box consciously checked)
+- [ ] All status checks are currently green
+- [ ] No author-side commits are still pending
+- [ ] PR is assigned
+- [ ] Required labels are in place
+
+Full criteria: [What `Ready For Review` Means](#what-ready-for-review-means)
+
 ## Why This Definition Exists
 
 Contributors need one unambiguous definition of `ready for review` so the PR
@@ -155,6 +169,18 @@ Each item must be consciously assessed, not silently ignored.
   the PR now meets this Definition of Ready For Review.
 - If the PR does not meet this definition, it must stay in draft, or be moved
   back to draft until it does.
+
+## PR State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft: PR opened
+    Draft --> ReadyForReview: Author undrafts when all DoRFR criteria met
+    ReadyForReview --> Draft: Criteria no longer met
+    ReadyForReview --> Merged: Reviewer approves
+    Draft --> [*]: PR closed
+    ReadyForReview --> [*]: PR closed
+```
 
 ## When a PR Does Not Meet This Definition
 
