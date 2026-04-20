@@ -29,6 +29,14 @@ const env = {
 
 const TIMINGS_FILE = path.resolve('tests/e2e-test-timings.json');
 
+/**
+ * Match timing DB keys (always POSIX-style in JSON) to spec paths from any OS.
+ * @param {string} filePath
+ */
+function timingLookupKey(filePath) {
+  return filePath.split(path.sep).join('/');
+}
+
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
 if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');
 
@@ -230,11 +238,13 @@ function binPackShards(files, timings, platform, splitNumber, totalSplits) {
   const platformKey = platform.toLowerCase() === 'ios' ? 'ios' : 'android';
 
   const knownDurations = files
-    .map((f) => timings[f]?.[platformKey])
+    .map((f) => timings[timingLookupKey(f)]?.[platformKey])
     .filter((t) => typeof t === 'number' && t > 0);
 
   const medianDuration = computeMedian(knownDurations, 60);
-  const unknownFiles = files.filter((f) => typeof timings[f]?.[platformKey] !== 'number');
+  const unknownFiles = files.filter(
+    (f) => typeof timings[timingLookupKey(f)]?.[platformKey] !== 'number',
+  );
 
   if (unknownFiles.length > 0) {
     console.log(`ℹ️  ${unknownFiles.length} file(s) without recorded timing — median fallback ${medianDuration.toFixed(1)}s:`);
@@ -243,7 +253,7 @@ function binPackShards(files, timings, platform, splitNumber, totalSplits) {
 
   const filesWithDuration = files.map((f) => ({
     file: f,
-    duration: timings[f]?.[platformKey] ?? medianDuration,
+    duration: timings[timingLookupKey(f)]?.[platformKey] ?? medianDuration,
   }));
 
   filesWithDuration.sort((a, b) => b.duration - a.duration);
@@ -265,8 +275,9 @@ function binPackShards(files, timings, platform, splitNumber, totalSplits) {
 
   console.log(`\n📊 Estimated shard durations (${platformKey}, ${totalSplits} shards):`);
   for (const shard of shards) {
-    const mins = Math.floor(shard.totalDuration / 60);
-    const secs = Math.round(shard.totalDuration % 60);
+    const totalSec = Math.round(shard.totalDuration);
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
     const marker = shard.index === splitNumber ? ' ← this runner' : '';
     console.log(`   Shard ${shard.index}: ~${mins}m${String(secs).padStart(2, '0')}s (${shard.files.length} files)${marker}`);
   }

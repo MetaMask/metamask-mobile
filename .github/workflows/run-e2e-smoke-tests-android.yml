@@ -337,6 +337,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_BLOB_REF: ${{ github.sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           THRESHOLD_MINUTES: '15'
         run: node .github/scripts/e2e-post-slow-shard-warning.mjs

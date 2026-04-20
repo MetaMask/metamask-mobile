@@ -29,11 +29,32 @@ import xml2js from 'xml2js';
 const PLATFORM      = (process.env.PLATFORM      || 'ios').toLowerCase();
 const JUNIT_PATH    =  process.env.JUNIT_REPORT_PATH || 'tests/reports/junit.xml';
 const TIMINGS_FILE  =  process.env.TIMINGS_FILE      || 'tests/e2e-test-timings.json';
-const EMA_ALPHA     = Number(process.env.EMA_ALPHA   ?? 0.3);
+
+function resolveEmaAlpha() {
+  const raw = Number(process.env.EMA_ALPHA ?? 0.3);
+  if (!Number.isFinite(raw)) {
+    return 0.3;
+  }
+  return Math.min(1, Math.max(0, raw));
+}
+
+const EMA_ALPHA = resolveEmaAlpha();
 
 if (!['ios', 'android'].includes(PLATFORM)) {
   console.error(`❌ PLATFORM must be 'ios' or 'android', got: "${PLATFORM}"`);
   process.exit(1);
+}
+
+/**
+ * xml2js often returns a single element or an array — normalise to an array.
+ * @param {unknown} value
+ * @returns {object[]}
+ */
+function xmlArray(value) {
+  if (value === undefined || value === null) {
+    return [];
+  }
+  return Array.isArray(value) ? value : [value];
 }
 
 // ---------------------------------------------------------------------------
@@ -66,12 +87,9 @@ async function parseJUnitTimings(xmlPath) {
   // Normalise to always have a testsuites wrapper
   let testsuites = [];
   if (result.testsuites?.testsuite) {
-    testsuites = Array.isArray(result.testsuites.testsuite)
-      ? result.testsuites.testsuite
-      : [result.testsuites.testsuite];
+    testsuites = xmlArray(result.testsuites.testsuite);
   } else if (result.testsuite) {
-    testsuites = Array.isArray(result.testsuite)
-      ? result.testsuite : [result.testsuite];
+    testsuites = xmlArray(result.testsuite);
   }
 
   // Accumulate durations per file
@@ -79,9 +97,7 @@ async function parseJUnitTimings(xmlPath) {
   const fileTimings = new Map();
 
   for (const suite of testsuites) {
-    const testcases = suite.testcase
-      ? (Array.isArray(suite.testcase) ? suite.testcase : [suite.testcase])
-      : [];
+    const testcases = collectTestCasesFromSuite(suite);
 
     for (const tc of testcases) {
       const classname = tc.$?.classname ?? '';
@@ -91,7 +107,7 @@ async function parseJUnitTimings(xmlPath) {
 
       // Normalise to repo-relative path (tests/smoke/…)
       const normalised = normalisePath(classname);
-      const duration   = parseFloat(timeStr) || 0;
+      const duration   = Number.parseFloat(timeStr) || 0;
 
       fileTimings.set(normalised, (fileTimings.get(normalised) ?? 0) + duration);
     }
@@ -101,13 +117,28 @@ async function parseJUnitTimings(xmlPath) {
 }
 
 /**
+ * Flatten nested JUnit `<testsuite>` nodes (xml2js) into testcase entries.
+ * @param {object} suite
+ * @returns {object[]}
+ */
+function collectTestCasesFromSuite(suite) {
+  const direct = suite.testcase ? xmlArray(suite.testcase) : [];
+  const nested = suite.testsuite ? xmlArray(suite.testsuite) : [];
+  const fromNested = nested.flatMap((s) => collectTestCasesFromSuite(s));
+  return [...direct, ...fromNested];
+}
+
+/**
  * Normalise an absolute or classname path to a repo-relative path.
  * e.g. "/home/runner/work/…/tests/smoke/foo.spec.ts" → "tests/smoke/foo.spec.ts"
  */
 function normalisePath(p) {
   const normalised = p.replace(/\\/g, '/');
   const idx = normalised.indexOf('tests/');
-  return idx !== -1 ? normalised.slice(idx) : normalised;
+  if (idx === -1) {
+    return normalised;
+  }
+  return normalised.slice(idx);
 }
 
 // ---------------------------------------------------------------------------
@@ -171,15 +202,15 @@ function mergeTimings(db, observed, platform, alpha) {
 
     const existing = db.timings[file]?.[platform];
 
-    if (typeof existing !== 'number') {
-      // First observation for this file — record as-is
-      db.timings[file] = { ...(db.timings[file] ?? {}), [platform]: newDuration };
-      added++;
-    } else {
+    if (typeof existing === 'number') {
       // Blend with existing estimate
       const blended = alpha * newDuration + (1 - alpha) * existing;
       db.timings[file] = { ...db.timings[file], [platform]: Math.round(blended * 10) / 10 };
       updated++;
+    } else {
+      // First observation for this file — record as-is
+      db.timings[file] = { ...db.timings[file], [platform]: newDuration };
+      added++;
     }
   }
 
@@ -207,8 +238,9 @@ async function main() {
 
   console.log(`📊 Observed timings for ${observed.size} spec file(s):`);
   for (const [file, secs] of [...observed.entries()].sort(([, a], [, b]) => b - a)) {
-    const mins = Math.floor(secs / 60);
-    const rem  = Math.round(secs % 60);
+    const totalSec = Math.round(secs);
+    const mins = Math.floor(totalSec / 60);
+    const rem = totalSec % 60;
     console.log(`   ${String(mins).padStart(2)}m${String(rem).padStart(2, '0')}s  ${file}`);
   }
 

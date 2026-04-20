@@ -21,15 +21,32 @@ function parseRepository() {
   return { owner, repo: name };
 }
 
+/**
+ * GitHub Actions returns nested reusable-workflow jobs as a slash-separated path,
+ * e.g. `Android E2E Smoke Tests / trade-android-smoke / trade-android-smoke-1`.
+ * Matching logic must use the leaf segment, not the full string.
+ *
+ * @param {string} jobName
+ * @returns {string}
+ */
+function getJobNameLeaf(jobName) {
+  if (!jobName) {
+    return '';
+  }
+  const parts = jobName.split(' / ').map((p) => p.trim());
+  return parts[parts.length - 1] || '';
+}
+
 /** @param {string} jobName */
 function isE2eShardJobName(jobName) {
-  if (!jobName || jobName.startsWith('Report ')) {
+  const leaf = getJobNameLeaf(jobName);
+  if (!leaf || leaf.startsWith('Report ')) {
     return false;
   }
-  if (/^ci-sanity-check-(android|ios)$/.test(jobName)) {
+  if (/^ci-sanity-check-(android|ios)$/.test(leaf)) {
     return true;
   }
-  return /^[\w-]+-(android|ios)-smoke-\d+$/.test(jobName);
+  return /^[\w-]+-(android|ios)-smoke-\d+$/.test(leaf);
 }
 
 /** @param {number} ms */
@@ -120,10 +137,11 @@ async function deleteComment(token, owner, repo, commentId) {
  * @param {string} platform
  */
 function jobNameBelongsToPlatform(name, platform) {
-  if (name === `ci-sanity-check-${platform}`) {
+  const leaf = getJobNameLeaf(name);
+  if (leaf === `ci-sanity-check-${platform}`) {
     return true;
   }
-  return name.includes(`-${platform}-smoke-`);
+  return leaf.includes(`-${platform}-smoke-`);
 }
 
 /**
@@ -161,7 +179,8 @@ function isSlowShardJob(job, platform, thresholdMs) {
 function buildCommentBody(slow, platform, owner, repo, runId, thresholdMinutes) {
   const marker = `${MARKER_PREFIX}${platform} -->`;
   const workflowFile = `.github/workflows/run-e2e-smoke-tests-${platform}.yml`;
-  const workflowUrl = `https://github.com/${owner}/${repo}/blob/main/${workflowFile}`;
+  const blobRef = envString('GITHUB_BLOB_REF', 'main');
+  const workflowUrl = `https://github.com/${owner}/${repo}/blob/${blobRef}/${workflowFile}`;
   const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${runId}`;
 
   const rows = slow
@@ -182,7 +201,7 @@ function buildCommentBody(slow, platform, owner, repo, runId, thresholdMinutes) 
     '### What to do',
     '',
     `- **Add another matrix split** for the hot suite in [\`${workflowFile}\`](${workflowUrl}) (extend the **split** matrix list and **total_splits** for that job). Detox runs one shard per runner; more splits spread work across more parallel jobs.`,
-    '- **Rebalance** using per-test timings (see **tests/e2e-test-timings.json** / the timings cache updated by CI) so files are split evenly across shards.',
+    '- **Rebalance** using per-test timings (see **tests/e2e-test-timings.json** / the timings cache updated by CI) so estimated wall time is balanced across shards.',
     '- If splits are already balanced, **capacity** may be the limit — coordinate with infra about additional self-hosted runners for the Cirrus labels used in **.github/workflows/run-e2e-workflow.yml**.',
     '',
     '### Slow jobs in this run',

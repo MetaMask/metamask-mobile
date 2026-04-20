@@ -876,6 +876,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
       - name: Configure E2E timings cache restore keys
         id: e2e-timings-restore-keys
         run: |
@@ -897,13 +910,6 @@ jobs:
           key: e2e-timings-never-match-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: ${{ steps.e2e-timings-restore-keys.outputs.RESTORE_KEYS }}
 
-      - name: Install xml2js for timing script
-        run: |
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y
-          npm install xml2js@0.5.0 --no-audit --no-fund
-          cp -r node_modules ${{ github.workspace }}/
-
       - name: Download JUnit artifacts from this run
         uses: actions/download-artifact@v4
         with:
@@ -918,9 +924,18 @@ jobs:
           processed=0
           for xmlfile in junit-artifacts/**/junit.xml; do
             dir=$(basename "$(dirname "$xmlfile")")
-            if echo "$dir" | grep -qi "ios"; then
+            if echo "$dir" | grep -qE -- '-ios-smoke-'; then
               platform="ios"
+            elif echo "$dir" | grep -qE -- '-android-smoke-'; then
+              platform="android"
+            elif echo "$dir" | grep -qF 'validate-e2e-fixtures'; then
+              platform="ios"
+            elif echo "$dir" | grep -qE -- '-ios-'; then
+              platform="ios"
+            elif echo "$dir" | grep -qE -- '-android-'; then
+              platform="android"
             else
+              echo "::warning::Could not infer platform from artifact dir \"$dir\"; defaulting to android"
               platform="android"
             fi
             echo "📊 Processing $xmlfile (platform: $platform)"
