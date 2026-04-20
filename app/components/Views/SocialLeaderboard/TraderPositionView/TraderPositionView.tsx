@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -7,6 +7,7 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -29,63 +30,83 @@ import {
   AvatarToken,
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
-import type { Position } from '@metamask/social-controllers';
+import type { Trade } from '@metamask/social-controllers';
+import type { Hex } from '@metamask/utils';
+import { handleFetch } from '@metamask/controller-utils';
 import { strings } from '../../../../../locales/i18n';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { chainNameToId } from '../utils/chainMapping';
-import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import {
+  getAssetImageUrl,
+  toAssetId,
+} from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { formatUsd, formatPercent, formatTradeDate } from '../utils/formatters';
+import {
+  formatSignedUsd,
+  formatCompactUsd,
+  caipChainIdToHex,
+} from '../../../UI/Rewards/utils/formatUtils';
+import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import Logger from '../../../../util/Logger';
 
 // ---------------------------------------------------------------------------
-// Mock data
+// Constants
 // ---------------------------------------------------------------------------
 
 const TIME_PERIODS = ['1H', '1D', '1W', '1M', 'All'] as const;
 type TimePeriod = (typeof TIME_PERIODS)[number];
 
-const MOCK_TOKEN = {
-  symbol: 'PUNCH',
-  priceChange: '+$0.0000981 (7.2%)',
-  priceChangePeriod: '1H',
-  marketCap: '$11.7M',
+// Maps UI time period labels to the historical-prices API `timePeriod` param.
+// 1H reuses the '1d' data set; derivePercentChange picks the point closest
+// to T-1h for the calculation.
+const PERIOD_TO_API: Record<TimePeriod, string> = {
+  '1H': '1d',
+  '1D': '1d',
+  '1W': '7d',
+  '1M': '1m',
+  All: '1y',
 };
 
-const MOCK_POSITION = {
-  value: '$14,670',
-  pnlValue: '+$790.65',
-  pnlPercent: '+5.08%',
-  isPositive: true,
-};
+type TokenPrice = [string, number];
 
-interface MockTrade {
-  id: string;
-  direction: 'buy' | 'sell';
-  traderName: string;
-  timestamp: string;
-  usdValue: string;
-  percentage: string;
-  isPositive: boolean;
+/**
+ * Derives percentage change from historical price data points.
+ *
+ * We compute this ourselves rather than relying on pre-computed fields from
+ * the spot-prices API because most social leaderboard tokens (small-cap /
+ * meme tokens) are not indexed there — the API returns null for them. The
+ * historical-prices endpoint covers a wider set of tokens, so we fetch the
+ * price series and calculate: (endPrice - startPrice) / startPrice * 100.
+ *
+ * For the "1H" period we use the 1-day data set and find the point closest
+ * to one hour ago, since the historical-prices API has no sub-day period.
+ */
+function derivePercentChange(
+  prices: TokenPrice[],
+  period: TimePeriod,
+): number | undefined {
+  if (!prices.length) return undefined;
+
+  const endPrice = prices[prices.length - 1][1];
+  let startPrice: number;
+
+  if (period === '1H') {
+    const oneHourAgo = Date.now() - 60 * 60 * 1000;
+    const closest = prices.reduce((best, pt) =>
+      Math.abs(Number(pt[0]) - oneHourAgo) <
+      Math.abs(Number(best[0]) - oneHourAgo)
+        ? pt
+        : best,
+    );
+    startPrice = closest[1];
+  } else {
+    startPrice = prices[0][1];
+  }
+
+  if (startPrice === 0) return undefined;
+  return ((endPrice - startPrice) / startPrice) * 100;
 }
-
-const MOCK_TRADES: MockTrade[] = [
-  {
-    id: '1',
-    direction: 'buy',
-    traderName: 'dutchiono',
-    timestamp: 'March 4 at 9:15am',
-    usdValue: '$2.2K',
-    percentage: '+5%',
-    isPositive: true,
-  },
-  {
-    id: '2',
-    direction: 'sell',
-    traderName: 'dutchiono',
-    timestamp: 'March 4 at 8:02am',
-    usdValue: '-$1.1K',
-    percentage: '-79%',
-    isPositive: false,
-  },
-];
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -120,67 +141,66 @@ const TimePeriodButton: React.FC<TimePeriodButtonProps> = ({
 );
 
 interface TradeRowProps {
-  trade: MockTrade;
+  trade: Trade;
+  traderName: string;
 }
 
-const TradeRow: React.FC<TradeRowProps> = ({ trade }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="px-4 py-3"
-    testID={`trade-row-${trade.id}`}
-  >
+const TradeRow: React.FC<TradeRowProps> = ({ trade, traderName }) => {
+  const isEntry = trade.intent === 'enter';
+  return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      gap={4}
-      twClassName="flex-1 min-w-0 mr-3"
+      twClassName="px-4 py-3"
+      testID={`trade-row-${trade.transactionHash}`}
     >
-      <AvatarBase
-        size={AvatarBaseSize.Md}
-        fallbackText={trade.traderName.charAt(0).toUpperCase()}
-      />
-      <Box twClassName="flex-1 min-w-0">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={4}
+        twClassName="flex-1 min-w-0 mr-3"
+      >
+        <AvatarBase
+          size={AvatarBaseSize.Md}
+          fallbackText={traderName.charAt(0).toUpperCase()}
+        />
+        <Box twClassName="flex-1 min-w-0">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+          >
+            {isEntry
+              ? strings('social_leaderboard.trader_position.bought', {
+                  name: traderName,
+                })
+              : strings('social_leaderboard.trader_position.sold', {
+                  name: traderName,
+                })}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {formatTradeDate(trade.timestamp)}
+          </Text>
+        </Box>
+      </Box>
+
+      <Box alignItems={BoxAlignItems.End}>
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
+          twClassName={isEntry ? 'text-success-default' : 'text-error-default'}
         >
-          {trade.direction === 'buy'
-            ? strings('social_leaderboard.trader_position.bought', {
-                name: trade.traderName,
-              })
-            : strings('social_leaderboard.trader_position.sold', {
-                name: trade.traderName,
-              })}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-        >
-          {trade.timestamp}
+          {formatUsd(isEntry ? trade.usdCost : -trade.usdCost)}
         </Text>
       </Box>
     </Box>
-
-    <Box alignItems={BoxAlignItems.End}>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        twClassName={
-          trade.isPositive ? 'text-success-default' : 'text-error-default'
-        }
-      >
-        {trade.usdValue}
-      </Text>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {trade.percentage}
-      </Text>
-    </Box>
-  </Box>
-);
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Main screen
@@ -195,18 +215,131 @@ const TraderPositionView = () => {
 
   const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
 
+  const caipChainId = useMemo(
+    () => (positionParam ? chainNameToId(positionParam.chain) : undefined),
+    [positionParam],
+  );
+
+  const hexChainId = useMemo(
+    () => (caipChainId ? caipChainIdToHex(caipChainId) : undefined),
+    [caipChainId],
+  );
+
   const tokenImageUrl = useMemo(() => {
-    if (!positionParam) return undefined;
-    const chainId = chainNameToId(positionParam.chain);
-    if (!chainId) return undefined;
-    return getAssetImageUrl(positionParam.tokenAddress, chainId);
-  }, [positionParam]);
+    if (!positionParam || !caipChainId) return undefined;
+    return getAssetImageUrl(positionParam.tokenAddress, caipChainId);
+  }, [positionParam, caipChainId]);
+
+  // Try cache first (TokenRatesController), then fetch from price API
+  const allMarketData = useSelector(selectTokenMarketData);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const cachedMarket = hexChainId
+    ? allMarketData?.[hexChainId]?.[
+        positionParam?.tokenAddress?.toLowerCase() as Hex
+      ]
+    : undefined;
+
+  // Fetch market cap from spot-prices API (cache miss fallback)
+  const [fetchedMarketCap, setFetchedMarketCap] = useState<number>();
+
+  useEffect(() => {
+    if (cachedMarket?.marketCap || !positionParam || !caipChainId) return;
+    const assetId = toAssetId(positionParam.tokenAddress, caipChainId);
+    if (!assetId) return;
+
+    (async () => {
+      try {
+        const url = `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
+          {
+            assetIds: assetId,
+            includeMarketData: 'true',
+            vsCurrency: currentCurrency.toLowerCase(),
+          },
+        )}`;
+        const response = (await handleFetch(url)) as Record<
+          string,
+          Record<string, unknown>
+        >;
+        const cap = response?.[assetId]?.marketCap;
+        if (typeof cap === 'number') {
+          setFetchedMarketCap(cap);
+        }
+      } catch (err) {
+        Logger.error(
+          err as Error,
+          'TraderPositionView: failed to fetch market data',
+        );
+      }
+    })();
+  }, [cachedMarket?.marketCap, positionParam, caipChainId, currentCurrency]);
+
+  const marketCap = cachedMarket?.marketCap ?? fetchedMarketCap;
+
+  // Fetch historical prices for ALL time periods on mount so tab switching
+  // is instant. Each period fires in parallel; results land as they resolve.
+  const [allPrices, setAllPrices] = useState<
+    Partial<Record<TimePeriod, TokenPrice[]>>
+  >({});
+
+  useEffect(() => {
+    if (!positionParam || !caipChainId) return;
+    const assetIdentifier = `erc20:${positionParam.tokenAddress}`;
+    const vsCurrency = currentCurrency.toLowerCase();
+    let cancelled = false;
+
+    const fetchPeriod = async (period: TimePeriod) => {
+      const apiPeriod = PERIOD_TO_API[period];
+      const uri = `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
+      try {
+        const response = await fetch(uri);
+        if (response.status === 204 || !response.ok)
+          return { period, prices: [] as TokenPrice[] };
+        const data: { prices: TokenPrice[] } = await response.json();
+        return { period, prices: data.prices ?? [] };
+      } catch (err) {
+        Logger.error(
+          err as Error,
+          `TraderPositionView: failed to fetch ${period} prices`,
+        );
+        return { period, prices: [] as TokenPrice[] };
+      }
+    };
+
+    // 1H and 1D share the same API period ('1d') — fetch once, reuse.
+    const uniquePeriods: TimePeriod[] = ['1D', '1W', '1M', 'All'];
+
+    Promise.all(uniquePeriods.map(fetchPeriod)).then((results) => {
+      if (cancelled) return;
+      const cache: Partial<Record<TimePeriod, TokenPrice[]>> = {};
+      for (const { period, prices } of results) {
+        cache[period] = prices;
+        if (period === '1D') cache['1H'] = prices;
+      }
+      setAllPrices(cache);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [positionParam, caipChainId, currentCurrency]);
+
+  const historicalPrices = allPrices[activeTimePeriod] ?? [];
+
+  const pricePercentChange = derivePercentChange(
+    historicalPrices,
+    activeTimePeriod,
+  );
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const symbol = tokenSymbol || MOCK_TOKEN.symbol;
+  const symbol = positionParam?.tokenSymbol ?? tokenSymbol;
+  const positionValue = positionParam?.currentValueUSD;
+  const pnlValue = positionParam?.pnlValueUsd;
+  const pnlPercent = positionParam?.pnlPercent;
+  const isPnlPositive = (pnlValue ?? 0) >= 0;
+  const trades = positionParam?.trades ?? [];
 
   return (
     <SafeAreaView
@@ -269,19 +402,32 @@ const TraderPositionView = () => {
               >
                 {symbol}
               </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-success-default"
-                numberOfLines={1}
-              >
-                {`${MOCK_TOKEN.priceChange} `}
+              {pricePercentChange != null ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName={
+                    pricePercentChange >= 0
+                      ? 'text-success-default'
+                      : 'text-error-default'
+                  }
+                  numberOfLines={1}
+                >
+                  {`${pricePercentChange >= 0 ? '+' : ''}${pricePercentChange.toFixed(1)}% `}
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {activeTimePeriod}
+                  </Text>
+                </Text>
+              ) : (
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                 >
-                  {MOCK_TOKEN.priceChangePeriod}
+                  {'\u2014'}
                 </Text>
-              </Text>
+              )}
             </Box>
           </Box>
 
@@ -291,7 +437,7 @@ const TraderPositionView = () => {
               fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
             >
-              {MOCK_TOKEN.marketCap}
+              {marketCap != null ? formatCompactUsd(marketCap) : '\u2014'}
             </Text>
             <Text
               variant={TextVariant.BodySm}
@@ -335,7 +481,7 @@ const TraderPositionView = () => {
                 fontWeight={FontWeight.Bold}
                 color={TextColor.TextDefault}
               >
-                {MOCK_POSITION.value}
+                {formatUsd(positionValue)}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
@@ -350,19 +496,19 @@ const TraderPositionView = () => {
                 variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}
                 twClassName={
-                  MOCK_POSITION.isPositive
-                    ? 'text-success-default'
-                    : 'text-error-default'
+                  isPnlPositive ? 'text-success-default' : 'text-error-default'
                 }
               >
-                {MOCK_POSITION.pnlValue}
+                {pnlValue != null
+                  ? formatSignedUsd(String(pnlValue))
+                  : '\u2014'}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >
-                {MOCK_POSITION.pnlPercent}
+                {formatPercent(pnlPercent)}
               </Text>
             </Box>
           </Box>
@@ -383,9 +529,24 @@ const TraderPositionView = () => {
         </Box>
 
         {/* Trade History */}
-        {MOCK_TRADES.map((trade) => (
-          <TradeRow key={trade.id} trade={trade} />
-        ))}
+        {trades.length > 0 ? (
+          trades.map((trade) => (
+            <TradeRow
+              key={trade.transactionHash}
+              trade={trade}
+              traderName={traderName}
+            />
+          ))
+        ) : (
+          <Box twClassName="px-4 py-6 items-center">
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('social_leaderboard.trader_position.no_trades')}
+            </Text>
+          </Box>
+        )}
       </ScrollView>
 
       {/* Buy Button — pinned at bottom */}
