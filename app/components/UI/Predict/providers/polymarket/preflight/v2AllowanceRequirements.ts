@@ -20,11 +20,38 @@ export type V2AllowanceRequirement =
   | Erc20AllowanceRequirement
   | Erc1155OperatorRequirement;
 
+function buildErc20AllowanceRequirements({
+  tokenAddress,
+  spenders,
+}: {
+  tokenAddress: string;
+  spenders: string[];
+}): Erc20AllowanceRequirement[] {
+  return spenders.map((spender) => ({
+    type: 'erc20-allowance',
+    tokenAddress,
+    spender,
+  }));
+}
+
+function buildErc1155OperatorRequirements({
+  tokenAddress,
+  operators,
+}: {
+  tokenAddress: string;
+  operators: string[];
+}): Erc1155OperatorRequirement[] {
+  return operators.map((operator) => ({
+    type: 'erc1155-operator',
+    tokenAddress,
+    operator,
+  }));
+}
+
 export function getCanonicalV2AllowanceRequirements(
   protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
 ): V2AllowanceRequirement[] {
   const { collateral, contracts } = protocol;
-  const pUsdToken = collateral.tradingToken;
 
   if (!collateral.onrampAddress || !collateral.offrampAddress) {
     throw new Error(
@@ -38,50 +65,24 @@ export function getCanonicalV2AllowanceRequirements(
       tokenAddress: collateral.legacyUsdceToken,
       spender: collateral.onrampAddress,
     },
-    {
-      type: 'erc20-allowance',
-      tokenAddress: pUsdToken,
-      spender: contracts.conditionalTokens,
-    },
-    {
-      type: 'erc20-allowance',
-      tokenAddress: pUsdToken,
-      spender: contracts.exchange,
-    },
-    {
-      type: 'erc20-allowance',
-      tokenAddress: pUsdToken,
-      spender: contracts.negRiskExchange,
-    },
-    {
-      type: 'erc20-allowance',
-      tokenAddress: pUsdToken,
-      spender: contracts.negRiskAdapter,
-    },
-    {
-      type: 'erc20-allowance',
-      tokenAddress: pUsdToken,
-      spender: PERMIT2_ADDRESS,
-    },
-    {
-      type: 'erc20-allowance',
-      tokenAddress: pUsdToken,
-      spender: collateral.offrampAddress,
-    },
-    {
-      type: 'erc1155-operator',
+    ...buildErc20AllowanceRequirements({
+      tokenAddress: collateral.tradingToken,
+      spenders: [
+        contracts.conditionalTokens,
+        contracts.exchange,
+        contracts.negRiskExchange,
+        contracts.negRiskAdapter,
+        PERMIT2_ADDRESS,
+        collateral.offrampAddress,
+      ],
+    }),
+    ...buildErc1155OperatorRequirements({
       tokenAddress: contracts.conditionalTokens,
-      operator: contracts.exchange,
-    },
-    {
-      type: 'erc1155-operator',
-      tokenAddress: contracts.conditionalTokens,
-      operator: contracts.negRiskExchange,
-    },
-    {
-      type: 'erc1155-operator',
-      tokenAddress: contracts.conditionalTokens,
-      operator: contracts.negRiskAdapter,
-    },
+      operators: [
+        contracts.exchange,
+        contracts.negRiskExchange,
+        contracts.negRiskAdapter,
+      ],
+    }),
   ];
 }

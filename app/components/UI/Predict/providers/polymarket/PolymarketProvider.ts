@@ -60,12 +60,10 @@ import {
   SignWithdrawResponse,
 } from '../types';
 import {
-  MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   ORDER_RATE_LIMIT_MS,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
-  ROUNDING_CONFIG,
   SAFE_EXEC_GAS_LIMIT,
 } from './constants';
 import { PERMIT2_ADDRESS } from './safe/constants';
@@ -84,22 +82,17 @@ import {
 import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
-  OrderData,
   OrderType,
   PolymarketApiActivity,
   PolymarketApiEvent,
   PolymarketApiTeam,
   PolymarketPosition,
-  SignatureType,
-  TickSize,
-  UtilsSide,
 } from './types';
 import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
   fetchCarouselFromPolymarketApi,
-  generateSalt,
   getBalance,
   getContractConfig,
   getL2Headers,
@@ -110,7 +103,6 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
-  roundOrderAmount,
   submitClobOrder,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
@@ -122,10 +114,10 @@ import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
 import {
+  getProtocolDepositTokenAddress,
+  getProtocolWithdrawTokenAddress,
   resolvePolymarketProtocol,
-  type DepositExecutionMode,
   type PolymarketProtocolDefinition,
-  type WithdrawExecutionMode,
 } from './protocol/definitions';
 import {
   buildProtocolUnsignedOrder,
@@ -135,10 +127,9 @@ import {
   serializeProtocolRelayerOrder,
 } from './protocol/orderCodec';
 import { submitProtocolClobOrder } from './protocol/transport';
-import { planTradePreflight } from './preflight/trade';
-import { buildSignedSafeExecution } from './preflight/core';
-import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import { buildClaimTransaction } from './preflight/claim';
+import { buildDepositMaintenanceTransaction } from './preflight/deposit';
+import { buildTradeAllowancesTx } from './preflight/trade';
 import { buildWithdrawTransaction } from './preflight/withdraw';
 
 export type SignTypedMessageFn = (
@@ -296,6 +287,45 @@ export class PolymarketProvider implements PredictProvider {
     return resolvePolymarketProtocol(this.#getFeatureFlags());
   }
 
+  #pickExecutor(executors: string[]): string {
+    const randomIndex = new Uint32Array(1);
+    global.crypto.getRandomValues(randomIndex);
+
+    return executors[randomIndex[0] % executors.length];
+  }
+
+  #getPlaceOrderType({
+    preview,
+    feeCollection,
+    fakOrdersEnabled,
+    permit2FeeReady,
+    permit2AllowanceReady,
+  }: {
+    preview: OrderPreview;
+    feeCollection: PredictFeatureFlags['feeCollection'];
+    fakOrdersEnabled: boolean;
+    permit2FeeReady: boolean;
+    permit2AllowanceReady: boolean;
+  }): OrderType {
+    if (
+      !this.#shouldUseFakOrderType({
+        permit2Enabled: feeCollection.permit2Enabled,
+        executors: feeCollection.executors,
+        fakOrdersEnabled,
+      })
+    ) {
+      return OrderType.FOK;
+    }
+
+    const hasFees = preview.fees !== undefined && preview.fees.totalFee > 0;
+
+    if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
+      return OrderType.FAK;
+    }
+
+    return OrderType.FOK;
+  }
+
   #throwPlaceOrderError({
     error,
     side,
@@ -383,7 +413,6 @@ export class PolymarketProvider implements PredictProvider {
       | Permit2FeeAuthorization
       | undefined;
     let executor: string | undefined;
-    let orderType: OrderType = OrderType.FOK;
     let permit2FeeReady = false;
 
     if (preview.fees !== undefined && preview.fees.totalFee > 0) {
@@ -394,10 +423,7 @@ export class PolymarketProvider implements PredictProvider {
 
       if (shouldUsePermit2) {
         permit2FeeReady = true;
-        const executors = preview.fees.executors ?? [];
-        const randomIndex = new Uint32Array(1);
-        global.crypto.getRandomValues(randomIndex);
-        executor = executors[randomIndex[0] % executors.length];
+        executor = this.#pickExecutor(preview.fees.executors ?? []);
         feeAuthorization = await createPermit2FeeAuthorization({
           safeAddress,
           signer,
@@ -451,18 +477,13 @@ export class PolymarketProvider implements PredictProvider {
       }
     }
 
-    if (
-      this.#shouldUseFakOrderType({
-        permit2Enabled: feeCollection.permit2Enabled,
-        executors: feeCollection.executors,
-        fakOrdersEnabled,
-      })
-    ) {
-      const hasFees = preview.fees !== undefined && preview.fees.totalFee > 0;
-      if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
-        orderType = OrderType.FAK;
-      }
-    }
+    const orderType = this.#getPlaceOrderType({
+      preview,
+      feeCollection,
+      fakOrdersEnabled,
+      permit2FeeReady,
+      permit2AllowanceReady,
+    });
 
     const clobOrder = serializeProtocolRelayerOrder({
       signedOrder,
@@ -558,7 +579,6 @@ export class PolymarketProvider implements PredictProvider {
 
     let feeAuthorization: Permit2FeeAuthorization | undefined;
     let executor: string | undefined;
-    let orderType: OrderType = OrderType.FOK;
     let permit2FeeReady = false;
 
     if (
@@ -569,10 +589,7 @@ export class PolymarketProvider implements PredictProvider {
       const feeAmount = BigInt(
         parseUnits(preview.fees.totalFee.toString(), 6).toString(),
       );
-      const executors = preview.fees.executors ?? [];
-      const randomIndex = new Uint32Array(1);
-      global.crypto.getRandomValues(randomIndex);
-      executor = executors[randomIndex[0] % executors.length];
+      executor = this.#pickExecutor(preview.fees.executors ?? []);
       feeAuthorization = await createPermit2FeeAuthorization({
         safeAddress,
         signer,
@@ -587,27 +604,12 @@ export class PolymarketProvider implements PredictProvider {
     let permit2AllowanceReady = false;
 
     try {
-      const tradePlan = await planTradePreflight({
+      allowancesTx = await buildTradeAllowancesTx({
+        signer,
         safeAddress,
         protocol,
       });
-
-      permit2AllowanceReady = tradePlan.transactions.length === 0;
-
-      if (tradePlan.transactions.length > 0) {
-        const signedExecution = await buildSignedSafeExecution({
-          signer,
-          safeAddress,
-          transactions: tradePlan.transactions,
-          type: TransactionType.contractInteraction,
-        });
-
-        allowancesTx = {
-          to: signedExecution.params.to,
-          data: signedExecution.params.data,
-        };
-        permit2AllowanceReady = true;
-      }
+      permit2AllowanceReady = true;
     } catch (allowanceError) {
       DevLogger.log(
         'PolymarketProvider: Failed to generate v2 allowances transaction',
@@ -624,18 +626,13 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Failed to prepare v2 trade preflight');
     }
 
-    if (
-      this.#shouldUseFakOrderType({
-        permit2Enabled: feeCollection.permit2Enabled,
-        executors: feeCollection.executors,
-        fakOrdersEnabled,
-      })
-    ) {
-      const hasFees = preview.fees !== undefined && preview.fees.totalFee > 0;
-      if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
-        orderType = OrderType.FAK;
-      }
-    }
+    const orderType = this.#getPlaceOrderType({
+      preview,
+      feeCollection,
+      fakOrdersEnabled,
+      permit2FeeReady,
+      permit2AllowanceReady,
+    });
 
     const clobOrder = serializeProtocolRelayerOrder({
       signedOrder,
@@ -1888,12 +1885,8 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       const signerBalance = await getBalance({ address: signer.address });
-
-      let includeTransferTransaction = false;
-
-      if (signerBalance < MIN_COLLATERAL_BALANCE_FOR_CLAIM) {
-        includeTransferTransaction = true;
-      }
+      const includeTransferTransaction =
+        signerBalance < MIN_COLLATERAL_BALANCE_FOR_CLAIM;
 
       // Generate claim transaction
       let claimTransaction;
@@ -2006,11 +1999,7 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Signer address is required for deposit preparation');
     }
 
-    const depositMode = protocol.workflow.depositMode as DepositExecutionMode;
-    const depositTokenAddress =
-      depositMode === 'pusd-transfer'
-        ? protocol.collateral.tradingToken
-        : protocol.collateral.legacyUsdceToken;
+    const depositTokenAddress = getProtocolDepositTokenAddress(protocol);
 
     if (!depositTokenAddress) {
       throw new Error('Collateral contract address not configured');
@@ -2058,15 +2047,17 @@ export class PolymarketProvider implements PredictProvider {
       );
     }
 
-    transactions.push({
+    const depositTransaction = {
       params: {
         to: depositTokenAddress as Hex,
         data: depositTransactionCallData as Hex,
       },
       type: TransactionType.predictDeposit,
-    });
+    };
 
     if (protocol.key === 'v2') {
+      transactions.push(depositTransaction);
+
       const maintenanceTransaction = await buildDepositMaintenanceTransaction({
         signer,
         safeAddress: accountState.address,
@@ -2104,8 +2095,10 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Invalid allowance transaction: missing params');
       }
 
-      transactions.splice(transactions.length - 1, 0, allowanceTransaction);
+      transactions.push(allowanceTransaction);
     }
+
+    transactions.push(depositTransaction);
 
     return {
       chainId: CHAIN_IDS.POLYGON,
@@ -2222,12 +2215,7 @@ export class PolymarketProvider implements PredictProvider {
       this.#accountStateByAddress.get(signer.address)?.address ??
       (await this.getAccountState({ ownerAddress: signer.address })).address;
 
-    const withdrawMode = protocol.workflow
-      .withdrawMode as WithdrawExecutionMode;
-    const withdrawTokenAddress =
-      withdrawMode === 'pusd-transfer'
-        ? protocol.collateral.tradingToken
-        : protocol.collateral.legacyUsdceToken;
+    const withdrawTokenAddress = getProtocolWithdrawTokenAddress(protocol);
 
     const callData = encodeErc20Transfer({
       to: signer.address,

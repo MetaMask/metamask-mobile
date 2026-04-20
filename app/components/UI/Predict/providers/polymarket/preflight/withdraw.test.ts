@@ -1,5 +1,18 @@
 jest.mock('./core', () => ({
   buildSignedSafeExecution: jest.fn(),
+  buildUnwrapTransaction: jest.fn(({ amount, protocol, recipientAddress }) => {
+    if (amount === 0n || !protocol?.collateral.offrampAddress) {
+      return undefined;
+    }
+
+    return {
+      to: protocol.collateral.offrampAddress,
+      data: '0xunwrap',
+      operation: 0,
+      value: '0',
+      recipientAddress,
+    };
+  }),
   getRawTokenBalance: jest.fn(),
 }));
 

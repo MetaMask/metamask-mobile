@@ -4,10 +4,12 @@ import {
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
-import { encodeWrap } from '../protocol/orderCodec';
-import { OperationType, type SafeTransaction } from '../safe/types';
-import { buildSignedSafeExecution, getRawTokenBalance } from './core';
-import { compileRequirementTransactions } from './compileRequirementTransactions';
+import type { SafeTransaction } from '../safe/types';
+import {
+  buildSignedSafeExecutionIfNeeded,
+  compileAllowanceMaintenanceTransactions,
+  getRawTokenBalance,
+} from './core';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import { getCanonicalV2AllowanceRequirements } from './v2AllowanceRequirements';
 
@@ -24,14 +26,16 @@ export async function planDepositMaintenance({
   safeAddress: string;
   protocol?: PolymarketProtocolDefinition;
 }): Promise<DepositMaintenancePlan> {
-  const missingRequirements = await inspectMissingRequirements({
-    address: safeAddress,
-    requirements: getCanonicalV2AllowanceRequirements(protocol),
-  });
-  const preExistingSafeUsdceBalance = await getRawTokenBalance({
-    address: safeAddress,
-    tokenAddress: protocol.collateral.legacyUsdceToken,
-  });
+  const [missingRequirements, preExistingSafeUsdceBalance] = await Promise.all([
+    inspectMissingRequirements({
+      address: safeAddress,
+      requirements: getCanonicalV2AllowanceRequirements(protocol),
+    }),
+    getRawTokenBalance({
+      address: safeAddress,
+      tokenAddress: protocol.collateral.legacyUsdceToken,
+    }),
+  ]);
 
   return {
     missingRequirements,
@@ -56,25 +60,12 @@ export function compileDepositMaintenanceTransactions({
   missingRequirements: ReturnType<typeof getCanonicalV2AllowanceRequirements>;
   preExistingSafeUsdceBalance: bigint;
 }): SafeTransaction[] {
-  const transactions = compileRequirementTransactions(missingRequirements);
-
-  if (
-    preExistingSafeUsdceBalance > 0n &&
-    protocol.collateral.onrampAddress !== undefined
-  ) {
-    transactions.push({
-      to: protocol.collateral.onrampAddress,
-      data: encodeWrap({
-        asset: protocol.collateral.legacyUsdceToken,
-        to: safeAddress,
-        amount: preExistingSafeUsdceBalance,
-      }),
-      operation: OperationType.Call,
-      value: '0',
-    });
-  }
-
-  return transactions;
+  return compileAllowanceMaintenanceTransactions({
+    protocol,
+    safeAddress,
+    missingRequirements,
+    usdceBalance: preExistingSafeUsdceBalance,
+  });
 }
 
 export async function buildDepositMaintenanceTransaction({
@@ -88,11 +79,7 @@ export async function buildDepositMaintenanceTransaction({
 }) {
   const plan = await planDepositMaintenance({ safeAddress, protocol });
 
-  if (plan.transactions.length === 0) {
-    return undefined;
-  }
-
-  return buildSignedSafeExecution({
+  return buildSignedSafeExecutionIfNeeded({
     signer,
     safeAddress,
     transactions: plan.transactions,

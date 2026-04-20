@@ -66,6 +66,70 @@ export type ProtocolSignedOrderV2 = SignedOrderV2;
 export type ProtocolSignedOrder = ProtocolSignedOrderV1 | ProtocolSignedOrderV2;
 export type ProtocolRelayerOrder = ClobOrderObject | ClobOrderObjectV2;
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const ORDER_PRIMARY_TYPE = 'Order';
+const ORDER_DOMAIN_NAME = 'Polymarket CTF Exchange';
+const ORDER_DOMAIN_TYPES = [
+  ...EIP712Domain,
+  { name: 'verifyingContract', type: 'address' },
+];
+
+function buildProtocolOrderDomain({
+  protocol,
+  verifyingContract,
+  chainId,
+}: {
+  protocol: PolymarketProtocolDefinition;
+  verifyingContract: string;
+  chainId: number;
+}) {
+  return {
+    name: ORDER_DOMAIN_NAME,
+    version: protocol.order.domainVersion,
+    chainId,
+    verifyingContract,
+  };
+}
+
+function getProtocolOrderTypes(protocol: PolymarketProtocolDefinition) {
+  if (protocol.key === 'v2') {
+    return {
+      EIP712Domain: ORDER_DOMAIN_TYPES,
+      Order: [
+        { name: 'salt', type: 'uint256' },
+        { name: 'maker', type: 'address' },
+        { name: 'signer', type: 'address' },
+        { name: 'tokenId', type: 'uint256' },
+        { name: 'makerAmount', type: 'uint256' },
+        { name: 'takerAmount', type: 'uint256' },
+        { name: 'side', type: 'uint8' },
+        { name: 'signatureType', type: 'uint8' },
+        { name: 'timestamp', type: 'uint256' },
+        { name: 'metadata', type: 'bytes32' },
+        { name: 'builder', type: 'bytes32' },
+      ],
+    };
+  }
+
+  return {
+    EIP712Domain: ORDER_DOMAIN_TYPES,
+    Order: [
+      { name: 'salt', type: 'uint256' },
+      { name: 'maker', type: 'address' },
+      { name: 'signer', type: 'address' },
+      { name: 'taker', type: 'address' },
+      { name: 'tokenId', type: 'uint256' },
+      { name: 'makerAmount', type: 'uint256' },
+      { name: 'takerAmount', type: 'uint256' },
+      { name: 'expiration', type: 'uint256' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'feeRateBps', type: 'uint256' },
+      { name: 'side', type: 'uint8' },
+      { name: 'signatureType', type: 'uint8' },
+    ],
+  };
+}
+
 function getTakerAmountWithSlippage(preview: OrderPreview): string {
   const roundConfig = ROUNDING_CONFIG[preview.tickSize.toString() as TickSize];
   const decimals = roundConfig.amount ?? 4;
@@ -128,19 +192,16 @@ export function buildProtocolUnsignedOrder({
   signerAddress: string;
   nowInSeconds?: number;
 }): ProtocolUnsignedOrder {
-  const makerAmount = parseUnits(
-    preview.maxAmountSpent.toString(),
-    6,
-  ).toString();
-  const takerAmount = getTakerAmountWithSlippage(preview);
   const baseOrder = {
     salt: generateSalt(),
     maker: makerAddress,
     signer: signerAddress,
     tokenId: preview.outcomeTokenId,
-    makerAmount,
-    takerAmount,
+    makerAmount: parseUnits(preview.maxAmountSpent.toString(), 6).toString(),
+    takerAmount: getTakerAmountWithSlippage(preview),
     expiration: '0',
+  };
+  const orderSignerFields = {
     side: preview.side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL,
     signatureType: SignatureType.POLY_GNOSIS_SAFE,
   };
@@ -153,34 +214,20 @@ export function buildProtocolUnsignedOrder({
     }
 
     return {
-      salt: baseOrder.salt,
-      maker: baseOrder.maker,
-      signer: baseOrder.signer,
-      tokenId: baseOrder.tokenId,
-      makerAmount: baseOrder.makerAmount,
-      takerAmount: baseOrder.takerAmount,
-      expiration: baseOrder.expiration,
+      ...baseOrder,
       timestamp: `${nowInSeconds}`,
       metadata: protocol.order.metadata,
       builder,
-      side: baseOrder.side,
-      signatureType: baseOrder.signatureType,
+      ...orderSignerFields,
     };
   }
 
   return {
-    salt: baseOrder.salt,
-    maker: baseOrder.maker,
-    signer: baseOrder.signer,
-    taker: '0x0000000000000000000000000000000000000000',
-    tokenId: baseOrder.tokenId,
-    makerAmount: baseOrder.makerAmount,
-    takerAmount: baseOrder.takerAmount,
-    expiration: baseOrder.expiration,
+    ...baseOrder,
+    taker: ZERO_ADDRESS,
     nonce: '0',
     feeRateBps: preview.feeRateBps ?? '0',
-    side: baseOrder.side,
-    signatureType: baseOrder.signatureType,
+    ...orderSignerFields,
   };
 }
 
@@ -207,66 +254,14 @@ export function getProtocolOrderTypedData({
   verifyingContract: string;
   chainId?: number;
 }) {
-  if (protocol.key === 'v2') {
-    return {
-      primaryType: 'Order',
-      domain: {
-        name: 'Polymarket CTF Exchange',
-        version: protocol.order.domainVersion,
-        chainId,
-        verifyingContract,
-      },
-      types: {
-        EIP712Domain: [
-          ...EIP712Domain,
-          { name: 'verifyingContract', type: 'address' },
-        ],
-        Order: [
-          { name: 'salt', type: 'uint256' },
-          { name: 'maker', type: 'address' },
-          { name: 'signer', type: 'address' },
-          { name: 'tokenId', type: 'uint256' },
-          { name: 'makerAmount', type: 'uint256' },
-          { name: 'takerAmount', type: 'uint256' },
-          { name: 'side', type: 'uint8' },
-          { name: 'signatureType', type: 'uint8' },
-          { name: 'timestamp', type: 'uint256' },
-          { name: 'metadata', type: 'bytes32' },
-          { name: 'builder', type: 'bytes32' },
-        ],
-      },
-      message: order,
-    };
-  }
-
   return {
-    primaryType: 'Order',
-    domain: {
-      name: 'Polymarket CTF Exchange',
-      version: protocol.order.domainVersion,
-      chainId,
+    primaryType: ORDER_PRIMARY_TYPE,
+    domain: buildProtocolOrderDomain({
+      protocol,
       verifyingContract,
-    },
-    types: {
-      EIP712Domain: [
-        ...EIP712Domain,
-        { name: 'verifyingContract', type: 'address' },
-      ],
-      Order: [
-        { name: 'salt', type: 'uint256' },
-        { name: 'maker', type: 'address' },
-        { name: 'signer', type: 'address' },
-        { name: 'taker', type: 'address' },
-        { name: 'tokenId', type: 'uint256' },
-        { name: 'makerAmount', type: 'uint256' },
-        { name: 'takerAmount', type: 'uint256' },
-        { name: 'expiration', type: 'uint256' },
-        { name: 'nonce', type: 'uint256' },
-        { name: 'feeRateBps', type: 'uint256' },
-        { name: 'side', type: 'uint8' },
-        { name: 'signatureType', type: 'uint8' },
-      ],
-    },
+      chainId,
+    }),
+    types: getProtocolOrderTypes(protocol),
     message: order,
   };
 }

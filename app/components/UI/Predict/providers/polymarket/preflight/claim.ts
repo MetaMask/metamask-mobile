@@ -10,11 +10,14 @@ import {
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
-import { encodeUnwrap, encodeWrap } from '../protocol/orderCodec';
 import { OperationType, type SafeTransaction } from '../safe/types';
 import { encodeRedeemPositions } from '../utils';
-import { buildSignedSafeExecution, getRawTokenBalance } from './core';
-import { compileRequirementTransactions } from './compileRequirementTransactions';
+import {
+  buildSignedSafeExecution,
+  buildUnwrapTransaction,
+  compileAllowanceMaintenanceTransactions,
+  getRawTokenBalance,
+} from './core';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import {
   getCanonicalV2AllowanceRequirements,
@@ -59,32 +62,39 @@ export function getClaimRequirements({
   positions: PredictPosition[];
   protocol?: PolymarketV2ProtocolDefinition;
 }): V2AllowanceRequirement[] {
-  const requirements = getCanonicalV2AllowanceRequirements(protocol);
+  const requiresStandardAdapter = positions.some(
+    (position) => !position.negRisk,
+  );
+  const requiresNegRiskAdapter = positions.some((position) => position.negRisk);
 
-  if (positions.some((position) => !position.negRisk)) {
-    requirements.push({
-      type: 'erc1155-operator',
-      tokenAddress: protocol.contracts.conditionalTokens,
-      operator: protocol.claim.standardTarget,
-    });
-  }
-
-  if (positions.some((position) => position.negRisk)) {
-    requirements.push({
-      type: 'erc1155-operator',
-      tokenAddress: protocol.contracts.conditionalTokens,
-      operator: protocol.claim.negRiskTarget,
-    });
-  }
-
-  return requirements;
+  return [
+    ...getCanonicalV2AllowanceRequirements(protocol),
+    ...(requiresStandardAdapter
+      ? [
+          {
+            type: 'erc1155-operator' as const,
+            tokenAddress: protocol.contracts.conditionalTokens,
+            operator: protocol.claim.standardTarget,
+          },
+        ]
+      : []),
+    ...(requiresNegRiskAdapter
+      ? [
+          {
+            type: 'erc1155-operator' as const,
+            tokenAddress: protocol.contracts.conditionalTokens,
+            operator: protocol.claim.negRiskTarget,
+          },
+        ]
+      : []),
+  ];
 }
 
 export interface ClaimPlan {
   deficit: bigint;
   safeUsdceBalance: bigint;
   eoaUsdceBalance: bigint;
-  missingRequirements: ReturnType<typeof getCanonicalV2AllowanceRequirements>;
+  missingRequirements: V2AllowanceRequirement[];
   transactions: SafeTransaction[];
 }
 
@@ -152,27 +162,16 @@ export function compileClaimTransactions({
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
-  missingRequirements: ReturnType<typeof getCanonicalV2AllowanceRequirements>;
+  missingRequirements: V2AllowanceRequirement[];
   safeUsdceBalance: bigint;
   deficit: bigint;
 }): SafeTransaction[] {
-  const transactions = compileRequirementTransactions(missingRequirements);
-
-  if (
-    safeUsdceBalance > 0n &&
-    protocol.collateral.onrampAddress !== undefined
-  ) {
-    transactions.push({
-      to: protocol.collateral.onrampAddress,
-      data: encodeWrap({
-        asset: protocol.collateral.legacyUsdceToken,
-        to: safeAddress,
-        amount: safeUsdceBalance,
-      }),
-      operation: OperationType.Call,
-      value: '0',
-    });
-  }
+  const transactions = compileAllowanceMaintenanceTransactions({
+    protocol,
+    safeAddress,
+    missingRequirements,
+    usdceBalance: safeUsdceBalance,
+  });
 
   transactions.push(
     ...buildClaimSubtransactions({
@@ -181,17 +180,14 @@ export function compileClaimTransactions({
     }),
   );
 
-  if (deficit > 0n && protocol.collateral.offrampAddress !== undefined) {
-    transactions.push({
-      to: protocol.collateral.offrampAddress,
-      data: encodeUnwrap({
-        asset: protocol.collateral.legacyUsdceToken,
-        to: signer.address,
-        amount: deficit,
-      }),
-      operation: OperationType.Call,
-      value: '0',
-    });
+  const unwrapTransaction = buildUnwrapTransaction({
+    recipientAddress: signer.address,
+    amount: deficit,
+    protocol,
+  });
+
+  if (unwrapTransaction) {
+    transactions.push(unwrapTransaction);
   }
 
   return transactions;

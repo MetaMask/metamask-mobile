@@ -4,10 +4,12 @@ import {
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
-import { encodeWrap } from '../protocol/orderCodec';
-import { OperationType, type SafeTransaction } from '../safe/types';
-import { buildSignedSafeExecution, getRawTokenBalance } from './core';
-import { compileRequirementTransactions } from './compileRequirementTransactions';
+import type { SafeTransaction } from '../safe/types';
+import {
+  buildSignedSafeExecutionIfNeeded,
+  compileAllowanceMaintenanceTransactions,
+  getRawTokenBalance,
+} from './core';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import { getCanonicalV2AllowanceRequirements } from './v2AllowanceRequirements';
 
@@ -24,30 +26,31 @@ export async function planTradePreflight({
   safeAddress: string;
   protocol?: PolymarketProtocolDefinition;
 }): Promise<TradePreflightPlan> {
-  const missingRequirements = await inspectMissingRequirements({
-    address: safeAddress,
-    requirements: getCanonicalV2AllowanceRequirements(protocol),
-  });
-  const safeUsdceBalance = await getRawTokenBalance({
-    address: safeAddress,
-    tokenAddress: protocol.collateral.legacyUsdceToken,
-  });
-  const transactions = compileTradePreflightTransactions({
-    protocol,
-    safeAddress,
-    missingRequirements,
-    safeUsdceBalance,
-  });
+  const [missingRequirements, safeUsdceBalance] = await Promise.all([
+    inspectMissingRequirements({
+      address: safeAddress,
+      requirements: getCanonicalV2AllowanceRequirements(protocol),
+    }),
+    getRawTokenBalance({
+      address: safeAddress,
+      tokenAddress: protocol.collateral.legacyUsdceToken,
+    }),
+  ]);
 
   return {
     missingRequirements,
     safeUsdceBalance,
-    transactions,
+    transactions: compileTradePreflightTransactions({
+      protocol,
+      safeAddress,
+      missingRequirements,
+      safeUsdceBalance,
+    }),
   };
 }
 
 export function compileTradePreflightTransactions({
-  protocol,
+  protocol = POLYMARKET_V2_PROTOCOL,
   safeAddress,
   missingRequirements,
   safeUsdceBalance,
@@ -57,26 +60,12 @@ export function compileTradePreflightTransactions({
   missingRequirements: ReturnType<typeof getCanonicalV2AllowanceRequirements>;
   safeUsdceBalance: bigint;
 }): SafeTransaction[] {
-  const resolvedProtocol = protocol ?? POLYMARKET_V2_PROTOCOL;
-  const transactions = compileRequirementTransactions(missingRequirements);
-
-  if (
-    safeUsdceBalance > 0n &&
-    resolvedProtocol.collateral.onrampAddress !== undefined
-  ) {
-    transactions.push({
-      to: resolvedProtocol.collateral.onrampAddress,
-      data: encodeWrap({
-        asset: resolvedProtocol.collateral.legacyUsdceToken,
-        to: safeAddress,
-        amount: safeUsdceBalance,
-      }),
-      operation: OperationType.Call,
-      value: '0',
-    });
-  }
-
-  return transactions;
+  return compileAllowanceMaintenanceTransactions({
+    protocol,
+    safeAddress,
+    missingRequirements,
+    usdceBalance: safeUsdceBalance,
+  });
 }
 
 export async function buildTradeAllowancesTx({
@@ -93,19 +82,12 @@ export async function buildTradeAllowancesTx({
     protocol,
   });
 
-  if (plan.transactions.length === 0) {
-    return undefined;
-  }
-
-  const signedExecution = await buildSignedSafeExecution({
+  const signedExecution = await buildSignedSafeExecutionIfNeeded({
     signer,
     safeAddress,
     transactions: plan.transactions,
     type: TransactionType.contractInteraction,
   });
 
-  return {
-    to: signedExecution.params.to,
-    data: signedExecution.params.data,
-  };
+  return signedExecution?.params;
 }

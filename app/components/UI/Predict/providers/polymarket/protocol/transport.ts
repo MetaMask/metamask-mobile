@@ -1,6 +1,6 @@
 import type { Result } from '../../../types';
-import { getPolymarketEndpoints } from '../utils';
 import type { ClobHeaders, OrderResponse } from '../types';
+import { getPolymarketEndpoints } from '../utils';
 import type {
   Permit2FeeAuthorization,
   SafeFeeAuthorization,
@@ -9,14 +9,13 @@ import type { PolymarketProtocolDefinition } from './definitions';
 import type { ProtocolRelayerOrder } from './orderCodec';
 
 function normalizeRelayerHeaders(headers: ClobHeaders): Record<string, string> {
-  return {
-    ...headers,
-    ...Object.entries(headers)
-      .map(([key, value]) => ({
-        [key.replace(/_/gu, '-')]: value,
-      }))
-      .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-  };
+  const normalizedHeaders: Record<string, string> = { ...headers };
+
+  for (const [key, value] of Object.entries(headers)) {
+    normalizedHeaders[key.replace(/_/gu, '-')] = value;
+  }
+
+  return normalizedHeaders;
 }
 
 export async function submitProtocolClobOrder({

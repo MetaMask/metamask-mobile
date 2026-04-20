@@ -5,10 +5,13 @@ import {
   type PolymarketProtocolDefinition,
   type WithdrawExecutionMode,
 } from '../protocol/definitions';
-import { encodeUnwrap } from '../protocol/orderCodec';
 import { OperationType, type SafeTransaction } from '../safe/types';
 import { encodeErc20Transfer } from '../utils';
-import { buildSignedSafeExecution, getRawTokenBalance } from './core';
+import {
+  buildSignedSafeExecution,
+  buildUnwrapTransaction,
+  getRawTokenBalance,
+} from './core';
 import { compileRequirementTransactions } from './compileRequirementTransactions';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import { getCanonicalV2AllowanceRequirements } from './v2AllowanceRequirements';
@@ -111,17 +114,14 @@ export function compileWithdrawTransactions({
     return transactions;
   }
 
-  if (deficit > 0n && protocol.collateral.offrampAddress !== undefined) {
-    transactions.push({
-      to: protocol.collateral.offrampAddress,
-      data: encodeUnwrap({
-        asset: protocol.collateral.legacyUsdceToken,
-        to: safeAddress,
-        amount: deficit,
-      }),
-      operation: OperationType.Call,
-      value: '0',
-    });
+  const unwrapTransaction = buildUnwrapTransaction({
+    recipientAddress: safeAddress,
+    amount: deficit,
+    protocol,
+  });
+
+  if (unwrapTransaction) {
+    transactions.push(unwrapTransaction);
   }
 
   transactions.push({

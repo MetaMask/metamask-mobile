@@ -135,6 +135,35 @@ export type PolymarketProtocolDefinition =
   | typeof POLYMARKET_V1_PROTOCOL
   | typeof POLYMARKET_V2_PROTOCOL;
 
+export function getProtocolDepositTokenAddress(
+  protocol: PolymarketProtocolDefinition,
+): string {
+  const depositMode = protocol.workflow.depositMode as DepositExecutionMode;
+
+  switch (depositMode) {
+    case 'pusd-transfer':
+      return protocol.collateral.tradingToken;
+    case 'usdce-transfer':
+    default:
+      return protocol.collateral.legacyUsdceToken;
+  }
+}
+
+export function getProtocolWithdrawTokenAddress(
+  protocol: PolymarketProtocolDefinition,
+): string {
+  const withdrawMode = protocol.workflow.withdrawMode as WithdrawExecutionMode;
+
+  switch (withdrawMode) {
+    case 'pusd-transfer':
+      return protocol.collateral.tradingToken;
+    case 'usdce-transfer':
+    case 'usdce-deficit-unwrap':
+    default:
+      return protocol.collateral.legacyUsdceToken;
+  }
+}
+
 export function resolvePolymarketProtocol(
   featureFlags: Pick<PredictFeatureFlags, 'predictClobV2Enabled'>,
 ): PolymarketProtocolDefinition {
