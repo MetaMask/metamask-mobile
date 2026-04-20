@@ -5,7 +5,7 @@ import {
   TransactionEnvelopeType,
   IsAtomicBatchSupportedRequest,
 } from '@metamask/transaction-controller';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, omit } from 'lodash';
 //eslint-disable-next-line import-x/no-namespace
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
@@ -270,6 +270,31 @@ describe('Transaction Controller Util', () => {
       ).not.toHaveBeenCalled();
     });
 
+    it('calls regular addTransaction without extra params when transaction is a contract deployment', async () => {
+      jest
+        .mocked(Engine.context.TransactionController.addTransactionBatch)
+        .mockReturnValueOnce(
+          Promise.resolve({
+            batchId: BATCHID_MOCK,
+          }),
+        );
+      jest
+        .mocked(Engine.context.TransactionController.getTransactions)
+        .mockReturnValueOnce([BATCH_TRANSACTION_META_MOCK]);
+
+      const eip1559TxWithoutToField = omit(
+        EIP_1559_TRANSACTION_PARAMS_MOCK,
+        'to',
+      );
+      await addTransaction(eip1559TxWithoutToField, TRANSACTION_OPTIONS_MOCK);
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledWith(eip1559TxWithoutToField, TRANSACTION_OPTIONS_MOCK);
+      expect(
+        Engine.context.TransactionController.addTransactionBatch,
+      ).not.toHaveBeenCalled();
+    });
+
     it('calls addTransactionBatch when transaction is type 0x76', async () => {
       jest
         .mocked(Engine.context.TransactionController.addTransactionBatch)
@@ -324,7 +349,7 @@ describe('Transaction Controller Util', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('does not call addTransactionBatch if accountSupports7702 resolves to false', async () => {
+    it('does not call addTransactionBatch if accountSupports7702 resolves to false for Tempo Transaction', async () => {
       (accountSupports7702 as jest.Mock).mockResolvedValueOnce(false);
       await expect(
         addTransaction(TEMPO_TRANSACTION_PARAMS_MOCK, TRANSACTION_OPTIONS_MOCK),
