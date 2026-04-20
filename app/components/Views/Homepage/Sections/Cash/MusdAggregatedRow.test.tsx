@@ -156,10 +156,12 @@ describe('MusdAggregatedRow', () => {
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        { returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW } },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+        },
+      });
     });
 
     it('navigates directly to CashTokensFullView when education already seen', () => {

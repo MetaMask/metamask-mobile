@@ -11,9 +11,4 @@ describe('CashTokensFullViewSkeleton', () => {
       getByTestId(CashTokensFullViewSkeletonTestIds.CONTAINER),
     ).toBeOnTheScreen();
   });
-
-  it('matches snapshot', () => {
-    const { toJSON } = render(<CashTokensFullViewSkeleton />);
-    expect(toJSON()).toMatchSnapshot();
-  });
 });

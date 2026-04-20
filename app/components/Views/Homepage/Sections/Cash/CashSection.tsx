@@ -26,7 +26,7 @@ import MusdAggregatedRow from './MusdAggregatedRow';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import Logger from '../../../../../util/Logger';
 import { SectionRefreshHandle } from '../../types';
-import { useMusdConversion } from '../../../../UI/Earn/hooks/useMusdConversion';
+import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
 
 interface CashSectionProps {
   sectionIndex: number;
@@ -48,7 +48,9 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     );
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
     const { hasMusdBalanceOnAnyChain } = useMusdBalance();
-    const { hasSeenConversionEducationScreen } = useMusdConversion();
+    const hasSeenConversionEducationScreen = useSelector(
+      selectMusdConversionEducationSeen,
+    );
     const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
 
     const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;

@@ -22,6 +22,10 @@ jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHomeScreenEnabledFlag: jest.fn(() => false),
 }));
 
+jest.mock('../../../../../reducers/user/selectors', () => ({
+  selectMusdConversionEducationSeen: jest.fn(() => true),
+}));
+
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: true }));
 jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
