@@ -4,7 +4,7 @@
  * Vendor calls are centralized in `vendorPlayback.ts`; this file wires Redux
  * gate options and `withGatedPlayback`. App code imports from `app/util/haptics`.
  */
-import { shouldPlayHaptic, type HapticGateOptions } from './gates';
+import { type HapticGateOptions } from './gates';
 import { withGatedPlayback } from './gatedExecution';
 import {
   NotificationMoment,
@@ -21,6 +21,7 @@ import {
 import ReduxService from '../../core/redux';
 import { selectHapticsEnabled } from '../../selectors/settings';
 import { selectHapticsKillSwitch } from '../../selectors/featureFlagController/haptics';
+import Logger from '../Logger';
 
 /**
  * Reads Redux state to build gate options.
@@ -69,6 +70,13 @@ export async function playNotification(
       return playErrorNotification();
     case NotificationMoment.Warning:
       return playWarningNotification();
+    default: {
+      Logger.error(new Error('Unexpected haptic notification moment'), {
+        moment: moment as unknown,
+      });
+      const _exhaustive: never = moment;
+      return _exhaustive;
+    }
   }
 }
 

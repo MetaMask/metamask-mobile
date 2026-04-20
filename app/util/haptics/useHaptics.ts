@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { shouldPlayHaptic } from './gates';
 import { withGatedPlayback } from './gatedExecution';
 import { type HapticImpactMoment, type HapticsPlayer } from './catalog';
 import {
