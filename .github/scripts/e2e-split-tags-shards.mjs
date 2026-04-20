@@ -4,8 +4,9 @@ import { spawn } from 'node:child_process';
 import { extractTestResults } from './e2e-extract-test-results.mjs';
 
 // 1) Find all specs files that include the given E2E tags
-// 2) Compute sharding split using time-based bin-packing (LPT algorithm)
-//    Falls back to even count split if no timing data is available.
+// 2) Compute sharding split using time-based bin-packing when
+//    tests/e2e-test-timings.json is present (restored from Actions cache:
+//    PR-specific first, then main). Otherwise equal-count alphabetical split.
 // 3) On re-runs, skip passed tests and only run failed/not-executed tests
 // 4) Flaky test detector mechanism in PRs (test retries)
 // 5) Log and run the selected specs for the given shard split
@@ -154,8 +155,8 @@ function ceilDiv(a, b) {
 }
 
 /**
- * LEGACY: Split files evenly across runners by count (alphabetical slicing).
- * Used as fallback when no timing data is available.
+ * Split files evenly across runners by count (alphabetical slicing).
+ * Fallback when no timings file is available.
  */
 function computeShardingSplit(files, splitNumber, totalSplits) {
   const filesPerSplit = ceilDiv(files.length, totalSplits);
@@ -164,37 +165,26 @@ function computeShardingSplit(files, splitNumber, totalSplits) {
   return files.slice(startIndex, endIndex);
 }
 
-// ---------------------------------------------------------------------------
-// Time-based bin-packing sharding
-// ---------------------------------------------------------------------------
-
 /**
- * Load the test timings database from disk.
- * Returns an empty object if the file does not exist or cannot be parsed.
- *
- * @returns {{ [filePath: string]: { ios?: number, android?: number } }}
+ * @returns {{ [filePath: string]: { ios?: number, android?: number } } | null}
  */
 function loadTestTimings() {
   if (!fs.existsSync(TIMINGS_FILE)) {
-    console.log(`ℹ️  No timings file found at ${TIMINGS_FILE} — falling back to equal-count split.`);
+    console.log(`ℹ️  No timings file at ${TIMINGS_FILE} — equal-count split.`);
     return null;
   }
   try {
     const raw = JSON.parse(fs.readFileSync(TIMINGS_FILE, 'utf8'));
     return raw.timings ?? null;
   } catch (e) {
-    console.warn(`⚠️  Could not parse timings file: ${e.message} — falling back to equal-count split.`);
+    console.warn(`⚠️  Could not parse timings file: ${e.message} — equal-count split.`);
     return null;
   }
 }
 
 /**
- * Compute the median value from an array of numbers.
- * Returns a default fallback value if the array is empty.
- *
  * @param {number[]} values
- * @param {number} fallback - value to use when no observations are available
- * @returns {number}
+ * @param {number} fallback
  */
 function computeMedian(values, fallback = 60) {
   if (values.length === 0) return fallback;
@@ -206,29 +196,15 @@ function computeMedian(values, fallback = 60) {
 }
 
 /**
- * Assign files to shards using the Longest Processing Time (LPT) greedy
- * bin-packing algorithm so each shard finishes in roughly equal wall-clock time.
- *
- * Algorithm:
- *   1. Estimate each file's duration from the timings database.
- *      Unknown files get the median of all known durations for this platform
- *      (conservative estimate so they don't all pile into the "lightest" shard).
- *   2. Sort files descending by estimated duration (longest first — this
- *      gives the best approximation for LPT).
- *   3. Greedily assign each file to the shard with the current minimum total.
- *   4. Return the file list assigned to the requested shard number.
- *
- * @param {string[]} files - all spec files for this tag, sorted alphabetically
+ * @param {string[]} files
  * @param {{ [filePath: string]: { ios?: number, android?: number } }} timings
- * @param {string} platform - 'ios' | 'android'
- * @param {number} splitNumber - which shard we are (1-based)
- * @param {number} totalSplits - total number of shards
- * @returns {string[]} files assigned to this shard
+ * @param {string} platform
+ * @param {number} splitNumber
+ * @param {number} totalSplits
  */
 function binPackShards(files, timings, platform, splitNumber, totalSplits) {
   const platformKey = platform.toLowerCase() === 'ios' ? 'ios' : 'android';
 
-  // Collect all known durations for this platform to derive a median fallback
   const knownDurations = files
     .map((f) => timings[f]?.[platformKey])
     .filter((t) => typeof t === 'number' && t > 0);
@@ -237,34 +213,32 @@ function binPackShards(files, timings, platform, splitNumber, totalSplits) {
   const unknownFiles = files.filter((f) => typeof timings[f]?.[platformKey] !== 'number');
 
   if (unknownFiles.length > 0) {
-    console.log(`ℹ️  ${unknownFiles.length} file(s) have no recorded timing — using median fallback of ${medianDuration.toFixed(1)}s each:`);
+    console.log(`ℹ️  ${unknownFiles.length} file(s) without recorded timing — median fallback ${medianDuration.toFixed(1)}s:`);
     unknownFiles.forEach((f) => console.log(`     - ${f}`));
   }
 
-  // Pair each file with its estimated duration
   const filesWithDuration = files.map((f) => ({
     file: f,
     duration: timings[f]?.[platformKey] ?? medianDuration,
   }));
 
-  // Sort longest-first for LPT
   filesWithDuration.sort((a, b) => b.duration - a.duration);
 
-  // Initialise N empty shards
   const shards = Array.from({ length: totalSplits }, (_, i) => ({
     index: i + 1,
     files: [],
     totalDuration: 0,
   }));
 
-  // Greedy assignment
   for (const { file, duration } of filesWithDuration) {
-    const lightest = shards.reduce((min, s) => s.totalDuration < min.totalDuration ? s : min);
+    const lightest = shards.reduce(
+      (min, s) => (s.totalDuration < min.totalDuration ? s : min),
+      shards[0],
+    );
     lightest.files.push(file);
     lightest.totalDuration += duration;
   }
 
-  // Log estimated wall-clock time for every shard (helpful for debugging)
   console.log(`\n📊 Estimated shard durations (${platformKey}, ${totalSplits} shards):`);
   for (const shard of shards) {
     const mins = Math.floor(shard.totalDuration / 60);
@@ -278,31 +252,22 @@ function binPackShards(files, timings, platform, splitNumber, totalSplits) {
 }
 
 /**
- * Select the sharding strategy:
- *   - Uses time-based bin-packing when timing data is available.
- *   - Falls back to legacy equal-count alphabetical split otherwise.
- *
  * @param {string[]} files
  * @param {number} splitNumber
  * @param {number} totalSplits
  * @param {string} platform
- * @returns {string[]}
  */
 function selectShardFiles(files, splitNumber, totalSplits, platform) {
   const timings = loadTestTimings();
 
-  if (timings) {
-    console.log(`⏱️  Using time-based bin-packing sharding (timings loaded from ${TIMINGS_FILE})`);
+  if (timings && Object.keys(timings).length > 0) {
+    console.log(`⏱️  Time-based sharding (from ${TIMINGS_FILE})`);
     return binPackShards(files, timings, platform, splitNumber, totalSplits);
   }
 
-  console.log(`📦 Using equal-count sharding (no timings available)`);
+  console.log('📦 Equal-count sharding (no timings)');
   return computeShardingSplit(files, splitNumber, totalSplits);
 }
-
-// ---------------------------------------------------------------------------
-// Helpers unchanged from original
-// ---------------------------------------------------------------------------
 
 function runYarn(scriptName, args, extraEnv = {}) {
   return new Promise((resolve, reject) => {
@@ -423,7 +388,7 @@ async function main() {
   if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
-  // 2) Assign files to this shard using time-based bin-packing (or fallback)
+  // 2) Shard by measured times when timings JSON exists, else by file count
   const splitFiles = selectShardFiles(allMatches, env.SPLIT_NUMBER, env.TOTAL_SPLITS, env.PLATFORM);
   let runFiles = [...splitFiles];
 

@@ -136,15 +136,28 @@ jobs:
           echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
         shell: bash
 
+      # Restore-keys order: PR-scoped timings first, then main. No generic e2e-timings- fallback
+      # (if neither hits, no file is restored → split script uses equal-count sharding).
+      - name: Configure E2E timings cache restore keys
+        id: e2e-timings-restore-keys
+        run: |
+          {
+            echo 'RESTORE_KEYS<<EOF'
+            if [ -n "$PR_NUM" ]; then
+              echo "e2e-timings-pr-${PR_NUM}-"
+            fi
+            echo "e2e-timings-main-"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+        env:
+          PR_NUM: ${{ github.event.pull_request.number }}
+
       - name: Restore E2E timings cache
         uses: actions/cache/restore@v4
         with:
           path: tests/e2e-test-timings.json
-          # Restore the most recent timing data saved by a previous run.
-          # The key never matches exactly so it always falls back to restore-keys,
-          # picking up the latest cache saved by update-e2e-timings.
-          key: e2e-timings-never-match
-          restore-keys: e2e-timings-
+          key: e2e-timings-never-match-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.e2e-timings-restore-keys.outputs.RESTORE_KEYS }}
 
       - name: Set up E2E environment
         timeout-minutes: 15

@@ -871,17 +871,31 @@ jobs:
     needs: [e2e-smoke-tests-android, e2e-smoke-tests-ios]
     permissions:
       contents: read
-      actions: read
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure E2E timings cache restore keys
+        id: e2e-timings-restore-keys
+        run: |
+          {
+            echo 'RESTORE_KEYS<<EOF'
+            if [ -n "$PR_NUM" ]; then
+              echo "e2e-timings-pr-${PR_NUM}-"
+            fi
+            echo "e2e-timings-main-"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+        env:
+          PR_NUM: ${{ github.event.pull_request.number }}
 
       - name: Restore latest timings from cache (baseline)
         uses: actions/cache/restore@v4
         with:
           path: tests/e2e-test-timings.json
-          key: e2e-timings-never-match
-          restore-keys: e2e-timings-
+          key: e2e-timings-never-match-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.e2e-timings-restore-keys.outputs.RESTORE_KEYS }}
 
       - name: Install xml2js for timing script
         run: |
@@ -918,15 +932,39 @@ jobs:
               || echo "⚠️  Failed for $xmlfile (non-blocking)"
           done
           echo "✅ Processed $processed shard(s)"
-          echo "📄 Timing DB now has $(node -e "const f=require('./tests/e2e-test-timings.json'); console.log(Object.keys(f.timings).length)") entries"
+          if [ -f tests/e2e-test-timings.json ]; then
+            echo "📄 Timing DB now has $(node -e "const f=require('./tests/e2e-test-timings.json'); console.log(Object.keys(f.timings||{}).length)") entries"
+          else
+            echo "📄 No timings file written"
+          fi
+
+      - name: Check timings file for cache save
+        id: e2e-timings-file
+        run: |
+          if [ -f tests/e2e-test-timings.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute E2E timings cache save key
+        id: e2e-timings-save-key
+        run: |
+          if [ -n "${{ github.event.pull_request.number }}" ]; then
+            echo "key=e2e-timings-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "key=e2e-timings-main-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Save updated timings to cache
+        if: steps.e2e-timings-file.outputs.exists == 'true'
         uses: actions/cache/save@v4
         with:
           path: tests/e2e-test-timings.json
-          key: e2e-timings-${{ github.run_id }}-${{ github.run_attempt }}
+          key: ${{ steps.e2e-timings-save-key.outputs.key }}
 
       - name: Upload updated timings as artifact (for inspection)
+        if: steps.e2e-timings-file.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-timings
