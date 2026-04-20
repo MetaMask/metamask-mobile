@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import Share from 'react-native-share';
 import Logger from '../../../util/Logger';
 
-const mockHeaderCompactStandard = jest.fn(() => null);
+const mockHeaderCompactStandard = jest.fn((_props: unknown) => null);
 jest.mock(
   '../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard',
   () => (props: unknown) => mockHeaderCompactStandard(props),
@@ -31,6 +31,18 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-native-share', () => ({
   open: jest.fn(() => Promise.resolve()),
 }));
+
+interface HeaderMockProps {
+  onBack: () => void;
+  endButtonIconProps: { onPress: () => void }[];
+}
+
+function getHeaderPropsFromFirstCall(): HeaderMockProps {
+  expect(mockHeaderCompactStandard).toHaveBeenCalled();
+  const firstCall = mockHeaderCompactStandard.mock.calls[0];
+  expect(firstCall).toBeDefined();
+  return firstCall[0] as HeaderMockProps;
+}
 
 describe('SimpleWebview', () => {
   beforeEach(() => {
@@ -62,9 +74,7 @@ describe('SimpleWebview', () => {
   it('calls navigation.goBack when back button is pressed', () => {
     render(<SimpleWebview />);
 
-    const { onBack } = mockHeaderCompactStandard.mock.calls[0][0] as {
-      onBack: () => void;
-    };
+    const { onBack } = getHeaderPropsFromFirstCall();
     onBack();
 
     expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -73,10 +83,7 @@ describe('SimpleWebview', () => {
   it('calls Share.open when share button is pressed', () => {
     render(<SimpleWebview />);
 
-    const { endButtonIconProps } = mockHeaderCompactStandard.mock
-      .calls[0][0] as {
-      endButtonIconProps: { onPress: () => void }[];
-    };
+    const { endButtonIconProps } = getHeaderPropsFromFirstCall();
     endButtonIconProps[0].onPress();
 
     expect(Share.open).toHaveBeenCalledWith({ url: 'https://etherscan.io' });
@@ -88,10 +95,7 @@ describe('SimpleWebview', () => {
 
     render(<SimpleWebview />);
 
-    const { endButtonIconProps } = mockHeaderCompactStandard.mock
-      .calls[0][0] as {
-      endButtonIconProps: { onPress: () => void }[];
-    };
+    const { endButtonIconProps } = getHeaderPropsFromFirstCall();
     endButtonIconProps[0].onPress();
 
     await waitFor(() => {
