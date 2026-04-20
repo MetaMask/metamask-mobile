@@ -1,4 +1,8 @@
-import { MATIC_CONTRACTS, COLLATERAL_ONRAMP_ADDRESS } from '../constants';
+import {
+  MATIC_CONTRACTS,
+  COLLATERAL_ONRAMP_ADDRESS,
+  COLLATERAL_OFFRAMP_ADDRESS,
+} from '../constants';
 
 export const SAFE_FACTORY_NAME = 'Polymarket Contract Proxy Factory';
 
@@ -24,6 +28,7 @@ export const pUsdSpenders = [
   MATIC_CONTRACTS.exchange,
   MATIC_CONTRACTS.negRiskExchange,
   MATIC_CONTRACTS.negRiskAdapter,
+  COLLATERAL_OFFRAMP_ADDRESS,
 ];
 
 export const outcomeTokenSpenders = [

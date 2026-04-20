@@ -61,6 +61,7 @@ import {
   SignWithdrawResponse,
 } from '../types';
 import {
+  COLLATERAL_TOKEN_DECIMALS,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
@@ -82,7 +83,7 @@ import {
   getProxyWalletAllowancesTransaction,
   getSafeTransactionCallData,
   getSafeUsdcAmount,
-  getWithdrawTransactionCallData,
+  getWithdrawWithUnwrapCallData,
   hasAllowances,
 } from './safe/utils';
 import {
@@ -1921,7 +1922,7 @@ export class PolymarketProvider implements PredictProvider {
       chainId: CHAIN_IDS.POLYGON,
       transaction: {
         params: {
-          to: MATIC_CONTRACTS.collateral as Hex,
+          to: USDC_E_ADDRESS as Hex,
           data: callData,
           gas: numberToHex(SAFE_EXEC_GAS_LIMIT) as Hex,
         },
@@ -1944,13 +1945,16 @@ export class PolymarketProvider implements PredictProvider {
       this.#accountStateByAddress.get(signer.address)?.address ??
       computeProxyAddress(signer.address);
 
-    const signedCallData = await getWithdrawTransactionCallData({
-      data: callData,
+    const amount = getSafeUsdcAmount(callData);
+    const amountRaw = ethers.utils
+      .parseUnits(amount.toString(), COLLATERAL_TOKEN_DECIMALS)
+      .toBigInt();
+
+    const signedCallData = await getWithdrawWithUnwrapCallData({
       signer,
       safeAddress,
+      amount: amountRaw,
     });
-
-    const amount = getSafeUsdcAmount(callData);
 
     return {
       callData: signedCallData,

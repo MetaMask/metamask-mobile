@@ -30,12 +30,14 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   USDC_E_ADDRESS,
+  COLLATERAL_OFFRAMP_ADDRESS,
 } from '../constants';
 import {
   encodeApprove,
   encodeClaim,
   encodeErc1155Approve,
   encodeErc20Transfer,
+  encodeUnwrap,
   encodeWrap,
   getAllowance,
   getContractConfig,
@@ -904,6 +906,61 @@ export const getWithdrawTransactionCallData = async ({
     operation: OperationType.Call,
     value: '0',
   };
+
+  const callData = await getSafeTransactionCallData({
+    signer,
+    safeAddress,
+    txn: safeTxn,
+  });
+
+  return callData as Hex;
+};
+
+export const createWithdrawSafeTransaction = ({
+  recipientAddress,
+  amount,
+}: {
+  recipientAddress: string;
+  amount: bigint;
+}): SafeTransaction => {
+  const safeTxns: SafeTransaction[] = [
+    {
+      to: MATIC_CONTRACTS.collateral,
+      data: encodeApprove({
+        spender: COLLATERAL_OFFRAMP_ADDRESS,
+        amount,
+      }),
+      operation: OperationType.Call,
+      value: '0',
+    },
+    {
+      to: COLLATERAL_OFFRAMP_ADDRESS,
+      data: encodeUnwrap({
+        asset: USDC_E_ADDRESS,
+        to: recipientAddress,
+        amount,
+      }),
+      operation: OperationType.Call,
+      value: '0',
+    },
+  ];
+
+  return aggregateTransaction(safeTxns);
+};
+
+export const getWithdrawWithUnwrapCallData = async ({
+  signer,
+  safeAddress,
+  amount,
+}: {
+  signer: Signer;
+  safeAddress: string;
+  amount: bigint;
+}): Promise<Hex> => {
+  const safeTxn = createWithdrawSafeTransaction({
+    recipientAddress: signer.address,
+    amount,
+  });
 
   const callData = await getSafeTransactionCallData({
     signer,

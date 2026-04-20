@@ -441,7 +441,7 @@ describe('useTransactionCustomAmount', () => {
       expect(config.isMaxAmount).toBe(true);
     });
 
-    it('to percentage of predict balance at 1:1 USD rate', async () => {
+    it('to percentage of predict balance converted to USD', async () => {
       usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
 
       const { result } = runHook({
@@ -454,7 +454,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('1858.12');
+      expect(result.current.amountFiat).toBe('3716.25');
     });
 
     it('to total predict balance when selecting max', async () => {
@@ -470,7 +470,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      expect(result.current.amountFiat).toBe('4321.23');
+      expect(result.current.amountFiat).toBe('8642.46');
     });
 
     it('to percentage of perps available balance', async () => {

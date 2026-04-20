@@ -135,7 +135,7 @@ jest.mock('./safe/utils', () => ({
   getDeployProxyWalletTransaction: jest.fn(),
   getProxyWalletAllowancesTransaction: jest.fn(),
   hasAllowances: jest.fn(),
-  getWithdrawTransactionCallData: jest
+  getWithdrawWithUnwrapCallData: jest
     .fn()
     .mockResolvedValue('0xsignedcalldata'),
   getSafeUsdcAmount: jest.fn().mockReturnValue(1000000),
