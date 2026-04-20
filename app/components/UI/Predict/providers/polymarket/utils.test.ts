@@ -141,6 +141,7 @@ describe('polymarket utils', () => {
       expect(endpoints).toEqual({
         GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
+        CLOB_ENDPOINT_V2: 'https://clob-v2.polymarket.com',
         CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
@@ -402,6 +403,23 @@ describe('polymarket utils', () => {
       );
     });
 
+    it('targets the v2 CLOB endpoint when requested', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApiKey),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await deriveApiKey({ address: mockAddress, clobVersion: 'v2' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob-v2.polymarket.com/auth/derive-api-key',
+        expect.objectContaining({
+          method: 'GET',
+        }),
+      );
+    });
+
     it('handle fetch errors', async () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
@@ -436,6 +454,25 @@ describe('polymarket utils', () => {
       );
     });
 
+    it('targets the v2 CLOB endpoint when requested', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApiKey),
+        status: 200,
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await createApiKey({ address: mockAddress, clobVersion: 'v2' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob-v2.polymarket.com/auth/api-key',
+        expect.objectContaining({
+          method: 'POST',
+          body: '',
+        }),
+      );
+    });
+
     it('derive API key when creation returns 400', async () => {
       const createResponse = {
         ok: false,
@@ -455,6 +492,39 @@ describe('polymarket utils', () => {
 
       expect(result).toEqual(mockApiKey);
       expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('derives from the v2 CLOB endpoint when v2 creation returns 400', async () => {
+      const createResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({}),
+        status: 400,
+      };
+      const deriveResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApiKey),
+      };
+
+      mockFetch
+        .mockResolvedValueOnce(createResponse)
+        .mockResolvedValueOnce(deriveResponse);
+
+      const result = await createApiKey({
+        address: mockAddress,
+        clobVersion: 'v2',
+      });
+
+      expect(result).toEqual(mockApiKey);
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        1,
+        'https://clob-v2.polymarket.com/auth/api-key',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        2,
+        'https://clob-v2.polymarket.com/auth/derive-api-key',
+        expect.objectContaining({ method: 'GET' }),
+      );
     });
 
     it('handle creation errors', async () => {
@@ -523,6 +593,25 @@ describe('polymarket utils', () => {
       expect(result).toEqual(mockOrderBook);
       expect(mockFetch).toHaveBeenCalledWith(
         'https://clob.polymarket.com/book?token_id=test-token',
+        { method: 'GET' },
+      );
+    });
+
+    it('reads the v2 order book when requested', async () => {
+      const mockOrderBook = {
+        bids: [],
+        asks: [],
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOrderBook),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await getOrderBook({ tokenId: 'test-token', clobVersion: 'v2' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob-v2.polymarket.com/book?token_id=test-token',
         { method: 'GET' },
       );
     });
@@ -3960,6 +4049,41 @@ describe('polymarket utils', () => {
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.fees).toBeUndefined();
       expect(result.feeRateBps).toBe('15');
+    });
+
+    it('uses the v2 order book endpoint and zero fee rate for v2 previews', async () => {
+      const mockOrderBook = {
+        timestamp: '2024-01-01T00:00:00Z',
+        tick_size: '0.01',
+        min_order_size: '1',
+        neg_risk: false,
+        asks: [
+          { price: '0.50', size: '100' },
+          { price: '0.51', size: '50' },
+        ],
+        bids: [],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      const result = await previewOrder({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.BUY,
+        size: 50,
+        isV2: true,
+      });
+
+      expect(result.feeRateBps).toBe('0');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob-v2.polymarket.com/book?token_id=token-1',
+        { method: 'GET' },
+      );
     });
 
     it('throws error when orderbook is not available', async () => {

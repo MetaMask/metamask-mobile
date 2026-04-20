@@ -333,6 +333,7 @@ export const createPermit2FeeAuthorization = async ({
   signer,
   amount,
   spender,
+  tokenAddress = MATIC_CONTRACTS.collateral,
 }: {
   safeAddress: Hex;
   signer: Signer;

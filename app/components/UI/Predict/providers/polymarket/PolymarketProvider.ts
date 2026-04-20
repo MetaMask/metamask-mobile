@@ -4,7 +4,7 @@ import {
 } from '@metamask/keyring-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
-import { parseUnits } from 'ethers/lib/utils';
+import { getAddress, parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -60,12 +60,10 @@ import {
   SignWithdrawResponse,
 } from '../types';
 import {
-  MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   ORDER_RATE_LIMIT_MS,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
-  ROUNDING_CONFIG,
   SAFE_EXEC_GAS_LIMIT,
 } from './constants';
 import { PERMIT2_ADDRESS } from './safe/constants';
@@ -77,28 +75,24 @@ import {
   getDeployProxyWalletTransaction,
   getProxyWalletAllowancesTransaction,
   getSafeUsdcAmount,
+  getSafeUsdcAmountRaw,
   getWithdrawTransactionCallData,
   hasAllowances,
 } from './safe/utils';
 import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
-  OrderData,
   OrderType,
   PolymarketApiActivity,
   PolymarketApiEvent,
   PolymarketApiTeam,
   PolymarketPosition,
-  SignatureType,
-  TickSize,
-  UtilsSide,
 } from './types';
 import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
   fetchCarouselFromPolymarketApi,
-  generateSalt,
   getBalance,
   getContractConfig,
   getL2Headers,
@@ -109,7 +103,6 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
-  roundOrderAmount,
   submitClobOrder,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
@@ -120,6 +113,24 @@ import {
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
+import {
+  getProtocolDepositTokenAddress,
+  getProtocolWithdrawTokenAddress,
+  resolvePolymarketProtocol,
+  type PolymarketProtocolDefinition,
+} from './protocol/definitions';
+import {
+  buildProtocolUnsignedOrder,
+  getPreviewFeeRateBpsForProtocol,
+  getProtocolOrderTypedData,
+  getProtocolVerifyingContract,
+  serializeProtocolRelayerOrder,
+} from './protocol/orderCodec';
+import { submitProtocolClobOrder } from './protocol/transport';
+import { buildClaimTransaction } from './preflight/claim';
+import { buildDepositMaintenanceTransaction } from './preflight/deposit';
+import { buildTradeAllowancesTx } from './preflight/trade';
+import { buildWithdrawTransaction } from './preflight/withdraw';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -152,7 +163,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly chainId = POLYGON_MAINNET_CHAIN_ID;
   readonly #getFeatureFlags: () => PredictFeatureFlags;
 
-  #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
+  #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
@@ -272,6 +283,399 @@ export class PolymarketProvider implements PredictProvider {
     );
   }
 
+  #getProtocol(): PolymarketProtocolDefinition {
+    return resolvePolymarketProtocol(this.#getFeatureFlags());
+  }
+
+  #pickExecutor(executors: string[]): string {
+    const randomIndex = new Uint32Array(1);
+    global.crypto.getRandomValues(randomIndex);
+
+    return executors[randomIndex[0] % executors.length];
+  }
+
+  #getPlaceOrderType({
+    preview,
+    feeCollection,
+    fakOrdersEnabled,
+    permit2FeeReady,
+    permit2AllowanceReady,
+  }: {
+    preview: OrderPreview;
+    feeCollection: PredictFeatureFlags['feeCollection'];
+    fakOrdersEnabled: boolean;
+    permit2FeeReady: boolean;
+    permit2AllowanceReady: boolean;
+  }): OrderType {
+    if (
+      !this.#shouldUseFakOrderType({
+        permit2Enabled: feeCollection.permit2Enabled,
+        executors: feeCollection.executors,
+        fakOrdersEnabled,
+      })
+    ) {
+      return OrderType.FOK;
+    }
+
+    const hasFees = preview.fees !== undefined && preview.fees.totalFee > 0;
+
+    if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
+      return OrderType.FAK;
+    }
+
+    return OrderType.FOK;
+  }
+
+  #throwPlaceOrderError({
+    error,
+    side,
+  }: {
+    error?: string;
+    side: Side;
+  }): never {
+    if (error?.includes(`order couldn't be fully filled`)) {
+      throw new Error(
+        side === Side.BUY
+          ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
+          : PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
+      );
+    }
+
+    if (
+      error?.includes(`not available in your region`) ||
+      error?.includes(`unable to access this provider`)
+    ) {
+      throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
+    }
+
+    throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
+  }
+
+  async #submitOrderV1({
+    signer,
+    preview,
+  }: {
+    signer: Signer;
+    preview: OrderPreview;
+  }) {
+    const protocol = this.#getProtocol();
+
+    if (protocol.key !== 'v1') {
+      throw new Error('Invalid Polymarket protocol for v1 order submission');
+    }
+
+    const chainId = POLYGON_MAINNET_CHAIN_ID;
+    const makerAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      computeProxyAddress(signer.address);
+
+    if (!makerAddress) {
+      throw new Error('Maker address not found');
+    }
+
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview,
+      makerAddress,
+      signerAddress: signer.address,
+    });
+
+    const typedData = getOrderTypedData({
+      order,
+      chainId,
+      verifyingContract:
+        getContractConfig(chainId)[
+          preview.negRisk ? 'negRiskExchange' : 'exchange'
+        ],
+    });
+
+    const signature = await signer.signTypedMessage(
+      { data: typedData, from: signer.address },
+      SignTypedDataVersion.V4,
+    );
+
+    const signedOrder = {
+      ...order,
+      signature,
+    };
+    const signerApiKey = await this.getApiKey({
+      address: signer.address,
+      protocolKey: protocol.key,
+    });
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+    const shouldUsePermit2 = this.#hasPermit2Config({
+      permit2Enabled: preview.fees?.permit2Enabled,
+      executors: preview.fees?.executors,
+    });
+
+    let feeAuthorization:
+      | SafeFeeAuthorization
+      | Permit2FeeAuthorization
+      | undefined;
+    let executor: string | undefined;
+    let permit2FeeReady = false;
+
+    if (preview.fees !== undefined && preview.fees.totalFee > 0) {
+      const safeAddress = computeProxyAddress(signer.address);
+      const feeAmountInUsdc = BigInt(
+        parseUnits(preview.fees.totalFee.toString(), 6).toString(),
+      );
+
+      if (shouldUsePermit2) {
+        permit2FeeReady = true;
+        executor = this.#pickExecutor(preview.fees.executors ?? []);
+        feeAuthorization = await createPermit2FeeAuthorization({
+          safeAddress,
+          signer,
+          amount: feeAmountInUsdc,
+          spender: executor,
+        });
+      } else {
+        feeAuthorization = await createSafeFeeAuthorization({
+          safeAddress,
+          signer,
+          amount: feeAmountInUsdc,
+          to: preview.fees.collector,
+        });
+      }
+    }
+
+    let allowancesTx: { to: string; data: string } | undefined;
+    let permit2AllowanceReady = false;
+    const hasSafeFeeAuth = feeAuthorization !== undefined && !permit2FeeReady;
+
+    if (feeCollection.permit2Enabled && !hasSafeFeeAuth) {
+      try {
+        const accountState = await this.getAccountState({
+          ownerAddress: signer.address,
+        });
+
+        if (accountState.hasAllowances) {
+          permit2AllowanceReady = true;
+        } else {
+          const allowanceTx = await getProxyWalletAllowancesTransaction({
+            signer,
+            extraUsdcSpenders: [PERMIT2_ADDRESS],
+          });
+
+          allowancesTx = allowanceTx.params;
+          permit2AllowanceReady = true;
+        }
+      } catch (allowanceError) {
+        DevLogger.log(
+          'PolymarketProvider: Failed to generate allowances transaction',
+          { error: allowanceError },
+        );
+        Logger.error(
+          allowanceError instanceof Error
+            ? allowanceError
+            : new Error(String(allowanceError)),
+          this.getErrorContext('placeOrder:allowancesTx', {
+            operation: 'generate_allowances_tx',
+          }),
+        );
+      }
+    }
+
+    const orderType = this.#getPlaceOrderType({
+      preview,
+      feeCollection,
+      fakOrdersEnabled,
+      permit2FeeReady,
+      permit2AllowanceReady,
+    });
+
+    const clobOrder = serializeProtocolRelayerOrder({
+      signedOrder,
+      owner: signerApiKey.apiKey,
+      orderType,
+      side: preview.side,
+    });
+    const body = JSON.stringify(clobOrder);
+    const headers = await getL2Headers({
+      l2HeaderArgs: {
+        method: 'POST',
+        requestPath: `/order`,
+        body,
+      },
+      address: clobOrder.order.signer ?? '',
+      apiKey: signerApiKey,
+    });
+
+    const orderResult = await submitClobOrder({
+      headers,
+      clobOrder,
+      feeAuthorization,
+      executor,
+      allowancesTx,
+    });
+
+    if (!orderResult.success) {
+      DevLogger.log('PolymarketProvider: Place order failed', {
+        error: orderResult.error,
+        errorDetails: undefined,
+        side: preview.side,
+        outcomeTokenId: preview.outcomeTokenId,
+      });
+      this.#throwPlaceOrderError({
+        error: orderResult.error,
+        side: preview.side,
+      });
+    }
+
+    return orderResult.response;
+  }
+
+  async #submitOrderV2({
+    signer,
+    preview,
+    protocol,
+  }: {
+    signer: Signer;
+    preview: OrderPreview;
+    protocol: Extract<PolymarketProtocolDefinition, { key: 'v2' }>;
+  }) {
+    const safeAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      computeProxyAddress(signer.address);
+
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview: {
+        ...preview,
+        feeRateBps: getPreviewFeeRateBpsForProtocol({ protocol, preview }),
+      },
+      makerAddress: safeAddress,
+      signerAddress: getAddress(signer.address),
+    });
+
+    const typedData = getProtocolOrderTypedData({
+      protocol,
+      order,
+      verifyingContract: getProtocolVerifyingContract({
+        protocol,
+        negRisk: preview.negRisk,
+      }),
+    });
+
+    const signature = await signer.signTypedMessage(
+      { data: typedData, from: signer.address },
+      SignTypedDataVersion.V4,
+    );
+
+    const signedOrder = {
+      ...order,
+      signature,
+    };
+    const signerApiKey = await this.getApiKey({
+      address: signer.address,
+      protocolKey: protocol.key,
+    });
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+    const shouldUsePermit2 = this.#hasPermit2Config({
+      permit2Enabled: preview.fees?.permit2Enabled,
+      executors: preview.fees?.executors,
+    });
+
+    let feeAuthorization: Permit2FeeAuthorization | undefined;
+    let executor: string | undefined;
+    let permit2FeeReady = false;
+
+    if (
+      preview.fees !== undefined &&
+      preview.fees.totalFee > 0 &&
+      shouldUsePermit2
+    ) {
+      const feeAmount = BigInt(
+        parseUnits(preview.fees.totalFee.toString(), 6).toString(),
+      );
+      executor = this.#pickExecutor(preview.fees.executors ?? []);
+      feeAuthorization = await createPermit2FeeAuthorization({
+        safeAddress,
+        signer,
+        amount: feeAmount,
+        spender: executor,
+        tokenAddress: protocol.collateral.feeAuthorizationToken,
+      });
+      permit2FeeReady = true;
+    }
+
+    let allowancesTx: { to: string; data: string } | undefined;
+    let permit2AllowanceReady = false;
+
+    try {
+      allowancesTx = await buildTradeAllowancesTx({
+        signer,
+        safeAddress,
+        protocol,
+      });
+      permit2AllowanceReady = true;
+    } catch (allowanceError) {
+      DevLogger.log(
+        'PolymarketProvider: Failed to generate v2 allowances transaction',
+        { error: allowanceError },
+      );
+      Logger.error(
+        allowanceError instanceof Error
+          ? allowanceError
+          : new Error(String(allowanceError)),
+        this.getErrorContext('placeOrder:v2AllowancesTx', {
+          operation: 'generate_allowances_tx_v2',
+        }),
+      );
+      throw new Error('Failed to prepare v2 trade preflight');
+    }
+
+    const orderType = this.#getPlaceOrderType({
+      preview,
+      feeCollection,
+      fakOrdersEnabled,
+      permit2FeeReady,
+      permit2AllowanceReady,
+    });
+
+    const clobOrder = serializeProtocolRelayerOrder({
+      signedOrder,
+      owner: signerApiKey.apiKey,
+      orderType,
+      side: preview.side,
+    });
+    const body = JSON.stringify(clobOrder);
+    const headers = await getL2Headers({
+      l2HeaderArgs: {
+        method: 'POST',
+        requestPath: `/order`,
+        body,
+      },
+      address: clobOrder.order.signer ?? '',
+      apiKey: signerApiKey,
+    });
+
+    const orderResult = await submitProtocolClobOrder({
+      protocol,
+      headers,
+      clobOrder,
+      feeAuthorization,
+      executor,
+      allowancesTx,
+    });
+
+    if (!orderResult.success) {
+      DevLogger.log('PolymarketProvider: Place order V2 failed', {
+        error: orderResult.error,
+        errorDetails: undefined,
+        side: preview.side,
+        outcomeTokenId: preview.outcomeTokenId,
+      });
+      this.#throwPlaceOrderError({
+        error: orderResult.error,
+        side: preview.side,
+      });
+    }
+
+    return orderResult.response;
+  }
+
   public async getMarketDetails({
     marketId,
   }: {
@@ -363,16 +767,22 @@ export class PolymarketProvider implements PredictProvider {
 
   private async getApiKey({
     address,
+    protocolKey,
   }: {
     address: string;
+    protocolKey: 'v1' | 'v2';
   }): Promise<ApiKeyCreds> {
-    const cachedApiKey = this.#apiKeysByAddress.get(address);
+    const cacheKey = `${protocolKey}:${address}`;
+    const cachedApiKey = this.#apiKeysByProtocolAddress.get(cacheKey);
     if (cachedApiKey) {
       return cachedApiKey;
     }
 
-    const apiKeyCreds = await createApiKey({ address });
-    this.#apiKeysByAddress.set(address, apiKeyCreds);
+    const apiKeyCreds = await createApiKey({
+      address,
+      clobVersion: protocolKey,
+    });
+    this.#apiKeysByProtocolAddress.set(cacheKey, apiKeyCreds);
     return apiKeyCreds;
   }
 
@@ -1245,12 +1655,20 @@ export class PolymarketProvider implements PredictProvider {
     },
   ): Promise<OrderPreview> {
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
-    const basePreview = await previewOrder({ ...params, feeCollection });
+    const protocol = this.#getProtocol();
+    const basePreview = await previewOrder({
+      ...params,
+      feeCollection,
+      isV2: protocol.key === 'v2',
+    });
+    const normalizedPreview = {
+      ...basePreview,
+      feeRateBps: getPreviewFeeRateBpsForProtocol({
+        protocol,
+        preview: basePreview,
+      }),
+    };
 
-    // Determine intended order type from feature flags.
-    // FAK is used when Permit2 config is active and FAK orders are enabled.
-    // placeOrder() guarantees the Permit2 allowance is set before submission,
-    // so we can always use FAK when the config allows it.
     let orderType = OrderType.FOK;
 
     if (
@@ -1263,35 +1681,22 @@ export class PolymarketProvider implements PredictProvider {
       orderType = OrderType.FAK;
     }
 
-    if (params.signer) {
-      if (this.isRateLimited(params.signer.address)) {
-        return {
-          ...basePreview,
-          orderType,
-          rateLimited: true,
-        };
-      }
+    if (params.signer && this.isRateLimited(params.signer.address)) {
+      return {
+        ...normalizedPreview,
+        orderType,
+        rateLimited: true,
+      };
     }
 
-    return { ...basePreview, orderType };
+    return { ...normalizedPreview, orderType };
   }
 
   public async placeOrder(
     params: PlaceOrderParams & { signer: Signer },
   ): Promise<OrderResult> {
     const { signer, preview } = params;
-    const {
-      outcomeTokenId,
-      side,
-      maxAmountSpent,
-      minAmountReceived,
-      negRisk,
-      feeRateBps,
-      fees,
-      slippage,
-      tickSize,
-      positionId,
-    } = preview;
+    const { outcomeTokenId, side, positionId } = preview;
 
     // Check existing position for both BUY and SELL to validate claimable status
     let existingPosition: PredictPosition | undefined;
@@ -1342,256 +1747,18 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const chainId = POLYGON_MAINNET_CHAIN_ID;
-
-      const makerAddress =
-        this.#accountStateByAddress.get(signer.address)?.address ??
-        computeProxyAddress(signer.address);
-
-      if (!makerAddress) {
-        throw new Error('Maker address not found');
-      }
-
-      /*
-       * Introduce slippage into minAmountReceived to reduce failure rate.
-       */
-      const roundConfig = ROUNDING_CONFIG[tickSize.toString() as TickSize];
-      const decimals = roundConfig.amount ?? 4;
-
-      let _minWithSlippage = minAmountReceived * (1 - slippage);
-      /*
-       * For BUY orders, the minAmountWithSlippage needs to be capped at
-       * maxAmountSpent + tickSize, otherwise, the order will fail due to
-       * sharePrice being >= 1 (which is impossible).
-       */
-      if (side === Side.BUY) {
-        _minWithSlippage = Math.max(
-          _minWithSlippage,
-          maxAmountSpent + tickSize,
-        );
-      }
-
-      const minAmountWithSlippage = roundOrderAmount({
-        amount: _minWithSlippage,
-        decimals,
-      });
-
-      const makerAmount = parseUnits(maxAmountSpent.toString(), 6).toString();
-      const takerAmount = parseUnits(
-        minAmountWithSlippage.toString(),
-        6,
-      ).toString();
-
-      /**
-       * Do NOT change the order below.
-       * This order needs to match the order on the relayer.
-       */
-      const order: OrderData & { salt: string } = {
-        salt: generateSalt(),
-        maker: makerAddress,
-        signer: signer.address,
-        taker: '0x0000000000000000000000000000000000000000',
-        tokenId: outcomeTokenId,
-        makerAmount,
-        takerAmount,
-        expiration: '0',
-        nonce: '0',
-        feeRateBps: feeRateBps ?? '0',
-        side: side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL,
-        signatureType: SignatureType.POLY_GNOSIS_SAFE,
-      };
-
-      const contractConfig = getContractConfig(chainId);
-
-      const exchangeContract = negRisk
-        ? contractConfig.negRiskExchange
-        : contractConfig.exchange;
-
-      const verifyingContract = exchangeContract;
-
-      const typedData = getOrderTypedData({
-        order,
-        chainId,
-        verifyingContract,
-      });
-
-      const signature = await signer.signTypedMessage(
-        { data: typedData, from: signer.address },
-        SignTypedDataVersion.V4,
-      );
-
-      const signedOrder = {
-        ...order,
-        signature,
-      };
-
-      const signerApiKey = await this.getApiKey({ address: signer.address });
-
-      // Determine fees, permit2, and order type BEFORE building clobOrder
-      // so the HMAC signature covers the correct orderType.
-      const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
-      const shouldUsePermit2 = this.#hasPermit2Config({
-        permit2Enabled: fees?.permit2Enabled,
-        executors: fees?.executors,
-      });
-
-      let feeAuthorization:
-        | SafeFeeAuthorization
-        | Permit2FeeAuthorization
-        | undefined;
-      let executor: string | undefined;
-      let orderType: OrderType = OrderType.FOK;
-      let permit2FeeReady = false;
-
-      if (fees !== undefined && fees.totalFee > 0) {
-        const safeAddress = computeProxyAddress(signer.address);
-        const feeAmountInUsdc = BigInt(
-          parseUnits(fees.totalFee.toString(), 6).toString(),
-        );
-
-        if (shouldUsePermit2) {
-          // Always use Permit2 fee authorization when permit2 is enabled.
-          // The relay will submit the allowancesTx on-chain first (if
-          // attached) before redeeming the Permit2 authorization.
-          permit2FeeReady = true;
-          const executors = fees.executors ?? [];
-          const randomIndex = new Uint32Array(1);
-          global.crypto.getRandomValues(randomIndex);
-          executor = executors[randomIndex[0] % executors.length];
-          feeAuthorization = await createPermit2FeeAuthorization({
-            safeAddress,
-            signer,
-            amount: feeAmountInUsdc,
-            spender: executor,
-          });
-        } else {
-          feeAuthorization = await createSafeFeeAuthorization({
-            safeAddress,
-            signer,
-            amount: feeAmountInUsdc,
-            to: fees.collector,
-          });
-        }
-      }
-
-      let allowancesTx: { to: string; data: string } | undefined;
-      let permit2AllowanceReady = false;
-
-      // When Permit2 is enabled via feature flags, ensure the proxy wallet
-      // has the required allowances. If not, generate a signed Safe TX that
-      // the relay will submit on-chain before processing the order.
-      // This uses the feature flag (not per-order fees) so it works for
-      // both BUY orders (with fees) and SELL orders (no fees).
-      //
-      // IMPORTANT: Skip when a Safe fee authorization was already signed,
-      // because both transactions read the same on-chain Safe nonce and
-      // the relay would invalidate one when executing the other.
-      const hasSafeFeeAuth = feeAuthorization !== undefined && !permit2FeeReady;
-
-      if (feeCollection.permit2Enabled && !hasSafeFeeAuth) {
-        try {
-          const accountState = await this.getAccountState({
-            ownerAddress: signer.address,
-          });
-
-          if (accountState.hasAllowances) {
-            permit2AllowanceReady = true;
-          } else {
-            const allowanceTx = await getProxyWalletAllowancesTransaction({
+      const protocol = this.#getProtocol();
+      const orderResponse =
+        protocol.key === 'v2'
+          ? await this.#submitOrderV2({
               signer,
-              extraUsdcSpenders: [PERMIT2_ADDRESS],
+              preview,
+              protocol,
+            })
+          : await this.#submitOrderV1({
+              signer,
+              preview,
             });
-
-            allowancesTx = allowanceTx.params;
-            permit2AllowanceReady = true;
-          }
-        } catch (allowanceError) {
-          // Log but don't block the order — the relay will fall back
-          // to FOK if FAK isn't viable without allowances.
-          DevLogger.log(
-            'PolymarketProvider: Failed to generate allowances transaction',
-            { error: allowanceError },
-          );
-          Logger.error(
-            allowanceError instanceof Error
-              ? allowanceError
-              : new Error(String(allowanceError)),
-            this.getErrorContext('placeOrder:allowancesTx', {
-              operation: 'generate_allowances_tx',
-            }),
-          );
-        }
-      }
-
-      // Determine order type: FAK when Permit2 config is active and
-      // FAK orders are enabled. For orders with fees, the relay also
-      // needs Permit2 allowances (either already on-chain or via
-      // the attached allowancesTx).
-      if (
-        this.#shouldUseFakOrderType({
-          permit2Enabled: feeCollection.permit2Enabled,
-          executors: feeCollection.executors,
-          fakOrdersEnabled,
-        })
-      ) {
-        const hasFees = fees !== undefined && fees.totalFee > 0;
-        if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
-          orderType = OrderType.FAK;
-        }
-      }
-
-      const clobOrder = {
-        order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
-        owner: signerApiKey.apiKey,
-        orderType,
-      };
-
-      const body = JSON.stringify(clobOrder);
-
-      const headers = await getL2Headers({
-        l2HeaderArgs: {
-          method: 'POST',
-          requestPath: `/order`,
-          body,
-        },
-        address: clobOrder.order.signer ?? '',
-        apiKey: signerApiKey,
-      });
-
-      const orderResult = await submitClobOrder({
-        headers,
-        clobOrder,
-        feeAuthorization,
-        executor,
-        allowancesTx,
-      });
-
-      if (!orderResult.success) {
-        DevLogger.log('PolymarketProvider: Place order failed', {
-          error: orderResult.error,
-          errorDetails: undefined,
-          side,
-          outcomeTokenId,
-        });
-        if (orderResult.error.includes(`order couldn't be fully filled`)) {
-          throw new Error(
-            side === Side.BUY
-              ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
-              : PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
-          );
-        }
-        if (
-          orderResult.error.includes(`not available in your region`) ||
-          orderResult.error.includes(`unable to access this provider`)
-        ) {
-          throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
-        }
-        throw new Error(
-          orderResult.error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
-        );
-      }
-
-      const { response: orderResponse } = orderResult;
 
       if (side === Side.BUY) {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
@@ -1977,11 +2144,26 @@ export class PolymarketProvider implements PredictProvider {
     if (!address) {
       throw new Error('address is required');
     }
-    const cachedAddress = this.#accountStateByAddress.get(address);
+
     const predictAddress =
-      cachedAddress?.address ?? computeProxyAddress(address);
-    const balance = await getBalance({ address: predictAddress });
-    return balance;
+      this.#accountStateByAddress.get(address)?.address ??
+      computeProxyAddress(address);
+    const protocol = this.#getProtocol();
+
+    if (protocol.key !== 'v2') {
+      return await getBalance({ address: predictAddress });
+    }
+
+    const balances = await Promise.all(
+      protocol.collateral.balanceTokens.map((tokenAddress) =>
+        getBalance({
+          address: predictAddress,
+          tokenAddress,
+        }),
+      ),
+    );
+
+    return balances.reduce((sum, balance) => sum + balance, 0);
   }
 
   public async prepareWithdraw(
