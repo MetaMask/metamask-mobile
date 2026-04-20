@@ -21,12 +21,16 @@ export type WalletHomeOnboardingHeroAccent =
 export interface WalletHomeOnboardingStepHeroEntry {
   image: ImageSourcePropType;
   heroAccent: WalletHomeOnboardingHeroAccent;
+  /** Tailwind background for the hero card (design-token `accent*.light` → `bg-accent0*-light`). */
+  heroBackgroundClassName: string;
   heroHeight?: number; // px
 }
 
 /**
- * Central map for step hero assets and backgrounds. To use a different image for step 3,
- * change only `notifications.image` (and optionally `heroAccent`).
+ * Central map for step hero assets and backgrounds.
+ * In app builds the checklist hero uses Rive (`onboard_checklist_v05.riv`) artboards
+ * `01_Add_Funds` / `02_First_Trade` / `03_Notifications` per step; these PNGs are the E2E
+ * fallback (and when `isE2E`). To change static fallbacks, edit `*.image` / `heroAccent`.
  */
 export const WALLET_HOME_ONBOARDING_STEP_HERO: Record<
   WalletHomeOnboardingStepHeroKind,
@@ -35,14 +39,17 @@ export const WALLET_HOME_ONBOARDING_STEP_HERO: Record<
   fund: {
     image: walletHomeOnboardingAddFundsImage,
     heroAccent: 'accent04',
+    heroBackgroundClassName: 'bg-accent04-light',
   },
   trade: {
     image: walletHomeOnboardingTradeHeroImage,
     heroAccent: 'accent03',
+    heroBackgroundClassName: 'bg-accent03-light',
   },
   notifications: {
     image: walletHomeOnboardingNotificationsHeroImage,
     heroHeight: 148, // px
     heroAccent: 'accent02',
+    heroBackgroundClassName: 'bg-accent02-light',
   },
 };
