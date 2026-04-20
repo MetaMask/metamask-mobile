@@ -20,11 +20,6 @@ const DEFAULT_TX_AMOUNT_LIMIT: TxAmountThreshold = 500;
  *                               // for traders whose id is included.
  * }
  * ```
- *
- * Keeping the shape aligned means swapping the in-session `useState`
- * backing for messenger reads/writes against the authenticated user
- * storage controller is a one-file change (this file) and does not
- * touch `NotificationPreferencesView` or the `TraderNotificationRow`.
  */
 export interface NotificationPreferences {
   /**
@@ -78,13 +73,12 @@ export const useNotificationPreferences = (
   // TODO: Read from `@metamask/authenticated-user-storage` (socialAI.enabled).
   const [enabled, setEnabled] = useState<boolean>(DEFAULT_ENABLED);
 
-  // TODO: Read from `@metamask/authenticated-user-storage` (socialAI.txAmountLimit).
+  // TODO: Here as well, same as above.
   const [txAmountLimit, setTxAmountLimit] = useState<TxAmountThreshold>(
     DEFAULT_TX_AMOUNT_LIMIT,
   );
 
-  // TODO: Read from `@metamask/authenticated-user-storage` (socialAI.traderProfileIds).
-  // Opt-in allow-list: a trader receives notifications iff their id is in here.
+  // TODO: Here as well, same as above.
   const [traderProfileIds, setTraderProfileIds] = useState<string[]>(() =>
     followedTraders.map((trader) => trader.id),
   );
