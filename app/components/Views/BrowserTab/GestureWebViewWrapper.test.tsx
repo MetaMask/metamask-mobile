@@ -123,6 +123,7 @@ jest.mock('../../../util/haptics', () => ({
   ImpactMoment: {
     SliderTick: 'sliderTick',
     TabChange: 'tabChange',
+    PullToRefreshEngage: 'pullToRefreshEngage',
     PullToRefresh: 'pullToRefresh',
     ChartCrosshair: 'chartCrosshair',
   },

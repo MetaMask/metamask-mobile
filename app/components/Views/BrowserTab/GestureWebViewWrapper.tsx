@@ -325,7 +325,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
 
             if (!pullHapticTriggered.value && event.translationY > 10) {
               pullHapticTriggered.value = true;
-              runOnJS(triggerHapticFeedback)(ImpactMoment.PullToRefresh);
+              runOnJS(triggerHapticFeedback)(ImpactMoment.PullToRefreshEngage);
             }
 
             pullProgress.value = Math.min(
