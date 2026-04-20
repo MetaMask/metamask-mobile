@@ -78,11 +78,10 @@ const CashTokensFullView = () => {
   }, []);
 
   const merklRefetchRef = useRef<(() => void) | null>(null);
-  const refetchMerklBonus = useCallback(() => merklRefetchRef.current?.(), []);
   const handleRefetchReady = useCallback((refetch: () => void) => {
     merklRefetchRef.current = refetch;
   }, []);
-  const { refreshing, onRefresh } = useCashTokensRefresh(refetchMerklBonus);
+  const { refreshing, onRefresh } = useCashTokensRefresh(merklRefetchRef);
 
   const { initiateMaxConversion, initiateCustomConversion } =
     useMusdConversion();

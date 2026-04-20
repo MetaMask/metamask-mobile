@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderHook, act } from '@testing-library/react-native';
 import { useCashTokensRefresh } from './useCashTokensRefresh';
 import Engine from '../../../core/Engine';
@@ -50,9 +51,12 @@ jest.mock('../../UI/Tokens/util/tokenRefreshUtils', () => {
 describe('useCashTokensRefresh', () => {
   const mockRefetchMerklBonus = jest.fn();
 
+  const createRef = (
+    value: (() => void) | null = null,
+  ): React.MutableRefObject<(() => void) | null> => ({ current: value });
+
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset the mock implementation to delegate to the real util by default.
     const actual = jest.requireActual('../../UI/Tokens/util/tokenRefreshUtils');
     (performEvmTokenRefresh as jest.Mock).mockImplementation(
       actual.performEvmTokenRefresh,
@@ -60,7 +64,8 @@ describe('useCashTokensRefresh', () => {
   });
 
   it('sets refreshing true during onRefresh and false after completion', async () => {
-    const { result } = renderHook(() => useCashTokensRefresh());
+    const ref = createRef();
+    const { result } = renderHook(() => useCashTokensRefresh(ref));
 
     expect(result.current.refreshing).toBe(false);
 
@@ -71,10 +76,9 @@ describe('useCashTokensRefresh', () => {
     expect(result.current.refreshing).toBe(false);
   });
 
-  it('invokes each registered refresher on onRefresh', async () => {
-    const { result } = renderHook(() =>
-      useCashTokensRefresh(mockRefetchMerklBonus),
-    );
+  it('invokes refetch from the ref on onRefresh', async () => {
+    const ref = createRef(mockRefetchMerklBonus);
+    const { result } = renderHook(() => useCashTokensRefresh(ref));
 
     await act(async () => {
       await result.current.onRefresh();
@@ -92,14 +96,29 @@ describe('useCashTokensRefresh', () => {
     expect(mockRefetchMerklBonus).toHaveBeenCalledTimes(1);
   });
 
-  it('does not fail when no refetchMerklBonus is provided', async () => {
-    const { result } = renderHook(() => useCashTokensRefresh());
+  it('does not fail when ref.current is null', async () => {
+    const ref = createRef(null);
+    const { result } = renderHook(() => useCashTokensRefresh(ref));
 
     await act(async () => {
       await result.current.onRefresh();
     });
 
     expect(result.current.refreshing).toBe(false);
+  });
+
+  it('reads from the ref at call time, not at hook creation time', async () => {
+    const ref = createRef(null);
+    const { result } = renderHook(() => useCashTokensRefresh(ref));
+
+    // Populate ref after hook creation (simulates onRefetchReady firing later)
+    ref.current = mockRefetchMerklBonus;
+
+    await act(async () => {
+      await result.current.onRefresh();
+    });
+
+    expect(mockRefetchMerklBonus).toHaveBeenCalledTimes(1);
   });
 
   it('flips refreshing back to false and logs when performEvmTokenRefresh rejects', async () => {
@@ -110,7 +129,8 @@ describe('useCashTokensRefresh', () => {
       .spyOn(Logger, 'error')
       .mockImplementation(() => undefined);
 
-    const { result } = renderHook(() => useCashTokensRefresh());
+    const ref = createRef();
+    const { result } = renderHook(() => useCashTokensRefresh(ref));
 
     await act(async () => {
       await result.current.onRefresh();

@@ -1,18 +1,19 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { performEvmTokenRefresh } from '../../UI/Tokens/util/tokenRefreshUtils';
 import Logger from '../../../util/Logger';
 
 /**
- * Refresh orchestrator for CashTokensFullView pull-to-refresh.
+ * Pull-to-refresh handler for CashTokensFullView.
  *
- * Refreshes EVM token data (balances, rates, detection) via performEvmTokenRefresh,
- * covering both useMusdBalance and useMusdConversionTokens derivations. Accepts an
- * optional Merkl bonus refetch callback so callers can reuse an existing
- * useMerklBonusClaim instance instead of spinning up a second one.
+ * Reads the Merkl refetch from a ref at invocation time to avoid stale
+ * closures — the caller populates the ref via onRefetchReady from
+ * AssetOverviewClaimBonus.
  */
-export const useCashTokensRefresh = (refetchMerklBonus?: () => void) => {
+export const useCashTokensRefresh = (
+  refetchMerklBonusRef: React.MutableRefObject<(() => void) | null>,
+) => {
   const [refreshing, setRefreshing] = useState(false);
   const evmNetworkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -21,14 +22,16 @@ export const useCashTokensRefresh = (refetchMerklBonus?: () => void) => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      refetchMerklBonus?.();
+      // Fire Merkl refetch first (non-blocking, lightweight single API call).
+      // Read from ref to avoid closing over a potentially stale callback.
+      refetchMerklBonusRef.current?.();
       await performEvmTokenRefresh(evmNetworkConfigurationsByChainId);
     } catch (error) {
       Logger.error(error as Error, 'useCashTokensRefresh: refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [evmNetworkConfigurationsByChainId, refetchMerklBonus]);
+  }, [evmNetworkConfigurationsByChainId, refetchMerklBonusRef]);
 
   return { refreshing, onRefresh };
 };
