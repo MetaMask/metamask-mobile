@@ -4,12 +4,25 @@ import SimpleWebview from './';
 import { useNavigation } from '@react-navigation/native';
 import Share from 'react-native-share';
 import Logger from '../../../util/Logger';
+import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import Device from '../../../util/device';
 
-const mockHeaderCompactStandard = jest.fn((_props: unknown) => null);
 jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard',
-  () => (props: unknown) => mockHeaderCompactStandard(props),
+  '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      header: () => null,
+    })),
+  }),
 );
+
+jest.mock('../../../util/device', () => ({
+  __esModule: true,
+  default: {
+    isAndroid: jest.fn(() => false),
+  },
+}));
 
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
@@ -17,8 +30,10 @@ jest.mock('../../../util/theme', () => ({
   }),
 }));
 
+const mockSetOptions = jest.fn();
 const mockNavigation = {
   goBack: jest.fn(),
+  setOptions: mockSetOptions,
 };
 
 jest.mock('@react-navigation/native', () => ({
@@ -31,18 +46,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-native-share', () => ({
   open: jest.fn(() => Promise.resolve()),
 }));
-
-interface HeaderMockProps {
-  onBack: () => void;
-  endButtonIconProps: { onPress: () => void }[];
-}
-
-function getHeaderPropsFromFirstCall(): HeaderMockProps {
-  expect(mockHeaderCompactStandard).toHaveBeenCalled();
-  const firstCall = mockHeaderCompactStandard.mock.calls[0];
-  expect(firstCall).toBeDefined();
-  return firstCall[0] as HeaderMockProps;
-}
 
 describe('SimpleWebview', () => {
   beforeEach(() => {
@@ -57,33 +60,58 @@ describe('SimpleWebview', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders HeaderCompactStandard with correct props', () => {
+  it('sets header options with reviewer styling and Device.isAndroid() for includesTopInset', () => {
     render(<SimpleWebview />);
 
-    expect(mockHeaderCompactStandard).toHaveBeenCalledWith(
+    expect(getHeaderCompactStandardNavbarOptions).toHaveBeenCalledWith(
       expect.objectContaining({
         title: '',
+        includesTopInset: false,
+        twClassName: 'bg-default rounded-t-2xl',
         onBack: expect.any(Function),
         endButtonIconProps: expect.arrayContaining([
           expect.objectContaining({ onPress: expect.any(Function) }),
         ]),
       }),
     );
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerStyle: expect.objectContaining({
+          backgroundColor: expect.any(String),
+        }),
+      }),
+    );
   });
 
-  it('calls navigation.goBack when back button is pressed', () => {
+  it('passes includesTopInset true when Device.isAndroid() is true', () => {
+    jest.mocked(Device.isAndroid).mockReturnValueOnce(true);
     render(<SimpleWebview />);
 
-    const { onBack } = getHeaderPropsFromFirstCall();
+    expect(getHeaderCompactStandardNavbarOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        includesTopInset: true,
+      }),
+    );
+  });
+
+  it('calls navigation.goBack when header onBack is invoked', () => {
+    render(<SimpleWebview />);
+
+    const { onBack } = (getHeaderCompactStandardNavbarOptions as jest.Mock).mock
+      .calls[0][0] as { onBack: () => void };
     onBack();
 
     expect(mockNavigation.goBack).toHaveBeenCalled();
   });
 
-  it('calls Share.open when share button is pressed', () => {
+  it('calls Share.open when share button onPress is invoked', () => {
     render(<SimpleWebview />);
 
-    const { endButtonIconProps } = getHeaderPropsFromFirstCall();
+    const { endButtonIconProps } = (
+      getHeaderCompactStandardNavbarOptions as jest.Mock
+    ).mock.calls[0][0] as {
+      endButtonIconProps: { onPress: () => void }[];
+    };
     endButtonIconProps[0].onPress();
 
     expect(Share.open).toHaveBeenCalledWith({ url: 'https://etherscan.io' });
@@ -95,7 +123,11 @@ describe('SimpleWebview', () => {
 
     render(<SimpleWebview />);
 
-    const { endButtonIconProps } = getHeaderPropsFromFirstCall();
+    const { endButtonIconProps } = (
+      getHeaderCompactStandardNavbarOptions as jest.Mock
+    ).mock.calls[0][0] as {
+      endButtonIconProps: { onPress: () => void }[];
+    };
     endButtonIconProps[0].onPress();
 
     await waitFor(() => {

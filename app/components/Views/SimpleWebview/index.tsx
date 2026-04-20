@@ -1,20 +1,14 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import React, { useCallback } from 'react';
-import { Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useEffect } from 'react';
 import { WebView } from '@metamask/react-native-webview';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard';
+import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { IconName } from '@metamask/design-system-react-native';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
+import Device from '../../../util/device';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-
-const SAFE_AREA_EDGES =
-  Platform.OS === 'android'
-    ? (['top', 'bottom'] as const)
-    : (['bottom'] as const);
 
 // TODO: This will be replaced with the actual route params type once navigation is refactored
 type RouteParams = {
@@ -40,22 +34,22 @@ const SimpleWebView = () => {
     }
   }, [url]);
 
-  return (
-    <SafeAreaView
-      edges={SAFE_AREA_EDGES}
-      style={[
-        baseStyles.flexGrow,
-        { backgroundColor: colors.background.default },
-      ]}
-    >
-      <HeaderCompactStandard
-        title={title}
-        onBack={() => navigation.goBack()}
-        endButtonIconProps={[{ iconName: IconName.Share, onPress: share }]}
-      />
-      <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />
-    </SafeAreaView>
-  );
+  useEffect(() => {
+    navigation.setOptions({
+      ...getHeaderCompactStandardNavbarOptions({
+        title,
+        onBack: () => navigation.goBack(),
+        includesTopInset: Device.isAndroid(),
+        twClassName: 'bg-default rounded-t-2xl',
+        endButtonIconProps: [{ iconName: IconName.Share, onPress: share }],
+      }),
+      headerStyle: {
+        backgroundColor: colors.background.default,
+      },
+    });
+  }, [colors.background.default, navigation, share, title]);
+
+  return <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />;
 };
 
 export default SimpleWebView;

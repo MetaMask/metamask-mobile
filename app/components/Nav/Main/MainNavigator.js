@@ -869,7 +869,7 @@ const Webview = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
