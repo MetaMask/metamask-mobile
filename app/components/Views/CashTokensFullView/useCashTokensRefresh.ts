@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { performEvmTokenRefresh } from '../../UI/Tokens/util/tokenRefreshUtils';
