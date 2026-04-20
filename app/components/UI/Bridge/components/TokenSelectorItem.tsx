@@ -409,24 +409,24 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                       style={styles.verifiedIcon}
                     />
                   )}
+                  {securityTag && (
+                    <TagBase
+                      shape={TagShape.Pill}
+                      severity={securityTag.severity}
+                      startAccessory={
+                        <Icon
+                          name={securityTag.iconName}
+                          size={IconSize.Sm}
+                          color={securityTag.iconColor}
+                        />
+                      }
+                      textProps={{ variant: TextVariant.BodySM }}
+                      style={styles.verifiedIcon}
+                    >
+                      {securityTag.label}
+                    </TagBase>
+                  )}
                 </Box>
-                {securityTag && (
-                  <TagBase
-                    shape={TagShape.Pill}
-                    severity={securityTag.severity}
-                    startAccessory={
-                      <Icon
-                        name={securityTag.iconName}
-                        size={IconSize.Sm}
-                        color={securityTag.iconColor}
-                      />
-                    }
-                    textProps={{ variant: TextVariant.BodySM }}
-                    style={styles.noFeeBadge}
-                  >
-                    {securityTag.label}
-                  </TagBase>
-                )}
                 {label && <Tag label={label} />}
                 {showNoFeeBadge && (
                   <TagBase
