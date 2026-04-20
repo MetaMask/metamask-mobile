@@ -3635,8 +3635,6 @@ function initChart() {
           'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
           'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
           'mainSeriesProperties.showPriceLine': !initCustomDashed,
-          'paneProperties.topMargin': 12,
-          'paneProperties.bottomMargin': 8,
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
           'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
