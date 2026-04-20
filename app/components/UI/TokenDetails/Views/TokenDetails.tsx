@@ -194,13 +194,7 @@ const TokenDetails: React.FC<{
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
-  const {
-    onBuy,
-    onSend,
-    onReceive,
-    handleStickySwapPress,
-    hasEligibleSwapTokens,
-  } = useTokenActions({
+  const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
     currentTokenBalance: balance,
@@ -314,9 +308,8 @@ const TokenDetails: React.FC<{
           token={token}
           securityData={securityData}
           balanceFiatUsd={balanceFiatUsd}
-          onBuy={onBuy}
-          onSwap={handleStickySwapPress}
-          hasEligibleSwapTokens={hasEligibleSwapTokens}
+          networkName={networkName}
+          currentTokenBalance={balance}
           onStickyButtonsResolved={onStickyButtonsResolved}
         />
       )}

@@ -40,7 +40,6 @@ import {
 } from '../utils/securityUtils';
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import { useTokenActions } from '../../TokenDetails/hooks/useTokenActions';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
@@ -80,13 +79,6 @@ const SecurityTrustScreen: React.FC = () => {
       nonEvmNetworkConfigurations,
     });
   }, [params?.chainId, evmNetworkConfigurations, nonEvmNetworkConfigurations]);
-
-  // Get action handlers from hook (single source of truth)
-  const { onBuy, handleStickySwapPress, hasEligibleSwapTokens, networkModal } =
-    useTokenActions({
-      token: params,
-      networkName,
-    });
 
   const fees = securityData?.fees ?? null;
   const features = securityData?.features ?? [];
@@ -158,7 +150,6 @@ const SecurityTrustScreen: React.FC = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')} testID="security-trust-screen">
-      {networkModal}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -640,9 +631,7 @@ const SecurityTrustScreen: React.FC = () => {
       <TokenDetailsStickyFooter
         token={params}
         securityData={securityData}
-        onBuy={onBuy}
-        onSwap={handleStickySwapPress}
-        hasEligibleSwapTokens={hasEligibleSwapTokens}
+        networkName={networkName}
       />
     </View>
   );

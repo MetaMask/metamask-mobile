@@ -30,6 +30,7 @@ import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions'
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
+import { useTokenActions } from '../hooks/useTokenActions';
 
 const styles = StyleSheet.create({
   footer: {
@@ -57,28 +58,41 @@ const SECONDARY_ICON_PROPS = {
 
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
-  securityData: TokenSecurityData | null | undefined;
+  securityData?: TokenSecurityData | null | undefined;
   /** Token balance in USD, currency-agnostic. Used to determine which button gets the success style. */
   balanceFiatUsd?: number | undefined;
-  /** Action handlers from parent's useTokenActions hook */
-  onBuy: () => void;
-  onSwap: () => void;
-  hasEligibleSwapTokens: boolean;
+  /** Network name passed through to useTokenActions */
+  networkName?: string;
+  /** Up-to-date token balance for useTokenActions swap logic */
+  currentTokenBalance?: string;
   onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
+  /** When true the footer omits its built-in safe-area bottom inset so the parent can manage spacing. */
+  skipBottomInset?: boolean;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   token,
   securityData,
   balanceFiatUsd,
-  onBuy,
-  onSwap,
-  hasEligibleSwapTokens,
+  networkName,
+  currentTokenBalance,
   onStickyButtonsResolved,
+  skipBottomInset = false,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+
+  const {
+    onBuy,
+    handleStickySwapPress: onSwap,
+    hasEligibleSwapTokens,
+    networkModal,
+  } = useTokenActions({
+    token,
+    networkName,
+    currentTokenBalance,
+  });
 
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
@@ -209,9 +223,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: insets.bottom + 6,
+      paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
     }),
-    [colors.background.default, insets.bottom],
+    [colors.background.default, insets.bottom, skipBottomInset],
   );
 
   if (!tradingOpen) return null;
@@ -281,6 +295,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         )}
       </View>
       <RwaUnavailableBottomSheet ref={rwaUnavailableSheetRef} />
+      {networkModal}
     </>
   );
 };
