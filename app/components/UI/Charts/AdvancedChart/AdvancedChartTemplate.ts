@@ -1,4 +1,5 @@
 import type { Theme } from '../../../../util/theme/models';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
   type LineChromeOptions,
   resolveLineChromeOptions,
@@ -43,12 +44,9 @@ const CHARTING_LIBRARY_ORIGIN = (() => {
 const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const LIGHT_MODE_CHART_GREEN = '#00881A';
-
 const getChartSuccessColor = (theme: Theme): string =>
   theme.themeAppearance === 'light'
-    ? LIGHT_MODE_CHART_GREEN
+    ? LIGHT_MODE_SUCCESS_GREEN
     : theme.colors.success.default;
 
 interface ChartFeatures {

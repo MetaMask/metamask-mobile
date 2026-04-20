@@ -21,7 +21,7 @@ import { AreaChart } from 'react-native-svg-charts';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useStyles } from '../../../../component-library/hooks';
-import { useTheme } from '../../../../util/theme';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -33,9 +33,6 @@ import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import { Box } from '@metamask/design-system-react-native';
-
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const LIGHT_MODE_CHART_GREEN = '#00881A';
 
 interface LineProps {
   line: string;
@@ -80,7 +77,7 @@ const PriceChart = ({
   const { themeAppearance } = useTheme();
   const chartColor =
     themeAppearance === 'light'
-      ? LIGHT_MODE_CHART_GREEN
+      ? LIGHT_MODE_SUCCESS_GREEN
       : theme.colors.success.default;
 
   useEffect(() => {

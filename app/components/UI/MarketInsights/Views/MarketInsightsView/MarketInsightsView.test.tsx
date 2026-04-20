@@ -234,10 +234,28 @@ jest.mock('../../../Perps/hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../../../TokenDetails/components/TokenDetailsStickyFooter', () => {
-  const { View: MockView } = jest.requireActual('react-native');
+  const { View: MockView, Pressable: MockPressable } =
+    jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <MockView testID="token-details-sticky-footer" />,
+    default: ({
+      onSwapPress,
+      onBuyPress,
+      swapTestID,
+      buyTestID,
+    }: {
+      onSwapPress?: () => void;
+      onBuyPress?: () => void;
+      swapTestID?: string;
+      buyTestID?: string;
+    }) => (
+      <MockView testID="token-details-sticky-footer">
+        {swapTestID && (
+          <MockPressable testID={swapTestID} onPress={onSwapPress} />
+        )}
+        {buyTestID && <MockPressable testID={buyTestID} onPress={onBuyPress} />}
+      </MockView>
+    ),
   };
 });
 
@@ -465,6 +483,9 @@ describe('MarketInsightsView', () => {
 
     expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
 
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SWAP_BUTTON));
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.BUY_BUTTON));
+
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`));
     expect(
       getByTestId('market-insights-trend-sources-bottom-sheet'),
@@ -521,6 +542,28 @@ describe('MarketInsightsView', () => {
           asset_symbol: 'eth',
           interaction_type: 'source_click',
           source: 'https://www.coindesk.com/article',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x123',
+          asset_symbol: 'eth',
+          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
+          interaction_type: 'swap',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x123',
+          asset_symbol: 'eth',
+          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
+          interaction_type: 'buy',
         }),
       }),
     );

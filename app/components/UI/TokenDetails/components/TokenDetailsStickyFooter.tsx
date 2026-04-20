@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -48,9 +48,6 @@ const styles = StyleSheet.create({
 
 const BALANCE_THRESHOLD_USD = 100;
 
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const LIGHT_MODE_GREEN = '#00881A';
-
 const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
 const PRIMARY_ICON_PROPS = { size: IconSize.Md } as const;
 
@@ -70,6 +67,10 @@ interface TokenStickyFooterProps {
   swapTestID?: string;
   /** Optional testID for the buy button (used by E2E tests in different screens) */
   buyTestID?: string;
+  /** Optional callback fired when the swap button is pressed (for additional tracking by the parent). */
+  onSwapPress?: () => void;
+  /** Optional callback fired when the buy button is pressed (for additional tracking by the parent). */
+  onBuyPress?: () => void;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -82,6 +83,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   skipBottomInset = false,
   swapTestID,
   buyTestID,
+  onSwapPress,
+  onBuyPress,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -89,13 +92,13 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const isLightMode = themeAppearance === 'light';
 
   const successBg = isLightMode
-    ? `bg-[${LIGHT_MODE_GREEN}]`
+    ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
     : 'bg-success-default';
   const successBorder = isLightMode
-    ? `border-[${LIGHT_MODE_GREEN}]`
+    ? `border-[${LIGHT_MODE_SUCCESS_GREEN}]`
     : 'border-success-default';
   const successText = isLightMode
-    ? `text-[${LIGHT_MODE_GREEN}]`
+    ? `text-[${LIGHT_MODE_SUCCESS_GREEN}]`
     : 'text-success-default';
 
   const secondaryTextProps = useMemo(
@@ -274,6 +277,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
             }
             onPress={() => {
+              onSwapPress?.();
               trackStickyFooterTapped({
                 ctaType: 'swap',
                 balanceFiatUsd,
@@ -302,6 +306,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
             }
             onPress={() => {
+              onBuyPress?.();
               trackStickyFooterTapped({
                 ctaType: 'buy',
                 balanceFiatUsd,

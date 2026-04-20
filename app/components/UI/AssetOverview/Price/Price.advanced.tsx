@@ -44,7 +44,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../util/theme';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
@@ -57,8 +57,6 @@ import type {
 import PriceLegacy from './Price.legacy';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const LIGHT_MODE_GREEN = '#00881A';
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -364,7 +362,7 @@ const PriceAdvanced = ({
               }
               style={
                 isLightMode && displayDiff > 0
-                  ? { color: LIGHT_MODE_GREEN }
+                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
                   : undefined
               }
               allowFontScaling={false}

@@ -17,16 +17,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../util/theme';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import ChartNavigationButton from '../ChartNavigationButton';
-
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const LIGHT_MODE_GREEN = '#00881A';
 
 export interface PriceLegacyProps {
   prices: TokenPrice[];
@@ -153,7 +150,7 @@ const PriceLegacy = ({
               }
               style={
                 isLightMode && displayDiff > 0
-                  ? { color: LIGHT_MODE_GREEN }
+                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
                   : undefined
               }
               allowFontScaling={false}

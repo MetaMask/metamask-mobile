@@ -343,6 +343,32 @@ const MarketInsightsView: React.FC = () => {
     ],
   );
 
+  const handleStickySwapPress = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+        interaction_type: 'swap',
+      })
+      .build();
+    trackEvent(event);
+  }, [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty]);
+
+  const handleStickyBuyPress = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+        interaction_type: 'buy',
+      })
+      .build();
+    trackEvent(event);
+  }, [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty]);
+
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
     const hasTweets = (trend.tweets?.length ?? 0) > 0;
@@ -759,6 +785,8 @@ const MarketInsightsView: React.FC = () => {
               skipBottomInset
               swapTestID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
               buyTestID={MarketInsightsSelectorsIDs.BUY_BUTTON}
+              onSwapPress={handleStickySwapPress}
+              onBuyPress={handleStickyBuyPress}
             />
             <Box alignItems={BoxAlignItems.Center}>
               <Text
