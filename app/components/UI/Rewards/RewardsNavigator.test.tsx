@@ -17,9 +17,6 @@ jest.mock('../../../core/Engine', () => ({
 
 // Mock dependencies
 jest.mock('./hooks/useOptIn');
-jest.mock('./hooks/useSeasonStatus', () => ({
-  useSeasonStatus: jest.fn(),
-}));
 
 jest.mock('./OnboardingNavigator', () => {
   const ReactActual = jest.requireActual('react');
@@ -250,6 +247,10 @@ jest.mock('./hooks/useReferralDetails', () => ({
   useReferralDetails: jest.fn().mockReturnValue({
     fetchReferralDetails: jest.fn(),
   }),
+}));
+
+jest.mock('./hooks/useMaybeShowCampaignEndToast', () => ({
+  useMaybeShowCampaignEndToast: jest.fn(),
 }));
 
 // Mock useRewardsVersionGuard hook

@@ -218,6 +218,53 @@ describe('useRewardsToast', () => {
       });
     });
 
+    it('returns campaignWon configuration with link, trophy accessory, and no timeout', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const onLinkPress = jest.fn();
+      const config = result.current.RewardsToastOptions.campaignWon(
+        'You won',
+        'Claim now',
+        'View',
+        onLinkPress,
+      );
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Icon,
+        hasNoTimeout: true,
+        hapticsType: NotificationFeedbackType.Success,
+      });
+      expect(config.descriptionOptions).toEqual({ description: 'Claim now' });
+      expect(config.startAccessory).toBeDefined();
+      expect(config.linkButtonOptions).toMatchObject({ label: 'View' });
+      expect(config.closeButtonOptions).toBeUndefined();
+      config.linkButtonOptions?.onPress();
+      expect(onLinkPress).toHaveBeenCalledTimes(1);
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns campaignEnded configuration with link and no timeout', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const onLinkPress = jest.fn();
+      const config = result.current.RewardsToastOptions.campaignEnded(
+        'Campaign ended',
+        'Thanks for playing',
+        'View',
+        onLinkPress,
+      );
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Info,
+        hasNoTimeout: true,
+        hapticsType: NotificationFeedbackType.Warning,
+      });
+      expect(config.linkButtonOptions).toMatchObject({ label: 'View' });
+      expect(config.closeButtonOptions).toBeUndefined();
+      config.linkButtonOptions?.onPress();
+      expect(onLinkPress).toHaveBeenCalledTimes(1);
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    });
+
     it('calls closeToast when close button is pressed', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('Test Title');

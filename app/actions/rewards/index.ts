@@ -12,6 +12,7 @@ export {
   setGeoRewardsMetadataLoading,
   setActiveBoosts,
   setActiveBoostsLoading,
+  markCampaignEndToastShown,
 } from '../../reducers/rewards';
 
 export type { RewardsState } from '../../reducers/rewards';

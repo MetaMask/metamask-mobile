@@ -173,6 +173,12 @@ export const selectCampaignsError = (state: RootState) =>
 export const selectCampaignsHasLoaded = (state: RootState) =>
   state.rewards.campaignsHasLoaded;
 
+export const selectHasShownCampaignEndToast =
+  (campaignId: string | undefined) => (state: RootState) =>
+    Boolean(
+      campaignId && state.rewards.campaignEndToastShownByCampaignId[campaignId],
+    );
+
 // Campaign participant status selectors
 export const selectCampaignParticipantStatuses = (state: RootState) =>
   state.rewards.campaignParticipantStatuses;
