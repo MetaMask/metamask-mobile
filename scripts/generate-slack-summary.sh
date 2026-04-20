@@ -20,7 +20,9 @@ if [ -f "$SUMMARY_FILE" ]; then
     totalTests=$(jq -r '.uniqueTests // .totalTests // 0' "$SUMMARY_FILE")
 
     # Get failed tests statistics
+    # uniqueFailedTests counts each test name once regardless of how many platforms failed
     totalFailedTests=$(jq -r '.failedTestsStats.totalFailedTests // 0' "$SUMMARY_FILE")
+    uniqueFailedTests=$(jq -r '.failedTestsStats.uniqueFailedTests // .failedTestsStats.totalFailedTests // 0' "$SUMMARY_FILE")
     teamsAffected=$(jq -r '.failedTestsStats.teamsAffected // 0' "$SUMMARY_FILE")
     
     # Determine test results status by checking job statuses via GitHub API
@@ -103,8 +105,8 @@ if [ -f "$SUMMARY_FILE" ]; then
 
     # Executive Summary
     SUMMARY+="*📊 SUMMARY*\n"
-    if [ "$totalFailedTests" -gt 0 ]; then
-        SUMMARY+="├─ 🚫 Status: FAILED (${totalFailedTests} errors)\n"
+    if [ "$uniqueFailedTests" -gt 0 ]; then
+        SUMMARY+="├─ 🚫 Status: FAILED (${uniqueFailedTests} errors)\n"
     else
         SUMMARY+="├─ ✅ Status: PASSED\n"
     fi
@@ -168,8 +170,8 @@ if [ -f "$SUMMARY_FILE" ]; then
     SUMMARY+="└─ Imported Wallet: ${iosImportedWalletStatus} iOS · ${androidImportedWalletStatus} Android\n\n"
 
     # Failed Tests Section
-    if [ "$totalFailedTests" -gt 0 ]; then
-        SUMMARY+="*❌ FAILED TESTS (${totalFailedTests})*\n"
+    if [ "$uniqueFailedTests" -gt 0 ]; then
+        SUMMARY+="*❌ FAILED TESTS (${uniqueFailedTests})*\n"
 
         iosFailedCount=$(jq -r '.metadata.failedTestsByPlatform.ios // 0' "$SUMMARY_FILE")
         androidFailedCount=$(jq -r '.metadata.failedTestsByPlatform.android // 0' "$SUMMARY_FILE")

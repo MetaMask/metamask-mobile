@@ -410,6 +410,8 @@ function createSummary(groupedResults) {
   let totalFailedTests = 0;
   const failedTestsByPlatform = { android: 0, ios: 0 };
   
+  const uniqueFailedTestNames = new Set();
+
   Object.values(testExecutions).forEach(execution => {
     // If test passed at least once, it's considered passed (successful retry)
     if (execution.hasPassed) {
@@ -419,6 +421,7 @@ function createSummary(groupedResults) {
     // Test failed all executions - count as 1 failure
     if (execution.hasFailed) {
       totalFailedTests++;
+      uniqueFailedTestNames.add(execution.testInfo.testName);
       
       const { testInfo } = execution;
       const platformKey = testInfo.platform.toLowerCase();
@@ -507,6 +510,7 @@ function createSummary(groupedResults) {
     // Only includes tests that failed ALL retries (if a retry passed, test is not counted as failed)
     failedTestsStats: {
       totalFailedTests,
+      uniqueFailedTests: uniqueFailedTestNames.size,
       teamsAffected: Object.keys(failedTestsByTeam).length,
       failedTestsByTeam
     },
