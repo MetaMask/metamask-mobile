@@ -667,12 +667,12 @@ describe('OAuthRehydration', () => {
       expect(mockPromptSeedlessRelogin).not.toHaveBeenCalled();
     });
 
-    it('shows unrecognized recovery errors instead of prompting relogin in non-oauth flows', async () => {
+    it('prompts seedless relogin for unrecognized recovery errors in non-oauth flows', async () => {
       mockRoute.mockReturnValue({
         params: { locked: true, oauthLoginSuccess: false },
       });
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        'Unexpected recovery failure',
+        'SeedlessOnboardingController - Unexpected recovery failure',
       );
       mockUnlockWallet.mockRejectedValue(seedlessError);
 
@@ -680,10 +680,8 @@ describe('OAuthRehydration', () => {
       await enterPasswordAndSubmit(getByTestId, 'password123');
 
       await waitFor(() => {
-        const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-        expect(errorElement.props.children).toBe('Unexpected recovery failure');
+        expect(mockPromptSeedlessRelogin).toHaveBeenCalled();
       });
-      expect(mockPromptSeedlessRelogin).not.toHaveBeenCalled();
     });
 
     it('captures Sentry exception for non-oauth seedless failure when metrics enabled', async () => {
@@ -1048,7 +1046,9 @@ describe('OAuthRehydration', () => {
 
       await waitFor(() => {
         expect(mockCaptureException).not.toHaveBeenCalled();
-        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).toBeOnTheScreen();
       });
     });
   });
