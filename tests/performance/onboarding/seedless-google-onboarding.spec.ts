@@ -83,6 +83,7 @@ test.describe(PerformanceOnboarding, () => {
       });
 
       await OnboardingSheet.tapGoogleLoginButton();
+      await SocialLoginView.dismissUpdateModalIfPresent();
 
       let isNewUser = true;
 
