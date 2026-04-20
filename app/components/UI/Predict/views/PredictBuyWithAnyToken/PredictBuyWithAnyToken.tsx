@@ -32,6 +32,7 @@ import PredictKeypad, {
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictPayWithAnyTokenInfo from './components/PredictPayWithAnyTokenInfo';
 import { PredictPayWithRow } from './components/PredictPayWithRow';
+import PredictQuickAmounts from './components/PredictQuickAmounts';
 import { usePredictBuyAvailableBalance } from './hooks/usePredictBuyAvailableBalance';
 import { usePredictBuyConditions } from './hooks/usePredictBuyConditions';
 import { usePredictBuyInfo } from './hooks/usePredictBuyInfo';
@@ -46,20 +47,27 @@ import {
   selectPredictWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
 import { Side } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictBuyPreviewProps,
+  PredictNavigationParamList,
+} from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 
-const PredictBuyWithAnyToken = () => {
+const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken, entryPoint } = route.params;
+  const isSheetMode = props.mode === 'sheet';
+  const { market, outcome, outcomeToken, entryPoint } = isSheetMode
+    ? props
+    : route.params;
+  const onClose = isSheetMode ? props.onClose : undefined;
 
   const { isPlacingOrder } = usePredictActiveOrder();
 
@@ -100,6 +108,15 @@ const PredictBuyWithAnyToken = () => {
     setIsConfirming,
   } = usePredictBuyInputState();
 
+  const handleQuickAmount = useCallback(
+    (amount: number) => {
+      setCurrentValue(amount);
+      setCurrentValueUSDString(amount.toString());
+      setIsInputFocused(false);
+    },
+    [setCurrentValue, setCurrentValueUSDString, setIsInputFocused],
+  );
+
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
   }, []);
@@ -129,6 +146,8 @@ const PredictBuyWithAnyToken = () => {
     depositFee,
     rewardsFeeAmount,
     totalPayForPredictBalance,
+    hasBlockingPayAlerts,
+    blockingPayAlertMessage,
   } = usePredictBuyInfo({
     currentValue,
     preview,
@@ -153,6 +172,7 @@ const PredictBuyWithAnyToken = () => {
     isConfirming,
     totalPayForPredictBalance,
     isInputFocused,
+    hasBlockingPayAlerts,
   });
 
   const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
@@ -165,12 +185,15 @@ const PredictBuyWithAnyToken = () => {
       maxBetAmount,
       isConfirming,
       isPayFeesLoading,
+      blockingPayAlertMessage,
     });
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({
     analyticsProperties,
     preview,
     setIsConfirming,
+    isSheetMode,
+    onClose,
   });
 
   useEffect(() => {
@@ -203,24 +226,26 @@ const PredictBuyWithAnyToken = () => {
     },
   });
 
+  const Wrapper = isSheetMode ? Box : SafeAreaView;
+  const wrapperProps = isSheetMode
+    ? { twClassName: 'bg-background-default' }
+    : { style: tw.style('flex-1 bg-background-default') };
+
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
-      <PredictBuyPreviewHeader
-        market={market}
-        outcome={outcome}
-        outcomeToken={outcomeToken}
-        preview={preview}
-      />
-      <ScrollView
-        style={tw.style('flex-col')}
-        contentContainerStyle={tw.style('flex-grow justify-center')}
-        showsVerticalScrollIndicator={false}
-      >
+    <Wrapper {...wrapperProps}>
+      {!isSheetMode && (
+        <PredictBuyPreviewHeader
+          market={market}
+          outcome={outcome}
+          outcomeToken={outcomeToken}
+          preview={preview}
+        />
+      )}
+      {isSheetMode ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="w-full"
+          twClassName="w-full py-4"
         >
           <PredictBuyAmountSection
             currentValueUSDString={currentValueUSDString}
@@ -232,25 +257,70 @@ const PredictBuyWithAnyToken = () => {
             toWin={toWin}
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
             isPlacingOrder={isPlacingOrder}
+            hideAvailableBalance={isSheetMode}
           />
-          {payWithAnyTokenEnabled && (
-            <PredictPayWithRow disabled={isPlacingOrder} />
-          )}
         </Box>
-      </ScrollView>
+      ) : (
+        <ScrollView
+          style={tw.style('flex-col')}
+          contentContainerStyle={tw.style('flex-grow justify-center')}
+          showsVerticalScrollIndicator={false}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="w-full"
+          >
+            <PredictBuyAmountSection
+              currentValueUSDString={currentValueUSDString}
+              keypadRef={keypadRef}
+              isInputFocused={isInputFocused}
+              isBalanceLoading={isBalanceLoading}
+              isBalancePulsing={isBalancePulsing}
+              availableBalanceDisplay={availableBalanceDisplay}
+              toWin={toWin}
+              isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
+              isPlacingOrder={isPlacingOrder}
+              hideAvailableBalance={false}
+            />
+            {payWithAnyTokenEnabled && (
+              <PredictPayWithRow disabled={isPlacingOrder} />
+            )}
+          </Box>
+        </ScrollView>
+      )}
       <PredictBuyError errorMessage={errorMessage} />
-      <PredictKeypad
-        ref={keypadRef}
-        isInputFocused={isInputFocused}
-        currentValue={currentValue}
-        currentValueUSDString={currentValueUSDString}
-        setCurrentValue={setCurrentValue}
-        setCurrentValueUSDString={setCurrentValueUSDString}
-        setIsInputFocused={setIsInputFocused}
-      />
-      <PredictBuyBottomContent isInputFocused={isInputFocused}>
+      {!isSheetMode && (
+        <PredictKeypad
+          ref={keypadRef}
+          isInputFocused={isInputFocused}
+          currentValue={currentValue}
+          currentValueUSDString={currentValueUSDString}
+          setCurrentValue={setCurrentValue}
+          setCurrentValueUSDString={setCurrentValueUSDString}
+          setIsInputFocused={setIsInputFocused}
+        />
+      )}
+      <PredictBuyBottomContent
+        isInputFocused={isSheetMode ? false : isInputFocused}
+        hideBorder={isSheetMode}
+      >
+        {isSheetMode && (
+          <PredictQuickAmounts
+            onSelectAmount={handleQuickAmount}
+            disabled={isPlacingOrder}
+          />
+        )}
+        {payWithAnyTokenEnabled && isSheetMode && (
+          <PredictPayWithRow
+            disabled={isPlacingOrder}
+            variant="row"
+            availableBalance={availableBalanceDisplay}
+          />
+        )}
         <PredictFeeSummary
-          disabled={isInputFocused}
+          disabled={isSheetMode ? false : isInputFocused}
           loading={isPayFeesLoading}
           total={total}
           rewardsFeeAmountUsd={rewardsFeeAmount}
@@ -264,9 +334,22 @@ const PredictBuyWithAnyToken = () => {
           showReducedOpacity={!canPlaceBet}
           outcomeTokenTitle={outcomeToken?.title}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          isSheetMode={isSheetMode}
           testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
         />
       </PredictBuyBottomContent>
+      {isSheetMode && (
+        <PredictKeypad
+          ref={keypadRef}
+          isInputFocused={isInputFocused}
+          currentValue={currentValue}
+          currentValueUSDString={currentValueUSDString}
+          setCurrentValue={setCurrentValue}
+          setCurrentValueUSDString={setCurrentValueUSDString}
+          setIsInputFocused={setIsInputFocused}
+          hideHeader
+        />
+      )}
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
@@ -293,9 +376,9 @@ const PredictBuyWithAnyToken = () => {
       <PredictPayWithAnyTokenInfo
         currentValue={currentValue}
         preview={preview}
-        isInputFocused={isInputFocused}
+        isInputFocused={isSheetMode ? false : isInputFocused}
       />
-    </SafeAreaView>
+    </Wrapper>
   );
 };
 

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useMemo } from 'react';
+import { Dimensions, Pressable } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -13,6 +13,8 @@ import {
 import { IconSize } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
+import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from '../../AssetOverview/Price/tokenOverviewChart.constants';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 const CandlestickIcon = ({
   color,
@@ -52,14 +54,16 @@ export interface TimeRangeConfig {
   timePeriod: OHLCVTimePeriod;
   /** Optional interval override. When undefined, API uses its default for the timePeriod. */
   interval?: string;
+  /** Duration of this time range in milliseconds (used to compute the initial visible viewport). */
+  durationMs: number;
 }
 
 export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
-  '1H': { timePeriod: '1h' },
-  '1D': { timePeriod: '1d' },
-  '1W': { timePeriod: '1w' },
-  '1M': { timePeriod: '1m' },
-  '1Y': { timePeriod: '1y' },
+  '1H': { timePeriod: '1h', durationMs: 60 * 60 * 1000 },
+  '1D': { timePeriod: '1d', durationMs: 24 * 60 * 60 * 1000 },
+  '1W': { timePeriod: '1w', durationMs: 7 * 24 * 60 * 60 * 1000 },
+  '1M': { timePeriod: '1m', durationMs: 30 * 24 * 60 * 60 * 1000 },
+  '1Y': { timePeriod: '1y', durationMs: 365 * 24 * 60 * 60 * 1000 },
 };
 
 const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
@@ -68,7 +72,14 @@ const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 const SEGMENT_BUTTON_BASE =
   'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1 rounded-xl';
 
+/** @see TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT */
+const TIME_RANGE_SKELETON_HEIGHT = TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT;
+/** Root `Box` uses `px-4` (16px each side). */
+const HORIZONTAL_INSET_PX = 32;
+
 interface TimeRangeSelectorProps {
+  /** When true, shows a skeleton in the same outer layout as the real controls. */
+  isChartLoading?: boolean;
   selected: TimeRange;
   onSelect: (range: TimeRange) => void;
   /** Optional subset of ranges to display. Defaults to all. */
@@ -80,6 +91,7 @@ interface TimeRangeSelectorProps {
 }
 
 const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
+  isChartLoading = false,
   selected,
   onSelect,
   ranges = TIME_RANGES,
@@ -89,61 +101,96 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
 
+  const skeletonBarWidth = useMemo(
+    () => Dimensions.get('window').width - HORIZONTAL_INSET_PX,
+    [],
+  );
+
+  const showChartLoadingSkeleton = isChartLoading;
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="w-full px-4"
+      style={{ minHeight: TIME_RANGE_SKELETON_HEIGHT }}
     >
-      {ranges.map((range) => {
-        const isSelected = selected === range;
-        return (
-          <Pressable
-            key={range}
-            style={({ pressed }) =>
-              tw.style(
-                SEGMENT_BUTTON_BASE,
-                isSelected && 'bg-muted',
-                pressed && 'opacity-70',
-              )
-            }
-            onPress={() => onSelect(range)}
+      {showChartLoadingSkeleton ? (
+        <Box
+          style={{ height: TIME_RANGE_SKELETON_HEIGHT }}
+          twClassName="w-full flex-1 overflow-hidden rounded-lg"
+        >
+          <SkeletonPlaceholder
+            backgroundColor={colors.background.section}
+            highlightColor={colors.background.subsection}
           >
-            <Text
-              variant={TextVariant.BodySm}
-              style={{ fontWeight: FontWeight.Medium }}
-              twClassName={
-                isSelected ? 'text-text-default' : 'text-text-alternative'
+            <SkeletonPlaceholder.Item
+              width={skeletonBarWidth}
+              height={TIME_RANGE_SKELETON_HEIGHT}
+              borderRadius={8}
+            />
+          </SkeletonPlaceholder>
+        </Box>
+      ) : (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="w-full flex-1 rounded-lg"
+        >
+          {ranges.map((range) => {
+            const isSelected = selected === range;
+            return (
+              <Pressable
+                key={range}
+                style={({ pressed }) =>
+                  tw.style(
+                    SEGMENT_BUTTON_BASE,
+                    isSelected && 'bg-muted',
+                    pressed && 'opacity-70',
+                  )
+                }
+                onPress={() => onSelect(range)}
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  twClassName={
+                    isSelected ? 'text-text-default' : 'text-text-alternative'
+                  }
+                >
+                  {range}
+                </Text>
+              </Pressable>
+            );
+          })}
+          {onChartTypeToggle ? (
+            <Pressable
+              style={({ pressed }) =>
+                tw.style(SEGMENT_BUTTON_BASE, pressed && 'opacity-70')
+              }
+              onPress={onChartTypeToggle}
+              accessibilityRole="button"
+              accessibilityLabel={
+                chartType === ChartType.Candles
+                  ? 'Switch to line chart'
+                  : 'Switch to candlestick chart'
               }
             >
-              {range}
-            </Text>
-          </Pressable>
-        );
-      })}
-      {onChartTypeToggle ? (
-        <Pressable
-          style={({ pressed }) =>
-            tw.style(SEGMENT_BUTTON_BASE, pressed && 'opacity-70')
-          }
-          onPress={onChartTypeToggle}
-          accessibilityRole="button"
-          accessibilityLabel={
-            chartType === ChartType.Candles
-              ? 'Switch to line chart'
-              : 'Switch to candlestick chart'
-          }
-        >
-          {chartType === ChartType.Candles ? (
-            <LineChartIcon color={colors.text.alternative} size={IconSize.Md} />
-          ) : (
-            <CandlestickIcon
-              color={colors.text.alternative}
-              size={IconSize.Sm}
-            />
-          )}
-        </Pressable>
-      ) : null}
+              {chartType === ChartType.Candles ? (
+                <LineChartIcon
+                  color={colors.text.alternative}
+                  size={IconSize.Md}
+                />
+              ) : (
+                <CandlestickIcon
+                  color={colors.text.alternative}
+                  size={IconSize.Sm}
+                />
+              )}
+            </Pressable>
+          ) : null}
+        </Box>
+      )}
     </Box>
   );
 };

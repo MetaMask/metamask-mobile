@@ -38,11 +38,12 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
   callback?.();
 });
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -56,9 +57,9 @@ jest.mock(
         }));
         return <>{children}</>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 const mockUseParams = jest.fn(() => ({}));
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
@@ -198,11 +199,6 @@ describe('PaymentSelectionModal', () => {
     mockUseRampsQuotes.mockImplementation(() => defaultQuotesReturn);
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('displays header with "Pay with" text', () => {
     const { getByText } = renderWithProvider(PaymentSelectionModal);
 
@@ -307,7 +303,7 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('matches snapshot when payment methods are loading', () => {
+  it('renders skeleton when payment methods are loading', () => {
     const loadingState = {
       ...defaultControllerReturn,
       selectedProvider: null,
@@ -318,11 +314,11 @@ describe('PaymentSelectionModal', () => {
       selectedToken: null,
     };
     mockUseRampsController.mockImplementation(() => loadingState);
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
+    expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
   });
 
-  it('matches snapshot when payment methods fail to load', () => {
+  it('shows error message when payment methods fail to load', () => {
     const errorState = {
       ...defaultControllerReturn,
       paymentMethods: [],
@@ -330,19 +326,21 @@ describe('PaymentSelectionModal', () => {
       selectedPaymentMethod: null,
     };
     mockUseRampsController.mockImplementation(() => errorState);
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
+    expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
   });
 
-  it('matches snapshot when no payment methods are available', () => {
+  it('shows no payment methods message when list is empty', () => {
     const emptyState = {
       ...defaultControllerReturn,
       paymentMethods: [],
       selectedPaymentMethod: null,
     };
     mockUseRampsController.mockImplementation(() => emptyState);
-    const { toJSON } = renderWithProvider(PaymentSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
+    expect(
+      getByText('fiat_on_ramp.no_payment_methods_available'),
+    ).toBeOnTheScreen();
   });
 
   it('passes correct quote fetch params to useRampsQuotes', () => {

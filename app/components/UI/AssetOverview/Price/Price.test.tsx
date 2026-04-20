@@ -5,6 +5,8 @@ import Price from './Price';
 import type { TokenI } from '../../Tokens/types';
 import { PriceChartProvider } from '../PriceChart/PriceChart.context';
 import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
+import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
+import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
@@ -18,6 +20,7 @@ jest.mock('react-redux', () => {
   return {
     ...actual,
     useSelector: jest.fn(),
+    useDispatch: jest.fn(() => jest.fn()),
   };
 });
 
@@ -34,11 +37,15 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
   ohlcvData: [
     { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
     { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+    { time: 3000, open: 105, high: 107, low: 104, close: 106, volume: 1 },
+    { time: 4000, open: 106, high: 108, low: 105, close: 107, volume: 1 },
+    { time: 5000, open: 107, high: 109, low: 106, close: 108, volume: 1 },
   ],
   isLoading: false,
   error: undefined,
-  fetchMoreHistory: jest.fn(),
   hasMore: false,
+  nextCursor: null,
+  hasEmptyData: false,
 });
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
@@ -73,12 +80,15 @@ const mockAsset: TokenI = {
   isETH: false,
 };
 
+/** Must be >= CHART_DATA_THRESHOLD so advanced path does not fall back to legacy. */
+const mockPricesAtLeast5 = Array.from({ length: 5 }, (_, i) => [
+  String(1736761237983 + i),
+  100 + i,
+]) as [string, number][];
+
 const unifiedProps = {
   asset: mockAsset,
-  prices: [
-    ['1736761237983', 100] as [string, number],
-    ['1736761237986', 105] as [string, number],
-  ],
+  prices: mockPricesAtLeast5,
   timePeriod: '1d' as const,
   priceDiff: 5,
   currentPrice: 105,
@@ -94,6 +104,9 @@ describe('Price Component', () => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return false;
       }
+      if (selector === selectTokenOverviewChartType) {
+        return ChartType.Line;
+      }
       return undefined;
     });
   });
@@ -102,6 +115,9 @@ describe('Price Component', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return true;
+      }
+      if (selector === selectTokenOverviewChartType) {
+        return ChartType.Line;
       }
       return undefined;
     });
@@ -117,14 +133,18 @@ describe('Price Component', () => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return true;
       }
+      if (selector === selectTokenOverviewChartType) {
+        return ChartType.Line;
+      }
       return undefined;
     });
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [],
       isLoading: true,
       error: undefined,
-      fetchMoreHistory: jest.fn(),
       hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
     });
     const { queryByTestId } = renderWithProviders(
       <Price {...unifiedProps} isLoading={false} />,
@@ -138,6 +158,9 @@ describe('Price Component', () => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return true;
       }
+      if (selector === selectTokenOverviewChartType) {
+        return ChartType.Line;
+      }
       return undefined;
     });
     const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
@@ -149,5 +172,125 @@ describe('Price Component', () => {
     const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
 
     expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+  });
+
+  describe('shouldFallbackToLegacy logic', () => {
+    beforeEach(() => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectTokenOverviewAdvancedChartEnabled) {
+          return true;
+        }
+        if (selector === selectTokenOverviewChartType) {
+          return ChartType.Line;
+        }
+        return undefined;
+      });
+    });
+
+    it('falls back to legacy when OHLCV data length is below threshold (< 5)', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+    });
+
+    it('falls back to legacy when hasEmptyData is true', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+          { time: 3000, open: 105, high: 107, low: 104, close: 106, volume: 1 },
+          { time: 4000, open: 106, high: 108, low: 105, close: 107, volume: 1 },
+          { time: 5000, open: 107, high: 109, low: 106, close: 108, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: true,
+      });
+
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+    });
+
+    it('falls back to legacy when chartError is present', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+          { time: 3000, open: 105, high: 107, low: 104, close: 106, volume: 1 },
+          { time: 4000, open: 106, high: 108, low: 105, close: 107, volume: 1 },
+          { time: 5000, open: 107, high: 109, low: 106, close: 108, volume: 1 },
+        ],
+        isLoading: false,
+        error: new Error('Failed to fetch OHLCV data'),
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+    });
+
+    it('does NOT fall back to legacy when chart is still loading', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: true,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProviders(
+        <Price {...unifiedProps} isLoading={false} />,
+      );
+
+      // Should show advanced chart loading state, not fallback to legacy
+      expect(queryByTestId('mock-legacy-price-chart')).toBeNull();
+      expect(getByTestId('token-price')).toBeTruthy();
+    });
+
+    it('does NOT fall back to legacy when OHLCV data is sufficient (>= 5)', () => {
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-advanced-chart')).toBeTruthy();
+    });
+
+    it('falls back to legacy when OHLCV data is exactly at threshold (5) but hasEmptyData is true', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+          { time: 3000, open: 105, high: 107, low: 104, close: 106, volume: 1 },
+          { time: 4000, open: 106, high: 108, low: 105, close: 107, volume: 1 },
+          { time: 5000, open: 107, high: 109, low: 106, close: 108, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: true,
+      });
+
+      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+    });
   });
 });

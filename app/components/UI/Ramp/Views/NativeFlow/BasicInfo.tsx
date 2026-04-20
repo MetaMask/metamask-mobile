@@ -14,7 +14,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/BasicInfo/BasicInfo.styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -57,7 +57,7 @@ interface V2BasicInfoParams {
 
 const V2BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const { quote, previousFormData } = useParams<V2BasicInfoParams>();
   const { logoutFromProvider, patchUser, submitSsnDetails } =
@@ -143,15 +143,9 @@ const V2BasicInfo = (): JSX.Element => {
     [handleChange],
   );
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.basic_info.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   useEffect(() => {
     handleFormDataChange('ssn')('');
@@ -310,6 +304,12 @@ const V2BasicInfo = (): JSX.Element => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={strings('deposit.basic_info.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}

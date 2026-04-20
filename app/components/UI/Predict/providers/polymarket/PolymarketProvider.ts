@@ -15,10 +15,13 @@ import {
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
+import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   GetPriceHistoryParams,
+  GetCryptoTargetPriceParams,
   GetPriceParams,
   GetPriceResponse,
+  GetSeriesParams,
   PredictActivity,
   PredictCategory,
   PredictMarket,
@@ -35,6 +38,7 @@ import {
   ClaimOrderParams,
   ClaimOrderResponse,
   ConnectionStatus,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
   GetAccountStateParams,
@@ -172,6 +176,14 @@ export class PolymarketProvider implements PredictProvider {
     return filterSupportedLeagues(liveSportsLeagues);
   }
 
+  #getExtendedSportsMarketsLeagues(): string[] {
+    return this.#getFeatureFlags().extendedSportsMarketsLeagues;
+  }
+
+  #hasExtendedMarketsForLeague(league: string): boolean {
+    return this.#getExtendedSportsMarketsLeagues().includes(league);
+  }
+
   #createTeamLookup(
     enabled: boolean,
   ):
@@ -288,6 +300,7 @@ export class PolymarketProvider implements PredictProvider {
       const [parsedMarket] = parsePolymarketEvents([event], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
       if (!parsedMarket) {
@@ -395,6 +408,7 @@ export class PolymarketProvider implements PredictProvider {
         category,
         sortMarketsBy: 'price',
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
       const markets = isSearch
@@ -421,6 +435,62 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  public async getMarketSeries(
+    params: GetSeriesParams,
+  ): Promise<PredictMarket[]> {
+    const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+    const limit = params.limit ?? SERIES_MAX_EVENTS;
+
+    try {
+      const queryParams = new URLSearchParams({
+        series_id: params.seriesId,
+        end_date_min: params.endDateMin,
+        end_date_max: params.endDateMax,
+        limit: String(limit),
+        order: 'endDate',
+        ascending: 'true',
+      });
+
+      const response = await fetch(
+        `${GAMMA_API_ENDPOINT}/events?${queryParams.toString()}`,
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch series events');
+      }
+
+      const events = (await response.json()) as PolymarketApiEvent[];
+
+      if (!Array.isArray(events) || events.length === 0) {
+        return [];
+      }
+
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
+
+      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
+
+      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      return parsePolymarketEvents(events, {
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+      });
+    } catch (error) {
+      DevLogger.log('Error fetching series events via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getMarketSeries', {
+          seriesId: params.seriesId,
+        }),
+      );
+
+      return [];
+    }
+  }
+
   public async getCarouselMarkets(): Promise<PredictMarket[]> {
     try {
       const supportedLeagues = this.#getSupportedLeagues();
@@ -437,6 +507,7 @@ export class PolymarketProvider implements PredictProvider {
         category: 'trending',
         sortMarketsBy: 'price',
         teamLookup,
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       }).filter((m) => m.status === 'open' && m.outcomes.length > 0);
 
       return liveSportsEnabled
@@ -523,6 +594,34 @@ export class PolymarketProvider implements PredictProvider {
       );
 
       return [];
+    }
+  }
+
+  public async getCryptoTargetPrice(
+    params: GetCryptoTargetPriceParams,
+  ): Promise<number | null> {
+    try {
+      const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
+      const url = `${CRYPTO_PRICE_ENDPOINT}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Crypto target price API returned ${response.status}`);
+      }
+
+      const data: unknown = await response.json();
+      const parsed = data as { openPrice?: number } | undefined;
+      if (typeof parsed?.openPrice !== 'number') {
+        throw new Error('Crypto target price API returned unexpected shape');
+      }
+      return parsed.openPrice;
+    } catch (error) {
+      DevLogger.log(
+        'Error getting crypto target price via Polymarket API:',
+        error,
+      );
+
+      return null;
     }
   }
 
@@ -1459,7 +1558,7 @@ export class PolymarketProvider implements PredictProvider {
         apiKey: signerApiKey,
       });
 
-      const { success, response, error } = await submitClobOrder({
+      const orderResult = await submitClobOrder({
         headers,
         clobOrder,
         feeAuthorization,
@@ -1467,14 +1566,14 @@ export class PolymarketProvider implements PredictProvider {
         allowancesTx,
       });
 
-      if (!success) {
+      if (!orderResult.success) {
         DevLogger.log('PolymarketProvider: Place order failed', {
-          error,
+          error: orderResult.error,
           errorDetails: undefined,
           side,
           outcomeTokenId,
         });
-        if (error.includes(`order couldn't be fully filled`)) {
+        if (orderResult.error.includes(`order couldn't be fully filled`)) {
           throw new Error(
             side === Side.BUY
               ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
@@ -1482,22 +1581,25 @@ export class PolymarketProvider implements PredictProvider {
           );
         }
         if (
-          error.includes(`not available in your region`) ||
-          error.includes(`unable to access this provider`)
+          orderResult.error.includes(`not available in your region`) ||
+          orderResult.error.includes(`unable to access this provider`)
         ) {
           throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
         }
-        throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
+        throw new Error(
+          orderResult.error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        );
       }
+
+      const { response: orderResponse } = orderResult;
 
       if (side === Side.BUY) {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
 
-        // Create optimistic position update
-        if (response.makingAmount && response.takingAmount) {
+        if (orderResponse.makingAmount && orderResponse.takingAmount) {
           try {
-            const spentAmount = parseFloat(response.makingAmount);
-            const receivedAmount = parseFloat(response.takingAmount);
+            const spentAmount = parseFloat(orderResponse.makingAmount);
+            const receivedAmount = parseFloat(orderResponse.takingAmount);
 
             await this.createOrUpdateOptimisticPosition({
               address: signer.address,
@@ -1513,7 +1615,6 @@ export class PolymarketProvider implements PredictProvider {
               preview,
             });
           } catch (optimisticError) {
-            // Log but don't fail the order
             DevLogger.log(
               'PolymarketProvider: Failed to create optimistic position update',
               optimisticError,
@@ -1531,7 +1632,6 @@ export class PolymarketProvider implements PredictProvider {
           }
         }
       } else if (positionId) {
-        // SELL order - mark position for optimistic removal
         this.removeOptimisticPosition({
           address: signer.address,
           positionId,
@@ -1541,14 +1641,13 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       return {
-        success,
+        success: true,
         response: {
-          id: response.orderID,
-          spentAmount: response.makingAmount,
-          receivedAmount: response.takingAmount,
-          txHashes: response.transactionsHashes,
+          id: orderResponse.orderID ?? '',
+          spentAmount: orderResponse.makingAmount ?? '0',
+          receivedAmount: orderResponse.takingAmount ?? '0',
+          txHashes: orderResponse.transactionsHashes,
         },
-        error,
       } as OrderResult;
     } catch (error) {
       // Catch all errors and return them in consistent format
@@ -1961,11 +2060,22 @@ export class PolymarketProvider implements PredictProvider {
     );
   }
 
+  public subscribeToCryptoPrices(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToCryptoPrices(
+      symbols,
+      callback,
+    );
+  }
+
   public getConnectionStatus(): ConnectionStatus {
     const status = WebSocketManager.getInstance().getConnectionStatus();
     return {
       sportsConnected: status.sportsConnected,
       marketConnected: status.marketConnected,
+      rtdsConnected: status.rtdsConnected,
     };
   }
 }

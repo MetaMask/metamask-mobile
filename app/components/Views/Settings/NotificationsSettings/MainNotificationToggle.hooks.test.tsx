@@ -2,18 +2,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import { useMetrics } from '../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
 jest.mock('../../../../util/notifications/hooks/useSwitchNotifications');
-jest.mock('../../../hooks/useMetrics');
 
 const mockUseNavigation = jest.mocked(useNavigation);
 const mockUseNotificationsToggle = jest.mocked(useNotificationsToggle);
-const mockUseMetrics = jest.mocked(useMetrics);
 
 describe('useMainNotificationToggle', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -37,7 +33,6 @@ describe('useMainNotificationToggle', () => {
   const arrangeMocks = () => {
     const navigate = jest.fn();
     const switchNotifications = jest.fn();
-    const trackEvent = jest.fn();
 
     mockUseNavigation.mockReturnValue({
       navigate,
@@ -50,15 +45,9 @@ describe('useMainNotificationToggle', () => {
       switchNotifications,
     });
 
-    mockUseMetrics.mockReturnValue({
-      trackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as never);
-
     return {
       navigate,
       switchNotifications,
-      trackEvent,
       ...arrangeState(),
     };
   };
@@ -121,6 +110,5 @@ describe('useMainNotificationToggle', () => {
       },
     });
     expect(mocks.switchNotifications).not.toHaveBeenCalled();
-    expect(mocks.trackEvent).not.toHaveBeenCalled();
   });
 });

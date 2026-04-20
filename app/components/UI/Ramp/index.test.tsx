@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import FiatOrders from '.';
@@ -11,6 +11,7 @@ import {
 import { FiatOrder } from '../../../reducers/fiatOrders';
 import WebView from '@metamask/react-native-webview';
 import getAggregatorAnalyticsPayload from './Aggregator/utils/getAggregatorAnalyticsPayload';
+import { callbackBaseUrl } from './Aggregator/sdk';
 
 const mockNavigate = jest.fn();
 
@@ -43,14 +44,14 @@ describe('FiatOrders', () => {
     mockNavigate.mockClear();
   });
 
-  it('renders correctly with no orders', () => {
+  it('renders nothing when there are no authentication URLs', () => {
     renderWithProvider(<FiatOrders />, {
       state: defaultState,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.toJSON()).toBeNull();
   });
 
-  it('renders correctly with authentication URLs', () => {
+  it('renders a WebView for each authentication URL', () => {
     const stateWithUrls = {
       ...defaultState,
       fiatOrders: {
@@ -65,34 +66,10 @@ describe('FiatOrders', () => {
     renderWithProvider(<FiatOrders />, {
       state: stateWithUrls,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.UNSAFE_getAllByType(WebView)).toHaveLength(2);
   });
 
-  it('removes authentication URL after successful navigation', () => {
-    const mockUrl = 'https://test.metamask.io/auth';
-    const stateWithUrl = {
-      ...defaultState,
-      fiatOrders: {
-        ...defaultState.fiatOrders,
-        authenticationUrls: [mockUrl],
-      },
-    };
-
-    renderWithProvider(<FiatOrders />, {
-      state: stateWithUrl,
-    });
-
-    // Simulate WebView navigation completion
-    const webView = screen.UNSAFE_getByType(WebView);
-    webView.props.onNavigationStateChange({
-      url: 'https://metamask.io/callback',
-      loading: false,
-    });
-
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('removes authentication URL on HTTP error', () => {
+  it('removes authentication URL after successful navigation', async () => {
     const mockUrl = 'https://test.metamask.io/auth';
     const stateWithUrl = {
       ...defaultState,
@@ -107,12 +84,43 @@ describe('FiatOrders', () => {
     });
 
     const webView = screen.UNSAFE_getByType(WebView);
-    webView.props.onHttpError();
+    act(() => {
+      webView.props.onNavigationStateChange({
+        url: `${callbackBaseUrl}/done`,
+        loading: false,
+      });
+    });
 
-    expect(screen.toJSON()).toMatchSnapshot();
+    await waitFor(() => {
+      expect(screen.UNSAFE_queryAllByType(WebView)).toHaveLength(0);
+    });
   });
 
-  it('renders multiple authentication URLs', () => {
+  it('removes authentication URL on HTTP error', async () => {
+    const mockUrl = 'https://test.metamask.io/auth';
+    const stateWithUrl = {
+      ...defaultState,
+      fiatOrders: {
+        ...defaultState.fiatOrders,
+        authenticationUrls: [mockUrl],
+      },
+    };
+
+    renderWithProvider(<FiatOrders />, {
+      state: stateWithUrl,
+    });
+
+    const webView = screen.UNSAFE_getByType(WebView);
+    act(() => {
+      webView.props.onHttpError();
+    });
+
+    await waitFor(() => {
+      expect(screen.UNSAFE_queryAllByType(WebView)).toHaveLength(0);
+    });
+  });
+
+  it('renders three WebViews for three authentication URLs', () => {
     const stateWithMultipleUrls = {
       ...defaultState,
       fiatOrders: {
@@ -128,7 +136,7 @@ describe('FiatOrders', () => {
     renderWithProvider(<FiatOrders />, {
       state: stateWithMultipleUrls,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.UNSAFE_getAllByType(WebView)).toHaveLength(3);
   });
 });
 

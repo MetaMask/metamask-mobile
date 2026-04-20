@@ -392,6 +392,11 @@
     "lastUpdated": null,
     "signature": null
   },
+  "SocialController": {
+    "followingAddresses": [],
+    "followingProfileIds": [],
+    "leaderboardEntries": []
+  },
   "SubjectMetadataController": {
     "subjectMetadata": {}
   },
@@ -634,9 +639,14 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "cardHomeData": null,
+    "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
+  },
+  "ClientController": {
+    "isUiOpen": false
   },
   "ComplianceController": {},
   "ConnectivityController": {
@@ -695,7 +705,8 @@
         }
       ],
       "isEligible": false
-    }
+    },
+    "tron_staking": null
   },
   "DeFiPositionsController": {
     "allDeFiPositions": {},
@@ -714,11 +725,14 @@
     "campaigns": {},
     "ondoCampaignLeaderboardPositions": {},
     "ondoCampaignPortfolio": {},
+    "ondoCampaignActivity": {},
+    "ondoCampaignDeposits": {},
     "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
+    "subscriptionBenefits": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null

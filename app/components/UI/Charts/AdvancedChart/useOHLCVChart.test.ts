@@ -5,6 +5,7 @@ import {
   OHLCVApiResponse,
   useOHLCVChart,
 } from './useOHLCVChart';
+import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
 const OHLCV_HOST = 'https://price.api.cx.metamask.io';
 
@@ -55,10 +56,10 @@ function arrangeNockOhlcvAPI404Response() {
     .reply(404);
 }
 
-function arrangeDefaultOptions() {
+function arrangeDefaultOptions(): Parameters<typeof useOHLCVChart>[0] {
   return {
     assetId: ASSET_ID,
-    timePeriod: '1d' as const,
+    timePeriod: '1d',
   };
 }
 
@@ -153,6 +154,7 @@ describe('useOHLCVChart - initial load', () => {
 
     expect(scope.isDone()).toBe(false);
     expect(result.current.ohlcvData).toEqual([]);
+    expect(result.current.hasEmptyData).toBe(false);
   });
 });
 
@@ -186,9 +188,28 @@ describe('useOHLCVChart - query parameters', () => {
 
     expect(nockScope.isDone()).toBe(true);
   });
+
+  it('includes only interval when no timePeriod is provided', async () => {
+    const nockScope = nock(OHLCV_HOST)
+      .get(`/v3/ohlcv-chart/${ASSET_ID}`)
+      .query({ interval: '5m' })
+      .reply(200, createSuccessBody());
+
+    const { result } = renderUseOHLCVChart({
+      assetId: ASSET_ID,
+      timePeriod: '' as OHLCVTimePeriod,
+      interval: '5m',
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(nockScope.isDone()).toBe(true);
+  });
 });
 
-describe('useOHLCVChart - fetchMoreHistory', () => {
+describe('useOHLCVChart - pagination metadata', () => {
   beforeEach(() => {
     nock.disableNetConnect();
   });
@@ -198,59 +219,46 @@ describe('useOHLCVChart - fetchMoreHistory', () => {
     jest.restoreAllMocks();
   });
 
-  it('prepends older bars and advances cursor when API returns a page', async () => {
-    const older = createAPICandle({ timestamp: 100, close: 1 });
-    const newer = createAPICandle({ timestamp: 200, close: 2 });
-
-    const scope1 = arrangeNockOhlcvAPISuccessResponse(
+  it('exposes nextCursor from the API response', async () => {
+    arrangeNockOhlcvAPISuccessResponse(
       createSuccessBody({
-        data: [newer],
         hasNext: true,
-        nextCursor: 'cursor-a',
+        nextCursor: 'cursor-abc',
       }),
-    );
-
-    const scope2 = arrangeNockOhlcvAPIStrictQueryResponse(
-      { nextCursor: 'cursor-a' },
-      createSuccessBody({ data: [older], hasNext: false, nextCursor: '' }),
     );
 
     const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasMore).toBe(true);
     });
 
-    expect(scope1.isDone()).toBe(true);
-    expect(scope2.isDone()).toBe(false);
-
-    await act(async () => {
-      result.current.fetchMoreHistory({ oldestTimestamp: 100 });
-    });
-
-    await waitFor(() => {
-      expect(result.current.ohlcvData).toHaveLength(2);
-    });
-
-    expect(result.current.ohlcvData[0]?.time).toBe(100);
-    expect(result.current.ohlcvData[1]?.time).toBe(200);
-    expect(result.current.hasMore).toBe(false);
-
-    expect(scope1.isDone()).toBe(true);
-    expect(scope2.isDone()).toBe(true);
+    expect(result.current.nextCursor).toBe('cursor-abc');
+    expect(result.current.hasMore).toBe(true);
   });
 
-  it('discards stale pagination response when time range changes mid-flight', async () => {
-    const rangeACandle = createAPICandle({ timestamp: 200, close: 2 });
-    const rangeAOlderCandle = createAPICandle({ timestamp: 100, close: 1 });
-    const rangeBCandle = createAPICandle({ timestamp: 300, close: 3 });
+  it('sets nextCursor to null when API returns empty cursor', async () => {
+    arrangeNockOhlcvAPISuccessResponse(
+      createSuccessBody({
+        hasNext: false,
+        nextCursor: '',
+      }),
+    );
 
-    // Initial load for range A
+    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.nextCursor).toBeNull();
+    expect(result.current.hasMore).toBe(false);
+  });
+
+  it('resets nextCursor when time range changes', async () => {
     arrangeNockOhlcvAPIStrictQueryResponse(
       { timePeriod: '1d' },
       createSuccessBody({
-        data: [rangeACandle],
         hasNext: true,
         nextCursor: 'cursor-a',
       }),
@@ -265,67 +273,46 @@ describe('useOHLCVChart - fetchMoreHistory', () => {
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasMore).toBe(true);
     });
 
-    // Set up a delayed response for the pagination fetch so the time range
-    // switch happens while it's in-flight.
-    const paginationScope = nock(OHLCV_HOST)
-      .get(`/v3/ohlcv-chart/${ASSET_ID}`)
-      .query({ nextCursor: 'cursor-a' })
-      .delay(100)
-      .reply(
-        200,
-        createSuccessBody({
-          data: [rangeAOlderCandle],
-          hasNext: false,
-          nextCursor: '',
-        }),
-      );
+    expect(result.current.nextCursor).toBe('cursor-a');
 
-    // Start pagination fetch (in-flight)
-    await act(async () => {
-      result.current.fetchMoreHistory({ oldestTimestamp: 200 });
-    });
-
-    // Switch time range while pagination is in-flight — this triggers
-    // loadInitial which aborts the shared AbortController.
     arrangeNockOhlcvAPIStrictQueryResponse(
       { timePeriod: '1w' },
       createSuccessBody({
-        data: [rangeBCandle],
         hasNext: false,
         nextCursor: '',
       }),
     );
 
-    rerender({ ...arrangeDefaultOptions(), timePeriod: '1w' as const });
+    rerender({
+      ...arrangeDefaultOptions(),
+      timePeriod: '1w',
+    } as Parameters<typeof useOHLCVChart>[0]);
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // The stale range-A bar should NOT have been prepended.
-    // Only range-B data should be present.
-    expect(result.current.ohlcvData).toHaveLength(1);
-    expect(result.current.ohlcvData[0]?.time).toBe(300);
+    expect(result.current.nextCursor).toBeNull();
+    expect(result.current.hasMore).toBe(false);
+  });
+});
 
-    nock.abortPendingRequests();
-    paginationScope.done();
+describe('useOHLCVChart - empty data handling', () => {
+  beforeEach(() => {
+    nock.disableNetConnect();
   });
 
-  it('does not request another page when hasMore is false', async () => {
-    const scope = arrangeNockOhlcvAPIStrictQueryResponse(
-      { timePeriod: '1d' },
-      createSuccessBody({
-        hasNext: false,
-        nextCursor: '',
-      }),
-    );
+  afterEach(() => {
+    nock.cleanAll();
+    jest.restoreAllMocks();
+  });
 
-    const scope2Call = arrangeNockOhlcvAPIStrictQueryResponse(
-      { timePeriod: '1d' },
+  it('sets hasEmptyData to true when API returns empty data array', async () => {
+    arrangeNockOhlcvAPISuccessResponse(
       createSuccessBody({
+        data: [],
         hasNext: false,
         nextCursor: '',
       }),
@@ -337,13 +324,241 @@ describe('useOHLCVChart - fetchMoreHistory', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(scope.isDone()).toBe(true);
+    expect(result.current.hasEmptyData).toBe(true);
+    expect(result.current.ohlcvData).toEqual([]);
+    expect(result.current.error).toBeNull();
+  });
 
-    await act(async () => {
-      result.current.fetchMoreHistory({ oldestTimestamp: 1 });
+  it('sets hasEmptyData to false when API returns data', async () => {
+    arrangeNockOhlcvAPISuccessResponse(
+      createSuccessBody({
+        data: [createAPICandle()],
+      }),
+    );
+
+    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-    // Scope 2 never called because hasMore is false
-    expect(scope2Call.isDone()).toBe(false);
+    expect(result.current.hasEmptyData).toBe(false);
+    expect(result.current.ohlcvData.length).toBe(1);
+  });
+
+  it('resets hasEmptyData from true to false when a subsequent fetch returns candles', async () => {
+    nock(OHLCV_HOST)
+      .get(`/v3/ohlcv-chart/${ASSET_ID}`)
+      .query({ timePeriod: '1d' })
+      .times(2) // Strict Mode can run the initial effect twice with the same params
+      .reply(200, createSuccessBody({ data: [] }));
+
+    const initialProps = arrangeDefaultOptions();
+    const { result, rerender } = renderHook(
+      (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
+      { initialProps },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.hasEmptyData).toBe(true);
+
+    arrangeNockOhlcvAPIStrictQueryResponse({ timePeriod: '1w' });
+
+    rerender({
+      ...arrangeDefaultOptions(),
+      timePeriod: '1w',
+    } as Parameters<typeof useOHLCVChart>[0]);
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.hasEmptyData).toBe(false);
+    expect(result.current.ohlcvData.length).toBe(1);
+  });
+
+  it('keeps hasEmptyData false when the API request fails', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    arrangeNockOhlcvAPI404Response();
+
+    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.hasEmptyData).toBe(false);
+    expect(result.current.error).toBe('OHLCV API error: 404');
+  });
+});
+
+describe('useOHLCVChart - abort controller', () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    nock.disableNetConnect();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    nock.cleanAll();
+    nock.enableNetConnect();
+    jest.restoreAllMocks();
+  });
+
+  function jsonResponse(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  /**
+   * Promise that rejects with AbortError when `signal` aborts (mirrors fetch).
+   */
+  function hangUntilAborted(
+    signal: AbortSignal | null | undefined,
+  ): Promise<Response> {
+    return new Promise((resolve, reject) => {
+      if (signal == null) {
+        reject(new Error('expected AbortSignal'));
+        return;
+      }
+      if (signal.aborted) {
+        reject(new DOMException('The user aborted a request.', 'AbortError'));
+        return;
+      }
+      signal.addEventListener(
+        'abort',
+        () => {
+          reject(new DOMException('The user aborted a request.', 'AbortError'));
+        },
+        { once: true },
+      );
+    });
+  }
+
+  it('aborts previous request when parameters change', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const successBody = createSuccessBody();
+
+    global.fetch = jest
+      .fn()
+      .mockImplementation((_input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof _input === 'string' ? _input : _input.toString();
+        // Keep every 1d request in-flight until aborted
+        if (url.includes('timePeriod=1d')) {
+          return hangUntilAborted(init?.signal);
+        }
+        return Promise.resolve(jsonResponse(successBody));
+      }) as typeof fetch;
+
+    const initialProps: Parameters<typeof useOHLCVChart>[0] =
+      arrangeDefaultOptions();
+    const { result, rerender } = renderHook(
+      (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
+      { initialProps },
+    );
+
+    rerender({
+      ...arrangeDefaultOptions(),
+      timePeriod: '1w',
+    } as Parameters<typeof useOHLCVChart>[0]);
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.ohlcvData.length).toBeGreaterThan(0);
+  });
+
+  it('cleans up abort controller on unmount', async () => {
+    global.fetch = jest
+      .fn()
+      .mockImplementation((_input, init?: RequestInit) =>
+        hangUntilAborted(init?.signal),
+      ) as typeof fetch;
+
+    const { unmount } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await act(async () => {
+      unmount();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+  });
+});
+
+describe('useOHLCVChart - error handling', () => {
+  beforeEach(() => {
+    nock.disableNetConnect();
+  });
+
+  afterEach(() => {
+    nock.cleanAll();
+    jest.restoreAllMocks();
+  });
+
+  it('handles non-Error exceptions', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    // Mock fetch to throw a non-Error object
+    nock(OHLCV_HOST)
+      .get(`/v3/ohlcv-chart/${ASSET_ID}`)
+      .query(true)
+      .replyWithError('Network failure');
+
+    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.error).toBeTruthy();
+    expect(result.current.ohlcvData).toEqual([]);
+  });
+
+  it('clears data on error', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    // First successful request
+    arrangeNockOhlcvAPIStrictQueryResponse({ timePeriod: '1d' });
+
+    const initialProps: Parameters<typeof useOHLCVChart>[0] =
+      arrangeDefaultOptions();
+    const { result, rerender } = renderHook(
+      (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
+      { initialProps },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.ohlcvData.length).toBeGreaterThan(0);
+
+    // Second request fails
+    nock(OHLCV_HOST)
+      .get(`/v3/ohlcv-chart/${ASSET_ID}`)
+      .query({ timePeriod: '1w' })
+      .reply(500);
+
+    rerender({
+      ...arrangeDefaultOptions(),
+      timePeriod: '1w',
+    } as Parameters<typeof useOHLCVChart>[0]);
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Data should be cleared on error
+    expect(result.current.ohlcvData).toEqual([]);
+    expect(result.current.error).toBeTruthy();
   });
 });

@@ -34,22 +34,94 @@ describe('Smart Transactions utils', () => {
       } as unknown as RootExtendedMessenger;
     });
 
-    it('returns empty object if transactionMeta is undefined', async () => {
+    it('returns base properties if transactionMeta is undefined', async () => {
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         undefined,
         false,
         controllerMessenger,
+        true,
+        true,
+        true,
       );
-      expect(result).toEqual({});
+      expect(result).toEqual({
+        is_smart_transactions_user_opt_in: true,
+        is_smart_transactions_available: true,
+        is_smart_transaction: true,
+      });
     });
 
-    it('returns metrics if smartTransaction is found by getSmartTransactionByMinedTxHash', async () => {
+    it('returns base properties when smart transactions are not enabled', async () => {
+      const transactionMeta = { hash: '0x123' } as TransactionMeta;
+      const result = await getSmartTransactionMetricsProperties(
+        smartTransactionsController,
+        transactionMeta,
+        false,
+        controllerMessenger,
+        true,
+        false,
+        false,
+      );
+
+      expect(result).toEqual({
+        is_smart_transactions_user_opt_in: true,
+        is_smart_transactions_available: false,
+        is_smart_transaction: false,
+      });
+      expect(
+        smartTransactionsController.getSmartTransactionByMinedTxHash,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('returns base properties if smartTransaction is not found and waitForSmartTransaction is false', async () => {
+      const transactionMeta = { hash: '0x123' } as TransactionMeta;
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(undefined);
+
+      const result = await getSmartTransactionMetricsProperties(
+        smartTransactionsController,
+        transactionMeta,
+        false,
+        controllerMessenger,
+        true,
+        true,
+        true,
+      );
+      expect(result).toEqual({
+        is_smart_transactions_user_opt_in: true,
+        is_smart_transactions_available: true,
+        is_smart_transaction: true,
+      });
+    });
+
+    it('returns base properties if smartTransaction is found but statusMetadata is undefined', async () => {
+      const transactionMeta = { hash: '0x123' } as TransactionMeta;
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue({});
+
+      const result = await getSmartTransactionMetricsProperties(
+        smartTransactionsController,
+        transactionMeta,
+        false,
+        controllerMessenger,
+        true,
+        true,
+        true,
+      );
+      expect(result).toEqual({
+        is_smart_transactions_user_opt_in: true,
+        is_smart_transactions_available: true,
+        is_smart_transaction: true,
+      });
+    });
+
+    it('returns stx_original_transaction_status if smartTransaction is found with statusMetadata', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {
         statusMetadata: {
-          timedOut: false,
-          proxied: true,
+          originalTransactionStatus: 'success',
         },
       };
       (
@@ -61,11 +133,15 @@ describe('Smart Transactions utils', () => {
         transactionMeta,
         false,
         controllerMessenger,
+        true,
+        true,
+        true,
       );
       expect(result).toEqual({
-        smart_transaction_timed_out: false,
-        smart_transaction_proxied: true,
+        is_smart_transactions_user_opt_in: true,
+        is_smart_transactions_available: true,
         is_smart_transaction: true,
+        stx_original_transaction_status: 'success',
       });
     });
 
@@ -73,8 +149,7 @@ describe('Smart Transactions utils', () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {
         statusMetadata: {
-          timedOut: true,
-          proxied: false,
+          originalTransactionStatus: 'cancelled',
         },
       };
       (
@@ -96,67 +171,15 @@ describe('Smart Transactions utils', () => {
         transactionMeta,
         true,
         controllerMessenger,
+        true,
+        true,
+        true,
       );
       expect(result).toEqual({
-        smart_transaction_timed_out: true,
-        smart_transaction_proxied: false,
+        is_smart_transactions_user_opt_in: true,
+        is_smart_transactions_available: true,
         is_smart_transaction: true,
-      });
-    });
-
-    it('returns is_smart_transaction true if smartTransaction is not found and waitForSmartTransaction is false', async () => {
-      const transactionMeta = { hash: '0x123' } as TransactionMeta;
-      (
-        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
-      ).mockReturnValue(undefined);
-
-      const result = await getSmartTransactionMetricsProperties(
-        smartTransactionsController,
-        transactionMeta,
-        false,
-        controllerMessenger,
-      );
-      expect(result).toEqual({ is_smart_transaction: true });
-    });
-
-    it('returns correct object if smartTransaction is found but statusMetadata is undefined', async () => {
-      const transactionMeta = { hash: '0x123' } as TransactionMeta;
-      const smartTransaction = {};
-      (
-        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
-      ).mockReturnValue(smartTransaction);
-
-      const result = await getSmartTransactionMetricsProperties(
-        smartTransactionsController,
-        transactionMeta,
-        false,
-        controllerMessenger,
-      );
-      expect(result).toEqual({ is_smart_transaction: true });
-    });
-
-    it('returns metrics if smartTransaction is found with statusMetadata', async () => {
-      const transactionMeta = { hash: '0x123' } as TransactionMeta;
-      const smartTransaction = {
-        statusMetadata: {
-          timedOut: false,
-          proxied: true,
-        },
-      };
-      (
-        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
-      ).mockReturnValue(smartTransaction);
-
-      const result = await getSmartTransactionMetricsProperties(
-        smartTransactionsController,
-        transactionMeta,
-        false,
-        controllerMessenger,
-      );
-      expect(result).toEqual({
-        smart_transaction_timed_out: false,
-        smart_transaction_proxied: true,
-        is_smart_transaction: true,
+        stx_original_transaction_status: 'cancelled',
       });
     });
   });

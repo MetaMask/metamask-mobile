@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
@@ -34,7 +34,7 @@ const encryptor = new Encryptor({
  * @param request.persistedState - The persisted state of the client.
  * @returns The initialized controller.
  */
-export const keyringControllerInit: ControllerInitFunction<
+export const keyringControllerInit: MessengerClientInitFunction<
   KeyringController,
   KeyringControllerMessenger
 > = ({
@@ -42,9 +42,9 @@ export const keyringControllerInit: ControllerInitFunction<
   persistedState,
   initialKeyringState,
   qrKeyringScanner,
-  getController,
+  getMessengerClient,
 }) => {
-  const { remoteFeatureFlags } = getController(
+  const { remoteFeatureFlags } = getMessengerClient(
     'RemoteFeatureFlagController',
   ).state;
 
@@ -87,10 +87,10 @@ export const keyringControllerInit: ControllerInitFunction<
       new MoneyKeyring({
         cryptographicFunctions,
         getMnemonic: async (entropySource: string) =>
-          // This builder needs the controller itself, so we re-use `getController` to access
+          // This builder needs the controller itself, so we re-use `getMessengerClient` to access
           // the controller instance as it will be available when this method gets called.
           // NOTE: This is required since we cannot self-use our own actions with the init messenger.
-          getController('KeyringController').withKeyringUnsafe(
+          getMessengerClient('KeyringController').withKeyringUnsafe(
             {
               filter: (keyring, metadata): keyring is HdKeyring =>
                 keyring.type === KeyringTypes.hd &&
@@ -112,7 +112,7 @@ export const keyringControllerInit: ControllerInitFunction<
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const snapKeyringBuilder = getController('SnapKeyringBuilder');
+  const snapKeyringBuilder = getMessengerClient('SnapKeyringBuilder');
   additionalKeyrings.push(snapKeyringBuilder);
   ///: END:ONLY_INCLUDE_IF
 

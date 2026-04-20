@@ -405,7 +405,10 @@ export class OAuthService {
         MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
       )
         .addProperties({
-          account_type: `default_${authConnection}`,
+          account_type: getSocialAccountType(
+            authConnection,
+            this.localState.userClickedRehydration === true,
+          ),
           is_rehydration: userClickedRehydration,
           failure_type: isUserCancelled ? 'user_cancelled' : 'error',
           error_category: errorCategory,

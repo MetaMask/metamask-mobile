@@ -17,13 +17,25 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+// eslint-disable-next-line import-x/no-namespace
+import * as TokenDetailsActionsModule from './TokenDetailsActions';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      state: {
+        selectedNetworkClientId: 'mainnet',
+      },
+    },
+  },
+}));
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockAddProperties = jest.fn();
-const mockBuild = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockCreateEventBuilder = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn(() => true);
@@ -58,10 +70,13 @@ jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+  useAnalytics: jest.fn(() => ({
     trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
+    createEventBuilder: mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    }),
+  })),
 }));
 
 // Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
@@ -70,10 +85,6 @@ const mockPerpsBottomSheetTooltipInner = jest.fn((..._args: unknown[]) => null);
 jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
   default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
-}));
-
-jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
-  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
 }));
 
 jest.mock(
@@ -119,6 +130,15 @@ jest.mock('@react-navigation/native', () => {
     useFocusEffect: jest.fn((cb: () => void) => cb()),
   };
 });
+
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: (action: () => Promise<unknown>) => action(),
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
 
 function createState(isEligible: boolean) {
   return {
@@ -169,13 +189,10 @@ const defaultProps: AssetOverviewContentProps = {
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
   isPerpsEnabled: true,
-  displayBuyButton: false,
-  displaySwapsButton: false,
   currentCurrency: 'USD',
   onBuy: jest.fn(),
   onSend: jest.fn().mockResolvedValue(undefined),
   onReceive: jest.fn(),
-  goToSwaps: jest.fn(),
 };
 
 const createMockSecurityData = (
@@ -795,5 +812,60 @@ describe('AssetOverviewContent', () => {
         queryByText(strings('security_trust.malicious_token_title')),
       ).toBeNull();
     });
+  });
+
+  describe('TokenDetailsActions hasBalance prop', () => {
+    let tokenDetailsActionsSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'test-event' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: null,
+        hasFundsInPerps: false,
+        accountState: null,
+        isLoading: false,
+      });
+      tokenDetailsActionsSpy = jest.spyOn(
+        TokenDetailsActionsModule,
+        'TokenDetailsActions',
+      );
+    });
+
+    afterEach(() => {
+      tokenDetailsActionsSpy.mockRestore();
+    });
+
+    it.each([
+      [false, undefined],
+      [false, ''],
+      [false, '0'],
+      [true, '1,000.50'],
+      [true, '1.000,50'],
+    ])(
+      'passes hasBalance %s when balance is %s',
+      (expectedHasBalance, balance) => {
+        renderWithProvider(
+          <AssetOverviewContent {...defaultProps} balance={balance} />,
+          { state: createState(true) },
+        );
+
+        expect(tokenDetailsActionsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ hasBalance: expectedHasBalance }),
+          expect.anything(),
+        );
+      },
+    );
   });
 });

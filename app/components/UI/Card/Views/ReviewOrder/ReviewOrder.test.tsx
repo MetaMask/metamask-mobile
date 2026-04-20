@@ -82,20 +82,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-    SafeAreaProvider: View,
-  };
-});
-
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: jest.fn(() => ({})),
@@ -331,7 +317,9 @@ describe('ReviewOrder without line2', () => {
     expect(getByTestId(ReviewOrderSelectors.ADDRESS_LINE_1)).toHaveTextContent(
       '456 Oak Ave',
     );
-    expect(queryByTestId(ReviewOrderSelectors.ADDRESS_LINE_2)).toBeNull();
+    expect(
+      queryByTestId(ReviewOrderSelectors.ADDRESS_LINE_2),
+    ).not.toBeOnTheScreen();
     expect(
       getByTestId(ReviewOrderSelectors.ADDRESS_CITY_STATE_ZIP),
     ).toHaveTextContent('Los Angeles, CA 90001');
