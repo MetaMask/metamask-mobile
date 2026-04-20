@@ -19,4 +19,19 @@ describe('createHapticsJestMock', () => {
     const fromHook = mock.useHaptics();
     expect(fromHook.playImpact).toBe(mock.playImpact);
   });
+
+  it('matches useHaptics production surface (no top-level-only playNotification)', () => {
+    const mock = createHapticsJestMock();
+    const fromHook = mock.useHaptics();
+    expect(fromHook).not.toHaveProperty('playNotification');
+    expect(Object.keys(fromHook).sort()).toEqual(
+      [
+        'playErrorNotification',
+        'playImpact',
+        'playSelection',
+        'playSuccessNotification',
+        'playWarningNotification',
+      ].sort(),
+    );
+  });
 });
