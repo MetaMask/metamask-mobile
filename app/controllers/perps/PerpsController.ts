@@ -1034,14 +1034,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Build a cache key for per-provider market data.
-   * Format: "providerId:network" (e.g. 'hyperliquid:mainnet', 'myx:testnet')
-   *
-   * @param providerId - The provider identifier.
-   * @param isTestnet - Whether the provider is on testnet.
-   * @returns The cache key string.
-   */
-  /**
    * Resolve the provider ids that should participate in aggregated cache reads.
    *
    * Providers can still be registering when the first render happens, so we
@@ -1738,8 +1730,11 @@ export class PerpsController extends BaseController<
       // IMPORTANT: Must use import() — NOT require() — for core/extension tree-shaking.
       // require() is synchronous and bundlers include it in the main bundle.
       // import() enables true code splitting so MYX is excluded when not enabled.
+      // NOTE: Keep the path in a variable so ts-bridge does not rewrite the
+      // import argument and strip the webpackIgnore magic comment in core dist.
+      const myxModulePath = './providers/MYXProvider';
       this.#myxRegistrationPromise = import(
-        /* webpackIgnore: true */ './providers/MYXProvider'
+        /* webpackIgnore: true */ myxModulePath
       )
         .then(({ MYXProvider }) => {
           this.registerMYXProvider(MYXProvider);

@@ -34,7 +34,6 @@ import {
   toTokenMinimalUnit,
 } from '../number';
 import AppConstants from '../../core/AppConstants';
-import { isMainnetByChainId } from '../networks';
 import FIRST_PARTY_CONTRACT_NAMES from '../../constants/first-party-contracts';
 import {
   UINT256_BN_MAX_VALUE,
@@ -512,15 +511,6 @@ export async function isSmartContractAddress(
 
   address = toChecksumAddress(address);
 
-  // If in contract map we don't need to cache it
-  if (
-    isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
-      ?.data?.[address]
-  ) {
-    return Promise.resolve(true);
-  }
-
   const { NetworkController } = Engine.context;
   const finalNetworkClientId =
     networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
@@ -645,6 +635,10 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   if (type === TransactionType.contractInteraction) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
+  }
+
+  if (type === TransactionType.simpleSend) {
+    return SEND_ETHER_ACTION_KEY;
   }
 
   const toSmartContract =

@@ -102,7 +102,7 @@ export const createAdvancedChartTemplate = (
     <meta charset="UTF-8">
     <title>TradingView Advanced Chart</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${CHARTING_LIBRARY_BASE_URL}; script-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; style-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; img-src 'self' data: ${CHARTING_LIBRARY_BASE_URL}; font-src ${CHARTING_LIBRARY_BASE_URL}; worker-src blob:; frame-src 'self' blob: ${CHARTING_LIBRARY_ORIGIN}; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${CHARTING_LIBRARY_BASE_URL}; script-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; style-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; img-src 'self' data: ${CHARTING_LIBRARY_BASE_URL}; font-src ${CHARTING_LIBRARY_BASE_URL}; worker-src blob:; frame-src 'self' blob: ${CHARTING_LIBRARY_ORIGIN}; connect-src https://price.api.cx.metamask.io; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
     <style>
         /*
          * Page root: fill the WebView, no scrolling. TradingView draws inside this area.
@@ -117,16 +117,12 @@ export const createAdvancedChartTemplate = (
             position: relative;
         }
         /*
-         * Chart area sits below a small top inset (16px) so absolutely positioned pills
-         * that use top + translateY(-50%) for vertical centering are not clipped by
-         * body { overflow: hidden } when the crosshair is near the top of the chart.
+         * Chart area fills the entire WebView so TradingView gets the full
+         * height passed from React Native.
          */
         #chart_surface {
             position: absolute;
-            left: 0;
-            right: 0;
-            top: 16px;
-            bottom: 0;
+            inset: 0;
             width: 100%;
             box-sizing: border-box;
         }

@@ -122,6 +122,7 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   TopTradersView,
   TraderProfileView,
+  TraderPositionView,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -142,11 +143,11 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
-import OndoPendingSheet from '../../UI/Rewards/components/Campaigns/OndoPendingSheet';
-import CampaignTourStepView from '../../UI/Rewards/Views/CampaignTourStepView';
-import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
+import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 
 const Stack = createStackNavigator();
@@ -263,6 +264,7 @@ const TransactionsHome = () => {
       <Stack.Screen
         name={Routes.RAMP.RAMPS_ORDER_DETAILS}
         component={RampsOrderDetails}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.DEPOSIT.ORDER_DETAILS}
@@ -326,14 +328,6 @@ const RewardsHome = () => {
       <Stack.Screen
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
         component={RewardsSelectSheet}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.REWARDS_ONDO_PENDING_SHEET}
-        component={OndoPendingSheet}
         options={{
           presentation: 'transparentModal',
           cardStyle: { backgroundColor: 'transparent' },
@@ -593,7 +587,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
-        options={RegionSelector.navigationOptions}
+        options={{ headerShown: false }}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
@@ -619,7 +613,6 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
-  const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -748,11 +741,6 @@ const HomeTabs = () => {
   const renderTabBar = ({ state, descriptors, navigation }) => {
     const currentRoute = state.routes[state.index];
 
-    // Hide tab bar for rewards onboarding splash screen
-    if (currentRoute.name?.startsWith('Rewards') && !rewardsSubscription) {
-      return null;
-    }
-
     // Hide tab bar when in browser
     const currentStackRouteName =
       currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
@@ -761,6 +749,24 @@ const HomeTabs = () => {
       currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
     if (isInBrowser) {
       return null;
+    }
+
+    // Hide tab bar when on rewards sub-pages (only show on home + onboarding)
+    if (currentRoute.name === Routes.REWARDS_VIEW) {
+      const rewardsHomeState = currentRoute?.state;
+      const rewardsViewRoute = rewardsHomeState?.routes?.find(
+        (r) => r.name === Routes.REWARDS_VIEW,
+      );
+      const rewardsNavState = rewardsViewRoute?.state;
+      const activeRewardsRouteName =
+        rewardsNavState?.routes?.[rewardsNavState?.index]?.name;
+      const isRewardsHomePage =
+        !activeRewardsRouteName ||
+        activeRewardsRouteName === Routes.REWARDS_DASHBOARD ||
+        activeRewardsRouteName === Routes.REWARDS_ONBOARDING_FLOW;
+      if (!isRewardsHomePage) {
+        return null;
+      }
     }
 
     if (isKeyboardHidden) {
@@ -1107,6 +1113,16 @@ const MainNavigator = () => {
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
+        name={Routes.REWARD_BENEFIT_FULL_VIEW}
+        component={BenefitFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
+        name={Routes.REWARD_BENEFITS_FULL_VIEW}
+        component={BenefitsFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
       />
@@ -1178,7 +1194,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
-            options={slideFromRightAnimation}
+            options={{
+              headerShown: false,
+              ...slideFromRightAnimation,
+            }}
           />
           <Stack.Screen
             name={Routes.PERPS.TUTORIAL}
@@ -1263,6 +1282,13 @@ const MainNavigator = () => {
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}
+      {isSocialLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.POSITION}
+          component={TraderPositionView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
       <>
         <Stack.Screen
           name={Routes.EXPLORE_SEARCH}
@@ -1322,6 +1348,11 @@ const MainNavigator = () => {
         options={({ navigation }) => ({
           ...slideFromRightAnimation,
           ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
+          headerStyle: {
+            backgroundColor: colors.background.default,
+            shadowColor: importedColors.transparent,
+            elevation: 0,
+          },
         })}
       />
       {
@@ -1336,14 +1367,12 @@ const MainNavigator = () => {
       }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
       <Stack.Screen
-        name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
-        component={CampaignTourStepView}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
-        options={clearStackNavigatorOptionsWithTransitionAnimation}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
     </Stack.Navigator>
   );

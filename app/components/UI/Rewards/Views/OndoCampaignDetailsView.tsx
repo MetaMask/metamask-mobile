@@ -47,14 +47,23 @@ import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  CampaignType,
+  OndoCampaignHowItWorks,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
-import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
+import {
+  ONDO_GM_REQUIRED_QUALIFIED_DAYS,
+  isCampaignIneligible,
+} from '../utils/ondoCampaignConstants';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type OndoCampaignDetailsRouteParams = {
-  CampaignDetails: { campaignId: string };
+  CampaignDetails: { campaignId?: string };
 };
 
 export const CAMPAIGN_DETAILS_TEST_IDS = {
@@ -64,13 +73,41 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
-  const { campaignId } = route.params;
+  // campaignId may be absent when arriving via a deeplink (no ID in the URL).
+  // In that case we resolve it below by finding the ONDO_HOLDING campaign by type.
+  const routeCampaignId = route.params?.campaignId;
 
   const referralCode = useSelector(selectReferralCode);
+
+  // Fetch campaigns early so the type-based lookup is available before other
+  // hooks that need the resolved campaign ID.
+  const {
+    campaigns,
+    isLoading: isCampaignsLoading,
+    hasError: hasCampaignsError,
+    fetchCampaigns,
+  } = useRewardCampaigns();
+
+  const campaign = useMemo(
+    () =>
+      campaigns.find((c) =>
+        routeCampaignId
+          ? c.id === routeCampaignId
+          : c.type === CampaignType.ONDO_HOLDING,
+      ) ?? null,
+    [campaigns, routeCampaignId],
+  );
+
+  // Resolved ID: use the route param when available, otherwise derive from the
+  // type-based lookup above. Falls back to '' while campaigns are still loading
+  // so that downstream hooks receive a stable string (they guard against falsy).
+  const effectiveCampaignId = routeCampaignId ?? campaign?.id ?? '';
+
   const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
-    useOndoAccountPicker(campaignId);
+    useOndoAccountPicker(effectiveCampaignId || undefined);
 
   const [portfolioNotEligibleAction, setPortfolioNotEligibleAction] = useState<
     (() => void) | null
@@ -90,24 +127,17 @@ const OndoCampaignDetailsView: React.FC = () => {
     isLoading: isDepositsLoading,
     hasError: hasDepositsError,
     refetch: refetchDeposits,
-  } = useGetOndoCampaignDeposits(campaignId);
-
-  const {
-    campaigns,
-    isLoading: isCampaignsLoading,
-    hasError: hasCampaignsError,
-    fetchCampaigns,
-  } = useRewardCampaigns();
-
-  const campaign = useMemo(
-    () => campaigns.find((c) => c.id === campaignId) ?? null,
-    [campaigns, campaignId],
-  );
+  } = useGetOndoCampaignDeposits(effectiveCampaignId || undefined);
 
   const {
     status: participantStatusData,
     isLoading: isParticipantStatusLoading,
-  } = useGetCampaignParticipantStatus(campaignId);
+  } = useGetCampaignParticipantStatus(effectiveCampaignId || undefined);
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_detail',
+    campaign_id: effectiveCampaignId || undefined,
+  });
 
   useEffect(() => {
     if (campaign && getCampaignStatus(campaign) === 'upcoming') {
@@ -123,7 +153,9 @@ const OndoCampaignDetailsView: React.FC = () => {
     isLoading: isPortfolioLoading,
     hasError: hasPortfolioError,
     refetch: refetchPortfolio,
-  } = useGetOndoPortfolioPosition(isOptedIn ? campaignId : undefined);
+  } = useGetOndoPortfolioPosition(
+    isOptedIn ? effectiveCampaignId || undefined : undefined,
+  );
 
   const hasPositions = Boolean(portfolioData?.positions.length);
 
@@ -133,7 +165,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     hasError: hasLeaderboardPositionError,
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(
-    isOptedIn && hasPositions ? campaignId : undefined,
+    isOptedIn && hasPositions ? effectiveCampaignId || undefined : undefined,
   );
 
   const {
@@ -145,7 +177,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     hasError: hasLeaderboardError,
     isLeaderboardNotYetComputed,
     refetch: refetchLeaderboard,
-  } = useGetOndoLeaderboard(campaignId, {
+  } = useGetOndoLeaderboard(effectiveCampaignId || undefined, {
     defaultTier: leaderboardPosition?.projectedTier,
   });
 
@@ -179,39 +211,10 @@ const OndoCampaignDetailsView: React.FC = () => {
     [campaign, leaderboardPosition],
   );
 
-  const leaderboardPendingSheetPosition = useMemo(
-    () =>
-      leaderboardPosition &&
-      !leaderboardPosition.qualified &&
-      tierMinDeposit != null
-        ? {
-            tier: leaderboardPosition.projectedTier,
-            netDeposit: leaderboardPosition.netDeposit,
-            qualifiedDays: leaderboardPosition.qualifiedDays,
-            tierMinDeposit,
-          }
-        : null,
-    [leaderboardPosition, tierMinDeposit],
+  const notEligibleForCampaign = useMemo(
+    () => isCampaignIneligible(campaign, leaderboardPosition?.qualified),
+    [campaign, leaderboardPosition],
   );
-
-  const notEligibleForCampaign = useMemo((): boolean => {
-    if (!campaign) return false;
-    if (isOptedIn && leaderboardPosition?.qualified) return false;
-    if (getCampaignStatus(campaign) !== 'active') return false;
-    // Backend counts calendar days (UTC): the day a position is opened counts as day 1,
-    // and every subsequent calendar day until endDate inclusive counts too.
-    // daysAvailable = floor((endDate - startOfTodayUTC) / 24h) + 1
-    const now = new Date();
-    const startOfTodayUTC = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-    );
-    const endDate = new Date(campaign.endDate).getTime();
-    const daysAvailable =
-      Math.floor((endDate - startOfTodayUTC) / (1000 * 60 * 60 * 24)) + 1;
-    return daysAvailable < ONDO_GM_REQUIRED_QUALIFIED_DAYS;
-  }, [campaign, isOptedIn, leaderboardPosition]);
 
   const {
     showHowItWorksSection,
@@ -234,7 +237,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         !hasPositions &&
         getCampaignStatus(campaign) === 'active',
       showStatsSummarySection: hasPositions,
-      showPortfolioSection: isOptedIn,
+      showPortfolioSection: isOptedIn && hasPositions,
       showLeaderboardSection: true,
     };
   }, [campaign, isOptedIn, hasPositions]);
@@ -257,7 +260,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                     iconName: IconName.Question,
                     onPress: () =>
                       navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-                        campaignId,
+                        campaignId: effectiveCampaignId,
                       }),
                     testID: 'campaign-details-mechanics-button',
                   },
@@ -314,10 +317,11 @@ const OndoCampaignDetailsView: React.FC = () => {
                 <>
                   <Box twClassName="p-4">
                     <Pressable
+                      testID="ondo-campaign-details-stats-pressable"
                       onPress={() =>
                         navigation.navigate(
                           Routes.REWARDS_ONDO_CAMPAIGN_STATS,
-                          { campaignId },
+                          { campaignId: effectiveCampaignId },
                         )
                       }
                     >
@@ -349,20 +353,8 @@ const OndoCampaignDetailsView: React.FC = () => {
                         hasError: hasPortfolioError,
                         refetch: refetchPortfolio,
                       }}
-                      showHeader={false}
                       tierMinDeposit={tierMinDeposit}
-                      onQualifyPress={
-                        leaderboardPendingSheetPosition
-                          ? () =>
-                              navigation.navigate(
-                                Routes.MODAL.REWARDS_ONDO_PENDING_SHEET,
-                                {
-                                  variant: 'own',
-                                  ...leaderboardPendingSheetPosition,
-                                },
-                              )
-                          : undefined
-                      }
+                      isIneligible={notEligibleForCampaign}
                     />
                   </Box>
                 </>
@@ -387,7 +379,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                         onPress={() =>
                           navigation.navigate(
                             Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW,
-                            { campaignId },
+                            { campaignId: effectiveCampaignId },
                           )
                         }
                       >
@@ -401,7 +393,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       isLoading={isPortfolioLoading}
                       hasError={hasPortfolioError}
                       refetch={refetchPortfolio}
-                      campaignId={campaignId}
+                      campaignId={effectiveCampaignId}
                       onOpenAccountPicker={setPendingPicker}
                       isCampaignComplete={
                         getCampaignStatus(campaign) === 'complete'
@@ -413,33 +405,32 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {(getCampaignStatus(campaign) === 'active' ||
-                showLeaderboardSection) && (
-                <Box twClassName="my-1 border-b border-border-muted" />
-              )}
-
               {getCampaignStatus(campaign) === 'active' && (
-                <Box twClassName="p-4">
-                  <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
-                    {strings('rewards.ondo_campaign_prize_pool.title')}
-                  </Text>
-                  <OndoPrizePool
-                    totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
-                    isLoading={isDepositsLoading}
-                    hasError={hasDepositsError}
-                    refetch={refetchDeposits}
-                  />
-                </Box>
+                <>
+                  <Box twClassName="my-1 border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
+                      {strings('rewards.ondo_campaign_prize_pool.title')}
+                    </Text>
+                    <OndoPrizePool
+                      totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                      isLoading={isDepositsLoading}
+                      hasError={hasDepositsError}
+                      refetch={refetchDeposits}
+                    />
+                  </Box>
+                </>
               )}
 
               {showLeaderboardSection && (
                 <>
+                  <Box twClassName="my-1 border-b border-border-muted" />
                   <Box twClassName="py-4">
                     <Pressable
                       onPress={() =>
                         navigation.navigate(
                           Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
-                          { campaignId },
+                          { campaignId: effectiveCampaignId },
                         )
                       }
                     >
@@ -473,7 +464,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       maxEntries={5}
                       currentUserReferralCode={referralCode}
                       userPosition={leaderboardUserPosition}
-                      pendingSheetPosition={leaderboardPendingSheetPosition}
+                      campaignId={effectiveCampaignId}
                     />
                   </Box>
                 </>
@@ -490,7 +481,7 @@ const OndoCampaignDetailsView: React.FC = () => {
               isLoading: isParticipantStatusLoading,
             }}
             hasPositions={hasPositions}
-            campaignId={campaignId}
+            campaignId={effectiveCampaignId}
             notEligibleForCampaign={notEligibleForCampaign}
           />
         )}

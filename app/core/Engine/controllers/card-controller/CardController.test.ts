@@ -133,16 +133,16 @@ const mockAsset: CardFundingAsset = {
   decimals: 6,
   walletAddress: '0xwallet1',
   chainId: 'eip155:59144' as `eip155:${number}`,
-  balance: '100',
-  allowance: '100',
+  spendableBalance: '100',
+  spendingCap: '100',
   priority: 1,
   status: FundingAssetStatus.Active,
 };
 
 const mockCardHomeData: CardHomeData = {
-  primaryAsset: mockAsset,
-  assets: [mockAsset],
-  supportedTokens: [],
+  primaryFundingAsset: mockAsset,
+  fundingAssets: [mockAsset],
+  availableFundingAssets: [],
   card: mockCard,
   account: null,
   alerts: [],
@@ -418,7 +418,9 @@ describe('CardController — auth methods', () => {
       provider.logout.mockResolvedValue(undefined);
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       mockTokenStore.remove.mockResolvedValue(true);
-      const controller = buildController(provider, { isAuthenticated: true });
+      const controller = buildController(provider, {
+        isAuthenticated: true,
+      });
 
       await controller.logout();
 
@@ -432,7 +434,9 @@ describe('CardController — auth methods', () => {
       provider.logout.mockRejectedValue(new Error('Server error'));
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       mockTokenStore.remove.mockResolvedValue(true);
-      const controller = buildController(provider, { isAuthenticated: true });
+      const controller = buildController(provider, {
+        isAuthenticated: true,
+      });
 
       await controller.logout();
 
@@ -1064,7 +1068,7 @@ describe('CardController — updateAssetPriority', () => {
     symbol: 'USDC',
     walletAddress: '0xwallet1',
     priority: 1,
-    balance: '0',
+    spendableBalance: '0',
   };
   const assetB: CardFundingAsset = {
     ...mockAsset,
@@ -1072,7 +1076,7 @@ describe('CardController — updateAssetPriority', () => {
     symbol: 'USDT',
     walletAddress: '0xwallet2',
     priority: 2,
-    balance: '100',
+    spendableBalance: '100',
   };
 
   it('optimistically reorders assets with selected asset at priority 1', async () => {
@@ -1091,7 +1095,7 @@ describe('CardController — updateAssetPriority', () => {
       }),
     );
 
-    const homeData = { ...mockCardHomeData, assets: [assetA, assetB] };
+    const homeData = { ...mockCardHomeData, fundingAssets: [assetA, assetB] };
     const { controller } = buildControllerWithMockMessenger(provider, {
       cardHomeData: homeData as unknown as Record<string, null>,
       cardHomeDataStatus: 'success',
@@ -1105,8 +1109,8 @@ describe('CardController — updateAssetPriority', () => {
     // assetB should be priority 1 optimistically
     const optimisticData = controller.state
       .cardHomeData as unknown as typeof homeData;
-    expect(optimisticData?.assets?.[0]?.symbol).toBe('USDT');
-    expect(optimisticData?.assets?.[0]?.priority).toBe(1);
+    expect(optimisticData?.fundingAssets?.[0]?.symbol).toBe('USDT');
+    expect(optimisticData?.fundingAssets?.[0]?.priority).toBe(1);
 
     resolveUpdate();
     await updatePromise;
@@ -1125,8 +1129,8 @@ describe('CardController — updateAssetPriority', () => {
     // assetA has balance '0', assetB has balance '100'
     const homeData = {
       ...mockCardHomeData,
-      assets: [assetA, assetB],
-      primaryAsset: assetA,
+      fundingAssets: [assetA, assetB],
+      primaryFundingAsset: assetA,
     };
     const { controller } = buildControllerWithMockMessenger(provider, {
       cardHomeData: homeData as unknown as Record<string, null>,
@@ -1139,7 +1143,7 @@ describe('CardController — updateAssetPriority', () => {
     const finalData = controller.state
       .cardHomeData as unknown as typeof homeData;
     // assetB has balance so it should be the primary
-    expect(finalData?.primaryAsset?.symbol).toBe('USDT');
+    expect(finalData?.primaryFundingAsset?.symbol).toBe('USDT');
   });
 
   it('rolls back to previous asset order when API call fails', async () => {
@@ -1152,7 +1156,7 @@ describe('CardController — updateAssetPriority', () => {
     provider.validateTokens.mockReturnValue('valid');
     mockUpdateAssetPriority.mockRejectedValue(new Error('update failed'));
 
-    const homeData = { ...mockCardHomeData, assets: [assetA, assetB] };
+    const homeData = { ...mockCardHomeData, fundingAssets: [assetA, assetB] };
     const { controller } = buildControllerWithMockMessenger(provider, {
       cardHomeData: homeData as unknown as Record<string, null>,
       cardHomeDataStatus: 'success',
@@ -1165,7 +1169,7 @@ describe('CardController — updateAssetPriority', () => {
     const rolledBackData = controller.state
       .cardHomeData as unknown as typeof homeData;
     // Original order restored
-    expect(rolledBackData?.assets?.[0]?.symbol).toBe('USDC');
+    expect(rolledBackData?.fundingAssets?.[0]?.symbol).toBe('USDC');
   });
 });
 
@@ -1692,9 +1696,9 @@ describe('CardController — data pass-throughs', () => {
   describe('getCardHomeData — unauthenticated path', () => {
     it('falls back to getOnChainAssets when no valid tokens exist', async () => {
       const onChainData: CardHomeData = {
-        primaryAsset: mockAsset,
-        assets: [mockAsset],
-        supportedTokens: [mockAsset],
+        primaryFundingAsset: mockAsset,
+        fundingAssets: [mockAsset],
+        availableFundingAssets: [mockAsset],
         card: null,
         account: null,
         alerts: [],

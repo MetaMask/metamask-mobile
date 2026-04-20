@@ -4,6 +4,8 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
 import {
   PredictCategory,
+  PredictMarketGame,
+  PredictOutcome,
   PredictPositionStatus,
   Side,
   PredictActivityBuy,
@@ -11,6 +13,7 @@ import {
   PredictActivityEntry,
 } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import {
   ClobAuthDomain,
   EIP712Domain,
@@ -37,6 +40,7 @@ import {
 } from './types';
 import { GetMarketsParams } from '../types';
 import {
+  buildOutcomeGroups,
   buildPolyHmacSignature,
   calculateFees,
   createApiKey,
@@ -56,10 +60,12 @@ import {
   getOrderTypedData,
   getPolymarketEndpoints,
   getPredictPositionStatus,
+  GROUP_ORDER,
   parsePolymarketEvents,
   parsePolymarketPositions,
   parsePolymarketActivity,
   priceValid,
+  SPORTS_MARKET_TYPE_TO_GROUP,
   submitClobOrder,
   decimalPlaces,
   roundNormal,
@@ -135,6 +141,7 @@ describe('polymarket utils', () => {
       expect(endpoints).toEqual({
         GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
+        CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
         HOMEPAGE_CAROUSEL_ENDPOINT:
@@ -1129,6 +1136,7 @@ describe('polymarket utils', () => {
             groupItemThreshold: undefined,
             status: 'open',
             volume: 1000,
+            liquidity: 500,
             resolutionStatus: 'unresolved',
             tokens: [
               {
@@ -1142,6 +1150,7 @@ describe('polymarket utils', () => {
                 price: 0.4,
               },
             ],
+            sportsMarketType: undefined,
             negRisk: true,
             tickSize: '0.01',
             resolvedBy: '0x0000000000000000000000000000000000000000',
@@ -1471,6 +1480,86 @@ describe('polymarket utils', () => {
         'market-second',
         'market-third',
       ]);
+    });
+
+    it('populates outcomeGroups for sport event when extendedSportsMarketsLeagues includes league', () => {
+      const sportEvent: PolymarketApiEvent = {
+        id: 'nfl-game-1',
+        slug: 'nfl-sea-den-2025-01-15',
+        title: 'Seahawks vs. Broncos',
+        description: 'NFL game',
+        icon: 'https://example.com/icon.png',
+        closed: false,
+        tags: [
+          { id: '1', label: 'Sports', slug: 'sports' },
+          { id: '2', label: 'Games', slug: 'games' },
+          { id: '3', label: 'NFL', slug: 'nfl' },
+        ],
+        series: [],
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'moneyline-1',
+            sportsMarketType: 'moneyline',
+          },
+        ],
+        liquidity: 50000,
+        volume: 100000,
+        gameId: 'game-123',
+      };
+      const mockTeamLookup = jest.fn((league: string, abbreviation: string) => {
+        const teams: Record<
+          string,
+          Record<
+            string,
+            {
+              id: string;
+              name: string;
+              logo: string;
+              abbreviation: string;
+              color: string;
+              alias: string;
+            }
+          >
+        > = {
+          nfl: {
+            sea: {
+              id: 'sea',
+              name: 'Seahawks',
+              logo: '',
+              abbreviation: 'sea',
+              color: TEST_HEX_COLORS.TEAM_SEA,
+              alias: 'Seahawks',
+            },
+            den: {
+              id: 'den',
+              name: 'Broncos',
+              logo: '',
+              abbreviation: 'den',
+              color: TEST_HEX_COLORS.TEAM_DEN,
+              alias: 'Broncos',
+            },
+          },
+        };
+        return teams[league]?.[abbreviation];
+      });
+
+      const resultWithLeague = parsePolymarketEvents([sportEvent], {
+        category: 'sports',
+        teamLookup: mockTeamLookup,
+        extendedSportsMarketsLeagues: ['nfl'],
+      });
+
+      expect(resultWithLeague[0].outcomeGroups).toBeDefined();
+      expect(Array.isArray(resultWithLeague[0].outcomeGroups)).toBe(true);
+
+      const resultWithoutLeague = parsePolymarketEvents([sportEvent], {
+        category: 'sports',
+        teamLookup: mockTeamLookup,
+        extendedSportsMarketsLeagues: [],
+      });
+
+      expect(resultWithoutLeague[0].outcomeGroups).toBeUndefined();
     });
   });
 
@@ -2068,12 +2157,15 @@ describe('polymarket utils', () => {
         description: 'Weather prediction',
         image: 'https://example.com/icon.png',
         groupItemTitle: 'Weather',
+        groupItemThreshold: undefined,
         status: 'open',
         volume: 1000,
+        liquidity: 500,
         tokens: [
           { id: 'token-1', title: 'Yes', price: 0.6 },
           { id: 'token-2', title: 'No', price: 0.4 },
         ],
+        sportsMarketType: undefined,
         negRisk: false,
         tickSize: '0.01',
         resolvedBy: '0x123',
@@ -2175,6 +2267,267 @@ describe('polymarket utils', () => {
       // Team A should be sorted first based on event title
       expect(result.tokens[0].title).toBe('Team A +3.5');
       expect(result.tokens[1].title).toBe('Team B -3.5');
+    });
+
+    describe('with game (shortTitle generation)', () => {
+      const createGameData = (): PredictMarketGame => ({
+        id: 'game-1',
+        homeTeam: {
+          id: 'home-1',
+          name: 'Denver Broncos',
+          abbreviation: 'DEN',
+          color: TEST_HEX_COLORS.TEAM_DEN,
+          alias: 'Broncos',
+          logo: 'https://example.com/den.png',
+        },
+        awayTeam: {
+          id: 'away-1',
+          name: 'Seattle Seahawks',
+          abbreviation: 'SEA',
+          color: TEST_HEX_COLORS.TEAM_SEA,
+          alias: 'Seahawks',
+          logo: 'https://example.com/sea.png',
+        },
+        startTime: '2024-12-31T20:00:00Z',
+        status: 'scheduled' as const,
+        league: 'nfl' as const,
+        elapsed: null,
+        period: null,
+        score: null,
+      });
+
+      it('adds team abbreviation shortTitles for moneyline markets', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'moneyline',
+          outcomes: '["Denver Broncos", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent({
+          title: 'Denver Broncos vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('adds team abbreviation shortTitles using alias match', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'moneyline',
+          outcomes: '["Broncos", "Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent({ title: 'Broncos vs. Seahawks' });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('adds spread shortTitles with signed line values', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'spreads',
+          line: 3.5,
+          outcomes: '["Denver Broncos", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.55", "0.45"]',
+        });
+        const event = createTestEvent({
+          title: 'Denver Broncos vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN -3.5');
+        expect(result.tokens[1].shortTitle).toBe('SEA +3.5');
+      });
+
+      it('returns abbreviation only for spread markets without line', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'spreads',
+          line: undefined as any,
+          outcomes: '["Denver Broncos", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.5", "0.5"]',
+        });
+        const event = createTestEvent({
+          title: 'Denver Broncos vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('adds O/U shortTitles for over/under markets', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'totals',
+          groupItemTitle: 'O/U 45.5',
+          line: 45.5,
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.52", "0.48"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('O 45.5');
+        expect(result.tokens[1].shortTitle).toBe('U 45.5');
+      });
+
+      it('maps Yes/No to Over/Under titles for O/U markets', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'totals',
+          groupItemTitle: 'O/U 45.5',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.52", "0.48"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].title).toBe('Over');
+        expect(result.tokens[1].title).toBe('Under');
+      });
+
+      it('omits shortTitle when outcome name does not match any team', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'moneyline',
+          outcomes: '["Unknown Team", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent({
+          title: 'Unknown Team vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('resolves negRisk moneyline shortTitles from groupItemTitle', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Denver Broncos',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('skips negRisk shortTitles for draw markets', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Draw',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.1", "0.9"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBeUndefined();
+      });
+
+      it('skips negRisk shortTitles when groupItemTitle does not match a team', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Some Other Option',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.3", "0.7"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBeUndefined();
+      });
+
+      it('resolves negRisk shortTitles for away team groupItemTitle', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Seattle Seahawks',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.4", "0.6"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBe('SEA');
+        expect(result.tokens[1].shortTitle).toBe('DEN');
+      });
+
+      it('skips shortTitle generation when game is not provided', () => {
+        const market = createMarket({
+          sportsMarketType: 'moneyline',
+          outcomes: '["Denver Broncos", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent({
+          title: 'Denver Broncos vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBeUndefined();
+      });
+
+      it('omits shortTitle for spread outcome when name does not match', () => {
+        const game = createGameData();
+        const market = createMarket({
+          sportsMarketType: 'spreads',
+          line: 3.5,
+          outcomes: '["Unknown", "Seattle Seahawks"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.5", "0.5"]',
+        });
+        const event = createTestEvent({
+          title: 'Unknown vs. Seattle Seahawks',
+        });
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].shortTitle).toBeUndefined();
+        expect(result.tokens[1].shortTitle).toBe('SEA +3.5');
+      });
     });
   });
 
@@ -3944,6 +4297,686 @@ describe('polymarket utils', () => {
     it('includes all necessary approval calls', () => {
       const calls = getAllowanceCalls({ address: mockAddress });
       expect(calls.length).toBe(6);
+    });
+  });
+
+  describe('buildOutcomeGroups', () => {
+    const createMockPolymarketApiMarket = (
+      overrides: Partial<PolymarketApiMarket> = {},
+    ): PolymarketApiMarket => ({
+      conditionId: 'condition-default',
+      question: 'Market?',
+      description: 'Description',
+      icon: 'https://example.com/icon.png',
+      image: 'https://example.com/image.png',
+      groupItemTitle: 'Group',
+      status: 'open',
+      volumeNum: 100,
+      liquidity: 100,
+      negRisk: false,
+      clobTokenIds: '["token-1", "token-2"]',
+      outcomes: '["Yes", "No"]',
+      outcomePrices: '["0.5", "0.5"]',
+      closed: false,
+      active: true,
+      resolvedBy: '',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: 'unresolved',
+      ...overrides,
+    });
+
+    const createMockOutcome = (
+      id: string,
+      overrides?: Partial<PredictOutcome>,
+    ): PredictOutcome => ({
+      id,
+      providerId: POLYMARKET_PROVIDER_ID,
+      marketId: 'event-1',
+      title: `Market ${id}`,
+      description: `Description ${id}`,
+      image: 'https://example.com/icon.png',
+      groupItemTitle: `Group ${id}`,
+      status: 'open',
+      volume: 100,
+      liquidity: 100,
+      tokens: [
+        { id: 'token-1', title: 'Yes', price: 0.5 },
+        { id: 'token-2', title: 'No', price: 0.5 },
+      ],
+      negRisk: false,
+      tickSize: '0.01',
+      ...overrides,
+    });
+
+    it('groups mixed sport event into game-lines, first-half, and touchdowns', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'ml-1',
+          sportsMarketType: 'moneyline',
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-1',
+          sportsMarketType: 'spreads',
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'to-1',
+          sportsMarketType: 'totals',
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'fhs-1',
+          sportsMarketType: 'first_half_spreads',
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'at-1',
+          sportsMarketType: 'anytime_touchdowns',
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(3);
+      expect(result.map((g) => g.key)).toEqual([
+        'game_lines',
+        'first_half',
+        'touchdowns',
+      ]);
+      expect(result[0].outcomes).toEqual([]);
+      expect(result[0].subgroups?.map((s) => s.key)).toEqual([
+        'moneyline',
+        'spreads',
+        'totals',
+      ]);
+      expect(result[1].outcomes.map((o) => o.id)).toEqual(['fhs-1']);
+      expect(result[1].subgroups).toBeUndefined();
+      expect(result[2].outcomes.map((o) => o.id)).toEqual(['at-1']);
+      expect(result[2].subgroups).toBeUndefined();
+    });
+
+    it('groups all standard market types into single game-lines group', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'ml-1',
+          sportsMarketType: 'moneyline',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-1',
+          sportsMarketType: 'spreads',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'to-1',
+          sportsMarketType: 'totals',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('game_lines');
+      expect(result[0].outcomes).toEqual([]);
+      expect(result[0].subgroups?.map((s) => s.key)).toEqual([
+        'moneyline',
+        'spreads',
+        'totals',
+      ]);
+      expect(result[0].subgroups?.[0].outcomes.map((o) => o.id)).toEqual([
+        'ml-1',
+      ]);
+      expect(result[0].subgroups?.[1].outcomes.map((o) => o.id)).toEqual([
+        'sp-1',
+      ]);
+      expect(result[0].subgroups?.[2].outcomes.map((o) => o.id)).toEqual([
+        'to-1',
+      ]);
+    });
+
+    it('falls back unknown sportsMarketType to game-lines', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'unknown-1',
+          sportsMarketType: 'some_new_type',
+        }),
+      ];
+      const outcomes = [
+        createMockOutcome('unknown-1', {
+          sportsMarketType: 'some_new_type',
+        }),
+      ];
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('game_lines');
+    });
+
+    it('falls back undefined sportsMarketType to game-lines', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'undef-1',
+          sportsMarketType: undefined,
+        }),
+      ];
+      const outcomes = [createMockOutcome('undef-1')];
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('game_lines');
+    });
+
+    it('groups single mapped type into standalone group', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'fhs-1',
+          sportsMarketType: 'first_half_spreads',
+        }),
+      ];
+      const outcomes = [
+        createMockOutcome('fhs-1', {
+          sportsMarketType: 'first_half_spreads',
+        }),
+      ];
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('first_half');
+    });
+
+    it('returns empty array for empty inputs', () => {
+      const result = buildOutcomeGroups([]);
+
+      expect(result).toEqual([]);
+    });
+
+    it('sorts game-lines subgroups by sportsMarketType priority', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'to-1',
+          sportsMarketType: 'totals',
+          liquidity: 10,
+          volumeNum: 10,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'ml-1',
+          sportsMarketType: 'moneyline',
+          liquidity: 500,
+          volumeNum: 500,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-1',
+          sportsMarketType: 'spreads',
+          liquidity: 200,
+          volumeNum: 200,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('game_lines');
+      expect(result[0].outcomes).toEqual([]);
+      expect(result[0].subgroups?.map((s) => s.key)).toEqual([
+        'moneyline',
+        'spreads',
+        'totals',
+      ]);
+    });
+
+    it('orders groups by GROUP_ORDER priority with unknown keys at end', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'at-1',
+          sportsMarketType: 'anytime_touchdowns',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'ml-1',
+          sportsMarketType: 'moneyline',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'fhs-1',
+          sportsMarketType: 'first_half_spreads',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result.map((g) => g.key)).toEqual([
+        'game_lines',
+        'first_half',
+        'touchdowns',
+      ]);
+      expect(GROUP_ORDER.indexOf('game_lines')).toBeLessThan(
+        GROUP_ORDER.indexOf('first_half'),
+      );
+      expect(GROUP_ORDER.indexOf('first_half')).toBeLessThan(
+        GROUP_ORDER.indexOf('touchdowns'),
+      );
+      expect(SPORTS_MARKET_TYPE_TO_GROUP.first_half_spreads).toBe('first_half');
+      expect(SPORTS_MARKET_TYPE_TO_GROUP.anytime_touchdowns).toBe('touchdowns');
+    });
+
+    it('tiebreaks game-lines outcomes by liquidity+volume when sportsMarketType priority is equal', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-low',
+          sportsMarketType: 'spreads',
+          liquidity: 50,
+          volumeNum: 50,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-high',
+          sportsMarketType: 'spreads',
+          liquidity: 500,
+          volumeNum: 500,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].outcomes.map((o) => o.id)).toEqual([
+        'sp-high',
+        'sp-low',
+      ]);
+    });
+
+    it('sorts first-half subgroups by normalized sportsMarketType priority (moneyline, spreads, totals)', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'fht-1',
+          sportsMarketType: 'first_half_totals',
+          liquidity: 500,
+          volumeNum: 500,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'fhm-1',
+          sportsMarketType: 'first_half_moneyline',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'fhs-1',
+          sportsMarketType: 'first_half_spreads',
+          liquidity: 300,
+          volumeNum: 300,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('first_half');
+      expect(result[0].outcomes).toEqual([]);
+      expect(result[0].subgroups?.map((s) => s.key)).toEqual([
+        'first_half_moneyline',
+        'first_half_spreads',
+        'first_half_totals',
+      ]);
+    });
+
+    it('creates subgroups for touchdowns group with anytime and first types', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'at-1',
+          sportsMarketType: 'anytime_touchdowns',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'ft-1',
+          sportsMarketType: 'first_touchdowns',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('touchdowns');
+      expect(result[0].outcomes).toEqual([]);
+      expect(result[0].subgroups).toHaveLength(2);
+      expect(result[0].subgroups?.map((s) => s.key)).toEqual(
+        expect.arrayContaining(['anytime_touchdowns', 'first_touchdowns']),
+      );
+    });
+
+    it('keeps single-type group flat without subgroups (points)', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'pts-1',
+          sportsMarketType: 'points',
+          liquidity: 200,
+          volumeNum: 200,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'pts-2',
+          sportsMarketType: 'points',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('points');
+      expect(result[0].outcomes).toHaveLength(2);
+      expect(result[0].outcomes.map((o) => o.id)).toEqual(['pts-1', 'pts-2']);
+      expect(result[0].subgroups).toBeUndefined();
+    });
+
+    it('creates subgroups for game-lines with moneyline and spreads only', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'ml-1',
+          sportsMarketType: 'moneyline',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-1',
+          sportsMarketType: 'spreads',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('game_lines');
+      expect(result[0].outcomes).toEqual([]);
+      expect(result[0].subgroups).toHaveLength(2);
+      expect(result[0].subgroups?.map((s) => s.key)).toEqual([
+        'moneyline',
+        'spreads',
+      ]);
+    });
+
+    it('keeps game-lines flat when only moneyline exists', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'ml-1',
+          sportsMarketType: 'moneyline',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('game_lines');
+      expect(result[0].outcomes).toHaveLength(1);
+      expect(result[0].outcomes[0].id).toBe('ml-1');
+      expect(result[0].subgroups).toBeUndefined();
+    });
+
+    it('sorts outcomes by liquidity+volume within each subgroup', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'ml-1',
+          sportsMarketType: 'moneyline',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-low',
+          sportsMarketType: 'spreads',
+          liquidity: 50,
+          volumeNum: 50,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-high',
+          sportsMarketType: 'spreads',
+          liquidity: 500,
+          volumeNum: 500,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      const spreadsSubgroup = result[0].subgroups?.find(
+        (s) => s.key === 'spreads',
+      );
+      expect(spreadsSubgroup?.outcomes.map((o) => o.id)).toEqual([
+        'sp-high',
+        'sp-low',
+      ]);
+    });
+
+    it('mixed event produces subgrouped and flat groups', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'ml-1',
+          sportsMarketType: 'moneyline',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-1',
+          sportsMarketType: 'spreads',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'to-1',
+          sportsMarketType: 'totals',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'pts-1',
+          sportsMarketType: 'points',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      const gameLines = result.find((g) => g.key === 'game_lines');
+      const points = result.find((g) => g.key === 'points');
+      expect(gameLines?.subgroups).toHaveLength(3);
+      expect(gameLines?.outcomes).toEqual([]);
+      expect(points?.outcomes).toHaveLength(1);
+      expect(points?.subgroups).toBeUndefined();
+    });
+
+    it('multiple spread thresholds within spreads subgroup', () => {
+      const markets = [
+        createMockPolymarketApiMarket({
+          conditionId: 'ml-1',
+          sportsMarketType: 'moneyline',
+          liquidity: 100,
+          volumeNum: 100,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-1',
+          sportsMarketType: 'spreads',
+          liquidity: 300,
+          volumeNum: 300,
+          groupItemThreshold: 3.5,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-2',
+          sportsMarketType: 'spreads',
+          liquidity: 200,
+          volumeNum: 200,
+          groupItemThreshold: 7.5,
+        }),
+        createMockPolymarketApiMarket({
+          conditionId: 'sp-3',
+          sportsMarketType: 'spreads',
+          liquidity: 100,
+          volumeNum: 100,
+          groupItemThreshold: 10.5,
+        }),
+      ];
+      const outcomes = markets.map((m) =>
+        createMockOutcome(m.conditionId, {
+          sportsMarketType: m.sportsMarketType,
+          volume: m.volumeNum ?? 100,
+          liquidity: m.liquidity ?? 100,
+        }),
+      );
+
+      const result = buildOutcomeGroups(outcomes);
+
+      const spreadsSubgroup = result[0].subgroups?.find(
+        (s) => s.key === 'spreads',
+      );
+      expect(spreadsSubgroup?.outcomes).toHaveLength(3);
+      expect(spreadsSubgroup?.outcomes.map((o) => o.id)).toEqual([
+        'sp-1',
+        'sp-2',
+        'sp-3',
+      ]);
+    });
+  });
+
+  describe('parsePolymarketMarket - sportsMarketType mapping', () => {
+    const createMarketForSportsType = (
+      overrides: Partial<PolymarketApiMarket> = {},
+    ): PolymarketApiMarket => ({
+      conditionId: 'market-1',
+      question: 'Will it rain?',
+      description: 'Weather prediction',
+      icon: 'https://example.com/icon.png',
+      image: 'https://example.com/image.png',
+      groupItemTitle: 'Weather',
+      status: 'open',
+      volumeNum: 1000,
+      liquidity: 500,
+      negRisk: false,
+      clobTokenIds: '["token-1", "token-2"]',
+      outcomes: '["Yes", "No"]',
+      outcomePrices: '["0.6", "0.4"]',
+      closed: false,
+      active: true,
+      resolvedBy: '0x123',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: 'unresolved',
+      ...overrides,
+    });
+
+    const createEventForSportsType = (): PolymarketApiEvent => ({
+      id: 'event-1',
+      slug: 'test-event',
+      title: 'Test Event',
+      description: 'A test event',
+      icon: 'https://example.com/icon.png',
+      closed: false,
+      tags: [],
+      series: [],
+      markets: [],
+      liquidity: 1000,
+      volume: 5000,
+    });
+
+    it('parsePolymarketMarket maps sportsMarketType from raw market', () => {
+      const market = createMarketForSportsType({
+        sportsMarketType: 'spreads',
+      });
+      const event = createEventForSportsType();
+
+      const result = parsePolymarketMarket(market, event);
+
+      expect(result.sportsMarketType).toBe('spreads');
+    });
+
+    it('parsePolymarketMarket maps undefined when raw market has no sportsMarketType', () => {
+      const market = createMarketForSportsType();
+      const event = createEventForSportsType();
+
+      const result = parsePolymarketMarket(market, event);
+
+      expect(result.sportsMarketType).toBeUndefined();
     });
   });
 

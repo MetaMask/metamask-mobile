@@ -391,7 +391,6 @@ export const NETWORK_CHAIN_ID: {
   readonly TEMPO_MAINNET: '0x1079';
   readonly CHILIZ: '0x15b38';
   readonly STABLE_MAINNET: '0x3dc';
-  readonly MANTLE: '0x1388';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -438,7 +437,6 @@ export const NETWORK_CHAIN_ID: {
   TEMPO_MAINNET: '0x1079',
   CHILIZ: '0x15b38',
   STABLE_MAINNET: '0x3dc',
-  MANTLE: '0x1388',
   ...CHAIN_IDS,
 };
 

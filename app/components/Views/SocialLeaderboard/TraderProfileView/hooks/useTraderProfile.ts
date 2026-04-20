@@ -1,10 +1,15 @@
-import { useMemo, useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   TraderProfileResponse,
   FetchTraderProfileOptions,
 } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
+import { useFollowToggle } from '../../../../hooks/useFollowToggle';
+
+export interface UseTraderProfileOptions {
+  refetchInterval?: number;
+}
 
 export interface UseTraderProfileResult {
   profile: TraderProfileResponse | null;
@@ -17,6 +22,7 @@ export interface UseTraderProfileResult {
 
 export const useTraderProfile = (
   addressOrId: string,
+  options?: UseTraderProfileOptions,
 ): UseTraderProfileResult => {
   const fetchOptions: FetchTraderProfileOptions = { addressOrId };
 
@@ -28,19 +34,12 @@ export const useTraderProfile = (
   const { data, isLoading, error, refetch } = useQuery<TraderProfileResponse>({
     queryKey,
     enabled: Boolean(addressOrId),
+    refetchInterval: options?.refetchInterval,
   });
 
-  const [localFollowOverride, setLocalFollowOverride] = useState<
-    boolean | null
-  >(null);
+  const { isFollowing, toggleFollow } = useFollowToggle(addressOrId);
 
-  const isFollowing = localFollowOverride ?? false;
-
-  const profile = useMemo(() => data ?? null, [data]);
-
-  const toggleFollow = useCallback(() => {
-    setLocalFollowOverride((prev) => !(prev ?? false));
-  }, []);
+  const profile = data ?? null;
 
   const refresh = useCallback(async () => {
     try {

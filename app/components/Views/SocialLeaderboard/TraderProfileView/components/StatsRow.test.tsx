@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import StatsRow from './StatsRow';
 import type { TraderStats } from '@metamask/social-controllers';
+import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 
 const baseStats: TraderStats = {
   pnl30d: 20610,
@@ -12,6 +13,14 @@ const baseStats: TraderStats = {
 };
 
 describe('StatsRow', () => {
+  it('renders the stats row container', () => {
+    renderWithProvider(<StatsRow stats={baseStats} />);
+
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+    ).toBeOnTheScreen();
+  });
+
   it('renders win rate as percentage when winRate30d is non-null and positive', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
     expect(screen.getByText('92%')).toBeOnTheScreen();
@@ -60,8 +69,55 @@ describe('StatsRow', () => {
       winRate30d: null,
       pnl30d: null,
     } as unknown as TraderStats;
+
     renderWithProvider(<StatsRow stats={stats} />);
+
     const dashes = screen.getAllByText('\u2014');
+
     expect(dashes.length).toBeGreaterThanOrEqual(3);
+  });
+
+  describe('avg. hold time', () => {
+    it('renders a dash when holdTimeMinutes is null', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={null} />);
+
+      expect(screen.getByText('\u2014')).toBeOnTheScreen();
+    });
+
+    it('renders minutes when holdTimeMinutes is less than 60', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={45} />);
+
+      expect(screen.getByText('45m')).toBeOnTheScreen();
+    });
+
+    it('renders hours when holdTimeMinutes is 60 or more but less than 1440', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={90} />);
+
+      expect(screen.getByText('1.5 hrs')).toBeOnTheScreen();
+    });
+
+    it('renders days when holdTimeMinutes is 1440 or more', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={2880} />);
+
+      expect(screen.getByText('2 days')).toBeOnTheScreen();
+    });
+  });
+
+  it('renders win rate label', () => {
+    renderWithProvider(<StatsRow stats={baseStats} />);
+
+    expect(screen.getByText('win rate')).toBeOnTheScreen();
+  });
+
+  it('renders 30D P&L label', () => {
+    renderWithProvider(<StatsRow stats={baseStats} />);
+
+    expect(screen.getByText('30D P&L')).toBeOnTheScreen();
+  });
+
+  it('renders hold time label', () => {
+    renderWithProvider(<StatsRow stats={baseStats} />);
+
+    expect(screen.getByText('hold time')).toBeOnTheScreen();
   });
 });

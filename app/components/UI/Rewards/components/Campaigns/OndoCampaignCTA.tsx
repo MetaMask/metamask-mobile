@@ -15,6 +15,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useRewardsToast from '../../hooks/useRewardsToast';
 import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
 import OndoNotEligibleSheet from './OndoNotEligibleSheet';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { ONDO_RESTRICTED_COUNTRIES } from '../../../../../util/ondoGeoRestrictions';
 
 interface OndoCampaignCTAProps {
   campaign: CampaignDto;
@@ -30,7 +33,7 @@ interface OndoCampaignCTAProps {
 /**
  * Bottom CTA for the Ondo campaign details page.
  * Renders one of four states depending on campaign/participant status:
- * - Delegates to CampaignCTA for the opt-in flow (active, not opted in, within deposit window)
+ * - Delegates to CampaignOptInCta for the opt-in flow (active, not opted in, within deposit window). Passes ONDO_RESTRICTED_COUNTRIES so that CampaignOptInCta shows the geo-locked "Check eligibility" CTA for restricted users.
  * - "Entries closed" button (with Lock icon + toast) when cutoff has passed and user is not opted in
  * - "Open Position" button when the user has opted in but has no portfolio positions
  * - "Swap Ondo Assets" button when the user has opted in and has portfolio positions
@@ -43,23 +46,38 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   notEligibleForCampaign = false,
 }) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const [isNotEligibleSheetOpen, setIsNotEligibleSheetOpen] = useState(false);
   const pendingActionRef = useRef<(() => void) | null>(null);
 
   const navigateToOpenPosition = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_open_position',
+        })
+        .build(),
+    );
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
       mode: 'open_position',
       campaignId,
     });
-  }, [navigation, campaignId]);
+  }, [navigation, campaignId, trackEvent, createEventBuilder]);
 
   const navigateToSwapAssets = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_swap_assets',
+        })
+        .build(),
+    );
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
       mode: 'swap',
       campaignId,
     });
-  }, [navigation, campaignId]);
+  }, [navigation, campaignId, trackEvent, createEventBuilder]);
 
   const guardedNavigate = useCallback(
     (navigate: () => void) => {
@@ -87,9 +105,13 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   const isLoading = participantStatus.isLoading;
   const isOptedIn = participantStatus?.status?.optedIn === true;
 
-  // Show "Entries closed" for complete campaigns when user has not opted in
+  // Show "Entries closed" when the user cannot enter: campaign is complete,
+  // or campaign is active but the user is not eligible (and has not opted in).
   const isEntriesClosed =
-    !isLoading && !isOptedIn && campaignStatus === 'complete';
+    !isLoading &&
+    !isOptedIn &&
+    (campaignStatus === 'complete' ||
+      (campaignStatus === 'active' && notEligibleForCampaign));
 
   const handleEntriesClosedPress = useCallback(() => {
     showToast(
@@ -123,32 +145,27 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   }
 
   if (!isOptedIn) {
-    if (notEligibleForCampaign) {
-      return (
-        <Box twClassName="px-4 pt-2">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleEntriesClosedPress}
-            testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
-          >
-            {strings('rewards.campaign_details.join_campaign')}
-          </Button>
-        </Box>
-      );
-    }
     return (
       <CampaignOptInCta
         campaign={campaign}
         participantStatus={participantStatus}
+        customRestrictedCountries={ONDO_RESTRICTED_COUNTRIES}
+        onJoinPress={() =>
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+              .addProperties({
+                button_type: 'ondo_campaign_join',
+              })
+              .build(),
+          )
+        }
       />
     );
   }
 
   return (
     <>
-      <Box twClassName="px-4 pt-2">
+      <Box twClassName="p-4 mb-2">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -156,7 +173,9 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
           onPress={hasPositions ? onSwapAssets : onOpenPosition}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {strings('rewards.campaign_details.ondo.open_position')}
+          {hasPositions
+            ? strings('rewards.campaign_details.swap_ondo_assets')
+            : strings('rewards.campaign_details.open_position')}
         </Button>
       </Box>
       {isNotEligibleSheetOpen && (

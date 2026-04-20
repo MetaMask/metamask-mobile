@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
+import { SubscriptionBenefitDto } from '../../core/Engine/controllers/rewards-controller/types.ts';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -150,6 +151,13 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
 
+// Benefits selectors
+export const selectBenefits = (state: RootState): SubscriptionBenefitDto[] =>
+  state.rewards.benefits;
+
+export const selectBenefitsLoading = (state: RootState): boolean =>
+  state.rewards.benefitsLoading;
+
 // Campaigns selectors
 export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
 
@@ -288,3 +296,6 @@ export const selectOndoCampaignDepositsLoading = (state: RootState) =>
 
 export const selectOndoCampaignDepositsError = (state: RootState) =>
   state.rewards.ondoCampaignDepositsError;
+
+export const selectPendingDeeplink = (state: RootState) =>
+  state.rewards.pendingDeeplink;

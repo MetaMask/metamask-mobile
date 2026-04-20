@@ -7,11 +7,13 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
+  SubscriptionBenefitDto,
   SeasonWayToEarnDto,
   CampaignDto,
   CampaignParticipantStatusDto,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
+  SubscriptionBenefitsState,
   OndoGmPortfolioDto,
   OndoGmActivityEntryDto,
   OndoGmCampaignDepositsDto,
@@ -120,6 +122,11 @@ export interface RewardsState {
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
 
+  // Benefits state
+  benefits: SubscriptionBenefitDto[];
+  benefitsLoading: boolean;
+  benefitsError: boolean;
+
   // Campaigns state
   campaigns: CampaignDto[];
   campaignsLoading: boolean;
@@ -157,6 +164,19 @@ export interface RewardsState {
   ondoCampaignDeposits: OndoGmCampaignDepositsDto | null;
   ondoCampaignDepositsLoading: boolean;
   ondoCampaignDepositsError: boolean;
+
+  // Pending deeplink navigation intent, stored in Redux so it survives the
+  // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
+  pendingDeeplink: PendingDeeplink | null;
+}
+
+/**
+ * Typed deeplink navigation parameters for the Rewards feature.
+ * Stored in Redux so the intent is available when RewardsNavigator mounts.
+ */
+export interface PendingDeeplink {
+  page?: 'campaigns' | 'musd' | 'benefits';
+  campaign?: 'ondo' | 'season1';
 }
 
 export const initialState: RewardsState = {
@@ -216,6 +236,11 @@ export const initialState: RewardsState = {
     initialSubscriptionId: null,
   },
 
+  // Benefits initial state
+  benefits: [],
+  benefitsLoading: false,
+  benefitsError: false,
+
   // Campaigns initial state
   campaigns: [],
   campaignsLoading: false,
@@ -249,6 +274,8 @@ export const initialState: RewardsState = {
   ondoCampaignDeposits: null,
   ondoCampaignDepositsLoading: false,
   ondoCampaignDepositsError: false,
+
+  pendingDeeplink: null,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -624,6 +651,18 @@ const rewardsSlice = createSlice({
       }
     },
 
+    setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
+      state.benefits = action.payload.benefits;
+    },
+
+    setBenefitsLoading: (state, action: PayloadAction<boolean>) => {
+      state.benefitsLoading = action.payload;
+    },
+
+    setBenefitsError: (state, action: PayloadAction<boolean>) => {
+      state.benefitsError = action.payload;
+    },
+
     setOndoCampaignActivity: (
       state,
       action: PayloadAction<{
@@ -713,6 +752,12 @@ const rewardsSlice = createSlice({
       state.bulkLink.isRunning = true;
       state.bulkLink.wasInterrupted = false;
       // Note: We don't reset counts here - the saga will recalculate based on current opt-in status
+    },
+    setPendingDeeplink: (
+      state,
+      action: PayloadAction<PendingDeeplink | null>,
+    ) => {
+      state.pendingDeeplink = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -817,6 +862,10 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  // Benefits actions
+  setBenefits,
+  setBenefitsError,
+  setBenefitsLoading,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,
@@ -846,6 +895,7 @@ export const {
   bulkLinkSubscriptionChanged,
   bulkLinkReset,
   bulkLinkResumed,
+  setPendingDeeplink,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

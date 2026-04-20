@@ -1,4 +1,5 @@
 import React from 'react';
+import { Duration } from 'luxon';
 import {
   Box,
   Text,
@@ -16,16 +17,32 @@ import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 
 export interface StatsRowProps {
   stats: TraderStats;
-  avgHoldMinutes?: number | null;
+  holdTimeMinutes?: number | null;
 }
 
 function formatHoldTime(minutes: number): string {
-  if (minutes < 60) return `${Math.round(minutes)}m`;
-  if (minutes < 1440) return `${(minutes / 60).toFixed(1)} hrs`;
-  return `${(minutes / 1440).toFixed(1)} days`;
+  const duration = Duration.fromObject({ minutes }).shiftTo(
+    'days',
+    'hours',
+    'minutes',
+  );
+
+  if (duration.days >= 1) {
+    return strings('social_leaderboard.trader_profile.hold_time_days', {
+      count: parseFloat(duration.as('days').toFixed(1)),
+    });
+  }
+  if (duration.hours >= 1) {
+    return strings('social_leaderboard.trader_profile.hold_time_hours', {
+      count: parseFloat(duration.as('hours').toFixed(1)),
+    });
+  }
+  return strings('social_leaderboard.trader_profile.hold_time_minutes', {
+    count: Math.round(duration.minutes),
+  });
 }
 
-const StatsRow: React.FC<StatsRowProps> = ({ stats, avgHoldMinutes }) => {
+const StatsRow: React.FC<StatsRowProps> = ({ stats, holdTimeMinutes }) => {
   const winRate =
     stats.winRate30d != null
       ? `${Math.round(stats.winRate30d * 100)}%`
@@ -56,7 +73,7 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats, avgHoldMinutes }) => {
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          color={TextColor.TextMuted}
+          color={TextColor.TextAlternative}
         >
           {strings('social_leaderboard.trader_profile.win_rate')}
         </Text>
@@ -80,7 +97,7 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats, avgHoldMinutes }) => {
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          color={TextColor.TextMuted}
+          color={TextColor.TextAlternative}
         >
           {strings('social_leaderboard.trader_profile.pnl_30d')}
         </Text>
@@ -92,14 +109,14 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats, avgHoldMinutes }) => {
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
         >
-          {avgHoldMinutes != null ? formatHoldTime(avgHoldMinutes) : '\u2014'}
+          {holdTimeMinutes != null ? formatHoldTime(holdTimeMinutes) : '\u2014'}
         </Text>
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          color={TextColor.TextMuted}
+          color={TextColor.TextAlternative}
         >
-          {strings('social_leaderboard.trader_profile.avg_hold')}
+          {strings('social_leaderboard.trader_profile.hold_time')}
         </Text>
       </Box>
     </Box>

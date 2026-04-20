@@ -450,10 +450,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   }, [isCalculating, leverageChanged]);
 
   useEffect(() => {
-    if (isVisible) {
-      bottomSheetRef.current?.onOpenBottomSheet();
-    } else {
-      // Reset all state when the bottom sheet is closed
+    if (!isVisible) {
       setTempLeverage(initialLeverage);
       setDraggingLeverage(initialLeverage);
       setIsDragging(false);

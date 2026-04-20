@@ -6,6 +6,8 @@ import React, {
 } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
@@ -48,7 +50,7 @@ const TopTradersSection = forwardRef<
   TopTradersSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
@@ -85,8 +87,18 @@ const TopTradersSection = forwardRef<
   });
 
   const handleViewAll = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW as never);
+    navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW);
   }, [navigation]);
+
+  const handleTraderPress = useCallback(
+    (traderId: string, traderName: string) => {
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+        traderId,
+        traderName,
+      });
+    },
+    [navigation],
+  );
 
   if (!isEnabled || (!isLoading && traders.length === 0)) {
     return null;
@@ -107,9 +119,20 @@ const TopTradersSection = forwardRef<
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tw.style('px-4 gap-2.5')}
+        contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
         testID="homepage-top-traders-carousel"
-      />
+      >
+        {isLoading
+          ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
+          : traders.map((trader) => (
+              <TopTraderCard
+                key={trader.id}
+                trader={trader}
+                onFollowPress={toggleFollow}
+                onTraderPress={handleTraderPress}
+              />
+            ))}
+      </ScrollView>
     </View>
   );
 });
