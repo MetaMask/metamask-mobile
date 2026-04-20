@@ -59,6 +59,7 @@ import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   MATIC_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
 
@@ -2455,6 +2456,7 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
+        gasFeeToken: USDC_E_ADDRESS as Hex,
         transactions: [transaction],
       });
 
