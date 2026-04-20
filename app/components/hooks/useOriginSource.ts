@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import { RootState } from '../../reducers';
@@ -56,45 +57,47 @@ export const useOriginSource = ({
     (state: RootState) => state.sdk,
   );
 
-  if (!origin) {
-    return undefined;
-  }
+  return useMemo(() => {
+    if (!origin) {
+      return undefined;
+    }
 
-  let source: SourceTypeValue = SourceType.IN_APP_BROWSER;
+    let source: SourceTypeValue = SourceType.IN_APP_BROWSER;
 
-  // --- SDK v2 (MWP) ---
-  // V2 connections use the bare session UUID as the permission-system origin.
-  // Look it up in the v2Connections store (populated by
-  // HostApplicationAdapter.syncConnectionList, keyed by connection ID).
-  if (isUUID(origin) && v2Connections?.[origin]) {
-    source = SourceType.MM_CONNECT;
-  } else if (origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)) {
-    // --- SDK v1 (prefixed host) ---
-    // V1 origins are either a bare UUID (channel ID) found in the SDKConnect
-    // singleton, or prefixed with "MMSDKREMOTE::" (used as the connection host
-    // in approved-hosts, display logic, etc.).
-    source = SourceType.SDK;
-  } else if (
-    isUUID(origin) &&
-    SDKConnect.getInstance().getConnection({ channelId: origin })
-  ) {
-    // --- SDK v1 (bare UUID) ---
-    source = SourceType.SDK;
-  } else if (wc2Metadata?.id && wc2Metadata.id.length > 0) {
-    // --- WalletConnect ---
-    // wc2Metadata is a single Redux slot holding the *most recent* WC proposal
-    // metadata (set on session_proposal, cleared after approval/rejection).
-    // It is not keyed by origin — we rely on the WC proposal flow being
-    // serialized (via proposalLock in WalletConnectV2) so that during the
-    // approval window, a non-empty id implies *this* origin is from WC.
-    source = SourceType.WALLET_CONNECT;
-  }
+    // --- SDK v2 (MWP) ---
+    // V2 connections use the bare session UUID as the permission-system origin.
+    // Look it up in the v2Connections store (populated by
+    // HostApplicationAdapter.syncConnectionList, keyed by connection ID).
+    if (isUUID(origin) && v2Connections?.[origin]) {
+      source = SourceType.MM_CONNECT;
+    } else if (origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)) {
+      // --- SDK v1 (prefixed host) ---
+      // V1 origins are either a bare UUID (channel ID) found in the SDKConnect
+      // singleton, or prefixed with "MMSDKREMOTE::" (used as the connection host
+      // in approved-hosts, display logic, etc.).
+      source = SourceType.SDK;
+    } else if (
+      isUUID(origin) &&
+      SDKConnect.getInstance().getConnection({ channelId: origin })
+    ) {
+      // --- SDK v1 (bare UUID) ---
+      source = SourceType.SDK;
+    } else if (wc2Metadata?.id && wc2Metadata.id.length > 0) {
+      // --- WalletConnect ---
+      // wc2Metadata is a single Redux slot holding the *most recent* WC proposal
+      // metadata (set on session_proposal, cleared after approval/rejection).
+      // It is not keyed by origin — we rely on the WC proposal flow being
+      // serialized (via proposalLock in WalletConnectV2) so that during the
+      // approval window, a non-empty id implies *this* origin is from WC.
+      source = SourceType.WALLET_CONNECT;
+    }
 
-  const requestSource =
-    SOURCE_TO_REQUEST_SOURCE[source] ??
-    AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+    const requestSource =
+      SOURCE_TO_REQUEST_SOURCE[source] ??
+      AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
 
-  return { source, requestSource };
+    return { source, requestSource };
+  }, [origin, v2Connections, wc2Metadata]);
 };
 
 export default useOriginSource;
