@@ -1,5 +1,12 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { Image } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { Animated, Dimensions, Easing, Image } from 'react-native';
+import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -22,30 +29,30 @@ import {
 } from '../../../actions/onboarding';
 import { selectWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
-import { lightTheme } from '@metamask/design-tokens';
-import type { Theme } from '../../../util/theme/models';
-import { useTheme } from '../../../util/theme';
+import Logger from '../../../util/Logger';
+import onboardChecklistV05Animation from '../../../animations/onboard_checklist_v05.riv';
+import { isE2E } from '../../../util/test/utils';
 import {
-  WALLET_HOME_ONBOARDING_STEP_HERO,
-  type WalletHomeOnboardingHeroAccent,
-} from './walletHomeOnboardingStepHero';
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD,
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+  WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS,
+  WALLET_HOME_ONBOARDING_CHECKLIST_PROGRESS_BAR_MS,
+  WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_IN_MS,
+  WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS,
+} from './walletHomeOnboardingChecklistRive';
+import { WALLET_HOME_ONBOARDING_STEP_HERO } from './walletHomeOnboardingStepHero';
 
 type StepKind = 'fund' | 'trade' | 'notifications';
 
-function heroAccentLightColor(
-  colors: Theme['colors'] | undefined,
-  accent: WalletHomeOnboardingHeroAccent,
-) {
-  const palette = colors ?? lightTheme.colors;
-  switch (accent) {
-    case 'accent03':
-      return palette.accent03.light;
-    case 'accent04':
-      return palette.accent04.light;
-    case 'accent02':
-      return palette.accent02.light;
-  }
-}
+/** Rive / Image fill the hero `Box` (`h-52`); defined once to avoid per-render style objects. */
+const HERO_MEDIA_LAYOUT_STYLE = {
+  width: '100%' as const,
+  height: '100%' as const,
+  minHeight: 0,
+};
+
+const SLIDE_DISTANCE = Dimensions.get('window').width;
 
 type StepButtonLayout = 'full_width_primary' | 'skip_and_primary_row';
 
@@ -106,13 +113,42 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   testID = WalletHomeOnboardingStepsSelectors.CONTAINER,
 }) => {
   const tw = useTailwind();
-  const theme = useTheme();
-  const colors = theme.colors ?? lightTheme.colors;
+  const checklistRiveRef = useRef<RiveRef>(null);
   const dispatch = useDispatch();
   const walletHomeOnboardingStepsState = useSelector(
     selectWalletHomeOnboardingSteps,
   );
   const stepIndex = walletHomeOnboardingStepsState.stepIndex ?? 0;
+
+  const slideX = useRef(new Animated.Value(0)).current;
+  const progressRatioAnim = useRef(
+    new Animated.Value(1 / VISIBLE_STEPS.length),
+  ).current;
+  const isFirstProgressSync = useRef(true);
+  const advanceLockRef = useRef(false);
+  const outroHoldTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const [progressTrackWidth, setProgressTrackWidth] = useState(0);
+  const [isStepTransitioning, setIsStepTransitioning] = useState(false);
+
+  const stepIndexRef = useRef(stepIndex);
+  const isLastStepRef = useRef(stepIndex >= VISIBLE_STEPS.length - 1);
+  useEffect(() => {
+    stepIndexRef.current = stepIndex;
+    isLastStepRef.current = stepIndex >= VISIBLE_STEPS.length - 1;
+  }, [stepIndex]);
+
+  useEffect(
+    () => () => {
+      if (outroHoldTimeoutRef.current !== null) {
+        clearTimeout(outroHoldTimeoutRef.current);
+        outroHoldTimeoutRef.current = null;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const max = Math.max(0, VISIBLE_STEPS.length - 1);
@@ -124,15 +160,101 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const currentStep =
     VISIBLE_STEPS[Math.min(stepIndex, VISIBLE_STEPS.length - 1)];
   const totalSteps = VISIBLE_STEPS.length;
-  const isLastStep = stepIndex >= totalSteps - 1;
+
+  useEffect(() => {
+    const target = (stepIndex + 1) / totalSteps;
+    if (isFirstProgressSync.current) {
+      isFirstProgressSync.current = false;
+      progressRatioAnim.setValue(target);
+      return;
+    }
+    Animated.timing(progressRatioAnim, {
+      toValue: target,
+      duration: isE2E ? 0 : WALLET_HOME_ONBOARDING_CHECKLIST_PROGRESS_BAR_MS,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [progressRatioAnim, stepIndex, totalSteps]);
+
+  const finishAdvance = useCallback(() => {
+    advanceLockRef.current = false;
+    setIsStepTransitioning(false);
+  }, []);
 
   const goNextOrComplete = useCallback(() => {
-    if (isLastStep) {
-      dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
-    } else {
-      dispatch(setWalletHomeOnboardingStepsStep(stepIndex + 1));
+    if (advanceLockRef.current) {
+      return;
     }
-  }, [dispatch, isLastStep, stepIndex]);
+
+    const fromIndex = stepIndexRef.current;
+    const fromIsLast = isLastStepRef.current;
+
+    if (isE2E) {
+      if (fromIsLast) {
+        dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+      } else {
+        dispatch(setWalletHomeOnboardingStepsStep(fromIndex + 1));
+      }
+      return;
+    }
+
+    advanceLockRef.current = true;
+    setIsStepTransitioning(true);
+
+    try {
+      checklistRiveRef.current?.fireState(
+        WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+        WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
+      );
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'WalletHomeOnboardingSteps: failed to fire checklist Rive outro',
+      );
+    }
+
+    const runSlideOutThenCommit = () => {
+      Animated.timing(slideX, {
+        toValue: -SLIDE_DISTANCE,
+        duration: WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (!finished) {
+          slideX.setValue(0);
+          finishAdvance();
+          return;
+        }
+        if (fromIsLast) {
+          // Keep `slideX` at the slide-out position until unmount — resetting to 0 would flash
+          // the panel back on-screen for a frame before the parent hides this tile.
+          dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+          finishAdvance();
+          return;
+        }
+        dispatch(setWalletHomeOnboardingStepsStep(fromIndex + 1));
+        slideX.setValue(SLIDE_DISTANCE);
+        requestAnimationFrame(() => {
+          Animated.timing(slideX, {
+            toValue: 0,
+            duration: WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_IN_MS,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }).start(() => {
+            finishAdvance();
+          });
+        });
+      });
+    };
+
+    if (outroHoldTimeoutRef.current !== null) {
+      clearTimeout(outroHoldTimeoutRef.current);
+    }
+    outroHoldTimeoutRef.current = setTimeout(() => {
+      outroHoldTimeoutRef.current = null;
+      runSlideOutThenCommit();
+    }, WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS);
+  }, [dispatch, finishAdvance, slideX]);
 
   const progressLabel = useMemo(
     () =>
@@ -143,134 +265,181 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     [stepIndex, totalSteps],
   );
 
+  const progressFillWidth =
+    progressTrackWidth > 0
+      ? progressRatioAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, progressTrackWidth],
+        })
+      : progressRatioAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 0],
+        });
+
   if (!currentStep) {
     return null;
   }
 
-  const progressRatio = (stepIndex + 1) / totalSteps;
   const primaryTestID = `${testID}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`;
   const stepHero = WALLET_HOME_ONBOARDING_STEP_HERO[currentStep.kind];
-  const stepHeroHeight = stepHero.heroHeight ?? 148;
-  const stepHeroBackgroundColor = heroAccentLightColor(
-    colors,
-    stepHero.heroAccent,
-  );
+
+  const heroContainerClassName = `h-52 w-full rounded-2xl overflow-hidden ${stepHero.heroBackgroundClassName}`;
 
   return (
     <Box
       paddingBottom={4}
       justifyContent={BoxJustifyContent.Center}
+      flexDirection={BoxFlexDirection.Column}
       gap={4}
       testID={testID}
-      twClassName="rounded-2xl"
+      twClassName="rounded-2xl overflow-hidden"
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        gap={2}
-      >
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-          {strings('wallet.home_onboarding_steps.get_started_title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          fontWeight={FontWeight.Medium}
+      <Box flexDirection={BoxFlexDirection.Column} gap={4} twClassName="w-full">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          gap={2}
         >
-          {stepIndex + 1}/{totalSteps}
-        </Text>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+            {strings('wallet.home_onboarding_steps.get_started_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+          >
+            {stepIndex + 1}/{totalSteps}
+          </Text>
+        </Box>
+
+        <Box
+          twClassName="h-2 w-full rounded-full bg-muted overflow-hidden"
+          accessibilityLabel={progressLabel}
+          testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
+          onLayout={(e) => {
+            setProgressTrackWidth(e.nativeEvent.layout.width);
+          }}
+        >
+          <Animated.View
+            style={[
+              tw.style('h-full rounded-full bg-success-default'),
+              { width: progressFillWidth },
+            ]}
+          />
+        </Box>
       </Box>
 
-      <Box
-        twClassName="h-2 w-full rounded-full bg-muted overflow-hidden"
-        accessibilityLabel={progressLabel}
-        testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
+      <Animated.View
+        style={[
+          tw.style('w-full flex flex-col gap-4'),
+          { transform: [{ translateX: slideX }] },
+        ]}
       >
         <Box
-          twClassName="h-full rounded-full bg-success-default"
-          style={{ width: `${Math.min(100, progressRatio * 100)}%` }}
-        />
-      </Box>
-
-      <Box
-        twClassName="h-52 w-full rounded-2xl overflow-hidden"
-        style={tw.style({ backgroundColor: stepHeroBackgroundColor })}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        accessibilityRole="image"
-        accessibilityLabel={titleForKind(currentStep.kind)}
-        testID={`${testID}-hero-${currentStep.kind}`}
-      >
-        <Image
-          source={stepHero.image}
-          style={tw.style({ height: stepHeroHeight, width: '100%' })}
-          resizeMode="contain"
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        />
-      </Box>
-
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        gap={2}
-        alignItems={BoxAlignItems.Start}
-        twClassName="w-full"
-      >
-        <Text
-          variant={TextVariant.HeadingLg}
-          color={TextColor.TextDefault}
-          twClassName="w-full text-left"
+          twClassName={heroContainerClassName}
+          alignItems={BoxAlignItems.Stretch}
+          justifyContent={BoxJustifyContent.Center}
+          accessibilityRole="image"
+          accessibilityLabel={titleForKind(currentStep.kind)}
+          testID={`${testID}-hero-${currentStep.kind}`}
         >
-          {titleForKind(currentStep.kind)}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          fontWeight={FontWeight.Medium}
-          twClassName="w-full text-left"
-        >
-          {subtitleForKind(currentStep.kind)}
-        </Text>
-      </Box>
+          {!isE2E ? (
+            <Rive
+              key={`wallet-home-checklist-rive-${currentStep.kind}`}
+              ref={checklistRiveRef}
+              source={onboardChecklistV05Animation}
+              artboardName={
+                WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD[currentStep.kind]
+              }
+              style={HERO_MEDIA_LAYOUT_STYLE}
+              fit={Fit.Contain}
+              alignment={Alignment.Center}
+              autoplay
+              stateMachineName={
+                WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE
+              }
+              testID={`${testID}-hero-${currentStep.kind}-rive`}
+            />
+          ) : (
+            <Image
+              source={stepHero.image}
+              style={HERO_MEDIA_LAYOUT_STYLE}
+              resizeMode="contain"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            />
+          )}
+        </Box>
 
-      <Box flexDirection={BoxFlexDirection.Column} gap={3} twClassName="w-full">
-        {currentStep.buttonLayout === 'full_width_primary' ? (
-          <Button
-            size={ButtonSize.Lg}
-            onPress={goNextOrComplete}
-            isFullWidth
-            testID={primaryTestID}
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          gap={2}
+          alignItems={BoxAlignItems.Start}
+          twClassName="w-full"
+        >
+          <Text
+            variant={TextVariant.HeadingLg}
+            color={TextColor.TextDefault}
+            twClassName="w-full text-left"
           >
-            {primaryLabelForKind(currentStep.kind)}
-          </Button>
-        ) : (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={3}
-            twClassName="w-full"
+            {titleForKind(currentStep.kind)}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+            twClassName="w-full text-left"
           >
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={goNextOrComplete}
-              twClassName="min-w-0 flex-1"
-              testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
-            >
-              {strings('wallet.home_onboarding_steps.skip')}
-            </Button>
+            {subtitleForKind(currentStep.kind)}
+          </Text>
+        </Box>
+
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          gap={3}
+          twClassName="w-full"
+        >
+          {currentStep.buttonLayout === 'full_width_primary' ? (
             <Button
               size={ButtonSize.Lg}
               onPress={goNextOrComplete}
-              twClassName="min-w-0 flex-1"
+              isFullWidth
+              isDisabled={isStepTransitioning}
               testID={primaryTestID}
             >
               {primaryLabelForKind(currentStep.kind)}
             </Button>
-          </Box>
-        )}
-      </Box>
+          ) : (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={3}
+              twClassName="w-full"
+            >
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                onPress={goNextOrComplete}
+                twClassName="min-w-0 flex-1"
+                isDisabled={isStepTransitioning}
+                testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
+              >
+                {strings('wallet.home_onboarding_steps.skip')}
+              </Button>
+              <Button
+                size={ButtonSize.Lg}
+                onPress={goNextOrComplete}
+                twClassName="min-w-0 flex-1"
+                isDisabled={isStepTransitioning}
+                testID={primaryTestID}
+              >
+                {primaryLabelForKind(currentStep.kind)}
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </Animated.View>
     </Box>
   );
 };
