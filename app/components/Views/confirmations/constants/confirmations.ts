@@ -1,6 +1,8 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 
+import { QUICK_BUY_TX_TYPE } from '../../SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/quickBuyTransactionType';
+
 export const MMM_ORIGIN = 'metamask';
 export const MM_MOBILE_ORIGIN = 'Metamask Mobile';
 
@@ -20,6 +22,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDepositAndOrder,
+  QUICK_BUY_TX_TYPE,
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,
   TransactionType.stakingClaim,
@@ -103,3 +106,10 @@ export const RELAY_DEPOSIT_TYPES = [
   TransactionType.perpsRelayDeposit,
   TransactionType.predictRelayDeposit,
 ];
+
+/**
+ * Transaction types whose confirmation UI is rendered inline (e.g. in a bottom
+ * sheet) by the feature that created the transaction. The shared confirmation
+ * modal/full-screen must NOT auto-navigate when these are added.
+ */
+export const BOTTOM_SHEET_OWNED_TRANSACTION_TYPES = [QUICK_BUY_TX_TYPE];

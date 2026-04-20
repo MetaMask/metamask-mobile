@@ -8,6 +8,7 @@ import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import {
   SIGNATURE_APPROVAL_TYPES,
   REDESIGNED_TRANSACTION_TYPES,
+  BOTTOM_SHEET_OWNED_TRANSACTION_TYPES,
 } from '../constants/confirmations';
 
 export const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
@@ -68,7 +69,18 @@ export function shouldNavigateConfirmationModal(
     return true;
   }
 
-  // 2. Full screen confirmations handle their own navigation
+  // 2. Types whose UI is owned inline by a feature (e.g. Quick Buy bottom
+  // sheet) must never trigger the shared confirmation modal.
+  if (
+    transactionMetadata &&
+    BOTTOM_SHEET_OWNED_TRANSACTION_TYPES.includes(
+      transactionMetadata.type as TransactionType,
+    )
+  ) {
+    return false;
+  }
+
+  // 3. Full screen confirmations handle their own navigation
   if (isFullScreenConfirmation) {
     return false;
   }

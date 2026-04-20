@@ -17,6 +17,7 @@ import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupported
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { isQuickBuyTransactionType } from '../../../SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/quickBuyTransactionType';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -133,6 +134,9 @@ export function useTransactionConfirm() {
 
       // Perps deposit-and-order: caller handles navigation (e.g. order flow)
       if (type === TransactionType.perpsDepositAndOrder) {
+        return;
+      } else if (isQuickBuyTransactionType(type)) {
+        // Quick Buy renders its own bottom sheet and owns post-confirm navigation
         return;
       } else if (type === TransactionType.perpsDeposit) {
         navigation.navigate(Routes.PERPS.ROOT, {
