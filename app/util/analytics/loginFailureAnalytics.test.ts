@@ -5,7 +5,6 @@ import {
 } from '../../core/Engine/controllers/seedless-onboarding-controller/error';
 import {
   getRehydrationErrorTypeForSeedlessControllerCode,
-  SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE,
   getSocialLoginFailureAnalyticsProperties,
 } from './loginFailureAnalytics';
 
@@ -80,14 +79,6 @@ describe('loginFailureAnalytics', () => {
           SeedlessOnboardingControllerErrorType.UnknownError,
         ),
       ).toBe('seedless_unknown_error');
-    });
-  });
-
-  describe('seedless recovery analytics constants', () => {
-    it('uses auth failure wording for incorrect password recovery failures', () => {
-      expect(SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE).toBe(
-        'recovery_auth_failure',
-      );
     });
   });
 });

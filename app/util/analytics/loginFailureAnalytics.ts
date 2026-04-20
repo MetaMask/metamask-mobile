@@ -57,9 +57,6 @@ export function getRehydrationErrorTypeForSeedlessControllerCode(
   }
 }
 
-export const SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE =
-  'recovery_auth_failure';
-
 export enum ErrorOrigin {
   SeedlessRecovery = 'seedless_recovery',
   SeedlessController = 'seedless_controller',
