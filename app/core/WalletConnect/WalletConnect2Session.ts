@@ -50,6 +50,7 @@ import { SnapId } from '@metamask/snaps-sdk';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { TRON_WALLET_SNAP_ID } from '../SnapKeyring/TronWalletSnap';
+import { TrxAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
@@ -86,6 +87,36 @@ class WalletConnect2Session {
 
   public session: SessionTypes.Struct;
 
+  private normalizeSessionNamespaces(
+    namespaces: SessionTypes.Struct['namespaces'] | undefined,
+  ): SessionTypes.Struct['namespaces'] {
+    const normalizedNamespaces: SessionTypes.Struct['namespaces'] = {};
+
+    Object.entries(namespaces ?? {}).forEach(([namespace, config]) => {
+      const accounts = Array.isArray(config?.accounts) ? config.accounts : [];
+      const derivedChains = Array.from(
+        new Set(
+          accounts
+            .map((account) => account.split(':').slice(0, 2).join(':'))
+            .filter((chain) => chain.includes(':')),
+        ),
+      );
+      const chains =
+        Array.isArray(config?.chains) && config.chains.length > 0
+          ? config.chains
+          : derivedChains;
+
+      normalizedNamespaces[namespace] = {
+        chains,
+        methods: Array.isArray(config?.methods) ? config.methods : [],
+        events: Array.isArray(config?.events) ? config.events : [],
+        accounts,
+      };
+    });
+
+    return normalizedNamespaces;
+  }
+
   constructor({
     web3Wallet,
     session,
@@ -107,7 +138,10 @@ class WalletConnect2Session {
     this.channelId = channelId;
     this.web3Wallet = web3Wallet;
     this.deeplink = deeplink;
-    this.session = session;
+    this.session = {
+      ...session,
+      namespaces: this.normalizeSessionNamespaces(session.namespaces),
+    };
     this.navigation = navigation;
 
     DevLogger.log(
@@ -348,7 +382,9 @@ class WalletConnect2Session {
 
     try {
       // Update session namespaces
-      const currentNamespaces = this.session.namespaces;
+      const currentNamespaces = this.normalizeSessionNamespaces(
+        this.session.namespaces,
+      );
       const newChainId = `eip155:${chainIdDecimal}`;
       const updatedChains = [
         ...new Set([...(currentNamespaces?.eip155?.chains || []), newChainId]),
@@ -537,8 +573,12 @@ class WalletConnect2Session {
         );
       }
 
-      const namespaces =
-        await this.getScopedPermissionsWithFallback(sessionTopic);
+      const currentNamespaces = this.normalizeSessionNamespaces(
+        this.session.namespaces,
+      );
+      const namespaces = this.normalizeSessionNamespaces(
+        await this.getScopedPermissionsWithFallback(sessionTopic),
+      );
       DevLogger.log(
         `🔴🔴 WC2::updateSession updating with namespaces`,
         namespaces,
@@ -547,9 +587,62 @@ class WalletConnect2Session {
       // Preserve already-approved namespaces (e.g. tron) if the freshly
       // computed permissions payload is temporarily partial (e.g. only eip155).
       const mergedNamespaces = {
-        ...this.session.namespaces,
+        ...currentNamespaces,
         ...namespaces,
       };
+
+      // Keep tron namespace aligned with dapp-requested tron chains.
+      // Per WalletConnect spec, approved chains MUST be a subset of
+      // required+optional. Some dapp adapters crash when they iterate
+      // `namespace.chains` and hit unexpected chain ids (e.g., mainnet
+      // when only testnet was asked for). Restrict approved chains to
+      // exactly what the dapp requested (plus dec<->hex variant for compat).
+      const requestedTronChainIds = Array.from(
+        new Set([
+          ...(this.session.requiredNamespaces?.tron?.chains ?? []),
+          ...(this.session.optionalNamespaces?.tron?.chains ?? []),
+        ]),
+      );
+      if (requestedTronChainIds.length > 0) {
+        // Echo back exactly the CAIP chain ids the dapp requested.
+        // See rationale in WalletConnectV2._handleSessionProposal.
+        const finalTronChains = Array.from(new Set(requestedTronChainIds));
+
+        const existingTronAddresses = Array.from(
+          new Set(
+            (mergedNamespaces.tron?.accounts ?? [])
+              .map((account) => account.split(':').slice(2).join(':'))
+              .filter(Boolean),
+          ),
+        );
+        const discoveredTronAddresses =
+          existingTronAddresses.length > 0
+            ? []
+            : Engine.context.AccountsController.listAccounts()
+                .filter(
+                  (account: { type: string }) =>
+                    account.type === TrxAccountType.Eoa,
+                )
+                .map((account: { address: string }) => account.address);
+        const tronAddresses = Array.from(
+          new Set([...existingTronAddresses, ...discoveredTronAddresses]),
+        );
+
+        mergedNamespaces.tron = {
+          chains: finalTronChains,
+          methods: mergedNamespaces.tron?.methods ?? [
+            'tron_signTransaction',
+            'tron_signMessage',
+          ],
+          events: mergedNamespaces.tron?.events ?? [],
+          accounts: tronAddresses.flatMap((address) =>
+            finalTronChains.map(
+              (chainId) =>
+                `${chainId}:${address}` as `${string}:${string}:${string}`,
+            ),
+          ),
+        };
+      }
 
       if (!mergedNamespaces.tron?.chains?.length) {
         DevLogger.log(
@@ -566,6 +659,31 @@ class WalletConnect2Session {
         return;
       }
 
+      // Filter out namespaces the dapp never requested. See rationale in
+      // WalletConnectV2._handleSessionProposal. Chain-specific dapp providers
+      // (e.g. Tron-only) crash when they see unexpected namespace keys on
+      // session update/rehydration.
+      const allowedNamespaceKeys = new Set<string>([
+        ...Object.keys(this.session.requiredNamespaces ?? {}),
+        ...Object.keys(this.session.optionalNamespaces ?? {}),
+      ]);
+      // Preserve whatever was in the currently-approved session as well
+      // (a session previously approved eip155 should keep eip155 on update).
+      Object.keys(currentNamespaces).forEach((key) =>
+        allowedNamespaceKeys.add(key),
+      );
+      if (allowedNamespaceKeys.size > 0) {
+        for (const key of Object.keys(mergedNamespaces)) {
+          if (!allowedNamespaceKeys.has(key)) {
+            DevLogger.log(
+              '[wc][WC2Session.updateSession] dropping unrequested namespace',
+              { key, allowedNamespaceKeys: Array.from(allowedNamespaceKeys) },
+            );
+            delete mergedNamespaces[key];
+          }
+        }
+      }
+
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
         namespaces: mergedNamespaces,
@@ -576,7 +694,10 @@ class WalletConnect2Session {
       const activeSession =
         this.web3Wallet.getActiveSessions?.()?.[this.session.topic];
       if (activeSession) {
-        this.session = activeSession;
+        this.session = {
+          ...activeSession,
+          namespaces: this.normalizeSessionNamespaces(activeSession.namespaces),
+        };
       }
 
       const namespacesForEmission = {
