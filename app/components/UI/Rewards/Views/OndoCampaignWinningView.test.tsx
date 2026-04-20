@@ -153,9 +153,9 @@ jest.mock('../../../../../locales/i18n', () => ({
         'rewards.ondo_campaign_winning.skip_for_now': 'Skip for now',
         'rewards.ondo_campaign_winning.mail_subject':
           'Ondo campaign prize claim',
-        'rewards.ondo_campaign_winning.mail_body': `My referral code: ${params?.code ?? ''}`,
+        'rewards.ondo_campaign_winning.mail_body': `My winning code: ${params?.code ?? ''}`,
+        'rewards.ondo_campaign_winning.winning_code': 'Winning code',
         'rewards.ondo_campaign_winning.close_a11y': 'Close',
-        'rewards.referral.referral_code': 'Referral code',
       };
       if (key === 'rewards.ondo_campaign_winning.rank_label' && params?.place) {
         return `${params.place} place`;

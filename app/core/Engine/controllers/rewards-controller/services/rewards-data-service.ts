@@ -34,7 +34,6 @@ import type {
   OndoGmPortfolioDto,
   PaginatedOndoGmActivityDto,
   OndoGmCampaignDepositsDto,
-  OndoGmWinnerCodeDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -1703,21 +1702,10 @@ export class RewardsDataService {
   }
 
   async getOndoCampaignWinnerCode(
-    campaignId: string,
-    subscriptionId: string,
-  ): Promise<OndoGmWinnerCodeDto> {
-    const response = await this.makeRequest(
-      `/ondo-gm/${campaignId}/winner-code`,
-      { method: 'GET' },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Get Ondo campaign winner code failed: ${response.status}`,
-      );
-    }
-
-    return (await response.json()) as OndoGmWinnerCodeDto;
+    _campaignId: string,
+    _subscriptionId: string,
+  ): Promise<string> {
+    // TODO: implement when GET /ondo-gm/:campaignId/winner-code is available
+    return '';
   }
 }

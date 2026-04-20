@@ -559,10 +559,6 @@ export type OndoGmCampaignDepositsDto = {
   totalUsdDeposited: string;
 };
 
-export type OndoGmWinnerCodeDto = {
-  code: string;
-};
-
 /**
  * Cached portfolio payload (explicit shape for Json / StateConstraint compatibility).
  */

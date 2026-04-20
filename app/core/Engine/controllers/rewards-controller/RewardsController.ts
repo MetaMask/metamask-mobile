@@ -28,7 +28,6 @@ import {
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
   type OndoGmCampaignDepositsDto,
-  type OndoGmWinnerCodeDto,
   type PaginatedOndoGmActivityDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
@@ -3724,18 +3723,15 @@ export class RewardsController extends BaseController<
       return null;
     }
     try {
-      const result: OndoGmWinnerCodeDto = await this.#withAuthRetry(
-        async () => {
-          Logger.log('RewardsController: Fetching Ondo campaign winner code');
-          return this.messenger.call(
-            'RewardsDataService:getOndoCampaignWinnerCode',
-            campaignId,
-            subscriptionId,
-          );
-        },
-        subscriptionId,
-      );
-      return result.code;
+      const result = await this.#withAuthRetry(async () => {
+        Logger.log('RewardsController: Fetching Ondo campaign winner code');
+        return this.messenger.call(
+          'RewardsDataService:getOndoCampaignWinnerCode',
+          campaignId,
+          subscriptionId,
+        );
+      }, subscriptionId);
+      return result;
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get Ondo campaign winner code:',

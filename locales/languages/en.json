@@ -8294,7 +8294,8 @@
       "open_mail": "Open mail",
       "skip_for_now": "Skip for now",
       "mail_subject": "Ondo campaign prize claim",
-      "mail_body": "My referral code: {{code}}",
+      "mail_body": "My winning code: {{code}}",
+      "winning_code": "Winning code",
       "close_a11y": "Close"
     }
   },

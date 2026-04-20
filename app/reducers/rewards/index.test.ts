@@ -2079,6 +2079,7 @@ describe('rewardsReducer', () => {
         versionGuardLoading: false,
         versionGuardError: false,
         pendingDeeplink: null,
+        campaignEndToastShownByCampaignId: {},
       };
       const action = resetRewardsState();
 
@@ -2200,6 +2201,7 @@ describe('rewardsReducer', () => {
         versionGuardLoading: false,
         versionGuardError: false,
         pendingDeeplink: null,
+        campaignEndToastShownByCampaignId: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',

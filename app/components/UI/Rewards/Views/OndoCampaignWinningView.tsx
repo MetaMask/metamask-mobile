@@ -23,7 +23,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import Routes from '../../../../constants/navigation/Routes';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useOndoCampaignWinnerCode } from '../hooks/useOndoCampaignWinnerCode';
 import { strings } from '../../../../../locales/i18n';
@@ -40,10 +39,8 @@ const HERO_HEIGHT_RATIO = 0.5;
 
 const PRIZE_EMAIL = 'ondocampaign@consensys.net';
 
-// ParamListBase requires an index signature, which interfaces don't support
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type OndoCampaignWinningRouteParams = {
-  [Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW]: {
+  RewardsOndoCampaignWinning: {
     campaignId: string;
     campaignName: string;
   };
@@ -62,17 +59,14 @@ const OndoCampaignWinningView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
-      RouteProp<
-        OndoCampaignWinningRouteParams,
-        typeof Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW
-      >
+      RouteProp<OndoCampaignWinningRouteParams, 'RewardsOndoCampaignWinning'>
     >();
   const { campaignId } = route.params;
 
   const { position, isLoading: positionLoading } =
     useGetOndoLeaderboardPosition(campaignId);
 
-  const { code: referralCode, isLoading: referralCodeLoading } =
+  const { code: winningCode, isLoading: winningCodeLoading } =
     useOndoCampaignWinnerCode(campaignId);
 
   useTrackRewardsPageView({
@@ -82,9 +76,9 @@ const OndoCampaignWinningView: React.FC = () => {
 
   const onDismiss = () => navigation.goBack();
 
-  const handleCopyReferralCode = useCallback(() => {
-    if (referralCode) {
-      Clipboard.setString(referralCode);
+  const handleCopyWinningCode = useCallback(() => {
+    if (winningCode) {
+      Clipboard.setString(winningCode);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
           .addProperties({
@@ -93,15 +87,15 @@ const OndoCampaignWinningView: React.FC = () => {
           .build(),
       );
     }
-  }, [referralCode, trackEvent, createEventBuilder]);
+  }, [winningCode, trackEvent, createEventBuilder]);
 
   const handleOpenMail = useCallback(async () => {
     const baseSubject = strings('rewards.ondo_campaign_winning.mail_subject');
-    const subject = referralCode
-      ? `${baseSubject} - ${referralCode}`
+    const subject = winningCode
+      ? `${baseSubject} - ${winningCode}`
       : baseSubject;
     const body = strings('rewards.ondo_campaign_winning.mail_body', {
-      code: referralCode || '—',
+      code: winningCode || '—',
     });
     const url = `mailto:${PRIZE_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     try {
@@ -109,7 +103,7 @@ const OndoCampaignWinningView: React.FC = () => {
     } catch {
       // no-op: device may not have a mail handler
     }
-  }, [referralCode]);
+  }, [winningCode]);
 
   const rankDisplay = useMemo(() => {
     if (positionLoading && !position) {
@@ -218,10 +212,10 @@ const OndoCampaignWinningView: React.FC = () => {
 
             <Box twClassName="w-full max-w-md">
               <CopyableField
-                label={strings('rewards.referral.referral_code')}
-                value={referralCode}
-                onCopy={handleCopyReferralCode}
-                valueLoading={referralCodeLoading}
+                label={strings('rewards.ondo_campaign_winning.winning_code')}
+                value={winningCode}
+                onCopy={handleCopyWinningCode}
+                valueLoading={winningCodeLoading}
               />
             </Box>
 
