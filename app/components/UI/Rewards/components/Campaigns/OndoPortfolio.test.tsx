@@ -632,7 +632,7 @@ describe('OndoPortfolio', () => {
       (useSelector as jest.Mock).mockReturnValue(null);
     });
 
-    it('navigates directly when exactly one group has the token balance', () => {
+    it('opens account picker when exactly one group has the token balance', () => {
       const onOpenAccountPicker = jest.fn();
 
       (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
@@ -679,8 +679,76 @@ describe('OndoPortfolio', () => {
 
       fireEvent.press(getByText('Apple Inc.'));
 
-      // Single group → navigates directly, picker NOT opened
-      expect(onOpenAccountPicker).not.toHaveBeenCalled();
+      expect(onOpenAccountPicker).toHaveBeenCalledTimes(1);
+      const config = (onOpenAccountPicker as jest.Mock).mock.calls[0][0];
+      expect(config.entries).toHaveLength(1);
+    });
+
+    it('finds balance when token key in allTokenBalances is checksummed (mixed case)', () => {
+      // Regression test: allTokenBalances stores token addresses in EIP-55 checksum
+      // form, but tokenHex is lowercased. The lookup must be case-insensitive.
+      const CHECKSUMMED_TOKEN = '0x14C3AbF95cB9c93a8b82c1cdCb76D72Cb87b2D4c';
+      const onOpenAccountPicker = jest.fn();
+
+      jest
+        .requireMock('../../utils/formatUtils')
+        .parseCaip19.mockReturnValueOnce({
+          namespace: 'eip155',
+          chainId: '1',
+          assetReference: CHECKSUMMED_TOKEN,
+        });
+
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        const { selectCurrentSubscriptionAccounts } = jest.requireMock(
+          '../../../../../selectors/rewards',
+        );
+        const { selectAllTokenBalances } = jest.requireMock(
+          '../../../../../selectors/tokenBalancesController',
+        );
+        const { selectAllTokens } = jest.requireMock(
+          '../../../../../selectors/tokensController',
+        );
+        const { selectInternalAccountByAddresses } = jest.requireMock(
+          '../../../../../selectors/accountsController',
+        );
+        const { selectAccountToGroupMap, selectResolvedSelectedAccountGroup } =
+          jest.requireMock(
+            '../../../../../selectors/multichainAccounts/accountTreeController',
+          );
+
+        if (selector === selectCurrentSubscriptionAccounts)
+          return [{ account: CAIP_1 }];
+        if (selector === selectAllTokenBalances)
+          return {
+            [ACCOUNT_1]: {
+              // Key is checksummed — the old direct lookup would miss this
+              '0x1': { [CHECKSUMMED_TOKEN]: '0x56bc75e2d63100000' },
+            },
+          };
+        if (selector === selectAllTokens) return {};
+        if (selector === selectInternalAccountByAddresses)
+          return () => [{ id: 'acc-1', address: ACCOUNT_1 }];
+        if (selector === selectAccountToGroupMap) return { 'acc-1': GROUP_1 };
+        if (selector === selectResolvedSelectedAccountGroup) return null;
+        return null;
+      });
+
+      const { getByText } = render(
+        <OndoPortfolio
+          {...baseProps}
+          portfolio={MOCK_PORTFOLIO}
+          onOpenAccountPicker={onOpenAccountPicker}
+        />,
+      );
+
+      fireEvent.press(getByText('Apple Inc.'));
+
+      // Account must be found despite key case mismatch → picker opened
+      expect(onOpenAccountPicker).toHaveBeenCalledTimes(1);
+      const config = (onOpenAccountPicker as jest.Mock).mock.calls[0][0];
+      expect(config.entries).toHaveLength(1);
+      // Balance must also be computed correctly from the checksummed key
+      expect(parseFloat(config.entries[0].balance)).toBeGreaterThan(0);
     });
 
     it('opens account picker when multiple groups hold the token', () => {

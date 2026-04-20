@@ -7,13 +7,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -50,20 +43,15 @@ import {
   isPnlNonNegative,
   sanitizeOndoTokenName,
 } from './OndoPortfolio.utils';
-import { formatComputedAt } from './OndoLeaderboard.utils';
 import { selectCurrentSubscriptionAccounts } from '../../../../../selectors/rewards';
 import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectAllTokens } from '../../../../../selectors/tokensController';
 import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
-import {
-  selectAccountToGroupMap,
-  selectResolvedSelectedAccountGroup,
-} from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
-import Engine from '../../../../../core/Engine';
 import RewardsNoPositionsImage from '../../../../../images/rewards/rewards-no-positions.svg';
 
 const styles = StyleSheet.create({
@@ -170,7 +158,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   const allTokenBalances = useSelector(selectAllTokenBalances);
   const allTokens = useSelector(selectAllTokens);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
-  const selectedGroup = useSelector(selectResolvedSelectedAccountGroup);
   const resolveAccountsByAddresses = useSelector(
     selectInternalAccountByAddresses,
   );
@@ -192,10 +179,14 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       const tokenHex = parsed.assetReference.toLowerCase() as Hex;
       const addresses = subscriptionAccounts.flatMap((a) => {
         const address = parseCaipAccountId(a.account).address;
-        const bal =
-          allTokenBalances?.[address.toLowerCase() as Hex]?.[chainHex]?.[
-            tokenHex
-          ];
+        const chainBalances =
+          allTokenBalances?.[address.toLowerCase() as Hex]?.[chainHex];
+        const balEntry = chainBalances
+          ? Object.entries(chainBalances).find(
+              ([key]) => key.toLowerCase() === tokenHex,
+            )
+          : undefined;
+        const bal = balEntry?.[1];
         return bal !== undefined && !!parseInt(bal, 16) ? [address] : [];
       });
       return resolveAccountsByAddresses(addresses);
@@ -255,10 +246,13 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       );
       let total = new BigNumber(0);
       for (const account of groupAccounts) {
-        const hexBal =
-          allTokenBalances?.[account.address.toLowerCase() as Hex]?.[
-            chainHex
-          ]?.[tokenHex];
+        const chainBalances =
+          allTokenBalances?.[account.address.toLowerCase() as Hex]?.[chainHex];
+        const hexBal = chainBalances
+          ? Object.entries(chainBalances).find(
+              ([key]) => key.toLowerCase() === tokenHex,
+            )?.[1]
+          : undefined;
         if (hexBal) {
           try {
             total = total.plus(new BigNumber(hexBal).shiftedBy(-decimals));
@@ -301,18 +295,8 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
         navigateToSwap(row);
         return;
       }
-      if (groupsForRow.length === 1) {
-        const [group] = groupsForRow;
-        if (group.id !== selectedGroup?.id) {
-          Engine.context.AccountTreeController.setSelectedAccountGroup(
-            group.id,
-          );
-        }
-        navigateToSwap(row);
-        return;
-      }
 
-      // Multiple groups hold this token — delegate picker to parent
+      // Another group or group(s) hold this token — delegate picker to parent
       const decimals = resolveTokenDecimals(row);
       onOpenAccountPicker({
         row,
@@ -330,7 +314,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       getAccountsWithBalance,
       getGroupsFromAccounts,
       getGroupBalance,
-      selectedGroup,
       onOpenAccountPicker,
       resolveTokenDecimals,
     ],
