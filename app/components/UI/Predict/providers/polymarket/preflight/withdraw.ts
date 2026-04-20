@@ -1,5 +1,4 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import { parseUnits } from 'ethers/lib/utils';
 import type { Signer } from '../../types';
 import {
   POLYMARKET_V2_PROTOCOL,
@@ -25,19 +24,16 @@ export interface WithdrawPlan {
 export async function planWithdraw({
   signer,
   safeAddress,
-  requestedAmount,
+  requestedAmountRaw,
   mode,
   protocol = POLYMARKET_V2_PROTOCOL,
 }: {
   signer: Signer;
   safeAddress: string;
-  requestedAmount: number;
+  requestedAmountRaw: bigint;
   mode: WithdrawExecutionMode;
   protocol?: PolymarketProtocolDefinition;
 }): Promise<WithdrawPlan> {
-  const requestedAmountRaw = BigInt(
-    parseUnits(requestedAmount.toString(), 6).toString(),
-  );
   const [missingRequirements, safeUsdceBalance] = await Promise.all([
     inspectMissingRequirements({
       address: safeAddress,
@@ -133,20 +129,20 @@ export function compileWithdrawTransactions({
 export async function buildWithdrawTransaction({
   signer,
   safeAddress,
-  requestedAmount,
+  requestedAmountRaw,
   mode,
   protocol = POLYMARKET_V2_PROTOCOL,
 }: {
   signer: Signer;
   safeAddress: string;
-  requestedAmount: number;
+  requestedAmountRaw: bigint;
   mode: WithdrawExecutionMode;
   protocol?: PolymarketProtocolDefinition;
 }) {
   const plan = await planWithdraw({
     signer,
     safeAddress,
-    requestedAmount,
+    requestedAmountRaw,
     mode,
     protocol,
   });

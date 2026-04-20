@@ -150,7 +150,8 @@ jest.mock('./safe/utils', () => ({
   getWithdrawTransactionCallData: jest
     .fn()
     .mockResolvedValue('0xsignedcalldata'),
-  getSafeUsdcAmount: jest.fn().mockReturnValue(1000000),
+  getSafeUsdcAmount: jest.fn().mockReturnValue(1),
+  getSafeUsdcAmountRaw: jest.fn().mockReturnValue(1000000n),
 }));
 
 const mockGameCacheInstance = {
@@ -5246,7 +5247,7 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({
         callData: '0xsignedsafeexec',
-        amount: 1000000,
+        amount: 1,
       });
       expect(getWithdrawTransactionCallData).not.toHaveBeenCalled();
     });

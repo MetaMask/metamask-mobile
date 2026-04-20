@@ -77,6 +77,7 @@ import {
   getDeployProxyWalletTransaction,
   getProxyWalletAllowancesTransaction,
   getSafeUsdcAmount,
+  getSafeUsdcAmountRaw,
   getWithdrawTransactionCallData,
   hasAllowances,
 } from './safe/utils';
@@ -2261,12 +2262,13 @@ export class PolymarketProvider implements PredictProvider {
       computeProxyAddress(signer.address);
 
     const amount = getSafeUsdcAmount(callData);
+    const requestedAmountRaw = getSafeUsdcAmountRaw(callData);
 
     if (protocol.key === 'v2') {
       const signedWithdrawTransaction = await buildWithdrawTransaction({
         signer,
         safeAddress,
-        requestedAmount: amount,
+        requestedAmountRaw,
         mode: protocol.workflow.withdrawMode,
         protocol,
       });
