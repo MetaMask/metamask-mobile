@@ -791,9 +791,8 @@ function applyChartScaleLayout(type) {
       'timeScale.borderColor': axisLineColor,
       'scalesProperties.lineColor': axisLineColor,
       'paneProperties.separatorColor': theme.backgroundColor,
-      'paneProperties.topMargin': 8,
-      // Same margin in both modes so scale padding (and logo anchor) does not shift on toggle.
-      'paneProperties.bottomMargin': 9,
+      'paneProperties.topMargin': 12,
+      'paneProperties.bottomMargin': 8,
     });
   } catch (e) {}
 
@@ -3627,6 +3626,8 @@ function initChart() {
           'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
           'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
           'mainSeriesProperties.showPriceLine': !initCustomDashed,
+          'paneProperties.topMargin': 12,
+          'paneProperties.bottomMargin': 8,
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
           'mainSeriesProperties.candleStyle.downColor': theme.errorColor,

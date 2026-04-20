@@ -117,16 +117,15 @@ export const createAdvancedChartTemplate = (
             position: relative;
         }
         /*
-         * Chart area sits below a small top inset (16px) so absolutely positioned pills
-         * that use top + translateY(-50%) for vertical centering are not clipped by
-         * body { overflow: hidden } when the crosshair is near the top of the chart.
+         * Chart area fills the entire WebView so TradingView gets the full
+         * height passed from React Native.  Crosshair pills that use
+         * translateY(-50%) may overflow the top edge; the overlay's
+         * overflow:visible ensures they are still rendered and the RN
+         * chartSurface clips them cleanly at the native layer.
          */
         #chart_surface {
             position: absolute;
-            left: 0;
-            right: 0;
-            top: 16px;
-            bottom: 0;
+            inset: 0;
             width: 100%;
             box-sizing: border-box;
         }
@@ -151,6 +150,7 @@ export const createAdvancedChartTemplate = (
             inset: 0;
             pointer-events: none;
             z-index: 50;
+            overflow: visible;
         }
         /*
          * Shared “pill” look for crosshair price, crosshair time, and last-close labels.
