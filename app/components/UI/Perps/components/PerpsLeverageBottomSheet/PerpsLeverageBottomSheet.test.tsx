@@ -2,7 +2,6 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { fireGestureHandler } from 'react-native-gesture-handler/jest-utils';
 import PerpsLeverageBottomSheet from './PerpsLeverageBottomSheet';
-
 // Mock dependencies - only what's absolutely necessary
 jest.mock('react-native-reanimated', () =>
   jest.requireActual('react-native-reanimated/mock'),
@@ -129,17 +128,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/haptics', () => ({
-  playImpact: jest.fn(() => Promise.resolve()),
-  playSelection: jest.fn(() => Promise.resolve()),
-  ImpactMoment: {
-    SliderTick: 'sliderTick',
-    SliderGrip: 'sliderGrip',
-    TabChange: 'tabChange',
-    PullToRefresh: 'pullToRefresh',
-    ChartCrosshair: 'chartCrosshair',
-  },
-}));
+jest.mock('../../../../../util/haptics');
 
 // Mock usePerpsLivePrices hook (which uses usePerpsStream internally)
 const mockUsePerpsLivePrices = jest.fn();

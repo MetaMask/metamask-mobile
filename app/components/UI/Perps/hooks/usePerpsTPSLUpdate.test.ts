@@ -5,7 +5,6 @@ import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
-
 jest.mock('./usePerpsTrading');
 jest.mock('./usePerpsToasts');
 jest.mock('../providers/PerpsStreamManager');
@@ -30,14 +29,7 @@ jest.mock('../../../../component-library/components/Buttons/Button', () => ({
     Secondary: 'secondary',
   },
 }));
-jest.mock('../../../../util/haptics', () => ({
-  playNotification: jest.fn(),
-  NotificationMoment: {
-    Success: 'success',
-    Error: 'error',
-    Warning: 'warning',
-  },
-}));
+jest.mock('../../../../util/haptics');
 
 describe('usePerpsTPSLUpdate', () => {
   const mockUpdatePositionTPSL = jest.fn();

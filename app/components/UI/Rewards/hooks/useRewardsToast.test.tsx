@@ -8,7 +8,6 @@ import {
   ButtonIconVariant,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -16,14 +15,7 @@ jest.mock('react', () => ({
   useMemo: jest.fn((fn) => fn()),
 }));
 
-jest.mock('../../../../util/haptics', () => ({
-  playNotification: jest.fn(),
-  NotificationMoment: {
-    Success: 'success',
-    Warning: 'warning',
-    Error: 'error',
-  },
-}));
+jest.mock('../../../../util/haptics');
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {

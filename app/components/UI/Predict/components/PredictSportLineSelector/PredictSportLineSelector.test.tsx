@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictSportLineSelector from './PredictSportLineSelector';
 import { PREDICT_SPORT_LINE_SELECTOR_TEST_IDS } from './PredictSportLineSelector.testIds';
-
 const mockWithTiming = jest.fn((v: number) => v);
 
 jest.mock('react-native-reanimated', () => {
@@ -34,9 +33,7 @@ jest.mock('@react-native-masked-view/masked-view', () =>
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('../../../../../util/haptics', () => ({
-  playSelection: jest.fn(),
-}));
+jest.mock('../../../../../util/haptics');
 
 const TEST_ID = 'line-selector';
 const IDS = PREDICT_SPORT_LINE_SELECTOR_TEST_IDS;
