@@ -64,6 +64,11 @@ interface TokensProps {
    * ScrollView.
    */
   refreshControl?: React.ReactElement;
+  /**
+   * When true, suppress the internal TokenListSkeleton. Useful when the parent
+   * already handles its own loading state (e.g. CashTokensFullView).
+   */
+  hideLoadingSkeleton?: boolean;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -74,6 +79,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
       listFooterComponent,
       refreshControl,
+      hideLoadingSkeleton = false,
     },
     ref,
   ) => {
@@ -237,6 +243,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
       if (!hasInitialLoad) {
+        if (hideLoadingSkeleton) {
+          return null;
+        }
         return (
           <Box twClassName={isFullView ? 'px-4' : undefined}>
             <TokenListSkeleton />
@@ -300,6 +309,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       return emptyState;
     }, [
       hasInitialLoad,
+      hideLoadingSkeleton,
       isFullView,
       tokenKeysForList,
       showOnlyMusd,

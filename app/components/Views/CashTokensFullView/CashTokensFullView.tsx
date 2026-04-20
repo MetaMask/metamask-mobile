@@ -177,6 +177,7 @@ const CashTokensFullView = () => {
         <Tokens
           isFullView
           showOnlyMusd
+          hideLoadingSkeleton
           hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
           listFooterComponent={
             isMoneyHubEnabled ? bonusAndConvertSections : undefined
