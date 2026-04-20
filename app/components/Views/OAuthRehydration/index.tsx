@@ -130,7 +130,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
 
   const [password, setPassword] = useState('');
-  const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(
@@ -421,10 +420,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               context: 'OAuth rehydration failed - user consented to analytics',
             },
           });
-        } else {
-          setErrorToThrow(
-            new Error(`OAuth rehydration failed: ${seedlessError.message}`),
-          );
         }
       }
     },
@@ -436,7 +431,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       isMetricsEnabled,
       netInfo,
       navigation,
-      setErrorToThrow,
       promptSeedlessRelogin,
       isComingFromOauthOnboarding,
       accountType,
@@ -713,13 +707,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     downloadStateLogs(fullState, false);
   };
 
-  const ThrowErrorIfNeeded = () => {
-    if (errorToThrow) {
-      throw errorToThrow;
-    }
-    return null;
-  };
-
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);
     setError(null);
@@ -796,12 +783,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       </Button>
     );
   return (
-    <ErrorBoundary
-      navigation={navigation}
-      view="OAuthRehydration"
-      useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
-    >
-      <ThrowErrorIfNeeded />
+    <ErrorBoundary navigation={navigation} view="OAuthRehydration">
       <SafeAreaView
         style={[
           tw.style('flex-1'),

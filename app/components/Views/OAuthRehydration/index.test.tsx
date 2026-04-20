@@ -944,7 +944,7 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('sets errorToThrow for unknown oauth errors when metrics disabled', async () => {
+    it('does not throw for unknown oauth errors when metrics disabled', async () => {
       const unknownError = new Error(
         'SeedlessOnboardingController - Unknown crash',
       );
@@ -953,13 +953,12 @@ describe('OAuthRehydration', () => {
 
       expect(() => renderWithProvider(<OAuthRehydration />)).not.toThrow();
 
-      // The errorToThrow is set, but since ErrorBoundary catches it, we verify
-      // captureException is NOT called
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       await enterPasswordAndSubmit(getByTestId, 'password123');
 
       await waitFor(() => {
         expect(mockCaptureException).not.toHaveBeenCalled();
+        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
       });
     });
   });
