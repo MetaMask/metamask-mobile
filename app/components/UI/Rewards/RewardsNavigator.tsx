@@ -7,7 +7,7 @@ import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import CampaignsView from './Views/CampaignsView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
-import OndoCampaignWinningScreenView from './Views/OndoCampaignWinningScreenView';
+import OndoCampaignWinningView from './Views/OndoCampaignWinningView';
 import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
 import MusdCalculatorView from './Views/MusdCalculatorView';
@@ -147,7 +147,7 @@ const RewardsNavigator: React.FC = () => {
             />
             <Stack.Screen
               name={Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW}
-              component={OndoCampaignWinningScreenView}
+              component={OndoCampaignWinningView}
               options={{ headerShown: false }}
             />
             <Stack.Screen
