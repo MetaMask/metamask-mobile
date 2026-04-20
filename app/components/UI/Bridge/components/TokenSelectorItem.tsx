@@ -35,6 +35,7 @@ import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
+import { SecurityDataType } from '../hooks/usePopularTokens';
 import { RootState } from '../../../../reducers';
 import { fontStyles } from '../../../../styles/common';
 import {
@@ -169,10 +170,11 @@ const isLoadingBalance = (balance?: string) =>
   balance === TOKEN_BALANCE_LOADING ||
   balance === TOKEN_BALANCE_LOADING_UPPERCASE;
 
-export const getSecurityTag = (
-  securityType: NonNullable<BridgeToken['securityData']>['type'] | undefined,
-) => {
-  if (securityType === 'Warning' || securityType === 'Spam') {
+export const getSecurityTag = (securityType: SecurityDataType | undefined) => {
+  if (
+    securityType === SecurityDataType.Warning ||
+    securityType === SecurityDataType.Spam
+  ) {
     return {
       severity: TagSeverity.Warning,
       label: strings('bridge.token_suspicious'),
@@ -180,7 +182,7 @@ export const getSecurityTag = (
       iconColor: IconColor.WarningDefault,
     };
   }
-  if (securityType === 'Malicious') {
+  if (securityType === SecurityDataType.Malicious) {
     return {
       severity: TagSeverity.Danger,
       label: strings('bridge.token_malicious'),

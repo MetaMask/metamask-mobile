@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Text as RNText } from 'react-native';
 import { TokenSelectorItem, getSecurityTag } from './TokenSelectorItem';
+import { SecurityDataType } from '../hooks/usePopularTokens';
 import { ethers } from 'ethers';
 import { useABTest } from '../../../../hooks';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
@@ -497,7 +498,7 @@ describe('TokenSelectorItem', () => {
   });
 
   describe('security badges', () => {
-    it.each(['Warning', 'Spam'] as const)(
+    it.each([SecurityDataType.Warning, SecurityDataType.Spam])(
       'shows Suspicious badge for %s type',
       (securityType) => {
         const token = createMockTokenWithBalance({
@@ -514,7 +515,7 @@ describe('TokenSelectorItem', () => {
 
     it('shows Malicious badge for Malicious type', () => {
       const token = createMockTokenWithBalance({
-        securityData: { type: 'Malicious' },
+        securityData: { type: SecurityDataType.Malicious },
       });
 
       const { getByText } = render(
@@ -524,21 +525,22 @@ describe('TokenSelectorItem', () => {
       expect(getByText('bridge.token_malicious')).toBeTruthy();
     });
 
-    it.each(['Info', 'Benign', 'Verified'] as const)(
-      'does not show a security badge for %s type',
-      (securityType) => {
-        const token = createMockTokenWithBalance({
-          securityData: { type: securityType },
-        });
+    it.each([
+      SecurityDataType.Info,
+      SecurityDataType.Benign,
+      SecurityDataType.Verified,
+    ])('does not show a security badge for %s type', (securityType) => {
+      const token = createMockTokenWithBalance({
+        securityData: { type: securityType },
+      });
 
-        const { queryByText } = render(
-          <TokenSelectorItem token={token} onPress={mockOnPress} />,
-        );
+      const { queryByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
 
-        expect(queryByText('bridge.token_suspicious')).toBeNull();
-        expect(queryByText('bridge.token_malicious')).toBeNull();
-      },
-    );
+      expect(queryByText('bridge.token_suspicious')).toBeNull();
+      expect(queryByText('bridge.token_malicious')).toBeNull();
+    });
 
     it('does not show a security badge when securityData is absent', () => {
       const token = createMockTokenWithBalance({ securityData: undefined });
@@ -553,7 +555,7 @@ describe('TokenSelectorItem', () => {
 
     it('renders Warning icon with WarningDefault color for Suspicious badge', () => {
       const token = createMockTokenWithBalance({
-        securityData: { type: 'Warning' },
+        securityData: { type: SecurityDataType.Warning },
       });
 
       render(<TokenSelectorItem token={token} onPress={mockOnPress} />);
@@ -570,7 +572,7 @@ describe('TokenSelectorItem', () => {
 
     it('renders Danger icon with ErrorDefault color for Malicious badge', () => {
       const token = createMockTokenWithBalance({
-        securityData: { type: 'Malicious' },
+        securityData: { type: SecurityDataType.Malicious },
       });
 
       render(<TokenSelectorItem token={token} onPress={mockOnPress} />);
@@ -640,7 +642,7 @@ describe('TokenSelectorItem', () => {
 });
 
 describe('getSecurityTag', () => {
-  it.each(['Warning', 'Spam'] as const)(
+  it.each([SecurityDataType.Warning, SecurityDataType.Spam])(
     'returns Warning severity config for %s type',
     (securityType) => {
       const result = getSecurityTag(securityType);
@@ -656,7 +658,7 @@ describe('getSecurityTag', () => {
   );
 
   it('returns Danger severity config for Malicious type', () => {
-    const result = getSecurityTag('Malicious');
+    const result = getSecurityTag(SecurityDataType.Malicious);
 
     expect(result).toEqual(
       expect.objectContaining({
@@ -667,12 +669,13 @@ describe('getSecurityTag', () => {
     );
   });
 
-  it.each(['Info', 'Benign', 'Verified'] as const)(
-    'returns null for %s type',
-    (securityType) => {
-      expect(getSecurityTag(securityType)).toBeNull();
-    },
-  );
+  it.each([
+    SecurityDataType.Info,
+    SecurityDataType.Benign,
+    SecurityDataType.Verified,
+  ])('returns null for %s type', (securityType) => {
+    expect(getSecurityTag(securityType)).toBeNull();
+  });
 
   it('returns null when securityType is undefined', () => {
     expect(getSecurityTag(undefined)).toBeNull();

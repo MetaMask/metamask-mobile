@@ -6,19 +6,20 @@ import { TokenRwaData } from '@metamask/assets-controllers';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
 
-export interface SecurityFeature {
-  featureId: string;
-  type: 'Warning' | 'Spam';
-  description: string;
+export enum SecurityDataType {
+  Info = 'Info',
+  Benign = 'Benign',
+  Verified = 'Verified',
+  Warning = 'Warning',
+  Spam = 'Spam',
+  Malicious = 'Malicious',
 }
 
-export type SecurityDataType =
-  | 'Info'
-  | 'Benign'
-  | 'Verified'
-  | 'Warning'
-  | 'Spam'
-  | 'Malicious';
+export interface SecurityFeature {
+  featureId: string;
+  type: SecurityDataType;
+  description: string;
+}
 
 export interface SecurityData {
   type: SecurityDataType;
