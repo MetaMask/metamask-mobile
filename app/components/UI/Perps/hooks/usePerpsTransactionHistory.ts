@@ -273,14 +273,19 @@ export const usePerpsTransactionHistory = ({
     }
   }, [accountId]);
 
-  const refetch = useCallback(async () => {
-    // Force bypass the REST coalesce cache — user-initiated refresh must
-    // re-run even within the TTL window.
-    forceRefreshNextFetchRef.current = true;
-    const freshUserHistory = await refetchUserHistory();
-    userHistoryRef.current = freshUserHistory;
-    await fetchAllTransactions();
-  }, [fetchAllTransactions, refetchUserHistory]);
+  const runFetch = useCallback(
+    async (options: { force: boolean }) => {
+      if (options.force) {
+        forceRefreshNextFetchRef.current = true;
+      }
+      const freshUserHistory = await refetchUserHistory();
+      userHistoryRef.current = freshUserHistory;
+      await fetchAllTransactions();
+    },
+    [fetchAllTransactions, refetchUserHistory],
+  );
+
+  const refetch = useCallback(() => runFetch({ force: true }), [runFetch]);
 
   const loadMoreFunding = useCallback(async () => {
     if (!hasFundingMore || isFetchingMoreFundingRef.current) return;
@@ -367,9 +372,12 @@ export const usePerpsTransactionHistory = ({
       (!initialFetchDone.current || justBecameConnected)
     ) {
       initialFetchDone.current = true;
-      refetch();
+      // Mount / reconnect path must stay cacheable — rapid reopens of the
+      // activity screen within the TTL window should not bypass the
+      // coalesce layer. Only user-initiated refetch() forces a refresh.
+      runFetch({ force: false });
     }
-  }, [skipInitialFetch, prevSkipInitialFetch, refetch]);
+  }, [skipInitialFetch, prevSkipInitialFetch, runFetch]);
 
   // Combine loading states
   const combinedIsLoading = useMemo(

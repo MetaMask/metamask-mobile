@@ -726,7 +726,7 @@ export type GetOrdersParams = {
 export type PerpsReadOptions = {
   /** Bypass any provider-internal cache. Used for user-initiated refresh (pull-to-refresh). */
   forceRefresh?: boolean;
-}
+};
 
 export type GetFundingParams = {
   accountId?: CaipAccountId; // Optional: defaults to selected account
@@ -1044,6 +1044,15 @@ export type PerpsProvider = {
     startTime?: number;
     endTime?: number;
   }): Promise<RawLedgerUpdate[]>;
+
+  /**
+   * Resolve the provider's currently active account identifier.
+   * Used by the REST coalesce layer so cached payloads are account-scoped
+   * even when callers omit params.accountId (the common hook path) — prevents
+   * one account's data from being served after an account switch within
+   * the coalesce TTL window.
+   */
+  getCurrentAccountId(): Promise<CaipAccountId>;
 
   /**
    * Get user history (deposits, withdrawals, transfers)

@@ -173,6 +173,13 @@ export class MarketDataService {
         params?.limit !== undefined || params?.endTime !== undefined;
       const fetchOrderFills = (): Promise<OrderFill[]> =>
         provider.getOrderFills(params, { forceRefresh });
+      // Resolve the caller's account so the cache key is account-scoped.
+      // Without this, callers that omit params.accountId (the common hook
+      // path) would collide on a shared "default" bucket — after an account
+      // switch, account B could receive account A's still-fresh payload
+      // until the TTL expired.
+      const resolvedAccountId =
+        params?.accountId ?? (await provider.getCurrentAccountId());
       const result = isPaginated
         ? await fetchOrderFills()
         : await coalescePerpsRestRequest(
@@ -180,7 +187,7 @@ export class MarketDataService {
               context.tracingContext.provider,
               context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
               'getOrderFills',
-              params?.accountId ?? 'default',
+              resolvedAccountId,
               params?.aggregateByTime === true ? 'agg' : 'raw',
               params?.startTime === undefined
                 ? 'unbounded'
@@ -267,6 +274,10 @@ export class MarketDataService {
         params?.endTime !== undefined;
       const fetchOrders = (): Promise<Order[]> =>
         provider.getOrders(params, { forceRefresh });
+      // Resolve the caller's account so the cache key is account-scoped
+      // (see getOrderFills for rationale).
+      const resolvedAccountId =
+        params?.accountId ?? (await provider.getCurrentAccountId());
       const result = isPaginated
         ? await fetchOrders()
         : await coalescePerpsRestRequest(
@@ -274,7 +285,7 @@ export class MarketDataService {
               context.tracingContext.provider,
               context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
               'getOrders',
-              params?.accountId ?? 'default',
+              resolvedAccountId,
             ].join('|'),
             fetchOrders,
             { forceRefresh },
@@ -433,6 +444,10 @@ export class MarketDataService {
         params?.endTime !== undefined;
       const fetchFunding = (): Promise<Funding[]> =>
         provider.getFunding(params, { forceRefresh });
+      // Resolve the caller's account so the cache key is account-scoped
+      // (see getOrderFills for rationale).
+      const resolvedAccountId =
+        params?.accountId ?? (await provider.getCurrentAccountId());
       const result = isPaginated
         ? await fetchFunding()
         : await coalescePerpsRestRequest(
@@ -440,7 +455,7 @@ export class MarketDataService {
               context.tracingContext.provider,
               context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
               'getFunding',
-              params?.accountId ?? 'default',
+              resolvedAccountId,
             ].join('|'),
             fetchFunding,
             { forceRefresh },

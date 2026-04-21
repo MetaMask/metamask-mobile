@@ -357,6 +357,11 @@ describe('MarketDataService', () => {
         context: mockContext,
       });
 
+      // Flush microtasks so both calls reach coalescePerpsRestRequest and the
+      // provider mock captures the real resolver. Without this, resolveFetch
+      // still points at the initial stub and both pending fetches hang.
+      await Promise.resolve();
+      await Promise.resolve();
       resolveFetch([]);
       await Promise.all([a, b]);
 
@@ -433,6 +438,32 @@ describe('MarketDataService', () => {
       });
 
       expect(mockProvider.getOrderFills).toHaveBeenCalledTimes(2);
+    });
+
+    it('keys cache by resolved account so account switch does not serve stale data', async () => {
+      mockProvider.getOrders.mockResolvedValue([]);
+
+      // Caller A — resolved account 0x...001
+      (mockProvider.getCurrentAccountId as jest.Mock).mockResolvedValueOnce(
+        'eip155:1:0x0000000000000000000000000000000000000001',
+      );
+      await marketDataService.getOrders({
+        provider: mockProvider,
+        context: mockContext,
+      });
+
+      // Caller B — resolved account 0x...002 (user switched accounts)
+      (mockProvider.getCurrentAccountId as jest.Mock).mockResolvedValueOnce(
+        'eip155:1:0x0000000000000000000000000000000000000002',
+      );
+      await marketDataService.getOrders({
+        provider: mockProvider,
+        context: mockContext,
+      });
+
+      // Two distinct accounts must each trigger a real fetch rather than
+      // sharing a single cached payload via a 'default' sentinel key.
+      expect(mockProvider.getOrders).toHaveBeenCalledTimes(2);
     });
   });
 

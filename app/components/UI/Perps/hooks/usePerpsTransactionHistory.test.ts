@@ -74,6 +74,11 @@ describe('usePerpsTransactionHistory', () => {
   let mockController: {
     getActiveProvider: jest.MockedFunction<() => unknown>;
     getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
+    getOrderFills: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    getOrders: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+    getFunding: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
   };
   let mockProvider: {
     getOrderFills: jest.MockedFunction<
@@ -198,9 +203,15 @@ describe('usePerpsTransactionHistory', () => {
     mockController = {
       getActiveProvider: jest.fn().mockReturnValue(mockProvider),
       getActiveProviderOrNull: jest.fn().mockReturnValue(mockProvider),
-      getOrderFills: jest.fn((params) => mockProvider.getOrderFills(params)),
-      getOrders: jest.fn((params) => mockProvider.getOrders(params)),
-      getFunding: jest.fn((params) => mockProvider.getFunding(params)),
+      getOrderFills: jest.fn((params, options) =>
+        mockProvider.getOrderFills(params, options),
+      ),
+      getOrders: jest.fn((params, options) =>
+        mockProvider.getOrders(params, options),
+      ),
+      getFunding: jest.fn((params, options) =>
+        mockProvider.getFunding(params, options),
+      ),
     } as typeof mockController & {
       getOrderFills: jest.MockedFunction<
         (...args: unknown[]) => Promise<unknown>
@@ -570,19 +581,28 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
-        accountId: undefined,
-        aggregateByTime: false,
-      });
-      expect(mockProvider.getOrders).toHaveBeenCalledWith({
-        accountId: undefined,
-      });
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+          aggregateByTime: false,
+        },
+        { forceRefresh: false },
+      );
+      expect(mockProvider.getOrders).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+        },
+        { forceRefresh: false },
+      );
       // startTime default is handled in HyperLiquidProvider, not here
-      expect(mockProvider.getFunding).toHaveBeenCalledWith({
-        accountId: undefined,
-        startTime: undefined,
-        endTime: undefined,
-      });
+      expect(mockProvider.getFunding).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+          startTime: undefined,
+          endTime: undefined,
+        },
+        { forceRefresh: false },
+      );
 
       // Fills are enriched with detailedOrderType from matching orders
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
@@ -614,17 +634,26 @@ describe('usePerpsTransactionHistory', () => {
       });
 
       // Verify accountId is passed to all provider methods
-      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
-        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-        aggregateByTime: false,
-      });
-      expect(mockProvider.getOrders).toHaveBeenCalledWith({
-        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-      });
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith(
+        {
+          accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+          aggregateByTime: false,
+        },
+        { forceRefresh: false },
+      );
+      expect(mockProvider.getOrders).toHaveBeenCalledWith(
+        {
+          accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        },
+        { forceRefresh: false },
+      );
       // startTime/endTime defaults are handled in HyperLiquidProvider via 30-day window
-      expect(mockProvider.getFunding).toHaveBeenCalledWith({
-        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-      });
+      expect(mockProvider.getFunding).toHaveBeenCalledWith(
+        {
+          accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        },
+        { forceRefresh: false },
+      );
     });
 
     it('passes accountId to useUserHistory hook', async () => {
@@ -657,19 +686,28 @@ describe('usePerpsTransactionHistory', () => {
       });
 
       // Verify all methods are called with undefined accountId
-      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
-        accountId: undefined,
-        aggregateByTime: false,
-      });
-      expect(mockProvider.getOrders).toHaveBeenCalledWith({
-        accountId: undefined,
-      });
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+          aggregateByTime: false,
+        },
+        { forceRefresh: false },
+      );
+      expect(mockProvider.getOrders).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+        },
+        { forceRefresh: false },
+      );
       // startTime default is handled in HyperLiquidProvider, not here
-      expect(mockProvider.getFunding).toHaveBeenCalledWith({
-        accountId: undefined,
-        startTime: undefined,
-        endTime: undefined,
-      });
+      expect(mockProvider.getFunding).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+          startTime: undefined,
+          endTime: undefined,
+        },
+        { forceRefresh: false },
+      );
       expect(mockUseUserHistory).toHaveBeenCalledWith({
         startTime: undefined,
         endTime: undefined,
@@ -998,6 +1036,36 @@ describe('usePerpsTransactionHistory', () => {
 
       expect(mockRefetchUserHistory).toHaveBeenCalled();
       expect(mockProvider.getOrderFills).toHaveBeenCalled();
+    });
+
+    it('initial mount load does not force-refresh the coalesce cache', async () => {
+      renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockController.getOrderFills).toHaveBeenCalled();
+      const [, options] = mockController.getOrderFills.mock.calls[0];
+      expect(options).toEqual({ forceRefresh: false });
+    });
+
+    it('user-initiated refetch forces a fresh fetch past the coalesce cache', async () => {
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      mockController.getOrderFills.mockClear();
+
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      expect(mockController.getOrderFills).toHaveBeenCalled();
+      const [, options] = mockController.getOrderFills.mock.calls[0];
+      expect(options).toEqual({ forceRefresh: true });
     });
   });
 

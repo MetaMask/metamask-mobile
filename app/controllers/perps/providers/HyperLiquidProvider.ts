@@ -5434,6 +5434,19 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Resolve the provider's currently active CAIP account identifier.
+   * Used by the MarketDataService REST coalesce layer so cached payloads
+   * are keyed by the actual resolved address rather than a shared
+   * "default" sentinel — prevents one account's data from being served
+   * after an account switch within the coalesce TTL window.
+   *
+   * @returns CAIP account id for the currently selected HyperLiquid account.
+   */
+  async getCurrentAccountId(): Promise<CaipAccountId> {
+    return this.#walletService.getCurrentAccountId();
+  }
+
+  /**
    * Get user history (deposits, withdrawals, transfers)
    *
    * @param params - The operation parameters.

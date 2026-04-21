@@ -824,6 +824,18 @@ export class MYXProvider implements PerpsProvider {
     return [];
   }
 
+  /**
+   * Resolve the provider's currently active CAIP account identifier.
+   * Used by the MarketDataService REST coalesce layer so cached payloads
+   * are keyed by the actual resolved address rather than a shared
+   * "default" sentinel.
+   *
+   * @returns CAIP account id for the currently selected MYX account.
+   */
+  async getCurrentAccountId(): Promise<CaipAccountId> {
+    return this.#getWalletService().getCurrentAccountId();
+  }
+
   async getUserHistory(_params?: {
     accountId?: CaipAccountId;
     startTime?: number;
