@@ -5,7 +5,7 @@ import React, {
   useRef,
   useEffect,
 } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
@@ -233,6 +233,7 @@ const AccountGroupBalance = ({
       />
     ) : (
       <TouchableOpacity
+        accessible={false}
         onPress={() => togglePrivacy(!privacyMode)}
         testID="balance-container"
         style={styles.balanceContainer}

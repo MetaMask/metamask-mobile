@@ -59,13 +59,12 @@ export const TokenDetailsActionsSkeleton: React.FC = () => {
   return (
     <View style={styles.activitiesButton}>
       {Array.from({ length: skeletonCount }).map((_, index) => (
-        <View key={`skeleton-${index}`} style={styles.buttonContainer}>
-          <Skeleton
-            width="100%"
-            height={SKELETON_BUTTON_HEIGHT}
-            style={styles.skeletonButton}
-          />
-        </View>
+        <Skeleton
+          key={`skeleton-${index}`}
+          width="100%"
+          height={SKELETON_BUTTON_HEIGHT}
+          style={[styles.buttonContainer, styles.skeletonButton]}
+        />
       ))}
     </View>
   );
@@ -297,15 +296,15 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   return (
     <View style={styles.activitiesButton}>
       {buttons.map((button) => (
-        <View key={button.key} style={styles.buttonContainer}>
-          <MainActionButton
-            iconName={button.iconName}
-            label={button.label}
-            onPress={button.onPress}
-            isDisabled={button.isDisabled}
-            testID={button.testID}
-          />
-        </View>
+        <MainActionButton
+          key={button.key}
+          iconName={button.iconName}
+          label={button.label}
+          onPress={button.onPress}
+          isDisabled={button.isDisabled}
+          testID={button.testID}
+          containerStyle={styles.buttonContainer}
+        />
       ))}
     </View>
   );
