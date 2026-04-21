@@ -570,11 +570,6 @@ export const BridgeTokenSelector: React.FC = () => {
         maxToRenderPerBatch={5}
         windowSize={5}
         removeClippedSubviews
-        getItemLayout={(_data, index) => ({
-          length: ESTIMATED_ITEM_HEIGHT,
-          offset: ESTIMATED_ITEM_HEIGHT * index,
-          index,
-        })}
       />
     </SafeAreaView>
   );
