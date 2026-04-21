@@ -73,7 +73,6 @@ export enum SwapBridgeNavigationLocation {
   TokenView = MetaMetricsSwapsEventSource.TokenView,
   Rewards = 'Rewards',
   TrendingExplore = MetaMetricsSwapsEventSource.TrendingExplore,
-  MoneyHub = 'Money Hub',
 }
 
 /**
@@ -98,8 +97,6 @@ export const toMetaMetricsSwapsEventSource = (
       return MetaMetricsSwapsEventSource.TokenView;
     case SwapBridgeNavigationLocation.TrendingExplore:
       return MetaMetricsSwapsEventSource.TrendingExplore;
-    case SwapBridgeNavigationLocation.MoneyHub:
-      return MetaMetricsSwapsEventSource.MoneyHub;
     default:
       return MetaMetricsSwapsEventSource.MainView;
   }
