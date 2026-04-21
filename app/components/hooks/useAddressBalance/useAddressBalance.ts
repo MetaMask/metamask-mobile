@@ -154,7 +154,6 @@ const useAddressBalance = (
               networkClientId,
             );
             fromAccBalance = `${renderFromTokenMinimalUnit(
-              // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete
               BigInt(fromAccBalance?.toString(10) || '0'),
               decimals,
             )} ${symbol}`;
