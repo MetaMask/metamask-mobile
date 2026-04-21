@@ -257,7 +257,9 @@ jobs:
           ENV_VARS=$(jq -n \
             --arg byoa "${{ secrets.E2E_BYOA_AUTH_SECRET }}" \
             --arg email "${{ secrets.E2E_MOCK_OAUTH_EMAIL }}" \
-            '[{"mapped_to":"DISABLE_NOTIFICATION_PROMPT","value":"true","is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH","value":"true","is_expand":true},{"mapped_to":"E2E_BYOA_AUTH_SECRET","value":$byoa,"is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH_EMAIL","value":$email,"is_expand":true},{"mapped_to":"OAUTH_BUILD_TYPE","value":"main_uat","is_expand":true}]')
+            --arg androidAppleClientId "${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}" \
+            --arg androidGoogleClientId "${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}" \
+            '[{"mapped_to":"DISABLE_NOTIFICATION_PROMPT","value":"true","is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH","value":"true","is_expand":true},{"mapped_to":"E2E_BYOA_AUTH_SECRET","value":$byoa,"is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH_EMAIL","value":$email,"is_expand":true},{"mapped_to":"OAUTH_BUILD_TYPE","value":"main_uat","is_expand":true},{"mapped_to":"METAMASK_ENVIRONMENT","value":"test","is_expand":true},{"mapped_to":"ANDROID_APPLE_CLIENT_ID","value":$androidAppleClientId,"is_expand":true},{"mapped_to":"ANDROID_GOOGLE_CLIENT_ID","value":$androidGoogleClientId,"is_expand":true}]')
           CUSTOM_ID="MetaMask-Android-Without-SRP-${{ github.run_id }}"
           
           # Trigger Android workflow
