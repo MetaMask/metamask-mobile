@@ -19,9 +19,8 @@ import {
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
 
 const MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS =
-  process.env.IOS_GOOGLE_CLIENT_ID || process.env.MAIN_IOS_GOOGLE_CLIENT_ID_UAT;
+  process.env.MAIN_IOS_GOOGLE_CLIENT_ID_UAT;
 const MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID =
-  process.env.ANDROID_GOOGLE_CLIENT_ID ||
   process.env.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT;
 
 function getMockGoogleOAuthClientId(): string {
@@ -31,8 +30,8 @@ function getMockGoogleOAuthClientId(): string {
       : MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID;
   if (!clientId) {
     throw new Error(
-      `[E2E Mock] Missing Google OAuth client ID env var for platform "${Platform.OS}". ` +
-        'Ensure IOS_GOOGLE_CLIENT_ID or ANDROID_GOOGLE_CLIENT_ID is set.',
+      `[E2E Mock] Missing Google OAuth UAT client ID env var for platform "${Platform.OS}". ` +
+        'Ensure MAIN_IOS_GOOGLE_CLIENT_ID_UAT or MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT is set.',
     );
   }
   console.log(
@@ -294,13 +293,11 @@ export function createLoginHandler(
         redirectUri: 'metamask://e2e',
       });
     case 'apple': {
-      const appleClientId =
-        process.env.ANDROID_APPLE_CLIENT_ID ||
-        process.env.MAIN_ANDROID_APPLE_CLIENT_ID_UAT;
+      const appleClientId = process.env.MAIN_ANDROID_APPLE_CLIENT_ID_UAT;
       if (!appleClientId) {
         throw new Error(
-          '[E2E Mock] Missing Apple OAuth client ID. ' +
-            'Ensure ANDROID_APPLE_CLIENT_ID or MAIN_ANDROID_APPLE_CLIENT_ID_UAT is set.',
+          '[E2E Mock] Missing Apple OAuth UAT client ID. ' +
+            'Ensure MAIN_ANDROID_APPLE_CLIENT_ID_UAT is set.',
         );
       }
       return new MockAppleLoginHandler({ clientId: appleClientId });
