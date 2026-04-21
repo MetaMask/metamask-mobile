@@ -4,6 +4,7 @@ import { FlaskBuildTests } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -11,6 +12,7 @@ describe(FlaskBuildTests('Snap RPC Tests'), () => {
   it('can use the cross-snap RPC endowment and produce a public key', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
