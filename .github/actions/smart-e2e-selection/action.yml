@@ -45,9 +45,6 @@ outputs:
   ai_confidence:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
-  ai_risk_level:
-    description: 'Risk level of the PR (low, medium, high) — indicates testing need and bug introduction likelihood'
-    value: ${{ steps.final-outputs.outputs.ai_risk_level }}
   ai_performance_test_tags:
     description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
@@ -218,16 +215,6 @@ runs:
         else
           echo "force_run=false" >> "$GITHUB_OUTPUT"
         fi
-        # Risk level: force_run → always high; otherwise use AI output
-        AI_RISK='${{ steps.ai-analysis.outputs.ai_risk_level }}'
-        if [[ "$FORCE_RUN" == "true" ]]; then
-          echo "ai_risk_level=high" >> "$GITHUB_OUTPUT"
-        elif [[ -n "$AI_RISK" ]]; then
-          echo "ai_risk_level=$AI_RISK" >> "$GITHUB_OUTPUT"
-        else
-          echo "ai_risk_level=" >> "$GITHUB_OUTPUT"
-        fi
-
     - name: Display AI Analysis Outputs
       if: always()
       shell: bash
@@ -236,7 +223,6 @@ runs:
         echo "================================"
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
-        echo "ai_risk_level: ${{ steps.final-outputs.outputs.ai_risk_level }}"
         echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
         echo "force_run: ${{ steps.final-outputs.outputs.force_run }}"
         echo "================================"
