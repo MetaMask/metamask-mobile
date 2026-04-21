@@ -233,4 +233,71 @@ describe('wallet_watchAsset', () => {
       },
     });
   });
+
+  it('sanitizes pageMeta properties with undefined values before passing to watchAsset', async () => {
+    jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
+    const spyOnWatchAsset = jest.spyOn(
+      Engine.context.TokensController,
+      'watchAsset',
+    );
+
+    const pageMetaWithUndefined = {
+      url: 'https://example.com',
+      title: undefined,
+      icon: undefined,
+      channelId: undefined,
+      analytics: {
+        request_source: 'in-app-browser',
+        request_platform: undefined,
+      },
+    };
+
+    await expect(
+      wallet_watchAsset({
+        req: {
+          params: {
+            options: correctWBTC,
+            type: ERC20,
+          },
+          jsonrpc: '2.0',
+          method: '',
+          id: '',
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res: {} as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        checkTabActive: () => null as any,
+        hostname: 'example.com',
+        pageMeta: pageMetaWithUndefined,
+      }),
+    ).resolves.not.toThrow();
+
+    const expectedSanitizedPageMeta = {
+      url: 'https://example.com',
+      analytics: {
+        request_source: 'in-app-browser',
+      },
+    };
+
+    expect(spyOnWatchAsset).toHaveBeenCalledWith({
+      asset: correctWBTC,
+      type: ERC20,
+      interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+      networkClientId: '0x1',
+      origin: 'https://example.com',
+      pageMeta: expectedSanitizedPageMeta,
+      requestMetadata: {
+        origin: 'https://example.com',
+        pageMeta: expectedSanitizedPageMeta,
+      },
+    });
+  });
 });
