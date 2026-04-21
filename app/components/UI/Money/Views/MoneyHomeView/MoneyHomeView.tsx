@@ -20,20 +20,24 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 /** Placeholder until Money home actions are implemented */
-const noopHandler = () => undefined;
+// eslint-disable-next-line no-alert
+const displayUnderConstructionAlert = () => alert('Under construction 🚧');
 
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
+
+  const { totalFiatFormatted, vaultApyQuery, isAggregatedBalanceLoading } =
+    useMoneyAccountBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
@@ -42,23 +46,23 @@ const MoneyHomeView = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleMenuPress = noopHandler;
+  const handleMenuPress = displayUnderConstructionAlert;
 
-  const handleAddPress = noopHandler;
-  const handleTransferPress = noopHandler;
-  const handleCardPress = noopHandler;
-  const handleApyInfoPress = noopHandler;
-  const handleProjectedEarningsPress = noopHandler;
-  const handleGetNowPress = noopHandler;
-  const handleMusdRowPress = noopHandler;
-  const handleHeaderPress = noopHandler;
+  const handleAddPress = displayUnderConstructionAlert;
+  const handleTransferPress = displayUnderConstructionAlert;
+  const handleCardPress = displayUnderConstructionAlert;
+  const handleApyInfoPress = displayUnderConstructionAlert;
+  const handleProjectedEarningsPress = displayUnderConstructionAlert;
+  const handleGetNowPress = displayUnderConstructionAlert;
+  const handleMusdRowPress = displayUnderConstructionAlert;
+  const handleHeaderPress = displayUnderConstructionAlert;
 
-  const handleTokenConvertPress = noopHandler;
+  const handleTokenConvertPress = displayUnderConstructionAlert;
 
-  const handleEarnCryptoPress = noopHandler;
-  const handleLearnMorePress = noopHandler;
-  const handleAddMoneyPress = noopHandler;
-  const handleHowItWorksHeaderPress = noopHandler;
+  const handleEarnCryptoPress = displayUnderConstructionAlert;
+  const handleLearnMorePress = displayUnderConstructionAlert;
+  const handleAddMoneyPress = displayUnderConstructionAlert;
+  const handleHowItWorksHeaderPress = displayUnderConstructionAlert;
 
   const handleViewAllActivityPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.ACTIVITY as never);
@@ -68,6 +72,10 @@ const MoneyHomeView = () => {
   const handleActivityItemPress = useCallback(() => {
     showMoneyActivityUnderConstructionAlert();
   }, []);
+
+  // TODO: Remove before launch
+  // Useful for testing how zero and non-zero APYs are handled quickly.
+  const DEV_APY = __DEV__ ? 4 : vaultApyQuery.data?.apy;
 
   return (
     <Box
@@ -85,8 +93,10 @@ const MoneyHomeView = () => {
         showsVerticalScrollIndicator={false}
       >
         <MoneyBalanceSummary
-          apy={String(MUSD_CONVERSION_APY)}
+          apy={DEV_APY}
+          balance={totalFiatFormatted ?? '--.--'}
           onApyInfoPress={handleApyInfoPress}
+          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
         />
         <MoneyActionButtonRow
           onAddPress={handleAddPress}
@@ -98,8 +108,9 @@ const MoneyHomeView = () => {
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
         <Divider />
         <MoneyHowItWorks
-          apy={MUSD_CONVERSION_APY}
+          apy={DEV_APY}
           onHeaderPress={handleHowItWorksHeaderPress}
+          isLoading={vaultApyQuery.isLoading}
         />
         <MoneyMusdTokenRow
           onPress={handleMusdRowPress}
@@ -110,7 +121,7 @@ const MoneyHomeView = () => {
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}
-              apy={MUSD_CONVERSION_APY}
+              apy={DEV_APY}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
@@ -136,7 +147,7 @@ const MoneyHomeView = () => {
           </>
         )}
         <MoneyWhatYouGet
-          apy={MUSD_CONVERSION_APY}
+          apy={DEV_APY}
           onLearnMorePress={handleLearnMorePress}
         />
       </ScrollView>

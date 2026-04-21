@@ -24,6 +24,7 @@ import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
+import { normalizeAssetIdForApi } from '../../utils/normalizeAssetIdForApi';
 import { useProviderLimits } from '../../hooks/useProviderLimits';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
@@ -85,7 +86,6 @@ import {
   selectHasAgreedTransakNativePolicy,
   UnifiedRampRoutingType,
 } from '../../../../../reducers/fiatOrders';
-import { selectProviderAutoSelected } from '../../../../../selectors/rampsController';
 import Device from '../../../../../util/device';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
@@ -194,7 +194,6 @@ function BuildQuote() {
   const hasAgreedTransakNativePolicy = useSelector(
     selectHasAgreedTransakNativePolicy,
   );
-  const providerAutoSelected = useSelector(selectProviderAutoSelected);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -293,17 +292,16 @@ function BuildQuote() {
     setSelectedProvider,
   ]);
 
-  // When the selected token is unavailable for the current provider:
-  // - If the provider was auto-selected (soft), silently switch to the best
-  //   provider that supports the token.
-  // - Otherwise, show the "Token Not Available" modal so the user can decide.
+  // When the selected token is unavailable for the current provider, silently
+  // switch to any other provider that supports the token. Only fall through to
+  // the "Token Not Available" modal when no provider supports the token.
   useEffect(() => {
     if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
       lastShownUnavailableKeyRef.current = '';
       return;
     }
 
-    if (providerAutoSelected && effectiveAssetId) {
+    if (effectiveAssetId) {
       const supportingProvider = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
@@ -337,7 +335,6 @@ function BuildQuote() {
     navigation,
     selectedProvider?.id,
     focusTrigger,
-    providerAutoSelected,
     providers,
     setSelectedProvider,
   ]);
@@ -441,7 +438,7 @@ function BuildQuote() {
       selectedPaymentMethod &&
       selectedProvider
         ? {
-            assetId: selectedToken.assetId,
+            assetId: normalizeAssetIdForApi(selectedToken.assetId),
             amount: debouncedPollingAmount,
             walletAddress,
             redirectUrl: getRampCallbackBaseUrl(),

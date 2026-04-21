@@ -31,9 +31,7 @@ import {
 } from '../../../../UI/Earn/constants/musd';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
+import { useCashNavigation } from './useCashNavigation';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { LINEA_MUSD_ASSET_FOR_MERKL } from './CashGetMusdEmptyState.constants';
@@ -42,9 +40,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
   const privacyMode = useSelector(selectPrivacyMode);
-  const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
   const { claimableReward, hasPendingClaim, isClaiming, claimRewards } =
@@ -72,13 +68,7 @@ const MusdAggregatedRow = () => {
     claimRewards();
   }, [trackEvent, createEventBuilder, claimRewards]);
 
-  const handleTokenRowPress = useCallback(() => {
-    if (isMoneyHomeEnabled) {
-      navigation.navigate(Routes.MONEY.ROOT);
-    } else {
-      navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
-    }
-  }, [navigation, isMoneyHomeEnabled]);
+  const { navigateToCash: handleTokenRowPress } = useCashNavigation();
 
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 0,

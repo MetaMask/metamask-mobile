@@ -17,6 +17,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
@@ -93,6 +95,8 @@ const PriceLegacy = ({
   const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
 
   const { styles, theme } = useStyles(styleSheet);
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
 
   return (
     <>
@@ -144,6 +148,11 @@ const PriceLegacy = ({
                   : displayDiff < 0
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
+              }
+              style={
+                isLightMode && displayDiff > 0
+                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
+                  : undefined
               }
               allowFontScaling={false}
             >

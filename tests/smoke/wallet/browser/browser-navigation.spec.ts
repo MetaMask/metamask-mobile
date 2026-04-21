@@ -130,10 +130,8 @@ describe(SmokeBrowser('Browser Navigation'), () => {
   // when its onLoadEnd "started && ended" condition is met. For JS-initiated
   // cross-origin redirects (window.location.href) this condition is not
   // reliably satisfied, so the URL bar keeps showing the previous origin.
-  // The hidden TextInput (opacity 0 when unfocused) also prevents Detox from
-  // reading the text. This was the original reason the test was quarantined in
-  // browser-tests.failing.ts. Re-enable once the app fixes URL bar updates
-  // after cross-origin in-page navigations.
+  // Re-enable once the app fixes URL bar updates after cross-origin
+  // in-page navigations (MCWP-540).
   // eslint-disable-next-line jest/no-disabled-tests
   it.skip('displays redirected URL after cross-origin redirect', async () => {
     await withFixtures(
