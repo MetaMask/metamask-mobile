@@ -1,6 +1,7 @@
 export const RedesignedSendViewSelectorsIDs = {
   SEND_AMOUNT: 'send_amount',
   EDIT_AMOUNT_KEYBOARD: 'edit-amount-keyboard',
+  PERCENTAGE_BUTTON_50: 'percentage-button-50',
   PERCENTAGE_BUTTON_100: 'percentage-button-100',
   RECIPIENT_ADDRESS_INPUT: 'recipient-address-input',
   REVIEW_BUTTON: 'review-button',

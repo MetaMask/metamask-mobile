@@ -155,7 +155,9 @@ describe(SmokeConfirmations('Alert System - Signature'), () => {
       });
     });
 
-    it('should show security alert for error when validating request fails', async () => {
+    // Moved to cv tests (alert-system-security-failed.view.test.tsx)
+    // eslint-disable-next-line jest/no-disabled-tests -- covered by component view tests
+    it.skip('should show security alert for error when validating request fails', async () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
@@ -204,7 +206,9 @@ describe(SmokeConfirmations('Alert System - Signature'), () => {
   });
 
   describe('Inline Alert', () => {
-    it('should show mismatch field alert, click the alert, acknowledge and confirm the signature', async () => {
+    // Moved to cv tests (alert-system-siwe-inline-mismatch.view.test.tsx)
+    // eslint-disable-next-line jest/no-disabled-tests -- covered by component view tests
+    it.skip('should show mismatch field alert, click the alert, acknowledge and confirm the signature', async () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,

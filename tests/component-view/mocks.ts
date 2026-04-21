@@ -125,6 +125,13 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
       },
+      AiDigestController: {
+        fetchMarketInsights: jest.fn().mockResolvedValue(null),
+        fetchMarketOverview: jest.fn().mockResolvedValue(undefined),
+      },
+      RampsController: {
+        setSelectedToken: jest.fn(),
+      },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
       },
