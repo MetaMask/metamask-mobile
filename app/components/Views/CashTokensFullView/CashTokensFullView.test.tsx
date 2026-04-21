@@ -575,7 +575,7 @@ describe('CashTokensFullView', () => {
   });
 
   describe('analytics tracking', () => {
-    it('tracks MONEY_HUB_SWAPS_BUTTON_CLICKED when swap button is pressed', () => {
+    it('tracks MONEY_HUB_SWAP_BUTTON_CLICKED when swap button is pressed', () => {
       mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
       mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
 
@@ -585,7 +585,7 @@ describe('CashTokensFullView', () => {
       );
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MONEY_HUB_SWAPS_BUTTON_CLICKED,
+        MetaMetricsEvents.MONEY_HUB_SWAP_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({

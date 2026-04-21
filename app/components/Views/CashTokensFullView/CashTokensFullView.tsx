@@ -263,7 +263,7 @@ const CashTokensFullView = () => {
 
   const handleSwapsPress = useCallback(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.MONEY_HUB_SWAPS_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.MONEY_HUB_SWAP_BUTTON_CLICKED)
         .addProperties({
           location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
           moneyHubFilledState,
