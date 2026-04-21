@@ -89,7 +89,7 @@ jobs:
     name: Sentry Size Analysis (iOS)
     needs: [ios-rc]
     if: success()
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
