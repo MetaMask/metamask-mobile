@@ -12,7 +12,15 @@ export {
   deriveEventNamesForFetch,
   shouldRunAnalyticsExpectations,
 } from '../helpers/analytics/runAnalyticsExpectations.ts';
-export { boxedStep, getDriver } from './PlaywrightUtilities.ts';
+export {
+  boxedStep,
+  getDriver,
+  withSnapshotSettings,
+  startOverheadTracking,
+  addOverhead,
+  stopOverheadTracking,
+  isOverheadTrackingActive,
+} from './PlaywrightUtilities.ts';
 
 // Mock server utilities
 export { safeGetBodyText } from '../api-mocking/MockServerE2E.ts';

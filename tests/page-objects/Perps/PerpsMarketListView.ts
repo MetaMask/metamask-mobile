@@ -7,6 +7,7 @@ import {
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import {
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
@@ -71,16 +72,38 @@ class PerpsMarketListView {
 
   get header(): EncapsulatedElementType {
     return encapsulated({
-      appium: () =>
-        // TODO: Create a testIds.ts const with this selector
-        PlaywrightMatchers.getElementById('perps-home', { exact: true }),
+      detox: () =>
+        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.CONTAINER),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketListViewSelectorsIDs.CONTAINER,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            PerpsMarketListViewSelectorsIDs.CONTAINER,
+          ),
+      },
     });
   }
 
-  get marketRowItemBTC() {
-    return Matchers.getElementByID(
-      getPerpsMarketRowItemSelector.rowItem('BTC'),
-    );
+  get marketRowItemBTC(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(getPerpsMarketRowItemSelector.rowItem('BTC')),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            getPerpsMarketRowItemSelector.rowItem('BTC'),
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            getPerpsMarketRowItemSelector.rowItem('BTC'),
+          ),
+      },
+    });
   }
 
   // Generic selector for first market row item (regardless of coin)
@@ -105,20 +128,32 @@ class PerpsMarketListView {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.CLOSE_BUTTON);
   }
 
+  get BTCMarketRowItem() {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(getPerpsMarketRowItemSelector.rowItem('BTC')),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            getPerpsMarketRowItemSelector.rowItem('BTC'),
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            getPerpsMarketRowItemSelector.rowItem('BTC'),
+          ),
+      },
+    });
+  }
+
   // Actions
   async tapMarketRowItemBTC() {
-    await Gestures.scrollToElement(
-      this.marketRowItemBTC,
-      this.scrollableContainer,
-      {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Perps Market Row BTC',
+    await encapsulatedAction({
+      appium: async () => {
+        const marketElement = await asPlaywrightElement(this.marketRowItemBTC);
+        await PlaywrightGestures.scrollIntoView(marketElement);
+        await PlaywrightGestures.waitAndTap(marketElement);
       },
-    );
-    await Gestures.waitAndTap(this.marketRowItemBTC, {
-      elemDescription: 'Perps Market Row BTC',
-      checkStability: true,
     });
   }
 
@@ -150,7 +185,6 @@ class PerpsMarketListView {
     await Gestures.waitAndTap(this.container);
   }
 
-  // Helper method to select a specific market by text
   async selectMarket(marketName: string) {
     await encapsulatedAction({
       detox: async () => {
@@ -158,12 +192,12 @@ class PerpsMarketListView {
         await Gestures.waitAndTap(marketElement);
       },
       appium: async () => {
-        // TODO: Create a testIds.ts const with this selector
         const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
         const marketElement = await PlaywrightMatchers.getElementById(
           marketSelector,
           { exact: true },
         );
+        await PlaywrightGestures.scrollIntoView(marketElement);
         await PlaywrightGestures.waitAndTap(marketElement);
       },
     });
