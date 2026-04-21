@@ -1,8 +1,12 @@
-import { analytics } from '@metamask/sdk-analytics';
-import { isAnalyticsTrackedRpcMethod } from '@metamask/sdk-communication-layer';
+import { MetaMetricsEvents } from '../../Analytics';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
-import { RPC_METHODS } from '../SDKConnectConstants';
+import {
+  ANALYTICS_TRACKED_RPC_METHODS,
+  RPC_METHODS,
+} from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 import Routes from '../../../constants/navigation/Routes';
@@ -25,22 +29,29 @@ export const handleSendMessage = async ({
     const anonId = connection.originatorInfo?.anonId;
 
     if (
-      isAnalyticsTrackedRpcMethod(method) &&
+      ANALYTICS_TRACKED_RPC_METHODS.includes(method) &&
       msgId &&
       msgId !== 'undefined' &&
       anonId
     ) {
-      if (msg?.data?.error) {
-        DevLogger.log(
-          `[MM SDK Analytics] event=wallet_action_user_rejected anonId=${anonId}`,
-        );
-        analytics.track('wallet_action_user_rejected', { anon_id: anonId });
-      } else {
-        DevLogger.log(
-          `[MM SDK Analytics] event=wallet_action_user_approved anonId=${anonId}`,
-        );
-        analytics.track('wallet_action_user_approved', { anon_id: anonId });
-      }
+      const event = msg?.data?.error
+        ? MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_REJECTED
+        : MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_APPROVED;
+
+      DevLogger.log(
+        `[MM SDK Analytics] event=${event.category} anonId=${anonId}`,
+      );
+
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(event)
+          .addProperties({
+            transport_type: 'socket_relay',
+            sdk_version: connection.originatorInfo?.apiVersion,
+            rpc_method: method,
+            remote_session_id: anonId,
+          })
+          .build(),
+      );
     }
 
     // handle multichain rpc call responses separately

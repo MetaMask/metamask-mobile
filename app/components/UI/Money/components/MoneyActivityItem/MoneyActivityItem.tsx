@@ -83,7 +83,7 @@ const MoneyActivityItem = ({
           <AvatarToken
             name={MUSD_TOKEN.name}
             imageSource={MUSD_TOKEN.imageSource}
-            size={AvatarSize.Md}
+            size={AvatarSize.Lg}
           />
         </BadgeWrapper>
       ) : (
@@ -91,7 +91,7 @@ const MoneyActivityItem = ({
           <AvatarToken
             name={MUSD_TOKEN.name}
             imageSource={MUSD_TOKEN.imageSource}
-            size={AvatarSize.Md}
+            size={AvatarSize.Lg}
           />
         </Box>
       )}
@@ -107,7 +107,7 @@ const MoneyActivityItem = ({
         {display.description ? (
           <Text
             variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Regular}
+            fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
@@ -126,7 +126,7 @@ const MoneyActivityItem = ({
         </Text>
         <Text
           variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Regular}
+          fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           twClassName="text-right"
         >

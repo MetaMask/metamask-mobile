@@ -78,6 +78,7 @@ import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { AccountType } from '../../../constants/onboarding';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { endTrace, TraceName } from '../../../util/trace';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');

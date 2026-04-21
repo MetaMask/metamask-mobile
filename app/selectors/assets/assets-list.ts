@@ -310,14 +310,28 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
       enabledNetworksSelector,
       selectTokenSortConfig,
       selectStakedAssets,
+      selectHideZeroBalanceTokens,
     ],
-    (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
+    (
+      bip44Assets,
+      enabledNetworks,
+      tokenSortConfig,
+      stakedAssets,
+      hideZeroBalance,
+    ) => {
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter(
-            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
-          ),
+          chainAssets.filter((asset) => {
+            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (
+              hideZeroBalance &&
+              !asset.isNative &&
+              parseFloat(asset.balance ?? '0') === 0
+            )
+              return false;
+            return true;
+          }),
         );
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,
@@ -482,8 +496,6 @@ export const selectAsset = createSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
-    (state: RootState) =>
-      state.engine.backgroundState.TokenListController.tokensChainsCache,
     selectAllTokens,
     selectSelectedInternalAccountAddress,
     selectSelectedInternalAccountByScope,
@@ -503,7 +515,6 @@ export const selectAsset = createSelector(
   (
     assets,
     stakedAssets,
-    tokensChainsCache,
     allTokens,
     selectedAddress,
     getAccountByScope,
@@ -535,16 +546,17 @@ export const selectAsset = createSelector(
           );
         });
 
-    // Look up rwaData from the original token in allTokens
+    // Look up aggregators and rwaData from the original token in allTokens
     const originalToken = selectedAddress
       ? allTokens?.[chainId as Hex]?.[selectedAddress]?.find(
           (token) => token.address.toLowerCase() === address.toLowerCase(),
         )
       : undefined;
 
+    const aggregators = originalToken?.aggregators;
     const rwaData = (originalToken as TokenI | undefined)?.rwaData;
 
-    return asset ? assetToToken(asset, tokensChainsCache, rwaData) : undefined;
+    return asset ? assetToToken(asset, aggregators, rwaData) : undefined;
   },
 );
 
@@ -554,15 +566,12 @@ const oneHundredths = 0.01;
 // BIP44 MAINTENANCE: Review what fields are really needed
 function assetToToken(
   asset: Asset & { isStaked?: boolean },
-  tokensChainsCache: TokenListState['tokensChainsCache'],
+  aggregators?: string[],
   rwaData?: TokenI['rwaData'],
 ): TokenI {
   return {
     address: asset.assetId,
-    aggregators:
-      ('address' in asset &&
-        tokensChainsCache[asset.chainId]?.data[asset.address]?.aggregators) ||
-      [],
+    aggregators: aggregators ?? [],
     decimals: asset.decimals,
     image: asset.image,
     name: asset.name,

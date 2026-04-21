@@ -15,6 +15,7 @@ import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/g
 import { getIframeProperties } from '../../../util/metrics/getIframeProperties';
 import { selectPendingApprovals } from '../../../selectors/approvalController';
 import { isEqual } from 'lodash';
+import { useSDKV2Connection } from '../../hooks/useSDKV2Connection';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -31,9 +32,12 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   // Prevents re-navigation for the same approval when pendingApprovals changes.
   const lastNavigatedApprovalIdRef = useRef<string | null>(null);
 
-  const eventSource = useOriginSource({
-    origin: approvalRequest?.requestData?.metadata?.origin,
-  });
+  const origin = approvalRequest?.requestData?.metadata?.origin;
+
+  const eventSource = useOriginSource({ origin });
+
+  const sdkV2Connection = useSDKV2Connection(origin);
+  const anonId = sdkV2Connection?.originatorInfo?.anonId;
 
   useEffect(() => {
     if (
@@ -84,6 +88,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
           chain_id_list: chainIds,
           ...getApiAnalyticsProperties(isMultichainRequest),
           ...iframeProps,
+          ...(anonId ? { remote_session_id: anonId } : {}),
         })
         .build(),
     );
@@ -101,6 +106,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     trackEvent,
     createEventBuilder,
     eventSource,
+    anonId,
     // Re-run when the queue changes so new approvals are picked up.
     // The ref guard above prevents re-navigation for the same approval.
     pendingApprovals,

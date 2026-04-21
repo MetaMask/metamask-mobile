@@ -1,107 +1,88 @@
-# A/B Testing Framework
+# A/B Testing in MetaMask Mobile
 
-Generic A/B testing guidance for MetaMask Mobile.
+This is the canonical guide for implementing A/B tests in MetaMask Mobile.
 
-## Current Analytics Standard
+If you are adding a new test, start with the quickstart and the end-to-end example. The rest of the document explains the rules behind that workflow.
 
-Use these two mechanisms together:
+## Quickstart
 
-1. **Exposure event (automatic):** `Experiment Viewed`
-2. **Business events context (automatic on allowlisted events):** `active_ab_tests`
+Use this order every time:
 
-- Events sent through `analytics.trackEvent`, `useAnalytics().trackEvent`, or the `trackEvent()` util in `app/core/Engine/utils/analytics.ts` are auto-enriched. If an event bypasses those wrappers, attach `active_ab_tests` manually. See example below in the "Concrete Example" section.
+1. Create a LaunchDarkly JSON flag named `{team}{TICKET}Abtest{TestName}`.
+2. Add a feature-local config module that exports:
+   - the flag key
+   - the variant enum
+   - the variant config map
+   - the analytics mapping for business events
+3. In the feature, call `useABTest(flagKey, variants)`.
+4. If the feature sends business events through shared analytics wrappers, register the analytics mapping in `app/util/analytics/abTestAnalyticsRegistry.ts`.
+5. If the feature uses a custom tracker path that bypasses shared wrappers, attach `active_ab_tests` manually on that event.
+6. Run targeted tests and the compliance check before shipping.
 
-`ab_tests` is legacy and should not be used for new payload additions.
+## What You Need to Touch
 
-## References
+Most A/B tests change only these places:
 
-- [Remote Feature Flags Documentation](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md)
+- Feature config module, for example `app/components/.../abTestConfig.ts`
+- Feature component or hook that consumes `useABTest`
+- `app/util/analytics/abTestAnalyticsRegistry.ts` if business events should be auto-enriched
+- Tests for the feature, analytics enrichment, or hook behavior when the change affects behavior or instrumentation
 
-## Agent Skill Entrypoint
+## Definition of Done
 
-For agent workflows, this document is the SSOT. Supporting entrypoints:
+An A/B test is ready when all of these are true:
 
-- Codex skill: `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
-- Claude skill: `.claude/skills/ab-testing-implementation/SKILL.md`
-- Compliance check: `bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged`
+- LaunchDarkly JSON flag exists and uses the threshold array format shown below
+- The feature reads assignment through `useABTest`
+- The variants object includes a `control` variant
+- Shared-wrapper events are registered in `app/util/analytics/abTestAnalyticsRegistry.ts`
+- Custom tracker events attach `active_ab_tests` manually when active
+- Relevant tests were added or updated when behavior or analytics wiring changed
+- The compliance checker passes
 
-## Agent Execution Standard (SSOT)
+## End-to-End Example
 
-For agent implementation/review tasks, follow this workflow exactly:
+This is the smallest complete pattern for a new A/B test.
 
-1. Run discovery before edits:
+### 1. Create the config module
 
-```bash
-rg -n "useABTest\\(|active_ab_tests|ab_tests|Abtest|abTestConfig" app docs tests
-rg -n "Experiment Viewed|EXPERIMENT_VIEWED" app
-```
-
-2. Keep test config centralized in a dedicated config module (`abTestConfig.ts` pattern).
-3. Use `useABTest(flagKey, variants)` and normalize unresolved assignments to `control`.
-4. Do not manually emit `Experiment Viewed` when using `useABTest`.
-5. For business events, follow the path defined in Current Analytics Standard: use allowlisted registry-based injection on the shared wrapper path, or attach `active_ab_tests` manually on the custom tracker path.
-6. Do not add new payloads under `ab_tests`.
-   - Compliance checker behavior is strict at diff-line level: adding any `ab_tests:` line in changed code fails by default.
-   - For rare legacy touchpoints that cannot be migrated in the same change, use `LEGACY_AB_TEST_ALLOWED` on the line and include rationale in PR/agent output.
-7. Use risk-based test scope:
-   - If behavior or analytics integration changed, add/update tests.
-   - If change is copy/config-only, you may skip new tests with a brief rationale.
-8. Run compliance check:
-
-```bash
-bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
-```
-
-Required agent response sections:
-
-1. `Implementation Checklist`
-2. `Files To Modify`
-3. `Analytics Payload Changes`
-4. `Tests To Run`
-5. `Compliance Check Result`
-
----
-
-## How Variant Assignment Works
-
-MetaMask Mobile does not use LaunchDarkly native percentage rollout rules for assignment. The app buckets users from a JSON array value:
-
-1. LaunchDarkly returns an array where each item has `scope.value` (0-1).
-2. App computes `sha256(metametricsId + flagName)` to get deterministic threshold 0-1.
-3. App picks first variant where `userThreshold <= scope.value`.
-
-Flag value example:
-
-```json
-[
-  {
-    "name": "control",
-    "scope": { "type": "percentage_rollout", "value": 0.5 }
-  },
-  {
-    "name": "treatment",
-    "scope": { "type": "percentage_rollout", "value": 1.0 }
-  }
-]
-```
-
-The controller stores `{ name, value }` in `RemoteFeatureFlagController.remoteFeatureFlags`. `useABTest` reads `name`.
-
----
-
-## `useABTest` Hook
-
-Generic examples below use template-style keys; see SWAPS4135 section for a concrete implementation.
+Keep the test definition in one place. This keeps the flag key, variants, and analytics mapping in sync.
 
 ```typescript
-import { useABTest } from '../hooks';
+import { EVENT_NAME } from '../core/Analytics/MetaMetrics.events';
+import type { ABTestAnalyticsMapping } from '../util/analytics/abTestAnalytics.types';
 
+export const FEATURE_AB_TEST_KEY = 'swapsSWAPS4135AbtestButtonColor';
+
+export enum FeatureVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+type FeatureVariantConfig = {
+  color: string;
+};
+
+export const FEATURE_VARIANTS: Record<FeatureVariant, FeatureVariantConfig> = {
+  [FeatureVariant.Control]: { color: 'green' },
+  [FeatureVariant.Treatment]: { color: 'blue' },
+};
+
+export const FEATURE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
+  flagKey: FEATURE_AB_TEST_KEY,
+  validVariants: Object.values(FeatureVariant),
+  eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED],
+};
+```
+
+### 2. Use `useABTest` in the feature
+
+`useABTest` is the only supported way to resolve the assignment in UI code.
+
+```typescript
 const { variant, variantName, isActive } = useABTest(
-  'teamTEAM1234AbtestButtonColor',
-  {
-    control: { color: 'green' },
-    treatment: { color: 'blue' },
-  },
+  FEATURE_AB_TEST_KEY,
+  FEATURE_VARIANTS,
   {
     experimentName: 'Button Color Test',
     variationNames: {
@@ -110,7 +91,69 @@ const { variant, variantName, isActive } = useABTest(
     },
   },
 );
+
+const buttonColor = variant.color;
 ```
+
+Important behavior:
+
+- `control` is the fallback when the flag is missing, invalid, or unresolved
+- `isActive` is `true` only when the remote assignment matches a declared variant
+- `useABTest` automatically emits `Experiment Viewed` once per `experiment_id + variation_id` per app session
+
+### 3. Register business-event auto-enrichment
+
+If the feature tracks business events through the shared analytics wrappers, add the mapping to the registry:
+
+```typescript
+import { FEATURE_AB_TEST_ANALYTICS_MAPPING } from '../../components/.../abTestConfig';
+
+export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
+  FEATURE_AB_TEST_ANALYTICS_MAPPING,
+];
+```
+
+After this, shared-wrapper events are enriched automatically:
+
+```typescript
+trackEvent(createEventBuilder(EVENT_NAME.SWAP_PAGE_VIEWED).build());
+```
+
+### 4. Handle custom tracker paths manually
+
+If an event bypasses the shared wrappers and calls the analytics controller directly, add `active_ab_tests` yourself:
+
+```typescript
+Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+  UnifiedSwapBridgeEventName.InputChanged,
+  {
+    input: 'token_amount_source',
+    ...(isActive && {
+      active_ab_tests: [
+        {
+          key: FEATURE_AB_TEST_KEY,
+          value: variantName,
+        },
+      ],
+    }),
+  },
+);
+```
+
+## The Rules That Matter
+
+### 1. Use `useABTest`
+
+Do this:
+
+- Call `useABTest(flagKey, variants)` from the feature code
+- Always provide a `control` variant
+- Use the returned `variant`, `variantName`, and `isActive` to drive UI behavior
+
+Do not do this:
+
+- Do not read raw flag values directly in feature code
+- Do not manually emit `Experiment Viewed` when using `useABTest`
 
 API:
 
@@ -129,49 +172,25 @@ function useABTest<T extends { control: unknown } & Record<string, unknown>>(
 };
 ```
 
-Behavior:
+### 2. Use `active_ab_tests` for business events
 
-- Fallback is always `control` when flag is missing/invalid.
-- `isActive` is `true` only when flag value matches a defined variant.
-- When active, the hook automatically emits `Experiment Viewed` once per `experiment_id + variation_id` per app session.
+There are two analytics mechanisms, and new tests usually need both:
 
----
+1. Exposure event: `Experiment Viewed`
+2. Business-event context: `active_ab_tests`
 
-## Automatic Exposure Event (`Experiment Viewed`)
+Shared-wrapper events are auto-enriched when:
 
-The hook emits:
+- the event is sent through `analytics.trackEvent`, `useAnalytics().trackEvent`, or the `trackEvent()` util in `app/core/Engine/utils/analytics.ts`
+- and the event name is registered in `app/util/analytics/abTestAnalyticsRegistry.ts`
 
-- `event`: `Experiment Viewed`
-- Required props:
-  - `experiment_id` (flag key)
-  - `variation_id` (`control`, `treatment`, etc.)
-- Optional props:
-  - `experiment_name`
-  - `variation_name`
+If an event bypasses those wrappers, attach `active_ab_tests` manually.
 
-You do not need to manually track this event when using `useABTest`.
+### 3. Do not add new `ab_tests` payloads
 
----
+`ab_tests` is legacy and should not be used for new payload additions.
 
-## Business Event Instrumentation (`active_ab_tests`)
-
-For feature/business events (page view, click, submit, conversion): declare attributable event names in the test config module, add that mapping to the shared analytics registry, and let the wrappers inject active assignments automatically.
-
-```typescript
-import { EVENT_NAME } from '../core/Analytics/MetaMetrics.events';
-
-export const FEATURE_AB_TEST_ANALYTICS_MAPPING = {
-  flagKey: FEATURE_AB_TEST_KEY,
-  validVariants: Object.values(FeatureVariant),
-  eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED, EVENT_NAME.ACTION_BUTTON_CLICKED],
-} as const;
-```
-
----
-
-## Segment Schema Contract
-
-Canonical global field is `active_ab_tests` (from `metamask-mobile-globals`):
+Use this shape instead:
 
 ```yaml
 active_ab_tests:
@@ -187,68 +206,44 @@ active_ab_tests:
         type: string
 ```
 
-Implication:
-
-- No explicit per-test key like `ab_tests.someTest` should be emitted.
-- New tests should use the generic `active_ab_tests` array shape.
-
----
-
-## Migration from legacy `ab_tests`
-
-1. Remove per-test `ab_tests.*` emits from business events.
-2. Replace manual business-event A/B payload wiring with the correct path from Current Analytics Standard: registry-based auto-injection (or manual property addition for events that don't use shared analytics wrappers)
-3. Keep `Experiment Viewed` exposure sourced from `useABTest` (do not manually emit duplicates).
-4. Validate no payload contains `ab_tests.<experiment_key>`.
-5. Validate each `active_ab_tests` item always contains both `key` and `value` strings.
-
-Before/after payload example:
+Correct:
 
 ```typescript
-// Before
-trackEvent(
-  createEventBuilder(EVENT_NAME.SWAP_PAGE_VIEWED)
-    .addProperties({
-      ab_tests: {
-        swapsSWAPS4135AbtestNumpadQuickAmounts: 'control',
-      },
-    })
-    .build(),
-);
-
-// After
-export const NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING = {
-  flagKey: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
-  validVariants: ['control', 'treatment'],
-  eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED],
-} as const;
-
-trackEvent(
-  createEventBuilder(EVENT_NAME.SWAP_PAGE_VIEWED)
-    .addProperties({
-      view: 'swap',
-    })
-    .build(),
-);
+active_ab_tests: [{ key: FEATURE_AB_TEST_KEY, value: variantName }];
 ```
 
-Note: legacy historical docs/tests may still mention `ab_tests`; the goal is no new payload additions using it.
+Incorrect:
 
-If you must touch a legacy `ab_tests` line before full migration, mark it with `LEGACY_AB_TEST_ALLOWED` and include a migration rationale.
+```typescript
+ab_tests: {
+  swapsSWAPS4135AbtestButtonColor: 'control',
+};
+```
 
----
+For rare legacy touchpoints that cannot be migrated in the same change, mark the changed `ab_tests` line with `LEGACY_AB_TEST_ALLOWED` and explain why in the PR or agent output.
 
 ## LaunchDarkly Setup
 
-1. Create JSON flag.
-2. Name format: `{team name}{ticket ID}Abtest{test name}`.
-   - Team name prefix: lower camel team token (for example `swaps`).
-   - Ticket ID: uppercase project key + number (for example `SWAPS4135`).
-   - Literal segment: exact `Abtest`.
-   - Test name: PascalCase semantic name (for example `NumpadQuickAmounts`).
-   - Example: `swapsSWAPS4135AbtestButtonColor`
-3. Enable mobile SDK availability.
-4. Configure variation value as threshold array:
+### Flag naming
+
+Use this format:
+
+`{team name}{ticket ID}Abtest{test name}`
+
+Example:
+
+`swapsSWAPS4135AbtestButtonColor`
+
+Rules:
+
+- Team name: lower camel team token, for example `swaps`
+- Ticket ID: uppercase project key plus number, for example `SWAPS4135`
+- Literal segment: exact `Abtest`
+- Test name: PascalCase semantic name, for example `ButtonColor`
+
+### Flag value
+
+Create a JSON flag and use the threshold array format:
 
 ```json
 [
@@ -263,183 +258,97 @@ If you must touch a legacy `ab_tests` line before full migration, mark it with `
 ]
 ```
 
-Use default targeting rule to serve this variation value.
+Use the default targeting rule to serve this value.
 
----
+### How assignment works
 
-## Concrete Example
+You usually do not need to implement assignment logic yourself. The app resolves the LaunchDarkly value into `RemoteFeatureFlagController.remoteFeatureFlags`, and `useABTest` reads the resolved variant name from there.
 
-- Flag key: `swapsSWAPS4135AbtestNumpadQuickAmounts`
-- `Experiment Viewed`:
-  - `experiment_id = "swapsSWAPS4135AbtestNumpadQuickAmounts"`
-  - `variation_id = "control" | "treatment"`
-- Business events use mixed attribution paths:
-  - `SWAP_PAGE_VIEWED` is allowlisted and auto-enriched through the shared wrappers.
-  - `Unified SwapBridge Input Changed` bypasses the shared wrappers because it exists in the bridge controller, so it still attaches `active_ab_tests` manually.
+## Testing and Validation
 
-```typescript
-export const NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING = {
-  flagKey: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
-  validVariants: Object.values(NumpadQuickActionsVariant),
-  eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED],
-} as const;
+Use risk-based scope:
 
-trackEvent(createEventBuilder(EVENT_NAME.SWAP_PAGE_VIEWED).build());
+- If behavior changed, add or update feature tests
+- If analytics wiring changed, add or update analytics tests
+- If the change is copy-only or config-only, you may skip new tests with a brief rationale
 
-/* trackUnifiedSwapBridgeEvent() calls AnalyticsController:trackEvent directly, rather
-than using a shared analytics wrapper, so active_ab_tests must be added manually */
-Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-  UnifiedSwapBridgeEventName.InputChanged,
-  {
-    input: 'token_amount_source',
-    ...(isActive && {
-      active_ab_tests: [
-        {
-          key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
-          value: variantName,
-        },
-      ],
-    }),
-  },
-);
+Recommended commands:
+
+```bash
+yarn jest <changed-test-file> --collectCoverage=false
+bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
 ```
 
----
+If you changed behavior and analytics wiring, run both the relevant feature test and the relevant analytics test.
 
-## Config Module Pattern (Best Practice)
-
-For any new A/B test, keep test configuration in a dedicated module (for example `abTestConfig.ts`) and export the analytics mapping from that same module.
-
-```typescript
-import { EVENT_NAME } from '../core/Analytics/MetaMetrics.events';
-
-export const FEATURE_AB_TEST_KEY = 'teamTEAM1234AbtestFeatureName';
-
-export enum FeatureVariant {
-  Control = 'control',
-  Treatment = 'treatment',
-}
-
-export type FeatureVariantConfig = {
-  /* test-specific config shape */
-};
-
-export const FEATURE_VARIANTS: Record<FeatureVariant, FeatureVariantConfig> = {
-  [FeatureVariant.Control]: {
-    /* control config */
-  },
-  [FeatureVariant.Treatment]: {
-    /* treatment config */
-  },
-};
-
-// Optional: additional maps for state-dependent rendering while preserving
-// the same variant keys (control/treatment/etc.)
-export const FEATURE_VARIANTS_ALT_STATE: Record<
-  FeatureVariant,
-  FeatureVariantConfig
-> = {
-  [FeatureVariant.Control]: {
-    /* control alt-state config */
-  },
-  [FeatureVariant.Treatment]: {
-    /* treatment alt-state config */
-  },
-};
-
-export const FEATURE_AB_TEST_ANALYTICS_MAPPING = {
-  flagKey: FEATURE_AB_TEST_KEY,
-  validVariants: Object.values(FeatureVariant),
-  eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED, EVENT_NAME.ACTION_BUTTON_CLICKED],
-} as const;
-```
-
-Consumption pattern:
-
-1. Resolve assignment via `useABTest(FEATURE_AB_TEST_KEY, FEATURE_VARIANTS)`.
-2. Normalize unknown/fallback assignments to `control` and use the chosen variant map for rendering.
-3. If UI state changes available options, select from an alternate variant map (`*_ALT_STATE`) with the same variant key.
-4. Export `FEATURE_AB_TEST_ANALYTICS_MAPPING` from the same config module and include it in the shared analytics registry (`app/util/analytics/abTestAnalyticsRegistry.ts`).
-
-Example: feature/UI consumption
-
-```typescript
-const { variantName, isActive } = useABTest(
-  FEATURE_AB_TEST_KEY,
-  FEATURE_VARIANTS,
-);
-
-const selectedVariant =
-  variantName === FeatureVariant.Treatment
-    ? FeatureVariant.Treatment
-    : FeatureVariant.Control;
-
-const config = isInAltState
-  ? FEATURE_VARIANTS_ALT_STATE[selectedVariant]
-  : FEATURE_VARIANTS[selectedVariant];
-```
-
-Example: tracked event with automatic enrichment
-
-```typescript
-trackEvent(createEventBuilder(EVENT_NAME.SWAP_PAGE_VIEWED).build());
-```
-
-Example: allowlisting one event for multiple tests
-
-```typescript
-export const LAYOUT_TEST_ANALYTICS_MAPPING = {
-  flagKey: LAYOUT_TEST_KEY,
-  validVariants: Object.values(LayoutVariant),
-  eventNames: [EVENT_NAME.ACTION_BUTTON_CLICKED],
-} as const;
-
-export const CTA_TEST_ANALYTICS_MAPPING = {
-  flagKey: CTA_TEST_KEY,
-  validVariants: Object.values(CtaVariant),
-  eventNames: [EVENT_NAME.ACTION_BUTTON_CLICKED],
-} as const;
-```
-
-This standard keeps flag key, variant labels, UI behavior, and business-event attribution in sync across feature code and analytics.
-
----
-
-## Checklist
-
-- [ ] LaunchDarkly JSON flag created with threshold array
-- [ ] `useABTest` added in feature component
-- [ ] Relevant business events listed in the config module analytics mapping
-- [ ] Analytics mapping added to `app/util/analytics/abTestAnalyticsRegistry.ts`
-- [ ] Each attributed business event uses the correct path: shared wrapper + registry, or manual `active_ab_tests` on a custom tracker (see "Concrete Example" section)
-
----
-
-## FAQ
-
-**Q: Should I send both `ab_tests` and `active_ab_tests`?**  
-No. Use `active_ab_tests`.
-
-**Q: Do I manually emit `Experiment Viewed`?**  
-No, not when using `useABTest`. The hook emits it automatically for active assignments.
-
-**Q: Do I manually attach `active_ab_tests` to every event?**  
-No. Use registry-based auto-injection on the shared wrapper path, and manual `active_ab_tests` only on the custom tracker path (see "Concrete Example" section).
-
-**Q: What is the fallback variant?**  
-`control`.
-
-**Q: Do I need a per-test Segment schema key?**  
-No. Use the shared `active_ab_tests` array of `{ key, value }`.
-
-**Q: Do copy-only or config-only A/B changes need new unit tests?**  
-Not always. Use risk-based scope: add tests when behavior or analytics wiring changes; for copy/config-only changes, you can skip new tests and include a brief rationale in your PR/agent response.
-
----
-
-## Related Files
+Helpful existing files:
 
 - `app/hooks/useABTest.ts`
 - `app/hooks/useABTest.test.ts`
-- `app/core/Analytics/MetaMetrics.events.ts`
-- `app/selectors/featureFlagController/index.ts`
+- `app/util/analytics/abTestAnalyticsRegistry.ts`
+- `app/util/analytics/enrichWithABTests.ts`
+- `app/core/Engine/utils/analytics.ts`
+
+## FAQ
+
+**Do I manually emit `Experiment Viewed`?**  
+No. Not when you use `useABTest`.
+
+**Do I manually attach `active_ab_tests` to every event?**  
+No. Register shared-wrapper events in the analytics registry. Add `active_ab_tests` manually only for custom tracker paths.
+
+**What is the fallback variant?**  
+`control`.
+
+**Do I need a per-test Segment schema key?**  
+No. Use the shared `active_ab_tests` array of `{ key, value }`.
+
+**Can multiple tests enrich the same event?**  
+Yes. Multiple mappings can point at the same event name.
+
+## Reference Implementations
+
+These are good examples to copy from:
+
+- `app/components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig.ts`
+- `app/components/UI/Card/components/CardButton/abTestConfig.ts`
+- `app/components/UI/Bridge/components/TokenSelectorItem.abTestConfig.ts`
+
+## Agent Appendix
+
+For agent implementation and review tasks, this document is also the SSOT.
+
+Supporting entrypoints:
+
+- Codex skill: `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
+- Claude skill: `.claude/skills/ab-testing-implementation/SKILL.md`
+- Compliance check: `bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged`
+
+Agent workflow:
+
+1. Run discovery before edits:
+
+```bash
+rg -n "useABTest\\(|active_ab_tests|ab_tests|Abtest|abTestConfig" app docs tests
+rg -n "Experiment Viewed|EXPERIMENT_VIEWED" app
+```
+
+2. Keep test config centralized in a dedicated config module using the `abTestConfig.ts` pattern.
+3. Use `useABTest(flagKey, variants)` and normalize unresolved assignments to `control`.
+4. Do not manually emit `Experiment Viewed` when using `useABTest`.
+5. For business events, use registry-based injection on the shared wrapper path, or attach `active_ab_tests` manually on custom tracker paths.
+6. Do not add new payloads under `ab_tests`.
+7. Use risk-based test scope.
+8. Run the compliance check before finishing.
+
+Required agent response sections:
+
+1. `Implementation Checklist`
+2. `Files To Modify`
+3. `Analytics Payload Changes`
+4. `Tests To Run`
+5. `Compliance Check Result`
+
+## References
+
+- [Remote Feature Flags Documentation](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md)

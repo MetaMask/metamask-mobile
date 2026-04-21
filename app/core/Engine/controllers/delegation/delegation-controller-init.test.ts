@@ -22,7 +22,7 @@ import {
   getDelegationControllerInitMessenger,
   getDelegationControllerMessenger,
 } from '../../messengers/delegation/delegation-controller-messenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { Hex } from '@metamask/utils';
 
@@ -48,7 +48,7 @@ function buildInitRequestMock(): jest.Mocked<
   });
 
   return {
-    ...buildControllerInitRequestMock(extendedControllerMessenger),
+    ...buildMessengerClientInitRequestMock(extendedControllerMessenger),
     controllerMessenger,
     initMessenger,
   };

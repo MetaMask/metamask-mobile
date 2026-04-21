@@ -1,25 +1,50 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import PredictPicks from './PredictPicks';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import {
+  PredictMarketStatus,
   PredictPositionStatus,
   Recurrence,
   type PredictPosition,
   type PredictMarket,
+  type PredictMarketGame,
 } from '../../types';
 import { formatPrice } from '../../utils/format';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../constants/eventNames';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
+  useNavigation: () => ({ navigate: jest.fn() }),
 }));
-jest.mock('../../hooks/usePredictActionGuard');
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+jest.mock('../PredictPositionDetail', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      position,
+      marketStatus,
+    }: {
+      position: { id: string };
+      marketStatus: string;
+    }) => (
+      <View
+        testID={`predict-position-detail-${position.id}`}
+        accessibilityLabel={marketStatus}
+      />
+    ),
+  };
+});
+
+const mockOnCashOut = jest.fn();
+jest.mock('../../hooks/usePredictCashOut', () => ({
+  usePredictCashOut: () => ({ onCashOut: mockOnCashOut }),
+}));
+
 jest.mock('../../hooks/usePredictLivePositions', () => ({
   usePredictLivePositions: jest.fn((positions: unknown[]) => ({
     livePositions: positions ?? [],
@@ -29,9 +54,7 @@ jest.mock('../../hooks/usePredictLivePositions', () => ({
 }));
 jest.mock('../../utils/format');
 
-const mockUsePredictActionGuard = usePredictActionGuard as jest.MockedFunction<
-  typeof usePredictActionGuard
->;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockFormatPrice = formatPrice as jest.MockedFunction<typeof formatPrice>;
 
 const createMockMarket = (
@@ -79,6 +102,35 @@ const createMockMarket = (
   ...overrides,
 });
 
+const createMockGame = (
+  overrides: Partial<PredictMarketGame> = {},
+): PredictMarketGame => ({
+  id: 'game-1',
+  startTime: '2025-12-31T00:00:00Z',
+  status: 'scheduled',
+  league: 'nba',
+  elapsed: null,
+  period: null,
+  score: null,
+  homeTeam: {
+    id: 'team-1',
+    name: 'Lakers',
+    logo: 'https://example.com/lakers.png',
+    abbreviation: 'LAL',
+    color: 'purple',
+    alias: 'Lakers',
+  },
+  awayTeam: {
+    id: 'team-2',
+    name: 'Celtics',
+    logo: 'https://example.com/celtics.png',
+    abbreviation: 'BOS',
+    color: 'green',
+    alias: 'Celtics',
+  },
+  ...overrides,
+});
+
 const createMockPosition = (
   overrides: Partial<PredictPosition> = {},
 ): PredictPosition => ({
@@ -106,15 +158,9 @@ const createMockPosition = (
 });
 
 describe('PredictPicks', () => {
-  const mockExecuteGuardedAction = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockClear();
-    mockUsePredictActionGuard.mockReturnValue({
-      executeGuardedAction: mockExecuteGuardedAction,
-      isEligible: true,
-    });
+    mockUseSelector.mockReturnValue([]);
     mockFormatPrice.mockImplementation(
       (value: number | string, _options?: { maximumDecimals?: number }) => {
         const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -409,7 +455,7 @@ describe('PredictPicks', () => {
   });
 
   describe('cash out functionality', () => {
-    it('calls executeGuardedAction when Cash Out button is pressed', () => {
+    it('calls onCashOut with position when Cash Out button is pressed', () => {
       const position = createMockPosition({ id: 'pos-1', claimable: false });
 
       render(
@@ -423,131 +469,139 @@ describe('PredictPicks', () => {
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
 
-      expect(mockExecuteGuardedAction).toHaveBeenCalledTimes(1);
+      expect(mockOnCashOut).toHaveBeenCalledWith(position);
     });
 
-    it('passes CASHOUT as attemptedAction option to executeGuardedAction', () => {
-      const position = createMockPosition({ id: 'pos-1', claimable: false });
+    it('calls onCashOut with correct position when multiple positions exist', () => {
+      const position1 = createMockPosition({ id: 'pos-1', claimable: false });
+      const position2 = createMockPosition({ id: 'pos-2', claimable: false });
 
       render(
         <PredictPicks
           market={createMockMarket()}
-          positions={[position]}
+          positions={[position1, position2]}
           claimablePositions={[]}
         />,
       );
       fireEvent.press(
-        screen.getByTestId('predict-picks-cash-out-button-pos-1'),
+        screen.getByTestId('predict-picks-cash-out-button-pos-2'),
       );
 
-      expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
-        expect.any(Function),
-        { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
+      expect(mockOnCashOut).toHaveBeenCalledWith(position2);
+    });
+  });
+
+  describe('PredictPositionDetail rendering (extendedSportsMarkets flag)', () => {
+    it('renders PredictPositionDetail for live positions when league is in extendedLeagues', () => {
+      mockUseSelector.mockReturnValue(['nba']);
+      const market = createMockMarket({ game: createMockGame() });
+      const position = createMockPosition({ id: 'pos-live' });
+
+      render(
+        <PredictPicks
+          market={market}
+          positions={[position]}
+          claimablePositions={[]}
+        />,
       );
+
+      expect(
+        screen.getByTestId('predict-position-detail-pos-live'),
+      ).toBeOnTheScreen();
     });
 
-    it('navigates to SELL_PREVIEW when guarded action callback executes', () => {
-      const market = createMockMarket();
+    it('renders PredictPositionDetail for claimable positions with CLOSED status', () => {
+      mockUseSelector.mockReturnValue(['nba']);
+      const market = createMockMarket({ game: createMockGame() });
       const position = createMockPosition({
-        id: 'pos-1',
-        outcomeId: 'outcome-1',
-        claimable: false,
+        id: 'pos-claimable',
+        claimable: true,
       });
-      mockExecuteGuardedAction.mockImplementation((callback) => callback());
 
       render(
         <PredictPicks
           market={market}
-          positions={[position]}
-          claimablePositions={[]}
+          positions={[]}
+          claimablePositions={[position]}
         />,
       );
-      fireEvent.press(
-        screen.getByTestId('predict-picks-cash-out-button-pos-1'),
-      );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        expect.objectContaining({
-          market,
-          position,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        }),
+      const detail = screen.getByTestId(
+        'predict-position-detail-pos-claimable',
       );
+      expect(detail).toBeOnTheScreen();
+      expect(detail.props.accessibilityLabel).toBe(PredictMarketStatus.CLOSED);
     });
 
-    it('finds correct outcome from market.outcomes by position.outcomeId', () => {
-      const market = createMockMarket();
-      const position = createMockPosition({
-        id: 'pos-1',
-        outcomeId: 'outcome-2',
-        claimable: false,
+    it('renders PredictPositionDetail with market status for live positions', () => {
+      mockUseSelector.mockReturnValue(['nba']);
+      const market = createMockMarket({
+        status: 'open',
+        game: createMockGame(),
       });
-      mockExecuteGuardedAction.mockImplementation((callback) => callback());
 
       render(
         <PredictPicks
           market={market}
-          positions={[position]}
+          positions={[createMockPosition({ id: 'pos-1' })]}
           claimablePositions={[]}
         />,
       );
-      fireEvent.press(
-        screen.getByTestId('predict-picks-cash-out-button-pos-1'),
-      );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        expect.objectContaining({
-          outcome: market.outcomes[1],
-        }),
-      );
+      const detail = screen.getByTestId('predict-position-detail-pos-1');
+      expect(detail.props.accessibilityLabel).toBe(PredictMarketStatus.OPEN);
     });
 
-    it('passes undefined outcome when outcomeId not found in market.outcomes', () => {
-      const market = createMockMarket();
-      const position = createMockPosition({
-        id: 'pos-1',
-        outcomeId: 'non-existent-outcome',
-        claimable: false,
-      });
-      mockExecuteGuardedAction.mockImplementation((callback) => callback());
+    it('renders PredictPickItem when league is not in extendedLeagues', () => {
+      mockUseSelector.mockReturnValue(['ucl']);
+      const market = createMockMarket({ game: createMockGame() });
 
       render(
         <PredictPicks
           market={market}
-          positions={[position]}
+          positions={[createMockPosition({ id: 'pos-1' })]}
           claimablePositions={[]}
         />,
       );
-      fireEvent.press(
-        screen.getByTestId('predict-picks-cash-out-button-pos-1'),
-      );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        expect.objectContaining({
-          outcome: undefined,
-        }),
-      );
+      expect(screen.queryByTestId('predict-position-detail-pos-1')).toBeNull();
+      expect(screen.getByText(/Yes/)).toBeOnTheScreen();
     });
 
-    it('calls usePredictActionGuard with navigation only', () => {
-      const market = createMockMarket({ providerId: 'custom-provider' });
+    it('renders PredictPickItem when market has no game', () => {
+      mockUseSelector.mockReturnValue(['nba']);
 
       render(
         <PredictPicks
-          market={market}
-          positions={[createMockPosition()]}
+          market={createMockMarket()}
+          positions={[createMockPosition({ id: 'pos-1' })]}
           claimablePositions={[]}
         />,
       );
 
-      expect(mockUsePredictActionGuard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          navigation: expect.any(Object),
-        }),
+      expect(screen.queryByTestId('predict-position-detail-pos-1')).toBeNull();
+    });
+
+    it('renders both live and claimable as PredictPositionDetail when flag enabled', () => {
+      mockUseSelector.mockReturnValue(['nba']);
+      const market = createMockMarket({ game: createMockGame() });
+
+      render(
+        <PredictPicks
+          market={market}
+          positions={[createMockPosition({ id: 'pos-live' })]}
+          claimablePositions={[
+            createMockPosition({ id: 'pos-claim', claimable: true }),
+          ]}
+        />,
       );
+
+      expect(
+        screen.getByTestId('predict-position-detail-pos-live'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-detail-pos-claim'),
+      ).toBeOnTheScreen();
     });
   });
 });
