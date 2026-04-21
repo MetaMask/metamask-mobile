@@ -20,6 +20,7 @@ export enum AccountConnectScreens {
   MultiConnectNetworkSelector = 'MultiConnectNetworkSelector',
   AddNewAccount = 'AddNewAccount',
   MaliciousWarning = 'MaliciousWarning',
+  TrustSignalWarning = 'TrustSignalWarning',
 }
 
 export interface AccountConnectParams {

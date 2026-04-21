@@ -74,6 +74,11 @@ import {
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
+import TrustSignalModal, {
+  useTrustSignalState,
+  useTrustSignalGateControl,
+} from './TrustSignalModal';
+
 import {
   getCaip25PermissionsResponse,
   getDefaultAccounts,
@@ -183,6 +188,9 @@ const AccountConnect = (props: AccountConnectProps) => {
     isOriginWalletConnect && wc2Metadata?.verifyContext?.isScam,
   );
 
+  const { trustSignalState, needsTrustSignalGate } =
+    useTrustSignalState(channelIdOrHostname);
+
   const defaultSelectedChainIds = useMemo(
     () =>
       getDefaultSelectedChainIds({
@@ -259,9 +267,18 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const sheetRef = useRef<BottomSheetRef>(null);
+
   const [screen, setScreen] = useState<AccountConnectScreens>(
-    AccountConnectScreens.SingleConnect,
+    needsTrustSignalGate
+      ? AccountConnectScreens.TrustSignalWarning
+      : AccountConnectScreens.SingleConnect,
   );
+
+  const { handleTrustSignalDismiss } = useTrustSignalGateControl(
+    needsTrustSignalGate,
+    setScreen,
+  );
+
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const isMountedRef = useRef(true);
@@ -774,6 +791,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       tabIndex,
       promptToCreateSolanaAccount,
       isMaliciousDapp,
+      trustSignalState,
       onCreateAccount: (clientType, scope) => {
         setMultichainAccountOptions({
           clientType,
@@ -794,6 +812,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     setTabIndex,
     promptToCreateSolanaAccount,
     isMaliciousDapp,
+    trustSignalState,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -916,6 +935,21 @@ const AccountConnect = (props: AccountConnectProps) => {
     [urlWithProtocol, handleConnectAnyway, handleMaliciousWarningClose],
   );
 
+  const handleTrustSignalClose = useCallback(() => {
+    hideSheet(() => cancelPermissionRequest(permissionRequestId));
+  }, [hideSheet, cancelPermissionRequest, permissionRequestId]);
+
+  const renderTrustSignalWarningScreen = useCallback(
+    () => (
+      <TrustSignalModal
+        url={urlWithProtocol}
+        onConnectAnyway={handleTrustSignalDismiss}
+        onClose={handleTrustSignalClose}
+      />
+    ),
+    [urlWithProtocol, handleTrustSignalDismiss, handleTrustSignalClose],
+  );
+
   const renderPhishingModal = useCallback(
     () => (
       <Modal
@@ -964,6 +998,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         return renderMultiConnectNetworkSelectorScreen();
       case AccountConnectScreens.AddNewAccount:
         return renderAddNewAccount();
+      case AccountConnectScreens.TrustSignalWarning:
+        return renderTrustSignalWarningScreen();
       case AccountConnectScreens.MaliciousWarning:
         return renderMaliciousWarningScreen();
     }
@@ -974,6 +1010,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
     renderAddNewAccount,
+    renderTrustSignalWarningScreen,
     renderMaliciousWarningScreen,
   ]);
 

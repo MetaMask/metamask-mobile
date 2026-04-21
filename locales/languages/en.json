@@ -3010,7 +3010,9 @@
     },
     "no_accounts_found": "No accounts found",
     "no_accounts_found_for_search": "No accounts found matching your search",
-    "search_your_accounts": "Search your accounts"
+    "search_your_accounts": "Search your accounts",
+    "trust_signal_block_title": "Malicious site detected",
+    "trust_signal_block_description": "This site has been flagged as malicious. Connecting may put your assets at risk."
   },
   "toast": {
     "connected_and_active": "connected and active.",

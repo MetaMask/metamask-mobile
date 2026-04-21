@@ -10,6 +10,7 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
 
 const mockedNavigate = jest.fn();
 
@@ -213,6 +214,74 @@ describe('PermissionsSummary', () => {
 
       const tree = JSON.stringify(toJSON());
       expect(tree).not.toContain('urlIcon');
+    });
+  });
+
+  describe('trustSignalState prop', () => {
+    it('renders no icon next to the URL when trustSignalState is Warning', () => {
+      const { toJSON } = renderPermissionsSummary({
+        trustSignalState: TrustSignalDisplayState.Warning,
+        isAlreadyConnected: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // Warning state no longer shows an icon
+      expect(tree).not.toContain('VerifiedFilled');
+    });
+
+    it('renders an error icon next to the URL when trustSignalState is Malicious', () => {
+      const { toJSON } = renderPermissionsSummary({
+        trustSignalState: TrustSignalDisplayState.Malicious,
+        isAlreadyConnected: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // The TrustSignalUrlIcon should render a Danger icon with error color
+      expect(tree).toContain('Danger');
+    });
+
+    it('renders a verified icon next to the URL when trustSignalState is Verified', () => {
+      const { toJSON } = renderPermissionsSummary({
+        trustSignalState: TrustSignalDisplayState.Verified,
+        isAlreadyConnected: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // The TrustSignalUrlIcon should render a VerifiedFilled icon
+      expect(tree).toContain('VerifiedFilled');
+    });
+
+    it('does not render a trust signal icon when trustSignalState is Unknown', () => {
+      const { toJSON } = renderPermissionsSummary({
+        trustSignalState: TrustSignalDisplayState.Unknown,
+        isAlreadyConnected: false,
+        isMaliciousDapp: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // Neither VerifiedFilled nor urlIcon should appear
+      expect(tree).not.toContain('VerifiedFilled');
+      expect(tree).not.toContain('urlIcon');
+    });
+
+    it('renders a standard Connect button when trustSignalState is Warning', () => {
+      const { getByText } = renderPermissionsSummary({
+        trustSignalState: TrustSignalDisplayState.Warning,
+        isAlreadyConnected: false,
+      });
+
+      // Warning state uses a plain connect button
+      expect(getByText('Connect')).toBeOnTheScreen();
+    });
+
+    it('renders a danger-style Connect button when trustSignalState is Malicious', () => {
+      const { getByText } = renderPermissionsSummary({
+        trustSignalState: TrustSignalDisplayState.Malicious,
+        isAlreadyConnected: false,
+      });
+
+      // The connect button text should still be present
+      expect(getByText('Connect')).toBeOnTheScreen();
     });
   });
 });

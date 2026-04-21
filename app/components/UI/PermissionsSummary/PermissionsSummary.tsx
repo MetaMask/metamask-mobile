@@ -33,8 +33,10 @@ import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
 import {
   MaliciousDappUrlIcon,
+  TrustSignalUrlIcon,
   getConnectButtonContent,
 } from './MaliciousDappIndicators';
+import { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
 import { USER_INTENT } from '../../../constants/permissions';
 import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
@@ -102,6 +104,7 @@ const PermissionsSummary = ({
   showPermissionsOnly = false,
   promptToCreateSolanaAccount = false,
   isMaliciousDapp = false,
+  trustSignalState,
 }: PermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const fullNonTabView = showAccountsOnly && showPermissionsOnly;
@@ -633,7 +636,9 @@ const PermissionsSummary = ({
               style={styles.connectionTitle}
               variant={TextVariant.HeadingMD}
               color={
-                isMaliciousDapp && !isAlreadyConnected
+                (isMaliciousDapp ||
+                  trustSignalState === TrustSignalDisplayState.Malicious) &&
+                !isAlreadyConnected
                   ? TextColor.Error
                   : undefined
               }
@@ -647,6 +652,9 @@ const PermissionsSummary = ({
                     })}
             </TextComponent>
             {isMaliciousDapp && !isAlreadyConnected && <MaliciousDappUrlIcon />}
+            {!isMaliciousDapp && !isAlreadyConnected && trustSignalState && (
+              <TrustSignalUrlIcon state={trustSignalState} />
+            )}
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
@@ -698,7 +706,12 @@ const PermissionsSummary = ({
                 {strings('permissions.cancel')}
               </StyledButton>
               <StyledButton
-                type={isMaliciousDapp ? 'danger' : 'confirm'}
+                type={
+                  isMaliciousDapp ||
+                  trustSignalState === TrustSignalDisplayState.Malicious
+                    ? 'danger'
+                    : 'confirm'
+                }
                 onPress={confirm}
                 disabled={
                   !isNetworkSwitch &&
@@ -710,7 +723,11 @@ const PermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
+                {getConnectButtonContent(
+                  isMaliciousDapp,
+                  isNetworkSwitch,
+                  trustSignalState,
+                )}
               </StyledButton>
             </View>
           )}
