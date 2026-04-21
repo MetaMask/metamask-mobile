@@ -103,4 +103,64 @@ describe('getIframeProperties', () => {
       top_level_origin: 'https://example.com',
     });
   });
+
+  it('treats a bare hostname and a scheme-prefixed origin as same-origin', () => {
+    const result = getIframeProperties({
+      isIframe: true,
+      origin: 'https://uniswap.org',
+      topLevelOrigin: 'uniswap.org',
+    });
+
+    expect(result).toStrictEqual({
+      is_iframe: true,
+      is_cross_origin_iframe: false,
+      iframe_origin: null,
+      top_level_origin: null,
+    });
+  });
+
+  it('normalizes a full URL with path/query into an origin before comparing', () => {
+    const result = getIframeProperties({
+      isIframe: true,
+      origin: 'https://example.com',
+      topLevelOrigin: 'https://example.com/swap?chain=1#section',
+    });
+
+    expect(result).toStrictEqual({
+      is_iframe: true,
+      is_cross_origin_iframe: false,
+      iframe_origin: null,
+      top_level_origin: null,
+    });
+  });
+
+  it('returns normalized origins for cross-origin iframes (not raw inputs)', () => {
+    const result = getIframeProperties({
+      isIframe: true,
+      origin: 'malicious.com',
+      topLevelOrigin: 'https://legitimate.com/swap?chain=1',
+    });
+
+    expect(result).toStrictEqual({
+      is_iframe: true,
+      is_cross_origin_iframe: true,
+      iframe_origin: 'https://malicious.com',
+      top_level_origin: 'https://legitimate.com',
+    });
+  });
+
+  it('handles empty origin values without crashing', () => {
+    const result = getIframeProperties({
+      isIframe: true,
+      origin: '',
+      topLevelOrigin: '',
+    });
+
+    expect(result).toStrictEqual({
+      is_iframe: true,
+      is_cross_origin_iframe: false,
+      iframe_origin: null,
+      top_level_origin: null,
+    });
+  });
 });

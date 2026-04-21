@@ -274,7 +274,48 @@ describe('trackDappViewedEvent', () => {
         is_iframe: true,
         is_cross_origin_iframe: true,
         iframe_origin: 'https://malicious.com',
-        top_level_origin: 'legitimate.com',
+        top_level_origin: 'https://legitimate.com',
+      })
+      .build();
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+  });
+
+  it('treats same-origin iframe as same-origin when iframeOrigin has protocol and hostname does not', () => {
+    mockGetState.mockImplementation(() => ({
+      browser: {
+        visitedDappsByHostname: {},
+      },
+      engine: {
+        backgroundState: {
+          AccountsController: MOCK_DEFAULT_ACCOUNTS_CONTROLLER_STATE,
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    }));
+
+    // Reproduces the production mismatch: hostname is a bare hostname while
+    // iframeOrigin comes from URLParse.origin and therefore has a scheme.
+    trackDappViewedEvent({
+      hostname: 'uniswap.org',
+      numberOfConnectedAccounts: 1,
+      isIframe: true,
+      iframeOrigin: 'https://uniswap.org',
+    });
+
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.DAPP_VIEWED,
+    )
+      .addProperties({
+        Referrer: 'https://uniswap.org',
+        is_first_visit: true,
+        number_of_accounts: 2,
+        number_of_accounts_connected: 1,
+        source: 'in-app browser',
+        is_iframe: true,
+        is_cross_origin_iframe: false,
+        iframe_origin: null,
+        top_level_origin: null,
       })
       .build();
 
