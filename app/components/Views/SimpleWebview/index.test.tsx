@@ -24,12 +24,6 @@ jest.mock('../../../util/device', () => ({
   },
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: { background: { default: 'white' } },
-  }),
-}));
-
 const mockSetOptions = jest.fn();
 const mockNavigation = {
   goBack: jest.fn(),
@@ -60,7 +54,7 @@ describe('SimpleWebview', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('sets header options with reviewer styling and Device.isAndroid() for includesTopInset', () => {
+  it('sets header options from HeaderCompactStandard and Device.isAndroid() for includesTopInset', () => {
     render(<SimpleWebview />);
 
     expect(getHeaderCompactStandardNavbarOptions).toHaveBeenCalledWith(
@@ -76,11 +70,10 @@ describe('SimpleWebview', () => {
     );
     expect(mockSetOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        headerStyle: expect.objectContaining({
-          backgroundColor: expect.any(String),
-        }),
+        header: expect.any(Function),
       }),
     );
+    expect(mockSetOptions.mock.calls[0][0]).not.toHaveProperty('headerStyle');
   });
 
   it('passes includesTopInset true when Device.isAndroid() is true', () => {

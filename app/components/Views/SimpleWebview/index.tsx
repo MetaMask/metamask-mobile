@@ -6,7 +6,6 @@ import { IconName } from '@metamask/design-system-react-native';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
@@ -20,7 +19,6 @@ type RouteParams = {
 const SimpleWebView = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RouteParams, 'SimpleWebView'>>();
-  const { colors } = useTheme();
   const url = route.params.url;
   const title = (route.params as { title?: string })?.title ?? '';
 
@@ -43,11 +41,8 @@ const SimpleWebView = () => {
         twClassName: 'bg-default rounded-t-2xl',
         endButtonIconProps: [{ iconName: IconName.Share, onPress: share }],
       }),
-      headerStyle: {
-        backgroundColor: colors.background.default,
-      },
     });
-  }, [colors.background.default, navigation, share, title]);
+  }, [navigation, share, title]);
 
   return <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />;
 };
