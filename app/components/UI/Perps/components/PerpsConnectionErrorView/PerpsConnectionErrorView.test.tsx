@@ -54,9 +54,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
 
 // Mock Routes
 jest.mock('../../../../../constants/navigation/Routes', () => ({
-  WALLET: {
-    TAB_STACK_FLOW: 'TAB_STACK_FLOW',
-  },
+  WALLET_VIEW: 'WalletView',
 }));
 
 // Mock Button component to avoid theme issues
