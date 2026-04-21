@@ -1392,10 +1392,11 @@ const Wallet = ({
                     style={styles.headerActionButtonsContainer}
                     accessible={false}
                   >
-                    <AddressCopy
+                    <View
                       testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
-                      hitSlop={touchAreaSlop}
-                    />
+                    >
+                      <AddressCopy hitSlop={touchAreaSlop} />
+                    </View>
                     <CardButton
                       onPress={handleCardPress}
                       touchAreaSlop={touchAreaSlop}
