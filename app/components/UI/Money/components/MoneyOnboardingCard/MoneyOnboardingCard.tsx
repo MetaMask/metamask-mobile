@@ -19,6 +19,8 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneyProgressBar from '../MoneyProgressBar';
 import { MoneyOnboardingCardTestIds } from './MoneyOnboardingCard.testIds';
 
+const NOOP = () => undefined;
+
 interface MoneyOnboardingCardProps {
   /**
    * Handler fired when the CTA button is pressed.
@@ -60,7 +62,7 @@ const MoneyOnboardingCard = ({
 }: MoneyOnboardingCardProps) => {
   const content =
     STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ?? STEP_CONTENT[1];
-  const handleCtaPress = onCtaPress ?? onAddPress ?? (() => undefined);
+  const handleCtaPress = onCtaPress ?? onAddPress ?? NOOP;
 
   return (
     <Box

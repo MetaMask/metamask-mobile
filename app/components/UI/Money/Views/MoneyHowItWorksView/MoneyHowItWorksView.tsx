@@ -72,12 +72,14 @@ const FaqItem = ({
   }));
 
   const handlePress = useCallback(() => {
-    setExpanded((prev) => !prev);
-    rotation.value = withTiming(expanded ? 0 : 180, {
-      duration: ANIMATION_DURATION,
-      easing: Easing.out(Easing.ease),
+    setExpanded((prev) => {
+      rotation.value = withTiming(prev ? 0 : 180, {
+        duration: ANIMATION_DURATION,
+        easing: Easing.out(Easing.ease),
+      });
+      return !prev;
     });
-  }, [expanded, rotation]);
+  }, [rotation]);
 
   return (
     <Pressable onPress={handlePress} testID={testID}>
@@ -121,11 +123,7 @@ const MoneyHowItWorksView = () => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleSoundsGoodPress = useCallback(() => {
+  const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
@@ -135,7 +133,7 @@ const MoneyHowItWorksView = () => {
         localStyles.safeArea,
         { paddingTop: insets.top, backgroundColor: colors.background.default },
       ]}
-      twClassName="flex-1 bg-default"
+      twClassName="flex-1"
       testID={MoneyHowItWorksViewTestIds.CONTAINER}
     >
       <Box
@@ -147,7 +145,7 @@ const MoneyHowItWorksView = () => {
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
-          onPress={handleBackPress}
+          onPress={handleGoBack}
           accessibilityLabel="Back"
           testID={MoneyHowItWorksViewTestIds.BACK_BUTTON}
         />
@@ -223,7 +221,7 @@ const MoneyHowItWorksView = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={handleSoundsGoodPress}
+          onPress={handleGoBack}
           testID={MoneyHowItWorksViewTestIds.SOUNDS_GOOD_BUTTON}
         >
           {strings('money.how_it_works_page.sounds_good')}
