@@ -202,7 +202,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
         .addProperties({
           location,
           tooltip_name: 'your_bonus_info',
-          related_text: 'Your bonus',
+          text: 'Your bonus',
           ...(location === MONEY_EVENT_LOCATIONS.MONEY_HUB
             ? { moneyHubFilledState }
             : {}),
