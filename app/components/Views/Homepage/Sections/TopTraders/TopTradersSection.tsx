@@ -4,13 +4,11 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import { SectionRefreshHandle } from '../../types';
@@ -23,6 +21,11 @@ import useHomeViewedEvent, {
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { useTopTraders } from './hooks';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
+
+const styles = StyleSheet.create({
+  sectionGap: { gap: 12 },
+});
 
 const HOME_TRADER_LIMIT = 3;
 const SKELETON_KEYS = Array.from(
@@ -106,28 +109,30 @@ const TopTradersSection = forwardRef<
       ref={sectionViewRef}
       onLayout={onLayout}
       testID="homepage-top-traders-section-root"
+      style={styles.sectionGap}
     >
-      <Box gap={3}>
-        <SectionHeader title={title} onPress={handleViewAll} />
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
-          testID="homepage-top-traders-carousel"
-        >
-          {isLoading
-            ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
-            : traders.map((trader) => (
-                <TopTraderCard
-                  key={trader.id}
-                  trader={trader}
-                  onFollowPress={toggleFollow}
-                  onTraderPress={handleTraderPress}
-                />
-              ))}
-        </ScrollView>
-      </Box>
+      <SectionHeader
+        title={title}
+        onPress={handleViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
+      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
+        testID="homepage-top-traders-carousel"
+      >
+        {isLoading
+          ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
+          : traders.map((trader) => (
+              <TopTraderCard
+                key={trader.id}
+                trader={trader}
+                onFollowPress={toggleFollow}
+                onTraderPress={handleTraderPress}
+              />
+            ))}
+      </ScrollView>
     </View>
   );
 });
