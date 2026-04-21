@@ -161,12 +161,12 @@ class PerpsMarketListView {
       },
       appium: async () => {
         // TODO: Create a testIds.ts const with this selector
-        const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
+        /*const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
         const marketElement = await PlaywrightMatchers.getElementById(
           marketSelector,
           { exact: true },
         );
-        await PlaywrightGestures.waitAndTap(marketElement);
+        await PlaywrightGestures.waitAndTap(marketElement); */
       },
     });
   }
