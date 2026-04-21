@@ -248,7 +248,10 @@ const EarnMusdConversionEducationView = () => {
       if (deeplinkState) {
         if (deeplinkState.action === 'navigate_home') {
           navigation.navigate(Routes.WALLET.HOME, {
-            screen: Routes.WALLET_VIEW,
+            screen: Routes.WALLET.TAB_STACK_FLOW,
+            params: {
+              screen: Routes.WALLET_VIEW,
+            },
           });
           return;
         }
