@@ -136,6 +136,18 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
+        {allTransactions.length >= 1 && (
+          <>
+            <MoneyActivityList
+              transactions={allTransactions}
+              moneyAddress={moneyAddress}
+              onViewAllPress={handleViewAllActivityPress}
+              onHeaderPress={handleActivityHeaderPress}
+              onItemPress={handleActivityItemPress}
+            />
+            <Divider />
+          </>
+        )}
         {hasConvertibleTokensWithBalance(conversionTokens) && (
           <>
             <MoneyPotentialEarnings
@@ -149,29 +161,17 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
+        <MoneyMetaMaskCard
+          onGetNowPress={handleGetNowPress}
+          onHeaderPress={handleHeaderPress}
+        />
+        <Divider />
         {isMilestone && (
           <>
             <MoneyCondensedInfoCards
               onHowItWorksPress={handleHowItWorksHeaderPress}
               onMusdPress={handleMusdRowPress}
               onWhatYouGetPress={handleLearnMorePress}
-            />
-            <Divider />
-          </>
-        )}
-        <MoneyMetaMaskCard
-          onGetNowPress={handleGetNowPress}
-          onHeaderPress={handleHeaderPress}
-        />
-        <Divider />
-        {allTransactions.length >= 1 && (
-          <>
-            <MoneyActivityList
-              transactions={allTransactions}
-              moneyAddress={moneyAddress}
-              onViewAllPress={handleViewAllActivityPress}
-              onHeaderPress={handleActivityHeaderPress}
-              onItemPress={handleActivityItemPress}
             />
             <Divider />
           </>
