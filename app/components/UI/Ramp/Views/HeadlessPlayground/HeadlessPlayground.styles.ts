@@ -100,6 +100,19 @@ const styleSheet = (params: { theme: Theme }) => {
     actionsHint: {
       marginTop: 4,
     },
+    eventLogSection: {
+      marginTop: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      backgroundColor: theme.colors.background.alternative,
+    },
+    eventLogTitle: {
+      marginBottom: 6,
+    },
+    eventLogLine: {
+      marginTop: 2,
+    },
     quoteRow: {
       paddingVertical: 8,
       borderBottomWidth: 1,

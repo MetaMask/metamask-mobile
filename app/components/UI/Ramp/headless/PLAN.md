@@ -6,10 +6,12 @@
 
 - [x] **Phase 1** — Scaffold Headless Playground screen + route + entry row in Ramp Settings (gated by `isInternalBuild`)
 - [x] **Phase 2** — Implement `useHeadlessBuy` v0 read-only facade (tokens, providers, payment methods, `getQuotes`) and wire playground inputs/quotes list
-- [ ] **Phase 3** — Add headless session registry + `startHeadlessBuy` API that navigates into existing BuildQuote with `headlessSessionId`
-- [ ] **Phase 4** — Refactor BuildQuote to extract `handleWidgetProviderContinue` / `handleNativeProviderContinue` into `useContinueWithQuote` hook
+- [x] **Phase 3** — Add headless session registry + `startHeadlessBuy` API that navigates into existing BuildQuote with `headlessSessionId`
+- [x] **Phase 3.1** — Move pre-seed out of `useHeadlessBuy` — keep params on the session only and let the destination resolve them from the catalog
+- [ ] **Phase 4** — Extract `handleWidgetProviderContinue` / `handleNativeProviderContinue` into `useContinueWithQuote(quote, ctx)` so both BuildQuote and headless callers can reuse it
 - [ ] **Phase 4b** — Introduce Headless Host screen as stack base for the headless flow + parameterize `useTransakRouting` reset helpers with `baseRoute`
 - [ ] **Phase 5** — Skip BuildQuote in headless mode — Headless Host fetches the quote, picks one, calls `continueWithQuote`, and re-orchestrates after auth loops return to it
+- [ ] **Phase 5b** — Quote-first headless start path — `startHeadlessBuy({ quote })` skips quoting entirely and routes straight through `useContinueWithQuote`
 - [ ] **Phase 6** — Bypass order-processing redirect in Transak/aggregator routing when headless; fire `onOrderCreated` and end session
 - [ ] **Phase 7** — Extract UI-coupled error/limit surfacing; route errors through `onError` as typed `HeadlessBuyError`
 - [ ] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
@@ -37,7 +39,7 @@ flowchart LR
     Registry -->|onOrderCreated| Caller
 ```
 
-Key idea: the hook orchestrates by (a) pre-seeding RampsController selections, (b) navigating into the existing v2 screens with a `headlessSessionId` param, and (c) having existing routing callbacks detect the session and fire the callback instead of navigating to order-details.
+Key idea: the hook orchestrates by (a) storing attempt params + callbacks in the session registry, (b) navigating into the existing v2 screens with a `headlessSessionId` param, and (c) having existing routing callbacks detect the session and fire the callback instead of navigating to order-details. Controller selections are not written from `useHeadlessBuy` (Phase 3.1); the destination resolves ids from the catalog when needed.
 
 ---
 
@@ -134,18 +136,39 @@ startHeadlessBuy(
 - `params` include: `assetId`, `amount`, `paymentMethodId`, `providerId?`, `regionCode?`.
 - Implementation (this phase only does the plumbing, no UI bypass yet):
   1. `createSession(params, callbacks)` returns `sessionId`.
-  2. Set RampsController state (`setSelectedToken`, `setSelectedProvider`, `setSelectedPaymentMethod`, `setUserRegion`) so downstream screens read consistent values.
+  2. Add `headlessSessionId?: string` to `BuildQuoteParams` (BuildQuote.tsx line 112).
   3. Navigate to `BuildQuote` via `createBuildQuoteNavDetails({ assetId, amount, headlessSessionId })` from [app/components/UI/Ramp/Views/BuildQuote/BuildQuote.tsx](../Views/BuildQuote/BuildQuote.tsx) (lines 112–147) — i.e. reuse the existing entry.
-- Add `headlessSessionId?: string` to `BuildQuoteParams` (BuildQuote.tsx line 112).
+- **Phase 3.1** superseded an earlier idea of pre-seeding RampsController from `startHeadlessBuy` — params stay on the session only; no controller writes from the hook (see Phase 3.1 section below).
 - Unit tests around the registry (create/get/end, collisions, dangling sessions).
 
 Deliverable: playground can call `startHeadlessBuy` and land on the BuildQuote screen (still the full UI) — validates plumbing without breaking anything.
 
 ---
 
+## Phase 3.1 — Stop pre-seeding RampsController from `useHeadlessBuy`
+
+Goal: fix a type/race bug introduced in Phase 3's pre-seed step and keep the hook free of controller side-effects.
+
+The Phase 3 implementation called `setSelectedPaymentMethod(params.paymentMethodId)` and `setSelectedProvider(params.providerId)` from `startHeadlessBuy`. Two problems:
+
+1. **Type mismatch** — `setSelectedPaymentMethod(paymentMethod: PaymentMethod | null)` ([useRampsPaymentMethods.ts:32](../hooks/useRampsPaymentMethods.ts#L32)) and `setSelectedProvider(provider: Provider | null, opts?)` ([useRampsProviders.ts:37](../hooks/useRampsProviders.ts#L37)) take **full objects**, not ids. `setSelectedToken(assetId: string)` is the only id-based setter ([useRampsTokens.ts:26](../hooks/useRampsTokens.ts#L26)).
+2. **Catalog hydration race** — at the moment `startHeadlessBuy` runs, `paymentMethods` / `providers` may still be loading, so even an id→object lookup can't always resolve.
+
+Both go away if we never write to the controller from the hook:
+
+- Drop `setSelectedToken` / `setSelectedProvider` / `setSelectedPaymentMethod` / `setUserRegion` calls from `startHeadlessBuy`.
+- Keep the params on the `HeadlessSession` only — the session is already the source of truth.
+- The destination screen (BuildQuote today, Headless Host in Phase 4b) resolves `paymentMethodId` / `providerId` against its own catalog queries and calls the setters with full objects, where it knows the data is hydrated.
+
+Tests: replace "pre-seeds the controller" assertions with "writes the params onto the session" / "does not call any controller setter" assertions. `useHeadlessBuy` no longer needs setters in its destructure.
+
+Deliverable: the bug is fixed without changing the public API; downstream phases can rely on `getSession(sessionId).params` instead of mutating controller state from outside.
+
+---
+
 ## Phase 4 — Extract continue-with-quote logic (refactor)
 
-Goal: make the "what to do after we have a quote" logic reusable outside the `BuildQuote` component.
+Goal: make the "what to do after we have a quote" logic reusable outside the `BuildQuote` component, by both BuildQuote (with its own `selectedQuote`) and headless callers (with a `Quote` they hand in directly — see Phase 5b).
 
 - Extract from [app/components/UI/Ramp/Views/BuildQuote/BuildQuote.tsx](../Views/BuildQuote/BuildQuote.tsx):
   - `handleWidgetProviderContinue` (lines ~700–821, aggregator path → Checkout WebView / InAppBrowser).
@@ -271,6 +294,52 @@ Goal: when `startHeadlessBuy` is invoked, bypass the amount/token UI and jump st
 
 ---
 
+## Phase 5b — Quote-first headless start path
+
+Goal: support the developer story "I already picked the quote, just take me to checkout/login" without going through the Headless Host's quote-fetch step.
+
+By Phase 5b a consumer can already pair `useHeadlessBuy().getQuotes(...)` with their own selection UI — they shouldn't then have to re-derive `assetId` / `paymentMethodId` / `providerId` from the chosen `Quote` only for the Host to fetch quotes again.
+
+- Turn `HeadlessBuyParams` into a discriminated union:
+
+```ts
+type HeadlessBuyParams =
+  | {
+      mode: 'open-build-quote';
+      assetId: string;
+      amount: number;
+      paymentMethodId: string;
+      providerId?: string;
+      regionCode?: string;
+    }
+  | {
+      mode: 'continue-with-quote';
+      quote: Quote; // from useHeadlessBuy().getQuotes(...)
+      redirectUrl?: string;
+    };
+```
+
+- `mode: 'open-build-quote'` keeps the Phase 5 behavior: navigate to Headless Host, fetch quotes, auto-pick, `continueWithQuote(...)`.
+- `mode: 'continue-with-quote'` skips the quote-fetch step entirely:
+  1. `createSession({ mode: 'continue-with-quote', quote, ... }, callbacks)`.
+  2. Navigate to Headless Host.
+  3. Host reads `session.params.quote` and immediately calls `continueWithQuote(quote, { amount: quote.amountIn, assetId: quote.crypto.assetId })`.
+  4. Native vs widget branch is decided by `isNativeProvider(quote)` (existing helper).
+- Because the `Quote` carries provider + payment method context, no controller pre-seeding is needed for either branch — Phase 3.1 already removed that coupling.
+- Auth-loop semantics carry over from Phase 5: `OtpCode` reset lands back on the Host with `headlessSessionId`; the Host's status check (`pending → quoting → continued`) prevents double-orchestration when the loop returns to base.
+- Errors:
+  - Invalid / stale quote (provider rejects) → `onError('QUOTE_FAILED', { details })` and `endSession`.
+  - User cancellation mid-flow → existing Phase 8 `onClose({ reason: 'user_dismissed' })` path.
+- Tests:
+  - Aggregator quote → Host routes straight to Checkout WebView; no `getQuotes` call.
+  - Native quote, unauthenticated → Host routes to EnterEmail; on auth success the loop resets back to Host and re-uses the same quote.
+  - Native quote, fully authenticated → Host routes to Webview directly.
+  - Stale quote → `onError('QUOTE_FAILED')` fires before any navigation.
+
+Deliverable: an external dev can build their own quote-comparison UI on top of `getQuotes`, then call `startHeadlessBuy({ mode: 'continue-with-quote', quote })` and skip the entire build-quote screen.
+
+---
+
 ## Phase 6 — Bypass order-processing redirect & fire callback
 
 Goal: when the flow produces an orderId under a headless session, call the callback and leave screen management to the caller.
@@ -303,11 +372,40 @@ Goal: headless consumers should not rely on toasts/banners; they need structured
 
 ## Phase 8 — Cancellation + `onClose`
 
-Goal: close/cancel semantics.
+Goal: close/cancel semantics — make sure every way out of a headless flow ends the session and notifies the consumer exactly once.
 
-- `startHeadlessBuy` returns a `cancel()` that `endSession`s and pops the headless-initiated screens off the stack.
-- Detect user dismissal of a headless stack (e.g., back-button from Checkout WebView before orderId) → fire `onClose({ reason: 'user_dismissed' })`.
-- Tests around cancel paths.
+Today (post-Phase 3) only the consumer-initiated `cancel()` returned by `startHeadlessBuy` ends a session. If the user backs out of `BuildQuote` (or any subsequent headless screen) the session stays alive in the registry, the consumer never gets `onClose`, and the playground requires a manual "Cancel headless session" tap. Phase 8 closes that gap.
+
+### Triggers that must fire `onClose` automatically
+
+| Trigger                                                                                                                    | Reason               | Where to wire                                                                                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User backs out of the headless entry screen (BuildQuote until Phase 4b lands, Headless Host afterwards) before any orderId | `user_dismissed`     | Screen `useEffect` cleanup keyed on `headlessSessionId` — if the screen unmounts and `session.status` is still `pending` / `quoting`, end + onClose.                                                                                         |
+| User backs out of an in-flight Checkout / KYC / EnterEmail / OtpCode / Webview                                             | `user_dismissed`     | Same cleanup pattern, but only if the _whole_ headless stack is leaving — detect via `useFocusEffect` + checking the next focused route is outside the ramp stack, or via a `headlessStackUnmount` listener on the Headless Host (Phase 4b). |
+| Successful order produced (Phase 6 fires `onOrderCreated`)                                                                 | `completed`          | Right after `onOrderCreated` in Phase 6 paths — end session and fire `onClose({ reason: 'completed' })`. Today Phase 6 only does `endSession`; Phase 8 adds the trailing `onClose`.                                                          |
+| Consumer cancellation (`startHeadlessBuy(...).cancel()`)                                                                   | `consumer_cancelled` | Already wired in Phase 3. Keep as-is.                                                                                                                                                                                                        |
+| Hard error from Phase 7 (`onError(...)` then session is dead)                                                              | `unknown`            | After `onError`, end session and fire `onClose({ reason: 'unknown' })` so consumers always get a terminal close event.                                                                                                                       |
+
+### Implementation
+
+- Add a small `useHeadlessSessionDismissal(headlessSessionId)` hook in `app/components/UI/Ramp/headless/`:
+  - On mount: marks session as alive (`setStatus('pending')` if not already past).
+  - On unmount or blur-with-no-headless-route-on-stack: if `getSession(id)?.status` is not in `{'completed', 'cancelled'}`, call `endSession(id)` and `callbacks.onClose({ reason: 'user_dismissed' })`.
+- Wire it from:
+  - `BuildQuote` (Phase 8) — handles the "user opens headless, backs out of BuildQuote" case directly.
+  - Headless Host (Phase 4b) — handles every subsequent screen, since the Host is the stack base for the headless flow and unmounts only when the user truly leaves.
+- Centralize the terminal-state lifecycle in the registry to avoid double-close: add a small helper `closeSession(id, reason)` that does `setStatus(id, 'completed' | 'cancelled')` + `endSession(id)` + `callbacks.onClose({ reason })`, no-op if the session is already gone. All call-sites (Phase 6 success, Phase 7 errors, Phase 8 dismissal, the existing Phase 3 `cancel()`) should funnel through it.
+- Idempotency contract: `onClose` fires **at most once per session**, regardless of how many code paths try to close it.
+
+### Tests
+
+- Render `BuildQuote` with a `headlessSessionId`, unmount it without producing an order → `onClose({ reason: 'user_dismissed' })` fires once and the session is gone from the registry.
+- After Phase 4b: same assertion, but for the Headless Host with a child screen on top — backing out the whole stack fires `onClose` once, internal navigation between Host and KycWebview does NOT.
+- Phase 6 success path → `onOrderCreated(orderId)` precedes `onClose({ reason: 'completed' })`, both fire exactly once.
+- Phase 7 error path → `onError(...)` precedes `onClose({ reason: 'unknown' })`, both fire exactly once.
+- `cancel()` after a screen has already auto-dismissed the session is a no-op (no second `onClose`).
+
+Deliverable: closing the buy flow from anywhere on the headless stack notifies the consumer; the playground no longer needs the manual "Cancel headless session" tap (the button stays for explicit consumer-side cancellation but is no longer required for cleanup).
 
 ---
 

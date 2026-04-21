@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { CaipChainId } from '@metamask/utils';
 
 import ReduxService from '../../../../core/redux';
@@ -6,8 +7,16 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
 import useRampsController from '../hooks/useRampsController';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote/BuildQuote';
 
-import type { HeadlessBuyResult, HeadlessGetQuotesParams } from './types';
+import { createSession, endSession, setStatus } from './sessionRegistry';
+import type {
+  HeadlessBuyCallbacks,
+  HeadlessBuyParams,
+  HeadlessBuyResult,
+  HeadlessGetQuotesParams,
+  StartHeadlessBuyResult,
+} from './types';
 
 /**
  * Extract the CAIP chain id (`namespace:reference`) from a CAIP-19 asset id
@@ -55,6 +64,7 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
  * ```
  */
 export function useHeadlessBuy(): HeadlessBuyResult {
+  const navigation = useNavigation();
   const {
     tokens,
     tokensLoading,
@@ -98,6 +108,41 @@ export function useHeadlessBuy(): HeadlessBuyResult {
     [getQuotesRaw],
   );
 
+  const startHeadlessBuy = useCallback(
+    (
+      params: HeadlessBuyParams,
+      callbacks: HeadlessBuyCallbacks,
+    ): StartHeadlessBuyResult => {
+      // Inputs live on the session only — no controller writes from here.
+      // `paymentMethodId` and `providerId` are ids, but the controller setters
+      // (`setSelectedPaymentMethod`, `setSelectedProvider`) take full objects
+      // from a catalog that may still be loading at this point. Resolving and
+      // applying those selections is the destination screen's job (BuildQuote
+      // today, Headless Host in Phase 4b), where the catalog is guaranteed
+      // hydrated. Keeps this hook free of controller side-effects and avoids
+      // the catalog-hydration race.
+      const session = createSession(params, callbacks);
+
+      navigation.navigate(
+        ...createBuildQuoteNavDetails({
+          assetId: params.assetId,
+          amount: params.amount,
+          headlessSessionId: session.id,
+        }),
+      );
+
+      return {
+        sessionId: session.id,
+        cancel: () => {
+          setStatus(session.id, 'cancelled');
+          endSession(session.id);
+          callbacks.onClose({ reason: 'consumer_cancelled' });
+        },
+      };
+    },
+    [navigation],
+  );
+
   const errors = useMemo(
     () => ({
       tokens: tokensError,
@@ -123,6 +168,7 @@ export function useHeadlessBuy(): HeadlessBuyResult {
     orders,
     getOrderById,
     getQuotes,
+    startHeadlessBuy,
     isLoading,
     errors,
   };

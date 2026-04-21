@@ -17,6 +17,8 @@ import {
 import HeadlessPlayground, {
   HEADLESS_PLAYGROUND_AMOUNT_INPUT_TEST_ID,
   HEADLESS_PLAYGROUND_BACK_BUTTON_TEST_ID,
+  HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID,
+  HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID,
   HEADLESS_PLAYGROUND_GET_QUOTES_BUTTON_TEST_ID,
   HEADLESS_PLAYGROUND_HEADER_TEST_ID,
   HEADLESS_PLAYGROUND_HEADLESS_SECTION_TEST_ID,
@@ -24,6 +26,7 @@ import HeadlessPlayground, {
   HEADLESS_PLAYGROUND_RESET_ASSET_TEST_ID,
   HEADLESS_PLAYGROUND_RESET_PAYMENT_METHOD_TEST_ID,
   HEADLESS_PLAYGROUND_RESET_PROVIDER_TEST_ID,
+  HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID,
   HEADLESS_PLAYGROUND_SUMMARY_DIVIDER_TEST_ID,
   HEADLESS_PLAYGROUND_SUMMARY_TEST_ID,
   HEADLESS_SIM_ASSET_ID,
@@ -111,6 +114,8 @@ const mockSetSelectedPaymentMethod = jest.fn();
 const mockSetUserRegion = jest.fn().mockResolvedValue(null);
 const mockGetQuotes = jest.fn();
 const mockGetOrderById = jest.fn();
+const mockSessionCancel = jest.fn();
+const mockStartHeadlessBuy = jest.fn();
 
 const mockUseRampsControllerInitialValues: ReturnType<
   typeof useRampsController
@@ -159,6 +164,7 @@ const mockUseHeadlessBuyInitialValues: ReturnType<typeof useHeadlessBuy> = {
   orders: [],
   getOrderById: mockGetOrderById,
   getQuotes: mockGetQuotes,
+  startHeadlessBuy: mockStartHeadlessBuy,
   isLoading: false,
   errors: {
     tokens: null,
@@ -186,6 +192,12 @@ describe('HeadlessPlayground', () => {
   beforeEach(() => {
     mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
     mockUseHeadlessBuyValues = mockUseHeadlessBuyInitialValues;
+    mockSessionCancel.mockReset();
+    mockStartHeadlessBuy.mockReset();
+    mockStartHeadlessBuy.mockImplementation(() => ({
+      sessionId: 'sess-1',
+      cancel: mockSessionCancel,
+    }));
   });
 
   afterEach(() => {
@@ -997,6 +1009,137 @@ describe('HeadlessPlayground', () => {
       expect(
         screen.getByText('Quotes (Press "Get quotes" to fetch)'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Headless session lifecycle', () => {
+    it('renders the start button enabled by default and an empty event log', () => {
+      render(HeadlessPlayground);
+      expect(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('disables the start button when the amount is empty', () => {
+      render(HeadlessPlayground);
+      fireEvent.changeText(
+        screen.getByTestId(HEADLESS_PLAYGROUND_AMOUNT_INPUT_TEST_ID),
+        '',
+      );
+      expect(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      ).toBeDisabled();
+    });
+
+    it('calls startHeadlessBuy with the effective ids and the typed amount', () => {
+      render(HeadlessPlayground);
+      fireEvent.press(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      );
+      expect(mockStartHeadlessBuy).toHaveBeenCalledTimes(1);
+      const [params, callbacks] = mockStartHeadlessBuy.mock.calls[0];
+      expect(params).toEqual({
+        assetId: HEADLESS_SIM_ASSET_ID,
+        amount: 25,
+        paymentMethodId: HEADLESS_SIM_PAYMENT_METHOD_ID,
+        providerId: HEADLESS_SIM_PROVIDER_ID,
+      });
+      expect(typeof callbacks.onOrderCreated).toBe('function');
+      expect(typeof callbacks.onError).toBe('function');
+      expect(typeof callbacks.onClose).toBe('function');
+    });
+
+    it('passes controller-side overrides through to startHeadlessBuy', () => {
+      mockUseRampsControllerValues = {
+        ...mockUseRampsControllerInitialValues,
+        selectedToken: mockTokens[0],
+        selectedPaymentMethod: mockPaymentMethods[1],
+        selectedProvider: mockProviders[0],
+      };
+      render(HeadlessPlayground);
+      fireEvent.press(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      );
+      expect(mockStartHeadlessBuy).toHaveBeenCalledWith(
+        {
+          assetId: mockTokens[0].assetId,
+          amount: 25,
+          paymentMethodId: mockPaymentMethods[1].id,
+          providerId: mockProviders[0].id,
+        },
+        expect.any(Object),
+      );
+    });
+
+    it('shows the cancel button after starting and disables start while a session is active', () => {
+      render(HeadlessPlayground);
+      fireEvent.press(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      );
+      expect(
+        screen.getByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      ).toBeDisabled();
+    });
+
+    it('appends a started entry to the event log including the session id', () => {
+      render(HeadlessPlayground);
+      fireEvent.press(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      );
+      const eventLog = screen.getByTestId(
+        HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID,
+      );
+      expect(within(eventLog).getByText(/sess-1/)).toBeOnTheScreen();
+    });
+
+    it('cancel calls the session cancel handle, hides the cancel button and re-enables start', () => {
+      render(HeadlessPlayground);
+      fireEvent.press(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      );
+      fireEvent.press(
+        screen.getByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),
+      );
+      expect(mockSessionCancel).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      ).not.toBeDisabled();
+    });
+
+    it('logs onOrderCreated callback events fired by the consumer', () => {
+      render(HeadlessPlayground);
+      fireEvent.press(
+        screen.getByTestId(HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID),
+      );
+      const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+        onOrderCreated: (orderId: string) => void;
+      };
+      act(() => {
+        callbacks.onOrderCreated('order-xyz');
+      });
+      const eventLog = screen.getByTestId(
+        HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID,
+      );
+      expect(
+        within(eventLog).getByText(/onOrderCreated → order-xyz/),
+      ).toBeOnTheScreen();
+      // After an order is created the active session ends, so the cancel
+      // button should disappear.
+      expect(
+        screen.queryByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),
+      ).not.toBeOnTheScreen();
     });
   });
 });

@@ -61,6 +61,12 @@ export const HEADLESS_PLAYGROUND_RESET_PAYMENT_METHOD_TEST_ID =
   'headless-playground-reset-payment-method';
 export const HEADLESS_PLAYGROUND_RESET_PROVIDER_TEST_ID =
   'headless-playground-reset-provider';
+export const HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID =
+  'headless-playground-start-button';
+export const HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID =
+  'headless-playground-cancel-button';
+export const HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID =
+  'headless-playground-event-log';
 
 export enum HeadlessPlaygroundAccordionIndex {
   Selected = 0,
@@ -299,6 +305,7 @@ function HeadlessPlayground() {
     isLoading: headlessIsLoading,
     errors: headlessErrors,
     getQuotes,
+    startHeadlessBuy,
   } = useHeadlessBuy();
 
   const handleBack = useCallback(() => {
@@ -449,6 +456,107 @@ function HeadlessPlayground() {
     effectivePaymentMethodId,
     effectiveProviderId,
   ]);
+
+  // ---------------------------------------------------------------------------
+  // HEADLESS SESSION SIMULATION
+  // ---------------------------------------------------------------------------
+  // The playground holds an inline "event log" so we can eyeball the lifecycle
+  // callbacks the consumer wires into `startHeadlessBuy`. Phase 3 exercises
+  // the start + cancel paths; the order/error/close events are wired to fire
+  // from the registry in later phases.
+  const [eventLog, setEventLog] = useState<string[]>([]);
+  const [activeSession, setActiveSession] = useState<{
+    sessionId: string;
+    cancel: () => void;
+  } | null>(null);
+
+  const appendEvent = useCallback((message: string) => {
+    setEventLog((current) => [
+      `${new Date().toISOString()} · ${message}`,
+      ...current,
+    ]);
+  }, []);
+
+  const handleStartHeadlessBuy = useCallback(() => {
+    if (!headlessAmountIsValid) {
+      return;
+    }
+    const params = {
+      assetId: effectiveAssetId,
+      amount: headlessAmountAsNumber,
+      paymentMethodId: effectivePaymentMethodId,
+      providerId: effectiveProviderId,
+    };
+    const session = startHeadlessBuy(params, {
+      onOrderCreated: (orderId) => {
+        appendEvent(
+          strings(
+            'app_settings.fiat_on_ramp.headless_playground.event_log_order_created',
+            { orderId },
+          ),
+        );
+        setActiveSession(null);
+      },
+      onError: (error) => {
+        appendEvent(
+          strings(
+            'app_settings.fiat_on_ramp.headless_playground.event_log_error',
+            {
+              code: error.code,
+              messageSuffix: error.message ? ` (${error.message})` : '',
+            },
+          ),
+        );
+        setActiveSession(null);
+      },
+      onClose: (info) => {
+        appendEvent(
+          strings(
+            'app_settings.fiat_on_ramp.headless_playground.event_log_close',
+            { reason: info.reason },
+          ),
+        );
+        setActiveSession(null);
+      },
+    });
+    appendEvent(
+      strings(
+        'app_settings.fiat_on_ramp.headless_playground.event_log_started',
+        {
+          sessionId: session.sessionId,
+          assetId: params.assetId,
+          amount: params.amount,
+          paymentMethodId: params.paymentMethodId,
+          providerSuffix: params.providerId
+            ? `, provider=${params.providerId}`
+            : '',
+        },
+      ),
+    );
+    setActiveSession(session);
+  }, [
+    appendEvent,
+    effectiveAssetId,
+    effectivePaymentMethodId,
+    effectiveProviderId,
+    headlessAmountAsNumber,
+    headlessAmountIsValid,
+    startHeadlessBuy,
+  ]);
+
+  const handleCancelHeadlessSession = useCallback(() => {
+    if (!activeSession) {
+      return;
+    }
+    appendEvent(
+      strings(
+        'app_settings.fiat_on_ramp.headless_playground.event_log_cancelled',
+        { sessionId: activeSession.sessionId },
+      ),
+    );
+    activeSession.cancel();
+    setActiveSession(null);
+  }, [activeSession, appendEvent]);
 
   // Resolve the effective ids into human-friendly labels via `useHeadlessBuy`
   // so the section also exercises the catalog data exposed by the hook.
@@ -915,6 +1023,84 @@ function HeadlessPlayground() {
                       )}
                     </Text>
                   ) : null}
+                </View>
+
+                <View style={styles.actionsRow}>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    onPress={handleStartHeadlessBuy}
+                    isDisabled={!canGetQuotes || activeSession !== null}
+                    testID={HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}
+                  >
+                    {strings(
+                      'app_settings.fiat_on_ramp.headless_playground.start_headless_buy',
+                    )}
+                  </Button>
+                  {activeSession ? (
+                    <Pressable
+                      onPress={handleCancelHeadlessSession}
+                      style={styles.sandboxParamReset}
+                      accessibilityRole="button"
+                      testID={HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID}
+                    >
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.PrimaryDefault}
+                        fontWeight={FontWeight.Medium}
+                      >
+                        {strings(
+                          'app_settings.fiat_on_ramp.headless_playground.cancel_headless_buy',
+                        )}
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                  {!canGetQuotes ? (
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.TextAlternative}
+                      style={styles.actionsHint}
+                    >
+                      {strings(
+                        'app_settings.fiat_on_ramp.headless_playground.start_headless_buy_disabled_hint',
+                      )}
+                    </Text>
+                  ) : null}
+                </View>
+
+                <View
+                  style={styles.eventLogSection}
+                  testID={HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    style={styles.eventLogTitle}
+                  >
+                    {strings(
+                      'app_settings.fiat_on_ramp.headless_playground.event_log_title',
+                    )}
+                  </Text>
+                  {eventLog.length === 0 ? (
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings(
+                        'app_settings.fiat_on_ramp.headless_playground.event_log_empty',
+                      )}
+                    </Text>
+                  ) : (
+                    eventLog.map((line, index) => (
+                      <Text
+                        key={`event-${index}`}
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.TextAlternative}
+                        style={styles.eventLogLine}
+                      >
+                        {line}
+                      </Text>
+                    ))
+                  )}
                 </View>
 
                 <View

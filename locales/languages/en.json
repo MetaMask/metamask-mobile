@@ -3399,7 +3399,18 @@
         "quote_reliability_value": "{{score}}/100",
         "quote_tag_best_rate": "Best rate",
         "quote_tag_most_reliable": "Most reliable",
-        "quote_unknown_provider": "Unknown provider"
+        "quote_unknown_provider": "Unknown provider",
+        "start_headless_buy": "Start headless buy",
+        "start_headless_buy_disabled_hint": "Enter a valid amount to enable",
+        "start_headless_buy_pending": "Headless session active — open BuildQuote",
+        "cancel_headless_buy": "Cancel headless session",
+        "event_log_title": "Event log",
+        "event_log_empty": "No events yet — start a headless session and watch this space.",
+        "event_log_started": "started session {{sessionId}} (asset={{assetId}}, amount={{amount}}, payment={{paymentMethodId}}{{providerSuffix}})",
+        "event_log_order_created": "onOrderCreated → {{orderId}}",
+        "event_log_error": "onError → {{code}}{{messageSuffix}}",
+        "event_log_close": "onClose → {{reason}}",
+        "event_log_cancelled": "consumer-cancelled session {{sessionId}}"
       }
     },
     "request_feature": "Request a feature",

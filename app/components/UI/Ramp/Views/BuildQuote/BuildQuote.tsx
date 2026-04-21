@@ -116,6 +116,17 @@ export interface BuildQuoteParams {
   buyFlowOrigin?: BuyFlowOrigin;
   /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
   amount?: number;
+  /**
+   * Active headless buy session id, if the screen was opened via
+   * `useHeadlessBuy().startHeadlessBuy(...)`. Threaded through navigation so
+   * downstream routing helpers can look up the session in
+   * `sessionRegistry` and fire the consumer's lifecycle callbacks instead of
+   * navigating to the order-processing screen.
+   *
+   * Phase 3 only plumbs this param — the screen itself does not branch on
+   * it yet.
+   */
+  headlessSessionId?: string;
 }
 
 /**

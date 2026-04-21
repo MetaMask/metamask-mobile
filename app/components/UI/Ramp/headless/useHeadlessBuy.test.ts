@@ -9,15 +9,24 @@ import type {
 } from '@metamask/ramps-controller';
 
 import { getChainIdFromAssetId, useHeadlessBuy } from './useHeadlessBuy';
+import { __resetSessionRegistryForTests, getSession } from './sessionRegistry';
 import useRampsController from '../hooks/useRampsController';
 
+const mockNavigate = jest.fn();
 const mockGetQuotesRaw = jest.fn();
 const mockGetOrderById = jest.fn();
 const mockResolveAccount = jest.fn();
 
 jest.mock('../hooks/useRampsController', () => jest.fn());
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 jest.mock('../utils/getRampCallbackBaseUrl', () => ({
   getRampCallbackBaseUrl: () => 'https://callback.metamask.io',
+}));
+jest.mock('../Views/BuildQuote/BuildQuote', () => ({
+  createBuildQuoteNavDetails: (params: unknown) =>
+    ['MockBuildQuoteRoute', { params }] as const,
 }));
 jest.mock('../../../../core/redux', () => ({
   __esModule: true,
@@ -97,6 +106,7 @@ const baseControllerValue: ReturnType<typeof useRampsController> = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  __resetSessionRegistryForTests();
   (useRampsController as jest.Mock).mockReturnValue(baseControllerValue);
   mockResolveAccount.mockReturnValue({ address: '0xWALLET' });
   mockGetQuotesRaw.mockResolvedValue({
@@ -290,6 +300,132 @@ describe('useHeadlessBuy', () => {
         }),
       ).rejects.toThrow(/could not resolve wallet address/);
       expect(mockGetQuotesRaw).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('startHeadlessBuy', () => {
+    const baseStartParams = {
+      assetId: 'eip155:59144/erc20:0xabc',
+      amount: 25,
+      paymentMethodId: '/payments/debit-credit-card',
+    };
+
+    function buildCallbacks() {
+      return {
+        onOrderCreated: jest.fn(),
+        onError: jest.fn(),
+        onClose: jest.fn(),
+      };
+    }
+
+    it('creates a registry session and returns its id', () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      const callbacks = buildCallbacks();
+      let started: { sessionId: string; cancel: () => void } | undefined;
+      act(() => {
+        started = result.current.startHeadlessBuy(baseStartParams, callbacks);
+      });
+      if (!started) {
+        throw new Error('startHeadlessBuy did not return a session');
+      }
+      expect(started.sessionId).toMatch(/^headless-buy-/);
+      const session = getSession(started.sessionId);
+      expect(session?.params).toEqual(baseStartParams);
+      expect(session?.callbacks).toBe(callbacks);
+      expect(session?.status).toBe('pending');
+    });
+
+    it('does not call any controller setter (params live on the session only)', () => {
+      const setters = {
+        setSelectedToken: jest.fn(),
+        setSelectedProvider: jest.fn(),
+        setSelectedPaymentMethod: jest.fn(),
+        setUserRegion: jest.fn().mockResolvedValue(undefined),
+      };
+      (useRampsController as jest.Mock).mockReturnValue({
+        ...baseControllerValue,
+        ...setters,
+      });
+      const { result } = renderHook(() => useHeadlessBuy());
+      act(() => {
+        result.current.startHeadlessBuy(
+          {
+            ...baseStartParams,
+            providerId: '/providers/transak-native',
+            regionCode: 'us',
+          },
+          buildCallbacks(),
+        );
+      });
+      expect(setters.setSelectedToken).not.toHaveBeenCalled();
+      expect(setters.setSelectedProvider).not.toHaveBeenCalled();
+      expect(setters.setSelectedPaymentMethod).not.toHaveBeenCalled();
+      expect(setters.setUserRegion).not.toHaveBeenCalled();
+    });
+
+    it('persists optional providerId and regionCode on the session params', () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      let started: { sessionId: string; cancel: () => void } | undefined;
+      act(() => {
+        started = result.current.startHeadlessBuy(
+          {
+            ...baseStartParams,
+            providerId: '/providers/transak-native',
+            regionCode: 'us',
+          },
+          buildCallbacks(),
+        );
+      });
+      if (!started) {
+        throw new Error('startHeadlessBuy did not return a session');
+      }
+      expect(getSession(started.sessionId)?.params).toEqual({
+        ...baseStartParams,
+        providerId: '/providers/transak-native',
+        regionCode: 'us',
+      });
+    });
+
+    it('navigates to BuildQuote with the assetId, amount and headlessSessionId', () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      let started: { sessionId: string; cancel: () => void } | undefined;
+      act(() => {
+        started = result.current.startHeadlessBuy(
+          baseStartParams,
+          buildCallbacks(),
+        );
+      });
+      if (!started) {
+        throw new Error('startHeadlessBuy did not return a session');
+      }
+      expect(mockNavigate).toHaveBeenCalledWith('MockBuildQuoteRoute', {
+        params: {
+          assetId: baseStartParams.assetId,
+          amount: baseStartParams.amount,
+          headlessSessionId: started.sessionId,
+        },
+      });
+    });
+
+    it('cancel() ends the session and fires onClose with consumer_cancelled', () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      const callbacks = buildCallbacks();
+      let started: { sessionId: string; cancel: () => void } | undefined;
+      act(() => {
+        started = result.current.startHeadlessBuy(baseStartParams, callbacks);
+      });
+      if (!started) {
+        throw new Error('startHeadlessBuy did not return a session');
+      }
+      act(() => {
+        started?.cancel();
+      });
+      expect(getSession(started.sessionId)).toBeUndefined();
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'consumer_cancelled',
+      });
+      expect(callbacks.onOrderCreated).not.toHaveBeenCalled();
+      expect(callbacks.onError).not.toHaveBeenCalled();
     });
   });
 });

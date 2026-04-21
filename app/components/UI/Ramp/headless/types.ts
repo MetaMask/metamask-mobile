@@ -68,10 +68,99 @@ export interface HeadlessBuyResult {
 
   // Imperative
   getQuotes: (params: HeadlessGetQuotesParams) => Promise<QuotesResponse>;
+  startHeadlessBuy: (
+    params: HeadlessBuyParams,
+    callbacks: HeadlessBuyCallbacks,
+  ) => StartHeadlessBuyResult;
 
   // Aggregate state
   isLoading: boolean;
   errors: HeadlessBuyErrors;
+}
+
+/**
+ * Inputs for {@link HeadlessBuyResult.startHeadlessBuy}. The headless flow
+ * pre-seeds the controller with these values and navigates into the existing
+ * Ramp v2 stack with a `headlessSessionId` so downstream screens can detect
+ * the session.
+ */
+export interface HeadlessBuyParams {
+  /** CAIP-19 asset id (e.g. `eip155:1/erc20:0x…`). */
+  assetId: string;
+  /** Fiat amount the user wants to spend. */
+  amount: number;
+  /** The single payment method id to commit to for this attempt. */
+  paymentMethodId: string;
+  /** Optionally pin the flow to a single provider id. */
+  providerId?: string;
+  /** Optionally override the active region (otherwise the current user region is used). */
+  regionCode?: string;
+}
+
+/**
+ * Lifecycle callbacks invoked by the headless session as it progresses.
+ *
+ * Stored in the session registry by id; never serialized through navigation.
+ */
+export interface HeadlessBuyCallbacks {
+  /** Fired once the provider produces an `orderId` (aggregator or native). */
+  onOrderCreated: (orderId: string) => void;
+  /** Fired when the session terminates due to an error. */
+  onError: (error: HeadlessBuyError) => void;
+  /** Fired when the user dismisses or the consumer cancels the session. */
+  onClose: (info: HeadlessBuyCloseInfo) => void;
+}
+
+/**
+ * Typed error surface for headless consumers — replaces toasts/banners that
+ * the UI normally renders. Phase 3 only uses `UNKNOWN`; later phases route
+ * limit/auth/etc. errors through it.
+ */
+export interface HeadlessBuyError {
+  code:
+    | 'NO_QUOTES'
+    | 'LIMIT_EXCEEDED'
+    | 'KYC_REQUIRED'
+    | 'AUTH_FAILED'
+    | 'QUOTE_FAILED'
+    | 'USER_CANCELLED'
+    | 'UNKNOWN';
+  message?: string;
+  details?: Record<string, unknown>;
+}
+
+/** Reason the session terminated without producing an order. */
+export interface HeadlessBuyCloseInfo {
+  reason: 'user_dismissed' | 'consumer_cancelled' | 'completed' | 'unknown';
+}
+
+/** Lifecycle status tracked inside the session registry. */
+export type HeadlessSessionStatus =
+  | 'pending'
+  | 'quoting'
+  | 'continued'
+  | 'completed'
+  | 'cancelled';
+
+/**
+ * Per-attempt session record kept in the module-level registry. Callbacks are
+ * looked up by id at the point of use so they never need to be serialized.
+ */
+export interface HeadlessSession {
+  id: string;
+  status: HeadlessSessionStatus;
+  params: HeadlessBuyParams;
+  callbacks: HeadlessBuyCallbacks;
+  createdAt: number;
+}
+
+/**
+ * Returned by {@link HeadlessBuyResult.startHeadlessBuy} so the consumer can
+ * track the session id and trigger a programmatic cancel.
+ */
+export interface StartHeadlessBuyResult {
+  sessionId: string;
+  cancel: () => void;
 }
 
 export type {

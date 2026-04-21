@@ -398,6 +398,19 @@ describe('createBuildQuoteNavDetails', () => {
       nativeFlowError: 'error',
     });
   });
+
+  it('forwards headlessSessionId for headless buy attempts', () => {
+    const result = createBuildQuoteNavDetails({
+      assetId: 'eip155:1/slip44:60',
+      amount: 25,
+      headlessSessionId: 'headless-abc',
+    });
+    expect(result[1].params.params).toEqual({
+      assetId: 'eip155:1/slip44:60',
+      amount: 25,
+      headlessSessionId: 'headless-abc',
+    });
+  });
 });
 
 const mockSetSelectedProvider = jest.fn();
