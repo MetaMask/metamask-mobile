@@ -97,7 +97,7 @@ describe('openDb', () => {
     db.close();
   });
 
-  it('enforces the event_type CHECK constraint', () => {
+  it('enforces the event_type CHECK constraint for unknown values', () => {
     const db = openDb(':memory:');
 
     expect(() => {
@@ -108,6 +108,21 @@ describe('openDb', () => {
         )
         .run('id-1', 'my-tool', 'skill', 'invalid', new Date().toISOString());
     }).toThrow();
+
+    db.close();
+  });
+
+  it('accepts "interrupted" as a valid event_type', () => {
+    const db = openDb(':memory:');
+
+    expect(() => {
+      db
+        .prepare(
+          `INSERT INTO events (event_id, tool_name, tool_type, event_type, created_at)
+           VALUES (?, ?, ?, ?, ?)`,
+        )
+        .run('id-interrupted', 'my-tool', 'yarn_script', 'interrupted', new Date().toISOString());
+    }).not.toThrow();
 
     db.close();
   });

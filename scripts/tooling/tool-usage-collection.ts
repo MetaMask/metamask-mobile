@@ -13,7 +13,7 @@ interface ParsedArgs {
 
 const USAGE =
   'Usage: yarn tsx scripts/tooling/tool-usage-collection.ts ' +
-  '--tool <name> --type <type> --event start|end ' +
+  '--tool <name> --type <type> --event start|end|interrupted ' +
   '[--session <uuid>] [--agent <vendor>] [--success true|false] [--duration <ms>] [--verbose]\n';
 
 /**
@@ -46,8 +46,8 @@ export function parseArgs(argv: string[]): ParsedArgs {
 
   if (!map.tool) throw new Error('--tool is required');
   if (!map.type) throw new Error('--type is required');
-  if (map.event !== 'start' && map.event !== 'end') {
-    throw new Error('--event must be "start" or "end"');
+  if (map.event !== 'start' && map.event !== 'end' && map.event !== 'interrupted') {
+    throw new Error('--event must be "start", "end", or "interrupted"');
   }
   if (map.success != null && map.success !== 'true' && map.success !== 'false') {
     throw new Error('--success must be "true" or "false"');

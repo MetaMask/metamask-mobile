@@ -1,10 +1,25 @@
-# scripts/tooling
+# scripts/tooling — Developer Usage Collection
 
-Developer tooling usage collection — writes events to a local SQLite database so tool adoption can be understood without automatic or silent data sharing.
+Automatically records how AI agent tooling (Yarn scripts, Claude Code skills, Cursor skills) is used, into a local SQLite database. Developer-only, stored locally, never sent anywhere.
 
 ## How it works
 
-Every tool that participates writes a `start` event when it begins and an `end` event when it finishes. Events land in a local SQLite file on the developer's machine. Nothing is sent anywhere automatically. A separate `yarn tooling:report` command (Phase 3) lets developers review their history and choose what to share.
+Every collection path writes events to a local SQLite database:
+
+- `start` when work begins
+- `end` when work completes
+- `interrupted` for aborted yarn script runs (exit code 129 / SIGHUP / Ctrl+C)
+
+## Skip conditions
+
+Collection is **disabled** when either of these is true:
+
+| Condition                            | How to trigger                                         |
+|--------------------------------------|--------------------------------------------------------|
+| `CI` env var is set                  | Automatic on GitHub Actions and most CI systems        |
+| `TOOL_USAGE_COLLECTION_OPT_IN=false` | Set in your shell profile or `.env` to opt out locally |
+
+All three collection paths (Yarn plugin, Claude hook, Cursor hook) respect both conditions.
 
 ## Database location
 
@@ -13,23 +28,51 @@ Every tool that participates writes a `start` event when it begins and an `end` 
 | Default | `~/.tool-usage-collection/events.db` |
 | Custom | Set `TOOL_USAGE_COLLECTION_DB_PATH` to any absolute path |
 
-To redirect the database — for example to keep per-project histories separate, or to point multiple machines at the same location — set `TOOL_USAGE_COLLECTION_DB_PATH` in your shell profile:
+To redirect the database, set `TOOL_USAGE_COLLECTION_DB_PATH` in your shell profile:
 
 ```bash
-# ~/.zshrc or ~/.bashrc
-# Use $HOME (not ~) — double quotes suppress tilde expansion but not $HOME
 export TOOL_USAGE_COLLECTION_DB_PATH="$HOME/.tool-usage-collection/events.db"
 ```
 
-This applies to all projects on the machine. The directory is created automatically if it does not exist.
+## Architecture
+
+```mermaid
+flowchart BT
+    db[db.ts]
+    events[events.ts]
+    cli[tool-usage-collection.ts CLI]
+    yarn[Yarn Berry plugin wrapScriptExecution]
+    claude[Claude Code PreToolUse hook .claude/skills/s/SKILL.md]
+    cursor[Cursor hook beforeReadFile .cursor/hooks.json]
+    sqlite[(~/.tool-usage-collection/events.db)]
+
+    db --> events --> cli
+    cli --> yarn & claude & cursor
+    yarn & claude & cursor --> sqlite
+```
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `db.ts` | Opens / creates the SQLite database and initialises the schema |
-| `events.ts` | `trackEvent()` — shared write function used by all collection paths |
-| `tool-usage-collection.ts` | Thin CLI wrapper invoked by yarn hooks and agent skill hooks |
+| `db.ts` | SQLite connection and schema |
+| `events.ts` | `trackEvent()` — writes a single event row |
+| `tool-usage-collection.ts` | CLI entry point (`--tool`, `--type`, `--event`, `--agent`, …) |
+| `cursor-hook-skill-tracking.ts` | Cursor `beforeReadFile` hook adapter — reads JSON from stdin, extracts skill name from path, calls the CLI |
+
+## Collection paths
+
+### Path 1 — Yarn Berry plugin
+
+`.yarn/plugins/plugin-usage-tracking.cjs` wraps every `yarn <script>` via `wrapScriptExecution`.
+
+### Path 2 — Claude Code skills
+
+Each skill under `.claude/skills/<name>/SKILL.md` includes a `PreToolUse` hook in its YAML frontmatter.
+
+### Path 3 — Cursor skills
+
+`.cursor/hooks.json` registers a project-level `beforeReadFile` hook.
 
 ## CLI usage
 
@@ -47,32 +90,11 @@ yarn tsx scripts/tooling/tool-usage-collection.ts \
   [--verbose]
 ```
 
-`--tool`, `--type`, and `--event` are required. All other flags are optional.
+`--tool`, `--type`, and `--event` are required.
 
-## Collection paths
+## Inspecting events
 
-Three automated paths feed events into the shared database:
-
-**Yarn Berry plugin** — `.yarn/plugins/plugin-usage-tracking.cjs` hooks into `wrapScriptExecution` and fires `start`, `end`, and `interrupted` events for every `yarn <script>` run. Zero changes to `package.json` scripts are needed.
-
-**Claude Code skills** — a `PreToolUse` frontmatter hook (`once: true`, `async: true`) fires automatically on the first tool call after a skill is loaded. Zero tokens consumed.
-
-**Cursor skills** — `.cursor/hooks.json` defines a `beforeReadFile` hook that fires when Cursor reads any `SKILL.md` file. The hook calls the CLI via `scripts/tooling/cursor-hook-skill-tracking.ts`.
-
-## Schema
-
-```sql
-CREATE TABLE events (
-  event_id     TEXT PRIMARY KEY,
-  session_id   TEXT,
-  tool_name    TEXT NOT NULL,
-  tool_type    TEXT NOT NULL,   -- 'skill' | 'yarn_script' | 'cli_command'
-  event_type   TEXT NOT NULL CHECK(event_type IN ('start', 'end')),
-  repo         TEXT,
-  agent_vendor TEXT,
-  success      INTEGER,         -- 0 or 1; NULL on 'start' events
-  duration_ms  INTEGER,         -- NULL on 'start' events
-  metadata     TEXT,            -- JSON blob
-  created_at   TEXT NOT NULL
-);
+```bash
+sqlite3 ~/.tool-usage-collection/events.db \
+  "SELECT tool_name, tool_type, event_type, agent_vendor, success, duration_ms, created_at FROM events ORDER BY created_at DESC LIMIT 20;"
 ```

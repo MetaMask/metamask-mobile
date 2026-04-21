@@ -44,7 +44,7 @@ export function openDb(dbPath = getDbPath()): Database.Database {
         session_id   TEXT,
         tool_name    TEXT NOT NULL,
         tool_type    TEXT NOT NULL,
-        event_type   TEXT NOT NULL CHECK(event_type IN ('start', 'end')),
+        event_type   TEXT NOT NULL CHECK(event_type IN ('start', 'end', 'interrupted')),
         repo         TEXT,
         agent_vendor TEXT,
         success      INTEGER,
