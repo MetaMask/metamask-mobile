@@ -3,7 +3,6 @@ import { MONEY_EVENTS_CONSTANTS } from '../constants/moneyEvents';
 
 const { MONEY_HUB_STATES } = MONEY_EVENTS_CONSTANTS;
 
-// TODO: Add tests.
 /**
  * Helper hook to get common money hub event properties.
  * @returns Object containing:

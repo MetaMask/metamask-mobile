@@ -7,8 +7,6 @@ import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds'
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
-import { MONEY_EVENTS_CONSTANTS } from '../../../../UI/Money/constants/moneyEvents';
-import { AssetType } from '../../../confirmations/types/token';
 
 const mockNavigateToCash = jest.fn();
 jest.mock('./useCashNavigation', () => ({
@@ -65,20 +63,6 @@ jest.mock('../../../../UI/Earn/hooks/useMusdConversionFlowData', () => ({
   useMusdConversionFlowData: () => mockUseMusdConversionFlowData,
 }));
 
-let mockMoneyHubFilledState = 'empty';
-jest.mock('../../../../UI/Money/hooks/useMoneyHubEvents', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    moneyHubFilledState: mockMoneyHubFilledState,
-  })),
-}));
-
-const mockConversionTokens: AssetType[] = [];
-jest.mock('../../../../UI/Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => ({ tokens: mockConversionTokens }),
-  tokenFiatValue: jest.fn((token: AssetType) => token?.fiat?.balance ?? 0),
-}));
-
 const mockClaimRewards = jest.fn();
 
 jest.mock(
@@ -93,8 +77,6 @@ const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
 describe('CashGetMusdEmptyState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockMoneyHubFilledState = 'empty';
-    mockConversionTokens.length = 0;
     mockUseMusdConversionFlowData.isEmptyWallet = false;
     mockUseMusdConversionFlowData.hasConvertibleTokens = true;
     mockUseMusdConversionFlowData.isMusdBuyableOnAnyChain = true;
@@ -296,64 +278,5 @@ describe('CashGetMusdEmptyState', () => {
       }),
     );
     expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  describe('screen viewed analytics', () => {
-    it('fires MONEY_HUB_SCREEN_VIEWED on first render with convertible token info', () => {
-      mockMoneyHubFilledState = 'filled';
-      mockConversionTokens.push(
-        {
-          symbol: 'USDC',
-          chainId: '0x1',
-          fiat: { balance: 50 },
-        } as AssetType,
-        {
-          symbol: 'USDT',
-          chainId: '0xa',
-          fiat: { balance: 200 },
-        } as AssetType,
-      );
-
-      renderWithProvider(<CashGetMusdEmptyState isFullView />);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MONEY_HUB_SCREEN_VIEWED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          moneyHubFilledState: MONEY_EVENTS_CONSTANTS.MONEY_HUB_STATES.FILLED,
-          hasConvertibleTokens: true,
-          highestBalanceConversionTokenSymbol: 'USDT',
-          highestBalanceConversionTokenChainId: '0xa',
-        }),
-      );
-    });
-
-    it('omits highest balance token fields when hasConvertibleTokens is false', () => {
-      mockMoneyHubFilledState = 'empty';
-      mockUseMusdConversionFlowData.hasConvertibleTokens = false;
-
-      renderWithProvider(<CashGetMusdEmptyState isFullView />);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MONEY_HUB_SCREEN_VIEWED,
-      );
-
-      const screenViewedCall = mockAddProperties.mock.calls.find(
-        (call: unknown[]) => {
-          const arg = call[0] as Record<string, unknown>;
-          return arg.moneyHubFilledState !== undefined;
-        },
-      );
-      expect(screenViewedCall).toBeDefined();
-      const properties = screenViewedCall?.[0] as Record<string, unknown>;
-      expect(properties.hasConvertibleTokens).toBe(false);
-      expect(properties).not.toHaveProperty(
-        'highestBalanceConversionTokenSymbol',
-      );
-      expect(properties).not.toHaveProperty(
-        'highestBalanceConversionTokenChainId',
-      );
-    });
   });
 });

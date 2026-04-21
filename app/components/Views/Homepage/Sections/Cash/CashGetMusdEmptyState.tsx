@@ -56,11 +56,6 @@ import {
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
 import { useCashNavigation } from './useCashNavigation';
-import useMoneyHubEvents from '../../../../UI/Money/hooks/useMoneyHubEvents';
-import {
-  tokenFiatValue,
-  useMusdConversionTokens,
-} from '../../../../UI/Earn/hooks/useMusdConversionTokens';
 
 interface CashGetMusdEmptyStateProps {
   isFullView?: boolean;
@@ -131,45 +126,6 @@ const CashGetMusdEmptyState = ({
     selectUSDConversionRateByChainId(state, MUSD_CONVERSION_DEFAULT_CHAIN_ID),
   );
   const { navigateToCash } = useCashNavigation();
-  const { moneyHubFilledState } = useMoneyHubEvents();
-
-  const screenViewedRef = useRef(false);
-
-  const { tokens: convertibleTokens } = useMusdConversionTokens();
-
-  useEffect(() => {
-    if (screenViewedRef.current) return;
-    screenViewedRef.current = true;
-
-    const highestBalanceConversionToken = convertibleTokens.reduce(
-      (max, token) =>
-        tokenFiatValue(token) > tokenFiatValue(max) ? token : max,
-      convertibleTokens[0],
-    );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MONEY_HUB_SCREEN_VIEWED)
-        .addProperties({
-          moneyHubFilledState,
-          hasConvertibleTokens,
-          ...(hasConvertibleTokens
-            ? {
-                highestBalanceConversionTokenSymbol:
-                  highestBalanceConversionToken?.symbol,
-                highestBalanceConversionTokenChainId:
-                  highestBalanceConversionToken?.chainId,
-              }
-            : {}),
-        })
-        .build(),
-    );
-  }, [
-    convertibleTokens,
-    convertibleTokens.length,
-    createEventBuilder,
-    hasConvertibleTokens,
-    moneyHubFilledState,
-    trackEvent,
-  ]);
 
   /** USD → selected fiat (same basis as aggregated mUSD balance / price row). */
   const oneUsdInUserFiat = useMemo(() => {

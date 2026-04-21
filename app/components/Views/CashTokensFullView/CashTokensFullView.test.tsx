@@ -165,6 +165,14 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
+let mockMoneyHubFilledState = 'empty';
+jest.mock('../../UI/Money/hooks/useMoneyHubEvents', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    moneyHubFilledState: mockMoneyHubFilledState,
+  })),
+}));
+
 jest.mock('../../UI/Earn/utils/network', () => ({
   getNetworkName: jest.fn(() => 'Ethereum Mainnet'),
 }));
@@ -222,6 +230,7 @@ describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     flushInteractionManager();
+    mockMoneyHubFilledState = 'empty';
     mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
     mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
@@ -569,8 +578,6 @@ describe('CashTokensFullView', () => {
     it('tracks MONEY_HUB_SWAPS_BUTTON_CLICKED when swap button is pressed', () => {
       mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
       mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
 
       renderWithProvider(<CashTokensFullView />);
       fireEvent.press(
@@ -580,14 +587,17 @@ describe('CashTokensFullView', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.MONEY_HUB_SWAPS_BUTTON_CLICKED,
       );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          moneyHubFilledState: 'empty',
+        }),
+      );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
     it('tracks MONEY_HUB_BUY_BUTTON_CLICKED when buy button is pressed', () => {
       mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
       mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
 
       renderWithProvider(<CashTokensFullView />);
       fireEvent.press(screen.getByTestId(CashTokensFullViewTestIds.BUY_BUTTON));
@@ -595,14 +605,17 @@ describe('CashTokensFullView', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.MONEY_HUB_BUY_BUTTON_CLICKED,
       );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          moneyHubFilledState: 'empty',
+        }),
+      );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
     it('tracks MONEY_HUB_LEARN_MORE_PRESSED when learn more is pressed', async () => {
       mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
       jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
 
       renderWithProvider(<CashTokensFullView />);
 
@@ -619,9 +632,6 @@ describe('CashTokensFullView', () => {
     it('tracks MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED on max convert press', async () => {
       mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
       mockInitiateMaxConversion.mockResolvedValue(undefined);
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
 
       renderWithProvider(<CashTokensFullView />);
 
@@ -638,17 +648,15 @@ describe('CashTokensFullView', () => {
           button_action: 'max',
           asset_symbol: undefined,
           network_chain_id: '0x1',
+          moneyHubFilledState: 'empty',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('tracks MONEY_HUB_CONVERT_BUTTON_CLICKED on edit convert press', async () => {
+    it('tracks MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED on edit convert press', async () => {
       mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
       mockInitiateCustomConversion.mockResolvedValue(undefined);
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
 
       renderWithProvider(<CashTokensFullView />);
 
@@ -657,7 +665,7 @@ describe('CashTokensFullView', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MONEY_HUB_CONVERT_BUTTON_CLICKED,
+        MetaMetricsEvents.MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -665,6 +673,7 @@ describe('CashTokensFullView', () => {
           button_action: 'custom',
           asset_symbol: undefined,
           network_chain_id: '0xa',
+          moneyHubFilledState: 'empty',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -675,8 +684,6 @@ describe('CashTokensFullView', () => {
       const token = { address: '0xabc', chainId: '0x1' } as AssetType;
       mockUseMusdConversionTokens.mockReturnValue({ tokens: [token] });
       mockInitiateMaxConversion.mockResolvedValue(undefined);
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
 
       renderWithProvider(<CashTokensFullView />);
 
