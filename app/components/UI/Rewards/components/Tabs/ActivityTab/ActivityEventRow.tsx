@@ -31,6 +31,7 @@ import { AvatarSize } from '../../../../../../component-library/components/Avata
 import Logger from '../../../../../../util/Logger';
 import { openActivityDetailsSheet } from './EventDetails/ActivityDetailsSheet';
 import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useActivityDetailsConfirmAction } from '../../../hooks/useActivityDetailsConfirmAction';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { useSelector } from 'react-redux';
@@ -41,6 +42,7 @@ export const ActivityEventRow: React.FC<{
   accountName: string | undefined;
   testID?: string;
 }> = ({ event, accountName, testID }) => {
+  const tw = useTailwind();
   const navigation = useNavigation();
   const activityTypes = useSelector(selectSeasonActivityTypes);
 
@@ -109,95 +111,93 @@ export const ActivityEventRow: React.FC<{
   };
 
   return (
-    <TouchableOpacity activeOpacity={0.5} onPress={handlePress}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="w-full py-3"
-        gap={3}
-        testID={testID}
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={handlePress}
+      testID={testID}
+      style={tw.style(
+        'flex-row items-center justify-between w-full py-3 gap-3',
+      )}
+    >
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          networkImageSource ? (
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkImageSource}
+              size={AvatarSize.Sm}
+            />
+          ) : null
+        }
       >
-        <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            networkImageSource ? (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkImageSource}
-                size={AvatarSize.Sm}
-              />
-            ) : null
-          }
+        <Box
+          twClassName="bg-muted rounded-full items-center justify-center size-10"
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+        >
+          <Icon
+            name={eventDetails.icon}
+            size={IconSize.Lg}
+            twClassName="text-icon-alternative"
+          />
+        </Box>
+      </BadgeWrapper>
+      <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
         >
           <Box
-            twClassName="bg-muted rounded-full items-center justify-center size-10"
-            flexDirection={BoxFlexDirection.Column}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.End}
+            gap={1}
           >
-            <Icon
-              name={eventDetails.icon}
-              size={IconSize.Lg}
-              twClassName="text-icon-alternative"
-            />
+            <Text
+              testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_TITLE}-${testID}`}
+            >
+              {eventDetails.title}
+            </Text>
           </Box>
-        </BadgeWrapper>
-        <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
+
           <Box
             flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
+            alignItems={BoxAlignItems.End}
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.End}
-              gap={1}
-            >
+            <Text
+              testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_VALUE}-${testID}`}
+            >{`${event.value > 0 ? '+' : ''}${formatNumber(
+              event.value,
+            )}`}</Text>
+            {event.bonus?.bips && (
               <Text
-                testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_TITLE}-${testID}`}
+                variant={TextVariant.BodySm}
+                color={TextColor.SuccessDefault}
+                twClassName="ml-1"
+                testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_BONUS}-${testID}`}
               >
-                {eventDetails.title}
+                +{event.bonus.bips / 100}%
               </Text>
-            </Box>
-
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.End}
-            >
-              <Text
-                testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_VALUE}-${testID}`}
-              >{`${event.value > 0 ? '+' : ''}${formatNumber(
-                event.value,
-              )}`}</Text>
-              {event.bonus?.bips && (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.SuccessDefault}
-                  twClassName="ml-1"
-                  testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_BONUS}-${testID}`}
-                >
-                  +{event.bonus.bips / 100}%
-                </Text>
-              )}
-            </Box>
+            )}
           </Box>
+        </Box>
 
-          <Box flexDirection={BoxFlexDirection.Row}>
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-alternative flex-1 max-w-[60%]"
-              testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_DETAILS}-${testID}`}
-            >
-              {eventDetails.details}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-alternative flex-1 text-right"
-              testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_DATE}-${testID}`}
-            >
-              {formatRewardsDate(new Date(event.timestamp))}
-            </Text>
-          </Box>
+        <Box flexDirection={BoxFlexDirection.Row}>
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative flex-1 max-w-[60%]"
+            testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_DETAILS}-${testID}`}
+          >
+            {eventDetails.details}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative flex-1 text-right"
+            testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_DATE}-${testID}`}
+          >
+            {formatRewardsDate(new Date(event.timestamp))}
+          </Text>
         </Box>
       </Box>
     </TouchableOpacity>

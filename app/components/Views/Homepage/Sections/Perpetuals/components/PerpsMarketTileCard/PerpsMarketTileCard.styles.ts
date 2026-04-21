@@ -17,10 +17,6 @@ const styleSheet = (params: {
       borderRadius: CARD_BORDER_RADIUS,
       overflow: 'hidden',
     },
-    content: {
-      flex: 1,
-      padding: 16,
-    },
     tokenLogoWrapper: {
       position: 'relative' as const,
     },

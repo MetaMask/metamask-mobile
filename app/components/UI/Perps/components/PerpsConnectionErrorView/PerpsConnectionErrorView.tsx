@@ -82,7 +82,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
       // If we can't go back, navigate to wallet home
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.WALLET.TAB_STACK_FLOW }],
+        routes: [{ name: Routes.WALLET_VIEW }],
       });
     }
   };
