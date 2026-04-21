@@ -149,6 +149,100 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   return `${dayString}${hourString}${minuteString}`?.trim();
 };
 
+/**
+ * Formats remaining time until `endDate` (UTC, calendar months).
+ * - Under 1 hour: minutes only (e.g. `45min`).
+ * - Otherwise exactly two units: `y`+`mo`, `mo`+`d`, `d`+`h`, or `h`+`min`.
+ * For long lists, pass one `now` (e.g. `Date.now()`) from the parent per render so each row does not allocate its own clock.
+ */
+export const formatDateRemaining = (
+  endDate: Date | string,
+  now?: Date | number,
+): string | null => {
+  const start = now !== undefined ? new Date(now) : new Date();
+  const end = new Date(endDate);
+
+  if (end <= start) return null;
+
+  const totalRemainingMs = end.getTime() - start.getTime();
+  const msInMinute = 60 * 1000;
+  const msInHour = 60 * msInMinute;
+  const msInDay = 24 * msInHour;
+
+  if (totalRemainingMs < msInHour) {
+    let minutes = Math.floor(totalRemainingMs / msInMinute);
+    if (minutes < 1) {
+      minutes = 1;
+    }
+    return `${minutes}min`;
+  }
+
+  const getDaysInUtcMonth = (year: number, monthIndex: number): number =>
+    new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+
+  // Adds calendar months while clamping day to the target month length.
+  // Example: Jan 31 + 1 month => Feb 28/29.
+  const addUtcMonths = (date: Date, monthsToAdd: number): Date => {
+    const currentYear = date.getUTCFullYear();
+    const currentMonth = date.getUTCMonth();
+    const totalMonth = currentMonth + monthsToAdd;
+    const targetYear = currentYear + Math.floor(totalMonth / 12);
+    const targetMonth = ((totalMonth % 12) + 12) % 12;
+    const targetDay = Math.min(
+      date.getUTCDate(),
+      getDaysInUtcMonth(targetYear, targetMonth),
+    );
+
+    return new Date(
+      Date.UTC(
+        targetYear,
+        targetMonth,
+        targetDay,
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds(),
+        date.getUTCMilliseconds(),
+      ),
+    );
+  };
+
+  let totalMonths = 0;
+  let year = 0;
+  let month = 0;
+
+  while (addUtcMonths(start, totalMonths + 12) <= end) {
+    totalMonths += 12;
+    year += 1;
+  }
+
+  while (addUtcMonths(start, totalMonths + 1) <= end) {
+    totalMonths += 1;
+    month += 1;
+  }
+
+  const cursor = addUtcMonths(start, totalMonths);
+  const remainingMs = end.getTime() - cursor.getTime();
+  const day = Math.floor(remainingMs / msInDay);
+  const hour = Math.floor((remainingMs % msInDay) / msInHour);
+  const minute = Math.floor(((remainingMs % msInDay) % msInHour) / msInMinute);
+
+  const units = [
+    { value: year, suffix: 'y' },
+    { value: month, suffix: 'mo' },
+    { value: day, suffix: 'd' },
+    { value: hour, suffix: 'h' },
+    { value: minute, suffix: 'min' },
+  ].filter((unit) => unit.value > 0);
+
+  if (units.length === 0) {
+    return null;
+  }
+  if (units.length === 1) {
+    return `${units[0].value}${units[0].suffix}`;
+  }
+  return `${units[0].value}${units[0].suffix} ${units[1].value}${units[1].suffix}`;
+};
+
 // Get icon name with fallback to Star if invalid
 export const getIconName = (iconName: string): IconName =>
   Object.values(IconName).includes(iconName as IconName)
@@ -388,3 +482,20 @@ export const shortenAddress = (address: string): string => {
   if (address.length <= 10) return address;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
+
+const MAX_ONDO_TOKEN_NAME_LENGTH = 28;
+
+/**
+ * Strips Ondo branding from a token name and truncates to
+ * MAX_ONDO_TOKEN_NAME_LENGTH characters with an ellipsis if needed.
+ *
+ * Handles two forms: prefix ("Ondo Tokenized Apple" → "Apple") and
+ * suffix ("US Dollar (Ondo Tokenized)" → "US Dollar").
+ */
+export function sanitizeOndoTokenName(raw: string): string {
+  const cleaned = raw
+    .replace(/(?:^ondo\s+tokenized\s+|\s*\(ondo\s+tokenized\))/gi, '')
+    .trim();
+  if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
+  return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
+}

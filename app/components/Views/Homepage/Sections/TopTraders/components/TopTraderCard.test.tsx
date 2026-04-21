@@ -1,149 +1,153 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TopTraderCard from './TopTraderCard';
 import type { TopTrader } from '../types';
 
 const baseTrader: TopTrader = {
   id: 'trader-1',
   rank: 1,
-  username: 'alice',
-  percentageChange: 96.2,
-  pnlValue: 963000,
+  username: 'sniperliquid',
+  avatarUri: 'https://example.com/avatar.png',
+  percentageChange: 43,
+  pnlValue: 963146.8,
+  pnlPerChain: { base: 963146.8 },
   isFollowing: false,
 };
 
+const mockOnFollowPress = jest.fn();
+const mockOnTraderPress = jest.fn();
+
 describe('TopTraderCard', () => {
-  it('calls onFollowPress with the trader id when the Follow button is pressed', () => {
-    const onFollowPress = jest.fn();
-    const { getByText } = render(
-      <TopTraderCard trader={baseTrader} onFollowPress={onFollowPress} />,
-    );
-
-    fireEvent.press(getByText('Follow'));
-
-    expect(onFollowPress).toHaveBeenCalledTimes(1);
-    expect(onFollowPress).toHaveBeenCalledWith('trader-1');
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('calls onFollowPress with the trader id when the Following button is pressed', () => {
-    const onFollowPress = jest.fn();
-    const followingTrader = { ...baseTrader, isFollowing: true };
-    const { getByText } = render(
-      <TopTraderCard trader={followingTrader} onFollowPress={onFollowPress} />,
+  it('renders username, ROI, and PnL', () => {
+    renderWithProvider(
+      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-
-    fireEvent.press(getByText('Following'));
-
-    expect(onFollowPress).toHaveBeenCalledWith('trader-1');
+    expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
+    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
+    expect(screen.getByText('+$963K')).toBeOnTheScreen();
   });
 
-  it('shows the Follow button when the trader is not followed', () => {
-    const { getByText } = render(
-      <TopTraderCard
-        trader={{ ...baseTrader, isFollowing: false }}
-        onFollowPress={jest.fn()}
-      />,
+  it('renders with default testID when none is provided', () => {
+    renderWithProvider(
+      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-
-    expect(getByText('Follow')).toBeOnTheScreen();
+    expect(screen.getByTestId('top-trader-card-trader-1')).toBeOnTheScreen();
   });
 
-  it('shows the Following button when the trader is already followed', () => {
-    const { getByText } = render(
-      <TopTraderCard
-        trader={{ ...baseTrader, isFollowing: true }}
-        onFollowPress={jest.fn()}
-      />,
-    );
-
-    expect(getByText('Following')).toBeOnTheScreen();
-  });
-
-  it('renders the avatar image when avatarUri is provided', () => {
-    const traderWithAvatar = {
-      ...baseTrader,
-      avatarUri: 'https://example.com/avatar.png',
-    };
-    const { getByTestId, queryByText } = render(
-      <TopTraderCard trader={traderWithAvatar} onFollowPress={jest.fn()} />,
-    );
-
-    expect(getByTestId('top-trader-avatar-trader-1')).toBeOnTheScreen();
-    // The fallback letter should not be shown when avatarUri is supplied
-    expect(queryByText('A')).not.toBeOnTheScreen();
-  });
-
-  it('renders the fallback AvatarBase when avatarUri is not provided', () => {
-    const traderNoAvatar = { ...baseTrader, avatarUri: undefined };
-    const { getByText } = render(
-      <TopTraderCard trader={traderNoAvatar} onFollowPress={jest.fn()} />,
-    );
-
-    // AvatarBase shows the first letter of the username as fallback text
-    expect(getByText('A')).toBeOnTheScreen();
-  });
-
-  it('displays ROI with a leading + sign for a positive percentage change', () => {
-    const { getByText } = render(
-      <TopTraderCard
-        trader={{ ...baseTrader, percentageChange: 96.2 }}
-        onFollowPress={jest.fn()}
-      />,
-    );
-
-    expect(getByText('+96.2%')).toBeOnTheScreen();
-  });
-
-  it('displays ROI without a + sign for a negative percentage change', () => {
-    const { getByText } = render(
-      <TopTraderCard
-        trader={{ ...baseTrader, percentageChange: -12.5 }}
-        onFollowPress={jest.fn()}
-      />,
-    );
-
-    expect(getByText('-12.5%')).toBeOnTheScreen();
-  });
-
-  it('displays a positive PnL value', () => {
-    const { getByText } = render(
-      <TopTraderCard
-        trader={{ ...baseTrader, pnlValue: 963000 }}
-        onFollowPress={jest.fn()}
-      />,
-    );
-
-    expect(getByText('+$963K')).toBeOnTheScreen();
-  });
-
-  it('displays a negative PnL value', () => {
-    const { getByText } = render(
-      <TopTraderCard
-        trader={{ ...baseTrader, pnlValue: -1200 }}
-        onFollowPress={jest.fn()}
-      />,
-    );
-
-    expect(getByText('-$1K')).toBeOnTheScreen();
-  });
-
-  it('applies the custom testID when provided', () => {
-    const { getByTestId } = render(
+  it('uses custom testID when provided', () => {
+    renderWithProvider(
       <TopTraderCard
         trader={baseTrader}
-        onFollowPress={jest.fn()}
-        testID="custom-card-id"
+        onFollowPress={mockOnFollowPress}
+        testID="custom-test-id"
+      />,
+    );
+    expect(screen.getByTestId('custom-test-id')).toBeOnTheScreen();
+  });
+
+  it('renders avatar image when avatarUri is present', () => {
+    renderWithProvider(
+      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+    expect(screen.getByTestId('top-trader-avatar-trader-1')).toBeOnTheScreen();
+  });
+
+  it('renders fallback AvatarBase when avatarUri is absent', () => {
+    const traderNoAvatar = { ...baseTrader, avatarUri: undefined };
+    renderWithProvider(
+      <TopTraderCard
+        trader={traderNoAvatar}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+    expect(screen.getByText('S')).toBeOnTheScreen();
+  });
+
+  it('shows Follow when not following', () => {
+    renderWithProvider(
+      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+    expect(screen.getByText('Follow')).toBeOnTheScreen();
+  });
+
+  it('shows Following when isFollowing is true', () => {
+    const followingTrader = { ...baseTrader, isFollowing: true };
+    renderWithProvider(
+      <TopTraderCard
+        trader={followingTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+    expect(screen.getByText('Following')).toBeOnTheScreen();
+  });
+
+  it('calls onFollowPress with trader.id when Follow button is tapped', () => {
+    renderWithProvider(
+      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+
+    fireEvent.press(screen.getByText('Follow'));
+
+    expect(mockOnFollowPress).toHaveBeenCalledWith('trader-1');
+  });
+
+  it('calls onTraderPress with trader.id and username when card content is tapped', () => {
+    renderWithProvider(
+      <TopTraderCard
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
       />,
     );
 
-    expect(getByTestId('custom-card-id')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'sniperliquid');
   });
 
-  it('uses the default testID based on trader id when no testID prop is provided', () => {
-    const { getByTestId } = render(
-      <TopTraderCard trader={baseTrader} onFollowPress={jest.fn()} />,
+  it('does not call onTraderPress when the prop is not provided', () => {
+    renderWithProvider(
+      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
 
-    expect(getByTestId('top-trader-card-trader-1')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+
+    expect(mockOnTraderPress).not.toHaveBeenCalled();
+  });
+
+  it('Follow button fires onFollowPress independently of onTraderPress', () => {
+    renderWithProvider(
+      <TopTraderCard
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('Follow'));
+
+    expect(mockOnFollowPress).toHaveBeenCalledWith('trader-1');
+    expect(mockOnTraderPress).not.toHaveBeenCalled();
+  });
+
+  it('displays negative ROI and PnL values with correct sign', () => {
+    const negativeTrader: TopTrader = {
+      ...baseTrader,
+      percentageChange: -15.3,
+      pnlValue: -500,
+    };
+    renderWithProvider(
+      <TopTraderCard
+        trader={negativeTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+    expect(screen.getByText('-15.3%')).toBeOnTheScreen();
+    expect(screen.getByText('-$500')).toBeOnTheScreen();
   });
 });

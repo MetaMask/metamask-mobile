@@ -17,8 +17,10 @@ import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagC
 export const accountTrackerControllerInit: MessengerClientInitFunction<
   AccountTrackerController,
   AccountTrackerControllerMessenger
-> = ({ controllerMessenger, persistedState, getController, getState }) => {
-  const assetsContractController = getController('AssetsContractController');
+> = ({ controllerMessenger, persistedState, getMessengerClient, getState }) => {
+  const assetsContractController = getMessengerClient(
+    'AssetsContractController',
+  );
 
   const controller = new AccountTrackerController({
     messenger: controllerMessenger,

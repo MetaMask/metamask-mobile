@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   Box,
-  BoxFlexDirection,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -13,16 +13,24 @@ import { useSelector } from 'react-redux';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
-import {
-  StatCell,
-  PendingTag,
-  QualifiedTag,
-} from '../components/Campaigns/CampaignStatsSummary';
+import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
+import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
+import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
+import { getCurrentPrize } from '../components/Campaigns/OndoPrizePool';
+import { formatPercentChange, formatUsd } from '../utils/formatUtils';
+import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import { strings } from '../../../../../locales/i18n';
-import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  selectReferralCode,
+  selectCampaignById,
+} from '../../../../reducers/rewards/selectors';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -41,15 +49,54 @@ const OndoLeaderboardView: React.FC = () => {
     useRoute<RouteProp<OndoLeaderboardRouteParams, 'OndoLeaderboard'>>();
   const { campaignId } = route.params;
   const referralCode = useSelector(selectReferralCode);
+  const selectCampaign = useMemo(
+    () => selectCampaignById(campaignId),
+    [campaignId],
+  );
+  const campaign = useSelector(selectCampaign);
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_leaderboard',
+    campaign_id: campaignId,
+  });
+
+  const { status: participantStatus } =
+    useGetCampaignParticipantStatus(campaignId);
+  const isOptedIn = participantStatus?.optedIn === true;
 
   const { position, isLoading: isPositionLoading } =
-    useGetOndoLeaderboardPosition(campaignId);
+    useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
+
+  const { portfolio: portfolioData, isLoading: isPortfolioLoading } =
+    useGetOndoPortfolioPosition(isOptedIn ? campaignId : undefined);
+
+  const { deposits, isLoading: isDepositsLoading } =
+    useGetOndoCampaignDeposits(campaignId);
 
   const isPending = position != null && !position.qualified;
   const isQualified = position != null && position.qualified;
 
+  const isIneligible = useMemo(
+    () => isCampaignIneligible(campaign, position?.qualified),
+    [campaign, position],
+  );
+
+  const returnValue = portfolioData?.summary
+    ? formatPercentChange(portfolioData.summary.portfolioPnlPercent)
+    : undefined;
+
+  const returnColor = portfolioData?.summary
+    ? parseFloat(portfolioData.summary.portfolioPnlPercent) < 0
+      ? TextColor.ErrorDefault
+      : TextColor.SuccessDefault
+    : TextColor.TextDefault;
+
+  const prizePoolValue = deposits?.totalUsdDeposited
+    ? formatUsd(getCurrentPrize(parseFloat(deposits.totalUsdDeposited)))
+    : undefined;
+
   const {
-    tierNames,
+    leaderboard: leaderboardData,
     selectedTier,
     selectedTierData,
     setSelectedTier,
@@ -61,6 +108,31 @@ const OndoLeaderboardView: React.FC = () => {
     defaultTier: position?.projectedTier,
   });
 
+  const tierNames = useMemo(
+    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
+    [campaign],
+  );
+
+  const leaderboardUserPosition = useMemo(
+    () =>
+      position
+        ? {
+            projectedTier: position.projectedTier,
+            rank: position.rank,
+            neighbors: position.neighbors ?? [],
+          }
+        : null,
+    [position],
+  );
+
+  const rankValue =
+    isIneligible || !position ? '-' : String(position.rank).padStart(2, '0');
+
+  const tierValue =
+    isIneligible || !position
+      ? '-'
+      : formatTierDisplayName(position.projectedTier);
+
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
       <SafeAreaView
@@ -70,8 +142,17 @@ const OndoLeaderboardView: React.FC = () => {
       >
         <HeaderCompactStandard
           title={strings('rewards.ondo_campaign_leaderboard.title')}
+          titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
+          endButtonIconProps={getCampaignMechanicsButtonProps(
+            campaign != null,
+            () =>
+              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                campaignId,
+              }),
+            'leaderboard-mechanics-button',
+          )}
           includesTopInset
         />
 
@@ -81,32 +162,28 @@ const OndoLeaderboardView: React.FC = () => {
         >
           {/* User position */}
           {position && (
-            <Box twClassName="p-4 gap-3">
-              <Box flexDirection={BoxFlexDirection.Row}>
-                <StatCell
-                  label="Rank"
-                  value={`${position.rank}`}
+            <>
+              <Box twClassName="p-4">
+                <LeaderboardPositionHeader
+                  rank={rankValue}
+                  tier={tierValue}
                   isLoading={isPositionLoading}
-                  suffix={isPending ? <PendingTag /> : undefined}
-                />
-                <StatCell
-                  label="Tier"
-                  value={formatTierDisplayName(position.projectedTier)}
-                  isLoading={isPositionLoading}
-                  suffix={
-                    isPending ? (
-                      <PendingTag />
-                    ) : isQualified ? (
-                      <QualifiedTag />
-                    ) : undefined
-                  }
+                  isPending={isPending}
+                  isQualified={isQualified}
+                  isIneligible={isIneligible}
+                  showReturn
+                  returnValue={returnValue}
+                  returnColor={returnColor}
+                  showPrizePool
+                  prizePoolValue={prizePoolValue}
+                  prizePoolLoading={isDepositsLoading && !deposits}
                 />
               </Box>
-            </Box>
+              <Box twClassName="my-1 border-b border-border-muted" />
+            </>
           )}
-
           {/* Full leaderboard */}
-          <Box>
+          <Box twClassName="py-4">
             <OndoLeaderboard
               tierNames={tierNames}
               selectedTier={selectedTier}
@@ -118,6 +195,8 @@ const OndoLeaderboardView: React.FC = () => {
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
               currentUserReferralCode={referralCode}
+              userPosition={leaderboardUserPosition}
+              campaignId={campaignId}
             />
           </Box>
         </ScrollView>

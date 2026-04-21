@@ -30,6 +30,14 @@ describe('cardControllerInit', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
 
+    baseControllerMessenger.registerActionHandler(
+      // @ts-expect-error: Action not allowed.
+      'RemoteFeatureFlagController:getState',
+      jest.fn().mockReturnValue({
+        remoteFeatureFlags: {},
+      }),
+    );
+
     initRequestMock = buildMessengerClientInitRequestMock(
       baseControllerMessenger,
     );
@@ -52,6 +60,7 @@ describe('cardControllerInit', () => {
 
   it('uses persisted state when provided', () => {
     const persistedState: CardControllerState = {
+      ...defaultCardControllerState,
       selectedCountry: 'US',
       activeProviderId: 'baanx',
       isAuthenticated: true,

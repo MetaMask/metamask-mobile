@@ -3686,21 +3686,74 @@ export class HyperLiquidSubscriptionService {
     this.#dexAccountCache.clear();
     this.#dexAssetCtxsCache.clear();
 
-    // Clear subscription references (actual cleanup handled by client service)
+    // Unsubscribe all active subscriptions before clearing references.
+    // Without this, orphaned subscriptions try to send unsubscribe frames
+    // on the closing WebSocket, causing SOCKET_NOT_CONNECTED errors.
+    if (this.#globalAllMidsSubscription) {
+      this.#globalAllMidsSubscription.unsubscribe().catch((error: Error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+          this.#getErrorContext('clearAll.globalAllMids'),
+        );
+      });
+    }
     this.#globalAllMidsSubscription = undefined;
     this.#globalAllMidsPromise = undefined;
+
+    this.#globalActiveAssetSubscriptions.forEach((sub, symbol) => {
+      sub.unsubscribe().catch((error: Error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+          this.#getErrorContext('clearAll.activeAsset', { symbol }),
+        );
+      });
+    });
     this.#globalActiveAssetSubscriptions.clear();
     this.#pendingActiveAssetPromises.clear();
+
+    this.#globalBboSubscriptions.forEach((sub, symbol) => {
+      sub.unsubscribe().catch((error: Error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+          this.#getErrorContext('clearAll.bbo', { symbol }),
+        );
+      });
+    });
     this.#globalBboSubscriptions.clear();
     this.#pendingBboPromises.clear();
+
+    this.#webData3Subscriptions.forEach((sub, dexName) => {
+      sub.unsubscribe().catch((error: Error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+          this.#getErrorContext('clearAll.webData3', { dex: dexName }),
+        );
+      });
+    });
     this.#webData3Subscriptions.clear();
     this.#webData3SubscriptionPromise = undefined;
 
-    // HIP-3: Clear assetCtxs subscriptions (clearinghouseState no longer needed with webData3)
+    // HIP-3: Clear assetCtxs subscriptions
+    this.#assetCtxsSubscriptions.forEach((sub, dexName) => {
+      sub.unsubscribe().catch((error: Error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+          this.#getErrorContext('clearAll.assetCtxs', { dex: dexName }),
+        );
+      });
+    });
     this.#assetCtxsSubscriptions.clear();
     this.#assetCtxsSubscriptionPromises.clear();
 
     // HIP-3: Clear per-DEX allMids subscriptions
+    this.#dexAllMidsSubscriptions.forEach((sub, dexName) => {
+      sub.unsubscribe().catch((error: Error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+          this.#getErrorContext('clearAll.dexAllMids', { dex: dexName }),
+        );
+      });
+    });
     this.#dexAllMidsSubscriptions.clear();
     this.#dexAllMidsSubscriptionPromises.clear();
 

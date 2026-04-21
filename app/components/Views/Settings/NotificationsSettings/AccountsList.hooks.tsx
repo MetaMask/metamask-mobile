@@ -15,7 +15,8 @@ export function useNotificationAccountListProps() {
   const { update, initialLoading, accountsBeingUpdated, data } =
     useFetchAccountNotifications(accountAddresses);
 
-  const isAnyAccountLoading = initialLoading || accountsBeingUpdated.length > 0;
+  // Only disable switches during initial data loading, not when individual accounts are updating
+  const shouldDisableSwitches = initialLoading;
 
   const refetchAccountSettings = useCallback(async () => {
     await update(accountAddresses);
@@ -74,7 +75,7 @@ export function useNotificationAccountListProps() {
   );
 
   return {
-    isAnyAccountLoading,
+    shouldDisableSwitches,
     refetchAccountSettings,
     isAccountLoading,
     isAccountEnabled,

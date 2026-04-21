@@ -8,7 +8,7 @@ import {
 } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../Bridge/types';
-import { CardTokenAllowance } from '../types';
+import { CardFundingToken } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
 import {
@@ -26,7 +26,7 @@ export interface OpenSwapsParams {
 export interface UseOpenSwapsOptions {
   location?: SwapBridgeNavigationLocation;
   sourcePage?: string;
-  priorityToken?: CardTokenAllowance | null;
+  priorityToken?: CardFundingToken | null;
 }
 
 export const useOpenSwaps = ({

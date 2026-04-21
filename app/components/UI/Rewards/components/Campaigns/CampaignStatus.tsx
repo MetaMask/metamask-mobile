@@ -50,7 +50,16 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
 
   return (
     <Box twClassName="gap-4 p-4" testID={CAMPAIGN_STATUS_TEST_IDS.CONTAINER}>
-      <Box twClassName="gap-2">
+      <Box>
+        {howItWorksTitle ? (
+          <Text
+            variant={TextVariant.HeadingLg}
+            fontWeight={FontWeight.Bold}
+            testID={CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_TITLE}
+          >
+            {howItWorksTitle}
+          </Text>
+        ) : null}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -59,7 +68,7 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1 bg-success-muted rounded px-1.5"
+            twClassName="gap-1"
             testID={CAMPAIGN_STATUS_TEST_IDS.STATUS_LABEL}
           >
             <Text
@@ -82,16 +91,6 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
             </Text>
           </Box>
         </Box>
-
-        {howItWorksTitle ? (
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
-            testID={CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_TITLE}
-          >
-            {howItWorksTitle}
-          </Text>
-        ) : null}
       </Box>
       <Box twClassName="rounded-xl overflow-hidden h-50 bg-muted">
         <ImageBackground

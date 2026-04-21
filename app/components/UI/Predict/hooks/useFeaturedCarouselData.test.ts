@@ -5,6 +5,13 @@ import Engine from '../../../../core/Engine';
 import { useFeaturedCarouselData } from './useFeaturedCarouselData';
 import { type PredictMarket, Recurrence } from '../types';
 
+let mockUpDownEnabled = true;
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockUpDownEnabled,
+}));
+
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -61,6 +68,7 @@ const createMockMarket = (
 describe('useFeaturedCarouselData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUpDownEnabled = true;
   });
 
   it('returns loading state initially', () => {
@@ -146,5 +154,64 @@ describe('useFeaturedCarouselData', () => {
     });
 
     expect(mockGetCarouselMarkets).toHaveBeenCalledTimes(2);
+  });
+
+  it('filters out crypto up/down markets when flag is disabled', async () => {
+    mockUpDownEnabled = false;
+    const { Wrapper } = createWrapper();
+    const mockMarkets = [
+      createMockMarket({ id: 'regular', tags: ['politics'] }),
+      createMockMarket({
+        id: 'updown',
+        tags: ['up-or-down', 'crypto'],
+        series: {
+          id: 's1',
+          slug: 'btc-weekly',
+          title: 'BTC Weekly',
+          recurrence: 'weekly',
+        },
+      }),
+    ];
+    mockGetCarouselMarkets.mockResolvedValue(mockMarkets);
+
+    const { result } = renderHook(() => useFeaturedCarouselData(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.markets).toHaveLength(1);
+    expect(result.current.markets[0].id).toBe('regular');
+  });
+
+  it('includes crypto up/down markets when flag is enabled', async () => {
+    mockUpDownEnabled = true;
+    const { Wrapper } = createWrapper();
+    const mockMarkets = [
+      createMockMarket({ id: 'regular', tags: ['politics'] }),
+      createMockMarket({
+        id: 'updown',
+        tags: ['up-or-down', 'crypto'],
+        series: {
+          id: 's1',
+          slug: 'btc-weekly',
+          title: 'BTC Weekly',
+          recurrence: 'weekly',
+        },
+      }),
+    ];
+    mockGetCarouselMarkets.mockResolvedValue(mockMarkets);
+
+    const { result } = renderHook(() => useFeaturedCarouselData(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.markets).toHaveLength(2);
   });
 });

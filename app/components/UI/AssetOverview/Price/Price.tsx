@@ -26,22 +26,50 @@ export type PriceProps = PriceSharedProps & {
   asset: TokenI;
   prices: TokenPrice[];
   timePeriod: TimePeriod;
+  chartNavigationButtons?: TimePeriod[];
+  setTimePeriod?: (period: TimePeriod) => void;
 };
 
 const Price = (props: PriceProps) => {
   const isAdvancedChartEnabled = useSelector(
     selectTokenOverviewAdvancedChartEnabled,
   );
-  const { asset, prices, timePeriod, isLoading, ...rest } = props;
+  const {
+    asset,
+    prices,
+    timePeriod,
+    isLoading,
+    chartNavigationButtons,
+    setTimePeriod,
+    currentPrice,
+    currentCurrency,
+    ...rest
+  } = props;
 
   if (isAdvancedChartEnabled) {
-    return <PriceAdvanced asset={asset} isLoading={isLoading} {...rest} />;
+    return (
+      <PriceAdvanced
+        asset={asset}
+        prices={prices}
+        timePeriod={timePeriod}
+        chartNavigationButtons={chartNavigationButtons}
+        setTimePeriod={setTimePeriod}
+        isLoading={isLoading}
+        currentPrice={currentPrice}
+        currentCurrency={currentCurrency}
+        {...rest}
+      />
+    );
   }
   return (
     <PriceLegacy
       prices={prices}
       timePeriod={timePeriod}
+      chartNavigationButtons={chartNavigationButtons}
+      onTimePeriodChange={setTimePeriod}
       isLoading={isLoading}
+      currentPrice={currentPrice}
+      currentCurrency={currentCurrency}
       {...rest}
     />
   );

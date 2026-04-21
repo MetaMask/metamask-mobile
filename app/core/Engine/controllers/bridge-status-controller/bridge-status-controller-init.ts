@@ -47,6 +47,6 @@ function getControllers(
   request: MessengerClientInitRequest<BridgeStatusControllerMessenger>,
 ) {
   return {
-    transactionController: request.getController('TransactionController'),
+    transactionController: request.getMessengerClient('TransactionController'),
   };
 }

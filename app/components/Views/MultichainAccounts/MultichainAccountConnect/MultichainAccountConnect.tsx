@@ -29,7 +29,6 @@ import {
   getUrlObj,
   prefixUrlWithProtocol,
 } from '../../../../util/browser/index.ts';
-
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import PhishingModal from '../../../UI/PhishingModal/index.js';
@@ -258,6 +257,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
 
   const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
+  const anonId = sdkV2Connection?.originatorInfo?.anonId;
   const isOriginMMSDKV2RemoteConn = useMemo(
     () => Boolean(sdkV2Connection?.isV2),
     [sdkV2Connection?.isV2],
@@ -601,6 +601,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );
@@ -608,6 +609,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [
       accountsLength,
       channelIdOrHostname,
+      anonId,
       trackEvent,
       createEventBuilder,
       eventSource,
@@ -705,6 +707,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );
@@ -728,6 +731,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
+    anonId,
     hostInfo,
     channelIdOrHostname,
     requestedRequestWithExistingPermissions,

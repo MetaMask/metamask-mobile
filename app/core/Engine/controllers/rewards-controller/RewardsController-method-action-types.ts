@@ -615,6 +615,31 @@ export type RewardsControllerGetSeasonOneLineaRewardTokensAction = {
 };
 
 /**
+ * Get benefits details with caching
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @param limit - The maximum number of items requested
+ * @returns Promise<SubscriptionBenefitsState> - The benefits data
+ */
+export type RewardsControllerGetBenefitsAction = {
+  type: `RewardsController:getBenefits`;
+  handler: RewardsController['getBenefits'];
+};
+
+/**
+ * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @param benefitId - The specific benefit ID that was impressed
+ * @param benefitType - The type of the benefit that was impressed
+ * @returns Promise<SubscriptionBenefitsState> - The benefits data
+ */
+export type RewardsControllerPostBenefitImpressionAction = {
+  type: `RewardsController:postBenefitImpression`;
+  handler: RewardsController['postBenefitImpression'];
+};
+
+/**
  * Apply a referral code to an existing subscription.
  *
  * @param referralCode - The referral code to apply.
@@ -734,6 +759,8 @@ export type RewardsControllerMethodActions =
   | RewardsControllerHasActivityChangedAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
+  | RewardsControllerGetBenefitsAction
+  | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction

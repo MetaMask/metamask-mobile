@@ -92,6 +92,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       isLoading = false,
       lineChrome,
       visibleFromMs,
+      visibleToMs,
     },
     ref,
   ) => {
@@ -119,6 +120,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
+    /** When non-null, `ohlcvData` is still the previous series' array; skip sync until the hook replaces it. */
+    const ohlcvSeriesStaleSnapshotRef = useRef<OHLCVBar[] | null>(null);
     const tradingViewOpenInterceptRef = useRef(0);
 
     const htmlContent = useMemo(
@@ -140,6 +143,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
+      ohlcvSeriesStaleSnapshotRef.current = null;
     }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
@@ -170,6 +174,25 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }, LAYOUT_SETTLE_FALLBACK_MS);
     }, [isChartReady, clearLayoutSettleTimeout]);
 
+    // WebView remounts when `key` changes; parent state would otherwise still look "ready".
+    // `CHART_READY` clears indicator/position/chart-type refs once the new instance loads.
+    useEffect(() => {
+      if (ohlcvSeriesKey === undefined) {
+        return;
+      }
+      setChartReadyCount(0);
+      setWebViewLoaded(false);
+      setLayoutSettling(false);
+      clearLayoutSettleTimeout();
+      ohlcvSeriesStaleSnapshotRef.current =
+        prevOhlcvSeriesKeyRef.current !== undefined
+          ? prevOhlcvDataRef.current
+          : null;
+      activeIndicatorsRef.current.clear();
+      prevPositionLinesRef.current = undefined;
+      prevChartTypeRef.current = undefined;
+    }, [ohlcvSeriesKey, clearLayoutSettleTimeout]);
+
     useEffect(
       () => () => {
         clearLayoutSettleTimeout();
@@ -185,6 +208,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
     visibleFromMsRef.current = visibleFromMs;
 
+    const visibleToMsRef = useRef<number | undefined>(visibleToMs);
+    visibleToMsRef.current = visibleToMs;
+
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
         postMessage({
@@ -193,6 +219,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             data,
             pagination: paginationRef.current,
             visibleFromMs: visibleFromMsRef.current,
+            visibleToMs: visibleToMsRef.current,
           },
         });
       },
@@ -325,7 +352,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             if (__DEV__) {
               // WebView console is not the Metro / Xcode log; chartLogic mirrors here via DEBUG.
               // eslint-disable-next-line no-console -- intentional dev bridge from WebView
-              console.log(message.payload.message);
+              console.log('[AdvancedChart]', message.payload);
             }
             break;
 
@@ -376,6 +403,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           prevChartTypeRef.current = undefined;
           prevOhlcvDataRef.current = [];
           prevOhlcvSeriesKeyRef.current = undefined;
+          ohlcvSeriesStaleSnapshotRef.current = null;
           webViewRef.current?.reload();
         },
       }),
@@ -392,23 +420,20 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     useEffect(() => {
       if (ohlcvData.length === 0 || !webViewLoaded) return;
 
+      if (ohlcvSeriesStaleSnapshotRef.current !== null) {
+        if (ohlcvData !== ohlcvSeriesStaleSnapshotRef.current) {
+          ohlcvSeriesStaleSnapshotRef.current = null;
+        } else {
+          return;
+        }
+      }
+
       const prevData = prevOhlcvDataRef.current;
 
       if (
         ohlcvSeriesKey !== undefined &&
         ohlcvSeriesKey !== prevOhlcvSeriesKeyRef.current
       ) {
-        if (prevOhlcvSeriesKeyRef.current !== undefined) {
-          // Time range switch: ohlcvData is still stale from the previous
-          // period (fetch is in progress). Show skeleton, mark the key, and
-          // clear prevData so the fresh data triggers the length-diff branch
-          // on arrival — avoiding sending stale data to the WebView which
-          // causes a resolution race condition in TradingView.
-          beginFullOhlcvLayoutSettle();
-          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
-          prevOhlcvDataRef.current = [];
-          return;
-        }
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
@@ -556,6 +581,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       <View style={styles.container}>
         <View style={styles.chartSurface}>
           <WebView
+            key={`advanced-chart-${ohlcvSeriesKey ?? ''}`}
             ref={webViewRef}
             source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}
             style={styles.webview}

@@ -60,8 +60,9 @@ const SeedPhraseDisplay = ({
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               key={index}
-              ellipsizeMode="tail"
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
               maxFontSizeMultiplier={1}
               twClassName="flex-1"
               testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}

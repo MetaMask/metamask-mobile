@@ -12,7 +12,6 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
@@ -20,10 +19,9 @@ import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector'
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
 import {
-  AllowanceState,
-  CardTokenAllowance,
+  FundingStatus,
+  CardFundingToken,
   DelegationSettingsResponse,
-  CardExternalWalletDetailsResponse,
 } from '../types';
 import {
   BAANX_MAX_LIMIT,
@@ -32,16 +30,16 @@ import {
   cardNetworkInfos,
 } from '../constants';
 import {
-  buildTokenListFromSettings,
+  buildDelegationTokenList,
   LINEA_CAIP_CHAIN_ID,
 } from '../util/buildTokenList';
 import { sanitizeCustomLimit } from '../util/sanitizeCustomLimit';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
-import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import { createSpendingLimitOptionsNavigationDetails } from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
+import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
@@ -59,34 +57,22 @@ export type LimitType = 'full' | 'restricted';
 
 export interface UseSpendingLimitParams {
   flow: 'manage' | 'enable' | 'onboarding';
-  initialToken?: CardTokenAllowance | null;
-  priorityToken?: CardTokenAllowance | null;
-  allTokens: CardTokenAllowance[];
+  initialToken?: CardFundingToken | null;
+  priorityToken?: CardFundingToken | null;
+  allTokens: CardFundingToken[];
   delegationSettings: DelegationSettingsResponse | null;
-  externalWalletDetailsData?:
-    | {
-        walletDetails: never[];
-        mappedWalletDetails: never[];
-        priorityWalletDetail: null;
-      }
-    | {
-        walletDetails: CardExternalWalletDetailsResponse;
-        mappedWalletDetails: CardTokenAllowance[];
-        priorityWalletDetail: CardTokenAllowance | undefined;
-      }
-    | null;
   routeParams?: Record<string, unknown>;
 }
 
 export interface UseSpendingLimitReturn {
   // State
-  selectedToken: CardTokenAllowance | null;
+  selectedToken: CardFundingToken | null;
   limitType: LimitType;
   customLimit: string;
   isLoading: boolean;
 
   // Handlers
-  setSelectedToken: (token: CardTokenAllowance | null) => void;
+  setSelectedToken: (token: CardFundingToken | null) => void;
   handleAccountSelect: () => void;
   handleOtherSelect: () => void;
   handleLimitSelect: () => void;
@@ -121,18 +107,16 @@ const useSpendingLimit = ({
   priorityToken,
   allTokens,
   delegationSettings,
-  externalWalletDetailsData,
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
   const navigation = useNavigation();
-  const queryClient = useQueryClient();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { sdk } = useCardSDK();
 
   // Form state
-  const [selectedToken, setSelectedToken] = useState<CardTokenAllowance | null>(
+  const [selectedToken, setSelectedToken] = useState<CardFundingToken | null>(
     initialToken ?? null,
   );
   const [limitType, setLimitType] = useState<LimitType>('full');
@@ -294,7 +278,7 @@ const useSpendingLimit = ({
     }
 
     const notEnabledTokens = allTokens.filter(
-      (t) => t.allowanceState === AllowanceState.NotEnabled,
+      (t) => t.fundingStatus === FundingStatus.NotEnabled,
     );
 
     const getSdkTokens = sdk
@@ -309,7 +293,7 @@ const useSpendingLimit = ({
     const tokensToSearch =
       notEnabledTokens.length > 0
         ? notEnabledTokens
-        : buildTokenListFromSettings({
+        : buildDelegationTokenList({
             delegationSettings,
             getSupportedTokensByChainId: getSdkTokens,
           });
@@ -358,7 +342,7 @@ const useSpendingLimit = ({
     useCallback(() => {
       const params = routeParams as
         | {
-            returnedSelectedToken?: CardTokenAllowance;
+            returnedSelectedToken?: CardFundingToken;
             returnedLimitType?: LimitType;
             returnedCustomLimit?: string;
           }
@@ -423,25 +407,13 @@ const useSpendingLimit = ({
 
     navigation.navigate(
       ...createAssetSelectionModalNavigationDetails({
-        tokensWithAllowances: allTokens ?? [],
-        delegationSettings,
-        cardExternalWalletDetails: externalWalletDetailsData,
         selectionOnly: true,
         excludedTokens,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
         callerParams: restParams as Record<string, unknown>,
       }),
     );
-  }, [
-    navigation,
-    allTokens,
-    delegationSettings,
-    externalWalletDetailsData,
-    selectedToken,
-    trackEvent,
-    createEventBuilder,
-    routeParams,
-  ]);
+  }, [navigation, selectedToken, trackEvent, createEventBuilder, routeParams]);
 
   const handleLimitSelect = useCallback(() => {
     navigation.navigate(
@@ -536,11 +508,9 @@ const useSpendingLimit = ({
         network,
       });
 
-      // Wait for backend to process
+      // Wait for backend to process, then refresh card home data
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      await queryClient.invalidateQueries({
-        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
-      });
+      await Engine.context.CardController.fetchCardHomeData();
 
       if (!isOnboardingFlow) {
         showSuccessToast();
@@ -572,7 +542,6 @@ const useSpendingLimit = ({
     priorityToken,
     delegationAmount,
     submitDelegation,
-    queryClient,
     isOnboardingFlow,
     showSuccessToast,
     showErrorToast,

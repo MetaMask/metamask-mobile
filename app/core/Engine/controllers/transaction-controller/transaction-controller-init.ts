@@ -430,11 +430,11 @@ function getControllers(
   >,
 ) {
   return {
-    gasFeeController: request.getController('GasFeeController'),
-    keyringController: request.getController('KeyringController'),
-    networkController: request.getController('NetworkController'),
-    preferencesController: request.getController('PreferencesController'),
-    smartTransactionsController: request.getController(
+    gasFeeController: request.getMessengerClient('GasFeeController'),
+    keyringController: request.getMessengerClient('KeyringController'),
+    networkController: request.getMessengerClient('NetworkController'),
+    preferencesController: request.getMessengerClient('PreferencesController'),
+    smartTransactionsController: request.getMessengerClient(
       'SmartTransactionsController',
     ),
   };
@@ -447,7 +447,7 @@ function beforeSign(
     TransactionControllerInitMessenger
   >,
 ) {
-  const predictController = request.getController('PredictController');
+  const predictController = request.getMessengerClient('PredictController');
   return predictController.beforeSign(hookRequest);
 }
 

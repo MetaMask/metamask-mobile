@@ -21,6 +21,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'TransakService',
   'ComplianceService',
   'SocialService',
+  'MoneyAccountBalanceService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -88,6 +89,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'CardController:stateChange',
+  'ClientController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
@@ -103,6 +105,7 @@ export const BNB_DISPLAY_NAME = 'BNB Chain';
 export const OPTIMISM_DISPLAY_NAME = 'OP';
 export const ZK_SYNC_ERA_DISPLAY_NAME = 'zkSync Era';
 export const BASE_DISPLAY_NAME = 'Base';
+export const SOLANA_DISPLAY_NAME = 'Solana';
 export const SEI_DISPLAY_NAME = 'Sei';
 export const MONAD_DISPLAY_NAME = 'Monad';
 export const HYPEREVM_DISPLAY_NAME = 'HyperEVM';

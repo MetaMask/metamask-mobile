@@ -13,6 +13,16 @@ import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perps
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 
+const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
+  { key: string; value: string }[] | undefined,
+  []
+>(() => undefined);
+
+jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
+  useHomepageTrendingTransactionActiveAbTests: () =>
+    mockUseHomepageTrendingTransactionActiveAbTests(),
+}));
+
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: () => false,
@@ -287,6 +297,7 @@ describe('PerpsSection', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
+    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
 
   it('renders section title', () => {
@@ -1556,6 +1567,42 @@ describe('PerpsSection', () => {
       expect(
         screen.getByTestId('homepage-trending-perps-carousel'),
       ).toBeOnTheScreen();
+    });
+
+    it('includes transactionActiveAbTests in market details params when trending-only and experiment is active', () => {
+      const abTests = [
+        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+      ];
+      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
+      const market = makeTrendingMarket({ symbol: 'BTC' });
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsMarkets.mockReturnValue({
+          markets: [market],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-market-tile-BTC'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market,
+          source: 'home_section',
+          transactionActiveAbTests: abTests,
+        },
+      });
     });
 
     it('renders carousel when WebSocket errors but REST markets load', () => {

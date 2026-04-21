@@ -168,12 +168,9 @@ jest.mock('../../UI/Predict/hooks/usePredictMarketData', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/assetsDefiPositions',
-  () => ({
-    selectAssetsDefiPositionsEnabled: jest.fn(() => true),
-  }),
-);
+jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
+  selectDeFiPositionsSectionEnabled: jest.fn(() => true),
+}));
 
 jest.mock('../../../selectors/featureFlagController/whatsHappening', () => ({
   selectWhatsHappeningEnabled: jest.fn(() => false),
@@ -301,10 +298,8 @@ describe('Homepage', () => {
       .requireMock('../../UI/Predict/selectors/featureFlags')
       .selectPredictEnabledFlag.mockReturnValue(true);
     jest
-      .requireMock(
-        '../../../selectors/featureFlagController/assetsDefiPositions',
-      )
-      .selectAssetsDefiPositionsEnabled.mockReturnValue(true);
+      .requireMock('../../../selectors/deFiPositionsSectionEnabled')
+      .selectDeFiPositionsSectionEnabled.mockReturnValue(true);
     jest
       .requireMock('../../../selectors/featureFlagController/whatsHappening')
       .selectWhatsHappeningEnabled.mockReturnValue(false);
@@ -420,10 +415,8 @@ describe('Homepage', () => {
         .requireMock('../../UI/Predict/selectors/featureFlags')
         .selectPredictEnabledFlag.mockReturnValue(false);
       jest
-        .requireMock(
-          '../../../selectors/featureFlagController/assetsDefiPositions',
-        )
-        .selectAssetsDefiPositionsEnabled.mockReturnValue(false);
+        .requireMock('../../../selectors/deFiPositionsSectionEnabled')
+        .selectDeFiPositionsSectionEnabled.mockReturnValue(false);
     });
 
     it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {
