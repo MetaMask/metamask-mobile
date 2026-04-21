@@ -10,6 +10,7 @@ import SnapSettingsView from '../../page-objects/Settings/SnapSettingsView';
 import { Assertions } from '../../framework';
 import BrowserView from '../../page-objects/Browser/BrowserView';
 import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -17,6 +18,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
   it('can connect to the Dialog Snap', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,

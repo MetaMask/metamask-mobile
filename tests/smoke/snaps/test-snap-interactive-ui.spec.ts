@@ -7,6 +7,7 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { Assertions } from '../../framework';
 import Matchers from '../../framework/Matchers';
 import { DateTime } from 'luxon';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -14,6 +15,7 @@ describe(FlaskBuildTests('Interactive UI Snap Tests'), () => {
   it('can connect to the Interactive UI Snap', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,

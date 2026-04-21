@@ -8,6 +8,7 @@ import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { TestSnapResultSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -15,6 +16,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
   it('can connect to the background events Snap', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,

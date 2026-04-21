@@ -5,6 +5,7 @@ import { FlaskBuildTests } from '../../tags';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -12,6 +13,7 @@ describe(FlaskBuildTests('Installed Snap Tests'), () => {
   it('connects to the snap and displays the installed snaps', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,

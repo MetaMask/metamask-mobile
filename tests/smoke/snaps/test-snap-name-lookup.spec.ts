@@ -12,6 +12,7 @@ import BrowserView from '../../page-objects/Browser/BrowserView';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -21,6 +22,7 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
   it('displays the resolved recipient address in the send flow', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,

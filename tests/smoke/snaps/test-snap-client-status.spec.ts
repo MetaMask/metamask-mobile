@@ -6,6 +6,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import sdkPackageJson from '@metamask/snaps-sdk/package.json';
 import packageJson from '../../../package.json';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -13,6 +14,7 @@ describe(FlaskBuildTests('Client Status Snap Tests'), () => {
   it('connects to the Client Status Snap', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
