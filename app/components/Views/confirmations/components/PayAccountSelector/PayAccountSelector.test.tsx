@@ -153,7 +153,7 @@ describe('PayAccountSelector', () => {
     expect(config.accountOverride).toBe('0xSelectedAddress');
   });
 
-  it('sets isPostQuote for withdraw transactions', async () => {
+  it('sets accountOverride for withdraw transactions', async () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: TransactionType.moneyAccountWithdraw,
@@ -171,7 +171,7 @@ describe('PayAccountSelector', () => {
     configCallback(config as never);
 
     expect(config.accountOverride).toBe('0xSelectedAddress');
-    expect(config.isPostQuote).toBe(true);
+    expect(config.isPostQuote).toBeUndefined();
   });
 
   it('does not set isPostQuote for deposit transactions', async () => {

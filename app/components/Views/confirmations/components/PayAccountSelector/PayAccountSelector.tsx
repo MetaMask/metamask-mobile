@@ -28,14 +28,11 @@ const PayAccountSelector: React.FC = () => {
           transactionId,
           (config) => {
             config.accountOverride = address as Hex;
-            if (isMoneyAccountWithdraw) {
-              config.isPostQuote = true;
-            }
           },
         );
       }
     },
-    [transactionId, isMoneyAccountWithdraw],
+    [transactionId],
   );
 
   if (!isMoneyAccountDeposit && !isMoneyAccountWithdraw) {
