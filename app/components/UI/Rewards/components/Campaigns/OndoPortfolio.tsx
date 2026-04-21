@@ -192,10 +192,14 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       const tokenHex = parsed.assetReference.toLowerCase() as Hex;
       const addresses = subscriptionAccounts.flatMap((a) => {
         const address = parseCaipAccountId(a.account).address;
-        const bal =
-          allTokenBalances?.[address.toLowerCase() as Hex]?.[chainHex]?.[
-            tokenHex
-          ];
+        const chainBalances =
+          allTokenBalances?.[address.toLowerCase() as Hex]?.[chainHex];
+        const balEntry = chainBalances
+          ? Object.entries(chainBalances).find(
+              ([key]) => key.toLowerCase() === tokenHex,
+            )
+          : undefined;
+        const bal = balEntry?.[1];
         return bal !== undefined && !!parseInt(bal, 16) ? [address] : [];
       });
       return resolveAccountsByAddresses(addresses);
@@ -255,10 +259,13 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       );
       let total = new BigNumber(0);
       for (const account of groupAccounts) {
-        const hexBal =
-          allTokenBalances?.[account.address.toLowerCase() as Hex]?.[
-            chainHex
-          ]?.[tokenHex];
+        const chainBalances =
+          allTokenBalances?.[account.address.toLowerCase() as Hex]?.[chainHex];
+        const hexBal = chainBalances
+          ? Object.entries(chainBalances).find(
+              ([key]) => key.toLowerCase() === tokenHex,
+            )?.[1]
+          : undefined;
         if (hexBal) {
           try {
             total = total.plus(new BigNumber(hexBal).shiftedBy(-decimals));
