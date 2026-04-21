@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ScrollView , Linking } from 'react-native';
+import { ScrollView, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
