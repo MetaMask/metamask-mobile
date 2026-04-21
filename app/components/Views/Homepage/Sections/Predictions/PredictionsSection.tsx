@@ -205,7 +205,7 @@ const HomepagePredictPositions = ({
         testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
       />
     )}
-    {predictHomepageUnrealizedPnl.show && (
+    {showHeader && predictHomepageUnrealizedPnl.show && (
       <HomepageSectionUnrealizedPnlRow
         marginTop={1}
         isLoading={predictHomepageUnrealizedPnl.isLoading}
