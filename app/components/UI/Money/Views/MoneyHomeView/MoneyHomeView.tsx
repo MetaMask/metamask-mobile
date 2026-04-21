@@ -74,7 +74,9 @@ const MoneyHomeView = () => {
   const handleEarnCryptoPress = displayUnderConstructionAlert;
   const handleLearnMorePress = displayUnderConstructionAlert;
   const handleAddMoneyPress = displayUnderConstructionAlert;
-  const handleHowItWorksHeaderPress = displayUnderConstructionAlert;
+  const handleHowItWorksHeaderPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
+  }, [navigation]);
 
   const handleViewAllActivityPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.ACTIVITY as never);

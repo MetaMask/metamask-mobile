@@ -6398,6 +6398,25 @@
       "learn_more": "Learn more",
       "swap": "Swap",
       "buy": "Buy"
+    },
+    "how_it_works_page": {
+      "header_title": "Money",
+      "section_title": "How it works",
+      "description_1": "Your Money account earns 4% APY (variable) automatically. Funds go into a curated DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
+      "faq_title": "FAQ",
+      "faq_placeholder_answer": "Coming soon.",
+      "faq_q1": "What is the Money account?",
+      "faq_q2": "What is mUSD?",
+      "faq_q3": "Where does the yield come from?",
+      "faq_q4": "Is my money locked? Can I withdraw anytime?",
+      "faq_q5": "How does spending with the MetaMask Card work?",
+      "faq_q6": "Are there any fees?",
+      "faq_q7": "Does the APY rate change?",
+      "faq_q8": "Is this a savings account or a spending account?",
+      "faq_q9": "Who controls my money?",
+      "faq_q10": "What cash back do I get with the MetaMask Card?",
+      "sounds_good": "Sounds good"
     }
   },
   "stake": {
