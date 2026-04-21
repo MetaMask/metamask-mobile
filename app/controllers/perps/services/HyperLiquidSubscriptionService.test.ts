@@ -66,6 +66,7 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
   })),
   adaptAccountStateFromSDK: jest.fn(() => ({
     availableBalance: '1000.00',
+    availableToTradeBalance: '1000.00',
     marginUsed: '500.00',
     unrealizedPnl: '100.00',
     returnOnEquity: '20.0',
@@ -378,6 +379,11 @@ describe('HyperLiquidSubscriptionService', () => {
     mockClientService = {
       ensureSubscriptionClient: jest.fn().mockResolvedValue(undefined),
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
+      getInfoClient: jest.fn(() => ({
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', total: '0' }],
+        }),
+      })),
       isTestnetMode: jest.fn(() => false),
       ensureTransportReady: jest.fn().mockResolvedValue(undefined),
       getConnectionState: jest.fn(() => 'connected'),
@@ -3674,6 +3680,69 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe1();
       unsubscribe2();
     });
+
+    it('adds spot usdc to availableToTradeBalance without changing withdrawable balance', async () => {
+      mockClientService.getInfoClient = jest.fn(() => ({
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [
+            { coin: 'USDC', total: '100.76531791' },
+            { coin: 'HYPE', total: '0.36975137' },
+          ],
+        }),
+      }));
+
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '0',
+        availableToTradeBalance: '0',
+        totalBalance: '0',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      }));
+
+      mockSubscriptionClient.clearinghouseState.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              dex: _params.dex || '',
+              clearinghouseState: {
+                assetPositions: [],
+                marginSummary: {
+                  accountValue: '0',
+                  totalMarginUsed: '0',
+                },
+                withdrawable: '0',
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+      mockSubscriptionClient.openOrders.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => callback({ dex: _params.dex || '', orders: [] }), 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const mockCallback = jest.fn();
+      const unsubscribe = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(mockCallback).toHaveBeenCalled();
+      const accountState = mockCallback.mock.calls.at(-1)[0];
+      expect(accountState.availableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('100.76531791');
+
+      unsubscribe();
+    });
   });
 
   describe('aggregateAccountStates - returnOnEquity calculation', () => {
@@ -3681,6 +3750,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '100',
+        availableToTradeBalance: '100',
         totalBalance: '1100',
         marginUsed: '1000',
         unrealizedPnl: '100',
@@ -3726,6 +3796,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '0',
+        availableToTradeBalance: '0',
         totalBalance: '950',
         marginUsed: '1000',
         unrealizedPnl: '-50',
@@ -3771,6 +3842,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '1000',
+        availableToTradeBalance: '1000',
         totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -3816,6 +3888,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '75',
+        availableToTradeBalance: '75',
         totalBalance: '1575',
         marginUsed: '1500',
         unrealizedPnl: '75',
@@ -3862,6 +3935,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '200',
+        availableToTradeBalance: '200',
         totalBalance: '300',
         marginUsed: '100',
         unrealizedPnl: '200',
@@ -3907,6 +3981,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '100',
+        availableToTradeBalance: '100',
         totalBalance: '433',
         marginUsed: '333',
         unrealizedPnl: '100',

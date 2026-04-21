@@ -2148,6 +2148,7 @@ describe('HyperLiquidProvider', () => {
       const accountState = await provider.getAccountState();
 
       expect(accountState).toBeDefined();
+      expect(accountState.availableToTradeBalance).toBe('19500');
       expect(accountState.totalBalance).toBe('20500'); // 10000 (spot) + 10500 (perps marginSummary)
       expect(
         mockClientService.getInfoClient().clearinghouseState,
@@ -3768,6 +3769,7 @@ describe('HyperLiquidProvider', () => {
 
         const accountState = await hip3Provider.getAccountState();
 
+        expect(parseFloat(accountState.availableToTradeBalance)).toBe(19500);
         expect(parseFloat(accountState.totalBalance)).toBe(20500);
         expect(parseFloat(accountState.marginUsed)).toBe(500);
         expect(mockInfoClient.clearinghouseState).toHaveBeenCalledWith({
@@ -9074,6 +9076,7 @@ describe('HyperLiquidProvider', () => {
         // Assert — all DEX queries failed, aggregateAccountStates([]) returns fallback
         expect(result).toEqual({
           availableBalance: '--',
+          availableToTradeBalance: '--',
           totalBalance: '--',
           marginUsed: '--',
           unrealizedPnl: '--',

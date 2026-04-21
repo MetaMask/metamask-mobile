@@ -446,8 +446,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const availableBalance = Number.parseFloat(
-    account?.availableBalance?.toString() ?? '0',
+  const availableToTradeBalance = Number.parseFloat(
+    account?.availableToTradeBalance?.toString() ?? '0',
   );
   const showAddFundsCTA =
     isEligible &&
@@ -455,7 +455,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     !existingPosition &&
     !isAtOICap &&
     !isLoadingAccount &&
-    availableBalance < PERPS_MIN_BALANCE_THRESHOLD &&
+    availableToTradeBalance < PERPS_MIN_BALANCE_THRESHOLD &&
     defaultPayTokenWhenNoPerpsBalance === null;
 
   const handleAddFunds = useCallback(async () => {

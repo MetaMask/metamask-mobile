@@ -109,7 +109,10 @@ import type {
 } from '../types/hyperliquid-types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
-import { aggregateAccountStates } from '../utils/accountUtils';
+import {
+  addSpotUsdcToAvailableToTradeBalance,
+  aggregateAccountStates,
+} from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptAccountStateFromSDK,
@@ -5691,6 +5694,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       aggregatedAccountState.totalBalance = (
         parseFloat(aggregatedAccountState.totalBalance) + spotBalance
       ).toString();
+      const spotAdjustedAccountState = addSpotUsdcToAvailableToTradeBalance(
+        aggregatedAccountState,
+        spotState,
+      );
 
       // Build per-sub-account breakdown (HIP-3 DEXs map to sub-accounts)
       const subAccountBreakdown: Record<
@@ -5709,14 +5716,14 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
 
       // Add sub-account breakdown to result
-      aggregatedAccountState.subAccountBreakdown = subAccountBreakdown;
+      spotAdjustedAccountState.subAccountBreakdown = subAccountBreakdown;
 
       this.#deps.debugLogger.log(
         'Aggregated account state:',
-        aggregatedAccountState,
+        spotAdjustedAccountState,
       );
 
-      return aggregatedAccountState;
+      return spotAdjustedAccountState;
     } catch (error) {
       this.#deps.logger.error(
         ensureError(error, 'HyperLiquidProvider.getAccountState'),

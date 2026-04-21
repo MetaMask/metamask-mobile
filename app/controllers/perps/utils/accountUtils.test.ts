@@ -1,14 +1,18 @@
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState } from '../types';
+import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
 
 import {
+  addSpotUsdcToAvailableToTradeBalance,
   aggregateAccountStates,
   calculateWeightedReturnOnEquity,
+  getSpotBalanceByCoin,
 } from './accountUtils';
 
 describe('aggregateAccountStates', () => {
   const fallback: AccountState = {
     availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    availableToTradeBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
     unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
@@ -22,6 +26,7 @@ describe('aggregateAccountStates', () => {
   it('returns the single state unchanged when given one element', () => {
     const single: AccountState = {
       availableBalance: '100',
+      availableToTradeBalance: '100',
       totalBalance: '200',
       marginUsed: '50',
       unrealizedPnl: '10',
@@ -33,6 +38,7 @@ describe('aggregateAccountStates', () => {
   it('sums numeric fields from two states and recalculates ROE', () => {
     const stateA: AccountState = {
       availableBalance: '100',
+      availableToTradeBalance: '100',
       totalBalance: '200',
       marginUsed: '50',
       unrealizedPnl: '10',
@@ -40,6 +46,7 @@ describe('aggregateAccountStates', () => {
     };
     const stateB: AccountState = {
       availableBalance: '50',
+      availableToTradeBalance: '50',
       totalBalance: '150',
       marginUsed: '30',
       unrealizedPnl: '6',
@@ -49,6 +56,7 @@ describe('aggregateAccountStates', () => {
     const result = aggregateAccountStates([stateA, stateB]);
 
     expect(parseFloat(result.availableBalance)).toBe(150);
+    expect(parseFloat(result.availableToTradeBalance)).toBe(150);
     expect(parseFloat(result.totalBalance)).toBe(350);
     expect(parseFloat(result.marginUsed)).toBe(80);
     expect(parseFloat(result.unrealizedPnl)).toBe(16);
@@ -60,6 +68,7 @@ describe('aggregateAccountStates', () => {
     const states: AccountState[] = [
       {
         availableBalance: '100',
+        availableToTradeBalance: '100',
         totalBalance: '200',
         marginUsed: '50',
         unrealizedPnl: '10',
@@ -67,6 +76,7 @@ describe('aggregateAccountStates', () => {
       },
       {
         availableBalance: '200',
+        availableToTradeBalance: '200',
         totalBalance: '300',
         marginUsed: '100',
         unrealizedPnl: '30',
@@ -74,6 +84,7 @@ describe('aggregateAccountStates', () => {
       },
       {
         availableBalance: '50',
+        availableToTradeBalance: '50',
         totalBalance: '100',
         marginUsed: '50',
         unrealizedPnl: '5',
@@ -84,6 +95,7 @@ describe('aggregateAccountStates', () => {
     const result = aggregateAccountStates(states);
 
     expect(parseFloat(result.availableBalance)).toBe(350);
+    expect(parseFloat(result.availableToTradeBalance)).toBe(350);
     expect(parseFloat(result.totalBalance)).toBe(600);
     expect(parseFloat(result.marginUsed)).toBe(200);
     expect(parseFloat(result.unrealizedPnl)).toBe(45);
@@ -94,6 +106,7 @@ describe('aggregateAccountStates', () => {
   it('does not mutate the input state object', () => {
     const single: AccountState = {
       availableBalance: '100',
+      availableToTradeBalance: '100',
       totalBalance: '200',
       marginUsed: '50',
       unrealizedPnl: '10',
@@ -109,6 +122,7 @@ describe('aggregateAccountStates', () => {
   it('sets ROE to 0 when total marginUsed is 0', () => {
     const state: AccountState = {
       availableBalance: '100',
+      availableToTradeBalance: '100',
       totalBalance: '100',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -121,6 +135,7 @@ describe('aggregateAccountStates', () => {
   it('handles negative unrealizedPnl correctly', () => {
     const stateA: AccountState = {
       availableBalance: '80',
+      availableToTradeBalance: '80',
       totalBalance: '180',
       marginUsed: '100',
       unrealizedPnl: '-20',
@@ -128,6 +143,7 @@ describe('aggregateAccountStates', () => {
     };
     const stateB: AccountState = {
       availableBalance: '40',
+      availableToTradeBalance: '40',
       totalBalance: '90',
       marginUsed: '50',
       unrealizedPnl: '-10',
@@ -145,6 +161,7 @@ describe('aggregateAccountStates', () => {
   it('handles decimal values correctly', () => {
     const stateA: AccountState = {
       availableBalance: '100.50',
+      availableToTradeBalance: '100.50',
       totalBalance: '200.75',
       marginUsed: '50.25',
       unrealizedPnl: '10.10',
@@ -152,6 +169,7 @@ describe('aggregateAccountStates', () => {
     };
     const stateB: AccountState = {
       availableBalance: '50.50',
+      availableToTradeBalance: '50.50',
       totalBalance: '150.25',
       marginUsed: '30.75',
       unrealizedPnl: '6.90',
@@ -161,9 +179,43 @@ describe('aggregateAccountStates', () => {
     const result = aggregateAccountStates([stateA, stateB]);
 
     expect(parseFloat(result.availableBalance)).toBeCloseTo(151, 0);
+    expect(parseFloat(result.availableToTradeBalance)).toBeCloseTo(151, 0);
     expect(parseFloat(result.totalBalance)).toBeCloseTo(351, 0);
     expect(parseFloat(result.marginUsed)).toBeCloseTo(81, 0);
     expect(parseFloat(result.unrealizedPnl)).toBeCloseTo(17, 0);
+  });
+});
+
+describe('spot balance helpers', () => {
+  const spotState: SpotClearinghouseStateResponse = {
+    balances: [
+      { coin: 'USDC', total: '100.50' },
+      { coin: 'HYPE', total: '5.25' },
+    ],
+  } as SpotClearinghouseStateResponse;
+
+  it('returns the balance for a matching spot coin', () => {
+    expect(getSpotBalanceByCoin(spotState, 'USDC')).toBe(100.5);
+  });
+
+  it('returns zero when the spot coin is missing', () => {
+    expect(getSpotBalanceByCoin(spotState, 'USDH')).toBe(0);
+  });
+
+  it('adds spot usdc to availableToTradeBalance without mutating the input', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      availableToTradeBalance: '0',
+      totalBalance: '100',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotUsdcToAvailableToTradeBalance(accountState, spotState);
+
+    expect(result.availableToTradeBalance).toBe('100.5');
+    expect(accountState.availableToTradeBalance).toBe('0');
   });
 });
 

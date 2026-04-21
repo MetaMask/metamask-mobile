@@ -6,6 +6,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
+import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
 
 const EVM_ACCOUNT_TYPES = new Set(['eip155:eoa', 'eip155:erc4337']);
 
@@ -89,6 +90,71 @@ export function calculateWeightedReturnOnEquity(
   return weightedROE.toString();
 }
 
+export function getSpotBalance(
+  spotState?: SpotClearinghouseStateResponse | null,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (sum: number, balance: { total?: string }) =>
+      sum + parseFloat(balance.total ?? '0'),
+    0,
+  );
+}
+
+export function getSpotBalanceByCoin(
+  spotState: SpotClearinghouseStateResponse | null | undefined,
+  coin: string,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  const matchingBalance = spotState.balances.find(
+    (balance: { coin?: string }) => balance.coin === coin,
+  );
+
+  return matchingBalance ? parseFloat(matchingBalance.total ?? '0') : 0;
+}
+
+export function addSpotBalanceToAccountState(
+  accountState: AccountState,
+  spotState?: SpotClearinghouseStateResponse | null,
+): AccountState {
+  const spotBalance = getSpotBalance(spotState);
+
+  if (spotBalance === 0) {
+    return accountState;
+  }
+
+  return {
+    ...accountState,
+    totalBalance: (
+      parseFloat(accountState.totalBalance) + spotBalance
+    ).toString(),
+  };
+}
+
+export function addSpotUsdcToAvailableToTradeBalance(
+  accountState: AccountState,
+  spotState?: SpotClearinghouseStateResponse | null,
+): AccountState {
+  const spotUsdcBalance = getSpotBalanceByCoin(spotState, 'USDC');
+
+  if (spotUsdcBalance === 0) {
+    return accountState;
+  }
+
+  return {
+    ...accountState,
+    availableToTradeBalance: (
+      parseFloat(accountState.availableToTradeBalance) + spotUsdcBalance
+    ).toString(),
+  };
+}
+
 /**
  * Aggregate multiple per-DEX AccountState objects into one by summing numeric fields.
  * ROE is recalculated as (totalUnrealizedPnl / totalMarginUsed) * 100.
@@ -99,6 +165,7 @@ export function calculateWeightedReturnOnEquity(
 export function aggregateAccountStates(states: AccountState[]): AccountState {
   const fallback: AccountState = {
     availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    availableToTradeBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
     unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
@@ -116,6 +183,10 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
     return {
       availableBalance: (
         parseFloat(acc.availableBalance) + parseFloat(state.availableBalance)
+      ).toString(),
+      availableToTradeBalance: (
+        parseFloat(acc.availableToTradeBalance) +
+        parseFloat(state.availableToTradeBalance)
       ).toString(),
       totalBalance: (
         parseFloat(acc.totalBalance) + parseFloat(state.totalBalance)

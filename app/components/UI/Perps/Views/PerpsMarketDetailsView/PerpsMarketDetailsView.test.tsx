@@ -772,6 +772,7 @@ describe('PerpsMarketDetailsView', () => {
     mockUsePerpsAccount.mockReturnValue({
       account: {
         availableBalance: '1000.00',
+        availableToTradeBalance: '1000.00',
         marginUsed: '0.00',
         unrealizedPnl: '0.00',
         returnOnEquity: '0.00',
@@ -783,6 +784,7 @@ describe('PerpsMarketDetailsView', () => {
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         availableBalance: '1000',
+        availableToTradeBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -1009,6 +1011,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
+          availableToTradeBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1020,6 +1023,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
+          availableToTradeBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1056,6 +1060,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
+          availableToTradeBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1066,6 +1071,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
+          availableToTradeBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1092,11 +1098,44 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeNull();
     });
 
+    it('shows long and short actions when availableToTradeBalance is positive even if availableBalance is zero', () => {
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          availableToTradeBalance: '100.76',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '101.14',
+        },
+        isInitialLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeNull();
+    });
+
     it('calls navigateToConfirmation and depositWithConfirmation when add funds is pressed', async () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
+          availableToTradeBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1107,6 +1146,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
+          availableToTradeBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1145,6 +1185,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
+          availableToTradeBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1155,6 +1196,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
+          availableToTradeBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1189,6 +1231,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '1000.00',
+          availableToTradeBalance: '1000.00',
           marginUsed: '500.00',
           unrealizedPnl: '50.00',
           returnOnEquity: '3.33',
