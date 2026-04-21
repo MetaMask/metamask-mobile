@@ -8275,17 +8275,10 @@
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
     },
-    "campaign_end_toast": {
-      "view": "View",
-      "won_title": "You won the {{campaignName}}",
-      "won_description": "Claim your prize now!",
-      "ended_title": "{{campaignName}} has ended",
-      "ended_description": "Thanks for participating. Open the campaign to see results."
-    },
     "ondo_winning_banner": {
       "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!",
-      "dismiss_a11y": "Dismiss"
+      "description": "Claim your prize today.",
+      "a11y": "Open winner details"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",

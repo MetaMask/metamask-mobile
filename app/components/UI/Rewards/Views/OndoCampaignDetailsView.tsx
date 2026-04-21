@@ -20,15 +20,18 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  Skeleton,
   Text,
   TextButton,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
+import TrophyIcon from '../../../../images/rewards/trophy.svg';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
@@ -61,9 +64,9 @@ import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.ut
 import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
+  isOndoCampaignWinner,
 } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { isOndoCampaignWinner } from '../hooks/useMaybeShowCampaignEndToast';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
@@ -177,10 +180,6 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const hasPresentedWinningViewRef = useRef(false);
 
-  useEffect(() => {
-    hasPresentedWinningViewRef.current = false;
-  }, [effectiveCampaignId]);
-
   useFocusEffect(
     useCallback(() => {
       if (
@@ -196,6 +195,9 @@ const OndoCampaignDetailsView: React.FC = () => {
           campaignName: campaign.name ?? '',
         });
       }
+      return () => {
+        hasPresentedWinningViewRef.current = false;
+      };
     }, [campaign, leaderboardPosition, effectiveCampaignId, navigation]),
   );
 
@@ -387,6 +389,54 @@ const OndoCampaignDetailsView: React.FC = () => {
                       tierMinDeposit={tierMinDeposit}
                       isIneligible={notEligibleForCampaign}
                     />
+                    {getCampaignStatus(campaign) === 'complete' &&
+                      isOndoCampaignWinner(leaderboardPosition) && (
+                        <Pressable
+                          accessibilityLabel={strings(
+                            'rewards.ondo_winning_banner.a11y',
+                          )}
+                          onPress={() =>
+                            navigation.navigate(
+                              Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
+                              {
+                                campaignId: effectiveCampaignId,
+                                campaignName: campaign.name ?? '',
+                              },
+                            )
+                          }
+                        >
+                          <Box
+                            flexDirection={BoxFlexDirection.Row}
+                            alignItems={BoxAlignItems.Center}
+                            twClassName="bg-muted rounded-xl p-4 mt-3 gap-3"
+                          >
+                            <TrophyIcon width={20} height={20} />
+                            <Box twClassName="flex-1 gap-0.5">
+                              <Text
+                                variant={TextVariant.BodyMd}
+                                fontWeight={FontWeight.Medium}
+                              >
+                                {strings('rewards.ondo_winning_banner.title', {
+                                  campaignName: campaign.name ?? '',
+                                })}
+                              </Text>
+                              <Text
+                                variant={TextVariant.BodySm}
+                                color={TextColor.TextAlternative}
+                              >
+                                {strings(
+                                  'rewards.ondo_winning_banner.description',
+                                )}
+                              </Text>
+                            </Box>
+                            <Icon
+                              name={IconName.ArrowRight}
+                              size={IconSize.Sm}
+                              color={IconColor.IconAlternative}
+                            />
+                          </Box>
+                        </Pressable>
+                      )}
                   </Box>
                 </>
               )}

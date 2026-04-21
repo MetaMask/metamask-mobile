@@ -1,4 +1,7 @@
-import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import type {
+  CampaignDto,
+  CampaignLeaderboardPositionDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 
 /**
@@ -19,6 +22,15 @@ export const ONDO_GM_REQUIRED_QUALIFIED_DAYS = 10;
  * Pass `qualified` from the user's leaderboard position to short-circuit for
  * participants who have already qualified.
  */
+export function isOndoCampaignWinner(
+  position: CampaignLeaderboardPositionDto | null,
+): boolean {
+  if (!position) {
+    return false;
+  }
+  return position.rank <= 5 && position.qualified === true;
+}
+
 export function isCampaignIneligible(
   campaign: CampaignDto | null,
   qualified?: boolean | null,

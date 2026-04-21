@@ -169,8 +169,6 @@ export interface RewardsState {
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
 
-  /** Tracks which campaign end toasts (ONDO_HOLDING) have already been shown, keyed by campaignId */
-  campaignEndToastShownByCampaignId: Record<string, true>;
 }
 
 /**
@@ -279,8 +277,6 @@ export const initialState: RewardsState = {
   ondoCampaignDepositsError: false,
 
   pendingDeeplink: null,
-
-  campaignEndToastShownByCampaignId: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -567,10 +563,6 @@ const rewardsSlice = createSlice({
         action.payload.status;
     },
 
-    markCampaignEndToastShown: (state, action: PayloadAction<string>) => {
-      state.campaignEndToastShownByCampaignId[action.payload] = true;
-    },
-
     // Version guard reducers
     setVersionGuardMinimumMobileVersion: (
       state,
@@ -809,8 +801,6 @@ const rewardsSlice = createSlice({
               pointsEvents: action.payload.rewards.pointsEvents,
               unlockedRewards: action.payload.rewards.unlockedRewards,
               campaigns: action.payload.rewards.campaigns,
-              campaignEndToastShownByCampaignId:
-                action.payload.rewards.campaignEndToastShownByCampaignId ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -907,7 +897,6 @@ export const {
   bulkLinkReset,
   bulkLinkResumed,
   setPendingDeeplink,
-  markCampaignEndToastShown,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

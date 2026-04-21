@@ -1,10 +1,4 @@
-import React, { useCallback, useContext, useMemo } from 'react';
-import {
-  Box,
-  Icon,
-  IconSize,
-  IconName as IconNameDesignSystem,
-} from '@metamask/design-system-react-native';
+import { useCallback, useContext, useMemo } from 'react';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
@@ -16,8 +10,6 @@ import {
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
-import TrophyIcon from '../../../../images/rewards/trophy.svg';
-import { ButtonSize } from '../../../../component-library/components/Buttons/Button';
 
 export type RewardsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
@@ -27,18 +19,6 @@ export interface RewardsToastConfig {
   success: (title: string, subtitle?: string) => RewardsToastOptions;
   error: (title: string, subtitle?: string) => RewardsToastOptions;
   entriesClosed: (title: string, subtitle?: string) => RewardsToastOptions;
-  campaignWon: (
-    title: string,
-    subtitle: string,
-    linkLabel: string,
-    onLinkPress: () => void,
-  ) => RewardsToastOptions;
-  campaignEnded: (
-    title: string,
-    subtitle: string,
-    linkLabel: string,
-    onLinkPress: () => void,
-  ) => RewardsToastOptions;
 }
 
 const getRewardsToastLabels = (title: string): ToastLabelOptions => {
@@ -136,64 +116,6 @@ const useRewardsToast = (): {
             toastRef?.current?.closeToast();
           },
         },
-      }),
-      campaignWon: (
-        title: string,
-        subtitle: string,
-        linkLabel: string,
-        onLinkPress: () => void,
-      ) => ({
-        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: theme.colors.success.default,
-        backgroundColor: 'transparent',
-        hapticsType: NotificationFeedbackType.Success,
-        labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
-        hasNoTimeout: true,
-        linkButtonOptions: {
-          label: linkLabel,
-          size: ButtonSize.Sm,
-          onPress: () => {
-            onLinkPress();
-            toastRef?.current?.closeToast();
-          },
-        },
-        startAccessory: (
-          <Box twClassName="mr-2 h-6 w-6 self-start items-center justify-center">
-            <TrophyIcon name="trophy" width={24} height={24} />
-          </Box>
-        ),
-      }),
-      campaignEnded: (
-        title: string,
-        subtitle: string,
-        linkLabel: string,
-        onLinkPress: () => void,
-      ) => ({
-        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Info,
-        iconColor: theme.colors.icon.default,
-        backgroundColor: 'transparent',
-        hapticsType: NotificationFeedbackType.Warning,
-        labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
-        hasNoTimeout: true,
-        linkButtonOptions: {
-          label: linkLabel,
-          size: ButtonSize.Sm,
-          onPress: () => {
-            onLinkPress();
-            toastRef?.current?.closeToast();
-          },
-        },
-        startAccessory: (
-          <Box twClassName="mr-2 h-6 w-6 self-start items-center justify-center">
-            <Icon name={IconNameDesignSystem.Joystick} size={IconSize.Md} />
-          </Box>
-        ),
       }),
     }),
     [
