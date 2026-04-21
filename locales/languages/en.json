@@ -1020,6 +1020,15 @@
         "all": "All"
       }
     },
+    "notification_preferences": {
+      "title": "Top traders",
+      "allow_push_notifications": "Allow push notifications",
+      "trades_over_label": "Get notified of trades over:",
+      "traders_you_follow": "Traders you follow",
+      "traders_you_follow_desc": "Choose who you get notifications about",
+      "traders_you_follow_empty": "You aren't following any traders yet.",
+      "error_loading_followed": "Unable to load the traders you follow."
+    },
     "follow": "Follow",
     "following": "Following",
     "all_networks": "All networks",
