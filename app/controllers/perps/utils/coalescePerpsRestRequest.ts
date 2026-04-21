@@ -15,7 +15,7 @@ import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 type CacheEntry<TValue> = {
   value: TValue;
   expiresAt: number;
-}
+};
 
 const inflight = new Map<string, Promise<unknown>>();
 const cache = new Map<string, CacheEntry<unknown>>();
@@ -31,7 +31,7 @@ export type CoalesceOptions = {
    * written back to the cache under the same key.
    */
   forceRefresh?: boolean;
-}
+};
 
 /**
  * Coalesce an idempotent perps REST call.
@@ -71,8 +71,11 @@ export function coalescePerpsRestRequest<TValue>(
 
   const run = fetcher().then(
     (value) => {
-      cache.set(key, { value, expiresAt: Date.now() + ttlMs });
+      // Only the currently-tracked in-flight promise writes to cache. A stale
+      // in-flight (e.g. one that was racing a later forceRefresh=true caller)
+      // must not clobber the fresh value once it finally resolves.
       if (inflight.get(key) === run) {
+        cache.set(key, { value, expiresAt: Date.now() + ttlMs });
         inflight.delete(key);
       }
       return value;
@@ -87,17 +90,6 @@ export function coalescePerpsRestRequest<TValue>(
 
   inflight.set(key, run);
   return run;
-}
-
-/**
- * Drop the cached value for `key`. The in-flight promise (if any) is left
- * alone so an already-running call still completes and refreshes the cache.
- * Call this when an explicit user action should bypass the TTL.
- *
- * @param key - Cache key whose value should be evicted.
- */
-export function invalidatePerpsRestCache(key: string): void {
-  cache.delete(key);
 }
 
 /**
