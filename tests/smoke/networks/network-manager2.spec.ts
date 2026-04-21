@@ -13,21 +13,11 @@ import TestDApp from '../../page-objects/Browser/TestDApp';
 import ConnectedAccountsModal from '../../page-objects/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
 const isMultichainAccountsState2Enabled =
   process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'true';
-
-const testSpecificMock = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    carouselBanners: false,
-    homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-    homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-  });
-};
 
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
   beforeAll(async () => {
@@ -73,18 +63,17 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
             )
             .build(),
           restartDevice: true,
-          testSpecificMock,
         },
         async () => {
           await loginToApp();
 
-          // Open network manager and verify initial state
-          await NetworkManager.openNetworkManager();
+          // Navigate to TokensFullView, then open network manager
+          await NetworkManager.openNetworkManagerFromHomepage();
           await NetworkManager.waitForNetworkManagerToLoad();
           await NetworkManager.checkPopularNetworksContainerIsVisible();
           await NetworkManager.checkTabIsSelected('Popular');
 
-          // Select Solana network
+          // Select Solana network — sheet closes, lands on TokensFullView
           await NetworkManager.tapNetwork(NetworkToCaipChainId.SOLANA);
 
           await NetworkManager.checkBaseControlBarText(
@@ -140,18 +129,17 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           ])
           .build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
 
-        // Open network manager and verify initial state
-        await NetworkManager.openNetworkManager();
+        // Navigate to TokensFullView, then open network manager
+        await NetworkManager.openNetworkManagerFromHomepage();
         await NetworkManager.waitForNetworkManagerToLoad();
         await NetworkManager.checkPopularNetworksContainerIsVisible();
         await NetworkManager.checkTabIsSelected('Popular');
 
-        // Select Ethereum network
+        // Select Ethereum network — sheet closes, lands on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.ETHEREUM,
@@ -196,15 +184,25 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
               name: 'LineaETH',
             },
           ])
+          .withTokens(
+            [
+              {
+                address: '0x0000000000000000000000000000000000000000',
+                symbol: 'SepoliaETH',
+                decimals: 18,
+                name: 'SepoliaETH',
+              },
+            ],
+            '0xaa36a7', // Sepolia chain ID
+          )
           .build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
 
-        // Open network manager and verify initial state
-        await NetworkManager.openNetworkManager();
+        // Navigate to TokensFullView, then open network manager
+        await NetworkManager.openNetworkManagerFromHomepage();
         await NetworkManager.waitForNetworkManagerToLoad();
         await NetworkManager.checkPopularNetworksContainerIsVisible();
 
@@ -213,7 +211,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         await NetworkManager.checkCustomNetworksContainerIsVisible();
         await NetworkManager.checkTabIsSelected('Custom');
 
-        // Select a custom network (Linea Sepolia)
+        // Select a custom network (Linea Sepolia) — sheet closes, lands on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM_SEPOLIA);
 
         await NetworkManager.checkBaseControlBarText(
@@ -251,22 +249,24 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           .withPopularNetworks()
           .build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
 
-        // Step 1: Verify initial state - Ethereum should be enabled
-        await NetworkManager.openNetworkManager();
+        // Step 1: Navigate to TokensFullView, then select Ethereum
+        await NetworkManager.openNetworkManagerFromHomepage();
         await NetworkManager.waitForNetworkManagerToLoad();
         await NetworkManager.checkPopularNetworksContainerIsVisible();
         await NetworkManager.checkTabIsSelected('Popular');
 
-        // Select Ethereum as the active network
+        // Select Ethereum as the active network — sheet closes, lands on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.ETHEREUM,
         );
+
+        // Go back to homepage before navigating to browser
+        await NetworkManager.navigateBackFromTokensFullView();
 
         // Step 2: Navigate to dapp and request network addition
         await navigateToBrowserView();
@@ -299,7 +299,8 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapWallet();
 
-        // Verify Ethereum is still the active network (preservation)
+        // Navigate to TokensFullView to verify Ethereum is still the active network
+        await NetworkManager.navigateToTokensFullView();
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.ETHEREUM,
         );

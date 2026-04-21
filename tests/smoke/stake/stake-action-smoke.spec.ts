@@ -9,6 +9,7 @@ import FixtureBuilder, {
 } from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
+import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import StakeView from '../../page-objects/Stake/StakeView';
@@ -16,7 +17,6 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(SmokeTrade('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
@@ -61,11 +61,6 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
         ],
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-            homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-          });
-
           // Mock Accounts API V4 (flat array) so the app reports correct ETH balance.
           // Without this, the default mock returns 0 balance and the Earn button
           // is hidden (StakeButton returns null when balanceFiatNumber < 0.01).
@@ -175,11 +170,12 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
         // Go back to Home tab
         await TabBarComponent.tapHome();
 
-        // Open network picker and select Localhost
-        await WalletView.tapTokenNetworkFilter();
+        // Navigate to TokensFullView and filter by Localhost
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
         await NetworkListModal.changeNetworkTo('Localhost');
 
-        // Verify staked asset in wallet
+        // Verify staked asset in wallet (now in TokensFullView)
         await Assertions.expectTextDisplayed('Staked Ethereum');
         await Assertions.expectTextDisplayed('1 ETH');
         await Assertions.expectTextDisplayed('$4,291.85');

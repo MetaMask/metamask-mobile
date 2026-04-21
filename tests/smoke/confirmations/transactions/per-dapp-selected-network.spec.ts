@@ -9,8 +9,8 @@ import ConfirmationFooterActions from '../../../page-objects/Browser/Confirmatio
 import ConfirmationUITypes from '../../../page-objects/Browser/Confirmations/ConfirmationUITypes';
 import TestDApp from '../../../page-objects/Browser/TestDApp';
 import NetworkListModal from '../../../page-objects/Network/NetworkListModal';
+import NetworkManager from '../../../page-objects/wallet/NetworkManager';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import WalletView from '../../../page-objects/wallet/WalletView';
 import { SmokeConfirmations } from '../../../tags.js';
 import Assertions from '../../../framework/Assertions';
 import { loginToApp } from '../../../flows/wallet.flow';
@@ -21,24 +21,24 @@ import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/fe
 import { Mockttp } from 'mockttp';
 import { LocalNode } from '../../../framework/types';
 import { AnvilManager } from '../../../seeder/anvil-manager';
+import WalletView from '../../../page-objects/wallet/WalletView';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
 
 async function changeNetworkFromNetworkListModal(networkName: string) {
   await TabBarComponent.tapWallet();
-  await WalletView.tapTokenNetworkFilter();
+  await NetworkManager.navigateToTokensFullView();
+  await NetworkManager.openNetworkManager();
   await NetworkListModal.changeNetworkTo(networkName);
+  await NetworkManager.navigateBackFromTokensFullView();
 }
 
 describe(SmokeConfirmations('Dapp Network Switching'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      Object.assign({}, ...confirmationFeatureFlags, {
-        homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-        homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-      }),
+      Object.assign({}, ...confirmationFeatureFlags),
     );
   };
 
@@ -137,11 +137,13 @@ describe(SmokeConfirmations('Dapp Network Switching'), () => {
 
         // Change the network to Localhost in app (custom network)
         await TabBarComponent.tapWallet();
-        await WalletView.tapTokenNetworkFilter();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
         await NetworkListModal.tapOnCustomTab();
         await NetworkListModal.selectNetworkInCustomTab(LOCAL_CHAIN_NAME);
 
-        // Check activity tab (already on wallet from helper, just navigate)
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },

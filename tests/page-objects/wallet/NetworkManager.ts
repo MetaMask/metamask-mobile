@@ -8,7 +8,10 @@ import {
   NetworkManagerSelectorText,
 } from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
 import TestHelpers from '../../helpers';
-import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import {
+  WalletViewSelectorsIDs,
+  WalletViewSelectorsText,
+} from '../../../app/components/Views/Wallet/WalletView.testIds';
 
 class NetworkManager {
   /**
@@ -188,6 +191,45 @@ class NetworkManager {
   async openNetworkManager(): Promise<void> {
     await Gestures.waitAndTap(this.openNetworkManagerButton, {
       elemDescription: 'Open Network Manager Button',
+    });
+    await this.waitForNetworkManagerToLoad();
+  }
+
+  /**
+   * Navigate to the TokensFullView (via the homepage Tokens section header)
+   * so that the network filter control bar becomes accessible.
+   */
+  async navigateToTokensFullView(): Promise<void> {
+    const tokensSectionHeader = Matchers.getElementByText(
+      WalletViewSelectorsText.TOKENS_SECTION,
+    );
+    await Gestures.waitAndTap(tokensSectionHeader, {
+      checkStability: true,
+      elemDescription: 'Tokens Section Header (navigate to full view)',
+    });
+  }
+
+  /**
+   * Navigate back from TokensFullView to the homepage.
+   */
+  async navigateBackFromTokensFullView(): Promise<void> {
+    const backButton = Matchers.getElementByID(
+      WalletViewSelectorsIDs.BACK_BUTTON,
+    );
+    await Gestures.waitAndTap(backButton, {
+      elemDescription: 'Back button (return from TokensFullView)',
+    });
+  }
+
+  /**
+   * Open the network manager from the redesigned homepage.
+   * The TOKEN_NETWORK_FILTER control only exists in TokensFullView,
+   * so this navigates there first, then opens the network manager sheet.
+   */
+  async openNetworkManagerFromHomepage(): Promise<void> {
+    await this.navigateToTokensFullView();
+    await Gestures.waitAndTap(this.openNetworkManagerButton, {
+      elemDescription: 'Open Network Manager Button (from TokensFullView)',
     });
     await this.waitForNetworkManagerToLoad();
   }

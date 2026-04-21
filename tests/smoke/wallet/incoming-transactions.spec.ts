@@ -20,8 +20,8 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import UnifiedTransactionsView from '../../page-objects/Transactions/UnifiedTransactionsView';
+import NetworkManager from '../../page-objects/wallet/NetworkManager';
 
 // EVM-only account tree to prevent Solana snap from fetching live transactions
 const EVM_ONLY_ACCOUNT_TREE = {
@@ -125,10 +125,6 @@ function createAccountsTestSpecificMock(
   transactions: Record<string, unknown>[] = [],
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
-    await setupRemoteFeatureFlagsMock(mockServer, {
-      homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-      homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-    });
     const mock = mockAccountsApi(transactions);
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
@@ -192,6 +188,11 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Received ETH');
@@ -249,6 +250,11 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Sent ETH');
@@ -274,6 +280,11 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextNotDisplayed('Received ETH');
