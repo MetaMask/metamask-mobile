@@ -1344,6 +1344,35 @@ describe('PolymarketProvider', () => {
       expect(mockSubmitClobOrder).not.toHaveBeenCalled();
     });
 
+    it('reuses the protocol resolved in placeOrder for v1 submission', async () => {
+      const { mockSigner } = setupPlaceOrderTest();
+      let featureFlagReadCount = 0;
+      const provider = new PolymarketProvider({
+        getFeatureFlags: () => {
+          featureFlagReadCount += 1;
+          return {
+            ...defaultFeatureFlags,
+            predictClobV2Enabled: featureFlagReadCount > 1,
+          };
+        },
+      });
+      jest.spyOn(provider, 'getPositions').mockResolvedValue([]);
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockSubmitClobOrder).toHaveBeenCalledTimes(1);
+      expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
+      expect(mockCreateApiKey).toHaveBeenCalledWith({
+        address: mockSigner.address,
+        clobVersion: 'v1',
+      });
+    });
+
     it('aborts v2 order placement when trade preflight fails', async () => {
       jest.clearAllMocks();
       const { provider, mockSigner } = setupPlaceOrderTest({

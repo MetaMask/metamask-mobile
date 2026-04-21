@@ -354,16 +354,12 @@ export class PolymarketProvider implements PredictProvider {
   async #submitOrderV1({
     signer,
     preview,
+    protocol,
   }: {
     signer: Signer;
     preview: OrderPreview;
+    protocol: Extract<PolymarketProtocolDefinition, { key: 'v1' }>;
   }) {
-    const protocol = this.#getProtocol();
-
-    if (protocol.key !== 'v1') {
-      throw new Error('Invalid Polymarket protocol for v1 order submission');
-    }
-
     const chainId = POLYGON_MAINNET_CHAIN_ID;
     const makerAddress =
       this.#accountStateByAddress.get(signer.address)?.address ??
@@ -1762,6 +1758,7 @@ export class PolymarketProvider implements PredictProvider {
           : await this.#submitOrderV1({
               signer,
               preview,
+              protocol,
             });
 
       if (side === Side.BUY) {
