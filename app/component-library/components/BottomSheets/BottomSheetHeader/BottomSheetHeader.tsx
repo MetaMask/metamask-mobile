@@ -23,6 +23,7 @@ import {
  * @deprecated Please update your code to use `BottomSheetHeader` from `@metamask/design-system-react-native`.
  * The API may have changed - compare props before migrating.
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BottomSheetHeader/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/v34.0.0/packages/design-system-react-native/MIGRATION.md#bottomsheetheader-component Migration docs}
  */
 const BottomSheetHeader: React.FC<BottomSheetHeaderProps> = ({
   style,

@@ -27,6 +27,7 @@ import {
  * @deprecated Please update your code to use `TextField` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/TextField/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/v34.0.0/packages/design-system-react-native/MIGRATION.md#textfield-component Migration docs}
  * @since @metamask/design-system-react-native@0.9.0
  */
 const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
