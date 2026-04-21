@@ -149,6 +149,8 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote.priceData?.priceImpact,
   );
+  const shouldShowPriceImpactRow =
+    activeQuote?.quote.priceData?.priceImpact != null;
 
   // Early return for invalid states
   if (
@@ -374,51 +376,53 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        <KeyValueRow
-          field={{
-            label: {
-              text: toSentenceCase(strings('bridge.price_impact')),
-              variant: TextVariantLegacy.BodyMD,
-              color: TextColorLegacy.Alternative,
-            },
-            tooltip: {
-              title: strings('bridge.price_impact_info_title'),
-              content: strings('bridge.price_impact_info_description'),
-              size: TooltipSizes.Sm,
-              iconName: IconNameLegacy.Info,
-            },
-          }}
-          value={{
-            label: (
-              <TouchableOpacity
-                testID="price-impact-info-button"
-                onPress={handlePriceImpactPress}
-                activeOpacity={priceImpactIsSafe ? 1 : 0.6}
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={1}
+        {shouldShowPriceImpactRow && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: toSentenceCase(strings('bridge.price_impact')),
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Alternative,
+              },
+              tooltip: {
+                title: strings('bridge.price_impact_info_title'),
+                content: strings('bridge.price_impact_info_description'),
+                size: TooltipSizes.Sm,
+                iconName: IconNameLegacy.Info,
+              },
+            }}
+            value={{
+              label: (
+                <TouchableOpacity
+                  testID="price-impact-info-button"
+                  onPress={handlePriceImpactPress}
+                  activeOpacity={priceImpactIsSafe ? 1 : 0.6}
                 >
-                  {priceImpactViewData.icon && (
-                    <Icon
-                      name={priceImpactViewData.icon.name}
-                      size={IconSize.Sm}
-                      color={priceImpactViewData.icon.color}
-                      twClassName="mt-[2px]"
-                    />
-                  )}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={priceImpactViewData.textColor}
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={1}
                   >
-                    {formatPriceImpact(formattedQuoteData.priceImpact)}
-                  </Text>
-                </Box>
-              </TouchableOpacity>
-            ),
-          }}
-        />
+                    {priceImpactViewData.icon && (
+                      <Icon
+                        name={priceImpactViewData.icon.name}
+                        size={IconSize.Sm}
+                        color={priceImpactViewData.icon.color}
+                        twClassName="mt-[2px]"
+                      />
+                    )}
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={priceImpactViewData.textColor}
+                    >
+                      {formatPriceImpact(formattedQuoteData.priceImpact)}
+                    </Text>
+                  </Box>
+                </TouchableOpacity>
+              ),
+            }}
+          />
+        )}
 
         <QuoteDetailsRecipientKeyValueRow />
 

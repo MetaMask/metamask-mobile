@@ -3152,7 +3152,7 @@
     "general_title": "General",
     "general_desc": "Currency conversion, primary currency, language and search engine.",
     "advanced_title": "Advanced",
-    "advanced_desc": "Access developer features, reset account, set up testnets, state logs, IPFS gateway and custom RPC.",
+    "advanced_desc": "Access developer features, reset account, set up testnets, state logs, and custom RPC.",
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
@@ -3183,7 +3183,7 @@
     "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Security and privacy",
     "back": "Back",
-    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
+    "security_desc": "Privacy settings, MetaMetrics, private key, Secret Recovery Phrase, and IPFS gateway.",
     "networks_title": "Networks",
     "networks_default_title": "Default network",
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
@@ -6321,7 +6321,7 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Hold mUSD in your Money Account and auto-earn ",
+      "description_prefix": "Hold mUSD in your Money Account and auto-earn",
       "description_suffix": ". It's dollar-backed, always liquid, and ready to spend, trade, or send anytime."
     },
     "musd_row": {

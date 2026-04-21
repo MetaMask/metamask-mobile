@@ -10,7 +10,10 @@ import type {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
-import type { AccountsControllerAccountBalancesUpdatesEvent } from '@metamask/accounts-controller';
+import type {
+  AccountsControllerAccountBalancesUpdatesEvent,
+  AccountsControllerGetSelectedAccountAction,
+} from '@metamask/accounts-controller';
 import type {
   NetworkEnablementControllerGetStateAction,
   NetworkEnablementControllerEvents,
@@ -40,6 +43,7 @@ import type {
 import type {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerIncomingTransactionsReceivedEvent,
+  TransactionControllerUnapprovedTransactionAddedEvent,
 } from '@metamask/transaction-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { AnalyticsControllerActions } from '@metamask/analytics-controller';
@@ -58,7 +62,8 @@ type AssetsControllerAllowedActions =
   | SnapControllerHandleRequestAction
   | SnapControllerGetRunnableSnapsAction
   | GetPermissions
-  | PhishingControllerBulkScanTokensAction;
+  | PhishingControllerBulkScanTokensAction
+  | AccountsControllerGetSelectedAccountAction;
 /**
  * Events that AssetsController and its data sources subscribe to.
  * Aligned with extension: core + RpcDataSource + BackendWebsocketDataSource + SnapDataSource.
@@ -75,7 +80,8 @@ type AssetsControllerAllowedEvents =
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerIncomingTransactionsReceivedEvent
   | AccountsControllerAccountBalancesUpdatesEvent
-  | PermissionControllerStateChange;
+  | PermissionControllerStateChange
+  | TransactionControllerUnapprovedTransactionAddedEvent;
 
 /** Re-export package type so init receives the type expected by AssetsController constructor. */
 export type AssetsControllerMessenger = PackageAssetsControllerMessenger;
@@ -112,6 +118,7 @@ export function getAssetsControllerMessenger(
       'SnapController:getRunnableSnaps',
       'PermissionController:getPermissions',
       'PhishingController:bulkScanTokens',
+      'AccountsController:getSelectedAccount',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',
@@ -126,6 +133,7 @@ export function getAssetsControllerMessenger(
       'BackendWebSocketService:connectionStateChanged',
       'AccountsController:accountBalancesUpdated',
       'PermissionController:stateChange',
+      'TransactionController:unapprovedTransactionAdded',
     ],
     messenger,
   });
