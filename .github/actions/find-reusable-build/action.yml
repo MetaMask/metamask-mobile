@@ -1,0 +1,206 @@
+name: 'Find reusable build from prior run'
+description: >-
+  Searches recent workflow runs (same branch first, then base branch) for a run
+  whose `build-source-hash` commit status matches the current fingerprint AND
+  whose required build artifacts are still available. If a match is found,
+  outputs the run id so a subsequent `actions/download-artifact` step can pull
+  the artifacts directly instead of triggering a fresh native build.
+
+inputs:
+  fingerprint:
+    description: 'The @expo/fingerprint hash the candidate must match'
+    required: true
+  artifact-names:
+    description: 'JSON array of artifact names that must all be present on the candidate run'
+    required: true
+  github-token:
+    description: 'GitHub token with `actions: read` and `statuses: read` permissions'
+    required: true
+  workflow-file:
+    description: 'Workflow filename whose runs will be searched'
+    required: false
+    default: 'ci.yml'
+  base-branch:
+    description: 'Fallback branch when no same-branch match is found'
+    required: false
+    default: 'main'
+  status-context:
+    description: 'Commit status context that carries the fingerprint'
+    required: false
+    default: 'build-source-hash'
+  max-candidates-per-branch:
+    description: 'How many recent runs to inspect per branch'
+    required: false
+    default: '10'
+
+outputs:
+  found:
+    description: "'true' when a reusable run was found"
+    value: ${{ steps.lookup.outputs.found }}
+  run-id:
+    description: 'Workflow run id that produced the reusable artifacts'
+    value: ${{ steps.lookup.outputs.run-id }}
+  source-sha:
+    description: 'Commit SHA of the reusable run'
+    value: ${{ steps.lookup.outputs.source-sha }}
+  source-branch:
+    description: 'Branch of the reusable run (same-branch or base-branch)'
+    value: ${{ steps.lookup.outputs.source-branch }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Search prior runs for matching fingerprint
+      id: lookup
+      uses: actions/github-script@v7
+      continue-on-error: true
+      env:
+        TARGET_FINGERPRINT: ${{ inputs.fingerprint }}
+        ARTIFACT_NAMES_JSON: ${{ inputs.artifact-names }}
+        WORKFLOW_FILE: ${{ inputs.workflow-file }}
+        BASE_BRANCH: ${{ inputs.base-branch }}
+        STATUS_CONTEXT: ${{ inputs.status-context }}
+        MAX_CANDIDATES: ${{ inputs.max-candidates-per-branch }}
+        HEAD_BRANCH: ${{ github.head_ref || github.ref_name }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        CURRENT_RUN_ID: ${{ github.run_id }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const {
+            TARGET_FINGERPRINT,
+            ARTIFACT_NAMES_JSON,
+            WORKFLOW_FILE,
+            BASE_BRANCH,
+            STATUS_CONTEXT,
+            MAX_CANDIDATES,
+            HEAD_BRANCH,
+            HEAD_SHA,
+            CURRENT_RUN_ID,
+          } = process.env;
+
+          const setNotFound = () => {
+            core.setOutput('found', 'false');
+            core.setOutput('run-id', '');
+            core.setOutput('source-sha', '');
+            core.setOutput('source-branch', '');
+          };
+
+          if (!TARGET_FINGERPRINT) {
+            core.warning('No fingerprint provided; skipping lookup');
+            setNotFound();
+            return;
+          }
+
+          let requiredArtifacts;
+          try {
+            requiredArtifacts = JSON.parse(ARTIFACT_NAMES_JSON);
+          } catch (err) {
+            core.warning(`Could not parse artifact-names input: ${err.message}`);
+            setNotFound();
+            return;
+          }
+          if (!Array.isArray(requiredArtifacts) || requiredArtifacts.length === 0) {
+            core.warning('artifact-names must be a non-empty JSON array');
+            setNotFound();
+            return;
+          }
+
+          const maxCandidates = Number(MAX_CANDIDATES) || 10;
+          const currentRunId = String(CURRENT_RUN_ID);
+
+          const branchesToSearch = [HEAD_BRANCH];
+          if (BASE_BRANCH && BASE_BRANCH !== HEAD_BRANCH) {
+            branchesToSearch.push(BASE_BRANCH);
+          }
+
+          async function getFingerprintForSha(sha) {
+            try {
+              const { data } = await github.rest.repos.getCombinedStatusForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha,
+                per_page: 100,
+              });
+              const status = data.statuses.find((s) => s.context === STATUS_CONTEXT);
+              return status ? status.description : null;
+            } catch (err) {
+              core.info(`getCombinedStatusForRef failed for ${sha}: ${err.message}`);
+              return null;
+            }
+          }
+
+          async function hasAllArtifacts(runId) {
+            try {
+              const artifacts = await github.paginate(
+                github.rest.actions.listWorkflowRunArtifacts,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: runId,
+                  per_page: 100,
+                },
+              );
+              const available = new Set(
+                artifacts
+                  .filter((a) => !a.expired)
+                  .map((a) => a.name),
+              );
+              const missing = requiredArtifacts.filter((n) => !available.has(n));
+              if (missing.length > 0) {
+                core.info(`Run ${runId} missing artifacts: ${missing.join(', ')}`);
+                return false;
+              }
+              return true;
+            } catch (err) {
+              core.info(`listWorkflowRunArtifacts failed for ${runId}: ${err.message}`);
+              return false;
+            }
+          }
+
+          for (const branch of branchesToSearch) {
+            core.info(`Searching recent ${WORKFLOW_FILE} runs on branch=${branch}`);
+            let runs;
+            try {
+              const { data } = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: WORKFLOW_FILE,
+                branch,
+                per_page: maxCandidates,
+              });
+              runs = data.workflow_runs || [];
+            } catch (err) {
+              core.warning(`listWorkflowRuns failed for ${branch}: ${err.message}`);
+              continue;
+            }
+
+            for (const run of runs) {
+              if (String(run.id) === currentRunId) continue;
+              if (run.status !== 'completed' && run.status !== 'in_progress') continue;
+              if (run.status === 'completed' && run.conclusion && run.conclusion !== 'success' && run.conclusion !== 'neutral') {
+                continue;
+              }
+              if (run.head_sha === HEAD_SHA && String(run.id) !== currentRunId) {
+                // allow same-SHA reuse from other runs (e.g. earlier attempts)
+              }
+
+              const fingerprint = await getFingerprintForSha(run.head_sha);
+              if (!fingerprint) continue;
+              if (fingerprint !== TARGET_FINGERPRINT) continue;
+
+              if (!(await hasAllArtifacts(run.id))) continue;
+
+              core.info(
+                `Match: run=${run.id} sha=${run.head_sha} branch=${branch} url=${run.html_url}`,
+              );
+              core.setOutput('found', 'true');
+              core.setOutput('run-id', String(run.id));
+              core.setOutput('source-sha', run.head_sha);
+              core.setOutput('source-branch', branch);
+              return;
+            }
+          }
+
+          core.info('No reusable build found');
+          setNotFound();

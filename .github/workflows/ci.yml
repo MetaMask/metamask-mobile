@@ -78,6 +78,36 @@ jobs:
             echo "No changes detected"
           fi
 
+  post-build-source-hash:
+    name: Post build-source-hash commit status
+    runs-on: ubuntu-latest
+    # Always publish the commit status (even for merge_group or when builds are
+    # skipped) so future runs can still find this commit when searching for
+    # reusable native builds.
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      statuses: write
+    needs:
+      - check-skip-merge-queue
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Post build-source-hash commit status
+        uses: ./.github/actions/post-build-source-hash
+        with:
+          github-token: ${{ github.token }}
+
   dedupe:
     name: Dedupe
     runs-on: ubuntu-latest

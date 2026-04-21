@@ -21,6 +21,8 @@ on:
 permissions:
   contents: read
   id-token: write
+  actions: read
+  pull-requests: read
 
 jobs:
   build-ios-apps:
@@ -74,6 +76,16 @@ jobs:
       # Get the source code from the repository
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      # Escape hatch: a `force-builds` label on the PR or a `[force-builds]`
+      # token in the head commit message forces a fresh native build and
+      # bypasses both the GHA cache restores and the cross-run artifact
+      # lookup. Honored only on `pull_request` events.
+      - name: Check force-builds override
+        id: force-builds
+        uses: ./.github/actions/check-force-builds
+        with:
+          github-token: ${{ github.token }}
 
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
@@ -153,6 +165,7 @@ jobs:
 
       - name: Restore iOS app matching fingerprint from branch cache
         id: cache-restore
+        if: ${{ steps.force-builds.outputs.force != 'true' }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -161,7 +174,7 @@ jobs:
           key: ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Restore iOS app matching fingerprint from main cache
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ steps.force-builds.outputs.force != 'true' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -170,9 +183,39 @@ jobs:
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
+      # Cross-PR reuse: before building, try to find a prior workflow run whose
+      # build-source-hash commit status matches our fingerprint AND whose
+      # MetaMask.app artifact is still available. Falls back to a fresh build.
+      - name: Find reusable build from prior run
+        id: find-reusable-build
+        if: ${{ steps.force-builds.outputs.force != 'true' && steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ steps.generate-fingerprint.outputs.fingerprint }}
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          github-token: ${{ github.token }}
+
+      - name: Download reusable iOS build from prior run
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Log reused iOS build source
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        run: |
+          echo "Reusing iOS build from run ${{ steps.find-reusable-build.outputs.run-id }}"
+          echo "Source SHA: ${{ steps.find-reusable-build.outputs.source-sha }}"
+          echo "Source branch: ${{ steps.find-reusable-build.outputs.source-branch }}"
+        shell: bash
+
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' && steps.find-reusable-build.outputs.found != 'true' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -207,7 +250,7 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' || steps.find-reusable-build.outputs.found == 'true' }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -287,7 +330,7 @@ jobs:
       # Only runs when repack step runs (cache hit), as that's when sourcemap is generated
       - name: Upload iOS Source Map
         id: upload-sourcemap
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' || steps.find-reusable-build.outputs.found == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
