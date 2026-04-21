@@ -4,7 +4,6 @@ import {
   showWCLoadingState,
   isValidWCURI,
   waitForNetworkModalOnboarding,
-  getScopedPermissions,
   networkModalOnboardingConfig,
   getHostname,
   normalizeDappUrl,
@@ -14,7 +13,6 @@ import type {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
-import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
 import Routes from '../../../app/constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-namespace
 import * as StoreModule from '../../../app/store';
@@ -219,35 +217,6 @@ describe('WalletConnect Utils', () => {
       await expect(
         waitForNetworkModalOnboarding({ chainId: '1' }),
       ).rejects.toThrow('Timeout error');
-    });
-  });
-
-  describe('APPROVED_METHODS_BY_NAMESPACE', () => {
-    it('returns all approved EIP-155 methods', () => {
-      const methods = APPROVED_METHODS_BY_NAMESPACE.eip155;
-      expect(methods).toContain('eth_sendTransaction');
-      expect(methods).toContain('wallet_switchEthereumChain');
-    });
-
-    it('includes EIP-5792 methods', () => {
-      const methods = APPROVED_METHODS_BY_NAMESPACE.eip155;
-      expect(methods).toContain('wallet_sendCalls');
-      expect(methods).toContain('wallet_getCallsStatus');
-      expect(methods).toContain('wallet_getCapabilities');
-    });
-  });
-
-  describe('getScopedPermissions', () => {
-    it('returns correct scoped permissions', async () => {
-      const result = await getScopedPermissions({ channelId: 'test' });
-      expect(result).toEqual({
-        eip155: {
-          chains: ['eip155:1'],
-          methods: expect.any(Array),
-          events: ['chainChanged', 'accountsChanged'],
-          accounts: ['eip155:1:0x123'],
-        },
-      });
     });
   });
 

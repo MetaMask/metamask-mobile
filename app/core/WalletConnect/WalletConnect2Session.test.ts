@@ -129,20 +129,11 @@ jest.mock('../RPCMethods/RPCMethodMiddleware', () => ({
   default: () => () => ({ acknowledged: () => Promise.resolve() }),
   getRpcMethodMiddlewareHooks: jest.fn().mockReturnValue({}),
 }));
-jest.mock('./wc-config', () => jest.requireActual('./wc-config'));
 jest.mock('./wc-utils', () => ({
   ...jest.requireActual('./wc-utils'),
   hideWCLoadingState: jest.fn(),
   showWCLoadingState: jest.fn(),
   checkWCPermissions: jest.fn().mockResolvedValue(true),
-  getScopedPermissions: jest.fn().mockResolvedValue({
-    eip155: {
-      chains: ['eip155:1'],
-      methods: ['eth_sendTransaction'],
-      events: ['chainChanged', 'accountsChanged'],
-      accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
-    },
-  }),
   normalizeOrigin: jest.fn().mockImplementation((url) => url),
   getHostname: jest.fn().mockReturnValue('example.com'),
 }));

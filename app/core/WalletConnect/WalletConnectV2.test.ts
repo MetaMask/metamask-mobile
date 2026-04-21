@@ -221,14 +221,6 @@ jest.mock('../BackgroundBridge/BackgroundBridge', () => ({
 
 jest.mock('./wc-utils', () => ({
   ...jest.requireActual('./wc-utils'),
-  getScopedPermissions: jest.fn().mockResolvedValue({
-    eip155: {
-      chains: ['eip155:1'],
-      methods: ['eth_sendTransaction', 'eth_signTransaction', 'eth_sign'],
-      events: ['chainChanged', 'accountsChanged'],
-      accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
-    },
-  }),
   showWCLoadingState: jest.fn(),
   hideWCLoadingState: jest.fn(),
 }));
@@ -919,27 +911,12 @@ describe('WC2Manager', () => {
   });
 
   describe('WC2Manager session proposal handling', () => {
-    it('injects tron namespace when scoped permissions contain tron without chains', async () => {
+    it('injects tron namespace with chains requested in optional namespaces', async () => {
       (
         Engine.context.AccountsController as unknown as {
           listAccounts: jest.Mock;
         }
       ).listAccounts = jest.fn().mockReturnValue([]);
-
-      (wcUtils.getScopedPermissions as jest.Mock).mockResolvedValueOnce({
-        eip155: {
-          chains: ['eip155:1'],
-          methods: ['eth_sendTransaction'],
-          events: ['chainChanged', 'accountsChanged'],
-          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
-        },
-        tron: {
-          chains: [],
-          methods: ['tron_signTransaction'],
-          events: [],
-          accounts: [],
-        },
-      });
 
       const mockSessionProposal = {
         id: 1,
@@ -994,20 +971,28 @@ describe('WC2Manager', () => {
         }
       ).listAccounts = jest.fn().mockReturnValue([]);
 
-      (wcUtils.getScopedPermissions as jest.Mock).mockResolvedValueOnce({
-        eip155: {
-          chains: ['eip155:1'],
-          methods: ['eth_sendTransaction'],
-          events: ['chainChanged', 'accountsChanged'],
-          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+      // The tron adapter reads permitted Tron accounts directly from the
+      // CAIP-25 caveat. Simulate that a Tron account was previously granted
+      // for this channel even though the AccountsController keyring filter
+      // returns nothing (e.g. keyring not yet re-registered on cold start).
+      (
+        Engine.context.PermissionController.getCaveat as jest.Mock
+      ).mockImplementationOnce(() => ({
+        type: 'caip25',
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+            },
+            'tron:728126428': {
+              accounts: ['tron:728126428:TENH9XL11i2qyDQUEvXsYf51aY2ALnEXeG'],
+            },
+          },
+          sessionProperties: {},
+          isMultichainOrigin: false,
         },
-        tron: {
-          chains: ['tron:728126428'],
-          methods: ['tron_signTransaction'],
-          events: [],
-          accounts: ['tron:728126428:TENH9XL11i2qyDQUEvXsYf51aY2ALnEXeG'],
-        },
-      });
+      }));
 
       const mockSessionProposal = {
         id: 1,

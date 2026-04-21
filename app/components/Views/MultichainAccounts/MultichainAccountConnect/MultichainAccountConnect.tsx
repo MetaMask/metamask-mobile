@@ -62,6 +62,7 @@ import {
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController.ts';
 import { isUUID } from '../../../../core/SDKConnect/utils/isUUID.ts';
+import { resolveProposalNamespaceKey } from '../../../../core/WalletConnect/multichain';
 import useOriginSource from '../../../hooks/useOriginSource.ts';
 import {
   getCaip25PermissionsResponse,
@@ -225,18 +226,13 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     ];
 
     // CAIP-25 may encode delegated namespace requests (for example wallet:eip155).
-    // Expand wallet:<namespace> scopes so default network selection still includes
-    // those concrete namespaces in multichain WalletConnect flows.
+    // resolveProposalNamespaceKey maps both plain and delegated scopes to the
+    // concrete namespace so default network selection stays consistent across
+    // multichain WalletConnect flows.
     rawScopeKeys.forEach((scope) => {
-      if (!scope.startsWith(`${KnownCaipNamespace.Wallet}:`)) {
-        return;
-      }
-
-      const delegatedNamespace = scope.slice(
-        `${KnownCaipNamespace.Wallet}:`.length,
-      );
-      if (delegatedNamespace) {
-        namespaces.add(delegatedNamespace as CaipNamespace);
+      const resolved = resolveProposalNamespaceKey(scope);
+      if (resolved && resolved !== KnownCaipNamespace.Wallet) {
+        namespaces.add(resolved as CaipNamespace);
       }
     });
 
