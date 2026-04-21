@@ -137,6 +137,12 @@ export const useNotificationPreferences =
       error: queryError,
       refetch,
     } = useQuery<StoredNotificationPreferences | null>({
+      // The query key intentionally omits a user/profile identifier.
+      // On mobile, the bearer token is always the active account's, and an
+      // account switch triggers a full session reset that unmounts this hook
+      // and clears the query cache. Adding a profile ID would require wiring
+      // a selector here and would add no safety for the single-user mobile
+      // context.
       queryKey: [GET_ACTION],
     });
 
@@ -155,6 +161,13 @@ export const useNotificationPreferences =
     // Serialize writes. Each persist awaits the previous one so rapid
     // back-to-back toggles can't interleave GETs and PUTs.
     const writeChainRef = useRef<Promise<unknown>>(Promise.resolve());
+
+    // Tracks the latest *intended* socialAI so rapid successive calls chain
+    // mutations correctly. Updated synchronously in applyChange before any
+    // async work so the next call sees the updated base even before React
+    // has re-rendered with the new overlay.
+    const pendingSocialAIRef = useRef<SocialAIPreference>(socialAI);
+    pendingSocialAIRef.current = socialAI;
 
     /**
      * Executes a single read-merge-write cycle for the `socialAI` slice:
@@ -198,9 +211,12 @@ export const useNotificationPreferences =
     );
 
     const applyChange = useCallback(
-      async (nextSocialAI: SocialAIPreference) => {
-        const previousOverlay = overlay;
-        const previousRemote = remoteSocialAI;
+      async (updater: (prev: SocialAIPreference) => SocialAIPreference) => {
+        const previousSocialAI = pendingSocialAIRef.current;
+        const nextSocialAI = updater(previousSocialAI);
+        // Update the ref synchronously so the next rapid call chains on
+        // top of this mutation's output, not the stale render-time value.
+        pendingSocialAIRef.current = nextSocialAI;
         setOverlay(nextSocialAI);
         setPersistError(null);
 
@@ -216,15 +232,15 @@ export const useNotificationPreferences =
             err as Error,
             'useNotificationPreferences: persist failed',
           );
-          // Revert to the last known good value (either a prior overlay or
-          // whatever the remote currently holds).
-          setOverlay(previousOverlay ?? previousRemote);
+          // Revert to the last known good value.
+          pendingSocialAIRef.current = previousSocialAI;
+          setOverlay(previousSocialAI);
           setPersistError(
             err instanceof Error ? err.message : String(err ?? 'Unknown error'),
           );
         }
       },
-      [overlay, remoteSocialAI, enqueuePersist, refetch],
+      [enqueuePersist, refetch],
     );
 
     // Drop the optimistic overlay once the remote query reflects it. Comparing
@@ -237,28 +253,25 @@ export const useNotificationPreferences =
     }, [overlay, remoteSocialAI]);
 
     const setEnabled = useCallback(
-      (value: boolean) => applyChange({ ...socialAI, enabled: value }),
-      [socialAI, applyChange],
+      (value: boolean) => applyChange((prev) => ({ ...prev, enabled: value })),
+      [applyChange],
     );
 
     const setTxAmountLimit = useCallback(
       (value: TxAmountThreshold) =>
-        applyChange({ ...socialAI, txAmountLimit: value }),
-      [socialAI, applyChange],
+        applyChange((prev) => ({ ...prev, txAmountLimit: value })),
+      [applyChange],
     );
 
     const toggleTraderNotification = useCallback(
-      (traderId: string) => {
-        const muted = socialAI.mutedTraderProfileIds;
-        const nextMuted = muted.includes(traderId)
-          ? muted.filter((id) => id !== traderId)
-          : [...muted, traderId];
-        return applyChange({
-          ...socialAI,
-          mutedTraderProfileIds: nextMuted,
-        });
-      },
-      [socialAI, applyChange],
+      (traderId: string) =>
+        applyChange((prev) => {
+          const nextMuted = prev.mutedTraderProfileIds.includes(traderId)
+            ? prev.mutedTraderProfileIds.filter((id) => id !== traderId)
+            : [...prev.mutedTraderProfileIds, traderId];
+          return { ...prev, mutedTraderProfileIds: nextMuted };
+        }),
+      [applyChange],
     );
 
     const isTraderNotificationEnabled = useCallback(

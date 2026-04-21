@@ -410,5 +410,34 @@ describe('useNotificationPreferences', () => {
         'PUT-2-end',
       ]);
     });
+
+    it('chains rapid successive mutations so the second PUT reflects both changes', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return buildRemote();
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        // Fire both mutations without awaiting — simulates rapid user interaction
+        // before React can re-render with the new overlay.
+        const first = result.current.setEnabled(false);
+        const second = result.current.setTxAmountLimit(100);
+        await Promise.all([first, second]);
+      });
+
+      // There must be exactly two PUTs (one per mutation, serialized).
+      const putCalls = mockCall.mock.calls.filter((c) => c[0] === PUT_ACTION);
+      expect(putCalls).toHaveLength(2);
+
+      // The second PUT must carry BOTH mutations — not the stale socialAI base
+      // from the first render (which would have re-applied enabled: true).
+      expect(putCalls[1][1].socialAI).toMatchObject({
+        enabled: false,
+        txAmountLimit: 100,
+      });
+    });
   });
 });

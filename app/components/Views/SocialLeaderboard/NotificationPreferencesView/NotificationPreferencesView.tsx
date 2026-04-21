@@ -38,8 +38,6 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import { TradersFollowedSkeleton } from './components/Skeletons';
-import { getIntlNumberFormatter } from '../../../../util/intl';
-
 const AVATAR_SIZE = 40;
 
 const radioStyles = StyleSheet.create({
@@ -203,18 +201,26 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
 // Main screen
 // ---------------------------------------------------------------------------
 
+// One formatter per currency code; created once and reused across renders.
+const thresholdFormatterCache = new Map<string, Intl.NumberFormat>();
+
 const formatThreshold = (
   amount: number,
   currency: string | undefined,
 ): string => {
   const code = currency?.toUpperCase() ?? 'USD';
   try {
-    return getIntlNumberFormatter('', {
-      style: 'currency',
-      currency: code,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    let formatter = thresholdFormatterCache.get(code);
+    if (!formatter) {
+      formatter = new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: code,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      thresholdFormatterCache.set(code, formatter);
+    }
+    return formatter.format(amount);
   } catch {
     return `${code} ${amount}`;
   }
