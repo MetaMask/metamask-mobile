@@ -22,7 +22,7 @@ const TraderRowSkeleton: React.FC = () => {
       >
         <View style={tw.style('flex-row items-center')}>
           {/* Rank placeholder */}
-          <View style={tw.style('w-6 h-4 rounded mr-3')} />
+          <View style={tw.style('w-8 h-4 rounded mr-3')} />
 
           {/* Avatar placeholder */}
           <View style={tw.style('w-10 h-10 rounded-full mr-3')} />

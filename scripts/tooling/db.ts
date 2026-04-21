@@ -3,8 +3,16 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-export const DEFAULT_DB_DIR = path.join(os.homedir(), '.tool-usage-collection');
-export const DEFAULT_DB_PATH = path.join(DEFAULT_DB_DIR, 'events.db');
+// babel-plugin-transform-inline-environment-variables statically replaces
+// process.env.VAR_NAME at compile time. Routing through a dynamic key
+// (`env[key]`) prevents inlining and preserves runtime override behaviour.
+const getDbPath = (): string => {
+  const env: Record<string, string | undefined> = process.env;
+  return (
+    env.TOOL_USAGE_COLLECTION_DB_PATH ||
+    path.join(os.homedir(), '.tool-usage-collection', 'events.db')
+  );
+};
 
 /**
  * Opens (or creates) the tool-usage SQLite database, initialises the schema,
@@ -12,7 +20,7 @@ export const DEFAULT_DB_PATH = path.join(DEFAULT_DB_DIR, 'events.db');
  *
  * Pass ':memory:' during tests to avoid touching the filesystem.
  */
-export function openDb(dbPath = DEFAULT_DB_PATH): Database.Database {
+export function openDb(dbPath = getDbPath()): Database.Database {
   // WAL journal mode requires a real file; skip dir creation and pragma for memory DBs
   const isMemory = dbPath === ':memory:';
 
