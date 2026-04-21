@@ -26,7 +26,10 @@ export interface OriginSource {
 // Pairs each detected SourceType branch with the canonical REQUEST_SOURCES
 // value emitted by signature/transaction events, so connect events join the
 // Mixpanel funnel natively on request_source.
-const SOURCE_TO_REQUEST_SOURCE: Record<SourceTypeValue, RequestSource | undefined> = {
+const SOURCE_TO_REQUEST_SOURCE: Record<
+  SourceTypeValue,
+  RequestSource | undefined
+> = {
   [SourceType.SDK]: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
   [SourceType.MM_CONNECT]: AppConstants.REQUEST_SOURCES.MM_CONNECT,
   [SourceType.WALLET_CONNECT]: AppConstants.REQUEST_SOURCES.WC,

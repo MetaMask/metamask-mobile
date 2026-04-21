@@ -166,7 +166,10 @@ jest.mock('../../../hooks/useFavicon/useFavicon', () =>
 );
 
 jest.mock('../../../hooks/useOriginSource', () =>
-  jest.fn(() => ({ source: 'in-app browser', requestSource: 'In-App-Browser' })),
+  jest.fn(() => ({
+    source: 'in-app browser',
+    requestSource: 'In-App-Browser',
+  })),
 );
 
 jest.mock('../../../hooks/useSDKV2Connection/useSDKV2Connection', () => ({
