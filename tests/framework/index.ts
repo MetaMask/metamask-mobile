@@ -22,7 +22,7 @@ export {
   type WaitForAdditionalProxiedRequestsOptions,
 } from '../api-mocking/helpers/mockHelpers.ts';
 
-// Dapp server exports for standalone usage (e.g., Appwright tests)
+// Dapp server exports for standalone usage (e.g., Playwright tests)
 export { default as DappServer } from './DappServer.ts';
 export { DappVariants, TestDapps } from './Constants.ts';
 

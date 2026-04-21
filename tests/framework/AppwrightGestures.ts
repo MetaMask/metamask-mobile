@@ -9,6 +9,7 @@ import { Device, AppwrightLocator } from 'appwright';
 export default class AppwrightGestures {
   /**
    * Tap method with retry logic
+   * @deprecated Use PlaywrightGestures.tap() instead
    * @param elem - The element promise to tap
    * @param options - Configuration options for retry behavior
    * @param maxRetries - Maximum number of tap attempts
@@ -66,7 +67,7 @@ export default class AppwrightGestures {
   }
 
   /**
-   *
+   * @deprecated
    * @param x - The x coordinate to tap
    * @param y - The y coordinate to tap
    */
@@ -82,6 +83,7 @@ export default class AppwrightGestures {
   }
 
   /**
+   * @deprecated
    * Type text into an element with retry logic
    * @param elem - The element promise to type into
    * @param text - The text to type
@@ -141,6 +143,7 @@ export default class AppwrightGestures {
   }
 
   /**
+   * @deprecated
    * Utility method to wait for a specified amount of time
    * @param ms - Time to wait in milliseconds
    */
@@ -149,6 +152,7 @@ export default class AppwrightGestures {
   }
 
   /**
+   * @deprecated
    * Scroll element into view with platform-specific scrolling
    * @param testDevice - The device instance
    * @param elem - The element promise to scroll into view
@@ -239,6 +243,7 @@ export default class AppwrightGestures {
   }
 
   /**
+   * @deprecated
    * Terminate the MetaMask app
    * @param deviceInstance - The device object
    * @param options - Configuration options for termination behavior
@@ -274,6 +279,7 @@ export default class AppwrightGestures {
 
   /**
    * Activate the MetaMask app
+   * @deprecated
    * @param deviceInstance - The device object
    * @param options - Configuration options for activation behavior
    * @param maxRetries - Maximum number of activation attempts
@@ -317,6 +323,7 @@ export default class AppwrightGestures {
 
   /**
    * Hide keyboard for both Android and iOS
+   * @deprecated
    * @param deviceInstance - The device object
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
@@ -347,6 +354,7 @@ export default class AppwrightGestures {
 
   /**
    * Background the app for specified time
+   * @deprecated
    * @param deviceInstance - The device object
    * @param time - Time in seconds to background the app
    */
@@ -361,6 +369,7 @@ export default class AppwrightGestures {
 
   /**
    * Dismiss alert with platform-specific timeout
+   * @deprecated
    * @param deviceInstance - The device object
    */
   static async dismissAlert(deviceInstance: Device): Promise<void> {

@@ -1,10 +1,6 @@
 import { Platform } from './framework/types';
 import { defineConfig } from './framework/config';
 
-/**
- * THIS IS CURRENTLY NOT IN USE. IT'LL BE USED ONCE WE MIGRATE TO THE NEW
- * FRAMEWORK.
- */
 export default defineConfig({
   testDir: './',
   fullyParallel: false,
@@ -12,7 +8,7 @@ export default defineConfig({
   reporter: [
     [
       'html',
-      { open: 'never', outputFolder: './test-reports/appwright-report' },
+      { open: 'never', outputFolder: './test-reports/playwright-report' },
     ],
     ['./reporters/PerformanceReporter.ts'],
     ['list'],

@@ -116,7 +116,6 @@ jobs:
       - name: Setup project
         run: yarn setup:github-ci
         working-directory: '.'
-        ## This will apply the patches for appwright
 
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
@@ -256,7 +255,7 @@ jobs:
         with:
           name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
-            tests/test-reports/appwright-report/
             tests/reporters/reports
+            tests/test-reports/playwright-report/
           if-no-files-found: ignore
           retention-days: 7

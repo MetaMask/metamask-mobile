@@ -1,6 +1,12 @@
 import { AppwrightLocator, Device, Platform } from 'appwright';
 
 export default class AppwrightSelectors {
+  /**
+   * @deprecated Use PlaywrightSelectors.getById() instead
+   * @param testDevice - The device object
+   * @param id - The ID of the element
+   * @param exact - Whether to match exactly
+   */
   static async getElementByID(
     testDevice: Device,
     id: string,
@@ -9,6 +15,11 @@ export default class AppwrightSelectors {
     return await testDevice.getById(id, { exact });
   }
 
+  /**
+   * @deprecated Use PlaywrightSelectors.getByXpath() instead
+   * @param testDevice - The device object
+   * @param xpath - The XPath of the element
+   */
   static async getElementByXpath(
     testDevice: Device,
     xpath: string,
@@ -16,6 +27,12 @@ export default class AppwrightSelectors {
     return await testDevice.getByXpath(xpath);
   }
 
+  /**
+   * @deprecated Use PlaywrightSelectors.getByText() instead
+   * @param testDevice - The device object
+   * @param text - The text of the element
+   * @param exact - Whether to match exactly
+   */
   static async getElementByText(
     testDevice: Device,
     text: string,
@@ -25,6 +42,11 @@ export default class AppwrightSelectors {
   }
 
   // Catch-all xpath selector that works on both platforms
+  /**
+   * @deprecated Use PlaywrightSelectors.getByCatchAll() instead
+   * @param testDevice - The device object
+   * @param identifier - The identifier of the element
+   */
   static async getElementByCatchAll(
     testDevice: Device,
     identifier: string,
@@ -42,6 +64,11 @@ export default class AppwrightSelectors {
     return await AppwrightSelectors.getElementByXpath(testDevice, xpath);
   }
 
+  /**
+   * @deprecated Use PlaywrightSelectors.getByNameiOS() instead
+   * @param testDevice - The device object
+   * @param identifier - The identifier of the element
+   */
   static async getElementByNameiOS(
     testDevice: Device,
     identifier: string,
@@ -54,16 +81,30 @@ export default class AppwrightSelectors {
     return null;
   }
 
+  /**
+   * @deprecated Use PlaywrightSelectors.isIOS() instead
+   * @param testDevice - The device object
+   */
   static isIOS(testDevice: Device): boolean {
     const platform = testDevice.getPlatform();
     return platform === Platform.IOS;
   }
 
+  /**
+   * @deprecated Use PlaywrightSelectors.isAndroid() instead
+   * @param testDevice - The device object
+   */
   static isAndroid(testDevice: Device): boolean {
     const platform = testDevice.getPlatform();
     return platform === Platform.ANDROID;
   }
 
+  /**
+   * @deprecated Use PlaywrightSelectors.waitForElementToDisappear() instead
+   * @param element - The element
+   * @param elementName - The name of the element
+   * @param timeout - The timeout in milliseconds
+   */
   static async waitForElementToDisappear(
     element: AppwrightLocator,
     elementName: string,

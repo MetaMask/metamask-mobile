@@ -26,7 +26,7 @@ tests/reporters/
 
 ### PerformanceReporter.ts
 
-Main Playwright reporter registered in `appwright.config.ts`. Handles test lifecycle events (`onBegin`, `onTestEnd`, `onEnd`) and orchestrates session enrichment and report generation.
+Main Playwright reporter registered in `playwright.config.ts`. Handles test lifecycle events (`onBegin`, `onTestEnd`, `onEnd`) and orchestrates session enrichment and report generation.
 
 ### PerformanceTracker.ts
 
@@ -116,7 +116,7 @@ private async enrichSessionsWithProviderData(): Promise<void> {
 
 Replace `detectBrowserStackRun()` with a generic check, or always call `enrichSessionsWithProviderData()` and let the registry decide.
 
-### 4. Add project config in appwright.config.ts
+### 4. Add project config in playwright.config.ts
 
 Add a project whose `name` includes the prefix your enricher's `canHandle()` matches on.
 
@@ -127,7 +127,7 @@ Add a project whose `name` includes the prefix your enricher's `canHandle()` mat
 | `providers/<provider>/<Provider>Enricher.ts`               | **New** — enricher class                 |
 | `framework/services/providers/<provider>/<Provider>API.ts` | **New** (if needed) — API client         |
 | `PerformanceReporter.ts`                                   | Import enricher, add to `getEnrichers()` |
-| `appwright.config.ts`                                      | Add project entry with matching name     |
+| `playwright.config.ts`                                     | Add project entry with matching name     |
 
 ## Data Flow
 

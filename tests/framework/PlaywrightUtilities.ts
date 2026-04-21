@@ -124,7 +124,7 @@ class PlaywrightUtilities {
   /**
    * Temporary wait method for the Playwright framework migration to keep the
    * 1:1 to the old Appwright implementation.
-   * See: https://github.com/MetaMask/metamask-mobile/blob/main/tests/framework/utils/Flows.js#L228
+   * See: https://github.com/MetaMask/metamask-mobile/blob/dd3323cfabc55c2a3a44509c8b601cb9b218536c/tests/framework/utils/Flows.js#L228
    * @param ms - The time to wait in milliseconds
    * @returns A promise that resolves when the wait is complete
    */
