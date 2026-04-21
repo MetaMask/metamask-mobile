@@ -4,7 +4,7 @@ import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
 export const TX_AMOUNT_THRESHOLDS = [10, 100, 500, 1000] as const;
 export type TxAmountThreshold = (typeof TX_AMOUNT_THRESHOLDS)[number];
 
-const DEFAULT_ENABLED = true;
+const DEFAULT_ENABLED = false;
 const DEFAULT_TX_AMOUNT_LIMIT: TxAmountThreshold = 500;
 
 export interface NotificationPreferences {
@@ -38,7 +38,7 @@ export interface UseNotificationPreferencesResult {
  *
  * Accepts the list of followed traders so per-trader toggles can be
  * initialised from them. New traders added to the follow list default to
- * notifications enabled.
+ * notifications disabled (opt-in model).
  *
  * TODO: When the backend ships, replace the local useState calls below with
  * reads/writes via SocialController (socialAI.enabled, socialAI.txAmountLimit,

@@ -7,6 +7,7 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -39,9 +40,15 @@ import {
   PositionRowSkeleton,
 } from './components/Skeletons';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
+import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
 import TraderNotificationsBottomSheet, {
   type TraderNotificationsBottomSheetRef,
 } from './components/TraderNotificationsBottomSheet';
+import TopTradersNotificationsSetupBottomSheet, {
+  type TopTradersNotificationsSetupBottomSheetRef,
+} from './components/TopTradersNotificationsSetupBottomSheet';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -83,6 +90,7 @@ const TraderProfileView = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
+  const isFeatureEnabled = useSelector(selectSocialLeaderboardEnabled);
 
   const { traderId, traderName } = route.params;
 
@@ -97,17 +105,33 @@ const TraderProfileView = () => {
   const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
     useTraderPositions(traderId, { refetchInterval: 30_000 });
 
+  const { traders } = useTopTraders({ enabled: isFeatureEnabled });
+  const followedTraders = traders.filter((t) => t.isFollowing);
+
+  const {
+    preferences,
+    setEnabled,
+    setTxAmountLimit,
+    toggleTraderNotification,
+  } = useNotificationPreferences(followedTraders);
+
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
 
   const notificationsSheetRef = useRef<TraderNotificationsBottomSheetRef>(null);
+  const setupSheetRef =
+    useRef<TopTradersNotificationsSetupBottomSheetRef>(null);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleNotificationPress = useCallback(() => {
-    notificationsSheetRef.current?.onOpenBottomSheet();
-  }, []);
+    if (preferences.enabled) {
+      notificationsSheetRef.current?.onOpenBottomSheet();
+    } else {
+      setupSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [preferences.enabled]);
 
   const handlePositionPress = useCallback(
     (position: Position) => {
@@ -267,10 +291,19 @@ const TraderProfileView = () => {
         )}
       </ScrollView>
 
+      <TopTradersNotificationsSetupBottomSheet
+        ref={setupSheetRef}
+        preferences={preferences}
+        setEnabled={setEnabled}
+        setTxAmountLimit={setTxAmountLimit}
+      />
+
       <TraderNotificationsBottomSheet
         ref={notificationsSheetRef}
         traderId={traderId}
         traderName={profile?.profile.name ?? traderName}
+        preferences={preferences}
+        toggleTraderNotification={toggleTraderNotification}
       />
     </SafeAreaView>
   );

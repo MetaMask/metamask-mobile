@@ -1034,6 +1034,14 @@
       "manage_traders": "Manage traders you follow",
       "save": "Save"
     },
+    "trader_notifications_setup": {
+      "title": "Stay informed",
+      "description": "Get real-time alerts on trades from the traders you follow",
+      "allow_push_notifications": "Allow push notifications",
+      "allow_push_notifications_desc": "Get real-time alerts on trades from the traders you follow",
+      "trades_over_label": "Get notified of trades over:",
+      "save": "Save"
+    },
     "follow": "Follow",
     "following": "Following",
     "all_networks": "All networks",

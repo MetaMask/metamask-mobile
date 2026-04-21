@@ -1,12 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, ScrollView, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,89 +22,14 @@ import {
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { NotificationPreferencesViewSelectorsIDs } from './NotificationPreferencesView.testIds';
-import { useNotificationPreferences, TX_AMOUNT_THRESHOLDS } from './hooks';
+import { useNotificationPreferences } from './hooks';
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import AllowPushNotificationsRow from './components/AllowPushNotificationsRow';
+import ThresholdRadioList from './components/ThresholdRadioList';
 
 const AVATAR_SIZE = 40;
-
-const radioStyles = StyleSheet.create({
-  circle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-});
-
-// ---------------------------------------------------------------------------
-// Threshold radio row
-// ---------------------------------------------------------------------------
-
-interface ThresholdRowProps {
-  label: string;
-  isChecked: boolean;
-  isDisabled: boolean;
-  onPress: () => void;
-  testID?: string;
-}
-
-const ThresholdRow: React.FC<ThresholdRowProps> = ({
-  label,
-  isChecked,
-  isDisabled,
-  onPress,
-  testID,
-}) => {
-  const tw = useTailwind();
-  const { colors } = useTheme();
-
-  const borderColor = isChecked
-    ? colors.primary.default
-    : colors.border.default;
-  const innerColor = colors.primary.default;
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={isDisabled}
-      testID={testID}
-      style={tw.style(
-        'flex-row items-center justify-between px-4 py-4',
-        isDisabled && 'opacity-50',
-      )}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: isChecked, disabled: isDisabled }}
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
-      >
-        {label}
-      </Text>
-      {/* Radio circle indicator — View-only, touches handled by the outer TouchableOpacity */}
-      <View
-        style={[
-          radioStyles.circle,
-          { borderColor, backgroundColor: colors.background.default },
-        ]}
-        accessibilityElementsHidden
-      >
-        {isChecked && (
-          <View style={[radioStyles.dot, { backgroundColor: innerColor }]} />
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-};
 
 // ---------------------------------------------------------------------------
 // Per-trader row
@@ -197,19 +115,6 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
 // Main screen
 // ---------------------------------------------------------------------------
 
-const formatThreshold = (amount: number, currency: string): string => {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `${currency.toUpperCase()} ${amount}`;
-  }
-};
-
 /**
  * NotificationPreferencesView — notification settings for the Top Traders feature.
  *
@@ -221,7 +126,6 @@ const formatThreshold = (amount: number, currency: string): string => {
 const NotificationPreferencesView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { colors, brandColors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const currentCurrency = useSelector(selectCurrentCurrency);
 
@@ -276,55 +180,29 @@ const NotificationPreferencesView = () => {
         contentContainerStyle={tw.style('pb-6')}
       >
         {/* ── Global toggle ─────────────────────────────────────────── */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 py-4"
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {strings(
-              'social_leaderboard.notification_preferences.allow_push_notifications',
-            )}
-          </Text>
-          <Switch
-            value={preferences.enabled}
-            onValueChange={setEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={brandColors.white}
-            ios_backgroundColor={colors.border.muted}
-            testID={NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE}
-          />
-        </Box>
+        <AllowPushNotificationsRow
+          title={strings(
+            'social_leaderboard.notification_preferences.allow_push_notifications',
+          )}
+          value={preferences.enabled}
+          onValueChange={setEnabled}
+          toggleTestID={NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE}
+        />
 
         <View style={tw.style('h-px bg-muted mx-4')} />
 
-        <Box twClassName="px-4 pt-4 pb-2">
-          <Text
-            variant={TextVariant.BodyMd}
-            color={globalOff ? TextColor.TextMuted : TextColor.TextDefault}
-          >
-            {strings(
-              'social_leaderboard.notification_preferences.trades_over_label',
-            )}
-          </Text>
-        </Box>
-
-        {TX_AMOUNT_THRESHOLDS.map((amount) => (
-          <ThresholdRow
-            key={amount}
-            label={formatThreshold(amount, currentCurrency)}
-            isChecked={preferences.txAmountLimit === amount}
-            isDisabled={globalOff}
-            onPress={() => setTxAmountLimit(amount)}
-            testID={NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(
-              amount,
-            )}
-          />
-        ))}
+        <ThresholdRadioList
+          selected={preferences.txAmountLimit}
+          onChange={setTxAmountLimit}
+          isDisabled={globalOff}
+          currency={currentCurrency}
+          labelText={strings(
+            'social_leaderboard.notification_preferences.trades_over_label',
+          )}
+          testIDForAmount={
+            NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION
+          }
+        />
 
         {/* Separator */}
         <View style={tw.style('h-px bg-muted mx-4 mt-2')} />

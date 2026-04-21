@@ -66,6 +66,7 @@ const makeTrader = (
   avatarUri,
   percentageChange: 10,
   pnlValue: 500,
+  pnlPerChain: {},
   isFollowing: true,
 });
 
@@ -141,13 +142,13 @@ describe('NotificationPreferencesView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders the global toggle as enabled by default', () => {
+    it('renders the global toggle as disabled by default (opt-in model)', () => {
       renderScreen();
 
       const toggle = screen.getByTestId(
         NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
       );
-      expect(toggle.props.value).toBe(true);
+      expect(toggle.props.value).toBe(false);
     });
 
     it('renders all four dollar threshold options', () => {
@@ -204,14 +205,14 @@ describe('NotificationPreferencesView', () => {
       });
     });
 
-    it('renders each trader toggle as enabled by default', () => {
+    it('renders each trader toggle as disabled by default (opt-in model)', () => {
       renderScreen();
 
       MOCK_TRADERS.forEach((trader) => {
         const toggle = screen.getByTestId(
           NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE(trader.id),
         );
-        expect(toggle.props.value).toBe(true);
+        expect(toggle.props.value).toBe(false);
       });
     });
 
@@ -326,8 +327,19 @@ describe('NotificationPreferencesView', () => {
       expect(option500.props.accessibilityState.checked).toBe(false);
     });
 
-    it('toggles a trader notification off when its switch is pressed', () => {
+    it('toggles a trader notification on when its switch is pressed (starts disabled)', () => {
       renderScreen();
+
+      // Enable global notifications first so per-trader toggles are active
+      act(() => {
+        fireEvent(
+          screen.getByTestId(
+            NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
+          ),
+          'valueChange',
+          true,
+        );
+      });
 
       act(() => {
         fireEvent(
@@ -335,18 +347,29 @@ describe('NotificationPreferencesView', () => {
             NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
           ),
           'valueChange',
-          false,
+          true,
         );
       });
 
       const toggle = screen.getByTestId(
         NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
       );
-      expect(toggle.props.value).toBe(false);
+      expect(toggle.props.value).toBe(true);
     });
 
-    it('does not affect other trader toggles when one is switched off', () => {
+    it('does not affect other trader toggles when one is switched on', () => {
       renderScreen();
+
+      // Enable global notifications first so per-trader toggles are active
+      act(() => {
+        fireEvent(
+          screen.getByTestId(
+            NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
+          ),
+          'valueChange',
+          true,
+        );
+      });
 
       act(() => {
         fireEvent(
@@ -354,19 +377,39 @@ describe('NotificationPreferencesView', () => {
             NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
           ),
           'valueChange',
-          false,
+          true,
         );
       });
 
       const toggle2 = screen.getByTestId(
         NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-2'),
       );
-      expect(toggle2.props.value).toBe(true);
+      expect(toggle2.props.value).toBe(false);
     });
 
     it('restores a trader notification when its switch is toggled back on', () => {
       renderScreen();
 
+      // Enable global notifications first so per-trader toggles are active
+      act(() => {
+        fireEvent(
+          screen.getByTestId(
+            NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
+          ),
+          'valueChange',
+          true,
+        );
+      });
+
+      act(() => {
+        fireEvent(
+          screen.getByTestId(
+            NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
+          ),
+          'valueChange',
+          true,
+        );
+      });
       act(() => {
         fireEvent(
           screen.getByTestId(
