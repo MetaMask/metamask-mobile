@@ -39,11 +39,15 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
     if (!featureEnabled) {
       return null;
     }
-    const totalBalance = Number.parseFloat(
-      perpsAccount?.totalBalance?.toString() ?? '0',
+    // Gate on availableBalance (spendable): order-form pay-token preselection
+    // must fire when withdrawable is 0 but totalBalance > 0 (spot-funded or
+    // margin-locked). The CTA consumer layers its own totalBalance guard on
+    // top of this hook's result to hide "Add Funds" for spot-funded accounts.
+    const availableBalance = Number.parseFloat(
+      perpsAccount?.availableBalance?.toString() ?? '0',
     );
 
-    if (totalBalance > PERPS_MIN_BALANCE_THRESHOLD) {
+    if (availableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
       return null;
     }
     if (!allowlistAssets?.length) {
@@ -92,7 +96,7 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
     };
   }, [
     featureEnabled,
-    perpsAccount?.totalBalance,
+    perpsAccount?.availableBalance,
     allowlistAssets,
     activeProvider,
     currentNetwork,
