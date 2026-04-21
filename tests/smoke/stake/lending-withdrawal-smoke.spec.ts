@@ -55,32 +55,19 @@ describe(SmokeTrade('Lending Withdrawal from Wallet'), (): void => {
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-        try {
-          await WalletView.tapOnTokensSection();
-          await TokensView.tapNetworkFilter();
-          await TokensView.tapAllPopularNetworks();
-          await TokensView.tapToken('USDC');
+        await WalletView.tapOnTokensSection();
+        await TokensView.tapNetworkFilter();
+        await TokensView.tapAllPopularNetworks();
+        await TokensView.tapToken('aEthUSDC');
+        await EarnLendingView.tapWithdraw();
 
-          await Assertions.expectElementToBeVisible(
-            EarnLendingView.withdrawButton,
-            {
-              timeout: 30000,
-              description:
-                'Withdraw button should be visible on USDC asset overview with lending position',
-            },
-          );
-          await EarnLendingView.tapWithdraw();
+        await StakeView.enterAmount(WITHDRAW_AMOUNT);
+        await EarnLendingView.tapReviewButton(30000);
 
-          await StakeView.enterAmount(WITHDRAW_AMOUNT);
-          await EarnLendingView.tapReviewButton(30000);
-
-          await EarnLendingView.expectWithdrawalConfirmationVisible();
-          await EarnLendingView.expectConfirmButtonVisible(30000);
-          await EarnLendingView.tapConfirm(30000);
-          await FooterActions.tapConfirmButton();
-        } finally {
-          await device.enableSynchronization();
-        }
+        await EarnLendingView.expectWithdrawalConfirmationVisible();
+        await EarnLendingView.expectConfirmButtonVisible(30000);
+        await EarnLendingView.tapConfirm(30000);
+        await FooterActions.tapConfirmButton();
 
         await TabBarComponent.tapActivity();
         await Assertions.expectElementToBeVisible(

@@ -1,5 +1,6 @@
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
+import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
@@ -10,12 +11,11 @@ class TokensView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
-  /**
-   * The "Earn" CTA on the USDC token row's secondary balance area.
-   * Index 2 = USDC (third token: ETH → mUSD → USDC) in the standard lending fixture.
-   */
-  get earnCta(): DetoxElement {
-    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 2);
+  earnCtaForToken(tokenSymbol: string): DetoxElement {
+    return Matchers.getElementIDWithAncestor(
+      SECONDARY_BALANCE_BUTTON_TEST_ID,
+      getAssetTestId(tokenSymbol),
+    );
   }
 
   async tapNetworkFilter(): Promise<void> {
@@ -29,21 +29,21 @@ class TokensView {
   }
 
   async tapEarnCta(): Promise<void> {
-    await Gestures.waitAndTap(this.earnCta, {
+    await Gestures.waitAndTap(this.earnCtaForToken('USDC'), {
       checkStability: true,
-      elemDescription: 'Earn CTA on token row',
+      elemDescription: 'Earn CTA on USDC token row',
     });
   }
 
-  async tapToken(tokenName: string): Promise<void> {
-    const elem = Matchers.getElementByText(tokenName);
+  async tapToken(tokenSymbol: string): Promise<void> {
+    const elem = Matchers.getElementByID(getAssetTestId(tokenSymbol));
     await Utilities.waitForElementToStopMoving(elem, {
       timeout: 10000,
       interval: 500,
       stableCount: 6,
     });
     await Gestures.waitAndTap(elem, {
-      elemDescription: `${tokenName} token`,
+      elemDescription: `${tokenSymbol} token row`,
     });
   }
 }

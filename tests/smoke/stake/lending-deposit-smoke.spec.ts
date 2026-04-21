@@ -10,7 +10,6 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import Gestures from '../../framework/Gestures';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupLendingMocks } from '../../api-mocking/mock-responses/earn/lending-mocks';
@@ -56,31 +55,24 @@ describe(SmokeTrade('Lending Deposit from Wallet'), (): void => {
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-        try {
-          await WalletView.tapOnTokensSection();
-          await TokensView.tapNetworkFilter();
-          await TokensView.tapAllPopularNetworks();
-          await TokensView.tapEarnCta();
+        await WalletView.tapOnTokensSection();
+        await TokensView.tapNetworkFilter();
+        await TokensView.tapAllPopularNetworks();
+        await TokensView.tapEarnCta();
 
-          await StakeView.enterAmount(DEPOSIT_AMOUNT);
-          await StakeView.tapReview(15000);
+        await StakeView.enterAmount(DEPOSIT_AMOUNT);
+        await StakeView.tapReview(15000);
 
-          await EarnLendingView.expectDepositConfirmationVisible();
-          await EarnLendingView.expectConfirmButtonVisible(30000);
+        await EarnLendingView.expectDepositConfirmationVisible();
+        await EarnLendingView.expectConfirmButtonVisible(30000);
 
-          // Step 1: Approve — tap lending footer then confirm the spending cap
-          await EarnLendingView.tapConfirm(30000);
-          await FooterActions.tapConfirmButton();
+        // Step 1: Approve — tap lending footer then confirm the spending cap
+        await EarnLendingView.tapConfirm(30000);
+        await FooterActions.tapConfirmButton();
 
-          // Step 2: Deposit — wait for button label to change to "Confirm"
-          await Gestures.waitAndTap(EarnLendingView.confirmButtonByLabel, {
-            timeout: 60000,
-            elemDescription: 'Deposit Confirm button on lending confirmation',
-          });
-          await FooterActions.tapConfirmButton();
-        } finally {
-          await device.enableSynchronization();
-        }
+        // Step 2: Deposit — wait for button label to change to "Confirm"
+        await EarnLendingView.tapConfirmByLabel(60000);
+        await FooterActions.tapConfirmButton(30000);
 
         await TabBarComponent.tapActivity();
         await Assertions.expectElementToBeVisible(

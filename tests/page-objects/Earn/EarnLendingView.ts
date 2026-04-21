@@ -64,6 +64,13 @@ class EarnLendingView {
     return Matchers.getElementByText(EarnLendingViewSelectorsText.CONFIRM);
   }
 
+  async tapConfirmByLabel(timeout?: number): Promise<void> {
+    await Gestures.waitAndTap(this.confirmButtonByLabel, {
+      timeout,
+      elemDescription: 'Confirm button (by label) on lending confirmation',
+    });
+  }
+
   async tapReviewButton(timeout?: number): Promise<void> {
     await Gestures.waitAndTap(this.reviewButton, {
       timeout,
@@ -72,10 +79,23 @@ class EarnLendingView {
   }
 
   async tapWithdraw(timeout?: number): Promise<void> {
+    await this.scrollToWithdrawButton();
     await Gestures.waitAndTap(this.withdrawButton, {
       timeout,
       elemDescription: 'Withdraw button on lending balance',
     });
+  }
+
+  async scrollToWithdrawButton(): Promise<void> {
+    await Gestures.scrollToElement(
+      this.withdrawButton,
+      Matchers.getIdentifier('transactions-container'),
+      {
+        direction: 'down',
+        scrollAmount: 200,
+        elemDescription: 'Scroll to Withdraw button',
+      },
+    );
   }
 
   async tapDeposit(timeout?: number): Promise<void> {
