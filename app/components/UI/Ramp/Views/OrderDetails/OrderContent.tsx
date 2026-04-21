@@ -53,6 +53,15 @@ const localStyles = StyleSheet.create({
   inlineIcon: {
     transform: [{ translateY: 4 }],
   },
+  providerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  orderIdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
 
 interface OrderContentProps {
@@ -387,7 +396,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
               {providerOrderLink && (
                 <TouchableOpacity
                   onPress={handleProviderLinkPress}
-                  className="mt-1 flex-row items-center"
+                  style={localStyles.providerLink}
                 >
                   <Text
                     variant={TextVariant.BodySm}
@@ -426,7 +435,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         ) : (
           <TouchableOpacity
             onPress={handleCopyOrderId}
-            className="flex-row items-center"
+            style={localStyles.orderIdRow}
           >
             <Text
               variant={TextVariant.BodyMd}
