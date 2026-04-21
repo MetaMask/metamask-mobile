@@ -1,37 +1,9 @@
 const { initializeProvider, shimWeb3 } = require('@metamask/providers');
 const ObjectMultiplex = require('@metamask/object-multiplex');
-const rawPump = require('pump');
+const pump = require('pump');
 const { v4: uuid } = require('uuid');
 const MobilePortStream = require('./MobilePortStream');
 const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
-
-/**
- * Wraps a stream's destroy() to gracefully end both sides first,
- * preventing ERR_STREAM_PREMATURE_CLOSE from end-of-stream/pump.
- */
-function makeSafeForPump(stream) {
-  if (!stream || stream.__pumpSafe) return stream;
-  const originalDestroy = stream.destroy;
-  if (typeof originalDestroy !== 'function') return stream;
-  stream.destroy = function safeDestroy(err) {
-    if (this._readableState && !this._readableState.ended) {
-      try { this.push(null); } catch (_e) { /* already ended */ }
-    }
-    if (this._writableState && !this._writableState.ended) {
-      try { this.end(); } catch (_e) { /* already ended */ }
-    }
-    return originalDestroy.call(this, err);
-  };
-  stream.__pumpSafe = true;
-  return stream;
-}
-
-function pump(...args) {
-  const cb = typeof args[args.length - 1] === 'function' ? args.pop() : undefined;
-  const streams = args.map(makeSafeForPump);
-  if (cb) streams.push(cb);
-  return rawPump(...streams);
-}
 
 const INPAGE = 'metamask-inpage';
 const CONTENT_SCRIPT = 'metamask-contentscript';
@@ -141,11 +113,11 @@ function forwardTrafficBetweenMuxes(channelName, muxA, muxB) {
  */
 function logStreamDisconnectWarning(remoteLabel, err) {
   let warningMsg = `MetamaskContentscript - lost connection to ${remoteLabel}`;
-  if (err) warningMsg += `\n${err.stack}`;
-  // Use console.warn (not console.error) to avoid triggering
-  // LogBox red screens for expected stream teardown errors.
-  // eslint-disable-next-line no-console
+  if (err) {
+    warningMsg += `\n${err.stack}`;
+  }
   console.warn(warningMsg);
+  console.error(err);
 }
 
 /**
