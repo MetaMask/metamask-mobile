@@ -1,11 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
+import useThunkDispatch from '../../../../hooks/useThunkDispatch';
+import { upgradeMoneyAccount } from '../../../../../actions/money';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
@@ -58,8 +60,19 @@ const displayUnderConstructionAlert = () => alert('Under construction 🚧');
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const dispatch = useThunkDispatch();
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
+
+  // TODO: we need a way to check whether the money account has already been upgraded
+  // to the latest version, and then if so skip dispatching
+  //
+  // That can probably live in the action
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(upgradeMoneyAccount());
+    }, [dispatch]),
+  );
 
   const {
     totalFiatFormatted,

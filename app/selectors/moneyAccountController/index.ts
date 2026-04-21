@@ -29,6 +29,7 @@ export const selectMoneyAccounts = createSelector(
  * @param state - The root Redux state.
  * @returns The primary Money account.
  */
+
 export const selectPrimaryMoneyAccount = createSelector(
   selectMoneyAccounts,
   selectPrimaryHDKeyring,
@@ -37,6 +38,7 @@ export const selectPrimaryMoneyAccount = createSelector(
     if (!primaryKeyringId) {
       return undefined;
     }
+
     return Object.values(moneyAccounts).find(
       (account) => account.options.entropy.id === primaryKeyringId,
     );

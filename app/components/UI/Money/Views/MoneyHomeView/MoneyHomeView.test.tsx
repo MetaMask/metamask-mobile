@@ -104,6 +104,11 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
 
+jest.mock('../../../../../actions/money', () => ({
+  upgradeMoneyAccount: jest.fn(() => () => undefined),
+}));
+
+
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
