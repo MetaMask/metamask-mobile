@@ -50,6 +50,11 @@ on:
         type: string
         default: rc
         description: 'client-config API environment (rc, exp, test). Independent of BrowserStack build_variant.'
+      grep_tags:
+        required: false
+        type: string
+        default: ''
+        description: 'Optional grep pattern to filter tests (e.g., "@PerformanceLogin|@PerformanceSwaps"). Empty runs all tests.'
     secrets:
       BROWSERSTACK_USERNAME:
         required: true
@@ -240,6 +245,7 @@ jobs:
           BROWSERSTACK_LOCAL: ${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ inputs.build_type == 'mm-connect' && steps.bs-local-id.outputs.value || '' }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
+          GREP_TAGS: ${{ inputs.grep_tags }}
         working-directory: '.'
         run: |
           echo "=== Running ${{ inputs.build_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
@@ -248,14 +254,24 @@ jobs:
           echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
           echo "QA App Version: ${{ inputs.app_version }}"
           echo "BrowserStack Build Name: $BROWSERSTACK_BUILD_NAME"
+          if [ -n "$GREP_TAGS" ]; then
+            echo "Grep filter: $GREP_TAGS"
+          fi
 
-          # Run the appropriate test command based on build_type flag
+          # Select base command based on build_type
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then
-            yarn run-playwright:${{ inputs.platform }}-onboarding-bs
+            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-onboarding-bs"
           elif [ "${{ inputs.build_type }}" = "mm-connect" ]; then
-            yarn run-playwright:mm-connect-${{ inputs.platform }}-bs
+            BASE_CMD="yarn run-playwright:mm-connect-${{ inputs.platform }}-bs"
           else
-            yarn run-playwright:${{ inputs.platform }}-bs
+            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-bs"
+          fi
+
+          # Run with optional grep filter
+          if [ -n "$GREP_TAGS" ]; then
+            $BASE_CMD --grep "$GREP_TAGS"
+          else
+            $BASE_CMD
           fi
 
           echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ matrix.device.name }}"
