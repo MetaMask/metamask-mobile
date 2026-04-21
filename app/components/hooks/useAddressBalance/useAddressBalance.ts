@@ -2,14 +2,13 @@ import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import BN4 from 'bnjs4';
 
 import Engine from '../../../core/Engine';
 import { getTicker } from '../../../util/transactions';
 import {
-  renderFromTokenMinimalUnit,
   renderFromWei,
-} from '../../../util/number';
+  renderFromTokenMinimalUnit,
+} from '../../../util/number/bigint';
 import {
   selectEvmTicker,
   selectNetworkConfigurationByChainId,
@@ -156,7 +155,7 @@ const useAddressBalance = (
             );
             fromAccBalance = `${renderFromTokenMinimalUnit(
               // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete
-              new BN4(fromAccBalance?.toString(10) || '0', 10),
+              BigInt(fromAccBalance?.toString(10) || '0'),
               decimals,
             )} ${symbol}`;
             setAddressBalance(fromAccBalance);
