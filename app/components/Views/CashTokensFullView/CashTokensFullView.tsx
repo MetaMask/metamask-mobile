@@ -135,7 +135,7 @@ const CashTokensFullView = () => {
     useMusdConversion();
   const { goToBuy } = useRampNavigation();
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.MoneyHub,
+    location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'CashTokensFullView',
   });
 
