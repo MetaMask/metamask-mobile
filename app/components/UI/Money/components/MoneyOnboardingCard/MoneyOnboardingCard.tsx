@@ -39,22 +39,27 @@ interface MoneyOnboardingCardProps {
   totalSteps?: number;
 }
 
+const STEP_CONTENT = {
+  1: {
+    title: 'money.onboarding.title',
+    description: 'money.onboarding.description',
+    cta: 'money.onboarding.add',
+  },
+  2: {
+    title: 'money.onboarding.step2_title',
+    description: 'money.onboarding.step2_description',
+    cta: 'money.onboarding.step2_cta',
+  },
+} as const;
+
 const MoneyOnboardingCard = ({
   onCtaPress,
   onAddPress,
   currentStep = 1,
   totalSteps = 2,
 }: MoneyOnboardingCardProps) => {
-  const isStep2 = currentStep >= 2;
-  const title = isStep2
-    ? strings('money.onboarding.step2_title')
-    : strings('money.onboarding.title');
-  const description = isStep2
-    ? strings('money.onboarding.step2_description')
-    : strings('money.onboarding.description');
-  const ctaLabel = isStep2
-    ? strings('money.onboarding.step2_cta')
-    : strings('money.onboarding.add');
+  const content =
+    STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ?? STEP_CONTENT[1];
   const handleCtaPress = onCtaPress ?? onAddPress ?? (() => undefined);
 
   return (
@@ -100,14 +105,14 @@ const MoneyOnboardingCard = ({
             fontWeight={FontWeight.Bold}
             testID={MoneyOnboardingCardTestIds.TITLE}
           >
-            {title}
+            {strings(content.title)}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             testID={MoneyOnboardingCardTestIds.DESCRIPTION}
           >
-            {description}
+            {strings(content.description)}
           </Text>
         </Box>
         <Button
@@ -117,7 +122,7 @@ const MoneyOnboardingCard = ({
           onPress={handleCtaPress}
           testID={MoneyOnboardingCardTestIds.CTA_BUTTON}
         >
-          {ctaLabel}
+          {strings(content.cta)}
         </Button>
       </Box>
     </Box>
