@@ -13,7 +13,8 @@ import {
 } from '@metamask/design-system-react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -30,6 +31,7 @@ import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions'
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
+import { useTokenActions } from '../hooks/useTokenActions';
 
 const styles = StyleSheet.create({
   footer: {
@@ -48,37 +50,82 @@ const styles = StyleSheet.create({
 const BALANCE_THRESHOLD_USD = 100;
 
 const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
-const SECONDARY_TEXT_PROPS = { twClassName: 'text-success-default' } as const;
 const PRIMARY_ICON_PROPS = { size: IconSize.Md } as const;
-const SECONDARY_ICON_PROPS = {
-  size: IconSize.Md,
-  twClassName: 'text-success-default shrink-0',
-} as const;
 
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
-  securityData: TokenSecurityData | null | undefined;
+  securityData?: TokenSecurityData | null | undefined;
   /** Token balance in USD, currency-agnostic. Used to determine which button gets the success style. */
   balanceFiatUsd?: number | undefined;
-  /** Action handlers from parent's useTokenActions hook */
-  onBuy: () => void;
-  onSwap: () => void;
-  hasEligibleSwapTokens: boolean;
+  /** Network name passed through to useTokenActions */
+  networkName?: string;
+  /** Up-to-date token balance for useTokenActions swap logic */
+  currentTokenBalance?: string;
   onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
+  /** When true the footer omits its built-in safe-area bottom inset so the parent can manage spacing. */
+  skipBottomInset?: boolean;
+  /** Optional testID for the swap button (used by E2E tests in different screens) */
+  swapTestID?: string;
+  /** Optional testID for the buy button (used by E2E tests in different screens) */
+  buyTestID?: string;
+  /** Optional callback fired when the swap button is pressed (for additional tracking by the parent). */
+  onSwapPress?: () => void;
+  /** Optional callback fired when the buy button is pressed (for additional tracking by the parent). */
+  onBuyPress?: () => void;
+  /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
+  sourcePage?: string;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   token,
   securityData,
   balanceFiatUsd,
-  onBuy,
-  onSwap,
-  hasEligibleSwapTokens,
+  networkName,
+  currentTokenBalance,
   onStickyButtonsResolved,
+  skipBottomInset = false,
+  swapTestID,
+  buyTestID,
+  onSwapPress,
+  onBuyPress,
+  sourcePage,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const successBg = isLightMode
+    ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
+    : 'bg-success-default';
+  const successBorder = isLightMode
+    ? `border-[${LIGHT_MODE_SUCCESS_GREEN}]`
+    : 'border-success-default';
+  const successText = isLightMode
+    ? `text-[${LIGHT_MODE_SUCCESS_GREEN}]`
+    : 'text-success-default';
+
+  const secondaryTextProps = useMemo(
+    () => ({ twClassName: successText }) as const,
+    [successText],
+  );
+  const secondaryIconProps = useMemo(
+    () =>
+      ({ size: IconSize.Md, twClassName: `${successText} shrink-0` }) as const,
+    [successText],
+  );
+
+  const {
+    onBuy,
+    handleStickySwapPress: onSwap,
+    hasEligibleSwapTokens,
+    networkModal,
+  } = useTokenActions({
+    token,
+    networkName,
+    currentTokenBalance,
+    sourcePage,
+  });
 
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
@@ -209,9 +256,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: insets.bottom + 6,
+      paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
     }),
-    [colors.background.default, insets.bottom],
+    [colors.background.default, insets.bottom, skipBottomInset],
   );
 
   if (!tradingOpen) return null;
@@ -221,23 +268,21 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       <View testID="bottomsheetfooter" style={[styles.footer, footerStyle]}>
         {showSwapButton && (
           <Button
+            testID={swapTestID}
             variant={
               swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
             }
             style={styles.button}
             twClassName={
-              swapIsSuccess
-                ? 'bg-success-default'
-                : 'bg-transparent border-success-default'
+              swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
-            textProps={
-              swapIsSuccess ? SUCCESS_TEXT_PROPS : SECONDARY_TEXT_PROPS
-            }
+            textProps={swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
             startIconName={IconName.SwapVertical}
             startIconProps={
-              swapIsSuccess ? PRIMARY_ICON_PROPS : SECONDARY_ICON_PROPS
+              swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
             }
             onPress={() => {
+              onSwapPress?.();
               trackStickyFooterTapped({
                 ctaType: 'swap',
                 balanceFiatUsd,
@@ -252,21 +297,21 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         )}
         {showBuyButton && (
           <Button
+            testID={buyTestID}
             variant={
               buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
             }
             style={showSwapButton ? styles.subsequentButton : styles.button}
             twClassName={
-              buyIsSuccess
-                ? 'bg-success-default'
-                : 'bg-transparent border-success-default'
+              buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
-            textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : SECONDARY_TEXT_PROPS}
+            textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
             startIconName={IconName.Bank}
             startIconProps={
-              buyIsSuccess ? PRIMARY_ICON_PROPS : SECONDARY_ICON_PROPS
+              buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
             }
             onPress={() => {
+              onBuyPress?.();
               trackStickyFooterTapped({
                 ctaType: 'buy',
                 balanceFiatUsd,
@@ -281,6 +326,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         )}
       </View>
       <RwaUnavailableBottomSheet ref={rwaUnavailableSheetRef} />
+      {networkModal}
     </>
   );
 };
