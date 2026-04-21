@@ -1,0 +1,94 @@
+import { AlertKeys } from '../../constants/alerts';
+import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
+import { Severity } from '../../types/alerts';
+import { strings } from '../../../../../../locales/i18n';
+import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
+
+jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
+
+function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
+  return renderHookWithProvider(() =>
+    useInsufficientMoneyAccountBalanceAlert({ pendingAmount }),
+  );
+}
+
+describe('useInsufficientMoneyAccountBalanceAlert', () => {
+  const useTransactionMetadataRequestMock = jest.mocked(
+    useTransactionMetadataRequest,
+  );
+  const useMoneyAccountBalanceMock = jest.mocked(useMoneyAccountBalance);
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      txParams: { from: '0x0' },
+      type: TransactionType.moneyAccountWithdraw,
+    } as unknown as TransactionMeta);
+
+    useMoneyAccountBalanceMock.mockReturnValue({
+      totalFiatRaw: '100',
+    } as ReturnType<typeof useMoneyAccountBalance>);
+  });
+
+  it('returns alert when pending amount exceeds available balance', () => {
+    const { result } = runHook({ pendingAmount: '150' });
+
+    expect(result.current).toEqual([
+      {
+        key: AlertKeys.InsufficientMoneyAccountBalance,
+        field: RowAlertKey.Amount,
+        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ]);
+  });
+
+  it('returns no alert when pending amount equals available balance', () => {
+    const { result } = runHook({ pendingAmount: '100' });
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert when pending amount is less than available balance', () => {
+    const { result } = runHook({ pendingAmount: '50' });
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert when totalFiatRaw is undefined', () => {
+    useMoneyAccountBalanceMock.mockReturnValue({
+      totalFiatRaw: undefined,
+    } as ReturnType<typeof useMoneyAccountBalance>);
+
+    const { result } = runHook({ pendingAmount: '150' });
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert when transaction type is not moneyAccountWithdraw', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      txParams: { from: '0x0' },
+      type: TransactionType.simpleSend,
+    } as unknown as TransactionMeta);
+
+    const { result } = runHook({ pendingAmount: '150' });
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert when no pendingAmount is provided and defaults to zero', () => {
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+});

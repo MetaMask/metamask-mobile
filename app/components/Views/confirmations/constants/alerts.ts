@@ -12,6 +12,7 @@ export enum AlertKeys {
   InsufficientPayTokenBalance = 'insufficient_pay_token_balance',
   InsufficientPayTokenNative = 'insufficient_pay_token_native',
   InsufficientPayTokenFees = 'insufficient_pay_token_fees',
+  InsufficientMoneyAccountBalance = 'insufficient_money_account_balance',
   InsufficientPerpsBalance = 'insufficient_perps_balance',
   InsufficientPredictBalance = 'insufficient_predict_balance',
   AccountNoFunds = 'account_no_funds',
