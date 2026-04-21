@@ -95,7 +95,6 @@ yarn tsx scripts/tooling/tool-usage-collection.ts \
 ## Inspecting events
 
 ```bash
-yarn tooling:report
 sqlite3 ~/.tool-usage-collection/events.db \
   "SELECT tool_name, tool_type, event_type, agent_vendor, success, duration_ms, created_at FROM events ORDER BY created_at DESC LIMIT 20;"
 ```
