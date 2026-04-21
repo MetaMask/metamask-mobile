@@ -654,12 +654,20 @@ describe('BaanxProvider', () => {
               getLogs: getLogsMock,
             }) as unknown as ethers.providers.JsonRpcProvider,
         );
-      contractSpy = jest.spyOn(ethers, 'Contract').mockImplementation(
-        () =>
-          ({
-            spendersAllowancesForTokens: spendersMock,
-          }) as unknown as ethers.Contract,
-      );
+      contractSpy = jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation((address: string) => {
+          if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+            return {
+              spendersAllowancesForTokens: spendersMock,
+            } as unknown as ethers.Contract;
+          }
+          return {
+            balanceOf: jest
+              .fn()
+              .mockResolvedValue(ethers.utils.parseUnits('100', 6)),
+          } as unknown as ethers.Contract;
+        });
     });
 
     afterEach(() => {
@@ -686,6 +694,11 @@ describe('BaanxProvider', () => {
       expect(result.primaryFundingAsset?.status).toBe(
         FundingAssetStatus.Limited,
       );
+      expect(result.primaryFundingAsset?.spendableBalance).toBe('50');
+      const assetB = result.fundingAssets.find(
+        (a) => a.address.toLowerCase() === tokenB.toLowerCase(),
+      );
+      expect(assetB?.spendableBalance).toBe('0');
     });
 
     it('uses #findLastApprovedToken when multiple tokens have non-zero allowance and prefers latest Approval log', async () => {
