@@ -263,10 +263,11 @@ export function useQuickBuyBottomSheet(
 
   const handleAmountChange = useCallback((text: string) => {
     const cleaned = text.replace(/[^0-9.]/g, '');
-    const parts = cleaned.split('.');
+    const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
+    const parts = normalized.split('.');
     if (parts.length > 2) return;
     if (parts.length === 2 && parts[1].length > 2) return;
-    setUsdAmount(cleaned);
+    setUsdAmount(normalized);
   }, []);
 
   const handleConfirm = useCallback(async () => {
