@@ -24,7 +24,7 @@ import {
   type V2AllowanceRequirement,
 } from './v2AllowanceRequirements';
 
-const MIN_CLAIM_BALANCE_RAW = BigInt(
+const MIN_GAS_STATION_USDCE_BALANCE_RAW = BigInt(
   parseUnits(MIN_COLLATERAL_BALANCE_FOR_CLAIM.toString(), 6).toString(),
 );
 
@@ -91,7 +91,7 @@ export function getClaimRequirements({
 }
 
 export interface ClaimPlan {
-  deficit: bigint;
+  gasStationDeficit: bigint;
   safeUsdceBalance: bigint;
   eoaUsdceBalance: bigint;
   missingRequirements: V2AllowanceRequirement[];
@@ -125,10 +125,10 @@ export async function planClaim({
       }),
     ]);
 
-  const deficit =
-    eoaUsdceBalance >= MIN_CLAIM_BALANCE_RAW
+  const gasStationDeficit =
+    eoaUsdceBalance >= MIN_GAS_STATION_USDCE_BALANCE_RAW
       ? 0n
-      : MIN_CLAIM_BALANCE_RAW - eoaUsdceBalance;
+      : MIN_GAS_STATION_USDCE_BALANCE_RAW - eoaUsdceBalance;
 
   const transactions = compileClaimTransactions({
     protocol,
@@ -137,11 +137,11 @@ export async function planClaim({
     safeAddress,
     missingRequirements,
     safeUsdceBalance,
-    deficit,
+    gasStationDeficit,
   });
 
   return {
-    deficit,
+    gasStationDeficit,
     safeUsdceBalance,
     eoaUsdceBalance,
     missingRequirements,
@@ -149,14 +149,14 @@ export async function planClaim({
   };
 }
 
-export function compileClaimTransactions({
+function compileClaimTransactions({
   protocol = POLYMARKET_V2_PROTOCOL,
   signer,
   positions,
   safeAddress,
   missingRequirements,
   safeUsdceBalance,
-  deficit,
+  gasStationDeficit,
 }: {
   protocol?: PolymarketV2ProtocolDefinition;
   signer: Signer;
@@ -164,7 +164,7 @@ export function compileClaimTransactions({
   safeAddress: string;
   missingRequirements: V2AllowanceRequirement[];
   safeUsdceBalance: bigint;
-  deficit: bigint;
+  gasStationDeficit: bigint;
 }): SafeTransaction[] {
   const transactions = compileAllowanceMaintenanceTransactions({
     protocol,
@@ -182,7 +182,7 @@ export function compileClaimTransactions({
 
   const unwrapTransaction = buildUnwrapTransaction({
     recipientAddress: signer.address,
-    amount: deficit,
+    amount: gasStationDeficit,
     protocol,
   });
 

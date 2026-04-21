@@ -81,7 +81,7 @@ export async function planWithdraw({
   };
 }
 
-export function compileWithdrawTransactions({
+function compileWithdrawTransactions({
   signer,
   safeAddress,
   requestedAmountRaw,

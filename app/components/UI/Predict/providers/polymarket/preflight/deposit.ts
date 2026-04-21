@@ -49,7 +49,7 @@ export async function planDepositMaintenance({
   };
 }
 
-export function compileDepositMaintenanceTransactions({
+function compileDepositMaintenanceTransactions({
   protocol = POLYMARKET_V2_PROTOCOL,
   safeAddress,
   missingRequirements,
