@@ -81,7 +81,7 @@ const FaqItem = ({
 
   return (
     <Pressable onPress={handlePress} testID={testID}>
-      <Box twClassName="py-3 px-4">
+      <Box twClassName="py-5 px-4">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -194,9 +194,7 @@ const MoneyHowItWorksView = () => {
           </Text>
         </Box>
 
-        <SectionDivider />
-
-        <Box twClassName="pb-3 px-4">
+        <Box twClassName="pb-3 px-4 pt-6">
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
