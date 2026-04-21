@@ -179,6 +179,7 @@ describe('TraderProfileView', () => {
       {
         traderId: 'trader-1',
         traderName: 'dutchiono',
+        traderImageUrl: 'https://example.com/avatar.png',
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
       },

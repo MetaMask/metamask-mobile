@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
@@ -157,9 +157,15 @@ const TimePeriodButton: React.FC<TimePeriodButtonProps> = ({
 interface TradeRowProps {
   trade: Trade;
   traderName: string;
+  traderImageUrl?: string;
 }
 
-const TradeRow: React.FC<TradeRowProps> = ({ trade, traderName }) => {
+const TradeRow: React.FC<TradeRowProps> = ({
+  trade,
+  traderName,
+  traderImageUrl,
+}) => {
+  const tw = useTailwind();
   const isEntry = trade.intent === 'enter';
   return (
     <Box
@@ -174,10 +180,18 @@ const TradeRow: React.FC<TradeRowProps> = ({ trade, traderName }) => {
         gap={4}
         twClassName="flex-1 min-w-0 mr-3"
       >
-        <AvatarBase
-          size={AvatarBaseSize.Md}
-          fallbackText={traderName.charAt(0).toUpperCase()}
-        />
+        {traderImageUrl ? (
+          <Image
+            source={{ uri: traderImageUrl }}
+            style={tw.style('w-[32px] h-[32px] rounded-full bg-muted')}
+            resizeMode="cover"
+          />
+        ) : (
+          <AvatarBase
+            size={AvatarBaseSize.Md}
+            fallbackText={traderName.charAt(0).toUpperCase()}
+          />
+        )}
         <Box twClassName="flex-1 min-w-0">
           <Text
             variant={TextVariant.BodyMd}
@@ -209,7 +223,9 @@ const TradeRow: React.FC<TradeRowProps> = ({ trade, traderName }) => {
           fontWeight={FontWeight.Medium}
           twClassName={isEntry ? 'text-success-default' : 'text-error-default'}
         >
-          {formatUsd(isEntry ? trade.usdCost : -trade.usdCost)}
+          {formatUsd(
+            isEntry ? Math.abs(trade.usdCost) : -Math.abs(trade.usdCost),
+          )}
         </Text>
       </Box>
     </Box>
@@ -225,7 +241,12 @@ const TraderPositionView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
 
-  const { traderName, tokenSymbol, position: positionParam } = route.params;
+  const {
+    traderName,
+    traderImageUrl,
+    tokenSymbol,
+    position: positionParam,
+  } = route.params;
 
   const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
@@ -547,8 +568,8 @@ const TraderPositionView = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
           twClassName="px-4 pb-3"
-          gap={3}
         >
           {TIME_PERIODS.map((period) => (
             <TimePeriodButton
@@ -637,6 +658,7 @@ const TraderPositionView = () => {
               key={trade.transactionHash}
               trade={trade}
               traderName={traderName}
+              traderImageUrl={traderImageUrl}
             />
           ))
         ) : (
