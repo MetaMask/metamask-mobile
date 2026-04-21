@@ -181,7 +181,10 @@ const DeepLinkModal = () => {
       ) {
         // Navigate to home page for invalid/unsupported links
         navigation.navigate(Routes.WALLET.HOME, {
-          screen: Routes.WALLET_VIEW,
+          screen: Routes.WALLET.TAB_STACK_FLOW,
+          params: {
+            screen: Routes.WALLET_VIEW,
+          },
         });
         params.onContinue?.();
       } else {

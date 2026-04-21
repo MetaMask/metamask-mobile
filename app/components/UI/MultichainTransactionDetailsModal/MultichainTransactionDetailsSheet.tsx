@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, TextStyle } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Transaction } from '@metamask/keyring-api';
 import { capitalize } from 'lodash';
@@ -60,6 +60,14 @@ const TransactionDetailRow = {
   NetworkFee: strings('transactions.network_fee'),
   PriorityFee: strings('transactions.multichain_priority_fee'),
 } as const;
+
+const styles = StyleSheet.create({
+  blockExplorerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+});
 
 const MultichainTransactionDetailsSheet: React.FC = () => {
   const navigation = useNavigation();
@@ -127,7 +135,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
         {isLink ? (
           <TouchableOpacity
             onPress={() => viewOnBlockExplorer(label)}
-            className="flex-row items-center gap-1"
+            style={styles.blockExplorerLink}
           >
             <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
               {formatAddress(value, 'short')}
