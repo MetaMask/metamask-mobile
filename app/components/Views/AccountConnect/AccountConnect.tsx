@@ -371,15 +371,27 @@ const AccountConnect = (props: AccountConnectProps) => {
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
 
   const pageMeta = hostInfo?.pageMeta ?? hostInfo?.metadata?.pageMeta;
-  const iframeProps = useMemo(
-    () =>
-      getIframeProperties({
-        isIframe: Boolean(pageMeta?.isIframe),
-        origin: channelIdOrHostname ?? '',
-        topLevelOrigin: pageMeta?.isIframe ? pageMeta?.url : undefined,
-      }),
-    [pageMeta?.isIframe, pageMeta?.url, channelIdOrHostname],
-  );
+  const iframeProps = useMemo(() => {
+    const isIframeRequest = Boolean(pageMeta?.isIframe);
+    return getIframeProperties({
+      isIframe: isIframeRequest,
+      // For iframe requests the iframe's own origin comes from injected-JS
+      // detection on the BrowserTab (pageMeta.iframeOrigin). Non-iframe
+      // flows (SDK, WalletConnect, top-level pages) fall back to the
+      // top-level origin so the cross-origin check stays false.
+      origin: isIframeRequest
+        ? pageMeta?.iframeOrigin ?? ''
+        : channelIdOrHostname ?? '',
+      // pageMeta.url is a full URL; getIframeProperties normalizes it to
+      // an origin before comparing.
+      topLevelOrigin: isIframeRequest ? pageMeta?.url : undefined,
+    });
+  }, [
+    pageMeta?.isIframe,
+    pageMeta?.iframeOrigin,
+    pageMeta?.url,
+    channelIdOrHostname,
+  ]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {

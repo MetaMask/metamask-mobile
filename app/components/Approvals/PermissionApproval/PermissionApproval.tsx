@@ -74,10 +74,18 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
     const pageMeta =
       requestData?.pageMeta ?? requestData?.metadata?.pageMeta ?? {};
+    const isIframeRequest = Boolean(pageMeta?.isIframe);
     const iframeProps = getIframeProperties({
-      isIframe: Boolean(pageMeta?.isIframe),
-      origin: approvalRequest?.requestData?.metadata?.origin ?? '',
-      topLevelOrigin: pageMeta?.isIframe ? pageMeta?.url : undefined,
+      isIframe: isIframeRequest,
+      // For iframe requests the iframe's own origin is detected by injected
+      // JS on the BrowserTab and forwarded via pageMeta.iframeOrigin. For
+      // non-iframe flows we fall back to the request's top-level origin.
+      origin: isIframeRequest
+        ? pageMeta?.iframeOrigin ?? ''
+        : approvalRequest?.requestData?.metadata?.origin ?? '',
+      // pageMeta.url is a full URL (e.g. https://host/path); getIframeProperties
+      // normalizes it to an origin internally before comparison.
+      topLevelOrigin: isIframeRequest ? pageMeta?.url : undefined,
     });
 
     trackEvent(
