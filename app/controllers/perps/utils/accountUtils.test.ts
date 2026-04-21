@@ -215,7 +215,7 @@ describe('spot balance helpers', () => {
     expect(result).toBe(accountState);
   });
 
-  it('includes USDH spot balance (HIP-3 USDH-DEX collateral)', () => {
+  it('excludes USDH-only spot balance from funded-state totals', () => {
     const accountState: AccountState = {
       availableBalance: '0',
       totalBalance: '0',
@@ -231,10 +231,10 @@ describe('spot balance helpers', () => {
       ],
     } as never);
 
-    expect(result.totalBalance).toBe('75.25');
+    expect(result).toBe(accountState);
   });
 
-  it('sums USDC and USDH together when both are present', () => {
+  it('adds only the USDC portion when USDC and USDH are both present', () => {
     const accountState: AccountState = {
       availableBalance: '0',
       totalBalance: '10',
@@ -251,7 +251,7 @@ describe('spot balance helpers', () => {
       ],
     } as never);
 
-    expect(result.totalBalance).toBe('60');
+    expect(result.totalBalance).toBe('30');
   });
 
   it('returns the original account state when spot balance is zero', () => {

@@ -90,18 +90,11 @@ export function calculateWeightedReturnOnEquity(
   return weightedROE.toString();
 }
 
-// Spot coins convertible to perps collateral on Hyperliquid:
-// - USDC: unified-account + standard margin collateral
-// - USDH: HIP-3 USDH-DEX collateral (pulled from spot automatically per HL docs,
-//   see HyperLiquidProvider.#isUsdhCollateralDex / #getSpotUsdhBalance)
-// Non-stablecoin spot assets (HYPE, PURR, …) cannot back perps positions,
-// so including them in totalBalance would mis-gate the Add Funds CTA —
-// a user holding only HYPE would see the CTA hidden while being unable
-// to trade.
-// Literal 'USDH' instead of `USDH_CONFIG.TokenName` to avoid the circular
-// init order between hyperLiquidConfig and HyperLiquidWalletService that
-// left `USDH_CONFIG` undefined at module load in test contexts.
-const SPOT_COLLATERAL_COINS = new Set<string>(['USDC', 'USDH']);
+// Spot coins counted toward currently supported funded-state gating.
+// Today the in-app HyperLiquid market surface is USDC-collateralized only,
+// so USDH must not inflate the shared funded-state path that hides Add Funds.
+// Non-stablecoin spot assets (HYPE, PURR, …) also remain excluded.
+const SPOT_COLLATERAL_COINS = new Set<string>(['USDC']);
 
 export function getSpotBalance(
   spotState?: SpotClearinghouseStateResponse | null,
