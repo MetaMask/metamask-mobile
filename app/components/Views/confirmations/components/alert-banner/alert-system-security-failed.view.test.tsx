@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { merge } from 'lodash';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import { renderComponentViewScreen } from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -42,7 +43,7 @@ describeForPlatforms('Alert system (signatures)', () => {
    * Smoke `alert-system`: security validation API error shows the redesigned banner
    * and failed-state copy (no signing success path).
    */
-  it('shows security alert when validation request fails', () => {
+  it('shows security alert when validation request fails', async () => {
     const state = merge({}, typedSignV1ConfirmationState, {
       securityAlerts: {
         alerts: {
@@ -64,16 +65,24 @@ describeForPlatforms('Alert system (signatures)', () => {
       { state },
     );
 
-    expect(
-      getByTestId(
-        ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED,
-      ),
-    ).toBeOnTheScreen();
+    const bannerTestId =
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED;
+
+    await waitFor(() => {
+      expect(getByTestId(bannerTestId)).toBeOnTheScreen();
+    });
+
     expect(
       getByText(ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE),
     ).toBeOnTheScreen();
     expect(
       getByText(ConfirmationTopSheetSelectorsText.BANNER_FAILED_DESCRIPTION),
     ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(bannerTestId));
+
+    await waitFor(() => {
+      expect(getByTestId(bannerTestId)).toBeOnTheScreen();
+    });
   });
 });

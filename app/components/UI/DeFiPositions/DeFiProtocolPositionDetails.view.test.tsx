@@ -1,5 +1,7 @@
 import '../../../../tests/component-view/mocks';
 import React from 'react';
+import { FlatList } from 'react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import type { GroupedDeFiPositions } from '@metamask/assets-controllers';
 
 import DeFiProtocolPositionDetails, {
@@ -95,15 +97,16 @@ const defiDetailsState = {
 
 describeForPlatforms('DeFi position details (read-only)', () => {
   it('shows protocol header, Supplied rows, and token symbols (Aave V3)', () => {
-    const { getByTestId, getByText, getAllByText } = renderComponentViewScreen(
-      DeFiProtocolPositionDetails,
-      { name: 'DeFiProtocolPositionDetails' },
-      { state: defiDetailsState },
-      {
-        protocolAggregate: aaveV3PositionAggregate,
-        networkIconAvatar: undefined,
-      },
-    );
+    const { getByTestId, getByText, getAllByText, UNSAFE_getByType } =
+      renderComponentViewScreen(
+        DeFiProtocolPositionDetails,
+        { name: 'DeFiProtocolPositionDetails' },
+        { state: defiDetailsState },
+        {
+          protocolAggregate: aaveV3PositionAggregate,
+          networkIconAvatar: undefined,
+        },
+      );
 
     expect(
       getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER),
@@ -118,5 +121,18 @@ describeForPlatforms('DeFi position details (read-only)', () => {
     expect(getAllByText('Supplied').length).toBeGreaterThanOrEqual(1);
     expect(getAllByText('USDT').length).toBeGreaterThanOrEqual(1);
     expect(getAllByText('WETH').length).toBeGreaterThanOrEqual(1);
+
+    const list = UNSAFE_getByType(FlatList);
+    act(() => {
+      fireEvent.scroll(list, {
+        nativeEvent: {
+          contentOffset: { y: 150 },
+          contentSize: { height: 500, width: 400 },
+          layoutMeasurement: { height: 400, width: 400 },
+        },
+      });
+    });
+
+    expect(getByText('USDT')).toBeOnTheScreen();
   });
 });

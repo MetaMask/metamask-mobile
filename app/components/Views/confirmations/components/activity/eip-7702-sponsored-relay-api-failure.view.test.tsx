@@ -1,14 +1,13 @@
 /**
  * Component-view coverage for smoke `gas-fee-tokens-eip-7702-sponsored`:
- * (1) Activity "Failed" after relay API error; (2) Review-step "Paid by MetaMask"
- * gas row when sponsorship is allowed (matches E2E visibility before Confirm).
+ * (1) Activity / transaction details show Failed from `TransactionMeta.status` (not a hardcoded StatusText prop);
+ * (2) Review-step "Paid by MetaMask" gas row when sponsorship is allowed.
  */
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { cloneDeep } from 'lodash';
-import { waitFor } from '@testing-library/react-native';
-
-import StatusText from '../../../../Base/StatusText';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import { ConfirmationRowComponentIDs } from '../../ConfirmationView.testIds';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import GasFeesDetailsRow from '../rows/transactions/gas-fee-details-row/gas-fee-details-row';
@@ -19,19 +18,20 @@ import {
   clearSentinelNetworksMocks,
   setupSentinelNetworksRelayEnabledMock,
 } from '../../../../../../tests/component-view/api-mocking/sentinel-networks';
+import { TransactionDetailsStatusRow } from './transaction-details-status-row/transaction-details-status-row';
+import { strings } from '../../../../../../locales/i18n';
 
-/**
- * Smoke `gas-fee-tokens-eip-7702-sponsored` failure path: relay submit is not mocked,
- * user confirms, Activity shows failed status (`transactions.failed` → "Failed").
- */
-function RelayApiFailureActivityStatusHarness() {
-  return (
-    <StatusText
-      context="transaction"
-      status="failed"
-      testID="eip-7702-relay-api-failure-status"
-    />
-  );
+const STAKING_TX_ID = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
+
+function relayFailedActivityState() {
+  const state = cloneDeep(stakingDepositConfirmationState);
+  const tx = state.engine.backgroundState.TransactionController.transactions[0];
+  tx.status = TransactionStatus.failed;
+  tx.error = {
+    name: 'JsonRpcError',
+    message: 'Relay submission failed',
+  };
+  return state;
 }
 
 /**
@@ -48,18 +48,23 @@ function SponsoredGasFeeRowHarness() {
 }
 
 describeForPlatforms(
-  'EIP-7702 sponsored send — relay API failure (activity)',
+  'EIP-7702 sponsored send — relay API failure (activity / details status)',
   () => {
-    it('shows Failed transaction status after relay error (same copy as activity list)', () => {
-      const { getByTestId, getByText } = renderComponentViewScreen(
-        RelayApiFailureActivityStatusHarness,
+    it('maps failed transaction in state to Failed label and error tooltip (transaction details)', async () => {
+      const { getByText, getByTestId } = renderComponentViewScreen(
+        TransactionDetailsStatusRow,
         { name: 'Eip7702RelayApiFailureActivity' },
+        { state: relayFailedActivityState() },
+        { transactionId: STAKING_TX_ID },
       );
 
-      expect(
-        getByTestId('eip-7702-relay-api-failure-status'),
-      ).toBeOnTheScreen();
-      expect(getByText('Failed')).toBeOnTheScreen();
+      await waitFor(() =>
+        expect(getByText(strings('transaction.failed'))).toBeOnTheScreen(),
+      );
+
+      fireEvent.press(getByTestId('status-tooltip-open-btn'));
+
+      expect(getByText('Relay submission failed')).toBeOnTheScreen();
     });
   },
 );
