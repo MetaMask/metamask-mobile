@@ -385,25 +385,23 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 {getStatusText()}
               </Text>
               {providerOrderLink && (
-                <TouchableOpacity onPress={handleProviderLinkPress}>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    twClassName="items-center mt-1"
+                <TouchableOpacity
+                  onPress={handleProviderLinkPress}
+                  className="mt-1 flex-row items-center"
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName="text-primary-default mr-1"
                   >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      twClassName="text-primary-default mr-1"
-                    >
-                      {strings('ramps_order_details.view_on_provider', {
-                        provider: providerName,
-                      })}
-                    </Text>
-                    <Icon
-                      name={IconName.Export}
-                      size={IconSize.Sm}
-                      twClassName="text-primary-default"
-                    />
-                  </Box>
+                    {strings('ramps_order_details.view_on_provider', {
+                      provider: providerName,
+                    })}
+                  </Text>
+                  <Icon
+                    name={IconName.Export}
+                    size={IconSize.Sm}
+                    twClassName="text-primary-default"
+                  />
                 </TouchableOpacity>
               )}
             </>
@@ -426,24 +424,22 @@ const OrderContent: React.FC<OrderContentProps> = ({
         {isLoading ? (
           <Box twClassName="bg-muted rounded h-[18px] w-32" />
         ) : (
-          <TouchableOpacity onPress={handleCopyOrderId}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="items-center"
+          <TouchableOpacity
+            onPress={handleCopyOrderId}
+            className="flex-row items-center"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              twClassName="mr-2"
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                twClassName="mr-2"
-              >
-                {shortOrderId}
-              </Text>
-              <Icon
-                name={IconName.Copy}
-                size={IconSize.Md}
-                twClassName="text-default"
-              />
-            </Box>
+              {shortOrderId}
+            </Text>
+            <Icon
+              name={IconName.Copy}
+              size={IconSize.Md}
+              twClassName="text-default"
+            />
           </TouchableOpacity>
         )}
       </Box>

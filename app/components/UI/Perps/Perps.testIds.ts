@@ -147,6 +147,7 @@ export const PerpsMarketListViewSelectorsIDs = {
   MARKET_LIST: 'perps-market-list',
   SORT_FILTERS: 'perps-market-list-sort-filters',
   WATCHLIST_TOGGLE: 'perps-market-list-watchlist-toggle',
+  CONTAINER: 'perps-home',
 };
 
 // ========================================
@@ -350,7 +351,9 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STATISTICS_ORACLE_PRICE: 'perps-statistics-oracle-price',
   ADD_FUNDS_BUTTON: 'perps-market-details-add-funds-button',
   LONG_BUTTON: 'perps-market-details-long-button',
+  LONG_BUTTON_WRAPPER: 'perps-market-details-long-button-wrapper',
   SHORT_BUTTON: 'perps-market-details-short-button',
+  SHORT_BUTTON_WRAPPER: 'perps-market-details-short-button-wrapper',
   CLOSE_BUTTON: 'perps-market-details-close-button',
   MODIFY_BUTTON: 'perps-market-details-modify-button',
   SHARE_BUTTON: 'perps-market-details-share-button',
@@ -553,6 +556,14 @@ export const PerpsOrderViewSelectorsIDs = {
   // Row touchables that open bottom sheets
   LEVERAGE_ROW: 'perps-order-view-leverage-row',
   LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
+};
+
+// ========================================
+// PERPS LEVERAGE BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsLeverageBottomSheetSelectorsIDs = {
+  QUICK_SELECT_BUTTON: 'perps-leverage-quick-select',
 };
 
 // ========================================

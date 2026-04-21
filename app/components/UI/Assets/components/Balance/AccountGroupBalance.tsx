@@ -5,7 +5,7 @@ import React, {
   useRef,
   useEffect,
 } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
@@ -171,41 +171,45 @@ const AccountGroupBalance = () => {
   // because controllers have persisted state that makes them appear "ready" even with stale data
   const isLoading = !groupBalance || !hasBalanceFetched;
 
-  return (
-    <View style={styles.accountGroupBalance}>
-      {!isLoading && shouldShowEmptyState ? (
-        <BalanceEmptyState testID="account-group-balance-empty-state" />
-      ) : (
-        <TouchableOpacity
-          onPress={() => togglePrivacy(!privacyMode)}
-          testID="balance-container"
-          style={styles.balanceContainer}
-        >
-          <Skeleton hideChildren={isLoading}>
-            <SensitiveText
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Long}
-              testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-              variant={TextVariant.DisplayLG}
-            >
-              {displayBalance}
-            </SensitiveText>
-          </Skeleton>
+  if (!isLoading && shouldShowEmptyState) {
+    return (
+      <BalanceEmptyState
+        testID="account-group-balance-empty-state"
+        twClassName="mx-4"
+      />
+    );
+  }
 
-          {balanceChange1d && (
-            <Skeleton hideChildren={isLoading}>
-              <AccountGroupBalanceChange
-                amountChangeInUserCurrency={
-                  balanceChange1d.amountChangeInUserCurrency
-                }
-                percentChange={balanceChange1d.percentChange}
-                userCurrency={balanceChange1d.userCurrency}
-              />
-            </Skeleton>
-          )}
-        </TouchableOpacity>
+  return (
+    <TouchableOpacity
+      accessible={false}
+      onPress={() => togglePrivacy(!privacyMode)}
+      testID="balance-container"
+      style={styles.balanceContainer}
+    >
+      <Skeleton hideChildren={isLoading}>
+        <SensitiveText
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Long}
+          testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+          variant={TextVariant.DisplayLG}
+        >
+          {displayBalance}
+        </SensitiveText>
+      </Skeleton>
+
+      {balanceChange1d && (
+        <Skeleton hideChildren={isLoading}>
+          <AccountGroupBalanceChange
+            amountChangeInUserCurrency={
+              balanceChange1d.amountChangeInUserCurrency
+            }
+            percentChange={balanceChange1d.percentChange}
+            userCurrency={balanceChange1d.userCurrency}
+          />
+        </Skeleton>
       )}
-    </View>
+    </TouchableOpacity>
   );
 };
 

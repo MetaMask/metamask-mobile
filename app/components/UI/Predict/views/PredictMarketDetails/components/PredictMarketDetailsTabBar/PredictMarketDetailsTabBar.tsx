@@ -33,40 +33,36 @@ const PredictMarketDetailsTabBar = memo(
 
     return (
       <Box
-        twClassName="bg-default border-b border-muted pt-4"
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="bg-default border-b border-muted pt-4 px-3"
         testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-3"
-        >
-          {tabs.map((tab, index) => (
-            <Pressable
-              key={tab.key}
-              onPress={() => onTabPress(index)}
-              style={tw.style(
-                'w-1/3 py-3',
-                activeTab === index ? 'border-b-2 border-default' : '',
-                tabTwStyle,
-              )}
-              testID={getPredictMarketDetailsSelector.tabBarTab(tab.key)}
+        {tabs.map((tab, index) => (
+          <Pressable
+            key={tab.key}
+            onPress={() => onTabPress(index)}
+            style={tw.style(
+              'w-1/3 py-3',
+              activeTab === index ? 'border-b-2 border-default' : '',
+              tabTwStyle,
+            )}
+            testID={getPredictMarketDetailsSelector.tabBarTab(tab.key)}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={
+                activeTab === index
+                  ? TextColor.TextDefault
+                  : TextColor.TextAlternative
+              }
+              style={tw.style('text-center')}
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName="font-medium"
-                color={
-                  activeTab === index
-                    ? TextColor.TextDefault
-                    : TextColor.TextAlternative
-                }
-                style={tw.style('text-center')}
-              >
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
-        </Box>
+              {tab.label}
+            </Text>
+          </Pressable>
+        ))}
       </Box>
     );
   },

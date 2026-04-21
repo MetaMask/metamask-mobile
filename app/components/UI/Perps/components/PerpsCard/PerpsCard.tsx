@@ -175,49 +175,47 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       onPress={handlePress}
       testID={testID}
     >
-      <View style={styles.cardContent}>
-        {/* Left side: Icon and info */}
-        <View style={styles.cardLeft}>
-          {symbol && (
-            <PerpsTokenLogo
-              symbol={symbol}
-              size={iconSize}
-              style={styles.assetIcon}
-            />
-          )}
-          <View style={styles.cardInfo}>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {displayData?.primaryText ?? ''}
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {displayData?.secondaryText ?? ''}
-            </Text>
-          </View>
+      {/* Left side: Icon and info */}
+      <View style={styles.cardLeft}>
+        {symbol && (
+          <PerpsTokenLogo
+            symbol={symbol}
+            size={iconSize}
+            style={styles.assetIcon}
+          />
+        )}
+        <View style={styles.cardInfo}>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {displayData?.primaryText ?? ''}
+          </Text>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {displayData?.secondaryText ?? ''}
+          </Text>
         </View>
+      </View>
 
-        {/* Right side: Value and label */}
-        <View style={styles.cardRight}>
-          <SensitiveText
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-          >
-            {displayData?.valueText ?? ''}
-          </SensitiveText>
-          <SensitiveText
-            variant={TextVariant.BodySM}
-            color={
-              privacyMode && !!position
-                ? TextColor.Default
-                : (displayData?.valueColor ?? TextColor.Default)
-            }
-            isHidden={privacyMode && !!position}
-            length={SensitiveTextLength.Short}
-          >
-            {displayData?.labelText ?? ''}
-          </SensitiveText>
-        </View>
+      {/* Right side: Value and label */}
+      <View style={styles.cardRight}>
+        <SensitiveText
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {displayData?.valueText ?? ''}
+        </SensitiveText>
+        <SensitiveText
+          variant={TextVariant.BodySM}
+          color={
+            privacyMode && !!position
+              ? TextColor.Default
+              : (displayData?.valueColor ?? TextColor.Default)
+          }
+          isHidden={privacyMode && !!position}
+          length={SensitiveTextLength.Short}
+        >
+          {displayData?.labelText ?? ''}
+        </SensitiveText>
       </View>
     </TouchableOpacity>
   );

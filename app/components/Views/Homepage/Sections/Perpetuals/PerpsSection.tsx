@@ -7,10 +7,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { useSelector } from 'react-redux';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -64,6 +64,10 @@ import type { TransactionActiveAbTestEntry } from '../../../../../util/transacti
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
 const HOMEPAGE_THROTTLE_MS = 5000;
+
+const styles = StyleSheet.create({
+  sectionGap: { gap: 12 },
+});
 
 interface UsePerpsTrendingCarouselDataArgs {
   skipInitialFetch?: boolean;
@@ -425,69 +429,74 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     if (connectionError) {
       return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
-          <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
-            <ErrorState
-              title={strings('homepage.error.unable_to_load', {
-                section: title.toLowerCase(),
-              })}
-              onRetry={() => reconnectWithNewContext({ force: true })}
-            />
-          </Box>
+        <View
+          ref={sectionViewRef}
+          onLayout={onLayout}
+          style={styles.sectionGap}
+        >
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllPerps}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('perps')}
+          />
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={() => reconnectWithNewContext({ force: true })}
+          />
         </View>
       );
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <Box gap={1}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
-            {showHomepageUnrealizedPnl && (
-              <HomepageSectionUnrealizedPnlRow
-                isLoading={perpsAccountLoading}
-                valueText={homepageUnrealizedPnl?.valueText}
-                tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
-                label={strings('perps.unrealized_pnl')}
-                testID="homepage-perps-unrealized-pnl"
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllPerps}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('perps')}
+        />
+        {showHomepageUnrealizedPnl && (
+          <HomepageSectionUnrealizedPnlRow
+            marginTop={1}
+            isLoading={perpsAccountLoading}
+            valueText={homepageUnrealizedPnl?.valueText}
+            tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
+            label={strings('perps.unrealized_pnl')}
+            testID="homepage-perps-unrealized-pnl"
+          />
+        )}
+        {showSkeleton || pendingTrending ? (
+          <SectionRow>
+            <PerpsPositionSkeleton />
+          </SectionRow>
+        ) : hasItems ? (
+          <SectionRow testID="homepage-perps-positions">
+            {displayPositions.map((position) => (
+              <PerpsCard
+                key={position.symbol}
+                position={position}
+                onPress={() => handlePositionPress(position)}
+                testID={`perps-position-row-${position.symbol}`}
               />
-            )}
-          </Box>
-          {showSkeleton || pendingTrending ? (
-            <SectionRow>
-              <PerpsPositionSkeleton />
-            </SectionRow>
-          ) : hasItems ? (
-            <SectionRow>
-              <Box testID="homepage-perps-positions">
-                {displayPositions.map((position) => (
-                  <PerpsCard
-                    key={position.symbol}
-                    position={position}
-                    onPress={() => handlePositionPress(position)}
-                    testID={`perps-position-row-${position.symbol}`}
-                  />
-                ))}
-                {displayOrders.map((order) => (
-                  <PerpsCard
-                    key={order.orderId}
-                    order={order}
-                    testID={`perps-order-row-${order.orderId}`}
-                  />
-                ))}
-              </Box>
-            </SectionRow>
-          ) : (
-            <PerpsTrendingCarousel
-              markets={allCarouselMarkets}
-              watchlistSymbolSet={watchlistSymbolSet}
-              sparklines={sparklines}
-              onPressMarket={handleTilePress}
-              onPressViewMore={handleViewMorePerps}
-            />
-          )}
-        </Box>
+            ))}
+            {displayOrders.map((order) => (
+              <PerpsCard
+                key={order.orderId}
+                order={order}
+                testID={`perps-order-row-${order.orderId}`}
+              />
+            ))}
+          </SectionRow>
+        ) : (
+          <PerpsTrendingCarousel
+            markets={allCarouselMarkets}
+            watchlistSymbolSet={watchlistSymbolSet}
+            sparklines={sparklines}
+            onPressMarket={handleTilePress}
+            onPressViewMore={handleViewMorePerps}
+          />
+        )}
       </View>
     );
   },
@@ -551,23 +560,21 @@ const PerpsSectionTrendingOnly = forwardRef<
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllPerps} />
-          {marketsLoading ? (
-            <SectionRow>
-              <PerpsPositionSkeleton />
-            </SectionRow>
-          ) : (
-            <PerpsTrendingCarousel
-              markets={allCarouselMarkets}
-              watchlistSymbolSet={watchlistSymbolSet}
-              sparklines={sparklines}
-              onPressMarket={handleTilePress}
-              onPressViewMore={handleViewMorePerps}
-            />
-          )}
-        </Box>
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+        <SectionHeader title={title} onPress={handleViewAllPerps} />
+        {marketsLoading ? (
+          <SectionRow>
+            <PerpsPositionSkeleton />
+          </SectionRow>
+        ) : (
+          <PerpsTrendingCarousel
+            markets={allCarouselMarkets}
+            watchlistSymbolSet={watchlistSymbolSet}
+            sparklines={sparklines}
+            onPressMarket={handleTilePress}
+            onPressViewMore={handleViewMorePerps}
+          />
+        )}
       </View>
     );
   },

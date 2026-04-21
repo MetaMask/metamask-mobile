@@ -125,21 +125,18 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
         alignItems={BoxAlignItems.Center}
       >
         {isLink ? (
-          <TouchableOpacity onPress={() => viewOnBlockExplorer(label)}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-1"
-            >
-              <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-                {formatAddress(value, 'short')}
-              </Text>
-              <Icon
-                name={IconName.Export}
-                size={IconSize.Sm}
-                color={IconColor.Primary}
-              />
-            </Box>
+          <TouchableOpacity
+            onPress={() => viewOnBlockExplorer(label)}
+            className="flex-row items-center gap-1"
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {formatAddress(value, 'short')}
+            </Text>
+            <Icon
+              name={IconName.Export}
+              size={IconSize.Sm}
+              color={IconColor.Primary}
+            />
           </TouchableOpacity>
         ) : label === TransactionDetailRow.Status ? (
           <StatusText

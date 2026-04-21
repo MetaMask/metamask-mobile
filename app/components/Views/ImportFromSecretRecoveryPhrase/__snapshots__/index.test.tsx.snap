@@ -624,7 +624,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             }
                                           }
                                           submitBehavior="submit"
-                                          testID="import-from-seed-screen-seed-phrase-input-id_0"
+                                          testID="seed-phrase-input_0"
                                           textAlignVertical="top"
                                           textContentType="none"
                                           value=""
@@ -729,7 +729,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             }
                                           }
                                           submitBehavior="submit"
-                                          testID="import-from-seed-screen-seed-phrase-input-id"
+                                          testID="seed-phrase-input"
                                           textAlignVertical="top"
                                           textContentType="none"
                                           value=""

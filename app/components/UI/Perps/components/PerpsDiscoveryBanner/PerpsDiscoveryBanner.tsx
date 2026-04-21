@@ -61,34 +61,32 @@ const PerpsDiscoveryBanner: React.FC<PerpsDiscoveryBannerProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <Pressable onPress={onPress} testID={testID}>
-      <Box style={styles.container}>
+    <Pressable onPress={onPress} testID={testID} style={styles.container}>
+      <Box
+        style={styles.banner}
+        backgroundColor={BoxBackgroundColor.BackgroundMuted}
+      >
         <Box
-          style={styles.banner}
-          backgroundColor={BoxBackgroundColor.BackgroundMuted}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-          >
-            <Image
-              source={perpsLogo}
-              style={styles.perpsLogo}
-              testID={`${testID}-logo`}
-            />
-            <Box style={styles.textContainer}>
-              <Text variant={TextVariant.BodyMd}>
-                {strings('perps.discovery_banner.title', { symbol })}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.discovery_banner.subtitle', {
-                  leverage: maxLeverage,
-                })}
-              </Text>
-            </Box>
+          <Image
+            source={perpsLogo}
+            style={styles.perpsLogo}
+            testID={`${testID}-logo`}
+          />
+          <Box style={styles.textContainer}>
+            <Text variant={TextVariant.BodyMd}>
+              {strings('perps.discovery_banner.title', { symbol })}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('perps.discovery_banner.subtitle', {
+                leverage: maxLeverage,
+              })}
+            </Text>
           </Box>
         </Box>
       </Box>
