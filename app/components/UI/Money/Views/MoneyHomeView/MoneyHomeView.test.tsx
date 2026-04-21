@@ -71,6 +71,11 @@ jest.mock('../../../../../selectors/cardController', () => ({
 
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 
+jest.mock('../../../../../actions/money', () => ({
+  upgradeMoneyAccount: jest.fn(() => () => undefined),
+}));
+
+
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );

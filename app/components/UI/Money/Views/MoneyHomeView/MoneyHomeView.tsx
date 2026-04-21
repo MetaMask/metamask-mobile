@@ -2,10 +2,12 @@ import React, { useCallback } from 'react';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { ScrollView, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
+import useThunkDispatch from '../../../../hooks/useThunkDispatch';
+import { upgradeMoneyAccount } from '../../../../../actions/money';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
@@ -52,7 +54,18 @@ const MoneyHomeView = () => {
   // const { initiateDeposit } = useMoneyAccountDeposit();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const dispatch = useThunkDispatch();
   const { styles } = useStyles(styleSheet, {});
+
+  // TODO: we need a way to check whether the money account has already been upgraded
+  // to the latest version, and then if so skip dispatching
+  //
+  // That can probably live in the action
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(upgradeMoneyAccount());
+    }, [dispatch]),
+  );
 
   const { totalFiatFormatted, vaultApyQuery, isAggregatedBalanceLoading } =
     useMoneyAccountBalance();
