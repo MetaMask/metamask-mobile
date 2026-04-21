@@ -83,12 +83,10 @@ const isSocialAIEqual = (
   if (a.mutedTraderProfileIds.length !== b.mutedTraderProfileIds.length) {
     return false;
   }
-  for (let i = 0; i < a.mutedTraderProfileIds.length; i += 1) {
-    if (a.mutedTraderProfileIds[i] !== b.mutedTraderProfileIds[i]) {
-      return false;
-    }
-  }
-  return true;
+  // Use a Set so the comparison is order-independent: the server may return
+  // the same IDs in a different order and the overlay should still be dropped.
+  const bSet = new Set(b.mutedTraderProfileIds);
+  return a.mutedTraderProfileIds.every((id) => bSet.has(id));
 };
 
 /**
@@ -222,21 +220,32 @@ export const useNotificationPreferences =
 
         try {
           await enqueuePersist(nextSocialAI);
-          // Refresh the query cache so subsequent renders read the new
-          // server-of-record value. The overlay stays in place until a
-          // `useEffect` below detects the remote has caught up and drops it,
-          // so the UI never flashes stale cached data in between.
-          await refetch();
         } catch (err) {
           Logger.error(
             err as Error,
             'useNotificationPreferences: persist failed',
           );
-          // Revert to the last known good value.
+          // The PUT failed, so we revert to the last known good value.
           pendingSocialAIRef.current = previousSocialAI;
           setOverlay(previousSocialAI);
           setPersistError(
             err instanceof Error ? err.message : String(err ?? 'Unknown error'),
+          );
+          return;
+        }
+
+        // The data is on the server. Refresh the query cache so subsequent
+        // renders read the new server-of-record value. The overlay stays in
+        // place until a `useEffect` below detects the remote has caught up
+        // and drops it, so the UI never flashes stale data in between.
+        // A cache-refresh failure is non-critical — the save already succeeded
+        // — so we log and leave the overlay in place rather than rolling back.
+        try {
+          await refetch();
+        } catch (err) {
+          Logger.error(
+            err as Error,
+            'useNotificationPreferences: cache refresh after persist failed',
           );
         }
       },

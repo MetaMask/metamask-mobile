@@ -358,6 +358,31 @@ describe('useNotificationPreferences', () => {
 
       expect(mockRefetch).toHaveBeenCalledTimes(1);
     });
+
+    it('does NOT roll back or set an error when persist succeeds but refetch throws', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return buildRemote();
+        return undefined;
+      });
+      mockRefetch.mockRejectedValueOnce(new Error('network blip'));
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.setEnabled(false);
+      });
+
+      // The mutation was saved — optimistic overlay must remain (enabled: false).
+      expect(result.current.preferences.enabled).toBe(false);
+      // No error should be surfaced to the UI for a cache-refresh failure.
+      expect(result.current.error).toBeNull();
+      // The refetch failure is still logged for observability.
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useNotificationPreferences: cache refresh after persist failed',
+      );
+    });
   });
 
   describe('write serialization', () => {
