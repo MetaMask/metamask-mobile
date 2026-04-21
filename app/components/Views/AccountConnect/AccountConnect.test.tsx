@@ -217,6 +217,13 @@ jest.mock('../../../core/AppConstants', () => ({
     ANDROID: 'io.metamask',
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  REQUEST_SOURCES: {
+    SDK_REMOTE_CONN: 'MetaMask-SDK-Remote-Conn',
+    MM_CONNECT: 'MetaMask-Connect',
+    WC: 'WalletConnect',
+    WC2: 'WalletConnectV2',
+    IN_APP_BROWSER: 'In-App-Browser',
+  },
 }));
 
 jest.mock('../../../core/HardwareWallets/analytics', () => ({
