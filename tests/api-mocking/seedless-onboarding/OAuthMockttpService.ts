@@ -26,10 +26,14 @@ function defaultMockOAuthClientIdForTokenRequest(
 ): string {
   if (loginProvider === E2ELoginProvider.APPLE) {
     return (
-      process.env.ANDROID_APPLE_CLIENT_ID || DEFAULT_MOCK_APPLE_OAUTH_CLIENT_ID
+      process.env.MAIN_ANDROID_APPLE_CLIENT_ID_UAT ||
+      process.env.ANDROID_APPLE_CLIENT_ID ||
+      DEFAULT_MOCK_APPLE_OAUTH_CLIENT_ID
     );
   }
   return (
+    process.env.MAIN_IOS_GOOGLE_CLIENT_ID_UAT ||
+    process.env.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT ||
     process.env.IOS_GOOGLE_CLIENT_ID ||
     process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID ||
     DEFAULT_MOCK_GOOGLE_OAUTH_CLIENT_ID
