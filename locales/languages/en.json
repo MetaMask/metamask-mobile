@@ -1020,6 +1020,15 @@
         "all": "All"
       }
     },
+    "notification_preferences": {
+      "title": "Top traders",
+      "allow_push_notifications": "Allow push notifications",
+      "trades_over_label": "Get notified of trades over:",
+      "traders_you_follow": "Traders you follow",
+      "traders_you_follow_desc": "Choose who you get notifications about",
+      "traders_you_follow_empty": "You aren't following any traders yet.",
+      "error_loading_followed": "Unable to load the traders you follow."
+    },
     "follow": "Follow",
     "following": "Following",
     "all_networks": "All networks",
@@ -1044,6 +1053,17 @@
       "buy": "Buy",
       "bought": "{{name}} bought",
       "sold": "{{name}} sold"
+    },
+    "quick_buy": {
+      "title": "Buy {{symbol}}",
+      "market_cap_label": "Market cap",
+      "pay_with": "Pay with",
+      "total": "Total",
+      "est_points": "Est. points",
+      "no_quotes": "No quotes available for this token",
+      "loading": "Loading...",
+      "unavailable": "Swap unavailable",
+      "unsupported_chain": "This chain is not supported for Quick Buy yet"
     }
   },
   "perps": {
@@ -3141,7 +3161,7 @@
     "general_title": "General",
     "general_desc": "Currency conversion, primary currency, language and search engine.",
     "advanced_title": "Advanced",
-    "advanced_desc": "Access developer features, reset account, set up testnets, state logs, IPFS gateway and custom RPC.",
+    "advanced_desc": "Access developer features, reset account, set up testnets, state logs, and custom RPC.",
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
@@ -3172,7 +3192,7 @@
     "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Security and privacy",
     "back": "Back",
-    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
+    "security_desc": "Privacy settings, MetaMetrics, private key, Secret Recovery Phrase, and IPFS gateway.",
     "networks_title": "Networks",
     "networks_default_title": "Default network",
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
@@ -6296,7 +6316,10 @@
       "step_progress": "Step {{current}} of {{total}}",
       "title": "Add money",
       "description": "Buy mUSD and start earning APY today.",
-      "add": "Add"
+      "add": "Add",
+      "step2_title": "Get your MetaMask Card",
+      "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
+      "step2_cta": "Get card"
     },
     "action": {
       "add": "Add",
@@ -6310,7 +6333,7 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Hold mUSD in your Money Account and auto-earn ",
+      "description_prefix": "Hold mUSD in your Money Account and auto-earn",
       "description_suffix": ". It's dollar-backed, always liquid, and ready to spend, trade, or send anytime."
     },
     "musd_row": {
@@ -6321,7 +6344,8 @@
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "convert": "Convert",
       "no_fee": "No MetaMask fee",
-      "view_all": "View all"
+      "view_all": "View all",
+      "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
       "title": "MetaMask Card",
@@ -6353,6 +6377,14 @@
       "filter_deposits": "Deposits",
       "filter_transfers": "Transfers"
     },
+    "condensed_cards": {
+      "how_it_works_title": "How it works",
+      "how_it_works_subtitle": "See how your money works for you",
+      "musd_title": "MetaMask USD",
+      "musd_subtitle": "Learn more about mUSD",
+      "what_you_get_title": "What you get",
+      "what_you_get_subtitle": "Explore your benefits"
+    },
     "transaction": {
       "added": "Added",
       "deposited": "Deposited",
@@ -6375,6 +6407,25 @@
       "learn_more": "Learn more",
       "swap": "Swap",
       "buy": "Buy"
+    },
+    "how_it_works_page": {
+      "header_title": "Money",
+      "section_title": "How it works",
+      "description_1": "Your Money account earns 4% APY (variable) automatically. Funds go into a curated DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
+      "faq_title": "FAQ",
+      "faq_placeholder_answer": "Coming soon.",
+      "faq_q1": "What is the Money account?",
+      "faq_q2": "What is mUSD?",
+      "faq_q3": "Where does the yield come from?",
+      "faq_q4": "Is my money locked? Can I withdraw anytime?",
+      "faq_q5": "How does spending with the MetaMask Card work?",
+      "faq_q6": "Are there any fees?",
+      "faq_q7": "Does the APY rate change?",
+      "faq_q8": "Is this a savings account or a spending account?",
+      "faq_q9": "Who controls my money?",
+      "faq_q10": "What cash back do I get with the MetaMask Card?",
+      "sounds_good": "Sounds good"
     }
   },
   "stake": {
@@ -6395,7 +6446,7 @@
       "fiat_unavailable": "Fiat values are temporarily unavailable.",
       "estimated_annual_reward": "Est. annual reward",
       "trx_locked_for": "TRX locked for",
-      "trx_locked_for_minimum_time": "~3 days",
+      "trx_locked_for_minimum_time": "~14 days",
       "trx_released_in": "TRX released in",
       "trx_released_in_minimum_time": "~14 days",
       "fee": "Fee",
@@ -6894,6 +6945,8 @@
     "fetching_quote": "Fetching quote",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee.",
     "no_mm_fee": "No MM fee",
+    "token_suspicious": "Suspicious",
+    "token_malicious": "Malicious",
     "no_mm_fee_disclaimer": "No MetaMask fee swapping into {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
@@ -7017,6 +7070,19 @@
     "ios_need_update_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
     "ios_need_update_description2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We also advise backing up your Secret Recovery Phrase if you are proceeding without updating iOS.",
     "ios_need_update_button": "Continue",
+    "ios_need_update_reminder_title": "iOS update required",
+    "ios_need_update_reminder_description": "MetaMask Google Sign-In will soon require ",
+    "ios_need_update_reminder_description_version": "iOS 17.4 or later",
+    "ios_need_update_reminder_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
+    "ios_need_update_reminder_description_2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We strongly recommend backing up your Secret Recovery Phrase.",
+    "ios_need_update_reminder_button": "Got it",
+    "ios_google_login_unsupported_error_title": "Google Sign-In no longer supported on this iOS version",
+    "ios_google_login_unsupported_error_description": "MetaMask Google Sign-In now requires ",
+    "ios_google_login_unsupported_error_description_2": ". Your current session is not affected, but if you are signed out, you will not be able to sign back in with Google on this device.",
+    "ios_google_login_unsupported_error_description_3": "To avoid losing access to your wallet:",
+    "ios_google_login_unsupported_error_description_4": "Update your iPhone to ",
+    "ios_google_login_unsupported_error_description_5": "Or back up your Secret Recovery Phrase so you can restore your wallet anytime",
+    "ios_google_login_unsupported_error_button": "Got it",
     "ios_google_login_unsupported_blocking_title": "Update iOS to create a wallet with Google",
     "ios_google_login_unsupported_blocking_description": "MetaMask's Google Sign-In requires iOS 17.4 or later. Update your iPhone to continue creating a wallet with Google.",
     "ios_google_login_unsupported_blocking_description_2": "Alternatively, you can create a wallet using a Secret Recovery Phrase instead.",

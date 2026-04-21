@@ -1011,6 +1011,113 @@ describe('ConnectionRegistry', () => {
       expect(Connection.create).toHaveBeenCalledTimes(3);
     });
 
+    it('continues processing later connections when an earlier Connection.create fails', async () => {
+      // Given: three persisted connections, the first fails at Connection.create
+      const persistedConnections: ConnectionInfo[] = [
+        createPersistedConnection('conn-1'),
+        createPersistedConnection('conn-2'),
+        createPersistedConnection('conn-3'),
+      ];
+
+      const mockConnection2 = createMockConnection('conn-2');
+      const mockConnection3 = createMockConnection('conn-3');
+
+      mockStore.list.mockClear();
+      mockStore.list.mockResolvedValue(persistedConnections);
+      (Connection.create as jest.Mock)
+        .mockClear()
+        .mockRejectedValueOnce(new Error('Create failed for conn-1'))
+        .mockResolvedValueOnce(mockConnection2)
+        .mockResolvedValueOnce(mockConnection3);
+
+      // When: creating a new registry (which triggers initialize)
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Then: Connection.create was attempted for all three, and the later
+      // connections were still resumed despite the first one failing.
+      expect(Connection.create).toHaveBeenCalledTimes(3);
+      expect(mockConnection2.resume).toHaveBeenCalledTimes(1);
+      expect(mockConnection3.resume).toHaveBeenCalledTimes(1);
+
+      // And the surviving connections are synced to the host app.
+      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
+        mockConnection2,
+        mockConnection3,
+      ]);
+    });
+
+    it('processes persisted connections sequentially, not concurrently', async () => {
+      // Given: three persisted connections whose Connection.create resolution
+      // is controlled so we can observe the ordering of awaited work.
+      const persistedConnections: ConnectionInfo[] = [
+        createPersistedConnection('conn-1'),
+        createPersistedConnection('conn-2'),
+        createPersistedConnection('conn-3'),
+      ];
+
+      const mockConnection1 = createMockConnection('conn-1');
+      const mockConnection2 = createMockConnection('conn-2');
+      const mockConnection3 = createMockConnection('conn-3');
+
+      const deferreds: {
+        promise: Promise<Connection>;
+        resolve: (value: Connection) => void;
+      }[] = [];
+      for (let i = 0; i < 3; i++) {
+        let resolveFn!: (value: Connection) => void;
+        const promise = new Promise<Connection>((resolve) => {
+          resolveFn = resolve;
+        });
+        deferreds.push({ promise, resolve: resolveFn });
+      }
+
+      mockStore.list.mockClear();
+      mockStore.list.mockResolvedValue(persistedConnections);
+      (Connection.create as jest.Mock)
+        .mockClear()
+        .mockImplementationOnce(() => deferreds[0].promise)
+        .mockImplementationOnce(() => deferreds[1].promise)
+        .mockImplementationOnce(() => deferreds[2].promise);
+
+      // When: creating a new registry (which triggers initialize)
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      // Let initialize() reach the first await.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Then: only the first Connection.create has been invoked; later
+      // connections must wait for it to settle.
+      expect(Connection.create).toHaveBeenCalledTimes(1);
+
+      // Resolve the first, then the second should start.
+      deferreds[0].resolve(mockConnection1 as unknown as Connection);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(Connection.create).toHaveBeenCalledTimes(2);
+
+      deferreds[1].resolve(mockConnection2 as unknown as Connection);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(Connection.create).toHaveBeenCalledTimes(3);
+
+      deferreds[2].resolve(mockConnection3 as unknown as Connection);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockConnection1.resume).toHaveBeenCalledTimes(1);
+      expect(mockConnection2.resume).toHaveBeenCalledTimes(1);
+      expect(mockConnection3.resume).toHaveBeenCalledTimes(1);
+    });
+
     it('evicts the oldest connection when at MAX_CONNECTIONS', async () => {
       const count = MAX_CONNECTIONS + 5;
       const baseTime = Date.now();
@@ -1256,14 +1363,14 @@ describe('ConnectionRegistry', () => {
       expect(mockConnection2.client.reconnect).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle errors gracefully when some connections fail to reconnect', async () => {
-      // Given: some connections where one will fail to reconnect
-      const mockConnection1 = createMockConnection('conn-1');
-      const mockConnection2 = createMockConnection('conn-2', {
+    it('continues reconnecting later connections when an earlier one fails', async () => {
+      // Given: three connections where the first fails to reconnect
+      const mockConnection1 = createMockConnection('conn-1', {
         client: {
           reconnect: jest.fn().mockRejectedValue(new Error('Network error')),
         },
       });
+      const mockConnection2 = createMockConnection('conn-2');
       const mockConnection3 = createMockConnection('conn-3');
 
       const persistedConnections: ConnectionInfo[] = [
@@ -1289,7 +1396,6 @@ describe('ConnectionRegistry', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // Clear mocks from initialization
       mockConnection1.client.reconnect.mockClear();
       mockConnection2.client.reconnect.mockClear();
       mockConnection3.client.reconnect.mockClear();
@@ -1299,10 +1405,85 @@ describe('ConnectionRegistry', () => {
       const reconnectPromise = (registry as any).reconnectAll();
       await expect(reconnectPromise).resolves.not.toThrow();
 
-      // Then: all connections should be attempted, even if one fails
+      // Then: all connections were attempted even though conn-1 failed
       expect(mockConnection1.client.reconnect).toHaveBeenCalledTimes(1);
-      expect(mockConnection2.client.reconnect).toHaveBeenCalledTimes(1); // Attempted even though it fails
+      expect(mockConnection2.client.reconnect).toHaveBeenCalledTimes(1);
       expect(mockConnection3.client.reconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('reconnects sequentially, not concurrently', async () => {
+      // Given: three connections whose client.reconnect resolution is
+      // controlled so we can observe the ordering of awaited work.
+      const deferreds: {
+        promise: Promise<void>;
+        resolve: () => void;
+      }[] = [];
+      for (let i = 0; i < 3; i++) {
+        let resolveFn!: () => void;
+        const promise = new Promise<void>((resolve) => {
+          resolveFn = resolve;
+        });
+        deferreds.push({ promise, resolve: resolveFn });
+      }
+
+      const mockConnection1 = createMockConnection('conn-1', {
+        client: { reconnect: jest.fn(() => deferreds[0].promise) },
+      });
+      const mockConnection2 = createMockConnection('conn-2', {
+        client: { reconnect: jest.fn(() => deferreds[1].promise) },
+      });
+      const mockConnection3 = createMockConnection('conn-3', {
+        client: { reconnect: jest.fn(() => deferreds[2].promise) },
+      });
+
+      const persistedConnections: ConnectionInfo[] = [
+        createPersistedConnection('conn-1'),
+        createPersistedConnection('conn-2'),
+        createPersistedConnection('conn-3'),
+      ];
+
+      mockStore.list.mockResolvedValue(persistedConnections);
+      (Connection.create as jest.Mock)
+        .mockClear()
+        .mockResolvedValueOnce(mockConnection1)
+        .mockResolvedValueOnce(mockConnection2)
+        .mockResolvedValueOnce(mockConnection3);
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      mockConnection1.client.reconnect.mockClear();
+      mockConnection2.client.reconnect.mockClear();
+      mockConnection3.client.reconnect.mockClear();
+
+      // When: calling reconnectAll without awaiting
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const reconnectPromise = (registry as any).reconnectAll();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Then: only the first reconnect has started; later reconnects must
+      // wait for earlier ones to settle.
+      expect(mockConnection1.client.reconnect).toHaveBeenCalledTimes(1);
+      expect(mockConnection2.client.reconnect).not.toHaveBeenCalled();
+      expect(mockConnection3.client.reconnect).not.toHaveBeenCalled();
+
+      deferreds[0].resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(mockConnection2.client.reconnect).toHaveBeenCalledTimes(1);
+      expect(mockConnection3.client.reconnect).not.toHaveBeenCalled();
+
+      deferreds[1].resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(mockConnection3.client.reconnect).toHaveBeenCalledTimes(1);
+
+      deferreds[2].resolve();
+      await reconnectPromise;
     });
   });
 });

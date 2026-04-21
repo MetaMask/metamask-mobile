@@ -130,6 +130,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../reducers/fiatOrders', () => ({
   getRampRoutingDecision: () => 'AGGREGATOR',
   UnifiedRampRoutingType: { AGGREGATOR: 'AGGREGATOR' },
+  selectHasAgreedTransakNativePolicy: jest.fn(() => false),
 }));
 
 jest.mock('../../hooks/useRampAccountAddress', () => ({
@@ -213,6 +214,12 @@ const mockUseAnalytics = jest.requireMock(
 const mockUseDebouncedValue = jest.requireMock(
   '../../../../hooks/useDebouncedValue',
 ).useDebouncedValue as jest.Mock;
+
+const mockFiatOrdersModule = jest.requireMock(
+  '../../../../../reducers/fiatOrders',
+) as {
+  selectHasAgreedTransakNativePolicy: jest.Mock;
+};
 
 const mockDeviceIsAndroid = jest.requireMock('../../../../../util/device')
   .isAndroid as jest.Mock;
@@ -416,6 +423,9 @@ const buildRampsControllerResult = (overrides = {}) => ({
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
+      false,
+    );
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: number) => value);
@@ -1290,7 +1300,35 @@ describe('BuildQuote', () => {
       expect(mockGetBuyQuote).not.toHaveBeenCalled();
       expect(mockRouteAfterAuth).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
+        Routes.RAMP.VERIFY_IDENTITY,
+        expect.objectContaining({
+          amount: '100',
+          currency: 'USD',
+          assetId: 'eip155:1/slip44:60',
+        }),
+      );
+    });
+
+    it('navigates to Enter Email for native provider without token after policy agreement', async () => {
+      mockCheckExistingToken.mockResolvedValue(false);
+
+      mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
+        true,
+      );
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+      expect(mockGetBuyQuote).not.toHaveBeenCalled();
+      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.ENTER_EMAIL,
         expect.objectContaining({
           amount: '100',
           currency: 'USD',
@@ -1627,7 +1665,7 @@ describe('BuildQuote', () => {
     });
 
     it('navigates to token unavailable modal after debounce when payment methods are empty', () => {
-      mockUnavailableController({});
+      mockUnavailableController({ providers: [transakProvider] });
       renderWithProvider(<BuildQuote />, { state: initialRootState });
       act(() => {
         jest.advanceTimersByTime(650);
@@ -1690,7 +1728,7 @@ describe('BuildQuote', () => {
         assetId: TOKEN_ASSET,
         buyFlowOrigin: 'tokenInfo' as const,
       });
-      mockUnavailableController({});
+      mockUnavailableController({ providers: [transakProvider] });
       renderWithProvider(<BuildQuote />, { state: initialRootState });
       act(() => {
         jest.advanceTimersByTime(650);
@@ -1726,16 +1764,18 @@ describe('BuildQuote', () => {
     });
 
     it('navigates when token is missing from supportedCryptoCurrencies', () => {
-      mockUnavailableController({
-        selectedProvider: {
-          id: '/providers/banxa',
-          name: 'Banxa',
-          supportedCryptoCurrencies: {
-            // TOKEN_ASSET is NOT in the map — treated as unsupported
-            'eip155:1/erc20:0xsomeother': true,
-          },
-          links: [],
+      const banxaProvider = {
+        id: '/providers/banxa',
+        name: 'Banxa',
+        supportedCryptoCurrencies: {
+          // TOKEN_ASSET is NOT in the map — treated as unsupported
+          'eip155:1/erc20:0xsomeother': true,
         },
+        links: [],
+      };
+      mockUnavailableController({
+        selectedProvider: banxaProvider,
+        providers: [banxaProvider],
       });
       renderWithProvider(<BuildQuote />, { state: initialRootState });
       act(() => {
@@ -1750,13 +1790,15 @@ describe('BuildQuote', () => {
     });
 
     it('re-navigates when provider id changes', () => {
+      const providerA = {
+        id: '/providers/a',
+        name: 'A',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+        links: [],
+      };
       mockUnavailableController({
-        selectedProvider: {
-          id: '/providers/a',
-          name: 'A',
-          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
-          links: [],
-        },
+        selectedProvider: providerA,
+        providers: [providerA],
       });
       const { rerender } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -1766,13 +1808,15 @@ describe('BuildQuote', () => {
       });
       expect(mockNavigate).toHaveBeenCalled();
       mockNavigate.mockClear();
+      const providerB = {
+        id: '/providers/b',
+        name: 'B',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+        links: [],
+      };
       mockUnavailableController({
-        selectedProvider: {
-          id: '/providers/b',
-          name: 'B',
-          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
-          links: [],
-        },
+        selectedProvider: providerB,
+        providers: [providerB],
       });
       rerender(<BuildQuote />);
       act(() => {
@@ -1786,7 +1830,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    describe('auto-switch when providerAutoSelected', () => {
+    describe('auto-switch when current provider does not support selected token', () => {
       const BTC_ASSET = 'eip155:1/slip44:0';
 
       const paypalProvider = {
@@ -1871,7 +1915,7 @@ describe('BuildQuote', () => {
         );
       });
 
-      it('shows modal when provider was not auto-selected', () => {
+      it('auto-switches even when provider was manually selected', () => {
         mockUnavailableController({
           selectedProvider: paypalProvider,
           providers: [paypalProvider, coinbaseProvider],
@@ -1888,8 +1932,10 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
+          autoSelected: true,
+        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
             screen: 'RampTokenNotAvailableModal',

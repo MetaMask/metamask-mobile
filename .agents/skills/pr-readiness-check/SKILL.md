@@ -7,6 +7,8 @@ description: Check branch changes for common PR readiness issues (missing tests,
 
 Scan the current branch diff for common issues that could be flagged during PR review. This is a **non-blocking** check — always report findings as warnings and let the user decide what to act on.
 
+The canonical Definition of Ready For Review lives at [`docs/readme/ready-for-review.md`](../../../docs/readme/ready-for-review.md).
+
 ## Steps
 
 1. **Collect the diff**

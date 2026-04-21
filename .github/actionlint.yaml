@@ -17,6 +17,7 @@ self-hosted-runner:
     - "low-priority"
     - "bitrise_pool_name:DemoFA"
     - "bitrise_pool_name:DemoFAXL"
+    - "bitrise_pool_name:DemoFAL"
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.

@@ -1,5 +1,16 @@
-import React, { useCallback, useMemo } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  InteractionManager,
+  Linking,
+  RefreshControl,
+  ScrollView,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -20,6 +31,10 @@ import Tokens from '../../UI/Tokens';
 import { useMusdBalance } from '../../UI/Earn/hooks/useMusdBalance';
 import { useMusdConversionTokens } from '../../UI/Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../UI/Earn/hooks/useMusdConversion';
+import {
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+} from '../../UI/Earn/constants/musd';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../UI/Earn/types/musd.types';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import {
@@ -31,6 +46,8 @@ import AssetOverviewClaimBonus from '../../UI/Earn/components/AssetOverviewClaim
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import CashGetMusdEmptyState from '../Homepage/Sections/Cash/CashGetMusdEmptyState';
 import SectionRow from '../Homepage/components/SectionRow/SectionRow';
+import CashTokensFullViewSkeleton from './CashTokensFullViewSkeleton';
+import { useCashTokensRefresh } from './useCashTokensRefresh';
 import { AssetType } from '../confirmations/types/token';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
@@ -46,6 +63,25 @@ const CashTokensFullView = () => {
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const hasConversionTokens = conversionTokens.length > 0;
+
+  // Loading signal: neither useMusdBalance nor useMusdConversionTokens expose
+  // an isLoading flag (they derive from synchronous Redux selectors). We mirror
+  // the Tokens component's hasInitialLoad pattern and flip loading off after
+  // the first InteractionManager tick so the Hub's dedicated skeleton shows on
+  // the first paint instead of falling through to TokenListSkeleton.
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
+      setIsLoading(false);
+    });
+    return () => handle.cancel();
+  }, []);
+
+  const merklRefetchRef = useRef<(() => void) | null>(null);
+  const handleRefetchReady = useCallback((refetch: () => void) => {
+    merklRefetchRef.current = refetch;
+  }, []);
+  const { refreshing, onRefresh } = useCashTokensRefresh(merklRefetchRef);
 
   const { initiateMaxConversion, initiateCustomConversion } =
     useMusdConversion();
@@ -110,7 +146,10 @@ const CashTokensFullView = () => {
   const bonusAndConvertSections = useMemo(
     () => (
       <>
-        <AssetOverviewClaimBonus asset={MUSD_MAINNET_ASSET_FOR_DETAILS} />
+        <AssetOverviewClaimBonus
+          asset={MUSD_MAINNET_ASSET_FOR_DETAILS}
+          onRefetchReady={handleRefetchReady}
+        />
         <MoneyConvertStablecoins
           tokens={conversionTokens}
           onMaxPress={handleConvertMaxPress}
@@ -124,8 +163,13 @@ const CashTokensFullView = () => {
       handleConvertMaxPress,
       handleConvertEditPress,
       handleLearnMorePress,
+      handleRefetchReady,
     ],
   );
+
+  if (isLoading) {
+    return <CashTokensFullViewSkeleton />;
+  }
 
   return (
     <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
@@ -147,13 +191,23 @@ const CashTokensFullView = () => {
         <Tokens
           isFullView
           showOnlyMusd
+          hideLoadingSkeleton
           hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
           listFooterComponent={
             isMoneyHubEnabled ? bonusAndConvertSections : undefined
           }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       ) : (
-        <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={tw`flex-1`}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
           <SectionRow>
             <CashGetMusdEmptyState isFullView />
           </SectionRow>
@@ -192,7 +246,14 @@ const CashTokensFullView = () => {
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 isFullWidth
-                onPress={() => goToBuy()}
+                onPress={() =>
+                  goToBuy({
+                    assetId:
+                      MUSD_TOKEN_ASSET_ID_BY_CHAIN[
+                        MUSD_CONVERSION_DEFAULT_CHAIN_ID
+                      ],
+                  })
+                }
               >
                 {strings('money.convert_stablecoins.buy')}
               </Button>

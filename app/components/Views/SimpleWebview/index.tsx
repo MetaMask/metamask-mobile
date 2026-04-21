@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import React, { useCallback, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from '@metamask/react-native-webview';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { IconName } from '@metamask/design-system-react-native';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
+import Device from '../../../util/device';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
 // TODO: This will be replaced with the actual route params type once navigation is refactored
@@ -20,6 +20,7 @@ const SimpleWebView = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RouteParams, 'SimpleWebView'>>();
   const url = route.params.url;
+  const title = (route.params as { title?: string })?.title ?? '';
 
   const share = useCallback(() => {
     if (url) {
@@ -32,22 +33,18 @@ const SimpleWebView = () => {
   }, [url]);
 
   useEffect(() => {
-    const title = (route.params as { title?: string })?.title ?? '';
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
+    navigation.setOptions({
+      ...getHeaderCompactStandardNavbarOptions({
         title,
         onBack: () => navigation.goBack(),
-        includesTopInset: true,
+        includesTopInset: Device.isAndroid(),
+        twClassName: 'bg-default rounded-t-2xl',
         endButtonIconProps: [{ iconName: IconName.Share, onPress: share }],
       }),
-    );
-  }, [navigation, route, share]);
+    });
+  }, [navigation, share, title]);
 
-  return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
-      <WebView containerStyle={baseStyles.webview} source={{ uri: url }} />
-    </SafeAreaView>
-  );
+  return <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />;
 };
 
 export default SimpleWebView;
