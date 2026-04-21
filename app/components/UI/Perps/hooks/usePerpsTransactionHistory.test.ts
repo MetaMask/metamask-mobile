@@ -316,6 +316,56 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockTransformWalletPerpsDepositsToTransactions).toHaveBeenCalled();
     });
 
+    it('includes wallet perps across deposits in merged transactions', async () => {
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+      const walletDepositTx = {
+        id: 'wallet-across-deposit-tx-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposited 120.00 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995204500,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '+$120.00',
+          amountNumber: 120,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: '0xacross',
+          status: 'completed' as const,
+          type: 'deposit' as const,
+        },
+      };
+      mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([
+        walletDepositTx,
+      ]);
+      const selectedAddr = '0x1234567890123456789012345678901234567890';
+      mockUseSelector.mockImplementation(() => {
+        const len = mockUseSelector.mock.calls.length;
+        return len % 2 === 1
+          ? [
+              {
+                id: 'w-across-1',
+                type: 'perpsAcrossDeposit',
+                txParams: { from: selectedAddr },
+              },
+            ]
+          : selectedAddr;
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: true }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(result.current.transactions).toContainEqual(walletDepositTx);
+      expect(mockTransformWalletPerpsDepositsToTransactions).toHaveBeenCalled();
+    });
+
     it('deduplicates wallet deposits against REST deposits by txHash', async () => {
       const sameTxHash = '0xabc123';
       const restDeposit = {

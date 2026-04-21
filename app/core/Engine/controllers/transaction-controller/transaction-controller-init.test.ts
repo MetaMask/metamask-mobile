@@ -714,6 +714,22 @@ describe('Transaction Controller Init', () => {
       expect(result).toBe(false);
     });
 
+    it('returns false for transaction with nested perpsAcrossDeposit type', () => {
+      const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+      const isEnabledFn = option as (transaction: {
+        type: string;
+        origin?: string;
+        nestedTransactions?: { type: string }[];
+      }) => boolean;
+
+      const result = isEnabledFn({
+        type: TransactionType.contractInteraction,
+        nestedTransactions: [{ type: TransactionType.perpsAcrossDeposit }],
+      });
+
+      expect(result).toBe(false);
+    });
+
     it('returns false for tokenMethodApprove with ORIGIN_METAMASK', () => {
       const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
       const isEnabledFn = option as ({

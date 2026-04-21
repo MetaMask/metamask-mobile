@@ -233,6 +233,27 @@ describe('Transaction Pay Controller Init', () => {
     ).toEqual([TransactionPayStrategy.Across]);
   });
 
+  it('falls back to relay when confirmations_pay flags are unavailable', () => {
+    const controllerMessenger = {
+      call: jest.fn().mockReturnValue({
+        localOverrides: {},
+        remoteFeatureFlags: {},
+      }),
+    } as unknown as TransactionPayControllerMessenger;
+
+    const getStrategies = testConstructorOption('getStrategies', undefined, {
+      controllerMessenger,
+    }) as NonNullable<TransactionPayControllerOptions['getStrategies']>;
+
+    expect(
+      getStrategies({
+        chainId: '0xa4b1',
+        txParams: { to: '0xabc' },
+        type: TransactionType.perpsDeposit,
+      } as unknown as TransactionMeta),
+    ).toEqual([TransactionPayStrategy.Relay]);
+  });
+
   it('logs and rethrows when controller initialization fails', () => {
     const requestMock = buildInitRequestMock();
     const loggerErrorSpy = jest.spyOn(Logger, 'error').mockImplementation();

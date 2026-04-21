@@ -12,6 +12,7 @@ import {
   hasMetaMaskPayDepositChildTransactionType,
   hasPerpsDepositTransactionType,
   hasPredictDepositTransactionType,
+  hasPredictWithdrawTransactionType,
 } from './metamask-pay';
 
 describe('MetaMask Pay transaction helpers', () => {
@@ -69,6 +70,58 @@ describe('MetaMask Pay transaction helpers', () => {
         type: TransactionType.predictAcrossDeposit,
       } as TransactionMeta),
     ).toBe(TransactionType.predictDeposit);
+  });
+
+  it('classifies predictWithdraw and relay child variants correctly', () => {
+    expect(
+      hasPredictWithdrawTransactionType({
+        type: TransactionType.predictWithdraw,
+      } as TransactionMeta),
+    ).toBe(true);
+
+    expect(
+      hasMetaMaskPayDepositChildTransactionType({
+        type: TransactionType.relayDeposit,
+      } as TransactionMeta),
+    ).toBe(true);
+
+    expect(
+      hasMetaMaskPayDepositChildTransactionType({
+        type: TransactionType.predictRelayDeposit,
+      } as TransactionMeta),
+    ).toBe(true);
+
+    expect(
+      getMetaMaskPayUseCase({
+        type: TransactionType.predictWithdraw,
+      } as TransactionMeta),
+    ).toBe('predict_withdraw');
+  });
+
+  it('returns route transaction types for MM Pay transaction families and undefined otherwise', () => {
+    expect(
+      getMetaMaskPayRouteTransactionType({
+        type: TransactionType.musdClaim,
+      } as TransactionMeta),
+    ).toBe(TransactionType.musdClaim);
+
+    expect(
+      getMetaMaskPayRouteTransactionType({
+        type: TransactionType.musdConversion,
+      } as TransactionMeta),
+    ).toBe(TransactionType.musdConversion);
+
+    expect(
+      getMetaMaskPayRouteTransactionType({
+        type: TransactionType.predictWithdraw,
+      } as TransactionMeta),
+    ).toBe(TransactionType.predictWithdraw);
+
+    expect(
+      getMetaMaskPayRouteTransactionType({
+        type: TransactionType.swap,
+      } as TransactionMeta),
+    ).toBeUndefined();
   });
 
   it('includes MM Pay transfer/detail variants and excludes claim types', () => {

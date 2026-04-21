@@ -156,6 +156,20 @@ describe('TransactionDetailsSummary', () => {
     expect(getByText('DepositSummaryLine')).toBeDefined();
   });
 
+  it('routes predictAcrossDeposit transactions to DepositSummaryLine', () => {
+    const { getByText } = render({
+      transactions: [
+        {
+          id: transactionIdMock,
+          chainId: '0x1',
+          type: TransactionType.predictAcrossDeposit,
+        },
+      ],
+    });
+
+    expect(getByText('DepositSummaryLine')).toBeDefined();
+  });
+
   it('routes unsupported types to DefaultSummaryLine', () => {
     const { getByText } = render({
       transactions: [

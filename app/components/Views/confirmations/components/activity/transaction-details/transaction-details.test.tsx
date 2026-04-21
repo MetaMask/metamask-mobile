@@ -203,6 +203,23 @@ describe('TransactionDetails', () => {
       );
     });
 
+    it('returns perps_deposit title for perpsAcrossDeposit type', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.perpsAcrossDeposit,
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('transaction_details.title.perps_deposit'),
+        }),
+      );
+    });
+
     it('returns musd_claim title for musdClaim type', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
@@ -242,6 +259,23 @@ describe('TransactionDetails', () => {
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
           nestedTransactions: [{ type: TransactionType.predictDeposit }],
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('transaction_details.title.predict_deposit'),
+        }),
+      );
+    });
+
+    it('returns predict_deposit title for predictAcrossDeposit type', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.predictAcrossDeposit,
         } as unknown as TransactionMeta,
       });
 

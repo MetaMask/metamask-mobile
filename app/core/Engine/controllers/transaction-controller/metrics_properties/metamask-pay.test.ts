@@ -119,6 +119,46 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  it('copies additional UI metrics from the parent transaction', () => {
+    getUIMetricsMock.mockReturnValue({
+      properties: {
+        mm_pay: true,
+        mm_pay_execution_latency: 3210,
+        mm_pay_strategy: 'relay',
+        mm_pay_use_case: 'test_use_case',
+        mm_pay_transaction_step_total: 3,
+        mm_pay_sending_value_usd: 10.5,
+        mm_pay_receiving_value_usd: 9.75,
+        mm_pay_metamask_fee_usd: 0.02,
+      },
+      sensitiveProperties: {},
+    });
+
+    request.allTransactions = [
+      {
+        id: 'parent-1',
+        type: TransactionType.perpsDeposit,
+        requiredTransactionIds: ['child-1'],
+      } as TransactionMeta,
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_execution_latency: 3210,
+        mm_pay_strategy: 'relay',
+        mm_pay_use_case: 'test_use_case',
+        mm_pay_transaction_step_total: 3,
+        mm_pay_sending_value_usd: 10.5,
+        mm_pay_receiving_value_usd: 9.75,
+        mm_pay_metamask_fee_usd: 0.02,
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
   it('copies USD value metrics from predictWithdraw parent to child', () => {
     getUIMetricsMock.mockReturnValue({
       properties: {
@@ -183,6 +223,45 @@ describe('Metamask Pay Metrics', () => {
         mm_pay: true,
         mm_pay_use_case: 'test_use_case',
         mm_pay_transaction_step_total: 3,
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('matches MM Pay parent transactions by batchId when requiredTransactionIds are absent', () => {
+    getUIMetricsMock.mockReturnValue({
+      properties: {
+        mm_pay: true,
+        mm_pay_use_case: 'perps_deposit',
+        mm_pay_transaction_step_total: 3,
+      },
+      sensitiveProperties: {},
+    });
+
+    request.transactionMeta.batchId = BATCH_ID_MOCK;
+
+    request.allTransactions = [
+      {
+        id: 'child-0',
+        batchId: BATCH_ID_MOCK,
+        txParams: { nonce: '0x0' },
+      } as TransactionMeta,
+      {
+        id: 'parent-1',
+        batchId: BATCH_ID_MOCK,
+        txParams: { nonce: '0x2' },
+        type: TransactionType.predictDeposit,
+      } as TransactionMeta,
+      request.transactionMeta,
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_use_case: 'perps_deposit',
+        mm_pay_transaction_step: 2,
       }),
       sensitiveProperties: {},
     });
@@ -496,6 +575,46 @@ describe('Metamask Pay Metrics', () => {
         mm_pay: true,
         mm_pay_chain_selected: '0x3',
         mm_pay_token_selected: 'USDC',
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('generates predict_withdraw fallback properties from transaction metadata', () => {
+    request.transactionMeta.type = TransactionType.predictWithdraw;
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x89',
+      tokenAddress: '0x123',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: {
+            allTokens: {
+              '0x89': {
+                '0x123': [
+                  {
+                    address: '0x123',
+                    symbol: 'USDC',
+                    decimals: 6,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_chain_selected: '0x89',
+        mm_pay_token_selected: 'USDC',
+        mm_pay_use_case: 'predict_withdraw',
       }),
       sensitiveProperties: {},
     });
