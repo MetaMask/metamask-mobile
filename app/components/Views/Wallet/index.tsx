@@ -67,6 +67,11 @@ import {
 } from '../../../component-library/components/Toast';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   trackActionButtonClick,
@@ -1235,6 +1240,10 @@ const Wallet = ({
     });
   }, [navigation]);
 
+  const navigateToLedgerDiscovery = useCallback(() => {
+    navigate(Routes.HW.LEDGER_DISCOVERY);
+  }, [navigate]);
+
   const defiEnabled =
     isNetworkEnabledForDefi &&
     !enabledNetworksHasTestNet &&
@@ -1389,6 +1398,15 @@ const Wallet = ({
     <ErrorBoundary navigation={navigation} view="Wallet">
       <PerpsAlwaysOnProvider>
         <View style={baseStyles.flexGrow}>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            isFullWidth
+            onPress={navigateToLedgerDiscovery}
+            testID="wallet-ledger-discovery-preview-button"
+          >
+            Preview Ledger discovery flow
+          </Button>
           {selectedInternalAccount ? (
             <View
               ref={containerViewRef}

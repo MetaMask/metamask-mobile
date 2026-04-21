@@ -5,6 +5,11 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -32,11 +37,15 @@ const createStyle = (colors: any) =>
       flex: 1,
       justifyContent: 'center',
     },
+    contentContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      gap: 16,
+    },
     buttonsContainer: {
       width: '100%',
-      flex: 1,
       flexDirection: 'row',
-      paddingHorizontal: 16,
       gap: 12,
     },
     image: {
@@ -52,6 +61,9 @@ const createStyle = (colors: any) =>
       backgroundColor: colors.background.section,
     },
     button: {
+      width: '100%',
+    },
+    previewButton: {
       width: '100%',
     },
     subtitle: {
@@ -119,7 +131,15 @@ const SelectHardwareWallet = () => {
       console.error('[SelectHardware] Failed to track analytics:', error);
     }
 
-    navigation.navigate(Routes.HW.CONNECT_LEDGER);
+    navigation.navigate(Routes.HW.LEDGER_DISCOVERY);
+  };
+
+  const navigateToSearchingPreview = () => {
+    navigation.navigate(Routes.HW.SEARCHING_FOR_DEVICE_PREVIEW);
+  };
+
+  const navigateToDiscoveryPreview = () => {
+    navigation.navigate(Routes.HW.LEDGER_DISCOVERY);
   };
 
   // TODO: Replace "any" with type
@@ -171,9 +191,33 @@ const SelectHardwareWallet = () => {
         }
         twClassName="px-4 pt-1 pb-3"
       />
-      <View style={styles.buttonsContainer}>
-        <LedgerButton />
-        <QRButton />
+      <View style={styles.contentContainer}>
+        <View style={styles.buttonsContainer}>
+          <LedgerButton />
+          <QRButton />
+        </View>
+        <View style={styles.previewButton}>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={navigateToSearchingPreview}
+            testID="hw-device-preview-button"
+          >
+            Preview loading screen
+          </Button>
+        </View>
+        <View style={styles.previewButton}>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={navigateToDiscoveryPreview}
+            testID="hw-ledger-discovery-preview-button"
+          >
+            Preview Ledger discovery flow
+          </Button>
+        </View>
       </View>
     </SafeAreaView>
   );

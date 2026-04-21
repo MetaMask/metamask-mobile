@@ -1,0 +1,1 @@
+export const LEDGER_DISCOVERY_TIMEOUT_MS = 6000;

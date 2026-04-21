@@ -53,6 +53,8 @@ import AssetOptions from '../../Views/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import LedgerDiscoveryFlow from '../../Views/ConnectHardware/LedgerDiscoveryFlow/LedgerDiscoveryFlow';
+import SearchingForDevice from '../../Views/ConnectHardware/SearchingForDevice';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
@@ -679,10 +681,18 @@ const LedgerConnectFlow = () => (
 );
 
 const ConnectHardwareWalletFlow = () => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
     <Stack.Screen
       name={Routes.HW.SELECT_DEVICE}
       component={SelectHardwareWallet}
+    />
+    <Stack.Screen
+      name={Routes.HW.SEARCHING_FOR_DEVICE_PREVIEW}
+      component={SearchingForDevice}
     />
   </Stack.Navigator>
 );
@@ -946,6 +956,10 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.HW.CONNECT_LEDGER}
       component={LedgerConnectFlow}
+    />
+    <Stack.Screen
+      name={Routes.HW.LEDGER_DISCOVERY}
+      component={LedgerDiscoveryFlow}
     />
     <Stack.Screen
       name={Routes.HW.CONNECT}

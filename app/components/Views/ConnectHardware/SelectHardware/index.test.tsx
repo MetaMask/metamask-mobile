@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SelectHardwareWallet from './index';
 import { strings } from '../../../../../locales/i18n';
@@ -98,7 +98,7 @@ describe('SelectHardwareWallet', () => {
         MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_LEDGER);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.LEDGER_DISCOVERY);
     });
 
     it('includes connected devices count in metrics event', async () => {
@@ -215,6 +215,21 @@ describe('SelectHardwareWallet', () => {
     });
   });
 
+  describe('preview navigation', () => {
+    it('navigates to the hardware wallet searching preview', () => {
+      const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
+        state: initialState,
+      });
+
+      const previewButton = getByTestId('hw-device-preview-button');
+      fireEvent.press(previewButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HW.SEARCHING_FOR_DEVICE_PREVIEW,
+      );
+    });
+  });
+
   describe('error handling', () => {
     it('continues navigation to Ledger when getConnectedDevicesCount fails', async () => {
       const error = new Error('Failed to get device count');
@@ -227,7 +242,7 @@ describe('SelectHardwareWallet', () => {
 
       await ledgerButton.props.onPress();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_LEDGER);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.LEDGER_DISCOVERY);
     });
 
     it('continues navigation to QR when getConnectedDevicesCount fails', async () => {
