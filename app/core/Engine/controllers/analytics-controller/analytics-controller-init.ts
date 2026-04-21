@@ -9,7 +9,6 @@ import { createPlatformAdapter } from './platform-adapter';
 import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
 import { isE2E } from '../../../../util/test/utils';
 import { getBrazePlugin } from '../../../Braze';
-import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
 
 /**
  * Initialize the analytics controller.
@@ -22,8 +21,7 @@ import type { AnalyticsControllerInitMessenger } from '../../messengers/analytic
  */
 export const analyticsControllerInit: MessengerClientInitFunction<
   AnalyticsController,
-  AnalyticsControllerMessenger,
-  AnalyticsControllerInitMessenger
+  AnalyticsControllerMessenger
 > = ({ controllerMessenger, analyticsId, persistedState }) => {
   const persistedAnalyticsState = persistedState.AnalyticsController;
   const defaultState = getDefaultAnalyticsControllerState();
