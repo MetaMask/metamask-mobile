@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView , Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
@@ -25,6 +25,10 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import AppConstants from '../../../../../core/AppConstants';
+import NavigationService from '../../../../../core/NavigationService';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
@@ -66,13 +70,20 @@ const MoneyHomeView = () => {
   const handleApyInfoPress = displayUnderConstructionAlert;
   const handleProjectedEarningsPress = displayUnderConstructionAlert;
   const handleGetNowPress = displayUnderConstructionAlert;
-  const handleMusdRowPress = displayUnderConstructionAlert;
+  const handleMusdRowPress = useCallback(() => {
+    NavigationService.navigation.navigate('Asset', {
+      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
+      source: TokenDetailsSource.MobileTokenListPage,
+    });
+  }, []);
   const handleHeaderPress = displayUnderConstructionAlert;
 
   const handleTokenConvertPress = displayUnderConstructionAlert;
 
   const handleEarnCryptoPress = displayUnderConstructionAlert;
-  const handleLearnMorePress = displayUnderConstructionAlert;
+  const handleLearnMorePress = useCallback(() => {
+    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+  }, []);
   const handleAddMoneyPress = displayUnderConstructionAlert;
   const handleHowItWorksHeaderPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
