@@ -3751,6 +3751,86 @@ describe('HyperLiquidSubscriptionService', () => {
 
       unsubscribe();
     });
+
+    it('includes spot balance in webData2 (single-DEX) account updates without flickering', async () => {
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '50',
+        totalBalance: '200',
+        marginUsed: '10',
+        unrealizedPnl: '5',
+        returnOnEquity: '0.05',
+      }));
+
+      let webData2Callback: ((data: any) => void) | undefined;
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          webData2Callback = callback;
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [],
+                marginSummary: {
+                  accountValue: '200',
+                  totalMarginUsed: '10',
+                },
+                withdrawable: '50',
+              },
+              openOrders: [],
+              perpsAtOpenInterestCap: [],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const singleDexService = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        mockDeps,
+        false,
+      );
+
+      const mockCallback = jest.fn();
+      const unsubscribe = singleDexService.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(mockCallback).toHaveBeenCalled();
+      const firstUpdate = mockCallback.mock.calls.at(-1)[0];
+      expect(firstUpdate.totalBalance).toBe('300.76531791');
+      expect(firstUpdate.availableBalance).toBe('50');
+
+      // Simulate a second WebSocket tick — should still include spot balance,
+      // not revert to perps-only 200.
+      mockCallback.mockClear();
+      expect(webData2Callback).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      webData2Callback!({
+        clearinghouseState: {
+          assetPositions: [],
+          marginSummary: {
+            accountValue: '200',
+            totalMarginUsed: '10',
+          },
+          withdrawable: '50',
+        },
+        openOrders: [],
+        perpsAtOpenInterestCap: [],
+      });
+
+      await jest.runAllTimersAsync();
+
+      if (mockCallback.mock.calls.length > 0) {
+        const secondUpdate = mockCallback.mock.calls.at(-1)[0];
+        expect(secondUpdate.totalBalance).toBe('300.76531791');
+      }
+
+      unsubscribe();
+    });
   });
 
   describe('aggregateAccountStates - returnOnEquity calculation', () => {

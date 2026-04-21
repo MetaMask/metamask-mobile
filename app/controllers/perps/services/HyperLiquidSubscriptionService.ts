@@ -1531,10 +1531,17 @@ export class HyperLiquidSubscriptionService {
                 this.#oiCapSubscribers.forEach((callback) => callback(oiCaps));
               }
 
-              // Notify subscribers (no aggregation needed - only main DEX)
+              // Notify subscribers (no aggregation needed - only main DEX).
+              // Apply spot balance so single-DEX accounts see the same
+              // spot-inclusive totalBalance as the HIP-3 aggregation path.
+              const spotAdjustedAccount = addSpotBalanceToAccountState(
+                accountState,
+                this.#cachedSpotState,
+              );
+
               const positionsHash = this.#hashPositions(positionsWithTPSL);
               const ordersHash = this.#hashOrders(orders);
-              const accountHash = this.#hashAccountState(accountState);
+              const accountHash = this.#hashAccountState(spotAdjustedAccount);
 
               if (positionsHash !== this.#cachedPositionsHash) {
                 this.#cachedPositions = positionsWithTPSL;
@@ -1553,10 +1560,10 @@ export class HyperLiquidSubscriptionService {
               }
 
               if (accountHash !== this.#cachedAccountHash) {
-                this.#cachedAccount = accountState;
+                this.#cachedAccount = spotAdjustedAccount;
                 this.#cachedAccountHash = accountHash;
                 this.#accountSubscribers.forEach((callback) =>
-                  callback(accountState),
+                  callback(spotAdjustedAccount),
                 );
               }
             } catch (error) {
