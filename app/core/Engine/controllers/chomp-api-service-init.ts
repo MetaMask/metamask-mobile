@@ -6,7 +6,7 @@ import type { MessengerClientInitFunction } from '../types';
 import type { ChompApiServiceInitMessenger } from '../messengers/chomp-api-service-messenger';
 import type { ChompApiConfig } from '../../../selectors/featureFlagController/chompApi';
 
-const DEFAULT_CHOMP_API_URL = 'https://chomp.api.cx.metamask.io';
+const DEFAULT_CHOMP_API_URL = 'https://chomp.dev-api.cx.metamask.io';
 
 /**
  * Initialize the ChompApiService.
