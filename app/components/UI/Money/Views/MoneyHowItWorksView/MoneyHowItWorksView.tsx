@@ -196,7 +196,7 @@ const MoneyHowItWorksView = () => {
 
         <SectionDivider />
 
-        <Box twClassName="pt-8 pb-5 px-4">
+        <Box twClassName="py-5 px-4">
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
