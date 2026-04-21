@@ -271,16 +271,6 @@ runs:
           echo "📝 No Smart E2E selection comments found"
         fi
 
-    - name: Apply risk label to PR
-      if: inputs.pr-number != '' && inputs.github-token != '' && inputs.is-draft != 'true' && (inputs.base-ref == 'main' || startsWith(inputs.base-ref, 'release/'))
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github-token }}
-        GITHUB_REPOSITORY: ${{ inputs.repository }}
-        PR_NUMBER: ${{ inputs.pr-number }}
-        RISK_LEVEL: ${{ steps.final-outputs.outputs.ai_risk_level }}
-      run: node .github/scripts/e2e-risk-label.mjs
-
     - name: Create PR comment
       if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''
       shell: bash

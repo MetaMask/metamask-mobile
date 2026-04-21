@@ -493,7 +493,6 @@ jobs:
         with:
           sparse-checkout: |
             .github/actions/smart-e2e-selection
-            .github/scripts/e2e-risk-label.mjs
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 
