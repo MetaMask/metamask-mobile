@@ -37,7 +37,8 @@ const localStyles = StyleSheet.create({
   headerSpacer: { width: 40 },
 });
 
-const Divider = () => <Box twClassName="h-px bg-border-muted" />;
+const SectionDivider = () => <Box twClassName="h-px bg-border-muted my-5" />;
+const FaqDivider = () => <Box twClassName="h-px bg-border-muted" />;
 
 const FAQ_KEYS = [
   'faq_q1',
@@ -193,9 +194,7 @@ const MoneyHowItWorksView = () => {
           </Text>
         </Box>
 
-        <Box twClassName="my-5">
-          <Divider />
-        </Box>
+        <SectionDivider />
 
         <Box twClassName="pb-3 px-4">
           <Text
@@ -209,7 +208,7 @@ const MoneyHowItWorksView = () => {
 
         {FAQ_KEYS.map((key, index) => (
           <React.Fragment key={key}>
-            <Divider />
+            <FaqDivider />
             <FaqItem
               question={strings(`money.how_it_works_page.${key}`)}
               answer={strings('money.how_it_works_page.faq_placeholder_answer')}
