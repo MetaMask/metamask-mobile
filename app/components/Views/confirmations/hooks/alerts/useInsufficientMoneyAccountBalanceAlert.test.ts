@@ -11,6 +11,7 @@ import {
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTokenAmount } from '../useTokenAmount';
+import BigNumber from 'bignumber.js';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
@@ -38,7 +39,7 @@ describe('useInsufficientMoneyAccountBalanceAlert', () => {
     } as unknown as TransactionMeta);
 
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatRaw: '100',
+      tokenTotal: new BigNumber('100'),
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
@@ -70,9 +71,9 @@ describe('useInsufficientMoneyAccountBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns no alert when totalFiatRaw is undefined', () => {
+  it('returns no alert when tokenTotal is undefined', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatRaw: undefined,
+      tokenTotal: undefined,
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     const { result } = runHook({ pendingAmount: '150' });

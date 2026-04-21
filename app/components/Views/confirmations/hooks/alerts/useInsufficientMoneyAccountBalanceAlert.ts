@@ -19,7 +19,7 @@ export function useInsufficientMoneyAccountBalanceAlert({
   pendingAmount?: string;
 } = {}): Alert[] {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const { totalFiatRaw } = useMoneyAccountBalance();
+  const { tokenTotal } = useMoneyAccountBalance();
   const { amountPrecise } = useTokenAmount();
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
 
@@ -29,10 +29,10 @@ export function useInsufficientMoneyAccountBalanceAlert({
 
   const isInsufficient = useMemo(() => {
     if (!isMoneyAccountWithdraw) return false;
-    if (totalFiatRaw === undefined) return false;
+    if (tokenTotal === undefined) return false;
 
-    return new BigNumber(totalFiatRaw).isLessThan(amountHuman);
-  }, [isMoneyAccountWithdraw, amountHuman, totalFiatRaw]);
+    return tokenTotal.isLessThan(amountHuman);
+  }, [isMoneyAccountWithdraw, amountHuman, tokenTotal]);
 
   return useMemo(() => {
     if (!isInsufficient) {
