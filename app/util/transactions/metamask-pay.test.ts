@@ -4,6 +4,7 @@ import {
 } from '@metamask/transaction-controller';
 
 import {
+  MM_PAY_DETAIL_TRANSACTION_TYPES,
   MM_PAY_DEPOSIT_CHILD_TRANSACTION_TYPES,
   MM_PAY_POSITIVE_TRANSFER_TRANSACTION_TYPES,
   getMetaMaskPayUseCase,
@@ -59,20 +60,35 @@ describe('MetaMask Pay transaction helpers', () => {
 
     expect(
       getMetaMaskPayRouteTransactionType({
+        type: TransactionType.predictDepositAndOrder,
+      } as TransactionMeta),
+    ).toBe(TransactionType.predictDeposit);
+
+    expect(
+      getMetaMaskPayRouteTransactionType({
         type: TransactionType.predictAcrossDeposit,
       } as TransactionMeta),
     ).toBe(TransactionType.predictDeposit);
   });
 
-  it('excludes claim types from positive transfer classification', () => {
+  it('includes MM Pay transfer/detail variants and excludes claim types', () => {
     expect(MM_PAY_POSITIVE_TRANSFER_TRANSACTION_TYPES).toContain(
       TransactionType.perpsAcrossDeposit,
+    );
+    expect(MM_PAY_POSITIVE_TRANSFER_TRANSACTION_TYPES).toContain(
+      TransactionType.perpsWithdraw,
     );
     expect(MM_PAY_POSITIVE_TRANSFER_TRANSACTION_TYPES).toContain(
       TransactionType.predictAcrossDeposit,
     );
     expect(MM_PAY_POSITIVE_TRANSFER_TRANSACTION_TYPES).toContain(
       TransactionType.predictWithdraw,
+    );
+    expect(MM_PAY_DETAIL_TRANSACTION_TYPES).toContain(
+      TransactionType.perpsWithdraw,
+    );
+    expect(MM_PAY_DETAIL_TRANSACTION_TYPES).toContain(
+      TransactionType.predictDepositAndOrder,
     );
     expect(MM_PAY_POSITIVE_TRANSFER_TRANSACTION_TYPES).not.toContain(
       TransactionType.musdClaim,

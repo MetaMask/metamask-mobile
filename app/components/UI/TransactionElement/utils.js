@@ -1046,6 +1046,7 @@ export default async function decodeTransaction(args) {
     switch (actionKey) {
       case strings('transactions.tx_review_musd_conversion'):
       case strings('transactions.tx_review_perps_deposit'):
+      case strings('transactions.tx_review_perps_withdraw'):
       case strings('transactions.tx_review_predict_deposit'):
       case strings('transactions.tx_review_predict_withdraw'):
         [transactionElement, transactionDetails] = await decodeTransferTx({

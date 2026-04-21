@@ -18,6 +18,7 @@ export const PERPS_DEPOSIT_TRANSACTION_TYPES = [
 
 export const PREDICT_DEPOSIT_TRANSACTION_TYPES = [
   TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
   TransactionType.predictRelayDeposit,
   TransactionType.predictAcrossDeposit,
 ] as const;
@@ -36,6 +37,7 @@ export const MM_PAY_DEPOSIT_CHILD_TRANSACTION_TYPES = [
 
 export const MM_PAY_POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
+  TransactionType.perpsWithdraw,
   ...PERPS_DEPOSIT_TRANSACTION_TYPES,
   ...PREDICT_DEPOSIT_TRANSACTION_TYPES,
   ...PREDICT_WITHDRAW_TRANSACTION_TYPES,
@@ -45,6 +47,7 @@ export const MM_PAY_DETAIL_TRANSACTION_TYPES = [
   TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.predictClaim,
+  TransactionType.perpsWithdraw,
   ...PERPS_DEPOSIT_TRANSACTION_TYPES,
   ...PREDICT_DEPOSIT_TRANSACTION_TYPES,
   ...PREDICT_WITHDRAW_TRANSACTION_TYPES,

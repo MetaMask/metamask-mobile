@@ -217,6 +217,34 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
+  it('includes perps deposit properties for perpsDepositAndOrder', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    useTransactionPayQuotesMock.mockReturnValue([
+      QUOTE_MOCK,
+      QUOTE_MOCK,
+      QUOTE_MOCK,
+    ]);
+
+    runHook({ type: TransactionType.perpsDepositAndOrder });
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          mm_pay_use_case: 'perps_deposit',
+          simulation_sending_assets_total_value: 1.23,
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
   it('includes predict deposit properties', async () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
@@ -230,6 +258,34 @@ describe('useTransactionPayMetrics', () => {
     ]);
 
     runHook({ type: TransactionType.predictDeposit });
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          mm_pay_use_case: 'predict_deposit',
+          simulation_sending_assets_total_value: 1.23,
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
+  it('includes predict deposit properties for predictDepositAndOrder', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    useTransactionPayQuotesMock.mockReturnValue([
+      QUOTE_MOCK,
+      QUOTE_MOCK,
+      QUOTE_MOCK,
+    ]);
+
+    runHook({ type: TransactionType.predictDepositAndOrder });
 
     await act(async () => noop());
 

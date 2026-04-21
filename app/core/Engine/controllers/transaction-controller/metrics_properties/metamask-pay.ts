@@ -65,7 +65,11 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   if (isMetaMaskPayParentTransaction(transactionMeta) || !parentTransaction) {
     addFallbackProperties(properties, transactionMeta, getState());
 
-    if (isMetaMaskPayParentTransaction(transactionMeta) || properties.mm_pay) {
+    if (
+      isMetaMaskPayParentTransaction(transactionMeta) ||
+      hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw]) ||
+      properties.mm_pay
+    ) {
       addTimeToComplete(properties, eventType, transactionMeta.submittedTime);
     }
 

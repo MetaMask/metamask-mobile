@@ -9,10 +9,8 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json, isCaipChainId, isHexString } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { hasTransactionType } from '../../utils/transaction';
 import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
@@ -23,6 +21,7 @@ import { BigNumber } from 'bignumber.js';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { getMetaMaskPayUseCase } from '../../../../../util/transactions/metamask-pay';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -51,9 +50,10 @@ export function useTransactionPayMetrics() {
     () => tokens.filter((t) => !t.disabled),
     [tokens],
   );
-  const { chainId, type } = transactionMeta ?? {};
+  const { chainId } = transactionMeta ?? {};
   const primaryRequiredToken = requiredTokens.find((t) => !t.skipIfBalance);
   const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
+  const payUseCase = getMetaMaskPayUseCase(transactionMeta);
 
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
@@ -86,24 +86,12 @@ export function useTransactionPayMetrics() {
       highestBalanceChainId ?? null;
   }
 
-  if (payToken && type === TransactionType.perpsDeposit) {
-    properties.mm_pay_use_case = 'perps_deposit';
-    properties.simulation_sending_assets_total_value = sendingValue;
-  }
+  if (payToken && payUseCase) {
+    properties.mm_pay_use_case = payUseCase;
 
-  if (
-    payToken &&
-    hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
-  ) {
-    properties.mm_pay_use_case = 'predict_deposit';
-    properties.simulation_sending_assets_total_value = sendingValue;
-  }
-
-  if (
-    payToken &&
-    hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
-  ) {
-    properties.mm_pay_use_case = 'predict_withdraw';
+    if (payUseCase !== 'predict_withdraw') {
+      properties.simulation_sending_assets_total_value = sendingValue;
+    }
   }
 
   if (payToken) {
@@ -115,10 +103,15 @@ export function useTransactionPayMetrics() {
       : null;
   }
 
-  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
+  const nativeTokenAddress =
+    chainId && isHexString(chainId)
+      ? getNativeTokenAddress(chainId as Hex)
+      : undefined;
 
   const nonGasQuote = quotes?.find(
-    (q) => q.request?.targetTokenAddress !== nativeTokenAddress,
+    (q) =>
+      !nativeTokenAddress ||
+      q.request?.targetTokenAddress !== nativeTokenAddress,
   );
 
   if (nonGasQuote) {
