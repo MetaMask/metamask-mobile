@@ -13,8 +13,9 @@ import {
   selectIsSubmittingTx,
   selectSourceAmount,
   selectSourceToken,
-  selectDestTokenWarning,
+  selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
+import { SecurityDataType } from '../../hooks/usePopularTokens';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
@@ -61,7 +62,7 @@ export const SwapsConfirmButton = ({
   });
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-  const tokenWarning = useSelector(selectDestTokenWarning);
+  const destToken = useSelector(selectDestToken);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -160,11 +161,14 @@ export const SwapsConfirmButton = ({
     !walletAddress;
 
   const handleContinue = async () => {
-    if (tokenWarning) {
+    const securityData = destToken?.securityData;
+    if (
+      securityData?.type === SecurityDataType.Warning ||
+      securityData?.type === SecurityDataType.Malicious
+    ) {
       const params: TokenWarningModalParams = {
-        warningType:
-          tokenWarning.type as TokenWarningModalParams['warningType'],
-        description: tokenWarning.description,
+        warningType: securityData.type,
+        features: securityData.metadata?.features ?? [],
         mode: TokenWarningModalMode.Execution,
         location,
       };

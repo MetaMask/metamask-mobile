@@ -36,10 +36,9 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
-  selectDestTokenWarning,
   selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
-import { TokenFeatureType } from '@metamask/bridge-controller';
+import { SecurityDataType } from '../../hooks/usePopularTokens';
 import Icon, {
   IconName,
   IconSize,
@@ -150,7 +149,12 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
-  const tokenWarning = useSelector(selectDestTokenWarning);
+  const destTokenSecurityData = destToken?.securityData;
+  const tokenWarning =
+    destTokenSecurityData?.type === SecurityDataType.Warning ||
+    destTokenSecurityData?.type === SecurityDataType.Malicious
+      ? destTokenSecurityData
+      : undefined;
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const handleSourceAmountChange = useCallback(
@@ -503,7 +507,7 @@ const BridgeView = () => {
             {contentMode === 'quote' && tokenWarning
               ? (() => {
                   const isMalicious =
-                    tokenWarning.type === TokenFeatureType.MALICIOUS;
+                    tokenWarning.type === SecurityDataType.Malicious;
                   const bannerColors = isMalicious
                     ? colors.error
                     : colors.warning;
@@ -518,7 +522,7 @@ const BridgeView = () => {
                       screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
                       params: {
                         warningType: tokenWarning.type,
-                        description: tokenWarning.description,
+                        features: tokenWarning.metadata?.features ?? [],
                         mode: TokenWarningModalMode.Info,
                         location,
                       },
