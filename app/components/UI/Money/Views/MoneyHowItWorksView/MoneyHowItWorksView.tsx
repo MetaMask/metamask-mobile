@@ -196,7 +196,7 @@ const MoneyHowItWorksView = () => {
 
         <SectionDivider />
 
-        <Box twClassName="py-5 px-4">
+        <Box twClassName="pt-8 pb-5 px-4">
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
@@ -208,7 +208,7 @@ const MoneyHowItWorksView = () => {
 
         {FAQ_KEYS.map((key, index) => (
           <React.Fragment key={key}>
-            <FaqDivider />
+            {index > 0 && <FaqDivider />}
             <FaqItem
               question={strings(`money.how_it_works_page.${key}`)}
               answer={strings('money.how_it_works_page.faq_placeholder_answer')}
