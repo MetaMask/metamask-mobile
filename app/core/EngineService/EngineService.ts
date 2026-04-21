@@ -31,6 +31,7 @@ import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
 import { setExistingUser } from '../../actions/user';
 import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
+import { subscribeSentryToAnalyticsConsent } from '../../util/sentry/consentSync';
 
 export class EngineService {
   private engineInitialized = false;
@@ -174,6 +175,19 @@ export class EngineService {
       this.initializeControllers(
         Engine as unknown as TypedEngine,
         state as Record<string, unknown>,
+      );
+
+      // Mirror AnalyticsController opt-in state into AsyncStorage / Sentry /
+      // trace cache. Must run after Engine.init() so the messenger and
+      // AnalyticsController exist. Fire-and-forget: Sentry/tracing degrade
+      // gracefully if this fails — the next cold boot retries.
+      subscribeSentryToAnalyticsConsent(Engine as unknown as TypedEngine).catch(
+        (error) => {
+          Logger.error(
+            error as Error,
+            'EngineService: failed to subscribe Sentry to AnalyticsController consent',
+          );
+        },
       );
 
       // Fire-and-forget: refresh social following state from the server.

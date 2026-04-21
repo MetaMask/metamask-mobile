@@ -28,18 +28,11 @@ jest.mock('@sentry/core', () => ({
 }));
 
 jest.mock('../store/storage-wrapper', () => ({
-  getItem: jest.fn(),
-}));
-
-jest.mock('../store', () => ({
-  store: {
-    dispatch: jest.fn(),
-    getState: jest.fn(),
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
   },
-}));
-
-jest.mock('../selectors/analyticsController', () => ({
-  selectAnalyticsOptedIn: jest.fn(),
 }));
 
 jest.mock('../core/redux/ReduxService', () => ({
@@ -510,56 +503,39 @@ describe('Trace', () => {
   });
 
   describe('hasMetricsConsent', () => {
-    const storeMock = jest.requireMock('../store').store as {
-      getState: jest.Mock;
-    };
-    const { selectAnalyticsOptedIn } = jest.requireMock(
-      '../selectors/analyticsController',
-    );
-    const selectAnalyticsOptedInMock = jest.mocked(selectAnalyticsOptedIn);
+    const storageMock = jest.requireMock('../store/storage-wrapper')
+      .default as { getItem: jest.Mock; setItem: jest.Mock };
 
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
-    it('returns true when AnalyticsController state has optedIn=true', async () => {
-      storeMock.getState.mockReturnValue({
-        engine: { backgroundState: { AnalyticsController: { optedIn: true } } },
-      });
-      selectAnalyticsOptedInMock.mockReturnValue(true);
+    it('returns true when the SENTRY_CONSENT storage key equals AGREED', async () => {
+      storageMock.getItem.mockResolvedValue('agreed');
 
       await expect(hasMetricsConsent()).resolves.toBe(true);
     });
 
-    it('returns false when AnalyticsController state has optedIn=false', async () => {
-      storeMock.getState.mockReturnValue({
-        engine: {
-          backgroundState: { AnalyticsController: { optedIn: false } },
-        },
-      });
-      selectAnalyticsOptedInMock.mockReturnValue(false);
+    it('returns false when the SENTRY_CONSENT storage key equals DENIED', async () => {
+      storageMock.getItem.mockResolvedValue('denied');
 
       await expect(hasMetricsConsent()).resolves.toBe(false);
     });
 
-    it('returns false when selector returns undefined (state not yet hydrated)', async () => {
-      storeMock.getState.mockReturnValue({});
-      selectAnalyticsOptedInMock.mockReturnValue(undefined);
+    it('returns false when the SENTRY_CONSENT storage key is missing', async () => {
+      storageMock.getItem.mockResolvedValue(null);
 
       await expect(hasMetricsConsent()).resolves.toBe(false);
     });
 
-    it('returns false and does not throw when store.getState throws', async () => {
-      storeMock.getState.mockImplementation(() => {
-        throw new Error('store not ready');
-      });
+    it('returns false and does not throw when storage access rejects', async () => {
+      storageMock.getItem.mockRejectedValue(new Error('storage unavailable'));
 
       await expect(hasMetricsConsent()).resolves.toBe(false);
     });
 
     it('updates the cached consent state used by trace buffering', async () => {
-      selectAnalyticsOptedInMock.mockReturnValue(true);
-      storeMock.getState.mockReturnValue({});
+      storageMock.getItem.mockResolvedValue('agreed');
 
       updateCachedConsent(false);
       await hasMetricsConsent();

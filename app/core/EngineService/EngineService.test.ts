@@ -40,6 +40,11 @@ jest.mock('../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Mock consent sync so Engine start does not touch Sentry / AsyncStorage.
+jest.mock('../../util/sentry/consentSync', () => ({
+  subscribeSentryToAnalyticsConsent: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock analytics module
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
