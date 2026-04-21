@@ -23,6 +23,7 @@ const BIG_NUMBER_GWEI_MULTIPLIER = new BigNumber('1000000000');
 const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
 
 /**
+ * @deprecated Use hexToBigInt instead from utils/number/bigint
  * Converts a hex string to a BN object.
  * Adapt function with non string argument handler
  *
@@ -37,6 +38,7 @@ export const hexToBN = (inputHex) =>
       : new BN4(0);
 
 /**
+ * @deprecated Use bigIntToHex instead from utils/number/bigint
  * Converts a BN object to a hex string with a '0x' prefix.
  *
  * @param inputBn - BN instance to convert to a hex string.
@@ -49,16 +51,27 @@ export function BNToHex(inputBn) {
 }
 
 // Setter Maps
+/**
+ * @deprecated Use toBigNumber instead from utils/number/bigint
+ */
 export const toBigNumber = {
   hex: (n) => new BigNumber(stripHexPrefix(n), 16),
   dec: (n) => new BigNumber(String(n), 10),
   BN: (n) => new BigNumber(n.toString(16), 16),
 };
+
+/**
+ * @deprecated Use toNormalizedDenomination instead from utils/number/bigint
+ */
 const toNormalizedDenomination = {
   WEI: (bigNumber) => bigNumber.div(BIG_NUMBER_WEI_MULTIPLIER),
   GWEI: (bigNumber) => bigNumber.div(BIG_NUMBER_GWEI_MULTIPLIER),
   ETH: (bigNumber) => bigNumber.div(BIG_NUMBER_ETH_MULTIPLIER),
 };
+
+/**
+ * @deprecated Use toSpecifiedDenomination instead from utils/number/bigint
+ */
 const toSpecifiedDenomination = {
   WEI: (bigNumber) =>
     bigNumber.times(BIG_NUMBER_WEI_MULTIPLIER).decimalPlaces(0),
@@ -67,6 +80,10 @@ const toSpecifiedDenomination = {
   ETH: (bigNumber) =>
     bigNumber.times(BIG_NUMBER_ETH_MULTIPLIER).decimalPlaces(9),
 };
+
+/**
+ * @deprecated Use baseChange instead from utils/number/bigint
+ */
 const baseChange = {
   hex: (n) => n.toString(16),
   dec: (n) => new BigNumber(n).toString(10),
@@ -74,6 +91,7 @@ const baseChange = {
 };
 
 /**
+ * @deprecated Use addHexPrefix instead from utils/number/bigint
  * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
  *
  * @param {string} str - The string to prefix.
@@ -96,6 +114,7 @@ export const addHexPrefix = (str) => {
 };
 
 /**
+ * @deprecated Use fromWei instead from utils/number/bigint
  * Converts wei to a different unit
  *
  * @param {number|string|Object} value - Wei to convert
@@ -107,6 +126,7 @@ export function fromWei(value = 0, unit = 'ether') {
 }
 
 /**
+ * @deprecated Use fromTokenMinimalUnit instead from utils/number/bigint
  * Converts token minimal unit to readable string value
  *
  * @param {number|string|Object} minimalInput - Token minimal unit to convert
@@ -142,6 +162,7 @@ export function fromTokenMinimalUnit(
 }
 
 /**
+ * @deprecated Use fromTokenMinimalUnitString instead from utils/number/bigint
  * Converts token minimal unit to readable string value
  *
  * @param {string} minimalInput - Token minimal unit to convert
@@ -164,6 +185,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
 }
 
 /**
+ * @deprecated Use toTokenMinimalUnit instead from utils/number/bigint
  * Converts some unit to token minimal unit
  *
  * @param {number|string|BN4} tokenValue - Value to convert
@@ -221,6 +243,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
 }
 
 /**
+ * @deprecated Use normalizeToDotDecimal instead from utils/number/bigint
  * Normalizes a localized numeric string to dot-decimal with no grouping.
  * Examples: "9,336822" -> "9.336822", "1.234,56" -> "1234.56", "1,234.56" -> "1234.56"
  *
@@ -250,6 +273,7 @@ export const normalizeToDotDecimal = (value) => {
 };
 
 /**
+ * @deprecated Use renderFromTokenMinimalUnit instead from utils/number/bigint
  * Converts some token minimal unit to render format string, showing 5 decimals
  *
  * @param {Number|String|BN4} tokenValue - Token value to convert
@@ -278,6 +302,7 @@ export function renderFromTokenMinimalUnit(
 }
 
 /**
+ * @deprecated Use renderFiatAddition instead from utils/number/bigint
  * Converts two fiat amounts into one with their respective currency, showing up to 5 decimals
  *
  * @param {number} transferFiat - Number representing fiat value of a transfer
@@ -308,6 +333,7 @@ export function renderFiatAddition(
 }
 
 /**
+ * @deprecated Use limitToMaximumDecimalPlaces instead from utils/number/bigint
  * Limits a number to a max decimal places.
  * @param {number} num
  * @param {number} maxDecimalPlaces
@@ -322,11 +348,13 @@ export function limitToMaximumDecimalPlaces(num, maxDecimalPlaces = 5) {
 }
 
 /**
+ * @deprecated Use MINIMUM_DISPLAY_THRESHOLD instead from utils/number/bigint
  * Minimum display threshold for small values
  */
 export const MINIMUM_DISPLAY_THRESHOLD = 0.00001;
 
 /**
+ * @deprecated Use formatAmountWithThreshold instead from utils/number/bigint
  * Formats a number with decimal capping and threshold handling.
  * Shows "< 0.00001" for very small positive values, otherwise caps at maxDecimalPlaces.
  * @param {number} num - The number to format
@@ -341,6 +369,7 @@ export function formatAmountWithThreshold(num, maxDecimalPlaces = 5) {
 }
 
 /**
+ * @deprecated Use fiatNumberToTokenMinimalUnit instead from utils/number/bigint
  * Converts fiat number as human-readable fiat string to token miniml unit expressed as a BN
  *
  * @param {number|string} fiat - Fiat number
@@ -365,6 +394,7 @@ export function fiatNumberToTokenMinimalUnit(
 }
 
 /**
+ * @deprecated Use renderFromWei instead from utils/number/bigint
  * Converts wei to render format string, showing 5 decimals
  *
  * @param {Number|String|BN4} value - Wei to convert
@@ -389,6 +419,7 @@ export function renderFromWei(value, decimalsToShow = 5) {
 }
 
 /**
+ * @deprecated no longer used
  * Converts token BN value to hex string number to be sent
  *
  * @param {Object} value - BN instance to convert
@@ -400,6 +431,7 @@ export function calcTokenValueToSend(value, decimals) {
 }
 
 /**
+ * @deprecated Use isBigInt instead from utils/number/bigint
  * Checks if a value is a BN instance
  *
  * @param {object|string} value - Value to check
@@ -410,6 +442,7 @@ export function isBN(value) {
 }
 
 /**
+ * @deprecated Use isDecimal instead from utils/number/bigint
  * Determines if a string is a valid decimal
  *
  * @param {number | string} value - String to check
@@ -424,6 +457,7 @@ export function isDecimal(value) {
 }
 
 /**
+ * @deprecated Use toBigInt instead from utils/number/bigint
  * Creates a BN object from a string
  *
  * @param {string} value - Some numeric value represented as a string
@@ -434,6 +468,7 @@ export function toBN(value) {
 }
 
 /**
+ * @deprecated Use isNumber instead from utils/number/bigint
  * Determines if a string is a valid number
  *
  * @param {*} str - Number string
@@ -444,6 +479,7 @@ export function isNumber(str) {
 }
 
 /**
+ * @deprecated Use isNumberValue instead from utils/number/bigint
  * Determines if a value is a number
  *
  * @param {number | string | null | undefined} value - Value to check
@@ -461,6 +497,9 @@ export function isNumberValue(value) {
   return isDecimal(value);
 }
 
+/**
+ * @deprecated Use dotAndCommaDecimalFormatter instead from utils/number/bigint
+ */
 export const dotAndCommaDecimalFormatter = (value) => {
   const valueStr = String(value);
 
@@ -470,6 +509,7 @@ export const dotAndCommaDecimalFormatter = (value) => {
 };
 
 /**
+ * @deprecated Use isNumberScientificNotationWhenString instead from utils/number/bigint
  * Determines whether the given number is going to be
  * displalyed in scientific notation after being converted to a string.
  *
@@ -487,6 +527,7 @@ export const isNumberScientificNotationWhenString = (value) => {
 };
 
 /**
+ * @deprecated Use toWei instead from utils/number/bigint
  * Converts some unit to wei
  *
  * @param {number|string|BN4} value - Value to convert
@@ -503,6 +544,7 @@ export function toWei(value, unit = 'ether') {
 }
 
 /**
+ * @deprecated Use toGwei instead from utils/number/bigint
  * Converts some unit to Gwei
  *
  * @param {number|string|BN4} value - Value to convert
@@ -514,6 +556,7 @@ export function toGwei(value, unit = 'ether') {
 }
 
 /**
+ * @deprecated Use renderToGwei instead from utils/number/bigint
  * Converts some unit to Gwei and return it in render format
  *
  * @param {number|string|BN4} value - Value to convert
@@ -528,6 +571,7 @@ export function renderToGwei(value, unit = 'ether') {
 }
 
 /**
+ * @deprecated Use weiToFiat instead from utils/number/bigint
  * Converts wei expressed as a BN instance into a human-readable fiat string
  * TODO: wei should be a BN instance, but we're not sure if it's always the case
 //
@@ -552,6 +596,7 @@ export function weiToFiat(
 }
 
 /**
+ * @deprecated Use weiToFiatNumber instead from utils/number/bigint
  * Renders fiat amount with currency symbol if exists
  *
  * @param {number|string} amount  Number corresponding to a currency amount
@@ -633,6 +678,7 @@ export function addCurrencySymbol(
 }
 
 /**
+ * @deprecated Use weiToFiatNumber instead from utils/number/bigint
  * Converts wei expressed as a BN instance into a human-readable fiat string
  *
  * @param {number|string|BN4} wei - BN corresponding to an amount of wei
@@ -649,6 +695,7 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
 }
 
 /**
+ * @deprecated Use handleWeiNumber instead from utils/number/bigint
  * Handles wie input to have less or equal to 18 decimals
  *
  * @param {string} wei - Amount in decimal notation
@@ -663,6 +710,7 @@ export function handleWeiNumber(wei) {
 }
 
 /**
+ * @deprecated Use fiatNumberToWei instead from utils/number/bigint
  * Converts fiat number as human-readable fiat string to wei expressed as a BN
  *
  * @param {number|string} fiat - Fiat number
@@ -687,6 +735,7 @@ export function fiatNumberToWei(fiat, conversionRate) {
 }
 
 /**
+ * @deprecated Use safeNumberToBigInt instead from utils/number/bigint
  * Wraps 'numberToBN' method to avoid potential undefined and decimal values
  *
  * @param {number|string} value -  number
@@ -702,6 +751,7 @@ export function safeNumberToBN(value) {
 }
 
 /**
+ * @deprecated Use fastSplit instead from utils/number/bigint
  * Performs a fast string split and returns the first item of the string based on the divider provided
  *
  * @param {number|string} value -  number/string to be splitted
@@ -715,6 +765,7 @@ export function fastSplit(value, divider = '.') {
 }
 
 /**
+ * @deprecated Use balanceToFiatNumber instead from utils/number/bigint
  * Calculates fiat balance of an asset
  *
  * @param {number|string} balance - Number corresponding to a balance of an asset
@@ -743,6 +794,7 @@ export function balanceToFiat(
 }
 
 /**
+ * @deprecated Use balanceToFiatNumber instead from utils/number/bigint
  * Calculates fiat balance of an asset and returns a number
  *
  * @param {number|string} balance - Number or string corresponding to a balance of an asset
@@ -765,6 +817,9 @@ export function balanceToFiatNumber(
   return fiatFixed;
 }
 
+/**
+ * @deprecated Use getCurrencySymbol instead from utils/number/bigint
+ */
 export function getCurrencySymbol(currencyCode) {
   if (currencySymbols[currencyCode]) {
     return `${currencySymbols[currencyCode]}`;
@@ -773,6 +828,7 @@ export function getCurrencySymbol(currencyCode) {
 }
 
 /**
+ * @deprecated Use renderFiat instead from utils/number/bigint
  * Formats a fiat value into a string ready to be rendered
  *
  * @param {number} value - number corresponding to a balance of an asset
@@ -794,6 +850,7 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
 }
 
 /**
+ * @deprecated Use renderWei instead from utils/number/bigint
  * Converts BN wei value to wei units in string format
  *
  * @param {object} value - Object containing wei value in BN format
@@ -806,6 +863,7 @@ export function renderWei(value) {
   return renderWei.toString();
 }
 /**
+ * @deprecated Use renderNumber instead from utils/number/bigint
  * Format a string number in an string number with at most 5 decimal places
  *
  * @param {string} number - String containing a number
@@ -818,6 +876,7 @@ export function renderNumber(number) {
 }
 
 /**
+ * @deprecated Use isPrefixedFormattedHexString instead from utils/number/bigint
  * Checks whether the given value is a 0x-prefixed, non-zero, non-zero-padded,
  * hexadecimal string.
  *
@@ -890,6 +949,9 @@ const converter = ({
   return convertedValue;
 };
 
+/**
+ * @deprecated Use conversionUtil instead from utils/number/bigint
+ */
 export const conversionUtil = (
   value,
   {
@@ -917,6 +979,9 @@ export const conversionUtil = (
     value: value || '0',
   });
 
+/**
+ * @deprecated Use toHexadecimal instead from utils/number/bigint
+ */
 export const toHexadecimal = (decimal) => {
   if (!decimal) return decimal;
   if (decimal !== typeof 'string') {
@@ -926,6 +991,9 @@ export const toHexadecimal = (decimal) => {
   return toBigNumber.dec(decimal).toString(16);
 };
 
+/**
+ * @deprecated Use calculateEthFeeForMultiLayer instead from utils/number/bigint
+ */
 export const calculateEthFeeForMultiLayer = ({
   multiLayerL1FeeTotal,
   ethFee = 0,
@@ -945,6 +1013,7 @@ export const calculateEthFeeForMultiLayer = ({
 };
 
 /**
+ * @deprecated Use isZeroValue instead from utils/number/bigint
  *
  * @param {number|string|object} value - Value to check
  * @returns {boolean} - true if value is zero
@@ -956,6 +1025,9 @@ export const isZeroValue = (value) => {
   return value === '0x0' || (isBN(value) && value.isZero()) || isZero(value);
 };
 
+/**
+ * @deprecated Use formatValueToMatchTokenDecimals instead from utils/number/bigint
+ */
 export const formatValueToMatchTokenDecimals = (value, decimal) => {
   if (value === null || value === undefined) {
     return value;
@@ -970,6 +1042,9 @@ export const formatValueToMatchTokenDecimals = (value, decimal) => {
   return value;
 };
 
+/**
+ * @deprecated Use safeBNToHex instead from utils/number/bigint
+ */
 export const safeBNToHex = (value) => {
   if (value === null || value === undefined) {
     return value;
@@ -979,6 +1054,7 @@ export const safeBNToHex = (value) => {
 };
 
 /**
+ * @deprecated Use localizeLargeNumber instead from utils/number/bigint
  * Formats a potentially large number to the nearest unit.
  * e.g. 1T for trillions, 2.3B for billions, 4.56M for millions, 7.89K for thousands, etc.
  *
@@ -1016,6 +1092,9 @@ export const localizeLargeNumber = (i18n, number, options = {}) => {
   return number.toFixed(decimals);
 };
 
+/**
+ * @deprecated Use convertDecimalToPercentage instead from utils/number/bigint
+ */
 export const convertDecimalToPercentage = (decimal) => {
   if (typeof decimal !== 'number' || isNaN(decimal)) {
     throw new Error('Input must be a valid number');

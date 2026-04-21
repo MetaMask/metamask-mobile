@@ -261,6 +261,35 @@ export function toTokenMinimalUnit(
 }
 
 /**
+ * Normalizes a localized numeric string to dot-decimal with no grouping.
+ * Examples: "9,336822" -> "9.336822", "1.234,56" -> "1234.56", "1,234.56" -> "1234.56"
+ *
+ * @param {string | number} value - The value to normalize.
+ * @returns {string} - The normalized value.
+ */
+export function normalizeToDotDecimal(value: string | number): string {
+  const s = String(value ?? '0').trim();
+
+  // keep only digits, separators, and sign
+  const cleaned = s.replace(/[^\d.,-]/g, '');
+
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+
+  if (lastComma === -1 && lastDot === -1) {
+    return cleaned;
+  }
+
+  if (lastComma > lastDot) {
+    // comma is decimal separator: remove all dots (grouping), turn comma into dot
+    return cleaned.replace(/\./g, '').replace(',', '.');
+  }
+
+  // dot is decimal separator: remove all commas (grouping)
+  return cleaned.replace(/,/g, '');
+}
+
+/**
  * Rounds a number to the given decimal places, returning '< 0.00001' for
  * tiny positive values that would otherwise display as zero.
  *
@@ -325,11 +354,36 @@ export function renderFiatAddition(
  * @param {number} maxDecimalPlaces
  * @returns {string}
  */
-export function limitToMaximumDecimalPlaces(num: number, maxDecimalPlaces = 5) {
+export function limitToMaximumDecimalPlaces(
+  num: number,
+  maxDecimalPlaces = 5,
+): string {
   if (isNaN(num) || isNaN(maxDecimalPlaces)) {
-    return num;
+    return num.toString();
   }
   return roundToDecimalString(num, maxDecimalPlaces);
+}
+
+/**
+ * Minimum display threshold for small values
+ */
+export const MINIMUM_DISPLAY_THRESHOLD = 0.00001;
+
+/**
+ * Formats a number with decimal capping and threshold handling.
+ * Shows "< 0.00001" for very small positive values, otherwise caps at maxDecimalPlaces.
+ * @param {number} num - The number to format
+ * @param {number} maxDecimalPlaces - Maximum decimal places to show (default 5)
+ * @returns {string} - Formatted number string
+ */
+export function formatAmountWithThreshold(
+  num: number,
+  maxDecimalPlaces = 5,
+): string {
+  if (num < MINIMUM_DISPLAY_THRESHOLD && num > 0) {
+    return `< ${MINIMUM_DISPLAY_THRESHOLD}`;
+  }
+  return limitToMaximumDecimalPlaces(num, maxDecimalPlaces);
 }
 
 /**
