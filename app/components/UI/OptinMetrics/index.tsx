@@ -51,6 +51,7 @@ import {
 import { setupSentry } from '../../../util/sentry/utils';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
 import Device from '../../../util/device';
+import { HOWTO_MANAGE_METAMETRICS } from '../../../constants/urls';
 import type { OptinMetricsRouteParams } from './OptinMetrics.types';
 import {
   useNavigation,
@@ -260,7 +261,7 @@ const OptinMetrics = () => {
   const openLearnMore = useCallback(
     () =>
       onPressLink({
-        url: 'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/',
+        url: HOWTO_MANAGE_METAMETRICS,
         title: 'How to manage your MetaMetrics settings',
       }),
     [onPressLink],

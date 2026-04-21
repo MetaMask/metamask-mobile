@@ -6348,7 +6348,7 @@
       "fiat_unavailable": "Значения фиатных валют временно недоступны.",
       "estimated_annual_reward": "Прим. вознаграждение за год",
       "trx_locked_for": "TRX заблокированы на",
-      "trx_locked_for_minimum_time": "~3 дня",
+      "trx_locked_for_minimum_time": "~14 дней",
       "trx_released_in": "TRX разблокируются через",
       "trx_released_in_minimum_time": "~14 дней",
       "fee": "Комиссия",
@@ -8120,7 +8120,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize Pool",
+      "title": "Prize pool",
       "current_label": "Текущая",
       "next_label": "Далее",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8209,9 +8209,7 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Повтор",
       "label_return": "Доход",
-      "label_market_value": "Market Value",
-      "label_net_deposited": "Net deposited",
-      "label_cashed_out": "Деньги выведены",
+      "label_market_value": "Market value",
       "label_rank": "Рейтинг",
       "label_tier": "Tier",
       "label_your_return": "Your return",

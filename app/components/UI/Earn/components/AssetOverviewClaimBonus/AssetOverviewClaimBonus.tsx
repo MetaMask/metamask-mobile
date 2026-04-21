@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import {
@@ -22,8 +22,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { TokenI } from '../../../Tokens/types';
 import { useMerklBonusClaim } from '../MerklRewards/hooks/useMerklBonusClaim';
-import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { MetaMetricsEvents, EVENT_NAME } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
 import AppConstants from '../../../../../core/AppConstants';
@@ -45,12 +45,19 @@ import TagBase, {
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
+const styles = StyleSheet.create({
+  bonusTag: { borderRadius: 8, paddingHorizontal: 6 },
+});
+
 interface AssetOverviewClaimBonusProps {
   asset: TokenI;
+  /** Called with the Merkl refetch function so the parent can trigger a refresh. */
+  onRefetchReady?: (refetch: () => void) => void;
 }
 
 const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   asset,
+  onRefetchReady,
 }) => {
   const {
     claimableReward,
@@ -58,7 +65,12 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     hasPendingClaim,
     isClaiming,
     claimRewards,
+    refetch,
   } = useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
+
+  useEffect(() => {
+    onRefetchReady?.(refetch);
+  }, [onRefetchReady, refetch]);
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -117,10 +129,11 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     ? `+$${estimatedAnnualBonus.toFixed(2)}`
     : '+$0.00';
 
-  // Lifetime bonus
-  const formattedLifetimeBonus = lifetimeBonusClaimed
+  // Lifetime bonus: white $0.00 until first claim, then green +$X.
+  const hasLifetimeBonus = Number(lifetimeBonusClaimed) > 0;
+  const formattedLifetimeBonus = hasLifetimeBonus
     ? `+$${lifetimeBonusClaimed}`
-    : '+$0.00';
+    : '$0.00';
 
   // CTA state
   const { ctaLabel, ctaDisabled } = useMemo(() => {
@@ -202,6 +215,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
       undefined,
       strings('earn.learn_more'),
       handleLearnMorePress,
+      false,
     );
   }, [
     openTooltipModal,
@@ -273,6 +287,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
           </Box>
           <TagBase
             severity={TagSeverity.Success}
+            style={styles.bonusTag}
             testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG}
           >
             {strings('earn.percentage_bonus', {
@@ -315,7 +330,11 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
+            color={
+              hasLifetimeBonus
+                ? TextColor.SuccessDefault
+                : TextColor.TextDefault
+            }
             testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE}
           >
             {formattedLifetimeBonus}

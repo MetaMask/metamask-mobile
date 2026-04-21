@@ -78,6 +78,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "providerData": {},
         "selectedCountry": null,
       },
+      "ClientController": {
+        "isUiOpen": false,
+      },
       "ComplianceController": {},
       "ConnectivityController": {
         "connectivityStatus": "online",
@@ -791,6 +794,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "SocialController": {
         "followingAddresses": [],
+        "followingProfileIds": [],
         "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
@@ -909,6 +913,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
+      },
+      "ClientController": {
+        "isUiOpen": false,
       },
       "ComplianceController": {},
       "ConnectivityController": {
@@ -1606,6 +1613,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "SocialController": {
         "followingAddresses": [],
+        "followingProfileIds": [],
         "leaderboardEntries": [],
       },
       "SubjectMetadataController": {

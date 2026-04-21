@@ -140,7 +140,7 @@ describe('AccountList', () => {
 
     const mockRefetchAccountSettings = jest.fn();
     const createUseNotificationAccountListProps = () => ({
-      isAnyAccountLoading: false,
+      shouldDisableSwitches: false,
       refetchAccountSettings: mockRefetchAccountSettings,
       isAccountLoading: jest
         .fn()
@@ -203,11 +203,11 @@ describe('AccountList', () => {
     expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch).props.value).toBe(false); // The switch is set to false
   });
 
-  it('disable switches when any account is loading', () => {
+  it('disables switches during initial data loading', () => {
     const mocks = arrangeMocks();
     mocks.mockUseNotificationAccountListProps.mockReturnValue({
       ...mocks.createUseNotificationAccountListProps(),
-      isAnyAccountLoading: true,
+      shouldDisableSwitches: true,
       isAccountLoading: () => false,
     });
 
@@ -230,7 +230,7 @@ describe('AccountList', () => {
     const mocks = arrangeMocks();
     mocks.mockUseNotificationAccountListProps.mockReturnValue({
       ...mocks.createUseNotificationAccountListProps(),
-      isAnyAccountLoading: false,
+      shouldDisableSwitches: false,
       isAccountLoading: () => false,
     });
 

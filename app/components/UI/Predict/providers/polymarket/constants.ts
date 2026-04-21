@@ -85,10 +85,10 @@ export const POLYGON_USDC_CAIP_ASSET_ID =
   `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS.collateral}` as const;
 
 export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
-  first_half_moneyline: 'first-half',
-  first_half_spreads: 'first-half',
-  first_half_totals: 'first-half',
-  team_totals: 'team-totals',
+  first_half_moneyline: 'first_half',
+  first_half_spreads: 'first_half',
+  first_half_totals: 'first_half',
+  team_totals: 'team_totals',
   anytime_touchdowns: 'touchdowns',
   first_touchdowns: 'touchdowns',
   rushing_yards: 'rushing',
@@ -97,15 +97,15 @@ export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   assists: 'assists',
   rebounds: 'rebounds',
   soccer_anytime_goalscorer: 'goalscorers',
-  soccer_exact_score: 'exact-score',
+  soccer_exact_score: 'exact_score',
   soccer_halftime_result: 'halftime',
   total_corners: 'corners',
 };
 
 export const GROUP_ORDER: string[] = [
-  'game-lines',
-  'first-half',
-  'team-totals',
+  'game_lines',
+  'first_half',
+  'team_totals',
   'touchdowns',
   'rushing',
   'receiving',
@@ -113,12 +113,12 @@ export const GROUP_ORDER: string[] = [
   'assists',
   'rebounds',
   'goalscorers',
-  'exact-score',
+  'exact_score',
   'halftime',
   'corners',
 ];
 
-export const DEFAULT_GROUP_KEY = 'game-lines';
+export const DEFAULT_GROUP_KEY = 'game_lines';
 
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   moneyline: 0,

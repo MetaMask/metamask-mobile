@@ -58,6 +58,8 @@ import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
+import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -67,7 +69,15 @@ interface UsePerpsTrendingCarouselDataArgs {
   skipInitialFetch?: boolean;
 }
 
-const usePerpsNavigationHandlers = () => {
+interface UsePerpsNavigationHandlersArgs {
+  isDedicatedTrendingSection?: boolean;
+  trendingTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
+const usePerpsNavigationHandlers = ({
+  isDedicatedTrendingSection = false,
+  trendingTransactionActiveAbTests,
+}: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
@@ -103,9 +113,19 @@ const usePerpsNavigationHandlers = () => {
       navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
         market,
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        ...(isDedicatedTrendingSection &&
+        trendingTransactionActiveAbTests?.length
+          ? {
+              transactionActiveAbTests: trendingTransactionActiveAbTests,
+            }
+          : {}),
       });
     },
-    [navigateToTutorialOrScreen],
+    [
+      isDedicatedTrendingSection,
+      navigateToTutorialOrScreen,
+      trendingTransactionActiveAbTests,
+    ],
   );
 
   return {
@@ -363,7 +383,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       },
       [navigateToTutorialOrScreen, markets, track],
     );
-
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
     // positions-only: never wait on market/trending data — analytics for empty
@@ -490,8 +509,13 @@ const PerpsSectionTrendingOnly = forwardRef<
     const sectionViewRef = useRef<View>(null);
     const title = titleOverride ?? strings('homepage.sections.perpetuals');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
+    const trendingTransactionActiveAbTests =
+      useHomepageTrendingTransactionActiveAbTests();
     const { handleViewAllPerps, handleViewMorePerps, handleTilePress } =
-      usePerpsNavigationHandlers();
+      usePerpsNavigationHandlers({
+        isDedicatedTrendingSection: true,
+        trendingTransactionActiveAbTests,
+      });
     const { marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
       usePerpsTrendingCarouselData({});
     const carouselSymbols = useMemo(

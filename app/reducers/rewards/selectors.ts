@@ -177,18 +177,23 @@ export const selectCampaignsHasLoaded = (state: RootState) =>
 export const selectCampaignParticipantStatuses = (state: RootState) =>
   state.rewards.campaignParticipantStatuses;
 
-export const selectCampaignParticipantStatusById =
-  (campaignId: string | undefined) => (state: RootState) =>
-    campaignId
-      ? (state.rewards.campaignParticipantStatuses?.[campaignId] ?? null)
-      : null;
+export const selectCampaignParticipantStatus =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) => {
+    if (!subscriptionId || !campaignId) return null;
+    const key = `${subscriptionId}:${campaignId}`;
+    return state.rewards.campaignParticipantStatuses?.[key] ?? null;
+  };
 
 export const selectCampaignParticipantCount =
-  (campaignId: string | undefined) => (state: RootState) =>
-    campaignId
-      ? (state.rewards.campaignParticipantStatuses?.[campaignId]
-          ?.participantCount ?? null)
-      : null;
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) => {
+    if (!subscriptionId || !campaignId) return null;
+    const key = `${subscriptionId}:${campaignId}`;
+    return (
+      state.rewards.campaignParticipantStatuses?.[key]?.participantCount ?? null
+    );
+  };
 
 // Version guard selectors
 export const selectVersionGuardMinimumMobileVersion = (state: RootState) =>
@@ -296,3 +301,6 @@ export const selectOndoCampaignDepositsLoading = (state: RootState) =>
 
 export const selectOndoCampaignDepositsError = (state: RootState) =>
   state.rewards.ondoCampaignDepositsError;
+
+export const selectPendingDeeplink = (state: RootState) =>
+  state.rewards.pendingDeeplink;

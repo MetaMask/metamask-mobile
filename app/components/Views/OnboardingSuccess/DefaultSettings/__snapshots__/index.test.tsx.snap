@@ -82,30 +82,51 @@ exports[`DefaultSettings should render correctly 1`] = `
       }
     >
       <View
-        accessibilityRole="none"
-        accessible={true}
         style={
-          {
-            "backgroundColor": "#ffffff",
-            "padding": 16,
-          }
+          [
+            {
+              "display": "flex",
+            },
+            [
+              {
+                "paddingBottom": 16,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "paddingTop": 16,
+              },
+              {
+                "backgroundColor": "#ffffff",
+                "padding": 16,
+              },
+            ],
+          ]
         }
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
           }
         >
           <View
             style={
-              {
-                "flex": 1,
-              }
+              [
+                {
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexDirection": "column",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
-            testID="listitemcolumn"
           >
             <Text
               accessibilityRole="text"
@@ -147,11 +168,13 @@ exports[`DefaultSettings should render correctly 1`] = `
           />
           <View
             style={
-              {
-                "flex": -1,
-              }
+              [
+                {
+                  "display": "flex",
+                },
+                undefined,
+              ]
             }
-            testID="listitemcolumn"
           >
             <SvgMock
               color="#121314"
@@ -206,30 +229,51 @@ exports[`DefaultSettings should render correctly 1`] = `
       }
     >
       <View
-        accessibilityRole="none"
-        accessible={true}
         style={
-          {
-            "backgroundColor": "#ffffff",
-            "padding": 16,
-          }
+          [
+            {
+              "display": "flex",
+            },
+            [
+              {
+                "paddingBottom": 16,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "paddingTop": 16,
+              },
+              {
+                "backgroundColor": "#ffffff",
+                "padding": 16,
+              },
+            ],
+          ]
         }
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
           }
         >
           <View
             style={
-              {
-                "flex": 1,
-              }
+              [
+                {
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexDirection": "column",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
-            testID="listitemcolumn"
           >
             <Text
               accessibilityRole="text"
@@ -271,11 +315,13 @@ exports[`DefaultSettings should render correctly 1`] = `
           />
           <View
             style={
-              {
-                "flex": -1,
-              }
+              [
+                {
+                  "display": "flex",
+                },
+                undefined,
+              ]
             }
-            testID="listitemcolumn"
           >
             <SvgMock
               color="#121314"
@@ -330,30 +376,51 @@ exports[`DefaultSettings should render correctly 1`] = `
       }
     >
       <View
-        accessibilityRole="none"
-        accessible={true}
         style={
-          {
-            "backgroundColor": "#ffffff",
-            "padding": 16,
-          }
+          [
+            {
+              "display": "flex",
+            },
+            [
+              {
+                "paddingBottom": 16,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "paddingTop": 16,
+              },
+              {
+                "backgroundColor": "#ffffff",
+                "padding": 16,
+              },
+            ],
+          ]
         }
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
           }
         >
           <View
             style={
-              {
-                "flex": 1,
-              }
+              [
+                {
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexDirection": "column",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
-            testID="listitemcolumn"
           >
             <Text
               accessibilityRole="text"
@@ -395,11 +462,13 @@ exports[`DefaultSettings should render correctly 1`] = `
           />
           <View
             style={
-              {
-                "flex": -1,
-              }
+              [
+                {
+                  "display": "flex",
+                },
+                undefined,
+              ]
             }
-            testID="listitemcolumn"
           >
             <SvgMock
               color="#121314"

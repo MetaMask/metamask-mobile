@@ -22,6 +22,10 @@ import { checkPlaceOrderError } from '../utils/predictErrorHandler';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictTrading } from './usePredictTrading';
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -32,6 +36,7 @@ interface UsePredictPlaceOrderOptions {
    * Callback when an error occurs
    */
   onError?: (error: string) => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 interface UsePredictPlaceOrderReturn {
@@ -72,7 +77,7 @@ export type PlaceOrderOutcome =
 export function usePredictPlaceOrder(
   options: UsePredictPlaceOrderOptions = {},
 ): UsePredictPlaceOrderReturn {
-  const { onError, onComplete } = options;
+  const { onError, onComplete, transactionActiveAbTests } = options;
   const { placeOrder: controllerPlaceOrder } = usePredictTrading();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -212,14 +217,18 @@ export function usePredictPlaceOrder(
           return { status: 'deposit_in_progress' };
         }
 
-        await deposit({
-          amountUsd: totalAmount,
-          analyticsProperties: {
-            ...orderParams.analyticsProperties,
-            marketId: orderParams.preview.marketId,
-            entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
-          },
-        });
+        await withPendingTransactionActiveAbTests(
+          transactionActiveAbTests,
+          () =>
+            deposit({
+              amountUsd: totalAmount,
+              analyticsProperties: {
+                ...orderParams.analyticsProperties,
+                marketId: orderParams.preview.marketId,
+                entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
+              },
+            }),
+        );
         return { status: 'deposit_required' };
       }
 
@@ -227,8 +236,10 @@ export function usePredictPlaceOrder(
         setIsLoading(true);
         setError(undefined);
 
-        // Place order using Predict controller
-        const orderResult = await controllerPlaceOrder(orderParams);
+        const orderResult = await withPendingTransactionActiveAbTests(
+          transactionActiveAbTests,
+          () => controllerPlaceOrder(orderParams),
+        );
 
         onComplete?.(orderResult);
 
@@ -272,6 +283,7 @@ export function usePredictPlaceOrder(
       showOrderPlacedToast,
       showCashedOutToast,
       onError,
+      transactionActiveAbTests,
     ],
   );
 
