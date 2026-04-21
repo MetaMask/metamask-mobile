@@ -167,6 +167,14 @@ export class HyperLiquidSubscriptionService {
 
   #spotStatePromise?: Promise<void>;
 
+  #spotStatePromiseUserAddress?: string;
+
+  // Monotonic token bumped on cleanUp/clearAll and on each new fetch.
+  // Any in-flight #refreshSpotState that resolves with a stale token
+  // discards its result, preventing cross-account cache contamination
+  // when accounts are switched mid-fetch.
+  #spotStateGeneration = 0;
+
   #cachedPositions: Position[] | null = null; // Aggregated positions
 
   #cachedOrders: Order[] | null = null; // Aggregated orders
@@ -1016,32 +1024,61 @@ export class HyperLiquidSubscriptionService {
       return;
     }
 
-    if (this.#spotStatePromise) {
+    // Share an in-flight fetch only if it targets the same user.
+    // A pending fetch for a different user is stale after an account switch —
+    // start a fresh fetch; the stale one will self-discard via generation check.
+    if (
+      this.#spotStatePromise &&
+      this.#spotStatePromiseUserAddress === userAddress
+    ) {
       await this.#spotStatePromise;
       return;
     }
 
-    this.#spotStatePromise = this.#refreshSpotState(userAddress);
+    this.#spotStateGeneration += 1;
+    const generation = this.#spotStateGeneration;
+    const promise = this.#refreshSpotState(userAddress, generation);
+    this.#spotStatePromise = promise;
+    this.#spotStatePromiseUserAddress = userAddress;
 
     try {
-      await this.#spotStatePromise;
+      await promise;
     } finally {
-      this.#spotStatePromise = undefined;
+      // Only clear tracker if we're still the latest in-flight fetch.
+      // A newer fetch may have already replaced us.
+      if (this.#spotStatePromise === promise) {
+        this.#spotStatePromise = undefined;
+        this.#spotStatePromiseUserAddress = undefined;
+      }
     }
   }
 
-  async #refreshSpotState(userAddress: string): Promise<void> {
+  async #refreshSpotState(
+    userAddress: string,
+    generation: number,
+  ): Promise<void> {
     try {
       const infoClient = this.#clientService.getInfoClient();
-      this.#cachedSpotState = await infoClient.spotClearinghouseState({
+      const result = await infoClient.spotClearinghouseState({
         user: userAddress,
       });
+
+      // Drop stale results: cleanUp/clearAll or a newer fetch bumped generation.
+      // Writing here would re-populate the cache with a different user's data.
+      if (generation !== this.#spotStateGeneration) {
+        return;
+      }
+
+      this.#cachedSpotState = result;
       this.#cachedSpotStateUserAddress = userAddress;
 
       if (this.#dexAccountCache.size > 0) {
         this.#aggregateAndNotifySubscribers();
       }
     } catch (error) {
+      if (generation !== this.#spotStateGeneration) {
+        return;
+      }
       this.#logErrorUnlessClearing(
         ensureError(error, 'HyperLiquidSubscriptionService.refreshSpotState'),
         this.#getErrorContext('refreshSpotState'),
@@ -2002,6 +2039,11 @@ export class HyperLiquidSubscriptionService {
       this.#cachedAccount = null;
       this.#cachedSpotState = null;
       this.#cachedSpotStateUserAddress = null;
+      // Bump generation so any in-flight spot fetch from a prior user discards
+      // its result instead of re-populating the cache post-cleanup.
+      this.#spotStateGeneration += 1;
+      this.#spotStatePromise = undefined;
+      this.#spotStatePromiseUserAddress = undefined;
       this.#ordersCacheInitialized = false; // Reset cache initialization flag
       this.#positionsCacheInitialized = false; // Reset cache initialization flag
 
@@ -3756,6 +3798,9 @@ export class HyperLiquidSubscriptionService {
     this.#dexAccountCache.clear();
     this.#cachedSpotState = null;
     this.#cachedSpotStateUserAddress = null;
+    this.#spotStateGeneration += 1;
+    this.#spotStatePromise = undefined;
+    this.#spotStatePromiseUserAddress = undefined;
     this.#dexAssetCtxsCache.clear();
 
     // Unsubscribe all active subscriptions before clearing references.
