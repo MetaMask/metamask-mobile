@@ -10,6 +10,33 @@ import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-ad
 import { isE2E } from '../../../../util/test/utils';
 import { getBrazePlugin, syncBrazeAllowlists } from '../../../Braze';
 import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
+import type { AccountsControllerState } from '@metamask/accounts-controller';
+import { analytics } from '../../../../util/analytics/analytics';
+import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import Logger from '../../../../util/Logger';
+
+/**
+ * Produces a stable string fingerprint from only the fields that affect wallet
+ * composition metrics. Fields like `lastSelected` and account names are
+ * intentionally excluded so that account switches and renames do not trigger
+ * an unnecessary identify call.
+ */
+type InternalAccounts = AccountsControllerState['internalAccounts']['accounts'];
+
+function getCompositionFingerprint(accounts: InternalAccounts): string {
+  return Object.entries(accounts)
+    .map(([id, acct]) => {
+      const keyringType = acct.metadata?.keyring?.type ?? '';
+      const entropy = (
+        acct.options as {
+          entropy?: { type?: string; id?: string; groupIndex?: number };
+        }
+      )?.entropy;
+      return `${id}|${keyringType}|${entropy?.type ?? ''}|${entropy?.id ?? ''}|${entropy?.groupIndex ?? ''}`;
+    })
+    .sort((a, b) => a.localeCompare(b))
+    .join(';');
+}
 
 /**
  * Initialize the analytics controller.
@@ -51,6 +78,25 @@ export const analyticsControllerInit: MessengerClientInitFunction<
     'RemoteFeatureFlagController:stateChange',
     syncBrazeAllowlists,
     (flagState) => flagState.remoteFeatureFlags.brazeSegmentForwarding,
+  );
+
+  let lastCompositionFingerprint = '';
+  initMessenger.subscribe(
+    'AccountsController:stateChange',
+    (accounts: InternalAccounts) => {
+      const fingerprint = getCompositionFingerprint(accounts);
+      if (fingerprint === lastCompositionFingerprint) return;
+      lastCompositionFingerprint = fingerprint;
+      try {
+        analytics.identify(getAccountCompositionTraits(accounts));
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'analyticsControllerInit: Error updating account composition traits',
+        );
+      }
+    },
+    (state) => state.internalAccounts.accounts,
   );
 
   const remoteFeatureFlagControllerState = initMessenger.call(
