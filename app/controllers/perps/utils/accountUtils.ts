@@ -6,6 +6,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
+import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
 
 const EVM_ACCOUNT_TYPES = new Set(['eip155:eoa', 'eip155:erc4337']);
 
@@ -87,6 +88,38 @@ export function calculateWeightedReturnOnEquity(
 
   const weightedROE = (totalWeightedROE / totalMarginUsed) * 100;
   return weightedROE.toString();
+}
+
+export function getSpotBalance(
+  spotState?: SpotClearinghouseStateResponse | null,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (sum: number, balance: { total?: string }) =>
+      sum + parseFloat(balance.total ?? '0'),
+    0,
+  );
+}
+
+export function addSpotBalanceToAccountState(
+  accountState: AccountState,
+  spotState?: SpotClearinghouseStateResponse | null,
+): AccountState {
+  const spotBalance = getSpotBalance(spotState);
+
+  if (spotBalance === 0) {
+    return accountState;
+  }
+
+  return {
+    ...accountState,
+    totalBalance: (
+      parseFloat(accountState.totalBalance) + spotBalance
+    ).toString(),
+  };
 }
 
 /**

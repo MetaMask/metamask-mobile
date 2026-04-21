@@ -109,7 +109,10 @@ import type {
 } from '../types/hyperliquid-types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
-import { aggregateAccountStates } from '../utils/accountUtils';
+import {
+  addSpotBalanceToAccountState,
+  aggregateAccountStates,
+} from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptAccountStateFromSDK,
@@ -5678,19 +5681,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         );
         return dexAccountState;
       });
-      const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
-
-      // Add spot balance to totalBalance (spot is global, not per-DEX)
-      let spotBalance = 0;
-      if (spotState?.balances && Array.isArray(spotState.balances)) {
-        spotBalance = spotState.balances.reduce(
-          (sum, balance) => sum + parseFloat(balance.total || '0'),
-          0,
-        );
-      }
-      aggregatedAccountState.totalBalance = (
-        parseFloat(aggregatedAccountState.totalBalance) + spotBalance
-      ).toString();
+      const aggregatedAccountState = addSpotBalanceToAccountState(
+        aggregateAccountStates(dexAccountStates),
+        spotState,
+      );
 
       // Build per-sub-account breakdown (HIP-3 DEXs map to sub-accounts)
       const subAccountBreakdown: Record<

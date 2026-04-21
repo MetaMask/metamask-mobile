@@ -108,6 +108,7 @@ describe('HyperLiquidSubscriptionService', () => {
   let mockSubscriptionClient: any;
   let mockWalletAdapter: any;
   let mockDeps: ReturnType<typeof createMockInfrastructure>;
+  let mockSpotClearinghouseState: jest.Mock;
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -375,9 +376,16 @@ describe('HyperLiquidSubscriptionService', () => {
     };
 
     // Mock client service
+    mockSpotClearinghouseState = jest.fn().mockResolvedValue({
+      balances: [{ coin: 'USDC', total: '100.76531791' }],
+    });
+
     mockClientService = {
       ensureSubscriptionClient: jest.fn().mockResolvedValue(undefined),
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
+      getInfoClient: jest.fn(() => ({
+        spotClearinghouseState: mockSpotClearinghouseState,
+      })),
       isTestnetMode: jest.fn(() => false),
       ensureTransportReady: jest.fn().mockResolvedValue(undefined),
       getConnectionState: jest.fn(() => 'connected'),
@@ -3673,6 +3681,75 @@ describe('HyperLiquidSubscriptionService', () => {
 
       unsubscribe1();
       unsubscribe2();
+    });
+  });
+
+  describe('spot-adjusted account balance parity', () => {
+    it('includes spot balance exactly once in streamed totalBalance across multiple DEXs', async () => {
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '0',
+        totalBalance: '0',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      }));
+
+      mockSubscriptionClient.clearinghouseState.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              dex: _params.dex || '',
+              clearinghouseState: {
+                assetPositions: [],
+                marginSummary: {
+                  accountValue: '0',
+                  totalMarginUsed: '0',
+                },
+                withdrawable: '0',
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+      mockSubscriptionClient.openOrders.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => callback({ dex: _params.dex || '', orders: [] }), 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const hip3Service = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        mockDeps,
+        true,
+      );
+
+      await hip3Service.updateFeatureFlags(true, ['xyz'], [], []);
+
+      const mockCallback = jest.fn();
+      const unsubscribe = hip3Service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(mockCallback).toHaveBeenCalled();
+      const accountState = mockCallback.mock.calls.at(-1)[0];
+      expect(accountState.totalBalance).toBe('100.76531791');
+      expect(accountState.availableBalance).toBe('0');
+      expect(accountState.subAccountBreakdown).toEqual({
+        main: { availableBalance: '0', totalBalance: '0' },
+        xyz: { availableBalance: '0', totalBalance: '0' },
+      });
+      expect(mockSpotClearinghouseState).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
     });
   });
 

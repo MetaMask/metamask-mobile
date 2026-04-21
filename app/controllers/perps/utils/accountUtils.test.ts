@@ -2,8 +2,10 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState } from '../types';
 
 import {
+  addSpotBalanceToAccountState,
   aggregateAccountStates,
   calculateWeightedReturnOnEquity,
+  getSpotBalance,
 } from './accountUtils';
 
 describe('aggregateAccountStates', () => {
@@ -164,6 +166,46 @@ describe('aggregateAccountStates', () => {
     expect(parseFloat(result.totalBalance)).toBeCloseTo(351, 0);
     expect(parseFloat(result.marginUsed)).toBeCloseTo(81, 0);
     expect(parseFloat(result.unrealizedPnl)).toBeCloseTo(17, 0);
+  });
+});
+
+describe('spot balance helpers', () => {
+  it('returns zero spot balance when no spot state is provided', () => {
+    expect(getSpotBalance()).toBe(0);
+  });
+
+  it('adds spot balance to totalBalance without mutating the input state', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '100',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'USDC', total: '25.5' },
+        { coin: 'HYPE', total: '0.5' },
+      ],
+    } as never);
+
+    expect(result.totalBalance).toBe('126');
+    expect(accountState.totalBalance).toBe('100');
+  });
+
+  it('returns the original account state when spot balance is zero', () => {
+    const accountState: AccountState = {
+      availableBalance: '1',
+      totalBalance: '2',
+      marginUsed: '3',
+      unrealizedPnl: '4',
+      returnOnEquity: '5',
+    };
+
+    expect(
+      addSpotBalanceToAccountState(accountState, { balances: [] } as never),
+    ).toBe(accountState);
   });
 });
 

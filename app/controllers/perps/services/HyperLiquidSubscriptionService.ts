@@ -38,7 +38,11 @@ import type {
   PerpsPlatformDependencies,
   PerpsLogger,
 } from '../types';
-import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
+import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
+import {
+  addSpotBalanceToAccountState,
+  calculateWeightedReturnOnEquity,
+} from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptPositionFromSDK,
@@ -156,6 +160,12 @@ export class HyperLiquidSubscriptionService {
   readonly #dexOrdersCache = new Map<string, Order[]>(); // Per-DEX orders
 
   readonly #dexAccountCache = new Map<string, AccountState>(); // Per-DEX account state
+
+  #cachedSpotState: SpotClearinghouseStateResponse | null = null;
+
+  #cachedSpotStateUserAddress: string | null = null;
+
+  #spotStatePromise?: Promise<void>;
 
   #cachedPositions: Position[] | null = null; // Aggregated positions
 
@@ -981,15 +991,62 @@ export class HyperLiquidSubscriptionService {
     // Calculate weighted returnOnEquity across all DEXs
     const returnOnEquity = calculateWeightedReturnOnEquity(accountStatesForROE);
 
-    return {
-      ...firstDexAccount,
-      availableBalance: totalAvailableBalance.toString(),
-      totalBalance: totalBalance.toString(),
-      marginUsed: totalMarginUsed.toString(),
-      unrealizedPnl: totalUnrealizedPnl.toString(),
-      subAccountBreakdown,
-      returnOnEquity,
-    };
+    return addSpotBalanceToAccountState(
+      {
+        ...firstDexAccount,
+        availableBalance: totalAvailableBalance.toString(),
+        totalBalance: totalBalance.toString(),
+        marginUsed: totalMarginUsed.toString(),
+        unrealizedPnl: totalUnrealizedPnl.toString(),
+        subAccountBreakdown,
+        returnOnEquity,
+      },
+      this.#cachedSpotState,
+    );
+  }
+
+  async #ensureSpotState(accountId?: CaipAccountId): Promise<void> {
+    const userAddress =
+      await this.#walletService.getUserAddressWithDefault(accountId);
+
+    if (
+      this.#cachedSpotState &&
+      this.#cachedSpotStateUserAddress === userAddress
+    ) {
+      return;
+    }
+
+    if (this.#spotStatePromise) {
+      await this.#spotStatePromise;
+      return;
+    }
+
+    this.#spotStatePromise = this.#refreshSpotState(userAddress);
+
+    try {
+      await this.#spotStatePromise;
+    } finally {
+      this.#spotStatePromise = undefined;
+    }
+  }
+
+  async #refreshSpotState(userAddress: string): Promise<void> {
+    try {
+      const infoClient = this.#clientService.getInfoClient();
+      this.#cachedSpotState = await infoClient.spotClearinghouseState({
+        user: userAddress,
+      });
+      this.#cachedSpotStateUserAddress = userAddress;
+
+      if (this.#dexAccountCache.size > 0) {
+        this.#aggregateAndNotifySubscribers();
+      }
+    } catch (error) {
+      this.#logErrorUnlessClearing(
+        ensureError(error, 'HyperLiquidSubscriptionService.refreshSpotState'),
+        this.#getErrorContext('refreshSpotState'),
+      );
+    }
   }
 
   /**
@@ -1943,6 +2000,8 @@ export class HyperLiquidSubscriptionService {
       this.#cachedPositions = null;
       this.#cachedOrders = null;
       this.#cachedAccount = null;
+      this.#cachedSpotState = null;
+      this.#cachedSpotStateUserAddress = null;
       this.#ordersCacheInitialized = false; // Reset cache initialization flag
       this.#positionsCacheInitialized = false; // Reset cache initialization flag
 
@@ -2252,10 +2311,17 @@ export class HyperLiquidSubscriptionService {
     // Increment account subscriber count
     this.#accountSubscriberCount += 1;
 
-    // Immediately provide cached data if available
-    if (this.#cachedAccount) {
+    // Immediately provide cached data if available and already spot-adjusted
+    if (this.#cachedAccount && this.#cachedSpotState) {
       callback(this.#cachedAccount);
     }
+
+    this.#ensureSpotState(accountId).catch((error) => {
+      this.#logErrorUnlessClearing(
+        ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
+        this.#getErrorContext('subscribeToAccount.ensureSpotState'),
+      );
+    });
 
     // Ensure shared subscription is active (reuses existing connection)
     this.#ensureSharedWebData3Subscription(accountId).catch((error) => {
@@ -3684,6 +3750,8 @@ export class HyperLiquidSubscriptionService {
     this.#dexPositionsCache.clear();
     this.#dexOrdersCache.clear();
     this.#dexAccountCache.clear();
+    this.#cachedSpotState = null;
+    this.#cachedSpotStateUserAddress = null;
     this.#dexAssetCtxsCache.clear();
 
     // Unsubscribe all active subscriptions before clearing references.
