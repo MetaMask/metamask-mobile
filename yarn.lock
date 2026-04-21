@@ -10166,6 +10166,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/test-snaps@npm:3.4.2":
+  version: 3.4.2
+  resolution: "@metamask/test-snaps@npm:3.4.2"
+  checksum: 10/826118fc399e613f6e418d407549a72e0c0876a7c5baf4545e5d1047235ffe53926d92f6937a135b4d234cd290a1acfafb33fe548fcd0ecb6db0bfbf7b0f2b3a
+  languageName: node
+  linkType: hard
+
 "@metamask/toprf-secure-backup@npm:^0.11.0":
   version: 0.11.0
   resolution: "@metamask/toprf-secure-backup@npm:0.11.0"
@@ -35906,6 +35913,7 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
+    "@metamask/test-snaps": "npm:3.4.2"
     "@metamask/transaction-controller": "npm:^64.2.0"
     "@metamask/transaction-pay-controller": "npm:^19.2.1"
     "@metamask/tron-wallet-snap": "npm:^1.25.2"
