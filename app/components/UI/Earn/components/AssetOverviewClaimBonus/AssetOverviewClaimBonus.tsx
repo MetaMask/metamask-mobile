@@ -22,8 +22,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { TokenI } from '../../../Tokens/types';
 import { useMerklBonusClaim } from '../MerklRewards/hooks/useMerklBonusClaim';
-import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { MetaMetricsEvents, EVENT_NAME } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
 import AppConstants from '../../../../../core/AppConstants';
@@ -51,10 +51,13 @@ const styles = StyleSheet.create({
 
 interface AssetOverviewClaimBonusProps {
   asset: TokenI;
+  /** Called with the Merkl refetch function so the parent can trigger a refresh. */
+  onRefetchReady?: (refetch: () => void) => void;
 }
 
 const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   asset,
+  onRefetchReady,
 }) => {
   const {
     claimableReward,
@@ -62,7 +65,12 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     hasPendingClaim,
     isClaiming,
     claimRewards,
+    refetch,
   } = useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
+
+  useEffect(() => {
+    onRefetchReady?.(refetch);
+  }, [onRefetchReady, refetch]);
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -207,6 +215,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
       undefined,
       strings('earn.learn_more'),
       handleLearnMorePress,
+      false,
     );
   }, [
     openTooltipModal,
