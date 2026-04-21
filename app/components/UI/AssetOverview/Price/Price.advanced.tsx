@@ -45,6 +45,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
@@ -287,7 +288,7 @@ const PriceAdvanced = ({
 
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
-  const isLightMode = themeAppearance === 'light';
+  const isLightMode = themeAppearance === AppThemeKey.light;
 
   const shouldFallbackToLegacy =
     !chartLoading &&
