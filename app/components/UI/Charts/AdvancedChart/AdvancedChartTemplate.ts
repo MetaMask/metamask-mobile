@@ -1,4 +1,4 @@
-import type { Theme } from '../../../../util/theme/models';
+import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
   type LineChromeOptions,
@@ -45,7 +45,7 @@ const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
 const getChartSuccessColor = (theme: Theme): string =>
-  theme.themeAppearance === 'light'
+  theme.themeAppearance === AppThemeKey.light
     ? LIGHT_MODE_SUCCESS_GREEN
     : theme.colors.success.default;
 

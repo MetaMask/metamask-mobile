@@ -14,6 +14,7 @@ import {
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -92,7 +93,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
-  const isLightMode = themeAppearance === 'light';
+  const isLightMode = themeAppearance === AppThemeKey.light;
 
   const successBg = isLightMode
     ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`

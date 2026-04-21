@@ -18,6 +18,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
@@ -95,7 +96,7 @@ const PriceLegacy = ({
 
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
-  const isLightMode = themeAppearance === 'light';
+  const isLightMode = themeAppearance === AppThemeKey.light;
 
   return (
     <>

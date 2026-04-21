@@ -13,6 +13,7 @@ import { AreaChart } from 'react-native-svg-charts';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useStyles } from '../../../../component-library/hooks';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -66,7 +67,7 @@ const PriceChart = ({
   const { styles, theme } = useStyles(styleSheet, { chartHeight });
   const { themeAppearance } = useTheme();
   const chartColor =
-    themeAppearance === 'light'
+    themeAppearance === AppThemeKey.light
       ? LIGHT_MODE_SUCCESS_GREEN
       : theme.colors.success.default;
 
