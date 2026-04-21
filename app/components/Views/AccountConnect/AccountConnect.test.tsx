@@ -628,12 +628,14 @@ describe('AccountConnect', () => {
       );
     });
     // Verify addProperties was called with source and request_source
-    expect(mockAddProperties).toHaveBeenCalledWith(
-      expect.objectContaining({
-        source: 'in-app browser',
-        request_source: 'In-App-Browser',
-      }),
-    );
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'in-app browser',
+          request_source: 'In-App-Browser',
+        }),
+      );
+    });
   });
 
   it('handles confirm button press correctly when merging existing CAIP-25 permissions', async () => {
