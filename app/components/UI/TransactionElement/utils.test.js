@@ -5,6 +5,13 @@ import {
 } from '../../../util/transactions';
 import decodeTransaction from './utils';
 import { strings } from '../../../../locales/i18n';
+import { store } from '../../../store';
+import {
+  selectConversionRateByChainId,
+  selectUSDConversionRateByChainId,
+} from '../../../selectors/currencyRateController';
+import { selectSingleTokenByAddressAndChainId } from '../../../selectors/tokensController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -50,6 +57,22 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
   },
+}));
+
+jest.mock('../../../selectors/currencyRateController', () => ({
+  ...jest.requireActual('../../../selectors/currencyRateController'),
+  selectConversionRateByChainId: jest.fn(),
+  selectUSDConversionRateByChainId: jest.fn(),
+}));
+
+jest.mock('../../../selectors/tokensController', () => ({
+  ...jest.requireActual('../../../selectors/tokensController'),
+  selectSingleTokenByAddressAndChainId: jest.fn(),
+}));
+
+jest.mock('../../../selectors/tokenRatesController', () => ({
+  ...jest.requireActual('../../../selectors/tokenRatesController'),
+  selectContractExchangeRatesByChainId: jest.fn(),
 }));
 
 const TRANSACTION_DETAILS_MOCK = {
@@ -514,6 +537,79 @@ describe('Transaction Element Utils', () => {
       expect(transactionElement.value).toBe('99.99 USDC');
       expect(transactionDetails.renderValue).toBe('99.99 USDC');
       expect(transactionDetails.summaryAmount).toBe('99.99 USDC');
+    });
+
+    it('uses post-quote display values for perpsWithdraw transactions', async () => {
+      const tokenAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
+      const getStateSpy = jest.spyOn(store, 'getState').mockReturnValue({});
+      selectConversionRateByChainId.mockReturnValue(2000);
+      selectUSDConversionRateByChainId.mockReturnValue(2000);
+      selectSingleTokenByAddressAndChainId.mockReturnValue({
+        address: tokenAddress,
+        symbol: 'USDC',
+        decimals: 6,
+      });
+      selectContractExchangeRatesByChainId.mockReturnValue({
+        [tokenAddress]: {
+          price: 0.0005,
+        },
+      });
+
+      try {
+        const args = {
+          tx: {
+            txParams: {
+              to: tokenAddress,
+              from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
+              value: '52daf0',
+              data: '0xa9059cbb0000000000000000000000001234567890abcdef1234567890abcdef1234567800000000000000000000000000000000000000000000000000000000052daf0',
+              gas: '0x12345',
+              maxFeePerGas: '0x123456789',
+              maxPriorityFeePerGas: '0x123456789',
+              estimatedBaseFee: '0xABCDEF123',
+            },
+            hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+            type: TransactionType.perpsWithdraw,
+            metamaskPay: {
+              isPostQuote: true,
+              targetFiat: '99.99',
+              chainId: '0x89',
+              tokenAddress,
+            },
+          },
+          currentCurrency: 'usd',
+          contractExchangeRates: {
+            [tokenAddress]: {
+              price: 2.0,
+            },
+          },
+          conversionRate: 2.0,
+          totalGas: '0x64',
+          actionKey: 'key',
+          primaryCurrency: 'ETH',
+          selectedAddress: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
+          ticker: 'POL',
+          txChainId: '0x89',
+          tokens: {
+            [tokenAddress]: {
+              address: tokenAddress,
+              symbol: 'USDC',
+              decimals: 6,
+            },
+          },
+        };
+
+        const [transactionElement] = await decodeTransaction(args);
+
+        expect(transactionElement.value).toBe('99.99 USDC');
+        expect(transactionElement.fiatValue).toBe('$99.99');
+      } finally {
+        getStateSpy.mockRestore();
+        selectConversionRateByChainId.mockReset();
+        selectUSDConversionRateByChainId.mockReset();
+        selectSingleTokenByAddressAndChainId.mockReset();
+        selectContractExchangeRatesByChainId.mockReset();
+      }
     });
 
     it('sets SENT_COLLECTIBLE type when user is sender', async () => {

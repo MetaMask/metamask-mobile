@@ -227,7 +227,10 @@ function getMetamaskPayTargetFiat(tx, decimals) {
 function getPostQuoteDisplay(tx, currentCurrency) {
   const { metamaskPay } = tx ?? {};
   if (
-    !hasTransactionType(tx, [TransactionType.predictWithdraw]) ||
+    !hasTransactionType(tx, [
+      TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
+    ]) ||
     !metamaskPay?.isPostQuote ||
     !metamaskPay?.targetFiat
   ) {
