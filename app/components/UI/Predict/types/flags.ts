@@ -23,9 +23,9 @@ export interface PredictExtendedSportsMarketsFlag
   leagues: string[];
 }
 
-export interface PredictClobV2Flag extends VersionGatedFeatureFlag {
-  clobBaseUrl?: string;
-}
+export type PredictClobV2Flag = VersionGatedFeatureFlag;
+
+export type PredictClobV2UseLegacyClobHostFlag = VersionGatedFeatureFlag;
 
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;

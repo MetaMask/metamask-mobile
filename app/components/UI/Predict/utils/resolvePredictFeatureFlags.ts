@@ -11,16 +11,12 @@ import {
 import { filterSupportedLeagues } from '../constants/sports';
 import { parse, PredictFeeCollectionSchema } from '../schemas';
 import {
-  PredictClobV2Flag,
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
-import {
-  DEFAULT_CLOB_BASE_URL,
-  LEGACY_V2_CLOB_BASE_URL,
-} from '../providers/polymarket/constants';
+import { LEGACY_V2_CLOB_BASE_URL } from '../providers/polymarket/constants';
 import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
@@ -36,24 +32,17 @@ function resolveVersionGatedBooleanFlag(flag: unknown): boolean {
   );
 }
 
-function isAllowedPredictClobBaseUrl(
-  clobBaseUrl: unknown,
-): clobBaseUrl is string {
-  return (
-    clobBaseUrl === DEFAULT_CLOB_BASE_URL ||
-    clobBaseUrl === LEGACY_V2_CLOB_BASE_URL
-  );
-}
-
-function resolvePredictClobV2Flag(flag: unknown): {
+function resolvePredictClobV2Flag({
+  predictClobV2Flag,
+  predictClobV2UseLegacyClobHostFlag,
+}: {
+  predictClobV2Flag: unknown;
+  predictClobV2UseLegacyClobHostFlag: unknown;
+}): {
   enabled: boolean;
   clobBaseUrl?: string;
 } {
-  const rawFlag = unwrapRemoteFeatureFlag<PredictClobV2Flag>(flag);
-  const enabled =
-    validatedVersionGatedFeatureFlag(
-      rawFlag as unknown as VersionGatedFeatureFlag,
-    ) ?? false;
+  const enabled = resolveVersionGatedBooleanFlag(predictClobV2Flag);
 
   if (!enabled) {
     return { enabled: false, clobBaseUrl: undefined };
@@ -61,8 +50,10 @@ function resolvePredictClobV2Flag(flag: unknown): {
 
   return {
     enabled: true,
-    clobBaseUrl: isAllowedPredictClobBaseUrl(rawFlag?.clobBaseUrl)
-      ? rawFlag.clobBaseUrl
+    clobBaseUrl: resolveVersionGatedBooleanFlag(
+      predictClobV2UseLegacyClobHostFlag,
+    )
+      ? LEGACY_V2_CLOB_BASE_URL
       : undefined,
   };
 }
@@ -127,7 +118,10 @@ export function resolvePredictFeatureFlags(
   const predictUpDownEnabled = resolveVersionGatedBooleanFlag(
     flags.predictUpDown,
   );
-  const predictClobV2 = resolvePredictClobV2Flag(flags.predictClobV2);
+  const predictClobV2 = resolvePredictClobV2Flag({
+    predictClobV2Flag: flags.predictClobV2,
+    predictClobV2UseLegacyClobHostFlag: flags.predictClobV2UseLegacyClobHost,
+  });
 
   return {
     feeCollection,

@@ -4,10 +4,7 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
 } from '../constants/flags';
-import {
-  DEFAULT_CLOB_BASE_URL,
-  LEGACY_V2_CLOB_BASE_URL,
-} from '../providers/polymarket/constants';
+import { LEGACY_V2_CLOB_BASE_URL } from '../providers/polymarket/constants';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
@@ -196,6 +193,17 @@ describe('resolvePredictFeatureFlags', () => {
   });
 
   describe('predictClobV2Enabled', () => {
+    const mockEnabledVersionGatedFlags = () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        Boolean(
+          flag &&
+            typeof flag === 'object' &&
+            'enabled' in flag &&
+            (flag as { enabled: boolean }).enabled,
+        ),
+      );
+    };
+
     it('returns false when flag is missing', () => {
       const result = resolvePredictFeatureFlags({});
 
@@ -203,17 +211,7 @@ describe('resolvePredictFeatureFlags', () => {
     });
 
     it('returns true when flag is enabled and version validation passes', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (
-          flag &&
-          typeof flag === 'object' &&
-          'minimumVersion' in flag &&
-          'enabled' in flag
-        ) {
-          return true;
-        }
-        return undefined;
-      });
+      mockEnabledVersionGatedFlags();
 
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
@@ -228,15 +226,18 @@ describe('resolvePredictFeatureFlags', () => {
       expect(result.predictClobV2ClobBaseUrl).toBeUndefined();
     });
 
-    it('returns the temporary v2 CLOB host override when provided', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation(() => true);
+    it('uses the temporary v2 CLOB host when the legacy-host flag is also enabled', () => {
+      mockEnabledVersionGatedFlags();
 
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
           predictClobV2: {
             enabled: true,
             minimumVersion: '1.0.0',
-            clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+          },
+          predictClobV2UseLegacyClobHost: {
+            enabled: true,
+            minimumVersion: '1.0.0',
           },
         },
       });
@@ -245,32 +246,18 @@ describe('resolvePredictFeatureFlags', () => {
       expect(result.predictClobV2ClobBaseUrl).toBe(LEGACY_V2_CLOB_BASE_URL);
     });
 
-    it('returns the canonical CLOB host override when explicitly provided', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation(() => true);
+    it('keeps the canonical v2 CLOB host when the legacy-host flag is disabled', () => {
+      mockEnabledVersionGatedFlags();
 
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
           predictClobV2: {
             enabled: true,
             minimumVersion: '1.0.0',
-            clobBaseUrl: DEFAULT_CLOB_BASE_URL,
           },
-        },
-      });
-
-      expect(result.predictClobV2Enabled).toBe(true);
-      expect(result.predictClobV2ClobBaseUrl).toBe(DEFAULT_CLOB_BASE_URL);
-    });
-
-    it('ignores an invalid CLOB host override', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation(() => true);
-
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictClobV2: {
-            enabled: true,
+          predictClobV2UseLegacyClobHost: {
+            enabled: false,
             minimumVersion: '1.0.0',
-            clobBaseUrl: 'https://example.com',
           },
         },
       });
@@ -279,21 +266,50 @@ describe('resolvePredictFeatureFlags', () => {
       expect(result.predictClobV2ClobBaseUrl).toBeUndefined();
     });
 
-    it('ignores a host override when the flag is disabled or version validation fails', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation(() => false);
+    it('ignores the legacy-host flag when predictClobV2 is disabled or version-gated off', () => {
+      mockEnabledVersionGatedFlags();
 
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
           predictClobV2: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+          predictClobV2UseLegacyClobHost: {
             enabled: true,
-            minimumVersion: '99.0.0',
-            clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+            minimumVersion: '1.0.0',
           },
         },
       });
 
       expect(result.predictClobV2Enabled).toBe(false);
       expect(result.predictClobV2ClobBaseUrl).toBeUndefined();
+    });
+
+    it('supports enabling v2 locally while the internal legacy-host flag remains remote', () => {
+      mockEnabledVersionGatedFlags();
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictClobV2: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+          predictClobV2UseLegacyClobHost: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+        localOverrides: {
+          predictClobV2: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictClobV2Enabled).toBe(true);
+      expect(result.predictClobV2ClobBaseUrl).toBe(LEGACY_V2_CLOB_BASE_URL);
     });
   });
 
