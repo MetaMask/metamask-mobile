@@ -57,7 +57,7 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
     );
   });
 
-  it.only('should return correct and consistent session scopes for selected chains', async () => {
+  it('should return correct and consistent session scopes for selected chains', async () => {
     await withFixtures(
       {
         dapps: [
@@ -119,6 +119,12 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           );
           throw new Error(
             `Chain validation failed. Missing chains: ${assertions1.missingChains.join(', ')}`,
+          );
+        }
+
+        if (assertions1.chainCount !== networksToTest.length) {
+          throw new Error(
+            `Expected ${networksToTest.length} chain(s), but found ${assertions1.chainCount}`,
           );
         }
 
@@ -221,6 +227,12 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
             `Chain validation failed. Missing chains: ${getAssertions2.missingChains.join(
               ', ',
             )}`,
+          );
+        }
+
+        if (getAssertions2.chainCount !== newNetworks.length) {
+          throw new Error(
+            `Expected ${newNetworks.length} chain(s), but found ${getAssertions2.chainCount}`,
           );
         }
 
