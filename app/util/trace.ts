@@ -11,8 +11,8 @@ import {
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
-import { AGREED, METRICS_OPT_IN } from '../constants/storage';
-import StorageWrapper from '../store/storage-wrapper';
+import { store } from '../store';
+import { selectAnalyticsOptedIn } from '../selectors/analyticsController';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -543,11 +543,22 @@ export async function flushBufferedTraces() {
 let cachedConsent: boolean | null = null;
 
 /**
- * Check if user has given consent for metrics
+ * Check if user has given consent for metrics.
+ *
+ * Reads from `AnalyticsController.state.optedIn` (the source of truth after
+ * migration 110). Returns `false` when the store or controller state is not
+ * yet available (e.g. during very early app startup before rehydration), so
+ * Sentry stays disabled by default until the user actually opts in.
  */
 export async function hasMetricsConsent(): Promise<boolean> {
-  const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
-  const hasConsent = metricsOptIn === AGREED;
+  let hasConsent = false;
+  try {
+    const state = store?.getState?.();
+    const optedIn = state ? selectAnalyticsOptedIn(state) : undefined;
+    hasConsent = optedIn === true;
+  } catch {
+    hasConsent = false;
+  }
   cachedConsent = hasConsent;
   return hasConsent;
 }

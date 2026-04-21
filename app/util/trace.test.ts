@@ -14,8 +14,8 @@ import {
   bufferTraceEndCallLocal,
   discardBufferedTraces,
   updateCachedConsent,
+  hasMetricsConsent,
 } from './trace';
-import { AGREED, DENIED } from '../constants/storage';
 
 jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
@@ -36,6 +36,10 @@ jest.mock('../store', () => ({
     dispatch: jest.fn(),
     getState: jest.fn(),
   },
+}));
+
+jest.mock('../selectors/analyticsController', () => ({
+  selectAnalyticsOptedIn: jest.fn(),
 }));
 
 jest.mock('../core/redux/ReduxService', () => ({
@@ -402,9 +406,6 @@ describe('Trace', () => {
   });
 
   describe('flushBufferedTraces', () => {
-    const StorageWrapper = jest.requireMock('../store/storage-wrapper');
-    const storageGetItemMock = jest.mocked(StorageWrapper.getItem);
-
     beforeEach(() => {
       jest.clearAllMocks();
       discardBufferedTraces();
@@ -424,14 +425,11 @@ describe('Trace', () => {
     });
 
     it('should clear buffer and not process traces when consent is not given', async () => {
-      storageGetItemMock.mockResolvedValue(DENIED);
-
       bufferTraceStartCallLocal({ name: TraceName.Middleware });
       bufferTraceEndCallLocal({ name: TraceName.Middleware });
 
       await flushBufferedTraces();
 
-      storageGetItemMock.mockResolvedValue(AGREED);
       jest.clearAllMocks();
 
       await flushBufferedTraces();
@@ -442,9 +440,6 @@ describe('Trace', () => {
     });
 
     it('should flush buffered traces when consent is given', async () => {
-      storageGetItemMock.mockResolvedValue(DENIED);
-
-      // Mock selectBufferedTraces to return the buffered traces we expect
       const mockBufferedTraces = [
         {
           type: 'start',
@@ -470,7 +465,6 @@ describe('Trace', () => {
           : bufferTraceEndCallLocal(t.request);
       });
 
-      storageGetItemMock.mockResolvedValue(AGREED);
       updateCachedConsent(true);
 
       await flushBufferedTraces();
@@ -512,6 +506,70 @@ describe('Trace', () => {
       // Both traces should be processed (2 start calls)
       expect(startSpanManualMock).toHaveBeenCalledTimes(2);
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('hasMetricsConsent', () => {
+    const storeMock = jest.requireMock('../store').store as {
+      getState: jest.Mock;
+    };
+    const { selectAnalyticsOptedIn } = jest.requireMock(
+      '../selectors/analyticsController',
+    );
+    const selectAnalyticsOptedInMock = jest.mocked(selectAnalyticsOptedIn);
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns true when AnalyticsController state has optedIn=true', async () => {
+      storeMock.getState.mockReturnValue({
+        engine: { backgroundState: { AnalyticsController: { optedIn: true } } },
+      });
+      selectAnalyticsOptedInMock.mockReturnValue(true);
+
+      await expect(hasMetricsConsent()).resolves.toBe(true);
+    });
+
+    it('returns false when AnalyticsController state has optedIn=false', async () => {
+      storeMock.getState.mockReturnValue({
+        engine: {
+          backgroundState: { AnalyticsController: { optedIn: false } },
+        },
+      });
+      selectAnalyticsOptedInMock.mockReturnValue(false);
+
+      await expect(hasMetricsConsent()).resolves.toBe(false);
+    });
+
+    it('returns false when selector returns undefined (state not yet hydrated)', async () => {
+      storeMock.getState.mockReturnValue({});
+      selectAnalyticsOptedInMock.mockReturnValue(undefined);
+
+      await expect(hasMetricsConsent()).resolves.toBe(false);
+    });
+
+    it('returns false and does not throw when store.getState throws', async () => {
+      storeMock.getState.mockImplementation(() => {
+        throw new Error('store not ready');
+      });
+
+      await expect(hasMetricsConsent()).resolves.toBe(false);
+    });
+
+    it('updates the cached consent state used by trace buffering', async () => {
+      selectAnalyticsOptedInMock.mockReturnValue(true);
+      storeMock.getState.mockReturnValue({});
+
+      updateCachedConsent(false);
+      await hasMetricsConsent();
+
+      // After consent is granted, a traced callback should execute without
+      // being buffered (verified indirectly by Sentry being invoked).
+      trace({ name: NAME_MOCK }, () => true);
+      endTrace({ name: NAME_MOCK });
+
+      expect(withIsolationScopeMock).toHaveBeenCalled();
     });
   });
 });
