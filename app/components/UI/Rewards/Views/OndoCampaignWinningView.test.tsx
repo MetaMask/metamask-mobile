@@ -290,6 +290,33 @@ describe('OndoCampaignWinningView', () => {
       expect(getByTestId('copyable-field')).toBeTruthy();
     });
 
+    it('shows the primary CTA in loading state while winning code is loading', () => {
+      mockUseOndoCampaignWinnerCode.mockReturnValue({
+        code: null,
+        isLoading: true,
+        hasFetched: false,
+        hasError: false,
+        retry: jest.fn(),
+      });
+      const openSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      const { getByText } = render(<OndoCampaignWinningView />);
+      fireEvent.press(getByText('Open mail'));
+      expect(openSpy).not.toHaveBeenCalled();
+      openSpy.mockRestore();
+    });
+
+    it('does not show the primary CTA in loading state once code has loaded', () => {
+      const openSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      const { getByText } = render(<OndoCampaignWinningView />);
+      fireEvent.press(getByText('Open mail'));
+      expect(openSpy).toHaveBeenCalledTimes(1);
+      openSpy.mockRestore();
+    });
+
     it('hides rank and rate text while position is loading', () => {
       mockUseGetOndoLeaderboardPosition.mockReturnValue({
         position: null,
@@ -332,7 +359,7 @@ describe('OndoCampaignWinningView', () => {
       expect(mockRetry).toHaveBeenCalledTimes(1);
     });
 
-    it('shows the position error banner when position fetch fails', () => {
+    it('hides the rank/rate section entirely when position fails to load', () => {
       mockUseGetOndoLeaderboardPosition.mockReturnValue({
         position: null,
         isLoading: false,
@@ -344,10 +371,8 @@ describe('OndoCampaignWinningView', () => {
       expect(queryByText('3rd place')).toBeNull();
       expect(queryByText('+28.23%')).toBeNull();
     });
-  });
 
-  describe('null position display', () => {
-    it('shows em-dash placeholders when position is null and not loading', () => {
+    it('hides the rank/rate section when position is null and not loading', () => {
       mockUseGetOndoLeaderboardPosition.mockReturnValue({
         position: null,
         isLoading: false,
@@ -355,8 +380,9 @@ describe('OndoCampaignWinningView', () => {
         hasFetched: true,
         refetch: jest.fn(),
       });
-      const { getAllByText } = render(<OndoCampaignWinningView />);
-      expect(getAllByText('—').length).toBeGreaterThanOrEqual(2);
+      const { queryByText } = render(<OndoCampaignWinningView />);
+      expect(queryByText('3rd place')).toBeNull();
+      expect(queryByText('+28.23%')).toBeNull();
     });
   });
 
@@ -371,26 +397,6 @@ describe('OndoCampaignWinningView', () => {
       expect(url).toContain(
         encodeURIComponent('Ondo campaign prize claim - LVL346'),
       );
-      openSpy.mockRestore();
-    });
-
-    it('uses the base subject when winning code is not yet available', async () => {
-      // hasFetched=false: no redirect triggered, no error banner, Open mail is visible
-      mockUseOndoCampaignWinnerCode.mockReturnValue({
-        code: null,
-        isLoading: false,
-        hasFetched: false,
-        hasError: false,
-        retry: jest.fn(),
-      });
-      const openSpy = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValue(undefined);
-      const { getByText } = render(<OndoCampaignWinningView />);
-      fireEvent.press(getByText('Open mail'));
-      const url = openSpy.mock.calls[0][0] as string;
-      expect(url).toContain(encodeURIComponent('Ondo campaign prize claim'));
-      expect(url).not.toContain(encodeURIComponent(' - '));
       openSpy.mockRestore();
     });
   });

@@ -65,12 +65,8 @@ const OndoCampaignWinningView: React.FC = () => {
     useRoute<RouteProp<ParamListBase, 'RewardsOndoCampaignWinning'>>();
   const { campaignId } = route.params as { campaignId: string };
 
-  const {
-    position,
-    isLoading: positionLoading,
-    hasError: positionError,
-    hasFetched: positionFetched,
-  } = useGetOndoLeaderboardPosition(campaignId);
+  const { position, isLoading: positionLoading } =
+    useGetOndoLeaderboardPosition(campaignId);
 
   const {
     code: winningCode,
@@ -134,26 +130,16 @@ const OndoCampaignWinningView: React.FC = () => {
   }, [winningCode]);
 
   const rankDisplay = useMemo(() => {
-    if (positionLoading && !position) {
-      return null;
-    }
-    if (!position) {
-      return '—';
-    }
+    if (!position) return null;
     return strings('rewards.ondo_campaign_winning.rank_label', {
       place: formatOrdinalRank(position.rank),
     });
-  }, [position, positionLoading]);
+  }, [position]);
 
   const rateDisplay = useMemo(() => {
-    if (positionLoading && !position) {
-      return null;
-    }
-    if (!position) {
-      return '—';
-    }
+    if (!position) return null;
     return formatPercentChange(position.rateOfReturn);
-  }, [position, positionLoading]);
+  }, [position]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignWinningView">
@@ -206,45 +192,36 @@ const OndoCampaignWinningView: React.FC = () => {
               {strings('rewards.ondo_campaign_winning.you_won')}
             </Text>
 
-            <Box
-              flexDirection={BoxFlexDirection.Column}
-              twClassName="items-center gap-1 w-full px-4"
-            >
-              {positionFetched && positionError && !position ? (
-                <RewardsErrorBanner
-                  title={strings('rewards.ondo_campaign_winning.error_title')}
-                  description={strings(
-                    'rewards.ondo_campaign_winning.error_description',
-                  )}
-                />
-              ) : (
-                <>
-                  {rankDisplay !== null ? (
-                    <Text
-                      variant={TextVariant.HeadingMd}
-                      color={TextColor.SuccessDefault}
-                      twClassName="text-center"
-                    >
-                      {rankDisplay}
-                    </Text>
-                  ) : (
-                    <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
-                  )}
+            {(positionLoading || position) && (
+              <Box
+                flexDirection={BoxFlexDirection.Column}
+                twClassName="items-center gap-1 w-full px-4"
+              >
+                {rankDisplay !== null ? (
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    color={TextColor.SuccessDefault}
+                    twClassName="text-center"
+                  >
+                    {rankDisplay}
+                  </Text>
+                ) : (
+                  <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
+                )}
 
-                  {rateDisplay !== null ? (
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.SuccessDefault}
-                      twClassName="text-center"
-                    >
-                      {rateDisplay}
-                    </Text>
-                  ) : (
-                    <Skeleton style={tw.style('h-6 w-28 rounded-lg')} />
-                  )}
-                </>
-              )}
-            </Box>
+                {rateDisplay !== null ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.SuccessDefault}
+                    twClassName="text-center"
+                  >
+                    {rateDisplay}
+                  </Text>
+                ) : (
+                  <Skeleton style={tw.style('h-6 w-28 rounded-lg')} />
+                )}
+              </Box>
+            )}
 
             <Text
               variant={TextVariant.BodySm}
@@ -290,6 +267,7 @@ const OndoCampaignWinningView: React.FC = () => {
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
                     isFullWidth
+                    isLoading={winningCodeLoading && !winningCode}
                     onPress={handleOpenMail}
                   >
                     {strings('rewards.ondo_campaign_winning.open_mail')}
