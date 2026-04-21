@@ -165,6 +165,7 @@ import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
 } from './chomp-api-service-messenger';
+import { getMoneyAccountUpgradeControllerMessenger } from './money-account-upgrade-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -515,5 +516,9 @@ export const MESSENGER_FACTORIES = {
   ChompApiService: {
     getMessenger: getChompApiServiceMessenger,
     getInitMessenger: getChompApiServiceInitMessenger,
+  },
+  MoneyAccountUpgradeController: {
+    getMessenger: getMoneyAccountUpgradeControllerMessenger,
+    getInitMessenger: noop,
   },
 } as const;
