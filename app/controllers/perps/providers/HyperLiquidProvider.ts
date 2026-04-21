@@ -5556,17 +5556,38 @@ export class HyperLiquidProvider implements PerpsProvider {
           isTestnet: this.#clientService.isTestnetMode(),
         });
         const dexs = await this.#getStandaloneValidatedDexs();
-        const results = await queryStandaloneClearinghouseStates(
-          standaloneInfoClient,
-          userAddress,
-          dexs,
-        );
+        const [standaloneSpotStateResult, standalonePerpsResults] =
+          await Promise.all([
+            standaloneInfoClient
+              .spotClearinghouseState({ user: userAddress })
+              .catch((error: unknown) => {
+                this.#deps.debugLogger.log(
+                  'Standalone spot state fetch failed — falling back to perps-only totals',
+                  {
+                    error: ensureError(
+                      error,
+                      'HyperLiquidProvider.getAccountState.standalone.spot',
+                    ).message,
+                  },
+                );
+                return null;
+              }),
+            queryStandaloneClearinghouseStates(
+              standaloneInfoClient,
+              userAddress,
+              dexs,
+            ),
+          ]);
 
-        // Aggregate account states across all DEXs
-        const dexAccountStates = results.map((perpsState) =>
+        // Aggregate account states across all DEXs, then apply spot-backed
+        // adjustments so streamed/standalone/full paths report the same totals.
+        const dexAccountStates = standalonePerpsResults.map((perpsState) =>
           adaptAccountStateFromSDK(perpsState),
         );
-        const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
+        const aggregatedAccountState = addSpotBalanceToAccountState(
+          aggregateAccountStates(dexAccountStates),
+          standaloneSpotStateResult,
+        );
 
         this.#deps.debugLogger.log(
           'HyperLiquidProvider: standalone account state fetched',
