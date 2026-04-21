@@ -18,12 +18,18 @@ export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
 }
 
+export type PredictClobV2Flag = VersionGatedFeatureFlag;
+
+export type PredictClobV2UseLegacyClobHostFlag = VersionGatedFeatureFlag;
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
+  predictClobV2Enabled: boolean;
+  predictClobV2ClobBaseUrl?: string;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
