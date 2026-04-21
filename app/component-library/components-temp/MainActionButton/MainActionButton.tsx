@@ -27,6 +27,7 @@ const MainActionButton = ({
   onPressOut,
   style,
   isDisabled = false,
+  containerStyle,
   ...props
 }: MainActionButtonProps) => {
   const { styles } = useStyles(styleSheet, {
@@ -40,7 +41,9 @@ const MainActionButton = ({
   });
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View
+      style={[containerStyle, { transform: [{ scale: scaleAnim }] }]}
+    >
       <Pressable
         style={({ pressed }) => [styles.base, pressed && styles.pressed]}
         onPress={!isDisabled ? onPress : undefined}

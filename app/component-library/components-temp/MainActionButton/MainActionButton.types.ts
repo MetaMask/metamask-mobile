@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { PressableProps } from 'react-native';
+import { PressableProps, StyleProp, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { IconName } from '../../components/Icons/Icon';
@@ -20,6 +20,11 @@ export interface MainActionButtonProps extends PressableProps {
    * Optional param to disable the button.
    */
   isDisabled?: boolean;
+  /**
+   * Optional style applied to the outer Animated.View container.
+   * Use this instead of a wrapper View to avoid extra DOM nodes.
+   */
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 /**
