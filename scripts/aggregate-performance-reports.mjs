@@ -1481,13 +1481,12 @@ function aggregateReports() {
       console.log(`📁 Created output directory: ${outputDir}`);
     }
     
-    // Search in multiple directories for different test types
+    // Search only in directories where CI artifacts are downloaded
     const searchDirs = [
       './test-results',
       './performance-results', 
       './onboarding-results',
-      './',  // Current directory where artifacts are typically extracted
-      './tests',  // Where artifacts are uploaded from
+      './tests/reporters/reports',
     ];
     
     const jsonFiles = [];
