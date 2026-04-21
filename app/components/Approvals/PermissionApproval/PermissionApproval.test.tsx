@@ -11,6 +11,8 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import useOriginSource from '../../hooks/useOriginSource';
+import { SourceType } from '../../hooks/useAnalytics/useAnalytics.types';
+import AppConstants from '../../../core/AppConstants';
 import {
   Caip25EndowmentPermissionName,
   getAllScopesFromPermission,
@@ -137,8 +139,8 @@ describe('PermissionApproval', () => {
       }),
     );
     (useOriginSource as jest.Mock).mockImplementation(() => ({
-      source: 'IN_APP_BROWSER',
-      requestSource: 'In-App-Browser',
+      source: SourceType.IN_APP_BROWSER,
+      requestSource: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     }));
     (
       getAllScopesFromPermission as jest.MockedFn<
@@ -211,8 +213,8 @@ describe('PermissionApproval', () => {
     )
       .addProperties({
         number_of_accounts: 3,
-        source: 'IN_APP_BROWSER',
-        request_source: 'In-App-Browser',
+        source: SourceType.IN_APP_BROWSER,
+        request_source: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
         chain_id_list: [],
         method: MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS,
         api_source: MetaMetricsRequestedThrough.EthereumProvider,
