@@ -142,7 +142,13 @@ const WhatsHappeningSection = forwardRef<
 
   return (
     <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-      <SectionHeader title={title} onPress={handleViewAll} />
+      <SectionHeader
+        title={title}
+        onPress={handleViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+          'whats-happening',
+        )}
+      />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
