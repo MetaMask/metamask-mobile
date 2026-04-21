@@ -16,6 +16,10 @@ import { RootState } from '../../../../../../reducers';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { getUsdAmountRange } from '../../../../../../util/analytics/usdAmountRange';
+import { MONEY_EVENTS_CONSTANTS } from '../../../../Money/constants/moneyEvents';
+import useMoneyHubEvents from '../../../../Money/hooks/useMoneyHubEvents';
+
+const { EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
 
 export interface MerklClaimData {
   /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
@@ -72,6 +76,8 @@ export const useMerklBonusClaim = (
   );
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { moneyHubFilledState } = useMoneyHubEvents();
+
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
   );
@@ -160,6 +166,9 @@ export const useMerklBonusClaim = (
           asset_symbol: asset?.symbol,
           bonus_amount_range: getUsdAmountRange(claimableReward),
           has_claimed_before: hasClaimedBefore,
+          ...(location === EVENT_LOCATIONS.MONEY_HUB
+            ? { moneyHubFilledState }
+            : {}),
         })
         .build(),
     );
@@ -174,6 +183,7 @@ export const useMerklBonusClaim = (
     network?.name,
     claimableReward,
     hasClaimedBefore,
+    moneyHubFilledState,
   ]);
 
   return useMemo(() => {

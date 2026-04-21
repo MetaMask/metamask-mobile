@@ -26,6 +26,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { MetaMetricsEvents, EVENT_NAME } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
+import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
 import AppConstants from '../../../../../core/AppConstants';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
@@ -42,8 +43,10 @@ import { toFormattedAddress } from '../../../../../util/address';
 import TagBase, {
   TagSeverity,
 } from '../../../../../component-library/base-components/TagBase';
+import useMoneyHubEvents from '../../../Money/hooks/useMoneyHubEvents';
 
-const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
 
 const styles = StyleSheet.create({
   bonusTag: { borderRadius: 8, paddingHorizontal: 6 },
@@ -53,11 +56,14 @@ interface AssetOverviewClaimBonusProps {
   asset: TokenI;
   /** Called with the Merkl refetch function so the parent can trigger a refresh. */
   onRefetchReady?: (refetch: () => void) => void;
+  /** Optional location for analytics. */
+  location?: string;
 }
 
 const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   asset,
   onRefetchReady,
+  location = MUSD_EVENT_LOCATIONS.ASSET_OVERVIEW,
 }) => {
   const {
     claimableReward,
@@ -66,7 +72,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     isClaiming,
     claimRewards,
     refetch,
-  } = useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
+  } = useMerklBonusClaim(asset, location);
 
   useEffect(() => {
     onRefetchReady?.(refetch);
@@ -74,6 +80,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { moneyHubFilledState } = useMoneyHubEvents();
 
   const isClaimPressedRef = useRef(false);
   const isLoading = isClaiming || hasPendingClaim;
@@ -161,26 +168,44 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
         .addProperties({
-          location: EVENT_LOCATIONS.ASSET_OVERVIEW_CLAIMABLE_BONUS_TOOLTIP,
+          location: MUSD_EVENT_LOCATIONS.BONUS_CLAIM_TOOLTIP,
           url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+          ...(location === MONEY_EVENT_LOCATIONS.MONEY_HUB
+            ? { moneyHubFilledState }
+            : {}),
         })
         .build(),
     );
 
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, location, moneyHubFilledState, trackEvent]);
 
   const handleLearnMorePress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_LEARN_MORE_PRESSED)
+        .addProperties({
+          location: MUSD_EVENT_LOCATIONS.BONUS_CLAIM_TOOLTIP,
+          url: AppConstants.URLS.MUSD_LEARN_MORE,
+          ...(location === MONEY_EVENT_LOCATIONS.MONEY_HUB
+            ? { moneyHubFilledState }
+            : {}),
+        })
+        .build(),
+    );
+
     Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
-  }, []);
+  }, [createEventBuilder, location, moneyHubFilledState, trackEvent]);
 
   const handleInfoPress = useCallback(() => {
     trackEvent(
       createEventBuilder(EVENT_NAME.TOOLTIP_OPENED)
         .addProperties({
-          location: EVENT_LOCATIONS.ASSET_OVERVIEW,
+          location,
           tooltip_name: 'your_bonus_info',
           related_text: 'Your bonus',
+          ...(location === MONEY_EVENT_LOCATIONS.MONEY_HUB
+            ? { moneyHubFilledState }
+            : {}),
         })
         .build(),
     );
@@ -218,11 +243,13 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
       false,
     );
   }, [
+    trackEvent,
+    createEventBuilder,
+    location,
+    moneyHubFilledState,
     openTooltipModal,
     handleTermsPress,
     handleLearnMorePress,
-    trackEvent,
-    createEventBuilder,
   ]);
 
   const handleClaimPress = useCallback(() => {
@@ -232,12 +259,15 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
         .addProperties({
-          location: EVENT_LOCATIONS.ASSET_OVERVIEW,
+          location,
           action_type: 'claim_bonus',
           button_text: ctaLabel,
           network_chain_id: asset.chainId,
           network_name: network?.name,
           asset_symbol: asset.symbol,
+          ...(location === MONEY_EVENT_LOCATIONS.MONEY_HUB
+            ? { moneyHubFilledState }
+            : {}),
         })
         .build(),
     );
@@ -245,12 +275,14 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   }, [
     isLoading,
     ctaDisabled,
-    ctaLabel,
     trackEvent,
     createEventBuilder,
+    location,
+    ctaLabel,
     asset.chainId,
     asset.symbol,
     network?.name,
+    moneyHubFilledState,
     claimRewards,
   ]);
 
