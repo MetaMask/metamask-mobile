@@ -14,6 +14,7 @@ import {
   type AssetsControllerInitMessenger,
 } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 
@@ -151,6 +152,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
     },
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,
+    isOnboarded: () => selectCompletedOnboarding(store.getState()),
   });
 
   return { controller };
