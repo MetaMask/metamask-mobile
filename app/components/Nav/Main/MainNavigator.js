@@ -126,7 +126,6 @@ import {
   TopTradersView,
   TraderProfileView,
   TraderPositionView,
-  NotificationPreferencesView,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -180,18 +179,6 @@ const slideFromRightAnimation = {
   }),
 };
 
-const WalletModalFlow = () => (
-  <Stack.Navigator
-    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
-  >
-    <Stack.Screen
-      name={'Wallet'}
-      component={Wallet}
-      options={{ headerShown: false, animationEnabled: false }}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
   <Stack.Navigator
@@ -235,33 +222,25 @@ const AssetNavigator = (props) => (
 );
 /* eslint-enable react/prop-types */
 
-const WalletTabStackFlow = () => (
-  <Stack.Navigator initialRouteName={'WalletView'}>
-    <Stack.Screen
-      name="WalletView"
-      component={WalletModalFlow}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-      component={RevealPrivateCredential}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
-
-const WalletTabModalFlow = () => {
+const WalletTabStackFlow = () => {
   const { colors } = useTheme();
   return (
     <Stack.Navigator
+      initialRouteName={'WalletView'}
       screenOptions={{
         ...clearStackNavigatorOptionsWithTransitionAnimation,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
       <Stack.Screen
-        name={Routes.WALLET.TAB_STACK_FLOW}
-        component={WalletTabStackFlow}
+        name="WalletView"
+        component={Wallet}
+        options={{ headerShown: false, animationEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateCredential}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
@@ -830,7 +809,7 @@ const HomeTabs = () => {
       <Tab.Screen
         name={Routes.WALLET.HOME}
         options={options.home}
-        component={WalletTabModalFlow}
+        component={WalletTabStackFlow}
       />
 
       {/* Explore Tab (w/ hidden browser) */}
@@ -861,7 +840,7 @@ const HomeTabs = () => {
       <Tab.Screen
         name={Routes.MODAL.TRADE_WALLET_ACTIONS}
         options={options.trade}
-        component={WalletTabModalFlow}
+        component={WalletTabStackFlow}
       />
 
       {/* Activity Tab (replaced by Money when feature flag is on) */}
@@ -1348,13 +1327,6 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
-      )}
-      {isSocialLeaderboardEnabled && (
-        <Stack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES}
-          component={NotificationPreferencesView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}

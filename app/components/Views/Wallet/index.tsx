@@ -410,6 +410,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'tokens-tab',
       tabLabel: strings('wallet.tokens'),
+      testID: WalletViewSelectorsIDs.TOKENS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -419,6 +420,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
+      testID: WalletViewSelectorsIDs.PERPS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -428,6 +430,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'predict-tab',
       tabLabel: strings('wallet.predict'),
+      testID: WalletViewSelectorsIDs.PREDICT_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -437,6 +440,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'defi-tab',
       tabLabel: strings('wallet.defi'),
+      testID: WalletViewSelectorsIDs.DEFI_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -446,6 +450,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'nfts-tab',
       tabLabel: strings('wallet.collectibles'),
+      testID: WalletViewSelectorsIDs.NFTS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -616,6 +621,7 @@ const WalletTokensTabView = forwardRef<
         ref={tabsListRef}
         onChangeTab={handleTabChange}
         tabsListContentTwClassName={'!flex-initial'}
+        testID={WalletViewSelectorsIDs.WALLET_TABS}
       >
         {tabsToRender}
       </TabsList>
@@ -1508,7 +1514,7 @@ const Wallet = ({
   // Legacy scroll view content — used only when the sections redesign is off.
   const content = (
     <>
-      <View style={styles.banner}>
+      <View style={styles.banner} accessible={false}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
