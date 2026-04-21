@@ -11,6 +11,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { mockGenesisBlocks } from './mocks';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -18,6 +19,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
   it('can use the Ethereum provider', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
