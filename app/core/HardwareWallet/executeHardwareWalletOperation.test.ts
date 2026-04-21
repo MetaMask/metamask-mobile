@@ -170,7 +170,7 @@ describe('executeHardwareWalletOperation', () => {
     ).resolves.toBe(true);
   });
 
-  it('handles operationType message', async () => {
+  it('passes message operationType to showAwaitingConfirmation', async () => {
     await expect(
       executeHardwareWalletOperation({
         ...baseOptions,
