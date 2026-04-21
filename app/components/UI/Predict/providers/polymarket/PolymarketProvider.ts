@@ -90,6 +90,7 @@ import {
   PolymarketApiTeam,
   PolymarketPosition,
   SignatureType,
+  PolymarketApiTeam,
   TickSize,
   UtilsSide,
 } from './types';

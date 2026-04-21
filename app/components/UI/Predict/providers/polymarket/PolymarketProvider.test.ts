@@ -7975,7 +7975,7 @@ describe('PolymarketProvider', () => {
     });
 
     describe('getMarkets', () => {
-      it('skips TeamsCache loading when live sports leagues are empty', async () => {
+      it('does not call ensureTeamsLoaded when live sports leagues are empty', async () => {
         const provider = createProvider();
         mockFetchEventsFromPolymarketApi.mockResolvedValue({
           events: [],
