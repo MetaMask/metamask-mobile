@@ -1,5 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { usePopularTokens, clearPopularTokensCache } from './usePopularTokens';
+import {
+  usePopularTokens,
+  clearPopularTokensCache,
+  SecurityDataType,
+} from './usePopularTokens';
 import {
   createMockPopularToken,
   createMockIncludeAsset,
@@ -106,6 +110,41 @@ describe('usePopularTokens', () => {
             includeAssets: mockIncludeAssets,
           }),
         }),
+      );
+    });
+
+    it('preserves securityData in the response', async () => {
+      const tokenWithSecurity = createMockPopularToken({
+        symbol: 'SAFE',
+        securityData: {
+          type: SecurityDataType.Warning,
+          metadata: {
+            features: [
+              {
+                featureId: 'HONEYPOT',
+                type: SecurityDataType.Warning,
+                description: 'Honeypot risk',
+              },
+            ],
+          },
+        },
+      });
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        json: async () => [tokenWithSecurity],
+      });
+
+      const { result } = renderHook(() =>
+        usePopularTokens({
+          chainIds: [MOCK_CHAIN_IDS.ethereum],
+          includeAssets: '[]',
+        }),
+      );
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.popularTokens[0].securityData).toEqual(
+        tokenWithSecurity.securityData,
       );
     });
 
