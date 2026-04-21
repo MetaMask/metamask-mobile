@@ -449,13 +449,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const availableBalance = Number.parseFloat(
     account?.availableBalance?.toString() ?? '0',
   );
+  const spotUsdcBalance = Number.parseFloat(
+    account?.spotUsdcBalance?.toString() ?? '0',
+  );
+  const fundedStateBalance = availableBalance + spotUsdcBalance;
   const showAddFundsCTA =
     isEligible &&
     !isLoadingPosition &&
     !existingPosition &&
     !isAtOICap &&
     !isLoadingAccount &&
-    availableBalance < PERPS_MIN_BALANCE_THRESHOLD &&
+    fundedStateBalance < PERPS_MIN_BALANCE_THRESHOLD &&
     defaultPayTokenWhenNoPerpsBalance === null;
 
   const handleAddFunds = useCallback(async () => {

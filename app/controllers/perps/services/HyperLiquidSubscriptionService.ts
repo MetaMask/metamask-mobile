@@ -38,7 +38,11 @@ import type {
   PerpsPlatformDependencies,
   PerpsLogger,
 } from '../types';
-import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
+import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
+import {
+  calculateWeightedReturnOnEquity,
+  getSpotBalanceByCoin,
+} from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptPositionFromSDK,
@@ -162,6 +166,12 @@ export class HyperLiquidSubscriptionService {
   #cachedOrders: Order[] | null = null; // Aggregated orders
 
   #cachedAccount: AccountState | null = null; // Aggregated account
+
+  #cachedSpotState: SpotClearinghouseStateResponse | null = null;
+
+  #cachedSpotStateUserAddress: string | null = null;
+
+  #spotStatePromise?: Promise<void>;
 
   #ordersCacheInitialized = false; // Track if orders cache has received WebSocket data
 
@@ -684,7 +694,7 @@ export class HyperLiquidSubscriptionService {
   }
 
   #hashAccountState(account: AccountState): string {
-    return `${account.availableBalance}:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
+    return `${account.availableBalance}:${account.spotUsdcBalance ?? '0'}:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
   }
 
   // Cache hashes to avoid recomputation
@@ -984,12 +994,54 @@ export class HyperLiquidSubscriptionService {
     return {
       ...firstDexAccount,
       availableBalance: totalAvailableBalance.toString(),
+      spotUsdcBalance: getSpotBalanceByCoin(
+        this.#cachedSpotState,
+        'USDC',
+      ).toString(),
       totalBalance: totalBalance.toString(),
       marginUsed: totalMarginUsed.toString(),
       unrealizedPnl: totalUnrealizedPnl.toString(),
       subAccountBreakdown,
       returnOnEquity,
     };
+  }
+
+  async #refreshSpotState(userAddress: string): Promise<void> {
+    const infoClient = this.#clientService.getInfoClient();
+    this.#cachedSpotState = await infoClient.spotClearinghouseState({
+      user: userAddress,
+    });
+    this.#cachedSpotStateUserAddress = userAddress;
+
+    if (this.#dexAccountCache.size > 0) {
+      this.#aggregateAndNotifySubscribers();
+    }
+  }
+
+  async #ensureSpotState(accountId?: CaipAccountId): Promise<void> {
+    const userAddress = await this.#walletService.getUserAddressWithDefault(
+      accountId,
+    );
+
+    if (
+      this.#cachedSpotState &&
+      this.#cachedSpotStateUserAddress === userAddress
+    ) {
+      return;
+    }
+
+    if (this.#spotStatePromise) {
+      await this.#spotStatePromise;
+      return;
+    }
+
+    this.#spotStatePromise = this.#refreshSpotState(userAddress);
+
+    try {
+      await this.#spotStatePromise;
+    } finally {
+      this.#spotStatePromise = undefined;
+    }
   }
 
   /**
@@ -1943,6 +1995,8 @@ export class HyperLiquidSubscriptionService {
       this.#cachedPositions = null;
       this.#cachedOrders = null;
       this.#cachedAccount = null;
+      this.#cachedSpotState = null;
+      this.#cachedSpotStateUserAddress = null;
       this.#ordersCacheInitialized = false; // Reset cache initialization flag
       this.#positionsCacheInitialized = false; // Reset cache initialization flag
 
@@ -2253,9 +2307,16 @@ export class HyperLiquidSubscriptionService {
     this.#accountSubscriberCount += 1;
 
     // Immediately provide cached data if available
-    if (this.#cachedAccount) {
+    if (this.#cachedAccount && this.#cachedSpotState) {
       callback(this.#cachedAccount);
     }
+
+    this.#ensureSpotState(accountId).catch((error) => {
+      this.#logErrorUnlessClearing(
+        ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
+        this.#getErrorContext('subscribeToAccount.ensureSpotState'),
+      );
+    });
 
     // Ensure shared subscription is active (reuses existing connection)
     this.#ensureSharedWebData3Subscription(accountId).catch((error) => {
@@ -2268,6 +2329,8 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.#accountSubscriberCount -= 1;
+      this.#cachedSpotState = null;
+      this.#cachedSpotStateUserAddress = null;
       this.#cleanupSharedWebData3ISubscription();
     };
   }
@@ -3654,6 +3717,8 @@ export class HyperLiquidSubscriptionService {
     this.#cachedPositions = null;
     this.#cachedOrders = null;
     this.#cachedAccount = null;
+    this.#cachedSpotState = null;
+    this.#cachedSpotStateUserAddress = null;
     this.#cachedFills = null;
     this.#ordersCacheInitialized = false; // Reset cache initialization flag
     this.#positionsCacheInitialized = false; // Reset cache initialization flag

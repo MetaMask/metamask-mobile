@@ -109,7 +109,10 @@ import type {
 } from '../types/hyperliquid-types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
-import { aggregateAccountStates } from '../utils/accountUtils';
+import {
+  aggregateAccountStates,
+  getSpotBalanceByCoin,
+} from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptAccountStateFromSDK,
@@ -5553,17 +5556,24 @@ export class HyperLiquidProvider implements PerpsProvider {
           isTestnet: this.#clientService.isTestnetMode(),
         });
         const dexs = await this.#getStandaloneValidatedDexs();
-        const results = await queryStandaloneClearinghouseStates(
-          standaloneInfoClient,
-          userAddress,
-          dexs,
-        );
+        const [spotState, results] = await Promise.all([
+          standaloneInfoClient.spotClearinghouseState({ user: userAddress }),
+          queryStandaloneClearinghouseStates(
+            standaloneInfoClient,
+            userAddress,
+            dexs,
+          ),
+        ]);
 
         // Aggregate account states across all DEXs
         const dexAccountStates = results.map((perpsState) =>
           adaptAccountStateFromSDK(perpsState),
         );
         const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
+        aggregatedAccountState.spotUsdcBalance = getSpotBalanceByCoin(
+          spotState,
+          'USDC',
+        ).toString();
 
         this.#deps.debugLogger.log(
           'HyperLiquidProvider: standalone account state fetched',
@@ -5688,6 +5698,10 @@ export class HyperLiquidProvider implements PerpsProvider {
           0,
         );
       }
+      aggregatedAccountState.spotUsdcBalance = getSpotBalanceByCoin(
+        spotState,
+        'USDC',
+      ).toString();
       aggregatedAccountState.totalBalance = (
         parseFloat(aggregatedAccountState.totalBalance) + spotBalance
       ).toString();

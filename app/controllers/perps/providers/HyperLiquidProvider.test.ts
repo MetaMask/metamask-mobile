@@ -8863,6 +8863,9 @@ describe('HyperLiquidProvider', () => {
       // Reset standalone client mock
       mockStandaloneInfoClient = {
         clearinghouseState: jest.fn(),
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+        }),
         frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
       };
@@ -9035,6 +9038,7 @@ describe('HyperLiquidProvider', () => {
           mockStandaloneInfoClient.clearinghouseState,
         ).toHaveBeenCalledWith({ user: mockUserAddress });
         expect(accountState.totalBalance).toBeDefined();
+        expect(accountState.spotUsdcBalance).toBeDefined();
       });
 
       it('uses testnet endpoint when provider is in testnet mode', async () => {
@@ -9074,6 +9078,7 @@ describe('HyperLiquidProvider', () => {
         // Assert — all DEX queries failed, aggregateAccountStates([]) returns fallback
         expect(result).toEqual({
           availableBalance: '--',
+          spotUsdcBalance: '10000',
           totalBalance: '--',
           marginUsed: '--',
           unrealizedPnl: '--',
@@ -9456,6 +9461,7 @@ describe('HyperLiquidProvider', () => {
         // Assert - balances should be aggregated
         expect(parseFloat(accountState.totalBalance)).toBe(55000);
         expect(parseFloat(accountState.marginUsed)).toBe(1500);
+        expect(parseFloat(accountState.spotUsdcBalance ?? '0')).toBe(10000);
       });
 
       it('does not poison fully-initialized cache when standalone perpDexs() fails', async () => {

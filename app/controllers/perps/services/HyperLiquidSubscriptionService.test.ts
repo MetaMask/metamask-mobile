@@ -381,6 +381,14 @@ describe('HyperLiquidSubscriptionService', () => {
       isTestnetMode: jest.fn(() => false),
       ensureTransportReady: jest.fn().mockResolvedValue(undefined),
       getConnectionState: jest.fn(() => 'connected'),
+      getInfoClient: jest.fn(
+        () =>
+          ({
+            spotClearinghouseState: jest.fn().mockResolvedValue({
+              balances: [{ coin: 'USDC', hold: '0', total: '100.76' }],
+            }),
+          }) as any,
+      ),
     } as any;
 
     // Mock wallet service
@@ -3673,6 +3681,35 @@ describe('HyperLiquidSubscriptionService', () => {
 
       unsubscribe1();
       unsubscribe2();
+    });
+
+    it('includes spot USDC balance in aggregated account updates', async () => {
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '0',
+        totalBalance: '0',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        spotUsdcBalance: '0',
+      }));
+
+      const mockCallback = jest.fn();
+
+      const unsubscribe = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(mockCallback).toHaveBeenCalled();
+      expect(mockCallback).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          availableBalance: '0',
+          spotUsdcBalance: '100.76',
+        }),
+      );
+
+      unsubscribe();
     });
   });
 

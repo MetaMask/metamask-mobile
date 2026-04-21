@@ -18,7 +18,7 @@ const mockUsePerpsPaymentTokens = jest.requireMock<
 
 function getState(
   overrides: {
-    perpsAccount?: { availableBalance: string } | null;
+    perpsAccount?: { availableBalance: string; spotUsdcBalance?: string } | null;
     allowlistAssets?: string[];
     isTestnet?: boolean;
     activeProvider?: 'hyperliquid' | 'myx' | 'aggregated';
@@ -26,7 +26,7 @@ function getState(
   } = {},
 ) {
   const {
-    perpsAccount = { availableBalance: '0' },
+    perpsAccount = { availableBalance: '0', spotUsdcBalance: '0' },
     allowlistAssets = [],
     isTestnet = false,
     activeProvider,
@@ -179,6 +179,30 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
     expect(result.current?.address).toBe('0xusdc');
     expect(result.current?.chainId).toBe('0xa4b1');
     expect(result.current?.description).toBe('USDC');
+  });
+
+  it('returns null when spot USDC balance already covers funded state', () => {
+    mockUsePerpsPaymentTokens.mockReturnValue([
+      {
+        address: '0xusdc',
+        chainId: '0xa4b1',
+        symbol: 'USDC',
+        balanceFiat: 'US$500',
+        decimals: 6,
+      },
+    ] as PerpsToken[]);
+
+    const { result } = runHook(
+      getState({
+        perpsAccount: {
+          availableBalance: '0',
+          spotUsdcBalance: '100.76',
+        },
+        allowlistAssets: ['0xa4b1.0xusdc'],
+      }),
+    );
+
+    expect(result.current).toBeNull();
   });
 
   it('treats null perps account as zero balance and returns default token when allowlist has balance', () => {

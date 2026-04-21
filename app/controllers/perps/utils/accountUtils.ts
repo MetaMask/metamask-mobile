@@ -3,6 +3,7 @@
  * Handles account selection and EVM account filtering
  */
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { SpotClearinghouseStateResponse } from '@nktkas/hyperliquid';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
@@ -99,6 +100,7 @@ export function calculateWeightedReturnOnEquity(
 export function aggregateAccountStates(states: AccountState[]): AccountState {
   const fallback: AccountState = {
     availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    spotUsdcBalance: '0',
     totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
     unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
@@ -116,6 +118,10 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
     return {
       availableBalance: (
         parseFloat(acc.availableBalance) + parseFloat(state.availableBalance)
+      ).toString(),
+      spotUsdcBalance: (
+        parseFloat(acc.spotUsdcBalance ?? '0') +
+        parseFloat(state.spotUsdcBalance ?? '0')
       ).toString(),
       totalBalance: (
         parseFloat(acc.totalBalance) + parseFloat(state.totalBalance)
@@ -143,4 +149,19 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
   }
 
   return aggregated;
+}
+
+export function getSpotBalanceByCoin(
+  spotState: SpotClearinghouseStateResponse | null | undefined,
+  coin: string,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (sum, balance) =>
+      balance.coin === coin ? sum + parseFloat(balance.total ?? '0') : sum,
+    0,
+  );
 }
