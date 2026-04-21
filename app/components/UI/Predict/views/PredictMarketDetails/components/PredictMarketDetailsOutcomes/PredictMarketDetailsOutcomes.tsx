@@ -66,7 +66,7 @@ const PredictMarketDetailsOutcomes = memo(
     const { colors } = useTheme();
 
     if (!market) {
-      return <Box />;
+      return null;
     }
 
     // Closed market with single outcome (binary)

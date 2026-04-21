@@ -206,19 +206,17 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         </Box>
       </Box>
       {marketStatus === PredictMarketStatus.OPEN && (
-        <Box>
-          <Button
-            testID={
-              PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON
-            }
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('predict.cash_out')}
-            onPress={() => onCashOut(position)}
-            isDisabled={optimistic}
-          />
-        </Box>
+        <Button
+          testID={
+            PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON
+          }
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('predict.cash_out')}
+          onPress={() => onCashOut(position)}
+          isDisabled={optimistic}
+        />
       )}
     </Box>
   );

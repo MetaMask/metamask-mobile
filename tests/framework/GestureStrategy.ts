@@ -333,11 +333,20 @@ export class AppiumGestureStrategy implements GestureStrategy {
   /**
    * Wait for an element to be visible and then tap it
    * @param elem - The element to wait and tap
+   * @param opts - The options for the wait and tap
    * @returns A promise that resolves when the wait and tap is complete
    */
-  async waitAndTap(elem: EncapsulatedElementType): Promise<void> {
+  async waitAndTap(
+    elem: EncapsulatedElementType,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.waitAndTap(el);
+    await PlaywrightGestures.waitAndTap(el, {
+      timeout: opts?.timeout,
+      delay: opts?.delay,
+      checkForDisplayed: opts?.checkForDisplayed,
+      checkForEnabled: opts?.checkForEnabled,
+    });
   }
 
   /**
