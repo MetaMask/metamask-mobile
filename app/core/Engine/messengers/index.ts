@@ -146,10 +146,7 @@ import {
   getProfileMetricsControllerInitMessenger,
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
-import {
-  getAnalyticsControllerMessenger,
-  getAnalyticsControllerInitMessenger,
-} from './analytics-controller-messenger';
+import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
@@ -466,7 +463,7 @@ export const MESSENGER_FACTORIES = {
   },
   AnalyticsController: {
     getMessenger: getAnalyticsControllerMessenger,
-    getInitMessenger: getAnalyticsControllerInitMessenger,
+    getInitMessenger: noop,
   },
   AiDigestController: {
     getMessenger: getAiDigestControllerMessenger,
