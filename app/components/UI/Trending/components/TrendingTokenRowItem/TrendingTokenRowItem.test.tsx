@@ -1727,4 +1727,88 @@ describe('TrendingTokenRowItem', () => {
       expect(mockOnPress).not.toHaveBeenCalled();
     });
   });
+
+  describe('security badge', () => {
+    it('renders verified badge for verified tokens', () => {
+      const token = createMockToken({
+        securityData: {
+          resultType: 'Verified',
+          features: [],
+        } as unknown as TrendingAsset['securityData'],
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(getByTestId('security-badge-icon')).toBeTruthy();
+    });
+
+    it('renders warning badge for warning tokens', () => {
+      const token = createMockToken({
+        securityData: {
+          resultType: 'Warning',
+          features: [],
+        } as unknown as TrendingAsset['securityData'],
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(getByTestId('security-badge-icon')).toBeTruthy();
+    });
+
+    it('renders danger badge for malicious tokens', () => {
+      const token = createMockToken({
+        securityData: {
+          resultType: 'Malicious',
+          features: [],
+        } as unknown as TrendingAsset['securityData'],
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(getByTestId('security-badge-icon')).toBeTruthy();
+    });
+
+    it('does not render badge for benign tokens', () => {
+      const token = createMockToken({
+        securityData: {
+          resultType: 'Benign',
+          features: [],
+        } as unknown as TrendingAsset['securityData'],
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(queryByTestId('security-badge-icon')).toBeNull();
+    });
+
+    it('does not render badge when securityData is undefined', () => {
+      const token = createMockToken({
+        securityData: undefined,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(queryByTestId('security-badge-icon')).toBeNull();
+    });
+  });
 });

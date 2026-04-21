@@ -1,4 +1,5 @@
 import type {
+  TokenSecurityData,
   TokenSecurityFeature,
   TokenSecurityFinancialStats,
 } from '../types';
@@ -8,6 +9,7 @@ import {
   getTop10HoldingPct,
   formatCompactSupply,
   getResultTypeConfig,
+  getSecurityBadgeConfig,
 } from './securityUtils';
 import {
   TextColor,
@@ -361,6 +363,98 @@ describe('securityUtils', () => {
 
     it('does not adjust when decimals is 0', () => {
       expect(formatCompactSupply(5_000_000, 0)).toBe('5.00M');
+    });
+  });
+
+  describe('getSecurityBadgeConfig', () => {
+    it('returns verified badge config for Verified result type', () => {
+      const config = getSecurityBadgeConfig({
+        resultType: 'Verified',
+        features: [],
+      } as unknown as TokenSecurityData);
+
+      expect(config).toEqual({
+        icon: IconName.VerifiedFilled,
+        iconColor: IconColor.PrimaryDefault,
+        label: null,
+        bg: null,
+        textColor: undefined,
+      });
+    });
+
+    it('returns null for Benign result type', () => {
+      const config = getSecurityBadgeConfig({
+        resultType: 'Benign',
+        features: [],
+      } as unknown as TokenSecurityData);
+
+      expect(config).toBeNull();
+    });
+
+    it('returns warning badge config for Warning result type', () => {
+      const config = getSecurityBadgeConfig({
+        resultType: 'Warning',
+        features: [],
+      } as unknown as TokenSecurityData);
+
+      expect(config).toEqual({
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+        label: strings('security_trust.risky'),
+        bg: 'bg-warning-muted',
+        textColor: TextColor.WarningDefault,
+      });
+    });
+
+    it('returns warning badge config for Spam result type', () => {
+      const config = getSecurityBadgeConfig({
+        resultType: 'Spam',
+        features: [],
+      } as unknown as TokenSecurityData);
+
+      expect(config).toEqual({
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+        label: strings('security_trust.risky'),
+        bg: 'bg-warning-muted',
+        textColor: TextColor.WarningDefault,
+      });
+    });
+
+    it('returns danger badge config for Malicious result type', () => {
+      const config = getSecurityBadgeConfig({
+        resultType: 'Malicious',
+        features: [],
+      } as unknown as TokenSecurityData);
+
+      expect(config).toEqual({
+        icon: IconName.Danger,
+        iconColor: IconColor.ErrorDefault,
+        label: strings('security_trust.malicious'),
+        bg: 'bg-error-muted',
+        textColor: TextColor.ErrorDefault,
+      });
+    });
+
+    it('returns null for undefined securityData', () => {
+      const config = getSecurityBadgeConfig(undefined);
+
+      expect(config).toBeNull();
+    });
+
+    it('returns null for null securityData', () => {
+      const config = getSecurityBadgeConfig(null);
+
+      expect(config).toBeNull();
+    });
+
+    it('returns null for unknown result type', () => {
+      const config = getSecurityBadgeConfig({
+        resultType: 'Unknown' as TokenSecurityData['resultType'],
+        features: [],
+      } as unknown as TokenSecurityData);
+
+      expect(config).toBeNull();
     });
   });
 });

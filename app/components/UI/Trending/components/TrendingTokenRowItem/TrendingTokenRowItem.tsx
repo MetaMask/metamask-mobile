@@ -22,6 +22,8 @@ import {
   isCaipChainId,
   parseCaipChainId,
 } from '@metamask/utils';
+import { Icon, IconSize } from '@metamask/design-system-react-native';
+import { getSecurityBadgeConfig } from '../../../SecurityTrust/utils/securityUtils';
 
 /**
  * Converts CAIP chain ID to hex chain ID
@@ -223,6 +225,11 @@ const TrendingTokenRowItem = ({
     [caipChainId],
   );
 
+  const securityBadge = useMemo(
+    () => getSecurityBadgeConfig(token.securityData),
+    [token.securityData],
+  );
+
   // Parse price change percentage from API (comes as string like "-3.44" or "+0.456")
   // Use the correct field based on selected time option
   const priceChangeFieldKey = getPriceChangeFieldKey(selectedTimeOption);
@@ -338,6 +345,14 @@ const TrendingTokenRowItem = ({
           >
             {token?.name ?? token?.symbol}
           </Text>
+          {securityBadge && (
+            <Icon
+              name={securityBadge.icon}
+              size={IconSize.Sm}
+              color={securityBadge.iconColor}
+              testID="security-badge-icon"
+            />
+          )}
         </View>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {formatMarketStats(

@@ -19,6 +19,14 @@ export interface ResultTypeConfig {
   iconColor?: IconColor;
 }
 
+export interface SecurityBadgeConfig {
+  icon: IconName;
+  iconColor: IconColor;
+  label: string | null;
+  bg: string | null;
+  textColor: TextColor | undefined;
+}
+
 export const getResultTypeConfig = (
   resultType: string | undefined,
 ): ResultTypeConfig => {
@@ -281,4 +289,44 @@ export const formatCompactSupply = (
     }
   }
   return adjusted.toFixed(0);
+};
+
+/**
+ * Get security badge configuration based on security data result type.
+ * Returns null for Benign tokens (no badge needed).
+ */
+export const getSecurityBadgeConfig = (
+  securityData: TokenSecurityData | null | undefined,
+): SecurityBadgeConfig | null => {
+  switch (securityData?.resultType) {
+    case 'Verified':
+      return {
+        icon: IconName.VerifiedFilled,
+        iconColor: IconColor.PrimaryDefault,
+        label: null,
+        bg: null,
+        textColor: undefined,
+      };
+    case 'Benign':
+      return null;
+    case 'Warning':
+    case 'Spam':
+      return {
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+        label: strings('security_trust.risky'),
+        bg: 'bg-warning-muted',
+        textColor: TextColor.WarningDefault,
+      };
+    case 'Malicious':
+      return {
+        icon: IconName.Danger,
+        iconColor: IconColor.ErrorDefault,
+        label: strings('security_trust.malicious'),
+        bg: 'bg-error-muted',
+        textColor: TextColor.ErrorDefault,
+      };
+    default:
+      return null;
+  }
 };
