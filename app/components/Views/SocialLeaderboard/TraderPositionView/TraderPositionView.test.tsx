@@ -9,6 +9,7 @@ import { handleFetch } from '@metamask/controller-utils';
 const mockGoBack = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
+const mockPriceChart = jest.fn();
 
 interface MockRouteParams {
   traderId: string;
@@ -89,11 +90,14 @@ jest.mock('../../../UI/AssetOverview/PriceChart', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="price-chart-mock" />,
+    default: (props: unknown) => {
+      mockPriceChart(props);
+      return <View testID="price-chart-mock" />;
+    },
   };
 });
 jest.mock('../../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   return {
     PriceChartProvider: ({ children }: { children: React.ReactNode }) =>
       children,
@@ -306,5 +310,47 @@ describe('TraderPositionView', () => {
     });
 
     dateNowSpy.mockRestore();
+  });
+
+  it('uses 1W prices on the All tab when 3y and 1m are empty', async () => {
+    const weeklyPrices: [string, number][] = [
+      ['1713571200000', 1.23],
+      ['1713657600000', 1.56],
+    ];
+
+    global.fetch = jest.fn().mockImplementation((input: string) => {
+      const url = new URL(input);
+      const timePeriod = url.searchParams.get('timePeriod');
+
+      const pricesByPeriod: Record<string, [number, number][]> = {
+        '1d': [],
+        '7d': weeklyPrices.map(([timestamp, price]) => [
+          Number(timestamp),
+          price,
+        ]),
+        '1m': [],
+        '3y': [],
+      };
+
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({ prices: pricesByPeriod[timePeriod ?? ''] }),
+      });
+    }) as jest.Mock;
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(screen.getByText('All'));
+
+    await waitFor(() => {
+      const lastCall =
+        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
+
+      expect(lastCall).toMatchObject({
+        prices: weeklyPrices,
+      });
+    });
   });
 });

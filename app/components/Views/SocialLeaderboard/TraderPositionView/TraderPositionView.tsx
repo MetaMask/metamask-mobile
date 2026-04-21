@@ -378,7 +378,10 @@ const TraderPositionView = () => {
     let prices = allPrices[activeTimePeriod] ?? [];
 
     if (activeTimePeriod === 'All' && !prices.length) {
-      prices = allPrices['1M'] ?? allPrices['1W'] ?? allPrices['1D'] ?? [];
+      prices =
+        [allPrices['1M'], allPrices['1W'], allPrices['1D']].find(
+          (fallbackPrices) => fallbackPrices?.length,
+        ) ?? [];
     }
 
     if (activeTimePeriod === '1H' && prices.length) {
