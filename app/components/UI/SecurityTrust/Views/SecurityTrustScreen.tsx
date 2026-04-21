@@ -206,7 +206,6 @@ const SecurityTrustScreen: React.FC = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')} testID="security-trust-screen">
-      {networkModal}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -705,9 +704,8 @@ const SecurityTrustScreen: React.FC = () => {
       <TokenDetailsStickyFooter
         token={params}
         securityData={securityData}
-        onBuy={onBuy}
-        onSwap={handleStickySwapPress}
-        hasEligibleSwapTokens={hasEligibleSwapTokens}
+        networkName={networkName}
+        sourcePage="SecurityTrustView"
       />
     </View>
   );
