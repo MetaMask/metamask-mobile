@@ -1,7 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { openDb, DEFAULT_DB_PATH, DEFAULT_DB_DIR } from './db';
+import { openDb } from './db';
 
 // mockDb is used for all non-:memory: openDb calls to avoid real fs side effects
 const mockDb = {
@@ -25,11 +25,38 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe('DEFAULT_DB_PATH', () => {
-  it('points inside the home directory', () => {
-    expect(DEFAULT_DB_PATH).toContain(os.homedir());
-    expect(DEFAULT_DB_PATH).toContain('events.db');
-    expect(DEFAULT_DB_DIR).toContain('.tool-usage-collection');
+describe('openDb default path', () => {
+  // The jest.fn() inside the jest.mock factory is not tracked by jest.clearAllMocks(),
+  // so we clear it explicitly before each test.
+  const DatabaseCtor = jest.requireMock<jest.Mock>('better-sqlite3');
+
+  beforeEach(() => {
+    DatabaseCtor.mockClear();
+  });
+
+  afterEach(() => {
+    delete process.env.TOOL_USAGE_COLLECTION_DB_PATH;
+  });
+
+  it('defaults to ~/.tool-usage-collection/events.db when env var is not set', () => {
+    delete process.env.TOOL_USAGE_COLLECTION_DB_PATH;
+    jest.spyOn(fs, 'existsSync').mockReturnValueOnce(true);
+
+    openDb();
+
+    const calledPath = DatabaseCtor.mock.calls[0][0] as string;
+    expect(calledPath).toContain(os.homedir());
+    expect(calledPath).toContain(path.join('.tool-usage-collection', 'events.db'));
+  });
+
+  it('uses TOOL_USAGE_COLLECTION_DB_PATH when the env var is set', () => {
+    const customPath = '/custom/path/mydb.db';
+    process.env.TOOL_USAGE_COLLECTION_DB_PATH = customPath;
+    jest.spyOn(fs, 'existsSync').mockReturnValueOnce(true);
+
+    openDb();
+
+    expect(DatabaseCtor.mock.calls[0][0]).toBe(customPath);
   });
 });
 
