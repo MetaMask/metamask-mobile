@@ -16,6 +16,8 @@ import {
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 
+const mockNetworkBadgeSource = jest.fn();
+
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn().mockReturnThis();
 const mockBuild = jest.fn(() => ({ name: 'test-event' }));
@@ -82,6 +84,10 @@ jest.mock('./utils', () =>
   ]),
 );
 
+jest.mock('../AssetOverview/Balance/Balance', () => ({
+  NetworkBadgeSource: (chainId: string) => mockNetworkBadgeSource(chainId),
+}));
+
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
@@ -100,6 +106,7 @@ describe('TransactionElement', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockNetworkBadgeSource.mockReturnValue('mock-network-badge');
   });
 
   afterEach(() => {
@@ -176,6 +183,44 @@ describe('TransactionElement', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: musdConversionTx.id,
+      });
+    });
+
+    it('navigates to TransactionDetails when transaction type is perpsWithdraw', async () => {
+      const perpsWithdrawTx = {
+        id: 'perps-withdraw-tx-123',
+        type: TransactionType.perpsWithdraw,
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x2',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={perpsWithdrawTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+
+      jest.advanceTimersByTime(100);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
+        transactionId: perpsWithdrawTx.id,
       });
     });
   });
@@ -269,6 +314,41 @@ describe('TransactionElement', () => {
         expect(screen.getByText('Test Action')).toBeOnTheScreen();
       });
       expect(screen.queryByText(/from this device/i)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('network badge chain resolution', () => {
+    it('uses metamaskPay chainId for perpsWithdraw transactions', async () => {
+      const perpsWithdrawTx = {
+        id: 'perps-withdraw-badge-1',
+        type: TransactionType.perpsWithdraw,
+        chainId: '0x89',
+        status: 'confirmed',
+        time: Date.now(),
+        metamaskPay: {
+          chainId: '0xa4b1',
+        },
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x3',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={perpsWithdrawTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      expect(mockNetworkBadgeSource).toHaveBeenCalledWith('0xa4b1');
     });
   });
 
