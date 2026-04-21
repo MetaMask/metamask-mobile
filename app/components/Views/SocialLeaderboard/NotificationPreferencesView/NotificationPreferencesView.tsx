@@ -38,6 +38,7 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import { TradersFollowedSkeleton } from './components/Skeletons';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 const AVATAR_SIZE = 40;
 
@@ -208,7 +209,7 @@ const formatThreshold = (
 ): string => {
   const code = currency?.toUpperCase() ?? 'USD';
   try {
-    return new Intl.NumberFormat(undefined, {
+    return getIntlNumberFormatter('', {
       style: 'currency',
       currency: code,
       minimumFractionDigits: 0,
@@ -225,12 +226,13 @@ const formatThreshold = (
  * Lets the user control:
  * - Global push notification toggle (socialAI.enabled)
  * - Minimum trade size threshold (socialAI.txAmountLimit)
- * - Per-trader notification opt-in (socialAI.traderProfileIds)
+ * - Per-trader mute list (socialAI.mutedTraderProfileIds — opt-out semantics: traders absent from this list receive notifications)
  *
  * The "Traders you follow" section is sourced from
  * `SocialService:fetchFollowing` (via `useFollowedTraders`) so it surfaces
  * every trader the user follows — not just the ones that happen to be in
- * the cached top-leaderboard slice.
+ * the cached top-leaderboard slice. Preferences themselves are persisted
+ * through `AuthenticatedUserStorageService` (via `useNotificationPreferences`).
  */
 const NotificationPreferencesView = () => {
   const navigation = useNavigation();
@@ -252,7 +254,7 @@ const NotificationPreferencesView = () => {
     setTxAmountLimit,
     toggleTraderNotification,
     isTraderNotificationEnabled,
-  } = useNotificationPreferences(followedTraders);
+  } = useNotificationPreferences();
 
   const handleBack = useCallback(() => {
     navigation.goBack();

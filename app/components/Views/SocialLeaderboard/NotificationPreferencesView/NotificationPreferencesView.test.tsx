@@ -1,9 +1,9 @@
 import React from 'react';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import { useFollowedTraders } from './hooks';
+import { useFollowedTraders, useNotificationPreferences } from './hooks';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import NotificationPreferencesView from './NotificationPreferencesView';
 import { NotificationPreferencesViewSelectorsIDs } from './NotificationPreferencesView.testIds';
@@ -11,6 +11,10 @@ import type {
   FollowedTrader,
   UseFollowedTradersResult,
 } from './hooks/useFollowedTraders';
+import type {
+  UseNotificationPreferencesResult,
+  NotificationPreferences,
+} from './hooks/useNotificationPreferences';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -38,6 +42,7 @@ jest.mock('../../../../util/theme', () => ({
 jest.mock('./hooks', () => ({
   ...jest.requireActual('./hooks'),
   useFollowedTraders: jest.fn(),
+  useNotificationPreferences: jest.fn(),
 }));
 
 jest.mock(
@@ -58,6 +63,10 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 const mockUseFollowedTraders = useFollowedTraders as jest.MockedFunction<
   typeof useFollowedTraders
 >;
+const mockUseNotificationPreferences =
+  useNotificationPreferences as jest.MockedFunction<
+    typeof useNotificationPreferences
+  >;
 const mockSelectCurrentCurrency = selectCurrentCurrency as jest.MockedFunction<
   typeof selectCurrentCurrency
 >;
@@ -88,6 +97,32 @@ const makeUseFollowedTradersResult = (
   ...overrides,
 });
 
+const makePreferences = (
+  overrides: Partial<NotificationPreferences> = {},
+): NotificationPreferences => ({
+  enabled: true,
+  txAmountLimit: 500,
+  mutedTraderProfileIds: [],
+  ...overrides,
+});
+
+const makeUseNotificationPreferencesResult = (
+  overrides: Partial<UseNotificationPreferencesResult> = {},
+): UseNotificationPreferencesResult => {
+  const preferences = overrides.preferences ?? makePreferences();
+  const muted = new Set(preferences.mutedTraderProfileIds);
+  return {
+    preferences,
+    isLoading: false,
+    error: null,
+    setEnabled: jest.fn().mockResolvedValue(undefined),
+    setTxAmountLimit: jest.fn().mockResolvedValue(undefined),
+    toggleTraderNotification: jest.fn().mockResolvedValue(undefined),
+    isTraderNotificationEnabled: (id: string) => !muted.has(id),
+    ...overrides,
+  };
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -103,6 +138,9 @@ describe('NotificationPreferencesView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseFollowedTraders.mockReturnValue(makeUseFollowedTradersResult());
+    mockUseNotificationPreferences.mockReturnValue(
+      makeUseNotificationPreferencesResult(),
+    );
     mockSelectCurrentCurrency.mockReturnValue('usd');
   });
 
@@ -133,7 +171,7 @@ describe('NotificationPreferencesView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders the global toggle as enabled by default', () => {
+    it('renders the global toggle reflecting the hook enabled value', () => {
       renderScreen();
 
       const toggle = screen.getByTestId(
@@ -155,7 +193,7 @@ describe('NotificationPreferencesView', () => {
       });
     });
 
-    it('marks the $500 threshold as selected by default', () => {
+    it('marks the threshold option matching preferences.txAmountLimit as selected', () => {
       renderScreen();
 
       const option500 = screen.getByTestId(
@@ -164,7 +202,7 @@ describe('NotificationPreferencesView', () => {
       expect(option500.props.accessibilityState.checked).toBe(true);
     });
 
-    it('marks non-default thresholds as not selected by default', () => {
+    it('marks non-matching thresholds as not selected', () => {
       renderScreen();
 
       [10, 100, 1000].forEach((amount) => {
@@ -197,7 +235,7 @@ describe('NotificationPreferencesView', () => {
       });
     });
 
-    it('renders each trader toggle as enabled by default', () => {
+    it('renders each trader toggle as enabled by default (no muted ids)', () => {
       renderScreen();
 
       MOCK_TRADERS.forEach((trader) => {
@@ -206,6 +244,23 @@ describe('NotificationPreferencesView', () => {
         );
         expect(toggle.props.value).toBe(true);
       });
+    });
+
+    it('renders a muted trader toggle as off', () => {
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({
+          preferences: makePreferences({
+            mutedTraderProfileIds: ['trader-1'],
+          }),
+        }),
+      );
+
+      renderScreen();
+
+      const mutedToggle = screen.getByTestId(
+        NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
+      );
+      expect(mutedToggle.props.value).toBe(false);
     });
 
     it('renders the traders section header text', () => {
@@ -269,14 +324,13 @@ describe('NotificationPreferencesView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders the error banner and retries when the fetch fails', () => {
-      const refresh = jest.fn().mockResolvedValue(undefined);
+    it('renders the error banner when the fetch fails', () => {
       mockUseFollowedTraders.mockReturnValue(
         makeUseFollowedTradersResult({
           traders: [],
           isLoading: false,
           error: 'boom',
-          refresh,
+          refresh: jest.fn().mockResolvedValue(undefined),
         }),
       );
 
@@ -291,21 +345,16 @@ describe('NotificationPreferencesView', () => {
   });
 
   describe('disabled state when global toggle is off', () => {
-    const renderWithGlobalOff = () => {
-      renderScreen();
-      act(() => {
-        fireEvent(
-          screen.getByTestId(
-            NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
-          ),
-          'valueChange',
-          false,
-        );
-      });
-    };
+    beforeEach(() => {
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({
+          preferences: makePreferences({ enabled: false }),
+        }),
+      );
+    });
 
-    it('disables all threshold options when global toggle is off', () => {
-      renderWithGlobalOff();
+    it('disables all threshold options when preferences.enabled is false', () => {
+      renderScreen();
 
       [10, 100, 500, 1000].forEach((amount) => {
         const option = screen.getByTestId(
@@ -315,8 +364,8 @@ describe('NotificationPreferencesView', () => {
       });
     });
 
-    it('disables all trader toggles when global toggle is off', () => {
-      renderWithGlobalOff();
+    it('disables all trader toggles when preferences.enabled is false', () => {
+      renderScreen();
 
       MOCK_TRADERS.forEach((trader) => {
         const toggle = screen.getByTestId(
@@ -338,7 +387,12 @@ describe('NotificationPreferencesView', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('updates the selected threshold when a different option is pressed', () => {
+    it('calls setTxAmountLimit when a threshold option is pressed', () => {
+      const setTxAmountLimit = jest.fn().mockResolvedValue(undefined);
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({ setTxAmountLimit }),
+      );
+
       renderScreen();
 
       fireEvent.press(
@@ -347,100 +401,45 @@ describe('NotificationPreferencesView', () => {
         ),
       );
 
-      const option100 = screen.getByTestId(
-        NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(100),
-      );
-      expect(option100.props.accessibilityState.checked).toBe(true);
-
-      const option500 = screen.getByTestId(
-        NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(500),
-      );
-      expect(option500.props.accessibilityState.checked).toBe(false);
+      expect(setTxAmountLimit).toHaveBeenCalledWith(100);
     });
 
-    it('toggles a trader notification off when its switch is pressed', () => {
+    it('calls toggleTraderNotification when a trader switch is pressed', () => {
+      const toggleTraderNotification = jest.fn().mockResolvedValue(undefined);
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({ toggleTraderNotification }),
+      );
+
       renderScreen();
 
-      act(() => {
-        fireEvent(
-          screen.getByTestId(
-            NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
-          ),
-          'valueChange',
-          false,
-        );
-      });
-
-      const toggle = screen.getByTestId(
-        NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
+      fireEvent(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
+        ),
+        'valueChange',
+        false,
       );
-      expect(toggle.props.value).toBe(false);
+
+      expect(toggleTraderNotification).toHaveBeenCalledWith('trader-1');
     });
 
-    it('does not affect other trader toggles when one is switched off', () => {
+    it('calls setEnabled when the global toggle is pressed', () => {
+      const setEnabled = jest.fn().mockResolvedValue(undefined);
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({ setEnabled }),
+      );
+
       renderScreen();
 
-      act(() => {
-        fireEvent(
-          screen.getByTestId(
-            NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
-          ),
-          'valueChange',
-          false,
-        );
-      });
-
-      const toggle2 = screen.getByTestId(
-        NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-2'),
+      fireEvent(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
+        ),
+        'valueChange',
+        false,
       );
-      expect(toggle2.props.value).toBe(true);
-    });
 
-    it('restores a trader notification when its switch is toggled back on', () => {
-      renderScreen();
-
-      act(() => {
-        fireEvent(
-          screen.getByTestId(
-            NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
-          ),
-          'valueChange',
-          false,
-        );
-      });
-      act(() => {
-        fireEvent(
-          screen.getByTestId(
-            NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
-          ),
-          'valueChange',
-          true,
-        );
-      });
-
-      const toggle = screen.getByTestId(
-        NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
-      );
-      expect(toggle.props.value).toBe(true);
-    });
-
-    it('turns the global toggle off when it is pressed while enabled', () => {
-      renderScreen();
-
-      act(() => {
-        fireEvent(
-          screen.getByTestId(
-            NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
-          ),
-          'valueChange',
-          false,
-        );
-      });
-
-      const toggle = screen.getByTestId(
-        NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
-      );
-      expect(toggle.props.value).toBe(false);
+      expect(setEnabled).toHaveBeenCalledWith(false);
     });
   });
 });

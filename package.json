@@ -227,6 +227,7 @@
     "@metamask/approval-controller": "^9.0.0",
     "@metamask/assets-controller": "^5.0.0",
     "@metamask/assets-controllers": "^104.0.0",
+    "@metamask/authenticated-user-storage": "^1.0.0",
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.10.1",
     "@metamask/bridge-controller": "^70.0.0",

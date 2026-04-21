@@ -1,114 +1,159 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { useQuery } from '@metamask/react-data-query';
+import type { NotificationPreferences as StoredNotificationPreferences } from '@metamask/authenticated-user-storage';
+import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
 import {
   useNotificationPreferences,
   TX_AMOUNT_THRESHOLDS,
 } from './useNotificationPreferences';
 
-const makeTrader = (id: string) => ({ id });
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
-const FOLLOWED_TRADERS = [
-  makeTrader('trader-1'),
-  makeTrader('trader-2'),
-  makeTrader('trader-3'),
-];
+jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+}));
+
+jest.mock('@metamask/react-data-query');
+
+const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockRefetch = jest.fn().mockResolvedValue(undefined);
+const mockCall = Engine.controllerMessenger.call as jest.Mock;
+
+const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
+const PUT_ACTION = 'AuthenticatedUserStorageService:putNotificationPreferences';
+const CLIENT_TYPE = 'mobile';
+
+const buildRemote = (
+  overrides: Partial<StoredNotificationPreferences> = {},
+): StoredNotificationPreferences => ({
+  walletActivity: { enabled: true, accounts: [] },
+  marketing: { enabled: false },
+  perps: { enabled: true },
+  socialAI: {
+    enabled: true,
+    txAmountLimit: 500,
+    mutedTraderProfileIds: [],
+  },
+  ...overrides,
+});
+
+const makeQueryResult = (
+  overrides: Partial<ReturnType<typeof useQuery>> = {},
+): ReturnType<typeof useQuery> =>
+  ({
+    data: undefined,
+    isLoading: false,
+    error: null,
+    refetch: mockRefetch,
+    ...overrides,
+  }) as ReturnType<typeof useQuery>;
 
 describe('useNotificationPreferences', () => {
-  describe('initial state', () => {
-    it('initializes enabled to true', () => {
-      const { result } = renderHook(() =>
-        useNotificationPreferences(FOLLOWED_TRADERS),
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseQuery.mockReturnValue(makeQueryResult());
+    mockCall.mockResolvedValue(undefined);
+    mockRefetch.mockResolvedValue(undefined);
+  });
+
+  describe('query configuration', () => {
+    it('passes the getNotificationPreferences queryKey to useQuery', () => {
+      renderHook(() => useNotificationPreferences());
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ queryKey: [GET_ACTION] }),
       );
-
-      expect(result.current.preferences.enabled).toBe(true);
-    });
-
-    it('initializes txAmountLimit to 500', () => {
-      const { result } = renderHook(() =>
-        useNotificationPreferences(FOLLOWED_TRADERS),
-      );
-
-      expect(result.current.preferences.txAmountLimit).toBe(500);
-    });
-
-    it('initializes traderProfileIds with every followed trader opted in', () => {
-      const { result } = renderHook(() =>
-        useNotificationPreferences(FOLLOWED_TRADERS),
-      );
-
-      expect(result.current.preferences.traderProfileIds).toEqual([
-        'trader-1',
-        'trader-2',
-        'trader-3',
-      ]);
-      FOLLOWED_TRADERS.forEach(({ id }) => {
-        expect(result.current.isTraderNotificationEnabled(id)).toBe(true);
-      });
-    });
-
-    it('initializes with empty traderProfileIds when given no traders', () => {
-      const { result } = renderHook(() => useNotificationPreferences([]));
-
-      expect(result.current.preferences.traderProfileIds).toEqual([]);
     });
   });
 
-  describe('setEnabled', () => {
-    it('sets enabled to false when called with false', () => {
-      const { result } = renderHook(() =>
-        useNotificationPreferences(FOLLOWED_TRADERS),
-      );
-
-      act(() => {
-        result.current.setEnabled(false);
-      });
+  describe('initial state', () => {
+    it('seeds defaults when the query returns no data yet', () => {
+      const { result } = renderHook(() => useNotificationPreferences());
 
       expect(result.current.preferences.enabled).toBe(false);
+      expect(result.current.preferences.txAmountLimit).toBe(500);
+      expect(result.current.preferences.mutedTraderProfileIds).toEqual([]);
     });
 
-    it('sets enabled back to true after being disabled', () => {
-      const { result } = renderHook(() =>
-        useNotificationPreferences(FOLLOWED_TRADERS),
+    it('reflects the remote socialAI slice when the query resolves', () => {
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({
+          data: buildRemote({
+            socialAI: {
+              enabled: false,
+              txAmountLimit: 100,
+              mutedTraderProfileIds: ['trader-muted'],
+            },
+          }),
+        }),
       );
 
-      act(() => {
-        result.current.setEnabled(false);
-      });
-      act(() => {
-        result.current.setEnabled(true);
-      });
+      const { result } = renderHook(() => useNotificationPreferences());
 
-      expect(result.current.preferences.enabled).toBe(true);
+      expect(result.current.preferences).toEqual({
+        enabled: false,
+        txAmountLimit: 100,
+        mutedTraderProfileIds: ['trader-muted'],
+      });
+    });
+
+    it('forwards the useQuery loading state', () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('forwards useQuery errors as string via the error field', () => {
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ error: new Error('boom') }),
+      );
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      expect(result.current.error).toBe('boom');
+      expect(Logger.error).toHaveBeenCalled();
     });
   });
 
-  describe('setTxAmountLimit', () => {
-    it.each(TX_AMOUNT_THRESHOLDS)(
-      'updates txAmountLimit to %s when called',
-      (threshold) => {
-        const { result } = renderHook(() =>
-          useNotificationPreferences(FOLLOWED_TRADERS),
-        );
+  describe('isTraderNotificationEnabled', () => {
+    it('returns true when the trader is NOT in the muted list (opt-out)', () => {
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({
+          data: buildRemote({
+            socialAI: {
+              enabled: true,
+              txAmountLimit: 500,
+              mutedTraderProfileIds: ['muted-1'],
+            },
+          }),
+        }),
+      );
 
-        act(() => {
-          result.current.setTxAmountLimit(threshold);
-        });
+      const { result } = renderHook(() => useNotificationPreferences());
 
-        expect(result.current.preferences.txAmountLimit).toBe(threshold);
-      },
-    );
+      expect(result.current.isTraderNotificationEnabled('trader-1')).toBe(true);
+      expect(result.current.isTraderNotificationEnabled('muted-1')).toBe(false);
+    });
   });
 
   describe('toggleTraderNotification', () => {
-    it('removes the trader id from traderProfileIds when toggled off', () => {
-      const { result } = renderHook(() =>
-        useNotificationPreferences(FOLLOWED_TRADERS),
-      );
+    it('adds the trader id to the muted list when muting', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
 
-      act(() => {
-        result.current.toggleTraderNotification('trader-1');
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.toggleTraderNotification('trader-1');
       });
 
-      expect(result.current.preferences.traderProfileIds).not.toContain(
+      expect(result.current.preferences.mutedTraderProfileIds).toContain(
         'trader-1',
       );
       expect(result.current.isTraderNotificationEnabled('trader-1')).toBe(
@@ -116,29 +161,38 @@ describe('useNotificationPreferences', () => {
       );
     });
 
-    it('re-adds the trader id on a second call', () => {
-      const { result } = renderHook(() =>
-        useNotificationPreferences(FOLLOWED_TRADERS),
+    it('removes the trader id from the muted list when unmuting', async () => {
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({
+          data: buildRemote({
+            socialAI: {
+              enabled: true,
+              txAmountLimit: 500,
+              mutedTraderProfileIds: ['trader-1'],
+            },
+          }),
+        }),
       );
 
-      act(() => {
-        result.current.toggleTraderNotification('trader-1');
-      });
-      act(() => {
-        result.current.toggleTraderNotification('trader-1');
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.toggleTraderNotification('trader-1');
       });
 
-      expect(result.current.preferences.traderProfileIds).toContain('trader-1');
+      expect(result.current.preferences.mutedTraderProfileIds).not.toContain(
+        'trader-1',
+      );
       expect(result.current.isTraderNotificationEnabled('trader-1')).toBe(true);
     });
 
-    it('does not affect other trader opt-ins', () => {
-      const { result } = renderHook(() =>
-        useNotificationPreferences(FOLLOWED_TRADERS),
-      );
+    it('does not affect other traders when muting one', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
 
-      act(() => {
-        result.current.toggleTraderNotification('trader-1');
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.toggleTraderNotification('trader-1');
       });
 
       expect(result.current.isTraderNotificationEnabled('trader-2')).toBe(true);
@@ -146,52 +200,215 @@ describe('useNotificationPreferences', () => {
     });
   });
 
-  describe('followed traders list changes', () => {
-    it('appends newly-followed trader ids as opted-in', () => {
-      const initial = [makeTrader('trader-1')];
-      const { result, rerender } = renderHook(
-        ({ traders }: { traders: { id: string }[] }) =>
-          useNotificationPreferences(traders),
-        { initialProps: { traders: initial } },
-      );
+  describe('setEnabled', () => {
+    it('flips enabled locally before the server catches up', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
 
-      rerender({ traders: [...initial, makeTrader('trader-2')] });
+      const { result } = renderHook(() => useNotificationPreferences());
 
-      expect(result.current.preferences.traderProfileIds).toContain('trader-2');
-      expect(result.current.isTraderNotificationEnabled('trader-2')).toBe(true);
-    });
-
-    it('preserves explicit opt-outs when the list grows', () => {
-      const initial = [makeTrader('trader-1')];
-      const { result, rerender } = renderHook(
-        ({ traders }: { traders: { id: string }[] }) =>
-          useNotificationPreferences(traders),
-        { initialProps: { traders: initial } },
-      );
-
-      act(() => {
-        result.current.toggleTraderNotification('trader-1');
+      await act(async () => {
+        await result.current.setEnabled(false);
       });
 
-      rerender({ traders: [...initial, makeTrader('trader-2')] });
+      expect(result.current.preferences.enabled).toBe(false);
+    });
+  });
 
-      expect(result.current.isTraderNotificationEnabled('trader-1')).toBe(
-        false,
+  describe('setTxAmountLimit', () => {
+    it.each(TX_AMOUNT_THRESHOLDS)(
+      'updates txAmountLimit to %s',
+      async (threshold) => {
+        mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+
+        const { result } = renderHook(() => useNotificationPreferences());
+
+        await act(async () => {
+          await result.current.setTxAmountLimit(threshold);
+        });
+
+        expect(result.current.preferences.txAmountLimit).toBe(threshold);
+      },
+    );
+  });
+
+  describe('persistence (read-merge-write)', () => {
+    it('GETs the latest preferences right before PUTting', async () => {
+      const cached = buildRemote();
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: cached }));
+
+      // Concurrent writer updated the walletActivity slice on the server.
+      const latest = buildRemote({
+        walletActivity: {
+          enabled: false,
+          accounts: [{ address: '0xabc', enabled: true }],
+        },
+      });
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return latest;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.setEnabled(false);
+      });
+
+      const calls = mockCall.mock.calls;
+      const getIdx = calls.findIndex((c) => c[0] === GET_ACTION);
+      const putIdx = calls.findIndex((c) => c[0] === PUT_ACTION);
+
+      expect(getIdx).toBeGreaterThanOrEqual(0);
+      expect(putIdx).toBeGreaterThanOrEqual(0);
+      expect(getIdx).toBeLessThan(putIdx);
+    });
+
+    it('PUTs a merged payload that preserves other slices and overrides socialAI', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+      const latest = buildRemote({
+        walletActivity: {
+          enabled: false,
+          accounts: [{ address: '0xabc', enabled: true }],
+        },
+        marketing: { enabled: true },
+      });
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return latest;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.toggleTraderNotification('trader-1');
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        PUT_ACTION,
+        expect.objectContaining({
+          walletActivity: latest.walletActivity,
+          marketing: latest.marketing,
+          perps: latest.perps,
+          socialAI: expect.objectContaining({
+            mutedTraderProfileIds: ['trader-1'],
+          }),
+        }),
+        CLIENT_TYPE,
       );
     });
 
-    it('does not change state reference when the same list is passed again', () => {
-      const { result, rerender } = renderHook(
-        ({ traders }: { traders: { id: string }[] }) =>
-          useNotificationPreferences(traders),
-        { initialProps: { traders: FOLLOWED_TRADERS } },
+    it('seeds sensible defaults for other slices when the server has nothing stored', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: null }));
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return null;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.setEnabled(false);
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        PUT_ACTION,
+        expect.objectContaining({
+          walletActivity: expect.any(Object),
+          marketing: expect.any(Object),
+          perps: expect.any(Object),
+          socialAI: expect.objectContaining({ enabled: false }),
+        }),
+        CLIENT_TYPE,
       );
+    });
 
-      const before = result.current.preferences.traderProfileIds;
+    it('rolls back the optimistic overlay and surfaces an error on PUT failure', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return buildRemote();
+        if (action === PUT_ACTION) throw new Error('network down');
+        return undefined;
+      });
 
-      rerender({ traders: FOLLOWED_TRADERS });
+      const { result } = renderHook(() => useNotificationPreferences());
 
-      expect(result.current.preferences.traderProfileIds).toBe(before);
+      await act(async () => {
+        await result.current.setEnabled(false);
+      });
+
+      await waitFor(() => {
+        expect(result.current.preferences.enabled).toBe(true);
+      });
+      expect(result.current.error).toBe('network down');
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('refetches the query after a successful PUT so the overlay clears', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return buildRemote();
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.setEnabled(false);
+      });
+
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('write serialization', () => {
+    it('processes back-to-back toggles sequentially without overlapping GETs and PUTs', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+
+      const order: string[] = [];
+      let resolveFirstPut: () => void = () => undefined;
+      const firstPutBlocker = new Promise<void>((r) => {
+        resolveFirstPut = r;
+      });
+
+      let putCount = 0;
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) {
+          order.push('GET');
+          return buildRemote();
+        }
+        if (action === PUT_ACTION) {
+          putCount += 1;
+          order.push(`PUT-${putCount}-start`);
+          if (putCount === 1) {
+            await firstPutBlocker;
+          }
+          order.push(`PUT-${putCount}-end`);
+          return undefined;
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        const first = result.current.setEnabled(false);
+        const second = result.current.setTxAmountLimit(100);
+        // Release the first PUT only after both calls have been initiated.
+        // If writes weren't serialized, the second GET would fire before the
+        // first PUT resolved.
+        setTimeout(() => resolveFirstPut(), 0);
+        await Promise.all([first, second]);
+      });
+
+      // Expected strict interleaving: GET → PUT-1-start → PUT-1-end → GET → PUT-2-start → PUT-2-end
+      expect(order).toEqual([
+        'GET',
+        'PUT-1-start',
+        'PUT-1-end',
+        'GET',
+        'PUT-2-start',
+        'PUT-2-end',
+      ]);
     });
   });
 });

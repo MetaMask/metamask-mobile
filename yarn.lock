@@ -8104,6 +8104,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/authenticated-user-storage@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/authenticated-user-storage@npm:1.0.0"
+  dependencies:
+    "@metamask/base-data-service": "npm:^0.1.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+  checksum: 10/eba2d55d4a85c99c02fd6fa3371cf779be24f03175c08ea2a22f6b0e13b675c7cd5e420149044f804595cf3da25f7176446d891bcf2ce1389a0792a818076ab3
+  languageName: node
+  linkType: hard
+
 "@metamask/auto-changelog@npm:^5.3.0":
   version: 5.3.0
   resolution: "@metamask/auto-changelog@npm:5.3.0"
@@ -35869,6 +35882,7 @@ __metadata:
     "@metamask/approval-controller": "npm:^9.0.0"
     "@metamask/assets-controller": "npm:^5.0.0"
     "@metamask/assets-controllers": "npm:^104.0.0"
+    "@metamask/authenticated-user-storage": "npm:^1.0.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
     "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/bitcoin-wallet-snap": "npm:^1.10.1"
