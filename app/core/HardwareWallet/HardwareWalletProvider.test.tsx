@@ -480,37 +480,6 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.Disconnected,
         );
       });
-
-      it('clears operationType so retry flow is entered after signing errors', async () => {
-        const { result } = renderWithActions();
-
-        await act(async () => {
-          result.current.actions.showAwaitingConfirmation('message');
-        });
-
-        await act(async () => {
-          result.current.actions.hideAwaitingConfirmation();
-        });
-
-        await act(async () => {
-          result.current.actions.showHardwareWalletError(
-            new Error('Signing failed'),
-          );
-        });
-
-        mockAdapterInstance.resetFlowState.mockClear();
-
-        const internalRetry =
-          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
-        await act(async () => {
-          await internalRetry();
-        });
-
-        expect(mockAdapterInstance.resetFlowState).toHaveBeenCalled();
-        expect(result.current.state.connectionState.status).toBe(
-          ConnectionStatus.Scanning,
-        );
-      });
     });
   });
 
@@ -584,7 +553,7 @@ describe('HardwareWalletProvider', () => {
         expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalled();
       });
 
-      it('enters retry flow instead of closing after a signing error because hideAwaitingConfirmation clears operationType', async () => {
+      it('closes flow instead of retrying after a signing error', async () => {
         const { result } = renderWithActions();
 
         await act(async () => {
@@ -609,7 +578,7 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.ErrorState,
         );
 
-        mockAdapterInstance.resetFlowState.mockClear();
+        mockAdapterInstance.ensureDeviceReady.mockClear();
 
         const internalRetry =
           capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
@@ -617,9 +586,9 @@ describe('HardwareWalletProvider', () => {
           await internalRetry();
         });
 
-        expect(mockAdapterInstance.resetFlowState).toHaveBeenCalled();
+        expect(mockAdapterInstance.ensureDeviceReady).not.toHaveBeenCalled();
         expect(result.current.state.connectionState.status).toBe(
-          ConnectionStatus.Scanning,
+          ConnectionStatus.Disconnected,
         );
       });
     });
@@ -692,6 +661,95 @@ describe('HardwareWalletProvider', () => {
 
       expect(result.current.state.connectionState.status).toBe(
         ConnectionStatus.ErrorState,
+      );
+    });
+  });
+
+  describe('handleBottomSheetConnectionSuccess (internal, via bottom sheet props)', () => {
+    it('resets refs and delegates to handleConnectionSuccess', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          actions: hw,
+          state: { connectionState: hw.connectionState },
+        };
+      };
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      // Put provider into awaiting-confirmation so refs are populated
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation('transaction');
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+
+      const internalOnConnectionSuccess =
+        capturedBottomSheetProps.onConnectionSuccess as () => void;
+      await act(async () => {
+        internalOnConnectionSuccess();
+      });
+
+      // After connection success the flow resets to Disconnected
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
+      );
+    });
+  });
+
+  describe('handleAwaitingConfirmationCancel (internal, via bottom sheet props)', () => {
+    it('disconnects adapter, invokes rejection callback, and hides confirmation', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const onReject = jest.fn();
+
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          actions: hw,
+          state: { connectionState: hw.connectionState },
+        };
+      };
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      // Show awaiting confirmation with a rejection callback
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation(
+          'transaction',
+          onReject,
+        );
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+
+      const internalCancel =
+        capturedBottomSheetProps.onAwaitingConfirmationCancel as () => void;
+      await act(async () => {
+        internalCancel();
+      });
+
+      // Adapter should disconnect
+      expect(mockAdapterInstance.disconnect).toHaveBeenCalled();
+      // Rejection callback should fire
+      expect(onReject).toHaveBeenCalled();
+      // State should return to disconnected
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
       );
     });
   });
