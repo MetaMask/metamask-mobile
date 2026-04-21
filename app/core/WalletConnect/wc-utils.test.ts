@@ -10,7 +10,9 @@ import {
   getHostname,
   normalizeDappUrl,
   isValidUrl,
+  getUnverifiedRequestOrigin,
 } from './wc-utils';
+import type { WalletKitTypes } from '@reown/walletkit';
 import type {
   NavigationContainerRef,
   ParamListBase,
@@ -390,6 +392,68 @@ describe('WalletConnect Utils', () => {
       expect(normalizeDappUrl('example.com', 'http://')).toBe(
         'http://example.com',
       );
+    });
+  });
+
+  describe('getUnverifiedRequestOrigin', () => {
+    const defaultOrigin = 'https://dapp.example.com';
+
+    const makeRequest = (origin: unknown) =>
+      ({
+        verifyContext: { verified: { origin } },
+      }) as unknown as WalletKitTypes.SessionRequest;
+
+    it('returns the verified origin when it is a valid URL', () => {
+      expect(
+        getUnverifiedRequestOrigin(
+          makeRequest('https://some.example.com'),
+          defaultOrigin,
+        ),
+      ).toBe('https://some.example.com');
+    });
+
+    it('falls back to defaultOrigin when verified origin is an empty string', () => {
+      expect(getUnverifiedRequestOrigin(makeRequest(''), defaultOrigin)).toBe(
+        defaultOrigin,
+      );
+    });
+
+    it('falls back to defaultOrigin when verified origin is a non-URL string', () => {
+      expect(
+        getUnverifiedRequestOrigin(
+          makeRequest('a7c9f3e1b8d6c2f4e9a1b3d5c7e9f1a3'),
+          defaultOrigin,
+        ),
+      ).toBe(defaultOrigin);
+    });
+
+    it('falls back to defaultOrigin when verified origin is missing', () => {
+      expect(
+        getUnverifiedRequestOrigin(
+          {} as WalletKitTypes.SessionRequest,
+          defaultOrigin,
+        ),
+      ).toBe(defaultOrigin);
+    });
+
+    it('falls back to defaultOrigin when verifyContext is missing', () => {
+      expect(
+        getUnverifiedRequestOrigin(
+          {
+            verifyContext: undefined,
+          } as unknown as WalletKitTypes.SessionRequest,
+          defaultOrigin,
+        ),
+      ).toBe(defaultOrigin);
+    });
+
+    it('falls back to defaultOrigin when verified origin is a bare hostname (no protocol)', () => {
+      expect(
+        getUnverifiedRequestOrigin(
+          makeRequest('some.example.com'),
+          defaultOrigin,
+        ),
+      ).toBe(defaultOrigin);
     });
   });
 });

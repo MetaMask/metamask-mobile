@@ -416,4 +416,14 @@ export const hasPermissionsToSwitchChainRequest = async (
 export const getUnverifiedRequestOrigin = (
   request: WalletKitTypes.SessionRequest,
   defaultOrigin: string,
-) => request.verifyContext?.verified?.origin ?? defaultOrigin;
+) => {
+  // Only trust verifyContext.verified.origin when it's a parseable URL. The
+  // WalletConnect Verify API may return an empty string or a non-URL value
+  // (e.g. a topic/identifier) when the dapp is unverified, which would
+  // otherwise be rendered verbatim in the "Request from" field.
+  const verifiedOrigin = request.verifyContext?.verified?.origin;
+  if (isValidUrl(verifiedOrigin)) {
+    return verifiedOrigin as string;
+  }
+  return defaultOrigin;
+};
