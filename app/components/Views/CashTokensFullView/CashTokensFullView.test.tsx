@@ -154,6 +154,11 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
 }));
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHubEnabledFlag: jest.fn(),
+  selectMoneyHomeScreenEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock('../../../reducers/user/selectors', () => ({
+  selectMusdConversionEducationSeen: jest.fn(() => true),
 }));
 jest.mock('../../UI/Tokens', () => {
   const { createElement } = jest.requireActual('react');

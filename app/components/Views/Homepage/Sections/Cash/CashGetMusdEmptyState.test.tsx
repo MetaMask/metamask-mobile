@@ -4,20 +4,16 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
-import NavigationService from '../../../../../core/NavigationService';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 
-jest.mock('../../../../../core/NavigationService', () => {
-  const mockNavigate = jest.fn();
-  return {
-    __esModule: true,
-    default: {
-      navigation: { navigate: mockNavigate },
-    },
-  };
-});
+const mockNavigateToCash = jest.fn();
+jest.mock('./useCashNavigation', () => ({
+  useCashNavigation: () => ({
+    navigateToCash: mockNavigateToCash,
+  }),
+}));
 
 const mockGoToBuy = jest.fn();
 jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
@@ -106,22 +102,12 @@ describe('CashGetMusdEmptyState', () => {
     expect(screen.getByText('3% bonus')).toBeOnTheScreen();
   });
 
-  it('navigates to Token Details (Asset) when token row is pressed', () => {
+  it('calls navigateToCash when token row is pressed', () => {
     renderWithProvider(<CashGetMusdEmptyState />);
 
     fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.ROW));
 
-    const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Asset',
-      expect.objectContaining({
-        symbol: 'mUSD',
-        name: 'MetaMask USD',
-        address: expect.any(String),
-        chainId: '0x1',
-        source: 'mobile-token-list-page',
-      }),
-    );
+    expect(mockNavigateToCash).toHaveBeenCalledTimes(1);
   });
 
   it('calls initiateCustomConversion when Get mUSD pressed and has convertible tokens', async () => {
