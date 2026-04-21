@@ -4,9 +4,11 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
+import { handleFetch } from '@metamask/controller-utils';
 
 const mockGoBack = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
+const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 
 interface MockRouteParams {
   traderId: string;
@@ -233,5 +235,76 @@ describe('TraderPositionView', () => {
     renderWithProvider(<TraderPositionView />, { state: stateWithMarket });
 
     expect(screen.getByText('$11.7M')).toBeOnTheScreen();
+  });
+
+  it('renders closed position label with realized pnl data', () => {
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      positionAmount: 0,
+      soldUsd: 1500,
+      realizedPnl: 300,
+      boughtUsd: 1200,
+      currentValueUSD: 0,
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(screen.getByText('Closed position')).toBeOnTheScreen();
+    expect(screen.getByText('+$300')).toBeOnTheScreen();
+    expect(screen.getByText('+25%')).toBeOnTheScreen();
+  });
+
+  it('displays market cap from the fallback API when cache is empty', async () => {
+    mockHandleFetch.mockResolvedValue({
+      'eip155:8453/erc20:0x1234567890123456789012345678901234567890': {
+        marketCap: 9900000,
+      },
+    });
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    await waitFor(() => {
+      expect(screen.getByText('$9.9M')).toBeOnTheScreen();
+    });
+  });
+
+  it('filters trades when switching time periods', async () => {
+    const fixedNow = new Date('2026-04-21T12:00:00.000Z').getTime();
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(fixedNow);
+
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      trades: [
+        {
+          intent: 'enter',
+          direction: 'buy',
+          tokenAmount: 1000,
+          usdCost: 2200,
+          timestamp: fixedNow - 30 * 60 * 1000,
+          transactionHash: '0xrecent',
+        },
+        {
+          intent: 'exit',
+          direction: 'sell',
+          tokenAmount: 500,
+          usdCost: 1100,
+          timestamp: fixedNow - 2 * 24 * 60 * 60 * 1000,
+          transactionHash: '0xolder',
+        },
+      ],
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
+    expect(screen.queryByTestId('trade-row-0xolder')).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByText('1W'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
+    });
+
+    dateNowSpy.mockRestore();
   });
 });
