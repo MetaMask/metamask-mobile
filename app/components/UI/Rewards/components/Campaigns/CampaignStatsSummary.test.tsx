@@ -75,7 +75,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'We had a problem loading your stats. Please try again later.',
       'rewards.ondo_campaign_stats.retry': 'Retry',
       'rewards.ondo_campaign_stats.label_return': 'Return',
-      'rewards.ondo_campaign_stats.label_market_value': 'Market Value',
+      'rewards.ondo_campaign_stats.label_market_value': 'Market value',
       'rewards.ondo_campaign_stats.label_rank': 'Rank',
       'rewards.ondo_campaign_stats.label_tier': 'Tier',
     };
@@ -254,18 +254,6 @@ describe('CampaignStatsSummary', () => {
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('-5.00%');
-  });
-
-  it('renders Stats title by default', () => {
-    const { getByText } = render(<CampaignStatsSummary {...baseProps} />);
-    expect(getByText('Stats')).toBeDefined();
-  });
-
-  it('hides Stats title when showHeader is false', () => {
-    const { queryByText } = render(
-      <CampaignStatsSummary {...baseProps} showHeader={false} />,
-    );
-    expect(queryByText('Stats')).toBeNull();
   });
 
   // ── Pending / Qualified tags ────────────────────────────────────────

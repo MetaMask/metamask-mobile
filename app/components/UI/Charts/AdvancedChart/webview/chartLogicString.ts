@@ -800,8 +800,7 @@ function applyChartScaleLayout(type) {
       'timeScale.borderColor': axisLineColor,
       'scalesProperties.lineColor': axisLineColor,
       'paneProperties.separatorColor': theme.backgroundColor,
-      'paneProperties.topMargin': 8,
-      // Same margin in both modes so scale padding (and logo anchor) does not shift on toggle.
+      'paneProperties.topMargin': 12,
       'paneProperties.bottomMargin': 8,
     });
   } catch (e) {}
@@ -2649,7 +2648,10 @@ function isCustomLineEndMarkerVisibleInPlot(chart, lastBarTimeSec) {
     if (tNorm === null) {
       return null;
     }
-    const xCut = Math.max(0, Math.floor(plotW - LINE_END_ICON_TIME_INSET_PX - 1));
+    const xCut = Math.max(
+      0,
+      Math.floor(plotW - LINE_END_ICON_TIME_INSET_PX - 1),
+    );
     const maxX = Math.max(0, Math.floor(plotW - 1));
 
     const tMax = timeScaleCoordinateToTimeSec(ts, maxX);
@@ -3290,7 +3292,7 @@ var OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
  */
 function fetchOlderBars(pending) {
   var pag = window.ohlcvPagination;
-  
+
   if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
     pending.onResult([], { noData: true });
     if (window.__mmLayoutSettlePending) {

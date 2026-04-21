@@ -1,6 +1,7 @@
-import onboardingReducer from '.';
+import onboardingReducer, { initialOnboardingState } from '.';
 import {
   CLEAR_EVENTS,
+  CLEAR_ONBOARDING,
   SAVE_EVENT,
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
@@ -18,11 +19,12 @@ describe('onboardingReducer', () => {
     events: [],
     completedOnboarding: false,
     pendingSocialLoginMarketingConsentBackfill: null as string | null,
+    iosGoogleWarningSheetLastDismissedAt: null as number | null,
   };
 
   it('returns the initial state when no action is provided', () => {
     const state = onboardingReducer(undefined, { type: null } as never);
-    expect(state).toEqual(initialState);
+    expect(state).toEqual(initialOnboardingState);
   });
 
   it('handles the SAVE_EVENT action', () => {
@@ -132,5 +134,25 @@ describe('onboardingReducer', () => {
     const state = onboardingReducer(stateWithSeedlessOnboarding, action);
 
     expect(state.seedlessOnboarding).toBeUndefined();
+  });
+
+  it('handles the CLEAR_ONBOARDING action', () => {
+    const dirtyState = {
+      ...initialState,
+      events: [[{ name: 'evt' }] as [ITrackingEvent]],
+      completedOnboarding: true,
+      accountType: AccountType.MetamaskGoogle,
+      onboardingVersion: '1.0.0',
+      seedlessOnboarding: {
+        clientId: 'c',
+        authConnection: AuthConnection.Google,
+      },
+      iosGoogleWarningSheetLastDismissedAt: 99 as number | null,
+    };
+
+    const action = { type: CLEAR_ONBOARDING } as const;
+    const state = onboardingReducer(dirtyState, action);
+
+    expect(state).toEqual(initialOnboardingState);
   });
 });
