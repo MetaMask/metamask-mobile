@@ -38,30 +38,29 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       testID={testID}
       onPress={onPress}
       style={tw.style(
-        'min-w-0 shrink items-center rounded-xl bg-muted py-2 px-3',
+        'min-w-0 shrink flex-row items-center justify-center gap-1 rounded-lg bg-muted',
+        'py-2 px-3',
         disabled && 'opacity-50',
         twClassName,
       )}
       activeOpacity={0.2}
       disabled={disabled}
     >
-      <View style={tw`flex-row items-center justify-center gap-1`}>
-        {iconName && (
-          <Icon name={iconName} color={IconColor.Default} size={IconSize.Sm} />
-        )}
-        <Text
-          style={tw`min-w-0 shrink text-[14px] font-medium text-default`}
-          numberOfLines={numberOfLines}
-          ellipsizeMode={ellipsizeMode}
-        >
-          {label}
-        </Text>
-        <Icon
-          name={IconName.ArrowDown}
-          color={IconColor.Alternative}
-          size={IconSize.Xs}
-        />
-      </View>
+      {iconName && (
+        <Icon name={iconName} color={IconColor.Default} size={IconSize.Sm} />
+      )}
+      <Text
+        style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
+        numberOfLines={numberOfLines}
+        ellipsizeMode={ellipsizeMode}
+      >
+        {label}
+      </Text>
+      <Icon
+        name={IconName.ArrowDown}
+        color={IconColor.Alternative}
+        size={IconSize.Xs}
+      />
     </TouchableOpacity>
   );
 };
