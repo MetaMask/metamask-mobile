@@ -40,7 +40,6 @@ import {
 } from '../utils/securityUtils';
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import { useTokenActions } from '../../TokenDetails/hooks/useTokenActions';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
@@ -85,13 +84,6 @@ const SecurityTrustScreen: React.FC = () => {
       nonEvmNetworkConfigurations,
     });
   }, [params?.chainId, evmNetworkConfigurations, nonEvmNetworkConfigurations]);
-
-  // Get action handlers from hook (single source of truth)
-  const { onBuy, handleStickySwapPress, hasEligibleSwapTokens, networkModal } =
-    useTokenActions({
-      token: params,
-      networkName,
-    });
 
   // Track page view once
   useEffect(() => {
