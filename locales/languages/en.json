@@ -6307,7 +6307,10 @@
       "step_progress": "Step {{current}} of {{total}}",
       "title": "Add money",
       "description": "Buy mUSD and start earning APY today.",
-      "add": "Add"
+      "add": "Add",
+      "step2_title": "Get your MetaMask Card",
+      "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
+      "step2_cta": "Get card"
     },
     "action": {
       "add": "Add",
@@ -6332,7 +6335,8 @@
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "convert": "Convert",
       "no_fee": "No MetaMask fee",
-      "view_all": "View all"
+      "view_all": "View all",
+      "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
       "title": "MetaMask Card",
@@ -6363,6 +6367,14 @@
       "filter_all": "All",
       "filter_deposits": "Deposits",
       "filter_transfers": "Transfers"
+    },
+    "condensed_cards": {
+      "how_it_works_title": "How it works",
+      "how_it_works_subtitle": "See how your money works for you",
+      "musd_title": "MetaMask USD",
+      "musd_subtitle": "Learn more about mUSD",
+      "what_you_get_title": "What you get",
+      "what_you_get_subtitle": "Explore your benefits"
     },
     "transaction": {
       "added": "Added",
