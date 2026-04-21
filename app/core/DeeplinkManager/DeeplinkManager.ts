@@ -14,6 +14,29 @@ import {
 } from '../Braze/BrazeDeeplinks';
 
 /**
+ * Returns true when `uri` is a Branch "stub" URI — the raw Android intent URI
+ * that the OS forwards to RN's `Linking` module when the user taps a
+ * Branch-powered `link.metamask.io` link.
+ *
+ * Android delivers Branch links through two parallel channels. `Linking`
+ * receives a stub like `metamask://<path>?_branch_referrer=<compressed_payload>`
+ * that does NOT contain the real query params (e.g. `assetId`); they are
+ * packed inside the opaque `_branch_referrer` blob that only the Branch
+ * Android SDK can decode. `branch.subscribe` / `branch.getLatestReferringParams()`
+ * then delivers the fully resolved URL (e.g.
+ * `https://link.metamask.io/buy?assetId=...`) that we actually want to route on.
+ *
+ * Processing the stub URI from `Linking` is harmful: it has no `assetId`, so
+ * handlers like `handleRampUrl` fall back to `TokenSelection`, which caused a
+ * visible "BuildQuote -> TokenSelection" flash on Android. We detect the stub
+ * here and skip it; Branch's own callbacks will deliver the resolved URL.
+ */
+export function isBranchStubUri(uri: string | undefined): boolean {
+  if (!uri) return false;
+  return uri.includes('_branch_referrer=');
+}
+
+/**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
  * the URI path may be link ID, not an in-app route. If the resolved params indicate
  * a clicked Branch link with a $deeplink_path, replace the host and path segment
@@ -156,11 +179,21 @@ export class DeeplinkManager {
         return;
       }
       Logger.log(`handleDeeplink:: got initial URL ${url}`);
+      if (isBranchStubUri(url)) {
+        // Android's Linking channel received the Branch stub URI; the fully
+        // resolved URL will arrive via branch.subscribe / getBranchDeeplink.
+        // Skipping avoids double-processing the same deeplink, which caused
+        // a visible "correct Buy page -> Select Token" flash on Android.
+        return;
+      }
       handleDeeplink({ uri: url });
     });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
+      if (isBranchStubUri(url)) {
+        return;
+      }
       handleDeeplink({ uri: url });
     });
 
