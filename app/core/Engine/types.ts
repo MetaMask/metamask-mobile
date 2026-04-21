@@ -463,6 +463,12 @@ import {
   ChompApiServiceActions,
   type ChompApiServiceEvents,
 } from '@metamask/chomp-api-service';
+import {
+  MoneyAccountUpgradeController,
+  MoneyAccountUpgradeControllerActions,
+  MoneyAccountUpgradeControllerEvents,
+  MoneyAccountUpgradeControllerState,
+} from '@metamask/money-account-upgrade-controller';
 import { captureException } from '@sentry/react-native';
 
 /**
@@ -598,7 +604,8 @@ type GlobalActions =
   | ComplianceControllerActions
   | ComplianceServiceActions
   | TransakServiceActions
-  | ChompApiServiceActions;
+  | ChompApiServiceActions
+  | MoneyAccountUpgradeControllerActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -684,7 +691,8 @@ type GlobalEvents =
   | ComplianceControllerEvents
   | ComplianceServiceEvents
   | TransakServiceEvents
-  | ChompApiServiceEvents;
+  | ChompApiServiceEvents
+  | MoneyAccountUpgradeControllerEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -815,6 +823,7 @@ export type MessengerClients = {
   ComplianceController: ComplianceController;
   TransakService: TransakService;
   ChompApiService: ChompApiService;
+  MoneyAccountUpgradeController: MoneyAccountUpgradeController;
 };
 
 /**
@@ -899,6 +908,7 @@ export type EngineState = {
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
   ComplianceController: ComplianceControllerState;
+  MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
 };
 
 /** Messenger client names */
@@ -1017,7 +1027,8 @@ export type MessengerClientsToInitialize =
   | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController'
-  | 'ChompApiService';
+  | 'ChompApiService'
+  | 'MoneyAccountUpgradeController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

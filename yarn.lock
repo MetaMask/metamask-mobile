@@ -8180,7 +8180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/chomp-api-service@npm:1.0.0":
+"@metamask/chomp-api-service@npm:1.0.0, @metamask/chomp-api-service@npm:^1.0.0":
   version: 1.0.0
   resolution: "@metamask/chomp-api-service@npm:1.0.0"
   dependencies:
@@ -9224,6 +9224,18 @@ __metadata:
     "@metamask/messenger": "npm:^1.1.0"
     async-mutex: "npm:^0.5.0"
   checksum: 10/62d34c42ea388d621346277cfaf9038cd80b87dccfaade8b93d3cec087b9c77ec5ec71ff9f30c02a3f566ac71ec4e8234761cb775f11896a8cf85583b8e6ed06
+  languageName: node
+  linkType: hard
+
+"@metamask/money-account-upgrade-controller@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/money-account-upgrade-controller@npm:1.0.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/chomp-api-service": "npm:^1.0.0"
+    "@metamask/keyring-controller": "npm:^25.2.0"
+    "@metamask/messenger": "npm:^1.1.1"
+  checksum: 10/f3b54b4f464a17858853b160b1c5b4ecc634fae9bc354ae86139bc1f97e1ce1fb2cfa845d6db643c264b27538736478a9d976de693ba2cb5e84972186982c084
   languageName: node
   linkType: hard
 
@@ -35924,6 +35936,7 @@ __metadata:
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/money-account-balance-service": "npm:^0.2.0"
     "@metamask/money-account-controller": "npm:^0.1.0"
+    "@metamask/money-account-upgrade-controller": "npm:^1.0.0"
     "@metamask/multichain-account-service": "npm:^8.0.1"
     "@metamask/multichain-api-client": "npm:^0.10.1"
     "@metamask/multichain-api-middleware": "npm:1.2.5"
