@@ -50,7 +50,7 @@ import {
   isPnlNonNegative,
   sanitizeOndoTokenName,
 } from './OndoPortfolio.utils';
-import { formatComputedAt } from './OndoLeaderboard.utils';
+
 import { selectCurrentSubscriptionAccounts } from '../../../../../selectors/rewards';
 import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectAllTokens } from '../../../../../selectors/tokensController';
