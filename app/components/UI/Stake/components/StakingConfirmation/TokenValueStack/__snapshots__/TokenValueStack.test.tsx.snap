@@ -24,64 +24,27 @@ exports[`TokenValueStack render matches snapshot 1`] = `
     testID="badge-wrapper-badge"
   >
     <View>
-      <View
-        useNativeDriver={true}
-      >
-        <View
-          fadeIn={true}
-          source={
+      <Image
+        onError={[Function]}
+        source={1}
+        style={
+          [
             {
-              "uri": "",
-            }
-          }
-          style={
-            [
-              {
-                "borderRadius": 12,
-                "height": 24,
-                "width": 24,
-              },
-              undefined,
-              undefined,
-              undefined,
-              {
-                "borderRadius": 24,
-                "height": 48,
-                "width": 48,
-              },
-            ]
-          }
-        />
-        <View
-          collapsable={false}
-          style={
+              "borderRadius": 12,
+              "height": 24,
+              "width": 24,
+            },
+            undefined,
+            undefined,
+            undefined,
             {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 24,
-                  "height": 48,
-                  "width": 48,
-                },
-                {
-                  "backgroundColor": "#eee",
-                },
-                undefined,
-              ]
-            }
-          />
-        </View>
-      </View>
+              "borderRadius": 24,
+              "height": 48,
+              "width": 48,
+            },
+          ]
+        }
+      />
     </View>
     <View
       style={
