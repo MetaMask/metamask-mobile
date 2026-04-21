@@ -1743,7 +1743,7 @@ describe('TrendingTokenRowItem', () => {
         false,
       );
 
-      expect(getByTestId('security-badge-icon')).toBeTruthy();
+      expect(getByTestId('security-badge-icon')).toBeOnTheScreen();
     });
 
     it('renders warning badge with label for warning tokens', () => {
@@ -1760,7 +1760,7 @@ describe('TrendingTokenRowItem', () => {
         false,
       );
 
-      expect(getByText('Risky')).toBeTruthy();
+      expect(getByText('Risky')).toBeOnTheScreen();
     });
 
     it('renders malicious badge with label for malicious tokens', () => {
@@ -1777,7 +1777,7 @@ describe('TrendingTokenRowItem', () => {
         false,
       );
 
-      expect(getByText('Malicious')).toBeTruthy();
+      expect(getByText('Malicious')).toBeOnTheScreen();
     });
 
     it('does not render badge for benign tokens', () => {
