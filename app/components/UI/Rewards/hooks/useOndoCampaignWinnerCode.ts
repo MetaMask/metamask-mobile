@@ -8,6 +8,12 @@ export interface UseOndoCampaignWinnerCodeResult {
   code: string | null;
   /** Whether the code is currently being fetched. */
   isLoading: boolean;
+  /** True once the fetch has completed at least once (success or error). */
+  hasFetched: boolean;
+  /** True if the most recent fetch ended with an error. */
+  hasError: boolean;
+  /** Manually re-trigger the fetch, e.g. after an error. */
+  retry: () => void;
 }
 
 /**
@@ -20,11 +26,14 @@ export function useOndoCampaignWinnerCode(
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const [code, setCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const fetchCode = useCallback(async (): Promise<void> => {
     if (!subscriptionId || !campaignId) return;
     try {
       setIsLoading(true);
+      setHasError(false);
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getOndoCampaignWinnerCode',
         campaignId,
@@ -33,8 +42,10 @@ export function useOndoCampaignWinnerCode(
       setCode(result);
     } catch {
       setCode(null);
+      setHasError(true);
     } finally {
       setIsLoading(false);
+      setHasFetched(true);
     }
   }, [campaignId, subscriptionId]);
 
@@ -42,5 +53,5 @@ export function useOndoCampaignWinnerCode(
     fetchCode();
   }, [fetchCode]);
 
-  return { code, isLoading };
+  return { code, isLoading, hasFetched, hasError, retry: fetchCode };
 }
