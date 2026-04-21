@@ -4,6 +4,7 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { FlaskBuildTests } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -11,6 +12,7 @@ describe(FlaskBuildTests('Get Preferences Snap Tests'), () => {
   it('gets the client preferences', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder()
           .withPreferencesController({
             privacyMode: true,

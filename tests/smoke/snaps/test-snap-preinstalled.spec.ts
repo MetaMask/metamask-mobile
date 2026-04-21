@@ -7,6 +7,7 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import TestHelpers from '../../helpers';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -21,6 +22,7 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
   it('uses `initialConnections` to allow JSON-RPC and tracks an event in Segment with `snap_trackEvent`', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
         restartDevice: true,
         skipReactNativeReload: true,
