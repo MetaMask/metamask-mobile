@@ -114,11 +114,16 @@ export function addSpotBalanceToAccountState(
     return accountState;
   }
 
+  const currentTotal = parseFloat(accountState.totalBalance);
+  if (!Number.isFinite(currentTotal)) {
+    // totalBalance is a non-numeric sentinel (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--').
+    // Adding spot would yield 'NaN' — leave the sentinel intact for the UI to render.
+    return accountState;
+  }
+
   return {
     ...accountState,
-    totalBalance: (
-      parseFloat(accountState.totalBalance) + spotBalance
-    ).toString(),
+    totalBalance: (currentTotal + spotBalance).toString(),
   };
 }
 

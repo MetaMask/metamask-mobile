@@ -2311,8 +2311,12 @@ export class HyperLiquidSubscriptionService {
     // Increment account subscriber count
     this.#accountSubscriberCount += 1;
 
-    // Immediately provide cached data if available and already spot-adjusted
-    if (this.#cachedAccount && this.#cachedSpotState) {
+    // Immediately provide cached data if available. May be spot-less if the
+    // spot fetch has not resolved yet (or permanently failed) — subscribers
+    // prefer stale-but-present data over silent starvation; the next
+    // aggregation after #ensureSpotState / next WebSocket update pushes the
+    // spot-inclusive value.
+    if (this.#cachedAccount) {
       callback(this.#cachedAccount);
     }
 
