@@ -37,6 +37,13 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
   })),
 }));
 
+jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    totalFiatFormatted: '$42.00',
+  })),
+}));
+
 describe('MoneyAccountWithdrawInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -111,7 +118,23 @@ describe('MoneyAccountWithdrawInfo', () => {
 
     expect(getByTestId('money-account-withdraw-balance')).toBeOnTheScreen();
     expect(
-      getByText('confirm.available_balance$0.00', { exact: false }),
+      getByText('confirm.available_balance$42.00', { exact: false }),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders empty balance when totalFiatFormatted is undefined', () => {
+    const useMoneyAccountBalance = jest.requireMock(
+      '../../../../../UI/Money/hooks/useMoneyAccountBalance',
+    ).default;
+    useMoneyAccountBalance.mockReturnValueOnce({
+      totalFiatFormatted: undefined,
+    });
+
+    const { getByTestId, getByText } = render(<MoneyAccountWithdrawInfo />);
+
+    expect(getByTestId('money-account-withdraw-balance')).toBeOnTheScreen();
+    expect(
+      getByText('confirm.available_balance', { exact: false }),
     ).toBeOnTheScreen();
   });
 });
