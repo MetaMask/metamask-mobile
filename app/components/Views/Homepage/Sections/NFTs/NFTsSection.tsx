@@ -183,13 +183,16 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
                 gap={3}
               >
                 {row.map((nft) => (
-                  <NftGridItem
+                  <View
                     key={`${nft.address}-${nft.tokenId}`}
-                    item={nft}
-                    onLongPress={handleLongPress}
-                    source="mobile-nft-list"
                     style={styles.flex1}
-                  />
+                  >
+                    <NftGridItem
+                      item={nft}
+                      onLongPress={handleLongPress}
+                      source="mobile-nft-list"
+                    />
+                  </View>
                 ))}
                 {/* Add empty boxes to maintain grid alignment for incomplete rows */}
                 {row.length < NFTS_PER_ROW &&
