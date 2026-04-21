@@ -95,7 +95,7 @@ const CashTokensFullView = () => {
   const screenViewedRef = useRef(false);
 
   useEffect(() => {
-    if (screenViewedRef.current) return;
+    if (isLoading || screenViewedRef.current) return;
     screenViewedRef.current = true;
 
     const hasConvertibleTokens = conversionTokens.length > 0;
@@ -123,7 +123,13 @@ const CashTokensFullView = () => {
         })
         .build(),
     );
-  }, [conversionTokens, createEventBuilder, moneyHubFilledState, trackEvent]);
+  }, [
+    isLoading,
+    conversionTokens,
+    createEventBuilder,
+    moneyHubFilledState,
+    trackEvent,
+  ]);
 
   const merklRefetchRef = useRef<(() => void) | null>(null);
   const handleRefetchReady = useCallback((refetch: () => void) => {
