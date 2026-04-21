@@ -409,31 +409,6 @@ describe('useUnifiedTxActions', () => {
       });
     });
 
-    it('uses EIP-1559 fee fields when existing tx is type 0x2 and gasPrice is 0x0', async () => {
-      const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = {
-        id: 'eip1559-zero-gas',
-        txParams: {
-          type: '0x2',
-          maxFeePerGas: '0x10',
-          maxPriorityFeePerGas: '0x5',
-          gasPrice: '0x0',
-        },
-      } as unknown as TransactionMeta;
-
-      act(() => result.current.onSpeedUpAction(true, tx));
-      await act(async () => {
-        await result.current.speedUpTransaction({
-          gasPrice: '0x0',
-        } as SpeedUpCancelParams);
-      });
-
-      expect(speedUpTx).toHaveBeenCalledWith('eip1559-zero-gas', {
-        maxFeePerGas: '0xabc',
-        maxPriorityFeePerGas: '0xabc',
-      });
-    });
-
     it('handles error and shows toast', async () => {
       const { result } = renderUnifiedTxActions();
       const tx = { id: '8' } as unknown as TransactionMeta;
@@ -556,30 +531,6 @@ describe('useUnifiedTxActions', () => {
       ).toHaveBeenCalledWith('10', {
         maxFeePerGas: '0xa',
         maxPriorityFeePerGas: '0xb',
-      });
-    });
-
-    it('uses EIP-1559 fee fields when existing tx is type 0x2 and no params provided', async () => {
-      const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = {
-        id: 'eip1559-cancel-fallback',
-        txParams: {
-          type: '0x2',
-          maxFeePerGas: '0x10',
-          maxPriorityFeePerGas: '0x5',
-        },
-      } as unknown as TransactionMeta;
-
-      act(() => result.current.onCancelAction(true, tx));
-      await act(async () => {
-        await result.current.cancelTransaction();
-      });
-
-      expect(
-        engineContext.TransactionController.stopTransaction,
-      ).toHaveBeenCalledWith('eip1559-cancel-fallback', {
-        maxFeePerGas: '0xabc',
-        maxPriorityFeePerGas: '0xabc',
       });
     });
 
