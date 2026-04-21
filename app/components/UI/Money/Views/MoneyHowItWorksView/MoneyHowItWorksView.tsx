@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -12,22 +12,32 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import Accordion from '../../../../../component-library/components/Accordions/Accordion';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 
-const styles = StyleSheet.create({
+const localStyles = StyleSheet.create({
   safeArea: { flex: 1 },
   graphicPlaceholder: { height: 140 },
   headerSpacer: { width: 40 },
 });
 
-const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
+const Divider = () => <Box twClassName="h-px bg-border-muted" />;
 
 const FAQ_KEYS = [
   'faq_q1',
@@ -41,6 +51,69 @@ const FAQ_KEYS = [
   'faq_q9',
   'faq_q10',
 ] as const;
+
+const ANIMATION_DURATION = 200;
+
+const FaqItem = ({
+  question,
+  answer,
+  testID,
+}: {
+  question: string;
+  answer: string;
+  testID: string;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const rotation = useSharedValue(0);
+
+  const animatedArrowStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  const handlePress = useCallback(() => {
+    setExpanded((prev) => !prev);
+    rotation.value = withTiming(expanded ? 0 : 180, {
+      duration: ANIMATION_DURATION,
+      easing: Easing.out(Easing.ease),
+    });
+  }, [expanded, rotation]);
+
+  return (
+    <Pressable onPress={handlePress} testID={testID}>
+      <Box twClassName="py-3 px-4">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-2"
+        >
+          <Box twClassName="flex-1">
+            <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
+              {question}
+            </Text>
+          </Box>
+          <Animated.View style={animatedArrowStyle}>
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
+          </Animated.View>
+        </Box>
+        {expanded && (
+          <Box twClassName="mt-3">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {answer}
+            </Text>
+          </Box>
+        )}
+      </Box>
+    </Pressable>
+  );
+};
 
 const MoneyHowItWorksView = () => {
   const navigation = useNavigation();
@@ -58,7 +131,7 @@ const MoneyHowItWorksView = () => {
   return (
     <Box
       style={[
-        styles.safeArea,
+        localStyles.safeArea,
         { paddingTop: insets.top, backgroundColor: colors.background.default },
       ]}
       twClassName="flex-1 bg-default"
@@ -68,8 +141,7 @@ const MoneyHowItWorksView = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        paddingVertical={2}
-        twClassName="px-2"
+        twClassName="px-1 py-2"
       >
         <ButtonIcon
           iconName={IconName.ArrowLeft}
@@ -78,10 +150,10 @@ const MoneyHowItWorksView = () => {
           accessibilityLabel="Back"
           testID={MoneyHowItWorksViewTestIds.BACK_BUTTON}
         />
-        <Text variant={TextVariant.HeadingSm}>
+        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {strings('money.how_it_works_page.header_title')}
         </Text>
-        <Box style={styles.headerSpacer} />
+        <Box style={localStyles.headerSpacer} />
       </Box>
 
       <ScrollView
@@ -90,76 +162,69 @@ const MoneyHowItWorksView = () => {
       >
         <View
           style={[
-            styles.graphicPlaceholder,
+            localStyles.graphicPlaceholder,
             { backgroundColor: colors.background.alternative },
           ]}
           accessibilityRole="image"
           accessibilityLabel="How it works graphic"
         />
 
-        <Box paddingHorizontal={4} paddingTop={6} paddingBottom={2}>
+        <Box twClassName="px-4 pt-6 pb-3 gap-3">
           <Text
-            variant={TextVariant.HeadingLg}
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
             testID={MoneyHowItWorksViewTestIds.SECTION_TITLE}
           >
             {strings('money.how_it_works_page.section_title')}
           </Text>
-        </Box>
-
-        <Box paddingHorizontal={4} paddingTop={3}>
           <Text
             variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             testID={MoneyHowItWorksViewTestIds.DESCRIPTION_1}
           >
             {strings('money.how_it_works_page.description_1')}
           </Text>
-        </Box>
-
-        <Box paddingHorizontal={4} paddingTop={3} paddingBottom={4}>
           <Text
             variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             testID={MoneyHowItWorksViewTestIds.DESCRIPTION_2}
           >
             {strings('money.how_it_works_page.description_2')}
           </Text>
         </Box>
 
-        <Divider />
+        <Box twClassName="my-5">
+          <Divider />
+        </Box>
 
-        <Box paddingHorizontal={4} paddingBottom={3}>
+        <Box twClassName="pb-3 px-4">
           <Text
-            variant={TextVariant.HeadingLg}
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
             testID={MoneyHowItWorksViewTestIds.FAQ_TITLE}
           >
             {strings('money.how_it_works_page.faq_title')}
           </Text>
         </Box>
 
-        <Box paddingHorizontal={4}>
-          {FAQ_KEYS.map((key, index) => (
-            <React.Fragment key={key}>
-              <Accordion
-                title={strings(`money.how_it_works_page.${key}`)}
-                testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(index + 1)}
-              >
-                <Box paddingHorizontal={4} paddingBottom={3}>
-                  <Text variant={TextVariant.BodyMd}>
-                    {strings('money.how_it_works_page.faq_placeholder_answer')}
-                  </Text>
-                </Box>
-              </Accordion>
-              {index < FAQ_KEYS.length - 1 && (
-                <Box twClassName="h-px bg-border-muted" />
-              )}
-            </React.Fragment>
-          ))}
-        </Box>
+        {FAQ_KEYS.map((key, index) => (
+          <React.Fragment key={key}>
+            <Divider />
+            <FaqItem
+              question={strings(`money.how_it_works_page.${key}`)}
+              answer={strings('money.how_it_works_page.faq_placeholder_answer')}
+              testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(index + 1)}
+            />
+          </React.Fragment>
+        ))}
+        <Divider />
       </ScrollView>
 
-      <Box paddingHorizontal={4} style={{ paddingBottom: insets.bottom + 16 }}>
+      <Box twClassName="px-4" style={{ paddingBottom: insets.bottom + 16 }}>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
+          isFullWidth
           onPress={handleSoundsGoodPress}
           testID={MoneyHowItWorksViewTestIds.SOUNDS_GOOD_BUTTON}
         >
