@@ -1,7 +1,7 @@
 import {
   ChompApiService,
   type ChompApiServiceMessenger,
-} from '@metamask-previews/chomp-api-service';
+} from '@metamask/chomp-api-service';
 import type { MessengerClientInitFunction } from '../types';
 import type { ChompApiServiceInitMessenger } from '../messengers/chomp-api-service-messenger';
 import type { ChompApiConfig } from '../../../selectors/featureFlagController/chompApi';

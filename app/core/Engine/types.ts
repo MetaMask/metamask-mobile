@@ -462,7 +462,7 @@ import {
   ChompApiService,
   ChompApiServiceActions,
   type ChompApiServiceEvents,
-} from '@metamask-previews/chomp-api-service';
+} from '@metamask/chomp-api-service';
 import { captureException } from '@sentry/react-native';
 
 /**
