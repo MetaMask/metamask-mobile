@@ -501,16 +501,4 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   );
 };
 
-export const TokenSelectorItem = React.memo(
-  TokenSelectorItemInner,
-  (prev, next) =>
-    prev.onPress === next.onPress &&
-    prev.token.address === next.token.address &&
-    prev.token.chainId === next.token.chainId &&
-    prev.token.balance === next.token.balance &&
-    prev.token.balanceFiat === next.token.balanceFiat &&
-    prev.isSelected === next.isSelected &&
-    prev.isNoFeeAsset === next.isNoFeeAsset &&
-    prev.shouldShowBalance === next.shouldShowBalance &&
-    prev.networkName === next.networkName,
-);
+export const TokenSelectorItem = React.memo(TokenSelectorItemInner);
