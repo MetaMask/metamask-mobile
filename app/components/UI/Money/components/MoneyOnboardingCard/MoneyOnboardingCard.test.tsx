@@ -46,22 +46,57 @@ describe('MoneyOnboardingCard', () => {
     ).toHaveTextContent(strings('money.onboarding.description'));
   });
 
-  it('calls onAddPress when Add is tapped', () => {
+  it('calls onCtaPress when CTA is tapped', () => {
+    const mockCta = jest.fn();
+    const { getByTestId } = render(
+      <MoneyOnboardingCard onCtaPress={mockCta} />,
+    );
+
+    fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+
+    expect(mockCta).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to onAddPress when onCtaPress is not provided', () => {
     const mockAdd = jest.fn();
     const { getByTestId } = render(
       <MoneyOnboardingCard onAddPress={mockAdd} />,
     );
 
-    fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.ADD_BUTTON));
+    fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
 
     expect(mockAdd).toHaveBeenCalledTimes(1);
   });
 
-  it('does not throw when Add is tapped without a handler', () => {
+  it('does not throw when CTA is tapped without a handler', () => {
     const { getByTestId } = render(<MoneyOnboardingCard />);
 
     expect(() => {
-      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.ADD_BUTTON));
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
     }).not.toThrow();
+  });
+
+  it('renders step 2 title when currentStep is 2', () => {
+    const { getByTestId } = render(<MoneyOnboardingCard currentStep={2} />);
+
+    expect(getByTestId(MoneyOnboardingCardTestIds.TITLE)).toHaveTextContent(
+      strings('money.onboarding.step2_title'),
+    );
+  });
+
+  it('renders step 2 description when currentStep is 2', () => {
+    const { getByTestId } = render(<MoneyOnboardingCard currentStep={2} />);
+
+    expect(
+      getByTestId(MoneyOnboardingCardTestIds.DESCRIPTION),
+    ).toHaveTextContent(strings('money.onboarding.step2_description'));
+  });
+
+  it('renders step 2 CTA label when currentStep is 2', () => {
+    const { getByTestId } = render(<MoneyOnboardingCard currentStep={2} />);
+
+    expect(
+      getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON),
+    ).toHaveTextContent(strings('money.onboarding.step2_cta'));
   });
 });
