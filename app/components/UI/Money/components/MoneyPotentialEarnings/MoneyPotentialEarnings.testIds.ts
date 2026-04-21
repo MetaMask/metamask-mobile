@@ -1,5 +1,5 @@
 export const MoneyPotentialEarningsTestIds = {
   CONTAINER: 'money-potential-earnings-container',
   AMOUNT: 'money-potential-earnings-amount',
-  SEE_EARNINGS_BUTTON: 'money-potential-earnings-see-earnings-button',
+  VIEW_ALL_BUTTON: 'money-potential-earnings-view-all-button',
 } as const;

@@ -7,20 +7,11 @@ import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import EarnTokenList from '.';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-// Prevent `useMetrics` from triggering async Engine readiness polling (`whenEngineReady`)
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+// Prevent `useAnalytics` from triggering async Engine readiness polling (`whenEngineReady`)
 // which can cause Jest timeouts / "import after environment torn down" errors.
-jest.mock('../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    EARN_TOKEN_LIST_ITEM_CLICKED: 'EARN_TOKEN_LIST_ITEM_CLICKED',
-  },
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: () => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    }),
-  }),
-}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -153,6 +144,8 @@ const mockEarnOutputTokens: EarnTokenDetails[] = [
 describe('EarnTokenList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
 
     jest.spyOn(useStakingEligibilityHook, 'default').mockReturnValue({
       isEligible: true,

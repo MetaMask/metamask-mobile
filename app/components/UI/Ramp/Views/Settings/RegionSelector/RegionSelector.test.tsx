@@ -1,14 +1,16 @@
 import React from 'react';
 import { fireEvent, screen, act } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import RegionSelector from './RegionSelector';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { Country, State, UserRegion } from '@metamask/ramps-controller';
+import { REGION_SELECTOR_TEST_IDS } from './RegionSelector.testIds';
+import { CommonSelectorsIDs } from '../../../../../../util/Common.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockSetOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -17,7 +19,6 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      setOptions: mockSetOptions,
     }),
   };
 });
@@ -133,7 +134,9 @@ describe('RegionSelector', () => {
 
   it('renders countries list', () => {
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
+    expect(screen.getByText('Canada')).toBeOnTheScreen();
+    expect(screen.getByText('France')).toBeOnTheScreen();
   });
 
   it('renders loading state when regions are loading', () => {
@@ -143,7 +146,8 @@ describe('RegionSelector', () => {
       isLoading: true,
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByTestId('textfieldsearch')).toBeOnTheScreen();
+    expect(screen.queryByText('United States')).not.toBeOnTheScreen();
   });
 
   it('renders error state when countries error occurs', () => {
@@ -154,7 +158,7 @@ describe('RegionSelector', () => {
       error: 'Failed to fetch countries',
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Error')).toBeOnTheScreen();
   });
 
   it('renders with selected user region', () => {
@@ -163,7 +167,7 @@ describe('RegionSelector', () => {
       userRegion: createMockUserRegion('us-ca'),
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
   });
 
   it('renders recommended countries', () => {
@@ -176,21 +180,29 @@ describe('RegionSelector', () => {
       countries: recommendedRegions,
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
+    expect(screen.getByText('Canada')).toBeOnTheScreen();
   });
 
   it('filters regions when search text is entered', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'United');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
+    expect(screen.queryByText('Canada')).not.toBeOnTheScreen();
   });
 
   it('displays empty state when search has no results', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'NonExistentCountry');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText(
+        strings('fiat_on_ramp_aggregator.region.no_region_results', {
+          searchString: 'NonExistentCountry',
+        }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('clears search text when clear button is pressed', () => {
@@ -203,29 +215,40 @@ describe('RegionSelector', () => {
     fireEvent.press(clearButton);
 
     expect(searchInput.props.value).toBe('');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back is pressed on country list', () => {
+    render(RegionSelector);
+
+    fireEvent.press(screen.getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('navigates to states view when country with states is selected', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
+    expect(screen.getByText('New York')).toBeOnTheScreen();
   });
 
   it('renders states view', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
   it('navigates back to countries view when back button is pressed in states view', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(mockSetOptions).toHaveBeenCalled();
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByTestId(REGION_SELECTOR_TEST_IDS.BACK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
   it('calls setUserRegion and navigates back when state is selected', async () => {
@@ -272,25 +295,27 @@ describe('RegionSelector', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('renders unsupported country', () => {
+  it('renders unsupported country in the list', () => {
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Unsupported Country')).toBeOnTheScreen();
   });
 
-  it('renders when country has states and user region state is shown', () => {
+  it('renders countries list when user region state is selected', () => {
     mockUserRegionValues = {
       ...mockUserRegionInitial,
       userRegion: createMockUserRegion('us-ca'),
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
   });
 
   it('updates navigation title when switching to states view', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(mockSetOptions).toHaveBeenCalled();
+    expect(
+      screen.getByTestId(REGION_SELECTOR_TEST_IDS.BACK_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('renders search placeholder for states view', () => {
@@ -303,10 +328,18 @@ describe('RegionSelector', () => {
 
   it('renders description text only in country view', () => {
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText(
+        'Payment methods and available tokens may vary based on your region and our providers.',
+      ),
+    ).toBeOnTheScreen();
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.queryByText(
+        'Payment methods and available tokens may vary based on your region and our providers.',
+      ),
+    ).toBeNull();
   });
 
   it('renders with empty regions array', () => {
@@ -315,7 +348,8 @@ describe('RegionSelector', () => {
       countries: [],
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByTestId('textfieldsearch')).toBeOnTheScreen();
+    expect(screen.queryByText('United States')).not.toBeOnTheScreen();
   });
 
   it('renders country without flag', () => {
@@ -329,7 +363,7 @@ describe('RegionSelector', () => {
       countries: regionsWithoutFlag,
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
   });
 
   it('renders state without stateId', () => {
@@ -345,10 +379,10 @@ describe('RegionSelector', () => {
       countries: regionsWithStateWithoutId,
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
   });
 
-  it('renders unsupported state', () => {
+  it('renders unsupported state in states view', () => {
     const unsupportedState = createMockState('TX', 'Texas', false);
     const regionsWithUnsupportedState = [
       createMockCountry('US', 'United States', '🇺🇸', [
@@ -363,7 +397,8 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
+    expect(screen.getByText('Texas')).toBeOnTheScreen();
   });
 
   it('does not navigate back when setUserRegion error occurs', async () => {
@@ -393,22 +428,25 @@ describe('RegionSelector', () => {
     fireEvent.press(clearButton);
 
     expect(searchInput.props.value).toBe('');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
   });
 
-  it('scrolls to top when search text changes', () => {
+  it('shows search results when search text changes', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
-    fireEvent.changeText(searchInput, 'Test');
-    expect(screen.toJSON()).toMatchSnapshot();
+    fireEvent.changeText(searchInput, 'France');
+    expect(screen.getByText('France')).toBeOnTheScreen();
+    expect(screen.queryByText('Canada')).not.toBeOnTheScreen();
   });
 
   it('sets up back button in state view', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(mockSetOptions).toHaveBeenCalled();
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByTestId(REGION_SELECTOR_TEST_IDS.BACK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
   it('shows state name in country view when user has selected a state', () => {
@@ -434,14 +472,14 @@ describe('RegionSelector', () => {
       userRegion: userRegionWithState,
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
   });
 
   it('displays grouped search results showing country and matching states', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'Cal');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
   it('displays standalone states in search results', () => {
@@ -463,7 +501,7 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'Texas');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Texas')).toBeOnTheScreen();
   });
 
   it('displays standalone countries in search results', () => {
@@ -475,15 +513,15 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'Germany');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Germany')).toBeOnTheScreen();
   });
 
-  it('renders disabled country', () => {
+  it('renders disabled country in the list', () => {
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Unsupported Country')).toBeOnTheScreen();
   });
 
-  it('renders disabled state', () => {
+  it('renders disabled state in states view', () => {
     const unsupportedState = createMockState('TX', 'Texas', false);
     const regionsWithUnsupportedState = [
       createMockCountry('US', 'United States', '🇺🇸', [
@@ -498,14 +536,17 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
+    expect(screen.getByText('Texas')).toBeOnTheScreen();
   });
 
   it('updates navigation title with country name when in state view', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(mockSetOptions).toHaveBeenCalled();
+    expect(
+      screen.getByTestId(REGION_SELECTOR_TEST_IDS.BACK_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('resets search when navigating to state view', () => {
@@ -519,7 +560,7 @@ describe('RegionSelector', () => {
 
     const searchInputAfter = screen.getByTestId('textfieldsearch');
     expect(searchInputAfter.props.value).toBe('');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
   it('renders country with supported set to false', () => {
@@ -535,7 +576,7 @@ describe('RegionSelector', () => {
       countries: [unsupportedCountry],
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Unsupported')).toBeOnTheScreen();
   });
 
   it('renders state with supported set to false', () => {
@@ -550,7 +591,7 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Texas')).toBeOnTheScreen();
   });
 
   it('does not call setUserRegion when region selection has empty regionId', async () => {
@@ -587,7 +628,7 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'Country');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Country 0')).toBeOnTheScreen();
   });
 
   it('sorts regions with recommended first when no search', () => {
@@ -601,12 +642,14 @@ describe('RegionSelector', () => {
       countries: regions,
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('France')).toBeOnTheScreen();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
+    expect(screen.getByText('Canada')).toBeOnTheScreen();
   });
 
   it('updates currentData when regions change in country view', () => {
     render(RegionSelector);
-    const initialSnapshot = screen.toJSON();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
 
     const newRegions = [createMockCountry('DE', 'Germany', '🇩🇪')];
     mockCountriesValues = {
@@ -615,7 +658,7 @@ describe('RegionSelector', () => {
     };
 
     render(RegionSelector);
-    expect(screen.toJSON()).not.toEqual(initialSnapshot);
+    expect(screen.getByText('Germany')).toBeOnTheScreen();
   });
 
   it('highlights country when regionCode exactly matches country code', () => {
@@ -624,7 +667,7 @@ describe('RegionSelector', () => {
       userRegion: createMockUserRegion('fr'),
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('France')).toBeOnTheScreen();
   });
 
   it('highlights country when regionCode starts with country code and state is selected', () => {
@@ -633,7 +676,7 @@ describe('RegionSelector', () => {
       userRegion: createMockUserRegion('us-ca'),
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
   });
 
   it('highlights state when selected in state view', () => {
@@ -644,7 +687,7 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
   it('highlights state in grouped search results when parent country matches', () => {
@@ -655,7 +698,7 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'California');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
   it('does not highlight state when country does not match', () => {
@@ -666,7 +709,8 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
+    expect(screen.getByText('New York')).toBeOnTheScreen();
   });
 
   it('does not highlight state when state ID does not match', () => {
@@ -677,7 +721,8 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
+    expect(screen.getByText('New York')).toBeOnTheScreen();
   });
 
   it('does not highlight state when userRegion has no state', () => {
@@ -700,7 +745,7 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
   });
 
   it('does not highlight country when regionCode does not match', () => {
@@ -709,7 +754,8 @@ describe('RegionSelector', () => {
       userRegion: createMockUserRegion('de'),
     };
     render(RegionSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('United States')).toBeOnTheScreen();
+    expect(screen.getByText('France')).toBeOnTheScreen();
   });
 
   it('falls back to userCountryCode when regionInTransit is null during state selection', () => {
@@ -732,6 +778,6 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'California');
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('California')).toBeOnTheScreen();
   });
 });

@@ -11,9 +11,18 @@ import {
   calculateNetAmount,
   formatPriceWithSubscriptNotation,
   formatGameStartTime,
+  formatMarketEndDate,
   formatPredictUnrealizedPnLStringParts,
+  getCashoutInfoText,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn(
+    (key: string, params?: Record<string, string>) =>
+      `${key}:${JSON.stringify(params)}`,
+  ),
+}));
 
 // Mock Dimensions from react-native
 const mockDimensionsGet = jest.fn(() => ({
@@ -1390,6 +1399,33 @@ describe('format utils', () => {
     });
   });
 
+  describe('formatMarketEndDate', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('formats valid ISO date string to readable format', () => {
+      jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        () =>
+          ({
+            format: () => 'April 9, 1:45 PM',
+            formatToParts: () => [],
+            resolvedOptions: () => ({}),
+          }) as unknown as Intl.DateTimeFormat,
+      );
+
+      const result = formatMarketEndDate('2026-04-09T19:45:00Z');
+
+      expect(result).toBe('April 9, 1:45 PM');
+    });
+
+    it('returns empty string for an unparseable date string', () => {
+      const result = formatMarketEndDate('not-a-date');
+
+      expect(result).toBe('');
+    });
+  });
+
   describe('calculateNetAmount', () => {
     it('calculates net amount by subtracting fees from total', () => {
       const params = {
@@ -2296,5 +2332,44 @@ describe('format utils', () => {
         expect(result).toEqual(expected);
       },
     );
+  });
+
+  describe('getCashoutInfoText', () => {
+    it('returns cashout_info string when outcomeGroupTitle is empty', () => {
+      const result = getCashoutInfoText({
+        initialValue: 5,
+        avgPrice: 0.5,
+        outcomeSideText: 'Yes',
+        outcomeGroupTitle: '',
+      });
+
+      expect(result).toContain('predict.cashout_info:');
+      expect(result).toContain('"outcome":"Yes"');
+    });
+
+    it('returns cashout_info_multiple string when outcomeGroupTitle is provided', () => {
+      const result = getCashoutInfoText({
+        initialValue: 10,
+        avgPrice: 0.75,
+        outcomeSideText: 'No',
+        outcomeGroupTitle: 'Arsenal',
+      });
+
+      expect(result).toContain('predict.cashout_info_multiple:');
+      expect(result).toContain('"outcomeGroupTitle":"Arsenal"');
+      expect(result).toContain('"outcome":"No"');
+    });
+
+    it('formats initialValue and avgPrice into the params', () => {
+      const result = getCashoutInfoText({
+        initialValue: 25.5,
+        avgPrice: 0.33,
+        outcomeSideText: 'Yes',
+        outcomeGroupTitle: '',
+      });
+
+      expect(result).toContain('"amount":"$25.50"');
+      expect(result).toContain('"initialPrice":"33¢"');
+    });
   });
 });

@@ -17,7 +17,6 @@ import {
 } from '@metamask/design-system-react-native';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import { Hex } from '@metamask/utils';
-import { BigNumber } from 'bignumber.js';
 
 import Badge, {
   BadgeVariant,
@@ -54,12 +53,7 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
   );
 
   return (
-    <BottomSheet
-      shouldNavigateBack={false}
-      onClose={onClose}
-      goBack={onClose}
-      ref={sheetRef}
-    >
+    <BottomSheet onClose={onClose} ref={sheetRef}>
       <BottomSheetHeader
         onClose={() => sheetRef.current?.onCloseBottomSheet(onClose)}
       >
@@ -93,12 +87,7 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
             />
           </BadgeWrapper>
           <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-            {` ${pendingPicker.row.tokenSymbol} ${pendingPicker.entries
-              .reduce(
-                (sum, e) => sum.plus(new BigNumber(e.balance)),
-                new BigNumber(0),
-              )
-              .toFixed(2)}`}
+            {` ${pendingPicker.row.tokenSymbol}`}
           </Text>
         </Box>
       </BottomSheetHeader>

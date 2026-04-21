@@ -93,6 +93,7 @@ jest.mock('./utils', () => {
       GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+      CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
     })),
     getParsedMarketsFromPolymarketApi: jest.fn(),
     fetchCarouselFromPolymarketApi: jest.fn(),
@@ -186,6 +187,7 @@ jest.mock('./TeamsCache', () => ({
 const mockWebSocketManagerInstance = {
   subscribeToGame: jest.fn(),
   subscribeToMarketPrices: jest.fn(),
+  subscribeToCryptoPrices: jest.fn(),
   getConnectionStatus: jest.fn(),
   disconnect: jest.fn(),
   cleanup: jest.fn(),
@@ -252,6 +254,7 @@ describe('PolymarketProvider', () => {
   const defaultFeatureFlags: PredictFeatureFlags = {
     feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
     liveSportsLeagues: [],
+    extendedSportsMarketsLeagues: [],
     marketHighlightsFlag: {
       enabled: false,
       highlights: [],
@@ -1113,8 +1116,8 @@ describe('PolymarketProvider', () => {
       expect(result).toMatchObject({
         success: true,
         response: expect.any(Object),
-        error: undefined,
       });
+      expect(result).not.toHaveProperty('error');
     });
 
     it('successfully places a sell order and returns correct result', async () => {
@@ -1134,8 +1137,8 @@ describe('PolymarketProvider', () => {
       expect(result).toMatchObject({
         success: true,
         response: expect.any(Object),
-        error: undefined,
       });
+      expect(result).not.toHaveProperty('error');
     });
 
     it('handles order submission failure', async () => {
@@ -3778,6 +3781,101 @@ describe('PolymarketProvider', () => {
       const result = await provider.getPriceHistory({ marketId: 'market-1' });
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getCryptoTargetPrice', () => {
+    beforeEach(() => {
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns openPrice on successful fetch', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          openPrice: 82615.22,
+          closePrice: 82352.85,
+          timestamp: 1700000000000,
+          completed: true,
+          incomplete: false,
+          cached: false,
+        }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'up',
+        endDate: '2025-01-02',
+      });
+
+      expect(result).toBe(82615.22);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'polymarket.com/api/crypto/crypto-price?symbol=BTC',
+        ),
+      );
+    });
+
+    it('returns null when API returns non-ok response', async () => {
+      const provider = createProvider();
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+      });
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'up',
+        endDate: '2025-01-02',
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when response has unexpected shape', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ value: 'not-a-number' }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'up',
+        endDate: '2025-01-02',
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it('encodes query parameters in the URL', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 100 }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      await provider.getCryptoTargetPrice({
+        symbol: 'ETH/USD',
+        eventStartTime: '2025-01-01 00:00:00',
+        variant: 'up',
+        endDate: '2025-01-02',
+      });
+
+      const calledUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(calledUrl).toContain('symbol=ETH%2FUSD');
+      expect(calledUrl).toContain('eventStartTime=2025-01-01%2000%3A00%3A00');
     });
   });
 
@@ -7788,14 +7886,54 @@ describe('PolymarketProvider', () => {
       });
     });
 
+    describe('subscribeToCryptoPrices', () => {
+      it('delegates to WebSocketManager.subscribeToCryptoPrices', () => {
+        const provider = createProvider();
+        const mockCallback = jest.fn();
+        const mockUnsubscribeCrypto = jest.fn();
+        mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
+          mockUnsubscribeCrypto,
+        );
+
+        const unsubscribe = provider.subscribeToCryptoPrices(
+          ['btcusdt', 'ethusdt'],
+          mockCallback,
+        );
+
+        expect(
+          mockWebSocketManagerInstance.subscribeToCryptoPrices,
+        ).toHaveBeenCalledWith(['btcusdt', 'ethusdt'], mockCallback);
+        expect(unsubscribe).toBe(mockUnsubscribeCrypto);
+      });
+
+      it('returns unsubscribe function from WebSocketManager', () => {
+        const provider = createProvider();
+        const mockUnsubscribeCrypto = jest.fn();
+        mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
+          mockUnsubscribeCrypto,
+        );
+
+        const unsubscribe = provider.subscribeToCryptoPrices(
+          ['btcusdt'],
+          jest.fn(),
+        );
+
+        unsubscribe();
+
+        expect(mockUnsubscribeCrypto).toHaveBeenCalled();
+      });
+    });
+
     describe('getConnectionStatus', () => {
       it('returns connection status from WebSocketManager', () => {
         const provider = createProvider();
         mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
           sportsConnected: true,
           marketConnected: false,
+          rtdsConnected: false,
           gameSubscriptionCount: 5,
           priceSubscriptionCount: 10,
+          cryptoPriceSubscriptionCount: 0,
         });
 
         const status = provider.getConnectionStatus();
@@ -7803,6 +7941,7 @@ describe('PolymarketProvider', () => {
         expect(status).toEqual({
           sportsConnected: true,
           marketConnected: false,
+          rtdsConnected: false,
         });
       });
 
@@ -7811,8 +7950,10 @@ describe('PolymarketProvider', () => {
         mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
           sportsConnected: false,
           marketConnected: true,
+          rtdsConnected: true,
           gameSubscriptionCount: 0,
           priceSubscriptionCount: 3,
+          cryptoPriceSubscriptionCount: 1,
         });
 
         const status = provider.getConnectionStatus();
@@ -7822,6 +7963,7 @@ describe('PolymarketProvider', () => {
         expect(Object.keys(status)).toEqual([
           'sportsConnected',
           'marketConnected',
+          'rtdsConnected',
         ]);
       });
     });
@@ -8026,6 +8168,124 @@ describe('PolymarketProvider', () => {
       const requestUrl = new URL((global.fetch as jest.Mock).mock.calls[0][0]);
 
       expect(requestUrl.searchParams.get('limit')).toBe('50');
+    });
+  });
+
+  describe('extendedSportsMarketsLeagues pass-through', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('getMarkets passes extendedSportsMarketsLeagues to parsePolymarketEvents', async () => {
+      const leagues = ['nfl', 'nba'];
+      const provider = createProvider({
+        liveSportsLeagues: ['nfl'],
+        extendedSportsMarketsLeagues: leagues,
+      });
+      mockFetchEventsFromPolymarketApi.mockResolvedValue({
+        events: [{ id: 'event-1' }],
+        category: 'trending',
+        isSearch: false,
+      });
+      mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarkets();
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extendedSportsMarketsLeagues: leagues }),
+      );
+    });
+
+    it('getMarkets passes empty extendedSportsMarketsLeagues when flag has no leagues', async () => {
+      const provider = createProvider();
+      mockFetchEventsFromPolymarketApi.mockResolvedValue({
+        events: [{ id: 'event-1' }],
+        category: 'trending',
+        isSearch: false,
+      });
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarkets();
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extendedSportsMarketsLeagues: [] }),
+      );
+    });
+
+    it('getMarketDetails passes extendedSportsMarketsLeagues to parsePolymarketEvents', async () => {
+      const leagues = ['nfl'];
+      const provider = createProvider({
+        liveSportsLeagues: ['nfl'],
+        extendedSportsMarketsLeagues: leagues,
+      });
+      const mockEvent = { id: 'market-1', question: 'Test?' };
+      mockIsLiveSportsEvent.mockReturnValue(true);
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+      mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+      mockParsePolymarketEvents.mockReturnValue([
+        { id: 'market-1', title: 'Test' },
+      ]);
+
+      await provider.getMarketDetails({ marketId: 'market-1' });
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        [mockEvent],
+        expect.objectContaining({ extendedSportsMarketsLeagues: leagues }),
+      );
+    });
+
+    it('getMarketSeries passes extendedSportsMarketsLeagues to parsePolymarketEvents', async () => {
+      const leagues = ['nfl', 'nba'];
+      const provider = createProvider({
+        liveSportsLeagues: ['nfl'],
+        extendedSportsMarketsLeagues: leagues,
+      });
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([{ id: 'event-1' }]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extendedSportsMarketsLeagues: leagues }),
+      );
+    });
+
+    it('getCarouselMarkets passes extendedSportsMarketsLeagues to parsePolymarketEvents', async () => {
+      const leagues = ['nfl'];
+      const provider = createProvider({
+        liveSportsLeagues: ['nfl'],
+        extendedSportsMarketsLeagues: leagues,
+      });
+      mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+        { event: { id: 'event-1' } },
+      ]);
+      mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getCarouselMarkets();
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extendedSportsMarketsLeagues: leagues }),
+      );
     });
   });
 });

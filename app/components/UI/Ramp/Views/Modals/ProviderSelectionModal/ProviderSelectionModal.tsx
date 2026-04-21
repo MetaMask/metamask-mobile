@@ -3,9 +3,10 @@ import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
 import { useSelector } from 'react-redux';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import {
   createNavigationDetails,
@@ -16,6 +17,7 @@ import ProviderSelection from './ProviderSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
@@ -111,6 +113,7 @@ function ProviderSelectionModal() {
             amount,
             walletAddress,
             assetId,
+            redirectUrl: getRampCallbackBaseUrl(),
             providers: providerIds,
             paymentMethods: [selectedPaymentMethod.id],
           }
@@ -171,7 +174,11 @@ function ProviderSelectionModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack onClose={handleDismiss}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      onClose={handleDismiss}
+    >
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}

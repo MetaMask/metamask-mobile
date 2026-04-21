@@ -16,8 +16,8 @@ import {
 } from './metrics';
 import { TransactionEventHandlerRequest } from '../types';
 import { enabledSmartTransactionsState } from '../data-helpers';
-import { selectIsPna25FlagEnabled } from '../../../../../selectors/featureFlagController/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
+import { registerPendingTransactionActiveAbTestsForTransactionIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
@@ -31,13 +31,6 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/legalNotices',
-  () => ({
-    selectIsPna25FlagEnabled: jest.fn().mockReturnValue(false),
-  }),
-);
-
 jest.mock('../../../../../selectors/legalNotices', () => ({
   selectIsPna25Acknowledged: jest.fn().mockReturnValue(false),
 }));
@@ -50,6 +43,18 @@ jest.mock('../../../../Analytics/MetricsEventBuilder', () => ({
 }));
 
 jest.mock('../../../../../util/analytics/AnalyticsEventBuilder');
+
+jest.mock(
+  '../../../../../util/transactions/transaction-active-ab-test-attribution-registry',
+  () => ({
+    ...jest.requireActual<
+      typeof import('../../../../../util/transactions/transaction-active-ab-test-attribution-registry')
+    >(
+      '../../../../../util/transactions/transaction-active-ab-test-attribution-registry',
+    ),
+    registerPendingTransactionActiveAbTestsForTransactionIds: jest.fn(),
+  }),
+);
 
 jest.mock('../../../Engine', () => ({
   context: {},
@@ -92,7 +97,6 @@ describe('Transaction Metric Event Handlers', () => {
     getSmartTransactionMetricsProperties,
   );
   const mockGetStxMetricsProperties = jest.mocked(getStxMetricsProperties);
-  const mockSelectIsPna25FlagEnabled = jest.mocked(selectIsPna25FlagEnabled);
   const mockSelectIsPna25Acknowledged = jest.mocked(selectIsPna25Acknowledged);
 
   const mockTransactionMeta = {
@@ -205,6 +209,29 @@ describe('Transaction Metric Event Handlers', () => {
       );
     },
   );
+
+  it('registers pending transaction A/B tests before TRANSACTION_ADDED metric builders run', async () => {
+    const mockRegisterPending = jest.mocked(
+      registerPendingTransactionActiveAbTestsForTransactionIds,
+    );
+    await handleTransactionAddedEventForMetrics(
+      mockTransactionMeta,
+      mockTransactionMetricRequest,
+    );
+    expect(mockRegisterPending).toHaveBeenCalledWith([mockTransactionMeta.id]);
+  });
+
+  it('does not register pending transaction A/B tests for TRANSACTION_APPROVED', async () => {
+    const mockRegisterPending = jest.mocked(
+      registerPendingTransactionActiveAbTestsForTransactionIds,
+    );
+    mockRegisterPending.mockClear();
+    await handleTransactionApprovedEventForMetrics(
+      mockTransactionMeta,
+      mockTransactionMetricRequest,
+    );
+    expect(mockRegisterPending).not.toHaveBeenCalled();
+  });
 
   it('handles missing transaction metrics properties', async () => {
     mockGetState.mockReturnValueOnce({
@@ -457,8 +484,7 @@ describe('Transaction Metric Event Handlers', () => {
     });
 
     describe('hash property', () => {
-      it('included when extensionUxPna25 is enabled and pna25 is acknowledged', async () => {
-        mockSelectIsPna25FlagEnabled.mockReturnValue(true);
+      it('included when pna25 is acknowledged', async () => {
         mockSelectIsPna25Acknowledged.mockReturnValue(true);
 
         await handleTransactionFinalizedEventForMetrics(
@@ -473,41 +499,19 @@ describe('Transaction Metric Event Handlers', () => {
         );
       });
 
-      describe('not included', () => {
-        it('extensionUxPna25 flag is disabled', async () => {
-          mockSelectIsPna25FlagEnabled.mockReturnValue(false);
-          mockSelectIsPna25Acknowledged.mockReturnValue(true);
+      it('not included when pna25 is not acknowledged', async () => {
+        mockSelectIsPna25Acknowledged.mockReturnValue(false);
 
-          await handleTransactionFinalizedEventForMetrics(
-            mockTransactionMeta,
-            mockTransactionMetricRequest,
-          );
+        await handleTransactionFinalizedEventForMetrics(
+          mockTransactionMeta,
+          mockTransactionMetricRequest,
+        );
 
-          expect(
-            mockMetricsEventBuilder.addProperties,
-          ).not.toHaveBeenCalledWith(
-            expect.objectContaining({
-              transaction_hash: mockTransactionMeta.hash,
-            }),
-          );
-        });
-        it('pna25 is not acknowledged', async () => {
-          mockSelectIsPna25FlagEnabled.mockReturnValue(true);
-          mockSelectIsPna25Acknowledged.mockReturnValue(false);
-
-          await handleTransactionFinalizedEventForMetrics(
-            mockTransactionMeta,
-            mockTransactionMetricRequest,
-          );
-
-          expect(
-            mockMetricsEventBuilder.addProperties,
-          ).not.toHaveBeenCalledWith(
-            expect.objectContaining({
-              transaction_hash: mockTransactionMeta.hash,
-            }),
-          );
-        });
+        expect(mockMetricsEventBuilder.addProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            transaction_hash: mockTransactionMeta.hash,
+          }),
+        );
       });
     });
   });

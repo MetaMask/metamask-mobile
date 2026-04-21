@@ -33,8 +33,8 @@ import { getTransactionById } from '../../../../util/transactions';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
-  ControllerInitFunction,
-  ControllerInitRequest,
+  MessengerClientInitFunction,
+  MessengerClientInitRequest,
 } from '../../types';
 import AppConstants from '../../../../core/AppConstants';
 import type { TransactionEventHandlerRequest } from './types';
@@ -68,7 +68,7 @@ const TRANSACTION_SUBMISSION_METHOD = {
   SENTINEL_RELAY: 'sentinel_relay',
 } as const;
 
-export const TransactionControllerInit: ControllerInitFunction<
+export const TransactionControllerInit: MessengerClientInitFunction<
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
@@ -424,17 +424,17 @@ function isFirstTimeInteractionEnabled(
 }
 
 function getControllers(
-  request: ControllerInitRequest<
+  request: MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
 ) {
   return {
-    gasFeeController: request.getController('GasFeeController'),
-    keyringController: request.getController('KeyringController'),
-    networkController: request.getController('NetworkController'),
-    preferencesController: request.getController('PreferencesController'),
-    smartTransactionsController: request.getController(
+    gasFeeController: request.getMessengerClient('GasFeeController'),
+    keyringController: request.getMessengerClient('KeyringController'),
+    networkController: request.getMessengerClient('NetworkController'),
+    preferencesController: request.getMessengerClient('PreferencesController'),
+    smartTransactionsController: request.getMessengerClient(
       'SmartTransactionsController',
     ),
   };
@@ -442,12 +442,12 @@ function getControllers(
 
 function beforeSign(
   hookRequest: { transactionMeta: TransactionMeta },
-  request: ControllerInitRequest<
+  request: MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
 ) {
-  const predictController = request.getController('PredictController');
+  const predictController = request.getMessengerClient('PredictController');
   return predictController.beforeSign(hookRequest);
 }
 

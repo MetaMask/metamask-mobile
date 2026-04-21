@@ -4,6 +4,12 @@ import TronStakingLearnMoreModal from '.';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../../../util/test/analyticsMock';
+import { TRON_STAKING_FAQ_URL } from '../../../../../../constants/urls';
 
 const mockNavigate = jest.fn();
 
@@ -18,29 +24,9 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
-}));
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
-
-// LearnMoreModalFooter (child component) still uses useMetrics - mock it
-jest.mock('../../../../../hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../../../../../core/Analytics');
-  return {
-    ...actual,
-    useMetrics: () => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    }),
-  };
-});
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
@@ -102,8 +88,15 @@ const renderModal = () =>
   );
 
 describe('TronStakingLearnMoreModal', () => {
+  let mockHook: ReturnType<typeof createMockUseAnalyticsHook>;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHook = createMockUseAnalyticsHook({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
+    jest.mocked(useAnalytics).mockReturnValue(mockHook);
     mockUseTronStakeApy.mockReturnValue({
       fetchStatus: 'fetched',
       apyPercent: '4.5%',
@@ -193,7 +186,7 @@ describe('TronStakingLearnMoreModal', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/metamask-portfolio/move-crypto/stake/',
+          url: TRON_STAKING_FAQ_URL,
         },
       });
     });

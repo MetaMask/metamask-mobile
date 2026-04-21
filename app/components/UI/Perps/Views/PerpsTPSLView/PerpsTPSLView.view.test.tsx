@@ -9,7 +9,7 @@ import { renderPerpsTPSLView } from '../../../../../../tests/component-view/rend
 import { PerpsTPSLViewSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsTPSLView', () => {
-  it('renders back button and bottom sheet when params are provided', async () => {
+  it('renders back button, TPSL screen container, and Set button when params are provided', async () => {
     renderPerpsTPSLView();
 
     expect(
@@ -22,6 +22,13 @@ describe('PerpsTPSLView', () => {
     expect(
       await screen.findByTestId(
         PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET,
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
         {},
         { timeout: 5000 },
       ),
