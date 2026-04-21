@@ -21,6 +21,7 @@ import { formatOrderLabel } from './orderUtils';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { calcTokenAmount } from '../../../../util/transactions';
+import { hasPerpsDepositTransactionType } from '../../../../util/transactions/metamask-pay';
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 
 /**
@@ -659,20 +660,16 @@ const WALLET_STATUS_TO_DEPOSIT_STATUS: Record<
 };
 
 /**
- * Transform wallet TransactionMeta (perpsDeposit / perpsDepositAndOrder) to PerpsTransaction format.
+ * Transform wallet perps deposit TransactionMeta variants to PerpsTransaction format.
  * Ensures wallet-originated perps deposits appear in the Perps activity Deposits tab.
- * @param transactions - Array of TransactionMeta with type perpsDeposit or perpsDepositAndOrder
+ * @param transactions - Array of TransactionMeta containing perps deposit variants
  * @returns Array of PerpsTransaction objects with type 'deposit'
  */
 export function transformWalletPerpsDepositsToTransactions(
   transactions: TransactionMeta[],
 ): PerpsTransaction[] {
   return transactions
-    .filter(
-      (tx) =>
-        tx.type === TransactionType.perpsDeposit ||
-        tx.type === TransactionType.perpsDepositAndOrder,
-    )
+    .filter((tx) => hasPerpsDepositTransactionType(tx))
     .map((tx) => {
       const tokenData = getTokenTransferData(tx);
       const decoded = tokenData?.data

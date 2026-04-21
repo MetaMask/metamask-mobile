@@ -21,7 +21,10 @@ import {
 } from '../types/transactionHistory';
 
 jest.mock('../../../Views/confirmations/utils/transaction-pay');
-jest.mock('../../../Views/confirmations/utils/transaction');
+jest.mock('../../../Views/confirmations/utils/transaction', () => ({
+  ...jest.requireActual('../../../Views/confirmations/utils/transaction'),
+  parseStandardTokenTransactionData: jest.fn(),
+}));
 jest.mock('../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../util/transactions'),
   calcTokenAmount: jest.fn((value: string) => (Number(value) / 1e6).toString()),
@@ -1852,20 +1855,30 @@ describe('transactionTransforms', () => {
       } as unknown as ReturnType<typeof parseStandardTokenTransactionData>);
     });
 
-    it('transforms all provided transactions (filtering is done by the hook)', () => {
+    it('transforms all provided perps deposit variants', () => {
       const txs = [
         createMockTx({ type: TransactionType.perpsDeposit }),
         createMockTx({
           id: 'tx-2',
           type: TransactionType.perpsDepositAndOrder,
         }),
+        createMockTx({
+          id: 'tx-3',
+          type: TransactionType.perpsRelayDeposit,
+        }),
+        createMockTx({
+          id: 'tx-4',
+          type: TransactionType.perpsAcrossDeposit,
+        }),
       ];
 
       const result = transformWalletPerpsDepositsToTransactions(txs as never);
 
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(4);
       expect(result[0].id).toBe('wallet-deposit-tx-1');
       expect(result[1].id).toBe('wallet-deposit-tx-2');
+      expect(result[2].id).toBe('wallet-deposit-tx-3');
+      expect(result[3].id).toBe('wallet-deposit-tx-4');
     });
 
     it('returns deposit PerpsTransaction with amount and Completed status', () => {
