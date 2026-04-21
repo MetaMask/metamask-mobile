@@ -3,7 +3,7 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { ChompApiServiceMessenger } from '@metamask-previews/chomp-api-service';
+import type { ChompApiServiceMessenger } from '@metamask/chomp-api-service';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { RootMessenger } from '../types';
 

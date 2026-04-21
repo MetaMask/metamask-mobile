@@ -174,7 +174,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/chomp-api-service": "npm:@metamask-previews/chomp-api-service@0.0.0-preview-9fac52d",
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
@@ -232,7 +231,6 @@
     "@lavamoat/react-native-lockdown": "^0.0.2",
     "@ledgerhq/hw-app-eth": "^6.42.0",
     "@ledgerhq/react-native-hw-transport-ble": "^6.37.0",
-    "@metamask-previews/chomp-api-service": "0.0.0-preview-9fac52d",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^1.0.4",
     "@metamask/account-tree-controller": "^7.2.0",
@@ -250,6 +248,7 @@
     "@metamask/bridge-controller": "^71.0.0",
     "@metamask/bridge-status-controller": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch",
     "@metamask/chain-agnostic-permission": "^1.5.0",
+    "@metamask/chomp-api-service": "1.0.0",
     "@metamask/client-controller": "^1.0.1",
     "@metamask/compliance-controller": "2.0.0",
     "@metamask/connectivity-controller": "^0.1.0",

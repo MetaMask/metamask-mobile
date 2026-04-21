@@ -13,7 +13,7 @@ import {
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 import Engine from '../../../../core/Engine';
-import type { ChompApiService as ChompApiServiceType } from '@metamask-previews/chomp-api-service';
+import type { ChompApiService as ChompApiServiceType } from '@metamask/chomp-api-service';
 import AppConstants from '../../../../core/AppConstants';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';

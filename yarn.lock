@@ -7714,20 +7714,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/chomp-api-service@npm:0.0.0-preview-9fac52d":
-  version: 0.0.0-preview-9fac52d
-  resolution: "@metamask-previews/chomp-api-service@npm:0.0.0-preview-9fac52d"
-  dependencies:
-    "@metamask/base-data-service": "npm:^0.1.1"
-    "@metamask/controller-utils": "npm:^11.20.0"
-    "@metamask/messenger": "npm:^1.1.1"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-    "@tanstack/query-core": "npm:^4.43.0"
-  checksum: 10/edc38b4bc70122b0db916baf78bb9ed2b73e9710221630b3773ab141cf42e5e6abdab6ba9a61888684d3982a722ee15e2804c4b2ea2f79c3b68a4dd0a5eaa8a0
-  languageName: node
-  linkType: hard
-
 "@metamask/7715-permission-types@npm:^0.5.0":
   version: 0.5.0
   resolution: "@metamask/7715-permission-types@npm:0.5.0"
@@ -8211,6 +8197,20 @@ __metadata:
     "@metamask/utils": "npm:^11.9.0"
     lodash: "npm:^4.17.21"
   checksum: 10/d9d7f912d911623bbbec7952ef8f5d882d7d79bca75915dfa7366a6abc22a2b7bd22c267f84a6c5c628a6fd484d69aecfa1a95d6840ca2ccfd5ff5f247f0bb8b
+  languageName: node
+  linkType: hard
+
+"@metamask/chomp-api-service@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/chomp-api-service@npm:1.0.0"
+  dependencies:
+    "@metamask/base-data-service": "npm:^0.1.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+    "@tanstack/query-core": "npm:^4.43.0"
+  checksum: 10/dcf3edb5766a0793df3b1426aff99327095d7cbaf0b6a57ffa3ea11e5b168e9e1be508be7e245e10de0b26cfc0d9e4d646533737dbffb41f5e3b5896515310d3
   languageName: node
   linkType: hard
 
@@ -35632,7 +35632,6 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
-    "@metamask-previews/chomp-api-service": "npm:0.0.0-preview-9fac52d"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.4"
     "@metamask/account-tree-controller": "npm:^7.2.0"
@@ -35654,6 +35653,7 @@ __metadata:
     "@metamask/browser-playground": "npm:0.3.0"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.5.0"
+    "@metamask/chomp-api-service": "npm:1.0.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/compliance-controller": "npm:2.0.0"
     "@metamask/connectivity-controller": "npm:^0.1.0"
