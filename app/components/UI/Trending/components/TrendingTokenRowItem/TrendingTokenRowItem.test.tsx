@@ -1729,7 +1729,7 @@ describe('TrendingTokenRowItem', () => {
   });
 
   describe('security badge', () => {
-    it('renders verified badge for verified tokens', () => {
+    it('renders verified icon badge for verified tokens', () => {
       const token = createMockToken({
         securityData: {
           resultType: 'Verified',
@@ -1746,7 +1746,7 @@ describe('TrendingTokenRowItem', () => {
       expect(getByTestId('security-badge-icon')).toBeTruthy();
     });
 
-    it('renders warning badge for warning tokens', () => {
+    it('renders warning badge with label for warning tokens', () => {
       const token = createMockToken({
         securityData: {
           resultType: 'Warning',
@@ -1754,16 +1754,16 @@ describe('TrendingTokenRowItem', () => {
         } as unknown as TrendingAsset['securityData'],
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <TrendingTokenRowItem token={token} />,
         { state: mockState },
         false,
       );
 
-      expect(getByTestId('security-badge-icon')).toBeTruthy();
+      expect(getByText('Risky')).toBeTruthy();
     });
 
-    it('renders danger badge for malicious tokens', () => {
+    it('renders malicious badge with label for malicious tokens', () => {
       const token = createMockToken({
         securityData: {
           resultType: 'Malicious',
@@ -1771,13 +1771,13 @@ describe('TrendingTokenRowItem', () => {
         } as unknown as TrendingAsset['securityData'],
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <TrendingTokenRowItem token={token} />,
         { state: mockState },
         false,
       );
 
-      expect(getByTestId('security-badge-icon')).toBeTruthy();
+      expect(getByText('Malicious')).toBeTruthy();
     });
 
     it('does not render badge for benign tokens', () => {
@@ -1788,13 +1788,15 @@ describe('TrendingTokenRowItem', () => {
         } as unknown as TrendingAsset['securityData'],
       });
 
-      const { queryByTestId } = renderWithProvider(
+      const { queryByTestId, queryByText } = renderWithProvider(
         <TrendingTokenRowItem token={token} />,
         { state: mockState },
         false,
       );
 
       expect(queryByTestId('security-badge-icon')).toBeNull();
+      expect(queryByText('Risky')).toBeNull();
+      expect(queryByText('Malicious')).toBeNull();
     });
 
     it('does not render badge when securityData is undefined', () => {
@@ -1802,13 +1804,15 @@ describe('TrendingTokenRowItem', () => {
         securityData: undefined,
       });
 
-      const { queryByTestId } = renderWithProvider(
+      const { queryByTestId, queryByText } = renderWithProvider(
         <TrendingTokenRowItem token={token} />,
         { state: mockState },
         false,
       );
 
       expect(queryByTestId('security-badge-icon')).toBeNull();
+      expect(queryByText('Risky')).toBeNull();
+      expect(queryByText('Malicious')).toBeNull();
     });
   });
 });
