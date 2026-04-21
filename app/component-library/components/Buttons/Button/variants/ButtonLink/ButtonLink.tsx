@@ -34,7 +34,7 @@ import {
  *
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/TextButton/README.md | TextButton}
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Button/README.md | Button}
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/v34.0.0/packages/design-system-react-native/MIGRATION.md#textbutton-component-buttonlink Migration docs}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#textbutton-component-buttonlink Migration docs}
  */
 const ButtonLink: React.FC<ButtonLinkProps> = ({
   style,
