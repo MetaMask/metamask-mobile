@@ -1,0 +1,2027 @@
+diff --git a/dist/components/ActionListItem/ActionListItem.cjs b/dist/components/ActionListItem/ActionListItem.cjs
+index 65a133f6c9cdd20be650cdc186bac05006780af8..f55101c15e07e8bf2a969190fbe7a4054ea05e65 100644
+--- a/dist/components/ActionListItem/ActionListItem.cjs
++++ b/dist/components/ActionListItem/ActionListItem.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ActionListItem = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Box_1 = require("../Box/index.cjs");
+diff --git a/dist/components/ActionListItem/ActionListItem.mjs b/dist/components/ActionListItem/ActionListItem.mjs
+index 54f109be769a988efdf05b26a63406e3e228f014..d19dafeee12c5a34fa11fe1655dc1c412816c4f0 100644
+--- a/dist/components/ActionListItem/ActionListItem.mjs
++++ b/dist/components/ActionListItem/ActionListItem.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useCallback } from "react";
+ const React = $importDefault($React);
+ import { Pressable } from "react-native/index.js";
+diff --git a/dist/components/AvatarBase/AvatarBase.cjs b/dist/components/AvatarBase/AvatarBase.cjs
+index 5f70ff99d99b20349b908fba7f59b4d727a2715b..3b6ad191789a083e822fc03102a69c351c8bc6ed 100644
+--- a/dist/components/AvatarBase/AvatarBase.cjs
++++ b/dist/components/AvatarBase/AvatarBase.cjs
+@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AvatarBase = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_shared_1 = require("@metamask/design-system-shared");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Text_1 = require("../Text/index.cjs");
+diff --git a/dist/components/AvatarBase/AvatarBase.constants.cjs b/dist/components/AvatarBase/AvatarBase.constants.cjs
+index 85cdb64a967564c0865c029fad947862ab25f26c..9f790b8a6a02f4cacf66348d02b68df57aafadef 100644
+--- a/dist/components/AvatarBase/AvatarBase.constants.cjs
++++ b/dist/components/AvatarBase/AvatarBase.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TWCLASSMAP_AVATARBASE_SIZE_BORDER = exports.TWCLASSMAP_AVATARBASE_SIZE_BORDERRADIUSS_SQUARE = exports.TWCLASSMAP_AVATARBASE_HASBORDER_SIZE_DIMENSION = exports.TWCLASSMAP_AVATARBASE_SIZE_DIMENSION = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
++const design_system_shared_1 = require("@metamask/design-system-shared");
+ exports.TWCLASSMAP_AVATARBASE_SIZE_DIMENSION = {
+     [design_system_shared_1.AvatarBaseSize.Xs]: 'h-4 w-4',
+     [design_system_shared_1.AvatarBaseSize.Sm]: 'h-6 w-6',
+diff --git a/dist/components/AvatarBase/AvatarBase.constants.d.cts b/dist/components/AvatarBase/AvatarBase.constants.d.cts
+index 2e3dccd147484c92a675fd434d07e0fcd0b2cd1b..73dfaf498d4ffbbc449140be20965f5e188c3e0e 100644
+--- a/dist/components/AvatarBase/AvatarBase.constants.d.cts
++++ b/dist/components/AvatarBase/AvatarBase.constants.d.cts
+@@ -1,4 +1,4 @@
+-import { AvatarBaseSize } from "@metamask-previews/design-system-shared";
++import { AvatarBaseSize } from "@metamask/design-system-shared";
+ export declare const TWCLASSMAP_AVATARBASE_SIZE_DIMENSION: Record<AvatarBaseSize, string>;
+ export declare const TWCLASSMAP_AVATARBASE_HASBORDER_SIZE_DIMENSION: Record<AvatarBaseSize, string>;
+ export declare const TWCLASSMAP_AVATARBASE_SIZE_BORDERRADIUSS_SQUARE: Record<AvatarBaseSize, string>;
+diff --git a/dist/components/AvatarBase/AvatarBase.constants.d.mts b/dist/components/AvatarBase/AvatarBase.constants.d.mts
+index aa0ddb0fc21f8066c4bd60352e91211b51b1b22d..175d99603802b58e00a8542db7fa9eec4896b21c 100644
+--- a/dist/components/AvatarBase/AvatarBase.constants.d.mts
++++ b/dist/components/AvatarBase/AvatarBase.constants.d.mts
+@@ -1,4 +1,4 @@
+-import { AvatarBaseSize } from "@metamask-previews/design-system-shared";
++import { AvatarBaseSize } from "@metamask/design-system-shared";
+ export declare const TWCLASSMAP_AVATARBASE_SIZE_DIMENSION: Record<AvatarBaseSize, string>;
+ export declare const TWCLASSMAP_AVATARBASE_HASBORDER_SIZE_DIMENSION: Record<AvatarBaseSize, string>;
+ export declare const TWCLASSMAP_AVATARBASE_SIZE_BORDERRADIUSS_SQUARE: Record<AvatarBaseSize, string>;
+diff --git a/dist/components/AvatarBase/AvatarBase.constants.mjs b/dist/components/AvatarBase/AvatarBase.constants.mjs
+index bfbc4a098b920e506e527fa3d05b2ecf03c4573a..0510d5d99248c71a7d3627156eac3ae0a13eb863 100644
+--- a/dist/components/AvatarBase/AvatarBase.constants.mjs
++++ b/dist/components/AvatarBase/AvatarBase.constants.mjs
+@@ -1,4 +1,4 @@
+-import { AvatarBaseSize } from "@metamask-previews/design-system-shared";
++import { AvatarBaseSize } from "@metamask/design-system-shared";
+ export const TWCLASSMAP_AVATARBASE_SIZE_DIMENSION = {
+     [AvatarBaseSize.Xs]: 'h-4 w-4',
+     [AvatarBaseSize.Sm]: 'h-6 w-6',
+diff --git a/dist/components/AvatarBase/AvatarBase.mjs b/dist/components/AvatarBase/AvatarBase.mjs
+index 453d544700fd4ab036bd117351884b0f5cbb77b2..080e4b68198fe6587523ec45006877262b9eabdc 100644
+--- a/dist/components/AvatarBase/AvatarBase.mjs
++++ b/dist/components/AvatarBase/AvatarBase.mjs
+@@ -4,8 +4,8 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { AvatarBaseSize, AvatarBaseShape } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { AvatarBaseSize, AvatarBaseShape } from "@metamask/design-system-shared";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/AvatarBase/AvatarBase.types.d.cts b/dist/components/AvatarBase/AvatarBase.types.d.cts
+index 1471541fd7f5cbdf194bc04860bc1cf435cb2dd3..0f1d7a9293682351bac9bef69d38f055d4d49f17 100644
+--- a/dist/components/AvatarBase/AvatarBase.types.d.cts
++++ b/dist/components/AvatarBase/AvatarBase.types.d.cts
+@@ -1,4 +1,4 @@
+-import type { AvatarBasePropsShared } from "@metamask-previews/design-system-shared";
++import type { AvatarBasePropsShared } from "@metamask/design-system-shared";
+ import type { ViewProps, StyleProp, ViewStyle } from "react-native/index.js";
+ import type { TextProps } from "../Text/index.cjs";
+ /**
+diff --git a/dist/components/AvatarBase/AvatarBase.types.d.mts b/dist/components/AvatarBase/AvatarBase.types.d.mts
+index f7bb92f9067d30677ccb135a391f9961a6c2ff70..44fb8213d697539d8fbd99847cd6d3e081ea4be3 100644
+--- a/dist/components/AvatarBase/AvatarBase.types.d.mts
++++ b/dist/components/AvatarBase/AvatarBase.types.d.mts
+@@ -1,4 +1,4 @@
+-import type { AvatarBasePropsShared } from "@metamask-previews/design-system-shared";
++import type { AvatarBasePropsShared } from "@metamask/design-system-shared";
+ import type { ViewProps, StyleProp, ViewStyle } from "react-native/index.js";
+ import type { TextProps } from "../Text/index.mjs";
+ /**
+diff --git a/dist/components/AvatarBase/index.cjs b/dist/components/AvatarBase/index.cjs
+index fe832ad7806878ad4c116fdde007f15194beb051..83e774444ea317684d80f9ead83d6e02337428b8 100644
+--- a/dist/components/AvatarBase/index.cjs
++++ b/dist/components/AvatarBase/index.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AvatarBase = exports.AvatarBaseShape = exports.AvatarBaseSize = void 0;
+-var design_system_shared_1 = require("@metamask-previews/design-system-shared");
++var design_system_shared_1 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "AvatarBaseSize", { enumerable: true, get: function () { return design_system_shared_1.AvatarBaseSize; } });
+ Object.defineProperty(exports, "AvatarBaseShape", { enumerable: true, get: function () { return design_system_shared_1.AvatarBaseShape; } });
+ var AvatarBase_1 = require("./AvatarBase.cjs");
+diff --git a/dist/components/AvatarBase/index.d.cts b/dist/components/AvatarBase/index.d.cts
+index 83a51e18718511bd4e626510ddd6d645f434007d..001ebdaaf8f70c093099271844d2e63acbc0c1ca 100644
+--- a/dist/components/AvatarBase/index.d.cts
++++ b/dist/components/AvatarBase/index.d.cts
+@@ -1,4 +1,4 @@
+-export { AvatarBaseSize, AvatarBaseShape, } from "@metamask-previews/design-system-shared";
++export { AvatarBaseSize, AvatarBaseShape, } from "@metamask/design-system-shared";
+ export { AvatarBase } from "./AvatarBase.cjs";
+ export type { AvatarBaseProps } from "./AvatarBase.types.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/components/AvatarBase/index.d.mts b/dist/components/AvatarBase/index.d.mts
+index f87a0ab621a6359c06abb8f21dff44a333db57c8..e4bf12d0035fde4ca849142e00f478cedd1796dc 100644
+--- a/dist/components/AvatarBase/index.d.mts
++++ b/dist/components/AvatarBase/index.d.mts
+@@ -1,4 +1,4 @@
+-export { AvatarBaseSize, AvatarBaseShape, } from "@metamask-previews/design-system-shared";
++export { AvatarBaseSize, AvatarBaseShape, } from "@metamask/design-system-shared";
+ export { AvatarBase } from "./AvatarBase.mjs";
+ export type { AvatarBaseProps } from "./AvatarBase.types.mjs";
+ //# sourceMappingURL=index.d.mts.map
+\ No newline at end of file
+diff --git a/dist/components/AvatarBase/index.mjs b/dist/components/AvatarBase/index.mjs
+index 8c2eb8985a001491c4772e1df33aee7c7f15c702..47e1b9e81ae704d979d31d43d6a431bb728c9663 100644
+--- a/dist/components/AvatarBase/index.mjs
++++ b/dist/components/AvatarBase/index.mjs
+@@ -1,3 +1,3 @@
+-export { AvatarBaseSize, AvatarBaseShape } from "@metamask-previews/design-system-shared";
++export { AvatarBaseSize, AvatarBaseShape } from "@metamask/design-system-shared";
+ export { AvatarBase } from "./AvatarBase.mjs";
+ //# sourceMappingURL=index.mjs.map
+\ No newline at end of file
+diff --git a/dist/components/AvatarGroup/AvatarGroup.cjs b/dist/components/AvatarGroup/AvatarGroup.cjs
+index 8ea4dafc00d9804eb317e1be8e2d6249b1aa79aa..64a48f3586d7ce2cb28687a7fe88780d0b7c46a3 100644
+--- a/dist/components/AvatarGroup/AvatarGroup.cjs
++++ b/dist/components/AvatarGroup/AvatarGroup.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AvatarGroup = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const types_1 = require("../../types/index.cjs");
+diff --git a/dist/components/AvatarGroup/AvatarGroup.mjs b/dist/components/AvatarGroup/AvatarGroup.mjs
+index 28613ba109d4d3bbe8d4126815d695e38bd0059d..c791400e180af8f7ffc0a5ae99cddecc6805937f 100644
+--- a/dist/components/AvatarGroup/AvatarGroup.mjs
++++ b/dist/components/AvatarGroup/AvatarGroup.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useCallback } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/AvatarIcon/AvatarIcon.cjs b/dist/components/AvatarIcon/AvatarIcon.cjs
+index c8a3df2b64ddf77463a71189329a4ee0cd55ee9e..985f087d90f3d55b9740f27f513c31476bd33ea8 100644
+--- a/dist/components/AvatarIcon/AvatarIcon.cjs
++++ b/dist/components/AvatarIcon/AvatarIcon.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AvatarIcon = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const types_1 = require("../../types/index.cjs");
+ const AvatarBase_1 = require("../AvatarBase/index.cjs");
+diff --git a/dist/components/AvatarIcon/AvatarIcon.mjs b/dist/components/AvatarIcon/AvatarIcon.mjs
+index c126971b5db3bbcd831a605c27985b8483dd01d6..26f043631bc325755c41e3ae43e0edc6dc0c178b 100644
+--- a/dist/components/AvatarIcon/AvatarIcon.mjs
++++ b/dist/components/AvatarIcon/AvatarIcon.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { AvatarIconSize, AvatarBaseShape, AvatarIconSeverity } from "../../types/index.mjs";
+diff --git a/dist/components/AvatarNetwork/AvatarNetwork.types.d.cts b/dist/components/AvatarNetwork/AvatarNetwork.types.d.cts
+index 7e4eed74176583098eacbad7672fcd4f13d78219..8e1592112221cfb3a1014804c6f9385e2dc7d5c4 100644
+--- a/dist/components/AvatarNetwork/AvatarNetwork.types.d.cts
++++ b/dist/components/AvatarNetwork/AvatarNetwork.types.d.cts
+@@ -1,9 +1,9 @@
+-import type { AvatarNetworkPropsShared } from "@metamask-previews/design-system-shared";
++import type { AvatarNetworkPropsShared } from "@metamask/design-system-shared";
+ import type { AvatarBaseProps } from "../AvatarBase/index.cjs";
+ import type { ImageOrSvgProps, ImageOrSvgSrc } from "../temp-components/ImageOrSvg/index.cjs";
+ /**
+  * AvatarNetwork component props (React Native platform-specific)
+- * Extends shared props from @metamask-previews/design-system-shared with React Native-specific platform concerns
++ * Extends shared props from @metamask/design-system-shared with React Native-specific platform concerns
+  */
+ export type AvatarNetworkProps = AvatarNetworkPropsShared & Omit<AvatarBaseProps, 'children'> & {
+     /**
+diff --git a/dist/components/AvatarNetwork/AvatarNetwork.types.d.mts b/dist/components/AvatarNetwork/AvatarNetwork.types.d.mts
+index 7b94614550111b194f7138bbff9442a3df3cd430..7becb2d0df71c8cb24895960969fc84aac822ba8 100644
+--- a/dist/components/AvatarNetwork/AvatarNetwork.types.d.mts
++++ b/dist/components/AvatarNetwork/AvatarNetwork.types.d.mts
+@@ -1,9 +1,9 @@
+-import type { AvatarNetworkPropsShared } from "@metamask-previews/design-system-shared";
++import type { AvatarNetworkPropsShared } from "@metamask/design-system-shared";
+ import type { AvatarBaseProps } from "../AvatarBase/index.mjs";
+ import type { ImageOrSvgProps, ImageOrSvgSrc } from "../temp-components/ImageOrSvg/index.mjs";
+ /**
+  * AvatarNetwork component props (React Native platform-specific)
+- * Extends shared props from @metamask-previews/design-system-shared with React Native-specific platform concerns
++ * Extends shared props from @metamask/design-system-shared with React Native-specific platform concerns
+  */
+ export type AvatarNetworkProps = AvatarNetworkPropsShared & Omit<AvatarBaseProps, 'children'> & {
+     /**
+diff --git a/dist/components/BadgeCount/BadgeCount.cjs b/dist/components/BadgeCount/BadgeCount.cjs
+index 81240622ea493d64ae93603e2c6d21241202ef87..19df6ebd3ddbb3ead79c9575e6045e0e6472f60b 100644
+--- a/dist/components/BadgeCount/BadgeCount.cjs
++++ b/dist/components/BadgeCount/BadgeCount.cjs
+@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeCount = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_shared_1 = require("@metamask/design-system-shared");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Text_1 = require("../Text/index.cjs");
+diff --git a/dist/components/BadgeCount/BadgeCount.constants.cjs b/dist/components/BadgeCount/BadgeCount.constants.cjs
+index be8b796efa1e09be968c00a25804dc9735b70e3b..3133d3c653e00cd4758cea10fabc9821c431e192 100644
+--- a/dist/components/BadgeCount/BadgeCount.constants.cjs
++++ b/dist/components/BadgeCount/BadgeCount.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TWCLASSMAP_BADGECOUNT_SIZE_CONTAINER = exports.MAP_BADGECOUNT_SIZE_TEXTVARIANT = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
++const design_system_shared_1 = require("@metamask/design-system-shared");
+ const Text_1 = require("../Text/index.cjs");
+ // Mappings
+ exports.MAP_BADGECOUNT_SIZE_TEXTVARIANT = {
+diff --git a/dist/components/BadgeCount/BadgeCount.constants.d.cts b/dist/components/BadgeCount/BadgeCount.constants.d.cts
+index 25db9d286880bd0cfa3cd106b7e3cd1855770211..d56f6efbf85ef90ed9d0a7dfb30439ac73133842 100644
+--- a/dist/components/BadgeCount/BadgeCount.constants.d.cts
++++ b/dist/components/BadgeCount/BadgeCount.constants.d.cts
+@@ -1,4 +1,4 @@
+-import { BadgeCountSize } from "@metamask-previews/design-system-shared";
++import { BadgeCountSize } from "@metamask/design-system-shared";
+ import { TextVariant } from "../Text/index.cjs";
+ export declare const MAP_BADGECOUNT_SIZE_TEXTVARIANT: Record<BadgeCountSize, TextVariant>;
+ export declare const TWCLASSMAP_BADGECOUNT_SIZE_CONTAINER: Record<BadgeCountSize, string>;
+diff --git a/dist/components/BadgeCount/BadgeCount.constants.d.mts b/dist/components/BadgeCount/BadgeCount.constants.d.mts
+index 7c86cb4c32c3df00d1b8db3a71e833621f75610f..c0486c95a8ae2d713e50d9ad004e9f2452b3b2b8 100644
+--- a/dist/components/BadgeCount/BadgeCount.constants.d.mts
++++ b/dist/components/BadgeCount/BadgeCount.constants.d.mts
+@@ -1,4 +1,4 @@
+-import { BadgeCountSize } from "@metamask-previews/design-system-shared";
++import { BadgeCountSize } from "@metamask/design-system-shared";
+ import { TextVariant } from "../Text/index.mjs";
+ export declare const MAP_BADGECOUNT_SIZE_TEXTVARIANT: Record<BadgeCountSize, TextVariant>;
+ export declare const TWCLASSMAP_BADGECOUNT_SIZE_CONTAINER: Record<BadgeCountSize, string>;
+diff --git a/dist/components/BadgeCount/BadgeCount.constants.mjs b/dist/components/BadgeCount/BadgeCount.constants.mjs
+index 8db00028c0708d440c7796dd60bc3858b2b874aa..233c8d9484cfd5718504fe0cfff71308435812c9 100644
+--- a/dist/components/BadgeCount/BadgeCount.constants.mjs
++++ b/dist/components/BadgeCount/BadgeCount.constants.mjs
+@@ -1,4 +1,4 @@
+-import { BadgeCountSize } from "@metamask-previews/design-system-shared";
++import { BadgeCountSize } from "@metamask/design-system-shared";
+ import { TextVariant } from "../Text/index.mjs";
+ // Mappings
+ export const MAP_BADGECOUNT_SIZE_TEXTVARIANT = {
+diff --git a/dist/components/BadgeCount/BadgeCount.mjs b/dist/components/BadgeCount/BadgeCount.mjs
+index f7fd1e88f0aabe5ca32937aa1d9944ebb0e51554..b2901ff760f1c4c428c4ca67c78e43e22bd75119 100644
+--- a/dist/components/BadgeCount/BadgeCount.mjs
++++ b/dist/components/BadgeCount/BadgeCount.mjs
+@@ -4,8 +4,8 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { BadgeCountSize } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { BadgeCountSize } from "@metamask/design-system-shared";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/BadgeCount/BadgeCount.types.d.cts b/dist/components/BadgeCount/BadgeCount.types.d.cts
+index 47dc2a9631946e1f48424b38455ab8e2996219ba..4af4929bef9693491c3831849def96ae77fc7bb9 100644
+--- a/dist/components/BadgeCount/BadgeCount.types.d.cts
++++ b/dist/components/BadgeCount/BadgeCount.types.d.cts
+@@ -1,4 +1,4 @@
+-import type { BadgeCountPropsShared } from "@metamask-previews/design-system-shared";
++import type { BadgeCountPropsShared } from "@metamask/design-system-shared";
+ import type { ViewProps, StyleProp, ViewStyle } from "react-native/index.js";
+ import type { TextProps } from "../Text/index.cjs";
+ /**
+diff --git a/dist/components/BadgeCount/BadgeCount.types.d.mts b/dist/components/BadgeCount/BadgeCount.types.d.mts
+index 01fc9d619e962b8430ca94a160084054aa8b1ad4..34fd9c5a66772e446938291830378f1d773f0678 100644
+--- a/dist/components/BadgeCount/BadgeCount.types.d.mts
++++ b/dist/components/BadgeCount/BadgeCount.types.d.mts
+@@ -1,4 +1,4 @@
+-import type { BadgeCountPropsShared } from "@metamask-previews/design-system-shared";
++import type { BadgeCountPropsShared } from "@metamask/design-system-shared";
+ import type { ViewProps, StyleProp, ViewStyle } from "react-native/index.js";
+ import type { TextProps } from "../Text/index.mjs";
+ /**
+diff --git a/dist/components/BadgeCount/index.cjs b/dist/components/BadgeCount/index.cjs
+index 1d504a583fdadddddf3e85c5c2d4d761d6ba83a0..47590546895a0de07fc8a8335dba9ea563f1c370 100644
+--- a/dist/components/BadgeCount/index.cjs
++++ b/dist/components/BadgeCount/index.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeCount = exports.BadgeCountSize = void 0;
+-var design_system_shared_1 = require("@metamask-previews/design-system-shared");
++var design_system_shared_1 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "BadgeCountSize", { enumerable: true, get: function () { return design_system_shared_1.BadgeCountSize; } });
+ var BadgeCount_1 = require("./BadgeCount.cjs");
+ Object.defineProperty(exports, "BadgeCount", { enumerable: true, get: function () { return BadgeCount_1.BadgeCount; } });
+diff --git a/dist/components/BadgeCount/index.d.cts b/dist/components/BadgeCount/index.d.cts
+index b1657db498a60b0dd72354095133b63bda96212e..53405514182dac38385781bc43ea693be44bccc5 100644
+--- a/dist/components/BadgeCount/index.d.cts
++++ b/dist/components/BadgeCount/index.d.cts
+@@ -1,4 +1,4 @@
+-export { BadgeCountSize } from "@metamask-previews/design-system-shared";
++export { BadgeCountSize } from "@metamask/design-system-shared";
+ export { BadgeCount } from "./BadgeCount.cjs";
+ export type { BadgeCountProps } from "./BadgeCount.types.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeCount/index.d.mts b/dist/components/BadgeCount/index.d.mts
+index e299ee4682753155963f377d1ee70da2e0e2efd8..6c0622246b2acdbc9146e0198727bfeb0fa85178 100644
+--- a/dist/components/BadgeCount/index.d.mts
++++ b/dist/components/BadgeCount/index.d.mts
+@@ -1,4 +1,4 @@
+-export { BadgeCountSize } from "@metamask-previews/design-system-shared";
++export { BadgeCountSize } from "@metamask/design-system-shared";
+ export { BadgeCount } from "./BadgeCount.mjs";
+ export type { BadgeCountProps } from "./BadgeCount.types.mjs";
+ //# sourceMappingURL=index.d.mts.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeCount/index.mjs b/dist/components/BadgeCount/index.mjs
+index 9070b55758afd0120ddf9338fd5843e1342741ab..5b409e894b141e874cdb17c8b6faedc8949d91ab 100644
+--- a/dist/components/BadgeCount/index.mjs
++++ b/dist/components/BadgeCount/index.mjs
+@@ -1,3 +1,3 @@
+-export { BadgeCountSize } from "@metamask-previews/design-system-shared";
++export { BadgeCountSize } from "@metamask/design-system-shared";
+ export { BadgeCount } from "./BadgeCount.mjs";
+ //# sourceMappingURL=index.mjs.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeIcon/BadgeIcon.cjs b/dist/components/BadgeIcon/BadgeIcon.cjs
+index 195a9fec7fda9136897f57072c6e1f4603dd751d..6db615d26893644c7f25367d11d04bb175b345b3 100644
+--- a/dist/components/BadgeIcon/BadgeIcon.cjs
++++ b/dist/components/BadgeIcon/BadgeIcon.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeIcon = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Icon_1 = require("../Icon/index.cjs");
+diff --git a/dist/components/BadgeIcon/BadgeIcon.mjs b/dist/components/BadgeIcon/BadgeIcon.mjs
+index 28369ec5684e9e2a3baacc6f5d530173208399d0..222cd3a7349f5e93241ed95ec4b781f348585f2d 100644
+--- a/dist/components/BadgeIcon/BadgeIcon.mjs
++++ b/dist/components/BadgeIcon/BadgeIcon.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/BadgeStatus/BadgeStatus.cjs b/dist/components/BadgeStatus/BadgeStatus.cjs
+index 81e119188927bd272e1cc0c9312bfb8d55bd7eb5..24cc1511a7ec449dc448854bdd0d057022e2647b 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.cjs
++++ b/dist/components/BadgeStatus/BadgeStatus.cjs
+@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeStatus = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_shared_1 = require("@metamask/design-system-shared");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const BadgeStatus_constants_1 = require("./BadgeStatus.constants.cjs");
+diff --git a/dist/components/BadgeStatus/BadgeStatus.constants.cjs b/dist/components/BadgeStatus/BadgeStatus.constants.cjs
+index d838a952261c45e0fb1e42f4a59e0e33d8b3bf94..a931cf5a71b5a72163a7e06ae65aa88302f434e6 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.constants.cjs
++++ b/dist/components/BadgeStatus/BadgeStatus.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TWCLASSMAP_BADGESTATUS_SIZE = exports.TWCLASSMAP_BADGESTATUS_STATUS_CIRCLE = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
++const design_system_shared_1 = require("@metamask/design-system-shared");
+ // Mappings
+ exports.TWCLASSMAP_BADGESTATUS_STATUS_CIRCLE = {
+     [design_system_shared_1.BadgeStatusStatus.Active]: 'bg-success-default border-success-default',
+diff --git a/dist/components/BadgeStatus/BadgeStatus.constants.d.cts b/dist/components/BadgeStatus/BadgeStatus.constants.d.cts
+index 53b1f5a1d1a2c7f3ea8b0c805e4f1646326e9fb8..ccffff683dea9fbb938cdaeba1f1e3a4a1058cae 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.constants.d.cts
++++ b/dist/components/BadgeStatus/BadgeStatus.constants.d.cts
+@@ -1,4 +1,4 @@
+-import { BadgeStatusSize, BadgeStatusStatus } from "@metamask-previews/design-system-shared";
++import { BadgeStatusSize, BadgeStatusStatus } from "@metamask/design-system-shared";
+ export declare const TWCLASSMAP_BADGESTATUS_STATUS_CIRCLE: Record<BadgeStatusStatus, string>;
+ export declare const TWCLASSMAP_BADGESTATUS_SIZE: Record<BadgeStatusSize, string>;
+ //# sourceMappingURL=BadgeStatus.constants.d.cts.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeStatus/BadgeStatus.constants.d.mts b/dist/components/BadgeStatus/BadgeStatus.constants.d.mts
+index 38f7437674dcdecd1ae9cc2be61ff14fb246cf8c..e7bb19d14c97a93fd4f79bca1baefa8575cc3217 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.constants.d.mts
++++ b/dist/components/BadgeStatus/BadgeStatus.constants.d.mts
+@@ -1,4 +1,4 @@
+-import { BadgeStatusSize, BadgeStatusStatus } from "@metamask-previews/design-system-shared";
++import { BadgeStatusSize, BadgeStatusStatus } from "@metamask/design-system-shared";
+ export declare const TWCLASSMAP_BADGESTATUS_STATUS_CIRCLE: Record<BadgeStatusStatus, string>;
+ export declare const TWCLASSMAP_BADGESTATUS_SIZE: Record<BadgeStatusSize, string>;
+ //# sourceMappingURL=BadgeStatus.constants.d.mts.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeStatus/BadgeStatus.constants.mjs b/dist/components/BadgeStatus/BadgeStatus.constants.mjs
+index 72658653450096cea328c41d42004d7fa1424402..4bf0dd5c37797075fd70716484c8353aa2fbde42 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.constants.mjs
++++ b/dist/components/BadgeStatus/BadgeStatus.constants.mjs
+@@ -1,4 +1,4 @@
+-import { BadgeStatusSize, BadgeStatusStatus } from "@metamask-previews/design-system-shared";
++import { BadgeStatusSize, BadgeStatusStatus } from "@metamask/design-system-shared";
+ // Mappings
+ export const TWCLASSMAP_BADGESTATUS_STATUS_CIRCLE = {
+     [BadgeStatusStatus.Active]: 'bg-success-default border-success-default',
+diff --git a/dist/components/BadgeStatus/BadgeStatus.mjs b/dist/components/BadgeStatus/BadgeStatus.mjs
+index dc03fb37e6a74223d590dbf704e71134cb48b71a..923fa08635e308468dab9ebc836bfcfd684afa10 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.mjs
++++ b/dist/components/BadgeStatus/BadgeStatus.mjs
+@@ -4,8 +4,8 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { BadgeStatusSize } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { BadgeStatusSize } from "@metamask/design-system-shared";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/BadgeStatus/BadgeStatus.types.d.cts b/dist/components/BadgeStatus/BadgeStatus.types.d.cts
+index 652892c14d50c1dcd98cdda417595f5831a237bd..71c223f1548043c9d7a815f918fd1d7bb6fd66e0 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.types.d.cts
++++ b/dist/components/BadgeStatus/BadgeStatus.types.d.cts
+@@ -1,8 +1,8 @@
+-import type { BadgeStatusPropsShared } from "@metamask-previews/design-system-shared";
++import type { BadgeStatusPropsShared } from "@metamask/design-system-shared";
+ import type { ViewProps } from "react-native/index.js";
+ /**
+  * BadgeStatus component props (React Native platform-specific)
+- * Extends shared props from @metamask-previews/design-system-shared with React Native specific platform concerns
++ * Extends shared props from @metamask/design-system-shared with React Native specific platform concerns
+  */
+ export type BadgeStatusProps = BadgeStatusPropsShared & Omit<ViewProps, 'children'> & {
+     /**
+diff --git a/dist/components/BadgeStatus/BadgeStatus.types.d.mts b/dist/components/BadgeStatus/BadgeStatus.types.d.mts
+index 20e40ce5764adf556c48e3f2d691a9e637b23912..1b7a9ffe3b37e283cfe95cf6123e86b4b16bc809 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.types.d.mts
++++ b/dist/components/BadgeStatus/BadgeStatus.types.d.mts
+@@ -1,8 +1,8 @@
+-import type { BadgeStatusPropsShared } from "@metamask-previews/design-system-shared";
++import type { BadgeStatusPropsShared } from "@metamask/design-system-shared";
+ import type { ViewProps } from "react-native/index.js";
+ /**
+  * BadgeStatus component props (React Native platform-specific)
+- * Extends shared props from @metamask-previews/design-system-shared with React Native specific platform concerns
++ * Extends shared props from @metamask/design-system-shared with React Native specific platform concerns
+  */
+ export type BadgeStatusProps = BadgeStatusPropsShared & Omit<ViewProps, 'children'> & {
+     /**
+diff --git a/dist/components/BadgeStatus/index.cjs b/dist/components/BadgeStatus/index.cjs
+index 85ab6170a6701ca59d8a36fb17be8d10b7ddcb26..04c3518a1fdeea15f8f3711027122fee3e316130 100644
+--- a/dist/components/BadgeStatus/index.cjs
++++ b/dist/components/BadgeStatus/index.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeStatus = exports.BadgeStatusStatus = exports.BadgeStatusSize = void 0;
+-var design_system_shared_1 = require("@metamask-previews/design-system-shared");
++var design_system_shared_1 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "BadgeStatusSize", { enumerable: true, get: function () { return design_system_shared_1.BadgeStatusSize; } });
+ Object.defineProperty(exports, "BadgeStatusStatus", { enumerable: true, get: function () { return design_system_shared_1.BadgeStatusStatus; } });
+ var BadgeStatus_1 = require("./BadgeStatus.cjs");
+diff --git a/dist/components/BadgeStatus/index.d.cts b/dist/components/BadgeStatus/index.d.cts
+index c11e8c93ac89b90efdaf57b20c3de3c3a91ae1a9..66ca125669a4bb013166c5a2aff1ff41f3724d5d 100644
+--- a/dist/components/BadgeStatus/index.d.cts
++++ b/dist/components/BadgeStatus/index.d.cts
+@@ -1,4 +1,4 @@
+-export { BadgeStatusSize, BadgeStatusStatus, } from "@metamask-previews/design-system-shared";
++export { BadgeStatusSize, BadgeStatusStatus, } from "@metamask/design-system-shared";
+ export { BadgeStatus } from "./BadgeStatus.cjs";
+ export type { BadgeStatusProps } from "./BadgeStatus.types.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeStatus/index.d.mts b/dist/components/BadgeStatus/index.d.mts
+index 0d2889a9eb1651f687801f39666250c1bd13ac30..eb7d55ea0b06d61efa1ce2a797dd04493c746136 100644
+--- a/dist/components/BadgeStatus/index.d.mts
++++ b/dist/components/BadgeStatus/index.d.mts
+@@ -1,4 +1,4 @@
+-export { BadgeStatusSize, BadgeStatusStatus, } from "@metamask-previews/design-system-shared";
++export { BadgeStatusSize, BadgeStatusStatus, } from "@metamask/design-system-shared";
+ export { BadgeStatus } from "./BadgeStatus.mjs";
+ export type { BadgeStatusProps } from "./BadgeStatus.types.mjs";
+ //# sourceMappingURL=index.d.mts.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeStatus/index.mjs b/dist/components/BadgeStatus/index.mjs
+index b8661dc60797570e8d8f4c62b64e1c35f7f6bca5..fbf424ea6f1e651b5b2171e9c32653fde8db4c96 100644
+--- a/dist/components/BadgeStatus/index.mjs
++++ b/dist/components/BadgeStatus/index.mjs
+@@ -1,3 +1,3 @@
+-export { BadgeStatusSize, BadgeStatusStatus } from "@metamask-previews/design-system-shared";
++export { BadgeStatusSize, BadgeStatusStatus } from "@metamask/design-system-shared";
+ export { BadgeStatus } from "./BadgeStatus.mjs";
+ //# sourceMappingURL=index.mjs.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeWrapper/BadgeWrapper.cjs b/dist/components/BadgeWrapper/BadgeWrapper.cjs
+index 5b6a8448a26d4e277ee37e78ed3f291b65fe12f1..25e71594abd09f6fd0d7d55de1807addc5e79e00 100644
+--- a/dist/components/BadgeWrapper/BadgeWrapper.cjs
++++ b/dist/components/BadgeWrapper/BadgeWrapper.cjs
+@@ -24,8 +24,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeWrapper = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_shared_1 = require("@metamask/design-system-shared");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const BadgeWrapper = ({ children, childrenContainerProps, badge, badgeContainerProps, position = design_system_shared_1.BadgeWrapperPosition.BottomRight, positionAnchorShape = design_system_shared_1.BadgeWrapperPositionAnchorShape.Circular, positionXOffset = 0, positionYOffset = 0, customPosition, twClassName, style, ...props }) => {
+diff --git a/dist/components/BadgeWrapper/BadgeWrapper.mjs b/dist/components/BadgeWrapper/BadgeWrapper.mjs
+index 8f14db4c7b747aeed79435a8a589e1ed4441a1cb..e1af24ea4fea6bcdaadc140a3b181407d289476b 100644
+--- a/dist/components/BadgeWrapper/BadgeWrapper.mjs
++++ b/dist/components/BadgeWrapper/BadgeWrapper.mjs
+@@ -4,8 +4,8 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape } from "@metamask/design-system-shared";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useCallback, useState, useMemo } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/BadgeWrapper/BadgeWrapper.types.d.cts b/dist/components/BadgeWrapper/BadgeWrapper.types.d.cts
+index 3976093860a122d4e6dde8c1c11ab8666574d881..4b8da5cc476452574f8df82f0215d3564c7109a6 100644
+--- a/dist/components/BadgeWrapper/BadgeWrapper.types.d.cts
++++ b/dist/components/BadgeWrapper/BadgeWrapper.types.d.cts
+@@ -1,8 +1,8 @@
+-import type { BadgeWrapperPropsShared } from "@metamask-previews/design-system-shared";
++import type { BadgeWrapperPropsShared } from "@metamask/design-system-shared";
+ import type { ViewProps, StyleProp, ViewStyle } from "react-native/index.js";
+ /**
+  * BadgeWrapper component props (React Native platform-specific)
+- * Extends shared props from @metamask-previews/design-system-shared with React Native-specific platform concerns
++ * Extends shared props from @metamask/design-system-shared with React Native-specific platform concerns
+  */
+ export type BadgeWrapperProps = BadgeWrapperPropsShared & {
+     /**
+diff --git a/dist/components/BadgeWrapper/BadgeWrapper.types.d.mts b/dist/components/BadgeWrapper/BadgeWrapper.types.d.mts
+index bbbd5a18123c8f79f1bb44288dd4773dab0c387e..52da5acf567198bdeb276b017c699759034001ec 100644
+--- a/dist/components/BadgeWrapper/BadgeWrapper.types.d.mts
++++ b/dist/components/BadgeWrapper/BadgeWrapper.types.d.mts
+@@ -1,8 +1,8 @@
+-import type { BadgeWrapperPropsShared } from "@metamask-previews/design-system-shared";
++import type { BadgeWrapperPropsShared } from "@metamask/design-system-shared";
+ import type { ViewProps, StyleProp, ViewStyle } from "react-native/index.js";
+ /**
+  * BadgeWrapper component props (React Native platform-specific)
+- * Extends shared props from @metamask-previews/design-system-shared with React Native-specific platform concerns
++ * Extends shared props from @metamask/design-system-shared with React Native-specific platform concerns
+  */
+ export type BadgeWrapperProps = BadgeWrapperPropsShared & {
+     /**
+diff --git a/dist/components/BadgeWrapper/index.cjs b/dist/components/BadgeWrapper/index.cjs
+index 6b2e469d6af2d87974ab4036064a01b9ed966da5..313087807790df01c9c797f1eb8df89aca469236 100644
+--- a/dist/components/BadgeWrapper/index.cjs
++++ b/dist/components/BadgeWrapper/index.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeWrapper = exports.BadgeWrapperPositionAnchorShape = exports.BadgeWrapperPosition = void 0;
+-var design_system_shared_1 = require("@metamask-previews/design-system-shared");
++var design_system_shared_1 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "BadgeWrapperPosition", { enumerable: true, get: function () { return design_system_shared_1.BadgeWrapperPosition; } });
+ Object.defineProperty(exports, "BadgeWrapperPositionAnchorShape", { enumerable: true, get: function () { return design_system_shared_1.BadgeWrapperPositionAnchorShape; } });
+ var BadgeWrapper_1 = require("./BadgeWrapper.cjs");
+diff --git a/dist/components/BadgeWrapper/index.d.cts b/dist/components/BadgeWrapper/index.d.cts
+index 762cad35fd02720dc4c0857e10970be191b6ffba..785d7c2311ef3619229e0577cba21c4e704e493a 100644
+--- a/dist/components/BadgeWrapper/index.d.cts
++++ b/dist/components/BadgeWrapper/index.d.cts
+@@ -1,4 +1,4 @@
+-export { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape, type BadgeWrapperCustomPosition, } from "@metamask-previews/design-system-shared";
++export { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape, type BadgeWrapperCustomPosition, } from "@metamask/design-system-shared";
+ export { BadgeWrapper } from "./BadgeWrapper.cjs";
+ export type { BadgeWrapperProps } from "./BadgeWrapper.types.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeWrapper/index.d.mts b/dist/components/BadgeWrapper/index.d.mts
+index 92d9301336300c156415ef7040c2064889f7e41c..c97c39d5dc47a8ffc0844a6f2e6479a57ec8d71c 100644
+--- a/dist/components/BadgeWrapper/index.d.mts
++++ b/dist/components/BadgeWrapper/index.d.mts
+@@ -1,4 +1,4 @@
+-export { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape, type BadgeWrapperCustomPosition, } from "@metamask-previews/design-system-shared";
++export { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape, type BadgeWrapperCustomPosition, } from "@metamask/design-system-shared";
+ export { BadgeWrapper } from "./BadgeWrapper.mjs";
+ export type { BadgeWrapperProps } from "./BadgeWrapper.types.mjs";
+ //# sourceMappingURL=index.d.mts.map
+\ No newline at end of file
+diff --git a/dist/components/BadgeWrapper/index.mjs b/dist/components/BadgeWrapper/index.mjs
+index d505a3eb58a66ed9365a17ad20e594f6d5692b1d..9ceb1413039283dfc71623c7bec15c09869f0169 100644
+--- a/dist/components/BadgeWrapper/index.mjs
++++ b/dist/components/BadgeWrapper/index.mjs
+@@ -1,3 +1,3 @@
+-export { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape } from "@metamask-previews/design-system-shared";
++export { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape } from "@metamask/design-system-shared";
+ export { BadgeWrapper } from "./BadgeWrapper.mjs";
+ //# sourceMappingURL=index.mjs.map
+\ No newline at end of file
+diff --git a/dist/components/BannerAlert/BannerAlert.cjs b/dist/components/BannerAlert/BannerAlert.cjs
+index b943a03b679d7e8a74691166942edc6dbc6e9dce..b1b2e776bfdc422b240e34a378b56252f1f62bc3 100644
+--- a/dist/components/BannerAlert/BannerAlert.cjs
++++ b/dist/components/BannerAlert/BannerAlert.cjs
+@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BannerAlert = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_shared_1 = require("@metamask/design-system-shared");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const types_1 = require("../../types/index.cjs");
+ const BannerBase_1 = require("../BannerBase/index.cjs");
+diff --git a/dist/components/BannerAlert/BannerAlert.constants.cjs b/dist/components/BannerAlert/BannerAlert.constants.cjs
+index 6e5f34a35510a9ac7b42b556d74436bfd2ba107b..d33560ed504e6934a335ec95c0c17d578c26f2ff 100644
+--- a/dist/components/BannerAlert/BannerAlert.constants.cjs
++++ b/dist/components/BannerAlert/BannerAlert.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MAP_BANNER_ALERT_SEVERITY_BORDER_COLOR = exports.MAP_BANNER_ALERT_SEVERITY_BACKGROUND_COLOR = exports.MAP_BANNER_ALERT_SEVERITY_ICON_COLOR = exports.MAP_BANNER_ALERT_SEVERITY_ICON_NAME = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
++const design_system_shared_1 = require("@metamask/design-system-shared");
+ const types_1 = require("../../types/index.cjs");
+ exports.MAP_BANNER_ALERT_SEVERITY_ICON_NAME = {
+     info: types_1.IconName.Info,
+diff --git a/dist/components/BannerAlert/BannerAlert.constants.d.cts b/dist/components/BannerAlert/BannerAlert.constants.d.cts
+index f3d13d72c7ccd159f53269a8a9d6a6a2d36b8bec..df9a5de696024d38d196d02bc2695eac50ce0233 100644
+--- a/dist/components/BannerAlert/BannerAlert.constants.d.cts
++++ b/dist/components/BannerAlert/BannerAlert.constants.d.cts
+@@ -1,4 +1,4 @@
+-import { BannerAlertSeverity } from "@metamask-previews/design-system-shared";
++import { BannerAlertSeverity } from "@metamask/design-system-shared";
+ import { BoxBackgroundColor, BoxBorderColor, IconColor, IconName } from "../../types/index.cjs";
+ export declare const MAP_BANNER_ALERT_SEVERITY_ICON_NAME: Record<(typeof BannerAlertSeverity)[keyof typeof BannerAlertSeverity], IconName>;
+ export declare const MAP_BANNER_ALERT_SEVERITY_ICON_COLOR: Record<(typeof BannerAlertSeverity)[keyof typeof BannerAlertSeverity], IconColor>;
+diff --git a/dist/components/BannerAlert/BannerAlert.constants.d.mts b/dist/components/BannerAlert/BannerAlert.constants.d.mts
+index 535d90de555eef0779cfef2edba82f014a281d27..16a33594e0f239de0445f912b975f7c6c4daebfb 100644
+--- a/dist/components/BannerAlert/BannerAlert.constants.d.mts
++++ b/dist/components/BannerAlert/BannerAlert.constants.d.mts
+@@ -1,4 +1,4 @@
+-import { BannerAlertSeverity } from "@metamask-previews/design-system-shared";
++import { BannerAlertSeverity } from "@metamask/design-system-shared";
+ import { BoxBackgroundColor, BoxBorderColor, IconColor, IconName } from "../../types/index.mjs";
+ export declare const MAP_BANNER_ALERT_SEVERITY_ICON_NAME: Record<(typeof BannerAlertSeverity)[keyof typeof BannerAlertSeverity], IconName>;
+ export declare const MAP_BANNER_ALERT_SEVERITY_ICON_COLOR: Record<(typeof BannerAlertSeverity)[keyof typeof BannerAlertSeverity], IconColor>;
+diff --git a/dist/components/BannerAlert/BannerAlert.constants.mjs b/dist/components/BannerAlert/BannerAlert.constants.mjs
+index 9ddcfe41678f97b7effbe57337fe805b7b49d030..40c8ec9a9392b31b3f904414fd8b10bd1ee48e81 100644
+--- a/dist/components/BannerAlert/BannerAlert.constants.mjs
++++ b/dist/components/BannerAlert/BannerAlert.constants.mjs
+@@ -1,4 +1,4 @@
+-import { BannerAlertSeverity } from "@metamask-previews/design-system-shared";
++import { BannerAlertSeverity } from "@metamask/design-system-shared";
+ import { BoxBackgroundColor, BoxBorderColor, IconColor, IconName } from "../../types/index.mjs";
+ export const MAP_BANNER_ALERT_SEVERITY_ICON_NAME = {
+     info: IconName.Info,
+diff --git a/dist/components/BannerAlert/BannerAlert.mjs b/dist/components/BannerAlert/BannerAlert.mjs
+index a0cc92e7acc76bc287b647917937ba386233cec5..b43d21416c09a9c936dd64bcf390bf62faca087f 100644
+--- a/dist/components/BannerAlert/BannerAlert.mjs
++++ b/dist/components/BannerAlert/BannerAlert.mjs
+@@ -4,8 +4,8 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { BannerAlertSeverity } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { BannerAlertSeverity } from "@metamask/design-system-shared";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { IconSize } from "../../types/index.mjs";
+diff --git a/dist/components/BannerAlert/BannerAlert.types.d.cts b/dist/components/BannerAlert/BannerAlert.types.d.cts
+index e3a2b563edf819921b54e1bc010df51d5b55e598..ed642063836a603c9d2946509aee5be8c82705f0 100644
+--- a/dist/components/BannerAlert/BannerAlert.types.d.cts
++++ b/dist/components/BannerAlert/BannerAlert.types.d.cts
+@@ -1,4 +1,4 @@
+-import type { BannerAlertPropsShared } from "@metamask-previews/design-system-shared";
++import type { BannerAlertPropsShared } from "@metamask/design-system-shared";
+ import type { BannerBaseProps } from "../BannerBase/index.cjs";
+ import type { IconProps } from "../Icon/Icon.types.cjs";
+ /**
+diff --git a/dist/components/BannerAlert/BannerAlert.types.d.mts b/dist/components/BannerAlert/BannerAlert.types.d.mts
+index 4c08d60c30373a99c5e72a86ab3c3fe79b6f19c9..d791e79c90689608e269c53f4cb1e0f1eb83f10f 100644
+--- a/dist/components/BannerAlert/BannerAlert.types.d.mts
++++ b/dist/components/BannerAlert/BannerAlert.types.d.mts
+@@ -1,4 +1,4 @@
+-import type { BannerAlertPropsShared } from "@metamask-previews/design-system-shared";
++import type { BannerAlertPropsShared } from "@metamask/design-system-shared";
+ import type { BannerBaseProps } from "../BannerBase/index.mjs";
+ import type { IconProps } from "../Icon/Icon.types.mjs";
+ /**
+diff --git a/dist/components/BannerAlert/index.cjs b/dist/components/BannerAlert/index.cjs
+index d9ec5cba075ffc934e66ede1ce6a3f750b5615d0..f3b1846d58f986b65d60a0416c2a98f051eadc3a 100644
+--- a/dist/components/BannerAlert/index.cjs
++++ b/dist/components/BannerAlert/index.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BannerAlert = exports.BannerAlertSeverity = void 0;
+-var design_system_shared_1 = require("@metamask-previews/design-system-shared");
++var design_system_shared_1 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "BannerAlertSeverity", { enumerable: true, get: function () { return design_system_shared_1.BannerAlertSeverity; } });
+ var BannerAlert_1 = require("./BannerAlert.cjs");
+ Object.defineProperty(exports, "BannerAlert", { enumerable: true, get: function () { return BannerAlert_1.BannerAlert; } });
+diff --git a/dist/components/BannerAlert/index.d.cts b/dist/components/BannerAlert/index.d.cts
+index 2ecab2684c1a18b5b1761536e586931ce843db88..bb010474634bda7ab8e3638213322637989544ef 100644
+--- a/dist/components/BannerAlert/index.d.cts
++++ b/dist/components/BannerAlert/index.d.cts
+@@ -1,4 +1,4 @@
+-export { BannerAlertSeverity } from "@metamask-previews/design-system-shared";
++export { BannerAlertSeverity } from "@metamask/design-system-shared";
+ export { BannerAlert } from "./BannerAlert.cjs";
+ export type { BannerAlertProps } from "./BannerAlert.types.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/components/BannerAlert/index.d.mts b/dist/components/BannerAlert/index.d.mts
+index f66886cc89673a662aa8884d3a588b804374bd78..171d4f67b7d89f4650e9a717b505903ce536b2a9 100644
+--- a/dist/components/BannerAlert/index.d.mts
++++ b/dist/components/BannerAlert/index.d.mts
+@@ -1,4 +1,4 @@
+-export { BannerAlertSeverity } from "@metamask-previews/design-system-shared";
++export { BannerAlertSeverity } from "@metamask/design-system-shared";
+ export { BannerAlert } from "./BannerAlert.mjs";
+ export type { BannerAlertProps } from "./BannerAlert.types.mjs";
+ //# sourceMappingURL=index.d.mts.map
+\ No newline at end of file
+diff --git a/dist/components/BannerAlert/index.mjs b/dist/components/BannerAlert/index.mjs
+index 4b54f9481263dbe86b10005c8dbebeac221fdce6..05673b906c4f315a8a07e876b0ec39ebff8124b3 100644
+--- a/dist/components/BannerAlert/index.mjs
++++ b/dist/components/BannerAlert/index.mjs
+@@ -1,3 +1,3 @@
+-export { BannerAlertSeverity } from "@metamask-previews/design-system-shared";
++export { BannerAlertSeverity } from "@metamask/design-system-shared";
+ export { BannerAlert } from "./BannerAlert.mjs";
+ //# sourceMappingURL=index.mjs.map
+\ No newline at end of file
+diff --git a/dist/components/BannerBase/BannerBase.types.d.cts b/dist/components/BannerBase/BannerBase.types.d.cts
+index 05ed5c993b048d40a1e3eb1c6ff8d5ad40e139d0..bf0d8040e6fb794177bba4197bcea86713c920ca 100644
+--- a/dist/components/BannerBase/BannerBase.types.d.cts
++++ b/dist/components/BannerBase/BannerBase.types.d.cts
+@@ -1,4 +1,4 @@
+-import type { BannerBasePropsShared } from "@metamask-previews/design-system-shared";
++import type { BannerBasePropsShared } from "@metamask/design-system-shared";
+ import type { GestureResponderEvent } from "react-native/index.js";
+ import type { BoxProps } from "../Box/index.cjs";
+ import type { ButtonProps } from "../Button/index.cjs";
+diff --git a/dist/components/BannerBase/BannerBase.types.d.mts b/dist/components/BannerBase/BannerBase.types.d.mts
+index 85c180e8b29ac98205e7fe747495b5973031ca4b..407a0370e82ff1d1f05c479060d1d6de5a262ba5 100644
+--- a/dist/components/BannerBase/BannerBase.types.d.mts
++++ b/dist/components/BannerBase/BannerBase.types.d.mts
+@@ -1,4 +1,4 @@
+-import type { BannerBasePropsShared } from "@metamask-previews/design-system-shared";
++import type { BannerBasePropsShared } from "@metamask/design-system-shared";
+ import type { GestureResponderEvent } from "react-native/index.js";
+ import type { BoxProps } from "../Box/index.mjs";
+ import type { ButtonProps } from "../Button/index.mjs";
+diff --git a/dist/components/BottomSheet/BottomSheet.cjs b/dist/components/BottomSheet/BottomSheet.cjs
+index 6a0fc3c6cd0432c0cf86dc14dd80b2854a26f02c..357b8d0b34f2605edd6b7327209d3ca47965c2a7 100644
+--- a/dist/components/BottomSheet/BottomSheet.cjs
++++ b/dist/components/BottomSheet/BottomSheet.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheet = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const react_native_safe_area_context_1 = require("react-native-safe-area-context");
+diff --git a/dist/components/BottomSheet/BottomSheet.mjs b/dist/components/BottomSheet/BottomSheet.mjs
+index 4deea3e1fb5a3fa1231ff35a38e486bb179e8a2b..3b01474214e38149d61b3c02d4d70c1aecde9fa3 100644
+--- a/dist/components/BottomSheet/BottomSheet.mjs
++++ b/dist/components/BottomSheet/BottomSheet.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
+ const React = $importDefault($React);
+ import { BackHandler, KeyboardAvoidingView, Platform } from "react-native/index.js";
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.cjs b/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
+index d79139c8c80fed0f5e619d5f650adb4f9d7b1f4a..6dcb245f867dfce9954e461704579ffb8a6d27ab 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
+@@ -24,8 +24,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheetDialog = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const lodash_1 = require("lodash");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.cjs b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.cjs
+index d7d856cfc99426f06335be0068c79bc91db964ff..5f69c559a48a688bdd0f8dcae39d47c10f3fda02 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.cjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD = exports.DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION = exports.DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION = void 0;
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ // Defaults
+ /**
+  * The animation duration used for initial render.
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.cts b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.cts
+index be2966b11817bba725500c28d4c5c6742549aeeb..9ad2a2f1a1640518d8676217c943426146d590cb 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.cts
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.cts
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ /**
+  * The animation duration used for initial render.
+  */
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.mts b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.mts
+index d2b527dbe2621ba4f40af23fefa6ef858727d2bd..29e2942a260ef24cbf9e1e99fba746fd69c1f475 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.mts
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.mts
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ /**
+  * The animation duration used for initial render.
+  */
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.mjs b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.mjs
+index 0b49be5cc770cea03779b3e0ec5c00d288a2f8be..cca18fa087970b411c40d32ab77cb0f82b920337 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.mjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.mjs
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ // Defaults
+ /**
+  * The animation duration used for initial render.
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.mjs b/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
+index 71aa19a463e5792b1a88d58a727db3a3ccd9b2c6..40ded0d79591e84b70b13e5614f393b9df9418cf 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
+@@ -4,8 +4,8 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { Theme, useTailwind, useTheme } from "@metamask-previews/design-system-twrnc-preset";
+-import { lightTheme, darkTheme } from "@metamask-previews/design-tokens";
++import { Theme, useTailwind, useTheme } from "@metamask/design-system-twrnc-preset";
++import { lightTheme, darkTheme } from "@metamask/design-tokens";
+ import $lodash from "lodash";
+ const { debounce } = $lodash;
+ import $React, { forwardRef, useCallback, useEffect, useMemo, useRef, useImperativeHandle } from "react";
+diff --git a/dist/components/BottomSheetFooter/BottomSheetFooter.cjs b/dist/components/BottomSheetFooter/BottomSheetFooter.cjs
+index eff1cfa5df64bb7eaea035f20fd05ab44ee7ec9f..99e618fdcc94774605f0ace4f34c644fba9aa1c5 100644
+--- a/dist/components/BottomSheetFooter/BottomSheetFooter.cjs
++++ b/dist/components/BottomSheetFooter/BottomSheetFooter.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheetFooter = void 0;
+ // Third party dependencies.
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ // External dependencies.
+diff --git a/dist/components/BottomSheetFooter/BottomSheetFooter.mjs b/dist/components/BottomSheetFooter/BottomSheetFooter.mjs
+index 3dfdd40e27f9f572547a6d460908c496a61e8077..6a718108a219d05ad1a3978dd44e86514e3af8ff 100644
+--- a/dist/components/BottomSheetFooter/BottomSheetFooter.mjs
++++ b/dist/components/BottomSheetFooter/BottomSheetFooter.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ // Third party dependencies.
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/BottomSheetHeader/BottomSheetHeader.cjs b/dist/components/BottomSheetHeader/BottomSheetHeader.cjs
+index 8f80e1f1a4f4dd8e34937fea78393c135905ceee..5b67839a2db910cbd03a290e0771dd9824bacb2a 100644
+--- a/dist/components/BottomSheetHeader/BottomSheetHeader.cjs
++++ b/dist/components/BottomSheetHeader/BottomSheetHeader.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheetHeader = void 0;
+ // Third party dependencies.
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ // External dependencies.
+ const ButtonIcon_1 = require("../ButtonIcon/index.cjs");
+diff --git a/dist/components/BottomSheetHeader/BottomSheetHeader.mjs b/dist/components/BottomSheetHeader/BottomSheetHeader.mjs
+index 61c0e6a22bb26a91f081d75cd5f90fd6233f7eab..f52689005d7d836476e992e1005d6c6cf496eb93 100644
+--- a/dist/components/BottomSheetHeader/BottomSheetHeader.mjs
++++ b/dist/components/BottomSheetHeader/BottomSheetHeader.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ // Third party dependencies.
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ // External dependencies.
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.cjs b/dist/components/BottomSheetOverlay/BottomSheetOverlay.cjs
+index 4f6d04d4c675343c5b4c85e5d48c78a4aeb40919..7a358dbf3070db80183228aacc2ab766226d6d1e 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.cjs
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheetOverlay = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const BottomSheetOverlay_constants_1 = require("./BottomSheetOverlay.constants.cjs");
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.cjs b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.cjs
+index e0045739cf78e37d46628e3ee7b233368a3c3cbb..f24896dd622de0477b5b1ab1dcb7cb6a8b90434d 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.cjs
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.DEFAULT_OVERLAY_ANIMATION_DURATION = void 0;
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ // Defaults
+ exports.DEFAULT_OVERLAY_ANIMATION_DURATION = design_tokens_1.AnimationDuration.Fast;
+ //# sourceMappingURL=BottomSheetOverlay.constants.cjs.map
+\ No newline at end of file
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.cts b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.cts
+index 5930cb32dcce32a46a5568e186a2c1b54be51961..b1fee1a0c9214de7f999172e89f20230a0319654 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.cts
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.cts
+@@ -1,3 +1,3 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ export declare const DEFAULT_OVERLAY_ANIMATION_DURATION = AnimationDuration.Fast;
+ //# sourceMappingURL=BottomSheetOverlay.constants.d.cts.map
+\ No newline at end of file
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.mts b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.mts
+index 1a5413d0ce4d480b4eb4ac38b42e44358b01d05c..ad8d520b9eea286498ad323f2e9b79b345eed58b 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.mts
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.mts
+@@ -1,3 +1,3 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ export declare const DEFAULT_OVERLAY_ANIMATION_DURATION = AnimationDuration.Fast;
+ //# sourceMappingURL=BottomSheetOverlay.constants.d.mts.map
+\ No newline at end of file
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.mjs b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.mjs
+index 75f88d62acf1b70efb0a9025061291c4886f4cfe..32ff043f52f682f22e5f4c78f31fe6572e0da6a4 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.mjs
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.mjs
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ // Defaults
+ export const DEFAULT_OVERLAY_ANIMATION_DURATION = AnimationDuration.Fast;
+ //# sourceMappingURL=BottomSheetOverlay.constants.mjs.map
+\ No newline at end of file
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.mjs b/dist/components/BottomSheetOverlay/BottomSheetOverlay.mjs
+index 5e56c30169953f1474bfcf2d2dcbd7c4abf80f91..565deca9bcdde500fa4beab4e0b0038e6abce773 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.mjs
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useEffect } from "react";
+ const React = $importDefault($React);
+ import { Animated, Easing, TouchableOpacity, useAnimatedValue } from "react-native/index.js";
+diff --git a/dist/components/Box/Box.cjs b/dist/components/Box/Box.cjs
+index c566cc94fc75dae2e7431e356abf88cb8048299b..0fc82847cc0add74177028568123437389bbe91d 100644
+--- a/dist/components/Box/Box.cjs
++++ b/dist/components/Box/Box.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Box = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Box_constants_1 = require("./Box.constants.cjs");
+diff --git a/dist/components/Box/Box.mjs b/dist/components/Box/Box.mjs
+index 4c713c2008a31210562afc2fe6fe4abb291b1096..f56c5eac4d94431054e77afb7c1289ab6ea67a23 100644
+--- a/dist/components/Box/Box.mjs
++++ b/dist/components/Box/Box.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/BoxHorizontal/BoxHorizontal.types.d.cts b/dist/components/BoxHorizontal/BoxHorizontal.types.d.cts
+index 8b7847a00e5d6aeb19061a58d1c4dc4e0fc7747e..7150075ef4cce95e2c9afc515425026411423cbe 100644
+--- a/dist/components/BoxHorizontal/BoxHorizontal.types.d.cts
++++ b/dist/components/BoxHorizontal/BoxHorizontal.types.d.cts
+@@ -1,4 +1,4 @@
+-import type { BoxHorizontalPropsShared } from "@metamask-previews/design-system-shared";
++import type { BoxHorizontalPropsShared } from "@metamask/design-system-shared";
+ import type { BoxProps } from "../Box/Box.types.cjs";
+ import type { TextProps } from "../Text/index.cjs";
+ /**
+diff --git a/dist/components/BoxHorizontal/BoxHorizontal.types.d.mts b/dist/components/BoxHorizontal/BoxHorizontal.types.d.mts
+index d13d0b5cd3db08382220f1a84afcdefd2930eb3b..ce5b423bd50c78c271c1fc3b607c2628df49cab5 100644
+--- a/dist/components/BoxHorizontal/BoxHorizontal.types.d.mts
++++ b/dist/components/BoxHorizontal/BoxHorizontal.types.d.mts
+@@ -1,4 +1,4 @@
+-import type { BoxHorizontalPropsShared } from "@metamask-previews/design-system-shared";
++import type { BoxHorizontalPropsShared } from "@metamask/design-system-shared";
+ import type { BoxProps } from "../Box/Box.types.mjs";
+ import type { TextProps } from "../Text/index.mjs";
+ /**
+diff --git a/dist/components/BoxVertical/BoxVertical.types.d.cts b/dist/components/BoxVertical/BoxVertical.types.d.cts
+index f62565913c8d0e38507dd252eb36b8da66f7f2c9..d06a579f410a2e4774db10624aa384989d69928e 100644
+--- a/dist/components/BoxVertical/BoxVertical.types.d.cts
++++ b/dist/components/BoxVertical/BoxVertical.types.d.cts
+@@ -1,4 +1,4 @@
+-import type { BoxVerticalPropsShared } from "@metamask-previews/design-system-shared";
++import type { BoxVerticalPropsShared } from "@metamask/design-system-shared";
+ import type { BoxProps } from "../Box/Box.types.cjs";
+ import type { TextProps } from "../Text/index.cjs";
+ /**
+diff --git a/dist/components/BoxVertical/BoxVertical.types.d.mts b/dist/components/BoxVertical/BoxVertical.types.d.mts
+index 3119836dc7433f458a9a20d71f2ed7b53cefb7a2..46f014a3ec56bb627b2ad5c38135724dcfa7b29f 100644
+--- a/dist/components/BoxVertical/BoxVertical.types.d.mts
++++ b/dist/components/BoxVertical/BoxVertical.types.d.mts
+@@ -1,4 +1,4 @@
+-import type { BoxVerticalPropsShared } from "@metamask-previews/design-system-shared";
++import type { BoxVerticalPropsShared } from "@metamask/design-system-shared";
+ import type { BoxProps } from "../Box/Box.types.mjs";
+ import type { TextProps } from "../Text/index.mjs";
+ /**
+diff --git a/dist/components/ButtonBase/ButtonBase.cjs b/dist/components/ButtonBase/ButtonBase.cjs
+index eac688d271ab561e47f002046d8fd64ca6bdf8a5..8d03374684cf9e65829b5442f670755836b5f11b 100644
+--- a/dist/components/ButtonBase/ButtonBase.cjs
++++ b/dist/components/ButtonBase/ButtonBase.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ButtonBase = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const types_1 = require("../../types/index.cjs");
+diff --git a/dist/components/ButtonBase/ButtonBase.mjs b/dist/components/ButtonBase/ButtonBase.mjs
+index 839605d7a545d416c19cc3c39bcc284c9232e979..329dd80e55171adbe41e56b342ead261ff14582a 100644
+--- a/dist/components/ButtonBase/ButtonBase.mjs
++++ b/dist/components/ButtonBase/ButtonBase.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useMemo } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/ButtonFilter/ButtonFilter.cjs b/dist/components/ButtonFilter/ButtonFilter.cjs
+index 6f996aa0aa42dd1a87d99af07d0d1ba35ca6f8ac..4248d74998e35f5dd416d6a58380d78be8aa9f87 100644
+--- a/dist/components/ButtonFilter/ButtonFilter.cjs
++++ b/dist/components/ButtonFilter/ButtonFilter.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ButtonFilter = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const ButtonBase_1 = require("../ButtonBase/index.cjs");
+ const ButtonFilter = ({ isActive = false, twClassName, textProps, style, ...props }) => {
+diff --git a/dist/components/ButtonFilter/ButtonFilter.mjs b/dist/components/ButtonFilter/ButtonFilter.mjs
+index 61cc52228c1d2bfbb8882416a1ea27148e47c9e7..869144ffb352ec09b92da21723cc53721e641f59 100644
+--- a/dist/components/ButtonFilter/ButtonFilter.mjs
++++ b/dist/components/ButtonFilter/ButtonFilter.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { ButtonBase } from "../ButtonBase/index.mjs";
+diff --git a/dist/components/ButtonFilter/ButtonFilter.types.d.cts b/dist/components/ButtonFilter/ButtonFilter.types.d.cts
+index 46e1b9600e13c6a12ffaa93b2a67ea8e83564aeb..f5acbffb39135643b2d3826fb3e64a5ced9a512b 100644
+--- a/dist/components/ButtonFilter/ButtonFilter.types.d.cts
++++ b/dist/components/ButtonFilter/ButtonFilter.types.d.cts
+@@ -1,4 +1,4 @@
+-import type { ButtonFilterPropsShared } from "@metamask-previews/design-system-shared";
++import type { ButtonFilterPropsShared } from "@metamask/design-system-shared";
+ import type { ButtonBaseProps } from "../ButtonBase/index.cjs";
+ export type ButtonFilterProps = Omit<ButtonBaseProps, 'twClassName' | 'textClassName'> & ButtonFilterPropsShared & {
+     /**
+diff --git a/dist/components/ButtonFilter/ButtonFilter.types.d.mts b/dist/components/ButtonFilter/ButtonFilter.types.d.mts
+index cc947b54eac6e2f43fd61321699a602bc97e2bd8..678990754dd29a8887b9131bb91a5306e88f86f4 100644
+--- a/dist/components/ButtonFilter/ButtonFilter.types.d.mts
++++ b/dist/components/ButtonFilter/ButtonFilter.types.d.mts
+@@ -1,4 +1,4 @@
+-import type { ButtonFilterPropsShared } from "@metamask-previews/design-system-shared";
++import type { ButtonFilterPropsShared } from "@metamask/design-system-shared";
+ import type { ButtonBaseProps } from "../ButtonBase/index.mjs";
+ export type ButtonFilterProps = Omit<ButtonBaseProps, 'twClassName' | 'textClassName'> & ButtonFilterPropsShared & {
+     /**
+diff --git a/dist/components/ButtonHero/ButtonHero.cjs b/dist/components/ButtonHero/ButtonHero.cjs
+index 10b37e5aa09ec34e9a3c354ad96fbdd6ddbb85b8..292b9724cdceb21201e15a351f9d7d560d1675a6 100644
+--- a/dist/components/ButtonHero/ButtonHero.cjs
++++ b/dist/components/ButtonHero/ButtonHero.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ButtonHero = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const ButtonBase_1 = require("../ButtonBase/index.cjs");
+ /**
+diff --git a/dist/components/ButtonHero/ButtonHero.mjs b/dist/components/ButtonHero/ButtonHero.mjs
+index b05e3c9103e2a0998d5aa2129f5a55281c7d6161..57c0148aa1b72b5516592d858e69b698799c164b 100644
+--- a/dist/components/ButtonHero/ButtonHero.mjs
++++ b/dist/components/ButtonHero/ButtonHero.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { Theme, ThemeProvider } from "@metamask-previews/design-system-twrnc-preset";
++import { Theme, ThemeProvider } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { ButtonBase } from "../ButtonBase/index.mjs";
+diff --git a/dist/components/ButtonIcon/ButtonIcon.cjs b/dist/components/ButtonIcon/ButtonIcon.cjs
+index afdb877b5b32a8cf8fb61beceae808cf3a1a2dd7..9be2a8254bf1afac9e63db994863ee6685f35616 100644
+--- a/dist/components/ButtonIcon/ButtonIcon.cjs
++++ b/dist/components/ButtonIcon/ButtonIcon.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ButtonIcon = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const types_1 = require("../../types/index.cjs");
+ const Icon_1 = require("../Icon/index.cjs");
+diff --git a/dist/components/ButtonIcon/ButtonIcon.mjs b/dist/components/ButtonIcon/ButtonIcon.mjs
+index 6d0289f2faa380663b8ff2bbdde55647a49fb5e4..63a742a7db994496bcca333230bc4c5f01a3eea5 100644
+--- a/dist/components/ButtonIcon/ButtonIcon.mjs
++++ b/dist/components/ButtonIcon/ButtonIcon.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useState } from "react";
+ const React = $importDefault($React);
+ import { ButtonIconSize, ButtonIconVariant } from "../../types/index.mjs";
+diff --git a/dist/components/Card/Card.cjs b/dist/components/Card/Card.cjs
+index 5f86a398922490c4874d77fa69397a1980731564..9cb3e6c3d821bf7fbc9170d0ff66fee1f2c34a26 100644
+--- a/dist/components/Card/Card.cjs
++++ b/dist/components/Card/Card.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Card = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Card = ({ children, onPress, twClassName, touchableOpacityProps, style, ...props }) => {
+diff --git a/dist/components/Card/Card.mjs b/dist/components/Card/Card.mjs
+index bd246f9586e4939acc7e0c63f5698c072d20c0f2..91a8d34baa8f836b0852dbe26ad4f3bfc85f4ef0 100644
+--- a/dist/components/Card/Card.mjs
++++ b/dist/components/Card/Card.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { TouchableOpacity, View } from "react-native/index.js";
+diff --git a/dist/components/Checkbox/Checkbox.cjs b/dist/components/Checkbox/Checkbox.cjs
+index 8327dfbe5fe3b7dd110ac370c2ca4bdd960b7991..4ae5f8320341eb61b25b5fd8f4e18621f47495cb 100644
+--- a/dist/components/Checkbox/Checkbox.cjs
++++ b/dist/components/Checkbox/Checkbox.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Checkbox = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Icon_1 = require("../Icon/index.cjs");
+diff --git a/dist/components/Checkbox/Checkbox.mjs b/dist/components/Checkbox/Checkbox.mjs
+index 8da6d458e71d73b3eeac33bcea201b3d40129b59..67a1df408ab0f7d949cd216229f7f3c95b9cb061 100644
+--- a/dist/components/Checkbox/Checkbox.mjs
++++ b/dist/components/Checkbox/Checkbox.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef, useRef, useImperativeHandle, useCallback, useEffect } from "react";
+ const React = $importDefault($React);
+ import { Pressable, Animated, Easing } from "react-native/index.js";
+diff --git a/dist/components/HeaderBase/HeaderBase.cjs b/dist/components/HeaderBase/HeaderBase.cjs
+index 0830a0da5827f94c1ae160e23290848e8791390e..4bc2c1ba2e2b567246ace0a8db782875784b96e4 100644
+--- a/dist/components/HeaderBase/HeaderBase.cjs
++++ b/dist/components/HeaderBase/HeaderBase.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.HeaderBase = void 0;
+ // Third party dependencies.
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const react_native_safe_area_context_1 = require("react-native-safe-area-context");
+diff --git a/dist/components/HeaderBase/HeaderBase.mjs b/dist/components/HeaderBase/HeaderBase.mjs
+index c45f0cf50b4b244776cb8a774f6ebf6681fb1e46..114d7428f136db953daec3ad4fb44af20c244f6b 100644
+--- a/dist/components/HeaderBase/HeaderBase.mjs
++++ b/dist/components/HeaderBase/HeaderBase.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ // Third party dependencies.
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useCallback, useState } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/HeaderRoot/HeaderRoot.cjs b/dist/components/HeaderRoot/HeaderRoot.cjs
+index 9650e7d429406eea77c3f058fbf038ae3f6ca0dc..0570ae1300d9051187a3e2aa88ae2846eae96ca5 100644
+--- a/dist/components/HeaderRoot/HeaderRoot.cjs
++++ b/dist/components/HeaderRoot/HeaderRoot.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.HeaderRoot = void 0;
+ // Third party dependencies.
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
++const design_system_shared_1 = require("@metamask/design-system-shared");
+ const react_1 = __importDefault(require("react"));
+ const react_native_safe_area_context_1 = require("react-native-safe-area-context");
+ // External dependencies.
+diff --git a/dist/components/HeaderRoot/HeaderRoot.mjs b/dist/components/HeaderRoot/HeaderRoot.mjs
+index 357a42b86da33e06e80e7d5c6c1481f7705d2aa0..bd38e92fac2e56bf3ef85349fcea1f949e4304e5 100644
+--- a/dist/components/HeaderRoot/HeaderRoot.mjs
++++ b/dist/components/HeaderRoot/HeaderRoot.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ // Third party dependencies.
+-import { isReactNodeRenderable } from "@metamask-previews/design-system-shared";
++import { isReactNodeRenderable } from "@metamask/design-system-shared";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { useSafeAreaInsets } from "react-native-safe-area-context";
+diff --git a/dist/components/Icon/Icon.cjs b/dist/components/Icon/Icon.cjs
+index 7556c0fdffb7321fccecb8665ef9e5437c165ad6..86c5369ec9607d24efa4586292e51b07e17eac74 100644
+--- a/dist/components/Icon/Icon.cjs
++++ b/dist/components/Icon/Icon.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Icon = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const types_1 = require("../../types/index.cjs");
+ const Icon_assets_1 = require("./Icon.assets.cjs");
+diff --git a/dist/components/Icon/Icon.mjs b/dist/components/Icon/Icon.mjs
+index 5520d3eb2e854350f11b93219181582a503399f4..3ced7ad85cf05f79738a151a5194f78deb5df36d 100644
+--- a/dist/components/Icon/Icon.mjs
++++ b/dist/components/Icon/Icon.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { IconColor, IconSize } from "../../types/index.mjs";
+diff --git a/dist/components/Input/Input.cjs b/dist/components/Input/Input.cjs
+index bce342cebc26bce60d521ec8478e79b95cc0cd15..a630ae9b788671840899e0b612372a36c40dd4cb 100644
+--- a/dist/components/Input/Input.cjs
++++ b/dist/components/Input/Input.cjs
+@@ -1,8 +1,8 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Input = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const react_1 = require("react");
+ const react_native_1 = require("react-native/index.js");
+ const types_1 = require("../../types/index.cjs");
+diff --git a/dist/components/Input/Input.constants.cjs b/dist/components/Input/Input.constants.cjs
+index 01d7660d5ddf90a6c3b3ab2a0f8b8f31737844d8..7c37d68f0168dfb0710f74176aca69b59d3c5287 100644
+--- a/dist/components/Input/Input.constants.cjs
++++ b/dist/components/Input/Input.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MAP_TEXT_VARIANT_INPUT_METRICS = void 0;
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const types_1 = require("../../types/index.cjs");
+ /**
+  * Typographic metrics for Input: same tokens as `text-*` utilities but **without** `lineHeight`.
+diff --git a/dist/components/Input/Input.constants.mjs b/dist/components/Input/Input.constants.mjs
+index 905919331444178c94961b3e4afe7d1487394b21..417ed87667f149f90d1e43c11e15d0f83987c802 100644
+--- a/dist/components/Input/Input.constants.mjs
++++ b/dist/components/Input/Input.constants.mjs
+@@ -1,4 +1,4 @@
+-import { typography } from "@metamask-previews/design-tokens";
++import { typography } from "@metamask/design-tokens";
+ import { TextVariant } from "../../types/index.mjs";
+ /**
+  * Typographic metrics for Input: same tokens as `text-*` utilities but **without** `lineHeight`.
+diff --git a/dist/components/Input/Input.mjs b/dist/components/Input/Input.mjs
+index 27050011d44c8e65a585d5be34793252332d49cc..31c8412a38d458320c6f9a1624cdce86f751bffc 100644
+--- a/dist/components/Input/Input.mjs
++++ b/dist/components/Input/Input.mjs
+@@ -1,5 +1,5 @@
+-import { Theme, useTailwind, useTheme } from "@metamask-previews/design-system-twrnc-preset";
+-import { darkTheme, lightTheme } from "@metamask-previews/design-tokens";
++import { Theme, useTailwind, useTheme } from "@metamask/design-system-twrnc-preset";
++import { darkTheme, lightTheme } from "@metamask/design-tokens";
+ import { forwardRef, useCallback, useMemo, useState } from "react";
+ import { Platform, TextInput } from "react-native/index.js";
+ import { FontFamily, TextVariant } from "../../types/index.mjs";
+diff --git a/dist/components/KeyValueRow/KeyValueLabel/KeyValueLabel.cjs b/dist/components/KeyValueRow/KeyValueLabel/KeyValueLabel.cjs
+index fee31f76352bf268dfb7272abb81ad693f18eba8..fb420b1e616d9a30c5c439ce71f13f0852b8ec4c 100644
+--- a/dist/components/KeyValueRow/KeyValueLabel/KeyValueLabel.cjs
++++ b/dist/components/KeyValueRow/KeyValueLabel/KeyValueLabel.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.KeyValueRowLabel = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const ButtonIcon_1 = require("../../ButtonIcon/index.cjs");
+diff --git a/dist/components/KeyValueRow/KeyValueLabel/KeyValueLabel.mjs b/dist/components/KeyValueRow/KeyValueLabel/KeyValueLabel.mjs
+index 28d8d674db123738e62849fac954eb61fe5904ff..9d2581506e59e28e3265265d8831e07f5dd30dc6 100644
+--- a/dist/components/KeyValueRow/KeyValueLabel/KeyValueLabel.mjs
++++ b/dist/components/KeyValueRow/KeyValueLabel/KeyValueLabel.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/KeyValueRow/KeyValueRoot/KeyValueRoot.cjs b/dist/components/KeyValueRow/KeyValueRoot/KeyValueRoot.cjs
+index 96732799372943fa22029b90c139c55deba699ec..5b60ddc016c53c07c6eb84fdeff307e514a12826 100644
+--- a/dist/components/KeyValueRow/KeyValueRoot/KeyValueRoot.cjs
++++ b/dist/components/KeyValueRow/KeyValueRoot/KeyValueRoot.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.KeyValueRowRoot = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ /**
+diff --git a/dist/components/KeyValueRow/KeyValueRoot/KeyValueRoot.mjs b/dist/components/KeyValueRow/KeyValueRoot/KeyValueRoot.mjs
+index eb3fb0eae0bad9ec6fcebde993c1d9743231f849..2eb719f1f4a17853adc87a1e97c84ae921da70da 100644
+--- a/dist/components/KeyValueRow/KeyValueRoot/KeyValueRoot.mjs
++++ b/dist/components/KeyValueRow/KeyValueRoot/KeyValueRoot.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/KeyValueRow/KeyValueRow.cjs b/dist/components/KeyValueRow/KeyValueRow.cjs
+index 7827900c76f4065cdcb290771c7c50858e8efb6c..3fcb511ba8bfbd54d27333d4492e6b3945d483f6 100644
+--- a/dist/components/KeyValueRow/KeyValueRow.cjs
++++ b/dist/components/KeyValueRow/KeyValueRow.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.KeyValueRowStubs = exports.KeyValueRow = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Icon_1 = require("../Icon/index.cjs");
+diff --git a/dist/components/KeyValueRow/KeyValueRow.mjs b/dist/components/KeyValueRow/KeyValueRow.mjs
+index 905df9dc0f838b7cfe454e06aa445aa8f6dd2511..94e09000e3817623f8d67ce267ac91ff443d2e56 100644
+--- a/dist/components/KeyValueRow/KeyValueRow.mjs
++++ b/dist/components/KeyValueRow/KeyValueRow.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/KeyValueRow/KeyValueSection/KeyValueSection.cjs b/dist/components/KeyValueRow/KeyValueSection/KeyValueSection.cjs
+index 1c71d79cdcb6c90e34ea6355a6c94f42daebe626..99e62efb000cda0bf5efe1d1203bbfd32a66ca79 100644
+--- a/dist/components/KeyValueRow/KeyValueSection/KeyValueSection.cjs
++++ b/dist/components/KeyValueRow/KeyValueSection/KeyValueSection.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.KeyValueSection = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const KeyValueRow_types_1 = require("../KeyValueRow.types.cjs");
+diff --git a/dist/components/KeyValueRow/KeyValueSection/KeyValueSection.mjs b/dist/components/KeyValueRow/KeyValueSection/KeyValueSection.mjs
+index becf26d8b50d5d6a9789c2254753848ead755b44..1d9b81c76a4998851b2862a5d0bc7c8a4f0adc32 100644
+--- a/dist/components/KeyValueRow/KeyValueSection/KeyValueSection.mjs
++++ b/dist/components/KeyValueRow/KeyValueSection/KeyValueSection.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/ListItem/ListItem.cjs b/dist/components/ListItem/ListItem.cjs
+index 3bcd7daa0a908542e6b338a275b3841e74c7a73d..68634e0cf7a0ca3e7a741dbb521a11298b2144ca 100644
+--- a/dist/components/ListItem/ListItem.cjs
++++ b/dist/components/ListItem/ListItem.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ListItem = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Box_1 = require("../Box/index.cjs");
+diff --git a/dist/components/ListItem/ListItem.mjs b/dist/components/ListItem/ListItem.mjs
+index 1f65924faabb8416ee910ef847a1c56e29d4bf29..14c367b4867fe081df5dbc8ed2bd6f8102178a18 100644
+--- a/dist/components/ListItem/ListItem.mjs
++++ b/dist/components/ListItem/ListItem.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { Children } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/MainActionButton/MainActionButton.cjs b/dist/components/MainActionButton/MainActionButton.cjs
+index ba84e571e356edb6872dd6b1c0fc3ffbbc778162..1874905539add9b65c1aa74539d0b5dc6b25e97d 100644
+--- a/dist/components/MainActionButton/MainActionButton.cjs
++++ b/dist/components/MainActionButton/MainActionButton.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MainActionButton = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const Icon_1 = require("../Icon/index.cjs");
+ const ButtonAnimated_1 = require("../temp-components/ButtonAnimated/index.cjs");
+diff --git a/dist/components/MainActionButton/MainActionButton.mjs b/dist/components/MainActionButton/MainActionButton.mjs
+index 6f6387d54f8e5d410e24d93679455ac7dee4e8b2..b4b811f2165a90ad9bd1a6a6ddf1e24e33a30c65 100644
+--- a/dist/components/MainActionButton/MainActionButton.mjs
++++ b/dist/components/MainActionButton/MainActionButton.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { Icon, IconColor, IconSize } from "../Icon/index.mjs";
+diff --git a/dist/components/RadioButton/RadioButton.cjs b/dist/components/RadioButton/RadioButton.cjs
+index 64ecda9d2996f2dcfe1cbaf6158d654b8fc02598..1d4d1f5289c700ee5e4b0b03bb2a22c38665c19c 100644
+--- a/dist/components/RadioButton/RadioButton.cjs
++++ b/dist/components/RadioButton/RadioButton.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.RadioButton = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const TextOrChildren_1 = require("../temp-components/TextOrChildren/index.cjs");
+diff --git a/dist/components/RadioButton/RadioButton.mjs b/dist/components/RadioButton/RadioButton.mjs
+index eb5c81190d3d570518a5d4322a68a509971deb30..a638681b135d6727f5e5df5f376762114b642558 100644
+--- a/dist/components/RadioButton/RadioButton.mjs
++++ b/dist/components/RadioButton/RadioButton.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View, TouchableOpacity } from "react-native/index.js";
+diff --git a/dist/components/Skeleton/Skeleton.cjs b/dist/components/Skeleton/Skeleton.cjs
+index ea65fc259c0b78e31581e531bfc316d94964f188..97c55af4fdb66275bc3cd07b698046e3fb9ad161 100644
+--- a/dist/components/Skeleton/Skeleton.cjs
++++ b/dist/components/Skeleton/Skeleton.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Skeleton = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Skeleton = ({ height, width, children, hideChildren = false, style, childrenWrapperProps, animatedViewProps, twClassName, autoPlay = true, ...props }) => {
+diff --git a/dist/components/Skeleton/Skeleton.mjs b/dist/components/Skeleton/Skeleton.mjs
+index 1a542bd4116fc97dece6b66795e3e2e37e1b6456..dba3ea73fda986cece38da20c1a004d93c71449b 100644
+--- a/dist/components/Skeleton/Skeleton.mjs
++++ b/dist/components/Skeleton/Skeleton.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useEffect, useRef } from "react";
+ const React = $importDefault($React);
+ import { Animated, View } from "react-native/index.js";
+diff --git a/dist/components/Text/Text.cjs b/dist/components/Text/Text.cjs
+index 701382a7dce10254189e31406096870dcc0e1861..55f0a3f1a5a203f8c03d86daeb5cbec43fdea9d6 100644
+--- a/dist/components/Text/Text.cjs
++++ b/dist/components/Text/Text.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Text = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const types_1 = require("../../types/index.cjs");
+diff --git a/dist/components/Text/Text.constants.cjs b/dist/components/Text/Text.constants.cjs
+index b2e3a6050bcee6fdc791bd0cc17582ed5fbd0258..d9cb73d206167f0cc630ba8c3b00e73781ecd41e 100644
+--- a/dist/components/Text/Text.constants.cjs
++++ b/dist/components/Text/Text.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MAP_TEXT_VARIANT_FONTWEIGHT = exports.TWCLASSMAP_TEXT_FONTWEIGHT = void 0;
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const types_1 = require("../../types/index.cjs");
+ // Mappings
+ exports.TWCLASSMAP_TEXT_FONTWEIGHT = {
+diff --git a/dist/components/Text/Text.constants.mjs b/dist/components/Text/Text.constants.mjs
+index 59dafeddbac242933e91c46a262a8a6a4f33b2db..fc649c26b76ac819156de0e0a83b63435209f580 100644
+--- a/dist/components/Text/Text.constants.mjs
++++ b/dist/components/Text/Text.constants.mjs
+@@ -1,4 +1,4 @@
+-import { typography } from "@metamask-previews/design-tokens";
++import { typography } from "@metamask/design-tokens";
+ import { FontWeight, TextVariant } from "../../types/index.mjs";
+ // Mappings
+ export const TWCLASSMAP_TEXT_FONTWEIGHT = {
+diff --git a/dist/components/Text/Text.mjs b/dist/components/Text/Text.mjs
+index 53a0cc76978a1f4291f0f3c1b24f0d84fbe6774f..34d5819786b97e803ee323a1b04b502eb65fda4d 100644
+--- a/dist/components/Text/Text.mjs
++++ b/dist/components/Text/Text.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useMemo } from "react";
+ const React = $importDefault($React);
+ import { Text as RNText } from "react-native/index.js";
+diff --git a/dist/components/TextField/TextField.cjs b/dist/components/TextField/TextField.cjs
+index edc5d0aa96ee9c5513208c6fa189c390d1aa4ff5..09f7bdb02c63a69df5bac58a9151c06587b2d152 100644
+--- a/dist/components/TextField/TextField.cjs
++++ b/dist/components/TextField/TextField.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TextField = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = require("react");
+ const react_native_1 = require("react-native/index.js");
+ const types_1 = require("../../types/index.cjs");
+diff --git a/dist/components/TextField/TextField.mjs b/dist/components/TextField/TextField.mjs
+index 5a1f09d7fb15a3ba7697d9b296724b1281916a4a..089e61a8c41db7e863595c5dda311bb00aeb00b7 100644
+--- a/dist/components/TextField/TextField.mjs
++++ b/dist/components/TextField/TextField.mjs
+@@ -1,4 +1,4 @@
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from "react";
+ import { Pressable, TextInput, View } from "react-native/index.js";
+ import { TextVariant } from "../../types/index.mjs";
+diff --git a/dist/components/TextFieldSearch/TextFieldSearch.cjs b/dist/components/TextFieldSearch/TextFieldSearch.cjs
+index e9591f1c569860e01798ff81d6d054ca90f609d8..886921e1d6d188ac9d57ae4ec0f27ac305938b6f 100644
+--- a/dist/components/TextFieldSearch/TextFieldSearch.cjs
++++ b/dist/components/TextFieldSearch/TextFieldSearch.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TextFieldSearch = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const ButtonIcon_1 = require("../ButtonIcon/index.cjs");
+ const Icon_1 = require("../Icon/index.cjs");
+diff --git a/dist/components/TextFieldSearch/TextFieldSearch.mjs b/dist/components/TextFieldSearch/TextFieldSearch.mjs
+index f18ff446739078ad6c6deb435fe6411b5fe95522..6fde6c66384abe552d85baee2e78688a1e51a579 100644
+--- a/dist/components/TextFieldSearch/TextFieldSearch.mjs
++++ b/dist/components/TextFieldSearch/TextFieldSearch.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef, useCallback } from "react";
+ const React = $importDefault($React);
+ import { ButtonIcon, ButtonIconSize } from "../ButtonIcon/index.mjs";
+diff --git a/dist/components/Toast/Toast.cjs b/dist/components/Toast/Toast.cjs
+index 43ec71bfffa44ac6c5db2d9680f9fc5bec59cd26..f6ca21f6cc4bd7d8a4e8028850d776dc52465068 100644
+--- a/dist/components/Toast/Toast.cjs
++++ b/dist/components/Toast/Toast.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Toast = void 0;
+ // Third party dependencies.
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ // eslint-disable-next-line import-x/default
+diff --git a/dist/components/Toast/Toast.constants.cjs b/dist/components/Toast/Toast.constants.cjs
+index 8d047bb5027350f950332ee2c4fab96f7df2b596..39ebe11b279dd0e05e29a615022050d2448b3089 100644
+--- a/dist/components/Toast/Toast.constants.cjs
++++ b/dist/components/Toast/Toast.constants.cjs
+@@ -2,7 +2,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TOAST_BOTTOM_PADDING = exports.TOAST_ANIMATION_DURATION = exports.TOAST_VISIBILITY_DURATION = void 0;
+ // External dependencies.
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ /**
+  * Animation constants.
+  */
+diff --git a/dist/components/Toast/Toast.constants.d.cts b/dist/components/Toast/Toast.constants.d.cts
+index e9306450a60ea49d676264e0bfaf66caa208338b..6a61e7966cdc956cb387bcd4ab79ead208b1a4c1 100644
+--- a/dist/components/Toast/Toast.constants.d.cts
++++ b/dist/components/Toast/Toast.constants.d.cts
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ /**
+  * Animation constants.
+  */
+diff --git a/dist/components/Toast/Toast.constants.d.mts b/dist/components/Toast/Toast.constants.d.mts
+index f46adb9982f9e0aed3f90ed8958de8590fbf9c1f..d7d719a4c56a73df33a8fad827d7e15d8936defa 100644
+--- a/dist/components/Toast/Toast.constants.d.mts
++++ b/dist/components/Toast/Toast.constants.d.mts
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ /**
+  * Animation constants.
+  */
+diff --git a/dist/components/Toast/Toast.constants.mjs b/dist/components/Toast/Toast.constants.mjs
+index 818b3f32c866e1ca09e21fcfc7cd2168363fd4d3..f20d1101963cc0774b5d002bc221e55f2d96ca8a 100644
+--- a/dist/components/Toast/Toast.constants.mjs
++++ b/dist/components/Toast/Toast.constants.mjs
+@@ -1,5 +1,5 @@
+ // External dependencies.
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ /**
+  * Animation constants.
+  */
+diff --git a/dist/components/Toast/Toast.mjs b/dist/components/Toast/Toast.mjs
+index 57b98a151eb1013b4155102211295e9e9f11d6fe..9049d6c6e5adddd2d0afc6a19367cd72e21a1e28 100644
+--- a/dist/components/Toast/Toast.mjs
++++ b/dist/components/Toast/Toast.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ // Third party dependencies.
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef, isValidElement, useImperativeHandle, useMemo, useRef, useState } from "react";
+ const React = $importDefault($React);
+ import { Dimensions, View } from "react-native/index.js";
+diff --git a/dist/components/temp-components/Blockies/Blockies.cjs b/dist/components/temp-components/Blockies/Blockies.cjs
+index e5f9ea01e5b82f4be5e887484a2ec494c424ca96..b22ad64c4bd578baaeff079a3ca6d66d5b48eabf 100644
+--- a/dist/components/temp-components/Blockies/Blockies.cjs
++++ b/dist/components/temp-components/Blockies/Blockies.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Blockies = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
++const design_system_shared_1 = require("@metamask/design-system-shared");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const Blockies_utilities_1 = require("./Blockies.utilities.cjs");
+diff --git a/dist/components/temp-components/Blockies/Blockies.mjs b/dist/components/temp-components/Blockies/Blockies.mjs
+index 93af6dcedbab4b562dd2e35a7d4f4a22e75081cb..639f7325496c110c51c44c82db6d977a5f17124c 100644
+--- a/dist/components/temp-components/Blockies/Blockies.mjs
++++ b/dist/components/temp-components/Blockies/Blockies.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { extractAccountAddress } from "@metamask-previews/design-system-shared";
++import { extractAccountAddress } from "@metamask/design-system-shared";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { Image } from "react-native/index.js";
+diff --git a/dist/components/temp-components/Jazzicon/Jazzicon.cjs b/dist/components/temp-components/Jazzicon/Jazzicon.cjs
+index 54a91d59519071d58bc4199bb0a0001c67bd129b..ac7ab7162ca1a02fe6ceee8b66f558fb99881993 100644
+--- a/dist/components/temp-components/Jazzicon/Jazzicon.cjs
++++ b/dist/components/temp-components/Jazzicon/Jazzicon.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Jazzicon = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
++const design_system_shared_1 = require("@metamask/design-system-shared");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const react_native_jazzicon_1 = __importDefault(require("react-native-jazzicon"));
+diff --git a/dist/components/temp-components/Jazzicon/Jazzicon.mjs b/dist/components/temp-components/Jazzicon/Jazzicon.mjs
+index 24a1aeb82339431dfc798b1df5ac1f5153dfeec4..de601d5e61629e6c5e3ce5fc591e9bc90ba8007c 100644
+--- a/dist/components/temp-components/Jazzicon/Jazzicon.mjs
++++ b/dist/components/temp-components/Jazzicon/Jazzicon.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { extractAccountAddress, generateIconSeed } from "@metamask-previews/design-system-shared";
++import { extractAccountAddress, generateIconSeed } from "@metamask/design-system-shared";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/temp-components/Maskicon/Maskicon.utilities.cjs b/dist/components/temp-components/Maskicon/Maskicon.utilities.cjs
+index c2f1967f7c76b6ab63ba9cbaf4fedb7774479d33..b36aaca47acef17aae175dc157b38942e1ca6791 100644
+--- a/dist/components/temp-components/Maskicon/Maskicon.utilities.cjs
++++ b/dist/components/temp-components/Maskicon/Maskicon.utilities.cjs
+@@ -1,9 +1,9 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getMaskiconSVG = exports.createMaskiconSVG = exports.seedToString = exports.sdbmHash = void 0;
+-const design_system_shared_1 = require("@metamask-previews/design-system-shared");
++const design_system_shared_1 = require("@metamask/design-system-shared");
+ // /////////////////////////////////////////////////////
+-// Shared utilities have been moved to @metamask-previews/design-system-shared
++// Shared utilities have been moved to @metamask/design-system-shared
+ // /////////////////////////////////////////////////////
+ // /////////////////////////////////////////////////////
+ // Maskicon SVG Creation
+diff --git a/dist/components/temp-components/Maskicon/Maskicon.utilities.mjs b/dist/components/temp-components/Maskicon/Maskicon.utilities.mjs
+index 0cd21b57d6b999ad28412c77ed10ce089dc703e6..ce9d625817a343230fd7a9452c727f2f3d05fa59 100644
+--- a/dist/components/temp-components/Maskicon/Maskicon.utilities.mjs
++++ b/dist/components/temp-components/Maskicon/Maskicon.utilities.mjs
+@@ -1,6 +1,6 @@
+-import { extractAccountAddress, generateIconSeed } from "@metamask-previews/design-system-shared";
++import { extractAccountAddress, generateIconSeed } from "@metamask/design-system-shared";
+ // /////////////////////////////////////////////////////
+-// Shared utilities have been moved to @metamask-previews/design-system-shared
++// Shared utilities have been moved to @metamask/design-system-shared
+ // /////////////////////////////////////////////////////
+ // /////////////////////////////////////////////////////
+ // Maskicon SVG Creation
+diff --git a/dist/components/temp-components/Spinner/Spinner.cjs b/dist/components/temp-components/Spinner/Spinner.cjs
+index c8581de80b5348b598511821726c83ea74badeb6..01ae2953f3aac99e327c3bb85eeeb309ee7ba918 100644
+--- a/dist/components/temp-components/Spinner/Spinner.cjs
++++ b/dist/components/temp-components/Spinner/Spinner.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Spinner = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native/index.js");
+ const react_native_reanimated_1 = __importStar(require("react-native-reanimated"));
+diff --git a/dist/components/temp-components/Spinner/Spinner.mjs b/dist/components/temp-components/Spinner/Spinner.mjs
+index 18914f27cb13deacb0c1844a7e373254fb64fa4a..948c8dd8313e722bf166fd08c528f877ccb1e106 100644
+--- a/dist/components/temp-components/Spinner/Spinner.mjs
++++ b/dist/components/temp-components/Spinner/Spinner.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useEffect } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native/index.js";
+diff --git a/dist/components/temp-components/TextOrChildren/TextOrChildren.types.d.cts b/dist/components/temp-components/TextOrChildren/TextOrChildren.types.d.cts
+index 7626e944722c2a2fa23543f2589c4147546a6199..5c794ae09aaf9af9c4bbaf21162f31d2a0b91453 100644
+--- a/dist/components/temp-components/TextOrChildren/TextOrChildren.types.d.cts
++++ b/dist/components/temp-components/TextOrChildren/TextOrChildren.types.d.cts
+@@ -1,4 +1,4 @@
+-import type { TextOrChildrenPropsShared } from "@metamask-previews/design-system-shared";
++import type { TextOrChildrenPropsShared } from "@metamask/design-system-shared";
+ import type { TextProps } from "../../Text/index.cjs";
+ /**
+  * TextOrChildren component props.
+diff --git a/dist/components/temp-components/TextOrChildren/TextOrChildren.types.d.mts b/dist/components/temp-components/TextOrChildren/TextOrChildren.types.d.mts
+index c34d978030e673dff821d8eaedd4674579e31f55..028b5e8bcbd5dca716619b1827a830a1f2cb216a 100644
+--- a/dist/components/temp-components/TextOrChildren/TextOrChildren.types.d.mts
++++ b/dist/components/temp-components/TextOrChildren/TextOrChildren.types.d.mts
+@@ -1,4 +1,4 @@
+-import type { TextOrChildrenPropsShared } from "@metamask-previews/design-system-shared";
++import type { TextOrChildrenPropsShared } from "@metamask/design-system-shared";
+ import type { TextProps } from "../../Text/index.mjs";
+ /**
+  * TextOrChildren component props.
+diff --git a/dist/types/index.cjs b/dist/types/index.cjs
+index 1e02020848bb5da8c024e9116c762c24e43365df..ef3dfd36a13e00cf99529026124402640914ac62 100644
+--- a/dist/types/index.cjs
++++ b/dist/types/index.cjs
+@@ -1,22 +1,22 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.IconName = exports.IconSize = exports.IconColor = exports.FontFamily = exports.FontStyle = exports.FontWeight = exports.TextColor = exports.TextVariant = exports.ButtonIconVariant = exports.ButtonIconSize = exports.ButtonVariant = exports.ButtonHeroSize = exports.ButtonTertiarySize = exports.ButtonSecondarySize = exports.ButtonPrimarySize = exports.ButtonSize = exports.ButtonBaseSize = exports.BoxBorderColor = exports.BoxBackgroundColor = exports.BoxJustifyContent = exports.BoxAlignItems = exports.BoxFlexWrap = exports.BoxFlexDirection = exports.AvatarIconSeverity = exports.AvatarGroupVariant = exports.AvatarAccountVariant = exports.AvatarSize = exports.AvatarTokenSize = exports.AvatarNetworkSize = exports.AvatarIconSize = exports.AvatarGroupSize = exports.AvatarFaviconSize = exports.AvatarAccountSize = exports.AvatarBaseShape = exports.AvatarBaseSize = void 0;
+-var design_system_shared_1 = require("@metamask-previews/design-system-shared");
++var design_system_shared_1 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "AvatarBaseSize", { enumerable: true, get: function () { return design_system_shared_1.AvatarBaseSize; } });
+ Object.defineProperty(exports, "AvatarBaseShape", { enumerable: true, get: function () { return design_system_shared_1.AvatarBaseShape; } });
+-var design_system_shared_2 = require("@metamask-previews/design-system-shared");
++var design_system_shared_2 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "AvatarAccountSize", { enumerable: true, get: function () { return design_system_shared_2.AvatarBaseSize; } });
+-var design_system_shared_3 = require("@metamask-previews/design-system-shared");
++var design_system_shared_3 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "AvatarFaviconSize", { enumerable: true, get: function () { return design_system_shared_3.AvatarBaseSize; } });
+-var design_system_shared_4 = require("@metamask-previews/design-system-shared");
++var design_system_shared_4 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "AvatarGroupSize", { enumerable: true, get: function () { return design_system_shared_4.AvatarBaseSize; } });
+-var design_system_shared_5 = require("@metamask-previews/design-system-shared");
++var design_system_shared_5 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "AvatarIconSize", { enumerable: true, get: function () { return design_system_shared_5.AvatarBaseSize; } });
+-var design_system_shared_6 = require("@metamask-previews/design-system-shared");
++var design_system_shared_6 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "AvatarNetworkSize", { enumerable: true, get: function () { return design_system_shared_6.AvatarBaseSize; } });
+-var design_system_shared_7 = require("@metamask-previews/design-system-shared");
++var design_system_shared_7 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "AvatarTokenSize", { enumerable: true, get: function () { return design_system_shared_7.AvatarBaseSize; } });
+-var design_system_shared_8 = require("@metamask-previews/design-system-shared");
++var design_system_shared_8 = require("@metamask/design-system-shared");
+ Object.defineProperty(exports, "AvatarSize", { enumerable: true, get: function () { return design_system_shared_8.AvatarBaseSize; } });
+ /**
+  * AvatarAccount - variant
+diff --git a/dist/types/index.d.cts b/dist/types/index.d.cts
+index 78efb1b364a081b6bb09f38767bb552685600a47..8398b3de91495814eeaf7cfedf6905b869d68e9f 100644
+--- a/dist/types/index.d.cts
++++ b/dist/types/index.d.cts
+@@ -1,11 +1,11 @@
+-export { AvatarBaseSize, AvatarBaseShape, } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarAccountSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarFaviconSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarGroupSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarIconSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarNetworkSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarTokenSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarSize } from "@metamask-previews/design-system-shared";
++export { AvatarBaseSize, AvatarBaseShape, } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarAccountSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarFaviconSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarGroupSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarIconSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarNetworkSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarTokenSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarSize } from "@metamask/design-system-shared";
+ /**
+  * AvatarAccount - variant
+  */
+diff --git a/dist/types/index.d.mts b/dist/types/index.d.mts
+index c423e59cbc59b3281d82b633a27aa9388acfe045..2b56213f1b05d3982adeeb160beb92bd9cd33b32 100644
+--- a/dist/types/index.d.mts
++++ b/dist/types/index.d.mts
+@@ -1,11 +1,11 @@
+-export { AvatarBaseSize, AvatarBaseShape, } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarAccountSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarFaviconSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarGroupSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarIconSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarNetworkSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarTokenSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarSize } from "@metamask-previews/design-system-shared";
++export { AvatarBaseSize, AvatarBaseShape, } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarAccountSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarFaviconSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarGroupSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarIconSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarNetworkSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarTokenSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarSize } from "@metamask/design-system-shared";
+ /**
+  * AvatarAccount - variant
+  */
+diff --git a/dist/types/index.mjs b/dist/types/index.mjs
+index 88edd0470b4e9379bf2ea450b2ab4f2b31a2a8d2..5cb22dcfe7afab5e0a71aba50ffcd52f6f5649f9 100644
+--- a/dist/types/index.mjs
++++ b/dist/types/index.mjs
+@@ -1,11 +1,11 @@
+-export { AvatarBaseSize, AvatarBaseShape } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarAccountSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarFaviconSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarGroupSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarIconSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarNetworkSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarTokenSize } from "@metamask-previews/design-system-shared";
+-export { AvatarBaseSize as AvatarSize } from "@metamask-previews/design-system-shared";
++export { AvatarBaseSize, AvatarBaseShape } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarAccountSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarFaviconSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarGroupSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarIconSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarNetworkSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarTokenSize } from "@metamask/design-system-shared";
++export { AvatarBaseSize as AvatarSize } from "@metamask/design-system-shared";
+ /**
+  * AvatarAccount - variant
+  */
