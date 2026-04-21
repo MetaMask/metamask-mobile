@@ -10,6 +10,7 @@ import {
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
+import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
 
 export type RampsQueryStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -77,7 +78,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     ...rampsQueries.paymentMethods.options({
       regionCode: userRegion?.regionCode ?? '',
       fiat: userRegion?.country?.currency ?? '',
-      assetId: selectedToken?.assetId?.toLowerCase() ?? '', // lowercase for API; not in the query key
+      assetId: normalizeAssetIdForApi(selectedToken?.assetId),
       providerId: selectedProvider?.id ?? '',
     }),
     enabled: queryEnabled,
