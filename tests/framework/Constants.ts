@@ -79,6 +79,15 @@ export const DEFAULT_BROWSER_PLAYGROUND_PATH = path.join(
   'build',
 );
 
+export const DEFAULT_TEST_SNAPS_PATH = path.join(
+  '..',
+  '..',
+  'node_modules',
+  '@metamask',
+  'test-snaps',
+  'dist',
+);
+
 /**
  * The schemes for the E2E deep links.
  * @enum {string}
@@ -105,6 +114,7 @@ export enum DappVariants {
   MULTICHAIN_TEST_DAPP = 'multichain-test-dapp',
   SOLANA_TEST_DAPP = 'solana-test-dapp',
   BROWSER_PLAYGROUND = 'browser-playground',
+  TEST_SNAPS = 'test-snaps',
 }
 
 export const TestDapps = {
@@ -119,6 +129,9 @@ export const TestDapps = {
   },
   [DappVariants.BROWSER_PLAYGROUND]: {
     dappPath: path.resolve(__dirname, DEFAULT_BROWSER_PLAYGROUND_PATH),
+  },
+  [DappVariants.TEST_SNAPS]: {
+    dappPath: path.resolve(__dirname, DEFAULT_TEST_SNAPS_PATH),
   },
 };
 
