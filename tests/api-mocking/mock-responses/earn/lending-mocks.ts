@@ -117,7 +117,7 @@ function buildLendingPositionsResponse(hasPosition: boolean) {
         id: `${LENDING_MARKET_USDC.id}-position`,
         chainId: 1,
         market: LENDING_MARKET_USDC,
-        assets: '500000000',
+        assets: '5000000000',
       },
     ],
   };
