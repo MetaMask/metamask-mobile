@@ -446,9 +446,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
+  const availableBalance = Number.parseFloat(
+    account?.availableBalance?.toString() ?? '0',
+  );
   const totalBalance = Number.parseFloat(
     account?.totalBalance?.toString() ?? '0',
   );
+  const hasDirectOrderFundingPath =
+    !isLoadingAccount &&
+    (availableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
+      defaultPayTokenWhenNoPerpsBalance !== null);
   const showAddFundsCTA =
     isEligible &&
     !isLoadingPosition &&
@@ -456,7 +463,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     !isAtOICap &&
     !isLoadingAccount &&
     totalBalance < PERPS_MIN_BALANCE_THRESHOLD &&
-    defaultPayTokenWhenNoPerpsBalance === null;
+    !hasDirectOrderFundingPath;
 
   const handleAddFunds = useCallback(async () => {
     if (!isEligible) {
@@ -1192,10 +1199,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const shouldShowNewPositionActions =
     hasLongShortButtons && !existingPosition && !isAtOICap;
-  const shouldShowAddFundsCTASection =
-    shouldShowNewPositionActions && showAddFundsCTA;
+  const shouldShowAddFundsCTASection = shouldShowNewPositionActions
+    ? showAddFundsCTA || !hasDirectOrderFundingPath
+    : false;
   const shouldShowLongShortButtonsOnly =
-    shouldShowNewPositionActions && !showAddFundsCTA;
+    shouldShowNewPositionActions && !shouldShowAddFundsCTASection;
 
   const shouldShowPerpsMarketInsights =
     isPerpsInsightsEnabled &&
