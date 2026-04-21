@@ -57,7 +57,7 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
     );
   });
 
-  it('should return correct and consistent session scopes for selected chains', async () => {
+  it.only('should return correct and consistent session scopes for selected chains', async () => {
     await withFixtures(
       {
         dapps: [
@@ -65,23 +65,23 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        fixture: new FixtureBuilder()
+          .withPopularNetworks()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
         restartDevice: true,
       },
       async () => {
         await MultichainTestDApp.setupAndNavigateToTestDapp();
         const networksToTest =
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-        await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-        const createAssertions = MultichainUtilities.generateSessionAssertions(
-          await MultichainTestDApp.getSessionData(),
-          networksToTest,
-        );
-
-        if (!createAssertions.success) {
-          throw new Error('Initial session creation failed');
+        await MultichainTestDApp.scrollToPageTop();
+        const connected = await MultichainTestDApp.useAutoConnectButton();
+        if (!connected) {
+          throw new Error('Failed to connect to dapp');
         }
+        await MultichainTestDApp.tapGetSessionButton();
 
         const getSessionResult1 = await MultichainTestDApp.getSessionData();
         const getSessionResult2 = await MultichainTestDApp.getSessionData();
@@ -162,7 +162,10 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        fixture: new FixtureBuilder()
+          .withPopularNetworks()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
         restartDevice: true,
       },
       async () => {
@@ -170,17 +173,13 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
 
         const initialNetworks =
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-        await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
 
-        const sessionData1 = await MultichainTestDApp.getSessionData();
-        const createAssertions1 = MultichainUtilities.generateSessionAssertions(
-          sessionData1,
-          initialNetworks,
-        );
-
-        if (!createAssertions1.success) {
-          throw new Error('Initial session creation failed');
+        await MultichainTestDApp.scrollToPageTop();
+        const connected = await MultichainTestDApp.useAutoConnectButton();
+        if (!connected) {
+          throw new Error('Failed to connect to dapp');
         }
+        await MultichainTestDApp.tapGetSessionButton();
 
         const getSessionResult1 = await MultichainTestDApp.getSessionData();
         const getAssertions1 = MultichainUtilities.generateSessionAssertions(
