@@ -69,6 +69,8 @@ interface MoneyPotentialEarningsProps {
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
+  /** When true, hides token rows and shows a single "View potential earnings" button. */
+  condensed?: boolean;
 }
 
 const GradientAmountText = ({ value }: { value: string }) => {
@@ -211,6 +213,7 @@ const MoneyPotentialEarnings = ({
   onTokenPress,
   onViewAllPress,
   onHeaderPress,
+  condensed = false,
 }: MoneyPotentialEarningsProps) => {
   const formatFiat = useFiatFormatter();
   const projectedMultiplier = useMemo(
@@ -275,27 +278,45 @@ const MoneyPotentialEarnings = ({
         </Text>
       </Box>
 
-      {visibleTokens.map((token) => (
-        <TokenRow
-          key={`${token.address}-${token.chainId}`}
-          token={token}
-          hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
-          projectedMultiplier={projectedMultiplier}
-          onPress={handleTokenPress(token)}
-        />
-      ))}
+      {condensed ? (
+        <Box twClassName="px-4 py-3">
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={onViewAllPress}
+            testID={
+              MoneyPotentialEarningsTestIds.VIEW_POTENTIAL_EARNINGS_BUTTON
+            }
+          >
+            {strings('money.potential_earnings.view_potential_earnings')}
+          </Button>
+        </Box>
+      ) : (
+        <>
+          {visibleTokens.map((token) => (
+            <TokenRow
+              key={`${token.address}-${token.chainId}`}
+              token={token}
+              hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
+              projectedMultiplier={projectedMultiplier}
+              onPress={handleTokenPress(token)}
+            />
+          ))}
 
-      <Box twClassName="px-4 py-3">
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={onViewAllPress}
-          testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
-        >
-          {strings('money.potential_earnings.view_all')}
-        </Button>
-      </Box>
+          <Box twClassName="px-4 py-3">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={onViewAllPress}
+              testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
+            >
+              {strings('money.potential_earnings.view_all')}
+            </Button>
+          </Box>
+        </>
+      )}
     </Box>
   );
 };
