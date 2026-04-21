@@ -19,14 +19,22 @@ import {
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
 
 const MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS =
-  '387141446914-5ja3p4dfanfkm8uq238fm1b8t1rkscv4.apps.googleusercontent.com';
+  process.env.MAIN_IOS_GOOGLE_CLIENT_ID_UAT;
 const MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID =
-  '387141446914-olajr83p1bbvabh1u8tfglt1k4u6jlcb.apps.googleusercontent.com';
+  process.env.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT;
 
 function getMockGoogleOAuthClientId(): string {
-  return Platform.OS === 'ios'
-    ? MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS
-    : MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID;
+  const clientId =
+    Platform.OS === 'ios'
+      ? MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS
+      : MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID;
+  if (!clientId) {
+    throw new Error(
+      `[E2E Mock] Missing Google OAuth UAT client ID env var for platform "${Platform.OS}". ` +
+        'Ensure MAIN_IOS_GOOGLE_CLIENT_ID_UAT or MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT is set.',
+    );
+  }
+  return clientId;
 }
 
 /**
@@ -280,10 +288,16 @@ export function createLoginHandler(
         clientId: getMockGoogleOAuthClientId(),
         redirectUri: 'metamask://e2e',
       });
-    case 'apple':
-      return new MockAppleLoginHandler({
-        clientId: 'io.metamask.appleloginclient.uat',
-      });
+    case 'apple': {
+      const appleClientId = process.env.MAIN_ANDROID_APPLE_CLIENT_ID_UAT;
+      if (!appleClientId) {
+        throw new Error(
+          '[E2E Mock] Missing Apple OAuth UAT client ID. ' +
+            'Ensure MAIN_ANDROID_APPLE_CLIENT_ID_UAT is set.',
+        );
+      }
+      return new MockAppleLoginHandler({ clientId: appleClientId });
+    }
     default:
       throw new Error(`[E2E Mock] Unsupported provider: ${provider}`);
   }
