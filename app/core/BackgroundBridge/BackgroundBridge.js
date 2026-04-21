@@ -216,15 +216,10 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
-    this._handleLock = this.onLock.bind(this);
-    this._handleUnlock = this.onUnlock.bind(this);
-    Engine.controllerMessenger.subscribe(
-      'KeyringController:lock',
-      this._handleLock,
-    );
+    Engine.controllerMessenger.subscribe('KeyringController:lock', this.onLock);
     Engine.controllerMessenger.subscribe(
       'KeyringController:unlock',
-      this._handleUnlock,
+      this.onUnlock,
     );
 
     // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
@@ -289,7 +284,7 @@ export class BackgroundBridge extends EventEmitter {
     return this.isWalletConnect || this.isMMSDK ? this.channelId : this.origin;
   }
 
-  onUnlock() {
+  onUnlock = () => {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
@@ -304,9 +299,9 @@ export class BackgroundBridge extends EventEmitter {
       method: NOTIFICATION_NAMES.unlockStateChanged,
       params: true,
     });
-  }
+  };
 
-  onLock() {
+  onLock = () => {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
@@ -321,7 +316,7 @@ export class BackgroundBridge extends EventEmitter {
       method: NOTIFICATION_NAMES.unlockStateChanged,
       params: false,
     });
-  }
+  };
 
   async getProviderNetworkState(
     origin = METAMASK_DOMAIN,
@@ -516,13 +511,10 @@ export class BackgroundBridge extends EventEmitter {
       'SelectedNetworkController:stateChange',
       this.sendStateUpdate,
     );
-    controllerMessenger.tryUnsubscribe(
-      'KeyringController:lock',
-      this._handleLock,
-    );
+    controllerMessenger.tryUnsubscribe('KeyringController:lock', this.onLock);
     controllerMessenger.tryUnsubscribe(
       'KeyringController:unlock',
-      this._handleUnlock,
+      this.onUnlock,
     );
     controllerMessenger.tryUnsubscribe(
       `${PermissionController.name}:stateChange`,
