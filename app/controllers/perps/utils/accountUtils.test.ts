@@ -196,7 +196,7 @@ describe('spot balance helpers', () => {
     expect(accountState.totalBalance).toBe('100');
   });
 
-  it('ignores non-USDC spot balances entirely', () => {
+  it('ignores non-collateral spot balances entirely', () => {
     const accountState: AccountState = {
       availableBalance: '0',
       totalBalance: '50',
@@ -213,6 +213,45 @@ describe('spot balance helpers', () => {
     } as never);
 
     expect(result).toBe(accountState);
+  });
+
+  it('includes USDH spot balance (HIP-3 USDH-DEX collateral)', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '0',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'USDH', total: '75.25' },
+        { coin: 'HYPE', total: '999' },
+      ],
+    } as never);
+
+    expect(result.totalBalance).toBe('75.25');
+  });
+
+  it('sums USDC and USDH together when both are present', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '10',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'USDC', total: '20' },
+        { coin: 'USDH', total: '30' },
+        { coin: 'HYPE', total: '9999' },
+      ],
+    } as never);
+
+    expect(result.totalBalance).toBe('60');
   });
 
   it('returns the original account state when spot balance is zero', () => {

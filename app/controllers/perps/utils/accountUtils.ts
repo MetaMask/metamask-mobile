@@ -4,6 +4,7 @@
  */
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
+import { USDH_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
 import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
@@ -90,12 +91,15 @@ export function calculateWeightedReturnOnEquity(
   return weightedROE.toString();
 }
 
-// Only USDC in spot is convertible to perps collateral on Hyperliquid.
+// Spot coins convertible to perps collateral on Hyperliquid:
+// - USDC: unified-account + standard margin collateral
+// - USDH: HIP-3 USDH-DEX collateral (pulled from spot automatically per HL docs,
+//   see HyperLiquidProvider.#isUsdhCollateralDex / #getSpotUsdhBalance)
 // Non-stablecoin spot assets (HYPE, PURR, …) cannot back perps positions,
 // so including them in totalBalance would mis-gate the Add Funds CTA —
 // a user holding only HYPE would see the CTA hidden while being unable
 // to trade.
-const SPOT_COLLATERAL_COINS = new Set<string>(['USDC']);
+const SPOT_COLLATERAL_COINS = new Set<string>(['USDC', USDH_CONFIG.TokenName]);
 
 export function getSpotBalance(
   spotState?: SpotClearinghouseStateResponse | null,
