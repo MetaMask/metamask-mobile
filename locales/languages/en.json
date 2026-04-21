@@ -8450,7 +8450,10 @@
       "tip_enable_bluetooth": "Bluetooth is turned on",
       "tip_bluetooth_permission": "Location and Bluetooth permission is granted",
       "tip_bluetooth_permission_v12": "Nearby devices permission is granted",
-      "tip_stay_close": "Your device stays close to your phone"
+      "tip_stay_close": "Your device stays close to your phone",
+      "qr_tip_scan": "Your camera is ready to scan the QR code",
+      "qr_tip_align": "Align the QR code within the frame",
+      "qr_tip_lighting": "Ensure good lighting for clear scanning"
     },
     "awaiting_app": {
       "title": "Open {{app}}",
