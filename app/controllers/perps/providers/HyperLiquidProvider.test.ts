@@ -8865,6 +8865,7 @@ describe('HyperLiquidProvider', () => {
         clearinghouseState: jest.fn(),
         frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
+        spotClearinghouseState: jest.fn().mockResolvedValue({ balances: [] }),
       };
     });
 

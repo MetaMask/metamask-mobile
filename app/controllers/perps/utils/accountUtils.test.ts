@@ -190,8 +190,29 @@ describe('spot balance helpers', () => {
       ],
     } as never);
 
-    expect(result.totalBalance).toBe('126');
+    // Only USDC contributes — non-stablecoin spot assets are not convertible
+    // to perps collateral and must not inflate totalBalance.
+    expect(result.totalBalance).toBe('125.5');
     expect(accountState.totalBalance).toBe('100');
+  });
+
+  it('ignores non-USDC spot balances entirely', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '50',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'HYPE', total: '1000' },
+        { coin: 'PURR', total: '5000' },
+      ],
+    } as never);
+
+    expect(result).toBe(accountState);
   });
 
   it('returns the original account state when spot balance is zero', () => {

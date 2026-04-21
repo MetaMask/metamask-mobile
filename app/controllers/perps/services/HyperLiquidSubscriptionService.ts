@@ -1058,6 +1058,18 @@ export class HyperLiquidSubscriptionService {
     generation: number,
   ): Promise<void> {
     try {
+      // Cold-start safety: getInfoClient() throws until the SDK has been
+      // initialized via ensureSubscriptionClient. On a fresh service
+      // instance subscribeToAccount can race ahead of the webData3 path,
+      // so initialize here first — subsequent calls are no-ops.
+      await this.#clientService.ensureSubscriptionClient(
+        this.#walletService.createWalletAdapter(),
+      );
+
+      if (generation !== this.#spotStateGeneration) {
+        return;
+      }
+
       const infoClient = this.#clientService.getInfoClient();
       const result = await infoClient.spotClearinghouseState({
         user: userAddress,

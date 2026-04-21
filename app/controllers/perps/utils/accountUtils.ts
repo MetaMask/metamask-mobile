@@ -90,6 +90,13 @@ export function calculateWeightedReturnOnEquity(
   return weightedROE.toString();
 }
 
+// Only USDC in spot is convertible to perps collateral on Hyperliquid.
+// Non-stablecoin spot assets (HYPE, PURR, …) cannot back perps positions,
+// so including them in totalBalance would mis-gate the Add Funds CTA —
+// a user holding only HYPE would see the CTA hidden while being unable
+// to trade.
+const SPOT_COLLATERAL_COINS = new Set<string>(['USDC']);
+
 export function getSpotBalance(
   spotState?: SpotClearinghouseStateResponse | null,
 ): number {
@@ -98,8 +105,13 @@ export function getSpotBalance(
   }
 
   return spotState.balances.reduce(
-    (sum: number, balance: { total?: string }) =>
-      sum + parseFloat(balance.total ?? '0'),
+    (sum: number, balance: { coin?: string; total?: string }) => {
+      if (!balance.coin || !SPOT_COLLATERAL_COINS.has(balance.coin)) {
+        return sum;
+      }
+      const value = parseFloat(balance.total ?? '0');
+      return Number.isFinite(value) ? sum + value : sum;
+    },
     0,
   );
 }
