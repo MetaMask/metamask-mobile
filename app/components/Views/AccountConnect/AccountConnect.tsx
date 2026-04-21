@@ -380,8 +380,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       // flows (SDK, WalletConnect, top-level pages) fall back to the
       // top-level origin so the cross-origin check stays false.
       origin: isIframeRequest
-        ? pageMeta?.iframeOrigin ?? ''
-        : channelIdOrHostname ?? '',
+        ? (pageMeta?.iframeOrigin ?? '')
+        : (channelIdOrHostname ?? ''),
       // pageMeta.url is a full URL; getIframeProperties normalizes it to
       // an origin before comparing.
       topLevelOrigin: isIframeRequest ? pageMeta?.url : undefined,

@@ -81,8 +81,8 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
       // JS on the BrowserTab and forwarded via pageMeta.iframeOrigin. For
       // non-iframe flows we fall back to the request's top-level origin.
       origin: isIframeRequest
-        ? pageMeta?.iframeOrigin ?? ''
-        : approvalRequest?.requestData?.metadata?.origin ?? '',
+        ? (pageMeta?.iframeOrigin ?? '')
+        : (approvalRequest?.requestData?.metadata?.origin ?? ''),
       // pageMeta.url is a full URL (e.g. https://host/path); getIframeProperties
       // normalizes it to an origin internally before comparison.
       topLevelOrigin: isIframeRequest ? pageMeta?.url : undefined,
