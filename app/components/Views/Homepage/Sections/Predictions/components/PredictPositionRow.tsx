@@ -6,8 +6,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  BoxFlexDirection,
-  BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
@@ -57,65 +55,58 @@ export const PredictPositionRow = ({
       onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={`${title} - ${outcome}`}
+      style={tw.style('flex-row items-start px-4 py-3 gap-4')}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Start}
-        paddingHorizontal={4}
-        paddingVertical={3}
-        gap={4}
-      >
-        {position.icon ? (
-          <Image
-            source={{ uri: position.icon }}
-            style={tw.style('w-10 h-10 rounded-lg mt-1')}
-          />
-        ) : (
-          <Box twClassName="w-10 h-10 rounded-lg mt-1 bg-background-alternative" />
-        )}
-        <Box style={tw.style('flex-1')} gap={0}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {title}
-          </Text>
-          <SensitiveText
-            variant={ComponentTextVariant.BodySMMedium}
-            color={ComponentTextColor.Alternative}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
-            numberOfLines={1}
-          >
-            {strings('predict.position_info', {
-              initialValue: formatPrice(initialValue, {
-                maximumDecimals: 2,
-              }),
-              outcome,
-              shares: formatPrice(size, {
-                maximumDecimals: 2,
-              }),
-            })}
-          </SensitiveText>
-        </Box>
-        <Box twClassName="items-end" gap={0}>
-          <SensitiveText
-            variant={ComponentTextVariant.BodyMDMedium}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-          >
-            {formatPrice(currentValue, { maximumDecimals: 2 })}
-          </SensitiveText>
-          <SensitiveText
-            variant={ComponentTextVariant.BodySMMedium}
-            color={
-              percentPnl >= 0
-                ? ComponentTextColor.Success
-                : ComponentTextColor.Error
-            }
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-          >
-            {formatPercentage(percentPnl)}
-          </SensitiveText>
-        </Box>
+      {position.icon ? (
+        <Image
+          source={{ uri: position.icon }}
+          style={tw.style('w-10 h-10 rounded-lg mt-1')}
+        />
+      ) : (
+        <Box twClassName="w-10 h-10 rounded-lg mt-1 bg-background-alternative" />
+      )}
+      <Box style={tw.style('flex-1')} gap={0}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+          {title}
+        </Text>
+        <SensitiveText
+          variant={ComponentTextVariant.BodySMMedium}
+          color={ComponentTextColor.Alternative}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Long}
+          numberOfLines={1}
+        >
+          {strings('predict.position_info', {
+            initialValue: formatPrice(initialValue, {
+              maximumDecimals: 2,
+            }),
+            outcome,
+            shares: formatPrice(size, {
+              maximumDecimals: 2,
+            }),
+          })}
+        </SensitiveText>
+      </Box>
+      <Box twClassName="items-end" gap={0}>
+        <SensitiveText
+          variant={ComponentTextVariant.BodyMDMedium}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {formatPrice(currentValue, { maximumDecimals: 2 })}
+        </SensitiveText>
+        <SensitiveText
+          variant={ComponentTextVariant.BodySMMedium}
+          color={
+            percentPnl >= 0
+              ? ComponentTextColor.Success
+              : ComponentTextColor.Error
+          }
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {formatPercentage(percentPnl)}
+        </SensitiveText>
       </Box>
     </TouchableOpacity>
   );
