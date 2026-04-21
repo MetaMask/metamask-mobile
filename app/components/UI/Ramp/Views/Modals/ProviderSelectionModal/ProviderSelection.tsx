@@ -17,7 +17,7 @@ import ListItemSelect from '../../../../../../component-library/components/List/
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import type {
   Provider,
   Quote,

@@ -62,7 +62,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && (inputs.use_bitrise_runner && fromJSON('{"group":"temp-bitrise-runners","labels":["bitrise_pool_name:DemoFA"]}') || 'ghcr.io/cirruslabs/macos-runner:tahoe') || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    runs-on: ${{ inputs.platform == 'ios' && (inputs.use_bitrise_runner && fromJSON('{"group":"temp-bitrise-runners","labels":["bitrise_pool_name:DemoFAL"]}') || 'ghcr.io/cirruslabs/macos-runner:tahoe') || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
