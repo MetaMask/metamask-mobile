@@ -74,6 +74,7 @@ import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
 import {
@@ -515,19 +516,16 @@ const ChoosePassword = () => {
   );
 
   const learnMore = useCallback(() => {
-    const learnMoreUrl =
-      'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
-
     track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
-      url: learnMoreUrl,
+      url: RESET_PASSWORD_GUIDE_URL,
     });
 
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: learnMoreUrl,
+        url: RESET_PASSWORD_GUIDE_URL,
         title: 'support.metamask.io',
       },
     });
@@ -669,6 +667,7 @@ const ChoosePassword = () => {
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
             resetScrollToCoords={{ x: 0, y: 0 }}
+            keyboardShouldPersistTaps="handled"
           >
             <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
               <Box
@@ -745,10 +744,16 @@ const ChoosePassword = () => {
                     autoComplete="password-new"
                     returnKeyType="next"
                     autoCapitalize="none"
+                    autoCorrect={false}
                     keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort}
                     endAccessory={
-                      <TouchableOpacity onPress={() => toggleShowPassword(0)}>
+                      <TouchableOpacity
+                        testID={
+                          ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                        }
+                        onPress={() => toggleShowPassword(0)}
+                      >
                         <Icon
                           name={
                             showPasswordIndex.includes(0)
@@ -802,9 +807,13 @@ const ChoosePassword = () => {
                     onSubmitEditing={Keyboard.dismiss}
                     returnKeyType={'done'}
                     autoCapitalize="none"
+                    autoCorrect={false}
                     keyboardAppearance={themeAppearance}
                     endAccessory={
                       <TouchableOpacity
+                        testID={
+                          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                        }
                         disabled={password === ''}
                         onPress={() => toggleShowPassword(1)}
                       >

@@ -33,6 +33,7 @@ const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
     : (caipChainId as Hex);
 };
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
   getDefaultNetworkByChainId,
   getTestNetImageByChainId,
@@ -136,6 +137,8 @@ interface TrendingTokenRowItemProps {
    * @default TokenDetailsSource.Trending
    */
   tokenDetailsSource?: TokenDetailsSource;
+  /** Passed through to Asset navigation for tx-scoped `active_ab_tests` */
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /**
    * Custom press handler. When provided, bypasses default navigation to the
    * asset details screen (including network-add logic and analytics tracking).
@@ -149,6 +152,7 @@ interface TrendingTokenRowItemProps {
 const getAssetNavigationParams = (
   token: TrendingAsset,
   source: TokenDetailsSource,
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[],
 ) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
   if (!isCaipChainId(caipChainId)) return null;
@@ -177,6 +181,7 @@ const getAssetNavigationParams = (
     source,
     rwaData: token.rwaData,
     securityData: token.securityData,
+    ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
   };
 };
 
@@ -186,6 +191,7 @@ const TrendingTokenRowItem = ({
   position,
   filterContext,
   tokenDetailsSource = TokenDetailsSource.Trending,
+  transactionActiveAbTests,
   onPress,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -203,8 +209,13 @@ const TrendingTokenRowItem = ({
   );
 
   const assetParams = useMemo(
-    () => getAssetNavigationParams(token, tokenDetailsSource),
-    [token, tokenDetailsSource],
+    () =>
+      getAssetNavigationParams(
+        token,
+        tokenDetailsSource,
+        transactionActiveAbTests,
+      ),
+    [token, tokenDetailsSource, transactionActiveAbTests],
   );
 
   const networkBadgeImageSource = useMemo(
@@ -296,38 +307,34 @@ const TrendingTokenRowItem = ({
       onPress={handlePress}
       testID={`trending-token-row-item-${token.assetId}`}
     >
-      <View>
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              size={AvatarSize.Xs}
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeImageSource}
-              isScaled={false}
-            />
-          }
-        >
-          <TrendingTokenLogo
-            assetId={token.assetId}
-            symbol={token.symbol}
-            size={40}
-            recyclingKey={token.assetId}
+      <BadgeWrapper
+        style={styles.badge}
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            size={AvatarSize.Xs}
+            variant={BadgeVariant.Network}
+            imageSource={networkBadgeImageSource}
+            isScaled={false}
           />
-        </BadgeWrapper>
-      </View>
+        }
+      >
+        <TrendingTokenLogo
+          assetId={token.assetId}
+          symbol={token.symbol}
+          size={40}
+          recyclingKey={token.assetId}
+        />
+      </BadgeWrapper>
       <View style={styles.leftContainer}>
-        <View style={styles.tokenHeaderRow}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {token?.name ?? token?.symbol}
-          </Text>
-        </View>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {token?.name ?? token?.symbol}
+        </Text>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {formatMarketStats(
             token.marketCap ?? 0,
