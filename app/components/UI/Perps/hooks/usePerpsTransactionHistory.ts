@@ -27,6 +27,7 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
 import { areAddressesEqual } from '../../../../util/address';
+import { hasPerpsDepositTransactionType } from '../../../../util/transactions/metamask-pay';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import {
