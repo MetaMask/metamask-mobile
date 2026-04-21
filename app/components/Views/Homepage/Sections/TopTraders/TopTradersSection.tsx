@@ -68,8 +68,10 @@ const TopTradersSection = forwardRef<
     [refresh],
   );
 
+  const willRender = isEnabled && (isLoading || traders.length > 0);
+
   const { onLayout } = useHomeViewedEvent({
-    sectionRef: sectionViewRef,
+    sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
     sectionIndex,
