@@ -72,6 +72,7 @@ import { filterSupportedLeagues } from '../constants/sports';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
+  LEGACY_V2_CLOB_BASE_URL,
   MATIC_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
 } from '../providers/polymarket/constants';
@@ -520,12 +521,31 @@ export class PredictController extends BaseController<
         ),
       ) ?? false;
 
+    const predictClobV2Enabled =
+      validatedVersionGatedFeatureFlag(
+        unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flags.predictClobV2),
+      ) ?? false;
+
+    const predictClobV2UseLegacyClobHost = predictClobV2Enabled
+      ? (validatedVersionGatedFeatureFlag(
+          unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+            flags.predictClobV2UseLegacyClobHost,
+          ),
+        ) ?? false)
+      : false;
+
+    const predictClobV2ClobBaseUrl = predictClobV2UseLegacyClobHost
+      ? LEGACY_V2_CLOB_BASE_URL
+      : undefined;
+
     return {
       feeCollection,
       liveSportsLeagues,
       marketHighlightsFlag,
       fakOrdersEnabled,
       predictWithAnyTokenEnabled,
+      predictClobV2Enabled,
+      predictClobV2ClobBaseUrl,
     };
   }
 
