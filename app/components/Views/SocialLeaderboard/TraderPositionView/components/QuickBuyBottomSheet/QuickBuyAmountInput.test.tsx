@@ -56,6 +56,24 @@ describe('QuickBuyAmountInput', () => {
     expect(screen.getByText('$50')).toBeOnTheScreen();
   });
 
+  it('renders a leading decimal without dropping the zero prefix', () => {
+    renderWithProvider(
+      <QuickBuyAmountInput {...defaultProps} usdAmount="0." />,
+    );
+
+    expect(screen.getByText('$0.')).toBeOnTheScreen();
+    expect(screen.queryByText('$.')).not.toBeOnTheScreen();
+  });
+
+  it('renders a leading decimal with digits without dropping the zero prefix', () => {
+    renderWithProvider(
+      <QuickBuyAmountInput {...defaultProps} usdAmount="0.5" />,
+    );
+
+    expect(screen.getByText('$0.5')).toBeOnTheScreen();
+    expect(screen.queryByText('$.5')).not.toBeOnTheScreen();
+  });
+
   it('shows a loading spinner while fetching a quote for a valid amount', () => {
     const { UNSAFE_getByType } = renderWithProvider(
       <QuickBuyAmountInput
