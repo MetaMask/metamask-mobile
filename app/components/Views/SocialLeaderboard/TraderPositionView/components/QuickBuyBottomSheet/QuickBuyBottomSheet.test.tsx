@@ -8,10 +8,15 @@ import {
   useQuickBuyBottomSheet,
   type UseQuickBuyBottomSheetResult,
 } from './useQuickBuyBottomSheet';
+import { useQuickBuySetup } from './useQuickBuySetup';
 
 // Mock the heavy hook so we can control all rendered state
 jest.mock('./useQuickBuyBottomSheet', () => ({
   useQuickBuyBottomSheet: jest.fn(),
+}));
+
+jest.mock('./useQuickBuySetup', () => ({
+  useQuickBuySetup: jest.fn(),
 }));
 
 // Render children directly so inner component content is visible
@@ -79,6 +84,20 @@ jest.mock('./QuickBuyFooter', () => {
     __esModule: true,
     default: () =>
       ReactMock.createElement(Text, { testID: 'mock-footer' }, 'footer'),
+  };
+});
+
+jest.mock('./QuickBuyBottomSheetSkeleton', () => {
+  const ReactMock = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactMock.createElement(
+        Text,
+        { testID: 'mock-skeleton' },
+        'quick-buy-content-loading',
+      ),
   };
 });
 
@@ -167,6 +186,12 @@ describe('QuickBuyBottomSheet', () => {
       },
     );
     (useQuickBuyBottomSheet as jest.Mock).mockReturnValue(buildHookResult());
+    (useQuickBuySetup as jest.Mock).mockReturnValue({
+      chainId: '0x1',
+      destToken: undefined,
+      isLoading: false,
+      isUnsupportedChain: false,
+    });
   });
 
   afterEach(() => {
@@ -211,6 +236,25 @@ describe('QuickBuyBottomSheet', () => {
 
       expect(screen.getByTestId('mock-header')).toBeOnTheScreen();
       expect(screen.getByText('PEPE')).toBeOnTheScreen();
+    });
+
+    it('renders the skeleton body before deferred content becomes ready', () => {
+      (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+        () => ({ cancel: jest.fn() }),
+      );
+
+      renderWithProvider(
+        <QuickBuyBottomSheet
+          isVisible
+          position={createPosition()}
+          onClose={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByTestId('mock-header')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-skeleton')).toBeOnTheScreen();
+      expect(screen.queryByTestId('mock-amount-input')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('mock-footer')).not.toBeOnTheScreen();
     });
 
     it('shows an unsupported chain message instead of the buy flow', () => {

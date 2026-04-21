@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, InteractionManager } from 'react-native';
+import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -15,9 +15,11 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
+import { useQuickBuySetup } from './useQuickBuySetup';
 import QuickBuyHeader from './QuickBuyHeader';
 import QuickBuyAmountInput from './QuickBuyAmountInput';
 import QuickBuyFooter from './QuickBuyFooter';
+import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 
 export interface QuickBuyBottomSheetProps {
   isVisible: boolean;
@@ -42,7 +44,6 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
   const { colors } = useTheme();
   const {
     hiddenInputRef,
-    destToken,
     isUnsupportedChain,
     sourceToken,
     sourceChainId,
@@ -67,7 +68,6 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     isConfirmDisabled,
     isConfirmLoading,
     getButtonLabel,
-    handleClose,
     handlePresetPress,
     handleAmountAreaPress,
     handleAmountChange,
@@ -76,12 +76,6 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
 
   return (
     <>
-      <QuickBuyHeader
-        position={position}
-        destToken={destToken}
-        onClose={handleClose}
-      />
-
       {isUnsupportedChain ? (
         <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -145,6 +139,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const { destToken } = useQuickBuySetup(position);
 
   useEffect(() => {
     bottomSheetRef.current?.onOpenBottomSheet();
@@ -163,23 +158,15 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
       isInteractable={!isSubmittingTx}
       onClose={onClose}
     >
+      <QuickBuyHeader
+        position={position}
+        destToken={destToken}
+        onClose={onClose}
+      />
       {isContentReady ? (
         <QuickBuyBottomSheetContent position={position} onClose={onClose} />
       ) : (
-        <>
-          <QuickBuyHeader
-            position={position}
-            destToken={undefined}
-            onClose={onClose}
-          />
-          <Box
-            twClassName="py-20"
-            alignItems={BoxAlignItems.Center}
-            testID="quick-buy-content-loading"
-          >
-            <ActivityIndicator />
-          </Box>
-        </>
+        <QuickBuyBottomSheetSkeleton />
       )}
     </BottomSheet>
   );
