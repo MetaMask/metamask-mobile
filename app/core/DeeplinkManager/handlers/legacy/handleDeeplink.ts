@@ -12,6 +12,49 @@ import {
 } from '../../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
 
+/**
+ * On Android, a single user intent (e.g. tapping a `link.metamask.io/buy?...`
+ * link) is routinely delivered through multiple native channels (RN `Linking`,
+ * `branch.subscribe`, `branch.getLatestReferringParams`, FCM, etc.). Without
+ * deduplication, each delivery drives its own navigation, producing a visible
+ * flash such as "Buy → Select Token" when an already-nested ramp navigation
+ * is re-applied and RN briefly falls back to the nested navigator's
+ * `initialRouteName`.
+ *
+ * We remember recently-seen URIs for a short window and drop exact duplicates.
+ * The window is long enough to cover the saga's 200ms parse delay plus any
+ * staggered callback latency, and short enough that a genuine re-tap by the
+ * user (which realistically takes longer) still goes through.
+ */
+const DEEPLINK_DEDUP_WINDOW_MS = 3000;
+const recentDeeplinks = new Map<string, number>();
+
+function isDuplicateDeeplink(uri: string): boolean {
+  const now = Date.now();
+
+  for (const [key, ts] of recentDeeplinks) {
+    if (now - ts > DEEPLINK_DEDUP_WINDOW_MS) {
+      recentDeeplinks.delete(key);
+    }
+  }
+
+  const last = recentDeeplinks.get(uri);
+  if (last !== undefined && now - last <= DEEPLINK_DEDUP_WINDOW_MS) {
+    return true;
+  }
+
+  recentDeeplinks.set(uri, now);
+  return false;
+}
+
+/**
+ * Test-only helper to reset the dedup state between tests. Production code
+ * must not call this.
+ */
+export function __resetDeeplinkDedupForTests(): void {
+  recentDeeplinks.clear();
+}
+
 export function handleDeeplink(opts: { uri?: string; source?: string }) {
   // This is the earliest JS entry point for deeplinks. We must handle SDKConnectV2
   // links here immediately to establish the WebSocket connection as fast as possible,
@@ -29,6 +72,12 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
   const { uri, source } = opts;
   try {
     if (uri && typeof uri === 'string') {
+      if (isDuplicateDeeplink(uri)) {
+        Logger.log(
+          `Deeplink: ignoring duplicate delivery within ${DEEPLINK_DEDUP_WINDOW_MS}ms window: ${uri}`,
+        );
+        return;
+      }
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
       dispatch(checkForDeeplink());
     }
