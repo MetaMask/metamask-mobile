@@ -18,12 +18,6 @@ const styleSheet = (_params: { theme: Theme }) =>
     leftContainer: {
       flex: 1,
     },
-    tokenHeaderRow: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
     rightContainer: {
       display: 'flex',
       justifyContent: 'flex-end',

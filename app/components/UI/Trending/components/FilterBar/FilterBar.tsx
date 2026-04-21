@@ -38,7 +38,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       testID={testID}
       onPress={onPress}
       style={tw.style(
-        'min-w-0 shrink items-center rounded-lg bg-muted',
+        'min-w-0 shrink flex-row items-center justify-center gap-1 rounded-lg bg-muted',
         wide ? 'py-2 px-3' : 'p-2',
         disabled && 'opacity-50',
         twClassName,
@@ -46,20 +46,18 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       activeOpacity={0.2}
       disabled={disabled}
     >
-      <View style={tw`flex-row items-center justify-center gap-1`}>
-        <Text
-          style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
-          numberOfLines={numberOfLines}
-          ellipsizeMode={ellipsizeMode}
-        >
-          {label}
-        </Text>
-        <Icon
-          name={IconName.ArrowDown}
-          color={IconColor.Alternative}
-          size={IconSize.Xs}
-        />
-      </View>
+      <Text
+        style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
+        numberOfLines={numberOfLines}
+        ellipsizeMode={ellipsizeMode}
+      >
+        {label}
+      </Text>
+      <Icon
+        name={IconName.ArrowDown}
+        color={IconColor.Alternative}
+        size={IconSize.Xs}
+      />
     </TouchableOpacity>
   );
 };
