@@ -1,4 +1,9 @@
-import { POLYMARKET_PROVIDER_ID, USDC_E_ADDRESS } from './constants';
+import {
+  DEFAULT_CLOB_BASE_URL,
+  LEGACY_V2_CLOB_BASE_URL,
+  POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
+} from './constants';
 // Mock external dependencies
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -1324,6 +1329,7 @@ describe('PolymarketProvider', () => {
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner.address,
         clobVersion: 'v2',
+        clobBaseUrl: DEFAULT_CLOB_BASE_URL,
       });
       expect(submitArgs.clobOrder).toEqual(
         expect.objectContaining({
@@ -1607,6 +1613,7 @@ describe('PolymarketProvider', () => {
         ...previewParams,
         feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
         isV2: true,
+        clobBaseUrl: DEFAULT_CLOB_BASE_URL,
       });
     });
 
@@ -1761,6 +1768,48 @@ describe('PolymarketProvider', () => {
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner2.address,
         clobVersion: 'v1',
+      });
+    });
+
+    it('creates separate cached v2 API keys when the resolved CLOB host changes', async () => {
+      // Arrange
+      const { mockSigner1 } = setupApiKeyCachingTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const orderParams = {
+        signer: mockSigner1,
+        providerId: POLYMARKET_PROVIDER_ID,
+        preview,
+      };
+      let currentFeatureFlags: PredictFeatureFlags = {
+        ...defaultFeatureFlags,
+        predictClobV2Enabled: true,
+        predictClobV2ClobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+      };
+      const provider = new PolymarketProvider({
+        getFeatureFlags: () => currentFeatureFlags,
+      });
+
+      // Act - First call uses temporary v2 host
+      await provider.placeOrder(orderParams);
+
+      // Act - Second call uses canonical host for the same address
+      currentFeatureFlags = {
+        ...currentFeatureFlags,
+        predictClobV2ClobBaseUrl: DEFAULT_CLOB_BASE_URL,
+      };
+      await provider.placeOrder(orderParams);
+
+      // Assert
+      expect(mockCreateApiKey).toHaveBeenCalledTimes(2);
+      expect(mockCreateApiKey).toHaveBeenNthCalledWith(1, {
+        address: mockSigner1.address,
+        clobVersion: 'v2',
+        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+      });
+      expect(mockCreateApiKey).toHaveBeenNthCalledWith(2, {
+        address: mockSigner1.address,
+        clobVersion: 'v2',
+        clobBaseUrl: DEFAULT_CLOB_BASE_URL,
       });
     });
   });

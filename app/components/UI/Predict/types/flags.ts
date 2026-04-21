@@ -23,6 +23,10 @@ export interface PredictExtendedSportsMarketsFlag
   leagues: string[];
 }
 
+export interface PredictClobV2Flag extends VersionGatedFeatureFlag {
+  clobBaseUrl?: string;
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
@@ -32,6 +36,7 @@ export interface PredictFeatureFlags {
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
   predictClobV2Enabled: boolean;
+  predictClobV2ClobBaseUrl?: string;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

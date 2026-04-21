@@ -400,7 +400,7 @@ export class PolymarketProvider implements PredictProvider {
     };
     const signerApiKey = await this.getApiKey({
       address: signer.address,
-      protocolKey: protocol.key,
+      protocol,
     });
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const shouldUsePermit2 = this.#hasPermit2Config({
@@ -569,7 +569,7 @@ export class PolymarketProvider implements PredictProvider {
     };
     const signerApiKey = await this.getApiKey({
       address: signer.address,
-      protocolKey: protocol.key,
+      protocol,
     });
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const shouldUsePermit2 = this.#hasPermit2Config({
@@ -767,12 +767,12 @@ export class PolymarketProvider implements PredictProvider {
 
   private async getApiKey({
     address,
-    protocolKey,
+    protocol,
   }: {
     address: string;
-    protocolKey: 'v1' | 'v2';
+    protocol: Pick<PolymarketProtocolDefinition, 'key' | 'transport'>;
   }): Promise<ApiKeyCreds> {
-    const cacheKey = `${protocolKey}:${address}`;
+    const cacheKey = `${protocol.key}:${protocol.transport.clobBaseUrl}:${address}`;
     const cachedApiKey = this.#apiKeysByProtocolAddress.get(cacheKey);
     if (cachedApiKey) {
       return cachedApiKey;
@@ -780,7 +780,9 @@ export class PolymarketProvider implements PredictProvider {
 
     const apiKeyCreds = await createApiKey({
       address,
-      clobVersion: protocolKey,
+      clobVersion: protocol.key,
+      clobBaseUrl:
+        protocol.key === 'v2' ? protocol.transport.clobBaseUrl : undefined,
     });
     this.#apiKeysByProtocolAddress.set(cacheKey, apiKeyCreds);
     return apiKeyCreds;
@@ -1660,6 +1662,8 @@ export class PolymarketProvider implements PredictProvider {
       ...params,
       feeCollection,
       isV2: protocol.key === 'v2',
+      clobBaseUrl:
+        protocol.key === 'v2' ? protocol.transport.clobBaseUrl : undefined,
     });
     const normalizedPreview = {
       ...basePreview,

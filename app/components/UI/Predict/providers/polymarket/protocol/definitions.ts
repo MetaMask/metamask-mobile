@@ -4,6 +4,7 @@ import {
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MATIC_CONTRACTS_V2,
+  DEFAULT_CLOB_BASE_URL,
   COLLATERAL_OFFRAMP_ADDRESS,
   COLLATERAL_ONRAMP_ADDRESS,
   CTF_COLLATERAL_ADAPTER_ADDRESS,
@@ -38,6 +39,7 @@ interface BasePolymarketProtocolDefinition {
   };
   transport: {
     clobVersionHeader?: '2';
+    clobBaseUrl: string;
   };
   workflow: {
     depositMode: DepositExecutionMode;
@@ -90,6 +92,7 @@ export const POLYMARKET_V1_PROTOCOL = {
   },
   transport: {
     clobVersionHeader: undefined,
+    clobBaseUrl: DEFAULT_CLOB_BASE_URL,
   },
   workflow: {
     depositMode: 'usdce-transfer',
@@ -120,6 +123,7 @@ export const POLYMARKET_V2_PROTOCOL = {
   },
   transport: {
     clobVersionHeader: '2',
+    clobBaseUrl: DEFAULT_CLOB_BASE_URL,
   },
   workflow: {
     depositMode: 'usdce-transfer',
@@ -165,9 +169,27 @@ export function getProtocolWithdrawTokenAddress(
 }
 
 export function resolvePolymarketProtocol(
-  featureFlags: Pick<PredictFeatureFlags, 'predictClobV2Enabled'>,
+  featureFlags: Pick<
+    PredictFeatureFlags,
+    'predictClobV2Enabled' | 'predictClobV2ClobBaseUrl'
+  >,
 ): PolymarketProtocolDefinition {
-  return featureFlags.predictClobV2Enabled
-    ? POLYMARKET_V2_PROTOCOL
-    : POLYMARKET_V1_PROTOCOL;
+  if (!featureFlags.predictClobV2Enabled) {
+    return POLYMARKET_V1_PROTOCOL;
+  }
+
+  const clobBaseUrl =
+    featureFlags.predictClobV2ClobBaseUrl ?? DEFAULT_CLOB_BASE_URL;
+
+  if (clobBaseUrl === POLYMARKET_V2_PROTOCOL.transport.clobBaseUrl) {
+    return POLYMARKET_V2_PROTOCOL;
+  }
+
+  return {
+    ...POLYMARKET_V2_PROTOCOL,
+    transport: {
+      ...POLYMARKET_V2_PROTOCOL.transport,
+      clobBaseUrl,
+    },
+  };
 }

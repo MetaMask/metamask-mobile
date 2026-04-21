@@ -11,11 +11,16 @@ import {
 import { filterSupportedLeagues } from '../constants/sports';
 import { parse, PredictFeeCollectionSchema } from '../schemas';
 import {
+  PredictClobV2Flag,
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
+import {
+  DEFAULT_CLOB_BASE_URL,
+  LEGACY_V2_CLOB_BASE_URL,
+} from '../providers/polymarket/constants';
 import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
@@ -29,6 +34,37 @@ function resolveVersionGatedBooleanFlag(flag: unknown): boolean {
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flag),
     ) ?? false
   );
+}
+
+function isAllowedPredictClobBaseUrl(
+  clobBaseUrl: unknown,
+): clobBaseUrl is string {
+  return (
+    clobBaseUrl === DEFAULT_CLOB_BASE_URL ||
+    clobBaseUrl === LEGACY_V2_CLOB_BASE_URL
+  );
+}
+
+function resolvePredictClobV2Flag(flag: unknown): {
+  enabled: boolean;
+  clobBaseUrl?: string;
+} {
+  const rawFlag = unwrapRemoteFeatureFlag<PredictClobV2Flag>(flag);
+  const enabled =
+    validatedVersionGatedFeatureFlag(
+      rawFlag as unknown as VersionGatedFeatureFlag,
+    ) ?? false;
+
+  if (!enabled) {
+    return { enabled: false, clobBaseUrl: undefined };
+  }
+
+  return {
+    enabled: true,
+    clobBaseUrl: isAllowedPredictClobBaseUrl(rawFlag?.clobBaseUrl)
+      ? rawFlag.clobBaseUrl
+      : undefined,
+  };
 }
 
 /**
@@ -82,17 +118,26 @@ export function resolvePredictFeatureFlags(
   )
     ? filterSupportedLeagues(extendedSportsFlag.leagues ?? [])
     : [];
+  const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictFakOrders,
+  );
+  const predictWithAnyTokenEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictWithAnyToken,
+  );
+  const predictUpDownEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictUpDown,
+  );
+  const predictClobV2 = resolvePredictClobV2Flag(flags.predictClobV2);
 
   return {
     feeCollection,
     liveSportsLeagues,
     extendedSportsMarketsLeagues,
     marketHighlightsFlag,
-    fakOrdersEnabled: resolveVersionGatedBooleanFlag(flags.predictFakOrders),
-    predictWithAnyTokenEnabled: resolveVersionGatedBooleanFlag(
-      flags.predictWithAnyToken,
-    ),
-    predictUpDownEnabled: resolveVersionGatedBooleanFlag(flags.predictUpDown),
-    predictClobV2Enabled: resolveVersionGatedBooleanFlag(flags.predictClobV2),
+    fakOrdersEnabled,
+    predictWithAnyTokenEnabled,
+    predictUpDownEnabled,
+    predictClobV2Enabled: predictClobV2.enabled,
+    predictClobV2ClobBaseUrl: predictClobV2.clobBaseUrl,
   };
 }

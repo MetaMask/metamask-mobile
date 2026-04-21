@@ -1,6 +1,8 @@
 import {
   CTF_COLLATERAL_ADAPTER_ADDRESS,
+  DEFAULT_CLOB_BASE_URL,
   HASH_ZERO_BYTES32,
+  LEGACY_V2_CLOB_BASE_URL,
   NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
 } from '../constants';
 import Logger from '../../../../../../util/Logger';
@@ -44,6 +46,29 @@ describe('polymarket protocol definitions', () => {
   it('resolves v2 when predictClobV2 is enabled', () => {
     expect(resolvePolymarketProtocol({ predictClobV2Enabled: true })).toBe(
       POLYMARKET_V2_PROTOCOL,
+    );
+  });
+
+  it('defaults the v2 protocol to the canonical CLOB host', () => {
+    expect(POLYMARKET_V2_PROTOCOL.transport.clobBaseUrl).toBe(
+      DEFAULT_CLOB_BASE_URL,
+    );
+  });
+
+  it('resolves a temporary v2 CLOB host override from feature flags', () => {
+    expect(
+      resolvePolymarketProtocol({
+        predictClobV2Enabled: true,
+        predictClobV2ClobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        key: 'v2',
+        transport: expect.objectContaining({
+          clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+          clobVersionHeader: '2',
+        }),
+      }),
     );
   });
 

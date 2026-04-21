@@ -4,6 +4,9 @@ export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
 export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
 
+export const DEFAULT_CLOB_BASE_URL = 'https://clob.polymarket.com';
+export const LEGACY_V2_CLOB_BASE_URL = 'https://clob-v2.polymarket.com';
+
 /**
  * Default slippage for market orders.
  */

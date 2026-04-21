@@ -16,8 +16,10 @@ import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import {
   ClobAuthDomain,
+  DEFAULT_CLOB_BASE_URL,
   EIP712Domain,
   HASH_ZERO_BYTES32,
+  LEGACY_V2_CLOB_BASE_URL,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
@@ -140,8 +142,7 @@ describe('polymarket utils', () => {
       const endpoints = getPolymarketEndpoints();
       expect(endpoints).toEqual({
         GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
-        CLOB_ENDPOINT: 'https://clob.polymarket.com',
-        CLOB_ENDPOINT_V2: 'https://clob-v2.polymarket.com',
+        CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
         CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
@@ -403,7 +404,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('targets the v2 CLOB endpoint when requested', async () => {
+    it('defaults v2 API key derivation to the canonical CLOB endpoint', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
@@ -413,7 +414,28 @@ describe('polymarket utils', () => {
       await deriveApiKey({ address: mockAddress, clobVersion: 'v2' });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob-v2.polymarket.com/auth/derive-api-key',
+        `${DEFAULT_CLOB_BASE_URL}/auth/derive-api-key`,
+        expect.objectContaining({
+          method: 'GET',
+        }),
+      );
+    });
+
+    it('uses the temporary v2 CLOB host override when provided', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApiKey),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await deriveApiKey({
+        address: mockAddress,
+        clobVersion: 'v2',
+        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${LEGACY_V2_CLOB_BASE_URL}/auth/derive-api-key`,
         expect.objectContaining({
           method: 'GET',
         }),
@@ -454,7 +476,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('targets the v2 CLOB endpoint when requested', async () => {
+    it('defaults v2 API key creation to the canonical CLOB endpoint', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
@@ -465,7 +487,30 @@ describe('polymarket utils', () => {
       await createApiKey({ address: mockAddress, clobVersion: 'v2' });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob-v2.polymarket.com/auth/api-key',
+        `${DEFAULT_CLOB_BASE_URL}/auth/api-key`,
+        expect.objectContaining({
+          method: 'POST',
+          body: '',
+        }),
+      );
+    });
+
+    it('uses the temporary v2 CLOB host override for API key creation when provided', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApiKey),
+        status: 200,
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await createApiKey({
+        address: mockAddress,
+        clobVersion: 'v2',
+        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${LEGACY_V2_CLOB_BASE_URL}/auth/api-key`,
         expect.objectContaining({
           method: 'POST',
           body: '',
@@ -494,7 +539,7 @@ describe('polymarket utils', () => {
       expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 
-    it('derives from the v2 CLOB endpoint when v2 creation returns 400', async () => {
+    it('derives from the provided v2 CLOB host when v2 creation returns 400', async () => {
       const createResponse = {
         ok: false,
         json: jest.fn().mockResolvedValue({}),
@@ -512,17 +557,18 @@ describe('polymarket utils', () => {
       const result = await createApiKey({
         address: mockAddress,
         clobVersion: 'v2',
+        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
       });
 
       expect(result).toEqual(mockApiKey);
       expect(mockFetch).toHaveBeenNthCalledWith(
         1,
-        'https://clob-v2.polymarket.com/auth/api-key',
+        `${LEGACY_V2_CLOB_BASE_URL}/auth/api-key`,
         expect.objectContaining({ method: 'POST' }),
       );
       expect(mockFetch).toHaveBeenNthCalledWith(
         2,
-        'https://clob-v2.polymarket.com/auth/derive-api-key',
+        `${LEGACY_V2_CLOB_BASE_URL}/auth/derive-api-key`,
         expect.objectContaining({ method: 'GET' }),
       );
     });
@@ -597,7 +643,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('reads the v2 order book when requested', async () => {
+    it('defaults the v2 order book to the canonical CLOB endpoint', async () => {
       const mockOrderBook = {
         bids: [],
         asks: [],
@@ -611,7 +657,30 @@ describe('polymarket utils', () => {
       await getOrderBook({ tokenId: 'test-token', clobVersion: 'v2' });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob-v2.polymarket.com/book?token_id=test-token',
+        `${DEFAULT_CLOB_BASE_URL}/book?token_id=test-token`,
+        { method: 'GET' },
+      );
+    });
+
+    it('uses the temporary v2 CLOB host override for order book reads when provided', async () => {
+      const mockOrderBook = {
+        bids: [],
+        asks: [],
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOrderBook),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await getOrderBook({
+        tokenId: 'test-token',
+        clobVersion: 'v2',
+        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${LEGACY_V2_CLOB_BASE_URL}/book?token_id=test-token`,
         { method: 'GET' },
       );
     });
@@ -4081,7 +4150,38 @@ describe('polymarket utils', () => {
       expect(result.feeRateBps).toBe('0');
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob-v2.polymarket.com/book?token_id=token-1',
+        `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,
+        { method: 'GET' },
+      );
+    });
+
+    it('uses the provided v2 CLOB host override during preview', async () => {
+      const mockOrderBook = {
+        min_order_size: '5',
+        tick_size: '0.01',
+        timestamp: '2025-02-08T00:00:00.000Z',
+        neg_risk: false,
+        asks: [{ price: '0.50', size: '100' }],
+        bids: [],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      await previewOrder({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.BUY,
+        size: 50,
+        isV2: true,
+        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${LEGACY_V2_CLOB_BASE_URL}/book?token_id=token-1`,
         { method: 'GET' },
       );
     });
