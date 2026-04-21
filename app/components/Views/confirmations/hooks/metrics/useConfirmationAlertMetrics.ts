@@ -119,6 +119,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPayTokenFees]: 'insufficient_funds_for_fees',
   [AlertKeys.InsufficientPayTokenNative]: 'insufficient_funds_for_gas',
+  [AlertKeys.InsufficientMoneyAccountBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPerpsBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPredictBalance]: 'insufficient_funds',
   [AlertKeys.AccountNoFunds]: 'account_no_funds',

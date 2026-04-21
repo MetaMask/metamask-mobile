@@ -11,6 +11,7 @@ import {
 } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../utils/transaction';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
+import { useTokenAmount } from '../useTokenAmount';
 
 export function useInsufficientMoneyAccountBalanceAlert({
   pendingAmount,
@@ -19,6 +20,8 @@ export function useInsufficientMoneyAccountBalanceAlert({
 } = {}): Alert[] {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { totalFiatRaw } = useMoneyAccountBalance();
+  const { amountPrecise } = useTokenAmount();
+  const amountHuman = pendingAmount ?? amountPrecise ?? '0';
 
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -28,9 +31,8 @@ export function useInsufficientMoneyAccountBalanceAlert({
     if (!isMoneyAccountWithdraw) return false;
     if (totalFiatRaw === undefined) return false;
 
-    const amount = pendingAmount ?? '0';
-    return new BigNumber(totalFiatRaw).isLessThan(amount);
-  }, [isMoneyAccountWithdraw, pendingAmount, totalFiatRaw]);
+    return new BigNumber(totalFiatRaw).isLessThan(amountHuman);
+  }, [isMoneyAccountWithdraw, amountHuman, totalFiatRaw]);
 
   return useMemo(() => {
     if (!isInsufficient) {

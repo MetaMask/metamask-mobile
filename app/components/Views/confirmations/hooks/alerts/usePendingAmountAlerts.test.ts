@@ -33,6 +33,14 @@ jest.mock('./useInsufficientPerpsBalanceAlert', () => ({
   ],
 }));
 
+jest.mock('./useInsufficientMoneyAccountBalanceAlert', () => ({
+  useInsufficientMoneyAccountBalanceAlert: () => [
+    {
+      id: 'alert-7',
+    },
+  ],
+}));
+
 jest.mock('./useAccountNoFundsAlert', () => ({
   useAccountNoFundsAlert: () => [
     {
@@ -52,6 +60,7 @@ describe('usePendingAmountAlerts', () => {
       { id: 'alert-3' },
       { id: 'alert-4' },
       { id: 'alert-5' },
+      { id: 'alert-7' },
       { id: 'alert-6' },
     ]);
   });
