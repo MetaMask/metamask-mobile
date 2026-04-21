@@ -14,6 +14,7 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import { bridgeActionAnalyticsExpectations } from '../../helpers/analytics/expectations/bridge-action-smoke.analytics';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Bridge functionality'), () => {
@@ -37,6 +38,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
               : undefined;
 
           return new FixtureBuilder()
+            .withMetaMetricsOptIn()
             .withNetworkController({
               chainId,
               rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
@@ -59,6 +61,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
           await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
         },
         restartDevice: true,
+        analyticsExpectations: bridgeActionAnalyticsExpectations,
       },
       async () => {
         await loginToApp();
