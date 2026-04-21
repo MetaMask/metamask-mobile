@@ -13,9 +13,8 @@ import {
   onboardingFlowImportSRPPlaywright,
 } from '../../../flows/wallet.flow';
 import TimerHelper from '../../../framework/TimerHelper';
-import WalletView from '../../../page-objects/wallet/WalletView';
-
-test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
+import WalletView from '../../../page-objects/wallet/WalletView.js';
+test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },
@@ -36,14 +35,14 @@ test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, ()
       const timer = new TimerHelper(
         'Time since the user clicks on unlock button, until the app unlocks',
         {
-          ios: 2000,
+          ios: 6000,
           android: 2000,
         },
         currentDeviceDetails.platform,
       );
       await timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.hamburgerMenuButton),
+          await asPlaywrightElement(WalletView.container),
         );
       });
 

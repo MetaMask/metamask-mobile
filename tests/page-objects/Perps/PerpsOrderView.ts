@@ -8,6 +8,7 @@ import {
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
+  PerpsLeverageBottomSheetSelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
   PerpsMarketDetailsViewSelectorsIDs,
@@ -22,7 +23,6 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { element as detoxElement, by as detoxBy } from 'detox';
 import {
   encapsulatedAction,
-  PlatformDetector,
   PlaywrightElement,
   PlaywrightGestures,
 } from '../../framework';
@@ -81,7 +81,7 @@ class PerpsOrderView {
     return Matchers.getElementByText('Set Leverage');
   }
 
-  async tapPlaceOrderButton() {
+  async tapPlaceOrderButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
         const el = asDetoxElement(this.placeOrderButton);
@@ -103,8 +103,10 @@ class PerpsOrderView {
       appium: async () => {
         const el = await asPlaywrightElement(this.placeOrderButton);
         await PlaywrightGestures.waitAndTap(el, {
+          checkForDisplayed: true,
           checkForEnabled: true,
           checkForStable: true,
+          delay: 1000,
         });
       },
     });
@@ -185,6 +187,7 @@ class PerpsOrderView {
       appium: () =>
         PlaywrightMatchers.getElementById(
           PerpsAmountDisplaySelectorsIDs.CONTAINER,
+          { exact: true },
         ),
     });
   }
@@ -196,33 +199,52 @@ class PerpsOrderView {
       appium: () =>
         PlaywrightMatchers.getElementById(
           PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+          { exact: true },
         ),
     });
   }
 
-  async setAmountUSD(amount: string) {
+  getKeypadKey(key: string): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(key),
+      appium: () => PlaywrightMatchers.getElementByText(key),
+    });
+  }
+
+  getDoneButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Done'),
+      appium: () => PlaywrightMatchers.getElementByText('Done'),
+    });
+  }
+
+  // Required for next test
+  async setAmountUSD(amount: string): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        const el = asDetoxElement(this.amountValue);
+        // Open keypad by tapping the value by ID (more reliable than tapping the container)
         await device.disableSynchronization();
-        await Assertions.expectElementToBeVisible(el, {
-          description: 'Amount value is visible',
-        });
-        await Gestures.waitAndTap(el, {
+        await Assertions.expectElementToBeVisible(
+          asDetoxElement(this.amountValue),
+          {
+            description: 'Amount value is visible',
+          },
+        );
+        await Gestures.waitAndTap(asDetoxElement(this.amountValue), {
           elemDescription: 'Open amount keypad by tapping amount label',
           checkEnabled: false,
           checkVisibility: false,
         });
+        // Type each character using the native keypad (buttons 0-9 and '.')
         for (const ch of amount) {
-          const key = Matchers.getElementByText(ch) as DetoxElement;
-          await Gestures.waitAndTap(key, {
+          await Gestures.waitAndTap(asDetoxElement(this.getKeypadKey(ch)), {
             elemDescription: `Keypad: ${ch}`,
             checkEnabled: false,
             checkVisibility: false,
           });
         }
-        const doneByText = Matchers.getElementByText('Done') as DetoxElement;
-        await Gestures.waitAndTap(doneByText, {
+        // Close the keypad using the Done button
+        await Gestures.waitAndTap(asDetoxElement(this.getDoneButton()), {
           elemDescription: 'Tap Done (by text) to close keypad',
           checkEnabled: false,
           checkVisibility: false,
@@ -230,22 +252,23 @@ class PerpsOrderView {
         await device.enableSynchronization();
       },
       appium: async () => {
-        const el = await asPlaywrightElement(this.amountValue);
-        await el.unwrap().waitForDisplayed({ timeout: 8000 });
-        await PlaywrightGestures.waitAndTap(el);
-        const deleteButton = await asPlaywrightElement(this.keypadDeleteButton);
-        await PlaywrightGestures.waitAndTap(deleteButton);
+        const amountEl = await asPlaywrightElement(this.amountValue);
+        await PlaywrightGestures.waitAndTap(amountEl, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+        });
+        // Type each character using the native keypad (buttons 0-9 and '.')
         for (const ch of amount) {
-          const key = await PlaywrightMatchers.getElementByText(ch);
-          await PlaywrightGestures.waitAndTap(key, {
-            checkForDisplayed: false,
-            checkForEnabled: false,
+          const keyEl = await asPlaywrightElement(this.getKeypadKey(ch));
+          await PlaywrightGestures.waitAndTap(keyEl, {
+            checkForDisplayed: true,
+            delay: 300,
           });
         }
-        const doneBtn = await PlaywrightMatchers.getElementByText('Done');
-        await PlaywrightGestures.waitAndTap(doneBtn, {
-          checkForDisplayed: false,
-          checkForEnabled: false,
+        // Close the keypad using the Done button
+        const doneEl = await asPlaywrightElement(this.getDoneButton());
+        await PlaywrightGestures.waitAndTap(doneEl, {
+          checkForDisplayed: true,
         });
       },
     });
@@ -388,16 +411,12 @@ class PerpsOrderView {
           await asPlaywrightElement(this.leverageRowLabel),
         );
 
-        // Tap the leverage option (e.g. "40x")
-        let optionEl: PlaywrightElement;
-        if (await PlatformDetector.isIOS()) {
-          optionEl = await PlaywrightMatchers.getElementByText(`${leverageX}x`);
-        } else {
-          optionEl = await PlaywrightMatchers.getElementByXPath(
-            `//*[@content-desc="${leverageX}x"]`,
-          );
-        }
-
+        // Tap the leverage quick-select button (e.g. "40x")
+        const leverageSelector = `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT_BUTTON}-${leverageX}x`;
+        const optionEl = await PlaywrightMatchers.getElementById(
+          leverageSelector,
+          { exact: true },
+        );
         await PlaywrightGestures.waitAndTap(optionEl);
 
         // Tap confirm button (e.g. "Set 40x")

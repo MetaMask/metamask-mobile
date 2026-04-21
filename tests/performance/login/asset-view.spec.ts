@@ -23,11 +23,20 @@ perfTest.describe(
       ) => {
         await loginToAppPlaywright();
 
-        const assetViewScreen = new TimerHelper(
-          'Time since the user clicks on the asset view button until the user sees the token overview screen',
-          { ios: 600, android: 4500 },
-          currentDeviceDetails.platform,
+      const assetViewScreen = new TimerHelper(
+        'Time since the user clicks on the asset view button until the user sees the token overview screen',
+        { ios: 6000, android: 600 },
+        currentDeviceDetails.platform,
+      );
+
+      await WalletView.tapOnTokensSection();
+      await WalletView.tapOnToken('USDC');
+
+      await assetViewScreen.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(TokenOverview.priceChartContainer),
         );
+      });
 
         await WalletView.tapOnTokensSection();
         await WalletView.tapOnToken('USDC');

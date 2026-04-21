@@ -1,6 +1,10 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import {
+  asPlaywrightElement,
+  PlaywrightAssertions,
+  PlaywrightGestures,
+} from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
 import {
@@ -84,6 +88,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       });
 
       await OnboardingSheet.tapGoogleLoginButton();
+      await SocialLoginView.dismissUpdateModalIfPresent();
 
       let isNewUser = true;
 
@@ -120,7 +125,6 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
         await PlaywrightGestures.hideKeyboard();
-
         await CreatePasswordView.tapIUnderstandCheckBox();
         await CreatePasswordView.tapCreatePasswordButton();
 
@@ -147,7 +151,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+            asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
               description: 'Wallet main screen should be visible',
             },

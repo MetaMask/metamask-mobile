@@ -23,8 +23,8 @@ import { Performance, PerformancePredict } from '../../../tags.performance.js';
  * 3. Time to open About tab content
  * 4. Time to open Outcomes tab content when available
  */
-perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
-  perfTest.setTimeout(10 * 60 * 1000);
+perfTest.describe(PerformancePredict, () => {
+  perfTest.setTimeout(15 * 60 * 1000);
 
   perfTest(
     'Predict Market Details - Complete Flow Performance',

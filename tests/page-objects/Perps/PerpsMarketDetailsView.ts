@@ -167,16 +167,23 @@ class PerpsMarketDetailsView {
     });
   }
 
-  // Trading action buttons
+  // Trading action buttons — On Android, Reanimated's AnimatedPressable
+  // inside ButtonSemantic doesn't propagate testID to resource-id, so Appium
+  // targets the plain View wrapper (LONG/SHORT_BUTTON_WRAPPER) instead.
   get longButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON_WRAPPER,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+          ),
+      },
     });
   }
 
@@ -186,11 +193,16 @@ class PerpsMarketDetailsView {
         Matchers.getElementByID(
           PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON_WRAPPER,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+          ),
+      },
     });
   }
 
@@ -236,8 +248,14 @@ class PerpsMarketDetailsView {
         });
       },
       appium: async () => {
+        console.log('tapLongButton appium');
         await PlaywrightGestures.waitAndTap(
           await asPlaywrightElement(this.longButton),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            checkForStable: true,
+          },
         );
       },
     });
@@ -251,6 +269,11 @@ class PerpsMarketDetailsView {
       appium: async () => {
         await PlaywrightGestures.waitAndTap(
           await asPlaywrightElement(this.shortButton),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            checkForStable: true,
+          },
         );
       },
     });
