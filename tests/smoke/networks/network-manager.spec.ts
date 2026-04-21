@@ -72,8 +72,6 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         // Navigate to TokensFullView then open network manager
         await NetworkManager.openNetworkManagerFromHomepage();
 
-        // await NetworkManager.checkAllPopularNetworksIsSelected();
-
         // Select Ethereum — sheet closes, lands back on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
         await NetworkManager.checkBaseControlBarText(
