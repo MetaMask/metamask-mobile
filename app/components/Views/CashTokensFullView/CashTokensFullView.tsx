@@ -62,6 +62,7 @@ import { MUSD_EVENTS_CONSTANTS } from '../../UI/Earn/constants/events/musdEvents
 import { MONEY_EVENTS_CONSTANTS } from '../../UI/Money/constants/moneyEvents';
 import useMoneyHubEvents from '../../UI/Money/hooks/useMoneyHubEvents';
 import { getNetworkName } from '../../UI/Earn/utils/network';
+import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
 
 const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS, MONEY_HUB_STATES } =
   MONEY_EVENTS_CONSTANTS;
@@ -326,7 +327,7 @@ const CashTokensFullView = () => {
             size={ButtonIconSize.Md}
             onPress={handleBackPress}
             iconName={IconName.ArrowLeft}
-            testID="back-button"
+            testID={CashTokensFullViewTestIds.BACK_BUTTON}
           />
         }
         style={tw`p-4`}
@@ -380,6 +381,7 @@ const CashTokensFullView = () => {
           >
             <Box twClassName="flex-1">
               <Button
+                testID={CashTokensFullViewTestIds.SWAP_BUTTON}
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 isFullWidth
@@ -390,6 +392,7 @@ const CashTokensFullView = () => {
             </Box>
             <Box twClassName="flex-1">
               <Button
+                testID={CashTokensFullViewTestIds.BUY_BUTTON}
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 isFullWidth

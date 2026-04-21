@@ -14,6 +14,7 @@ import {
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents, EVENT_NAME } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
+import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
 import AppConstants from '../../../../../core/AppConstants';
 import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from './AssetOverviewClaimBonus.testIds';
 import { TokenI } from '../../../Tokens/types';
@@ -34,6 +35,10 @@ jest.mock('../../../../hooks/useTooltipModal', () => ({
 
 jest.mock('../MerklRewards/hooks/useMerklBonusClaim');
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../../Money/hooks/useMoneyHubEvents', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ moneyHubFilledState: 'filled' })),
+}));
 jest.mock('../../../TokenDetails/hooks/useTokenBalance');
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
   selectAsset: jest.fn(),
@@ -712,7 +717,7 @@ describe('AssetOverviewClaimBonus', () => {
   });
 
   describe('terms link', () => {
-    it('opens terms URL and fires analytics when terms link is pressed', () => {
+    it('opens terms URL and fires analytics with BONUS_CLAIM_TOOLTIP location', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
         { state: mockInitialState },
@@ -734,6 +739,93 @@ describe('AssetOverviewClaimBonus', () => {
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.BONUS_CLAIM_TOOLTIP,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+        }),
+      );
+    });
+  });
+
+  describe('learn more link', () => {
+    it('fires MUSD_BONUS_LEARN_MORE_PRESSED and opens learn more URL', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON),
+      );
+
+      const learnMoreCallback = mockOpenTooltipModal.mock.calls[0][4];
+      learnMoreCallback();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_BONUS_LEARN_MORE_PRESSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.BONUS_CLAIM_TOOLTIP,
+          url: AppConstants.URLS.MUSD_LEARN_MORE,
+        }),
+      );
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        AppConstants.URLS.MUSD_LEARN_MORE,
+      );
+    });
+  });
+
+  describe('location prop', () => {
+    it('passes location prop to useMerklBonusClaim', () => {
+      const customLocation = MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB;
+
+      renderWithProvider(
+        <AssetOverviewClaimBonus
+          asset={createMockAsset()}
+          location={customLocation}
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
+        expect.anything(),
+        customLocation,
+      );
+    });
+
+    it('defaults location to ASSET_OVERVIEW when not provided', () => {
+      renderWithProvider(
+        <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
+      );
+
+      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
+        expect.anything(),
+        MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
+      );
+    });
+
+    it('includes moneyHubFilledState in claim analytics when location is money_hub', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewClaimBonus
+          asset={createMockAsset()}
+          location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB}
+        />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+          moneyHubFilledState: 'filled',
+        }),
       );
     });
   });

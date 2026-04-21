@@ -3,6 +3,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMerklBonusClaim } from './useMerklBonusClaim';
 import { TokenI } from '../../../../Tokens/types';
 import { AGLAMERKL_ADDRESS_MAINNET } from '../constants';
+import { MONEY_EVENTS_CONSTANTS } from '../../../../Money/constants/moneyEvents';
 
 const mockClaimRewards = jest.fn().mockResolvedValue(undefined);
 const mockMerklRewardsRefetch = jest.fn();
@@ -41,6 +42,14 @@ let mockIsMerklCampaignClaimingEnabled = true;
 jest.mock('../../../selectors/featureFlags', () => ({
   selectMerklCampaignClaimingEnabledFlag: () =>
     mockIsMerklCampaignClaimingEnabled,
+}));
+
+let mockMoneyHubFilledState = 'filled';
+jest.mock('../../../../Money/hooks/useMoneyHubEvents', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    moneyHubFilledState: mockMoneyHubFilledState,
+  })),
 }));
 
 let mockIsGeoEligible = true;
@@ -139,6 +148,7 @@ describe('useMerklBonusClaim', () => {
     jest.clearAllMocks();
     mockIsMerklCampaignClaimingEnabled = true;
     mockIsGeoEligible = true;
+    mockMoneyHubFilledState = 'filled';
 
     mockUseMerklRewards.mockReturnValue({
       claimableReward: null,
@@ -547,6 +557,48 @@ describe('useMerklBonusClaim', () => {
           has_claimed_before: true,
         }),
       );
+    });
+
+    it('includes moneyHubFilledState when location is money_hub', () => {
+      mockMoneyHubFilledState = 'filled';
+      mockUseMerklRewards.mockReturnValue({
+        claimableReward: '5.00',
+        hasClaimedBefore: false,
+        rewardsFetchVersion: 0,
+        refetch: mockMerklRewardsRefetch,
+      });
+
+      renderHook(() =>
+        useMerklBonusClaim(
+          eligibleAsset,
+          MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+          true,
+        ),
+      );
+
+      expect(getAnalyticsMocks().addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+          moneyHubFilledState: 'filled',
+        }),
+      );
+    });
+
+    it('omits moneyHubFilledState when location is not money_hub', () => {
+      mockUseMerklRewards.mockReturnValue({
+        claimableReward: '5.00',
+        hasClaimedBefore: false,
+        rewardsFetchVersion: 0,
+        refetch: mockMerklRewardsRefetch,
+      });
+
+      renderHook(() =>
+        useMerklBonusClaim(eligibleAsset, 'test_location', true),
+      );
+
+      const addPropertiesCall =
+        getAnalyticsMocks().addProperties.mock.calls[0][0];
+      expect(addPropertiesCall).not.toHaveProperty('moneyHubFilledState');
     });
   });
 
