@@ -51,14 +51,12 @@ interface BasePolymarketProtocolDefinition {
   };
 }
 
-const BUILDER_CODE_ENV = 'MM_PREDICT_BUILDER_CODE';
-
 function isBytes32Hex(value: string | undefined): value is string {
   return Boolean(value?.match(/^0x[a-fA-F0-9]{64}$/u));
 }
 
 export function getClobV2BuilderCode(): string {
-  const value = process.env[BUILDER_CODE_ENV];
+  const value = process.env.MM_PREDICT_BUILDER_CODE;
 
   if (isBytes32Hex(value)) {
     return value;
@@ -67,7 +65,7 @@ export function getClobV2BuilderCode(): string {
   const reason = value ? 'invalid' : 'missing';
 
   Logger.log(
-    `Polymarket CLOB v2 builder code ${reason} in ${BUILDER_CODE_ENV}; falling back to zero bytes32 value`,
+    `Polymarket CLOB v2 builder code ${reason} in MM_PREDICT_BUILDER_CODE; falling back to zero bytes32 value`,
   );
 
   return HASH_ZERO_BYTES32;
