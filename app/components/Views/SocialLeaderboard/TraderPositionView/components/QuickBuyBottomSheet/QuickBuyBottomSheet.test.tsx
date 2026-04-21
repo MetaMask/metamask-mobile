@@ -1,4 +1,5 @@
 import React from 'react';
+import { InteractionManager } from 'react-native';
 import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { Position } from '@metamask/social-controllers';
@@ -97,7 +98,6 @@ const mockCreateRef = () => ({ current: null });
 const buildHookResult = (
   overrides: Partial<UseQuickBuyBottomSheetResult> = {},
 ): UseQuickBuyBottomSheetResult => ({
-  bottomSheetRef: mockCreateRef() as never,
   hiddenInputRef: mockCreateRef() as never,
   destToken: undefined,
   isSetupLoading: false,
@@ -157,6 +157,15 @@ const createPosition = (overrides: Partial<Position> = {}): Position =>
 describe('QuickBuyBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // The shell defers content mount behind InteractionManager.runAfterInteractions;
+    // the global test setup stubs it as a no-op, so run the callback synchronously
+    // here to make the content observable.
+    (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+      (cb: () => void) => {
+        cb();
+        return { cancel: jest.fn() };
+      },
+    );
     (useQuickBuyBottomSheet as jest.Mock).mockReturnValue(buildHookResult());
   });
 

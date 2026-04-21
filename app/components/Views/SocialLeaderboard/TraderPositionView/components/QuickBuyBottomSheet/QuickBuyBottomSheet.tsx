@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, InteractionManager } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Text,
@@ -8,8 +10,10 @@ import {
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
+import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 import QuickBuyHeader from './QuickBuyHeader';
 import QuickBuyAmountInput from './QuickBuyAmountInput';
@@ -26,13 +30,17 @@ interface InnerProps {
   onClose: () => void;
 }
 
-const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
+/**
+ * Heavy subtree — deferred until after the open animation so its hook
+ * tree (bridge quotes, balances, rewards, metadata) does not starve the
+ * JS thread while the sheet is animating in.
+ */
+const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
   position,
   onClose,
 }) => {
   const { colors } = useTheme();
   const {
-    bottomSheetRef,
     hiddenInputRef,
     destToken,
     isUnsupportedChain,
@@ -47,7 +55,6 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
     estimatedReceiveAmount,
     sourceBalanceFiat,
     isQuoteLoading,
-    isSubmittingTx,
     estimatedPoints,
     isRewardsLoading,
     shouldShowLiveRewardsEstimate,
@@ -68,12 +75,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   } = useQuickBuyBottomSheet(position, onClose);
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      isInteractable={!isSubmittingTx}
-      onClose={handleClose}
-    >
+    <>
       <QuickBuyHeader
         position={position}
         destToken={destToken}
@@ -125,6 +127,58 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
             onConfirm={handleConfirm}
             colors={colors}
           />
+        </>
+      )}
+    </>
+  );
+};
+
+/**
+ * Lightweight shell — opens the sheet immediately with just a placeholder
+ * so the animation runs on an idle JS thread. The heavy content tree is
+ * mounted via InteractionManager once the animation has finished.
+ */
+const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
+  position,
+  onClose,
+}) => {
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const [isContentReady, setIsContentReady] = useState(false);
+  const isSubmittingTx = useSelector(selectIsSubmittingTx);
+
+  useEffect(() => {
+    bottomSheetRef.current?.onOpenBottomSheet();
+    const handle = InteractionManager.runAfterInteractions(() => {
+      setIsContentReady(true);
+    });
+    return () => {
+      handle?.cancel?.();
+    };
+  }, []);
+
+  return (
+    <BottomSheet
+      ref={bottomSheetRef}
+      shouldNavigateBack={false}
+      isInteractable={!isSubmittingTx}
+      onClose={onClose}
+    >
+      {isContentReady ? (
+        <QuickBuyBottomSheetContent position={position} onClose={onClose} />
+      ) : (
+        <>
+          <QuickBuyHeader
+            position={position}
+            destToken={undefined}
+            onClose={onClose}
+          />
+          <Box
+            twClassName="py-20"
+            alignItems={BoxAlignItems.Center}
+            testID="quick-buy-content-loading"
+          >
+            <ActivityIndicator />
+          </Box>
         </>
       )}
     </BottomSheet>
