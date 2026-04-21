@@ -2,8 +2,10 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState } from '../types';
 
 import {
+  addSpotBalanceToAccountState,
   aggregateAccountStates,
   calculateWeightedReturnOnEquity,
+  getSpotBalance,
 } from './accountUtils';
 
 describe('aggregateAccountStates', () => {
@@ -164,6 +166,106 @@ describe('aggregateAccountStates', () => {
     expect(parseFloat(result.totalBalance)).toBeCloseTo(351, 0);
     expect(parseFloat(result.marginUsed)).toBeCloseTo(81, 0);
     expect(parseFloat(result.unrealizedPnl)).toBeCloseTo(17, 0);
+  });
+});
+
+describe('spot balance helpers', () => {
+  it('returns zero spot balance when no spot state is provided', () => {
+    expect(getSpotBalance()).toBe(0);
+  });
+
+  it('adds spot balance to totalBalance without mutating the input state', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '100',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'USDC', total: '25.5' },
+        { coin: 'HYPE', total: '0.5' },
+      ],
+    } as never);
+
+    // Only USDC contributes — non-stablecoin spot assets are not convertible
+    // to perps collateral and must not inflate totalBalance.
+    expect(result.totalBalance).toBe('125.5');
+    expect(accountState.totalBalance).toBe('100');
+  });
+
+  it('ignores non-collateral spot balances entirely', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '50',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'HYPE', total: '1000' },
+        { coin: 'PURR', total: '5000' },
+      ],
+    } as never);
+
+    expect(result).toBe(accountState);
+  });
+
+  it('excludes USDH-only spot balance from funded-state totals', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '0',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'USDH', total: '75.25' },
+        { coin: 'HYPE', total: '999' },
+      ],
+    } as never);
+
+    expect(result).toBe(accountState);
+  });
+
+  it('adds only the USDC portion when USDC and USDH are both present', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '10',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'USDC', total: '20' },
+        { coin: 'USDH', total: '30' },
+        { coin: 'HYPE', total: '9999' },
+      ],
+    } as never);
+
+    expect(result.totalBalance).toBe('30');
+  });
+
+  it('returns the original account state when spot balance is zero', () => {
+    const accountState: AccountState = {
+      availableBalance: '1',
+      totalBalance: '2',
+      marginUsed: '3',
+      unrealizedPnl: '4',
+      returnOnEquity: '5',
+    };
+
+    expect(
+      addSpotBalanceToAccountState(accountState, { balances: [] } as never),
+    ).toBe(accountState);
   });
 });
 
