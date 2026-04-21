@@ -269,10 +269,13 @@ const EarnMusdConversionEducationView = () => {
       // Mark education as seen so it won't show again
       dispatch(setMusdConversionEducationSeen(true));
 
-      // returnTo wins: pure navigation, no conversion.
-      // Use navigate (not replace) because returnTo targets a screen outside
-      // the Earn stack — replace only works within the current navigator.
+      // Pop the education screen from the Earn stack before navigating to
+      // returnTo, so the stale screen doesn't flash when the Earn stack is
+      // re-entered later (e.g., for conversion confirmation).
       if (returnTo) {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
         navigation.navigate(returnTo.screen, returnTo.params);
         return;
       }
