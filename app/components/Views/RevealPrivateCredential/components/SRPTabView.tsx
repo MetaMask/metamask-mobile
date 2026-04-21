@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { ScrollView, Platform, useWindowDimensions } from 'react-native';
 import {
   Box,
@@ -12,8 +12,6 @@ import TabBar from '../../../../component-library/components-temp/TabBar/TabBar'
 import { strings } from '../../../../../locales/i18n';
 import { RevealSeedViewSelectorsIDs } from '../RevealSeedView.testIds';
 import { useTheme } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
-import { lightTheme, darkTheme } from '@metamask/design-tokens';
 import logo from '../../../../images/branding/fox.png';
 import SeedPhraseDisplay from './SeedPhraseDisplay';
 import SeedPhraseConcealer from './SeedPhraseConcealer';
@@ -23,14 +21,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
 
-const QR_SCALE = 0.65;
-const QR_MAX_SIZE = 320;
-const LOGO_SCALE = 0.2;
-const QR_WRAPPER_PADDING = 12;
-const QR_CONTENT_MARGIN_TOP = 16;
-const ANDROID_TAB_BAR_HEIGHT = 56;
-const ANDROID_TAB_VIEW_MIN_HEIGHT = 320;
-
 const SRPTabView = ({
   clipboardPrivateCredential,
   showSeedPhrase,
@@ -39,34 +29,9 @@ const SRPTabView = ({
   onCopyToClipboard,
   onTabChange,
 }: SRPTabViewProps) => {
+  const { colors } = useTheme();
   const { width } = useWindowDimensions();
-  const qrSize = useMemo(
-    () => Math.min(QR_MAX_SIZE, Math.round(width * QR_SCALE)),
-    [width],
-  );
-  const logoSize = useMemo(() => Math.round(qrSize * LOGO_SCALE), [qrSize]);
-  const qrWrapperHeight = useMemo(
-    () => qrSize + QR_WRAPPER_PADDING * 2,
-    [qrSize],
-  );
-  const androidTabViewMinHeight = useMemo(
-    () =>
-      Math.max(
-        ANDROID_TAB_VIEW_MIN_HEIGHT,
-        qrWrapperHeight + QR_CONTENT_MARGIN_TOP + ANDROID_TAB_BAR_HEIGHT,
-      ),
-    [qrWrapperHeight],
-  );
-  const { themeAppearance } = useTheme();
-  const isDark = themeAppearance === AppThemeKey.dark;
-
-  const qrBackground = isDark
-    ? lightTheme.colors.background.default
-    : darkTheme.colors.background.default;
-  const qrForeground = isDark
-    ? darkTheme.colors.background.default
-    : lightTheme.colors.background.default;
-
+  const qrSize = width - 200;
   const trimmedCredential = clipboardPrivateCredential.trim();
   const words = trimmedCredential ? trimmedCredential.split(/\s+/) : [];
   const hasCredential = words.length > 0;
@@ -81,7 +46,7 @@ const SRPTabView = ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onChangeTab={(event: any) => onTabChange(event)}
         style={tw.style(
-          `min-h-[${Platform.OS === 'android' ? androidTabViewMinHeight : 0}px] flex-grow flex-shrink-0 mb-[${Platform.OS === 'android' ? 20 : 0}px]`,
+          `min-h-[${Platform.OS === 'android' ? width : 0}px] mb-[${Platform.OS === 'android' ? 20 : 0}px]`,
         )}
       >
         <CustomTabView
@@ -104,8 +69,6 @@ const SRPTabView = ({
         <CustomTabView
           tabLabel={strings(`reveal_credential.qr_code`)}
           testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
-          scrollEnabled={false}
-          showsVerticalScrollIndicator={false}
         >
           <Box
             flexDirection={BoxFlexDirection.Column}
@@ -118,19 +81,17 @@ const SRPTabView = ({
           >
             {hasCredential ? (
               <Box
-                style={[
-                  tw.style('rounded-2xl overflow-hidden p-3'),
-                  { backgroundColor: qrBackground },
-                ]}
+                twClassName="rounded-2xl overflow-hidden p-3"
+                style={{ backgroundColor: colors.text.default }}
               >
                 <QRCode
                   value={clipboardPrivateCredential}
                   size={qrSize}
-                  color={qrForeground}
-                  backgroundColor={qrBackground}
+                  color={colors.background.default}
+                  backgroundColor={colors.text.default}
                   logo={logo}
-                  logoSize={logoSize}
-                  logoBackgroundColor={qrBackground}
+                  logoSize={Math.round(qrSize * 0.2)}
+                  logoBackgroundColor={colors.text.default}
                   logoMargin={4}
                 />
               </Box>
