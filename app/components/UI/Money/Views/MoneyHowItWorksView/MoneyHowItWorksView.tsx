@@ -217,7 +217,6 @@ const MoneyHowItWorksView = () => {
             />
           </React.Fragment>
         ))}
-        <Divider />
       </ScrollView>
 
       <Box twClassName="px-4" style={{ paddingBottom: insets.bottom + 16 }}>
