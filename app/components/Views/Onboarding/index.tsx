@@ -28,6 +28,7 @@ import {
   saveOnboardingEvent as saveEvent,
   setAccountType,
   clearSeedlessOnboarding,
+  setIosGoogleWarningSheetLastDismissedAt,
 } from '../../../actions/onboarding';
 import {
   AccountType,
@@ -785,7 +786,10 @@ const Onboarding = () => {
           await presentIosGoogleLoginVersionWarningSheet(navigation);
           track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
             account_type: accountType,
+            location: 'onboarding_social_login',
+            action: createWallet ? 'create' : 'import',
           });
+          dispatch(setIosGoogleWarningSheetLastDismissedAt(Date.now()));
         }
 
         socialLoginTraceCtx.current = trace({
@@ -827,6 +831,7 @@ const Onboarding = () => {
       navigation,
       metrics,
       track,
+      dispatch,
       setLoading,
       unsetLoading,
       handleLoginError,
