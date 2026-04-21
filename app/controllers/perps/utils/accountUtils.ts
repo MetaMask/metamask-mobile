@@ -4,7 +4,6 @@
  */
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
-import { USDH_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
 import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
@@ -99,7 +98,10 @@ export function calculateWeightedReturnOnEquity(
 // so including them in totalBalance would mis-gate the Add Funds CTA —
 // a user holding only HYPE would see the CTA hidden while being unable
 // to trade.
-const SPOT_COLLATERAL_COINS = new Set<string>(['USDC', USDH_CONFIG.TokenName]);
+// Literal 'USDH' instead of `USDH_CONFIG.TokenName` to avoid the circular
+// init order between hyperLiquidConfig and HyperLiquidWalletService that
+// left `USDH_CONFIG` undefined at module load in test contexts.
+const SPOT_COLLATERAL_COINS = new Set<string>(['USDC', 'USDH']);
 
 export function getSpotBalance(
   spotState?: SpotClearinghouseStateResponse | null,
