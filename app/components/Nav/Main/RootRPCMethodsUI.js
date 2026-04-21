@@ -8,7 +8,6 @@ import { onUnapprovedTransaction } from './onUnapprovedTransaction';
 import Logger from '../../../util/Logger';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { isHardwareAccount } from '../../../util/address';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
@@ -16,13 +15,16 @@ import ConnectApproval from '../../Approvals/ConnectApproval';
 import PermissionApproval from '../../Approvals/PermissionApproval';
 import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
-import { getDeviceId } from '../../../core/Ledger/Ledger';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { ConfirmRoot } from '../../../components/Views/confirmations/components/confirm';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
+import {
+  useHardwareWallet,
+  executeHardwareWalletOperation,
+} from '../../../core/HardwareWallet';
+import { getHardwareWalletTypeForAddress } from '../../../core/HardwareWallet/helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -34,43 +36,64 @@ import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomName
 
 const RootRPCMethodsUI = (props) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const {
+    ensureDeviceReady,
+    setTargetWalletType,
+    showAwaitingConfirmation,
+    hideAwaitingConfirmation,
+    showHardwareWalletError,
+  } = useHardwareWallet();
+
+  const trackCancelledTransaction = useCallback(
+    (error) => {
+      const message = error?.message ?? '';
+
+      if (
+        !message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !message.startsWith(STX_NO_HASH_ERROR)
+      ) {
+        return false;
+      }
+
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
+        ).build(),
+      );
+      return true;
+    },
+    [trackEvent, createEventBuilder],
+  );
+
+  const handleAutoSignError = useCallback(
+    (error) => {
+      if (trackCancelledTransaction(error)) {
+        return true;
+      }
+
+      Logger.error(error, 'error while trying to send transaction (Main)');
+      return false;
+    },
+    [trackCancelledTransaction],
+  );
 
   const autoSign = useCallback(
     async (transactionMeta) => {
-      try {
-        const isLedgerAccount = isHardwareAccount(
-          transactionMeta.txParams.from,
-          [ExtendedKeyringTypes.ledger],
-        );
+      const walletType = getHardwareWalletTypeForAddress(
+        transactionMeta.txParams.from,
+      );
 
-        const isQRAccount = isHardwareAccount(transactionMeta.txParams.from, [
-          ExtendedKeyringTypes.qr,
-        ]);
+      if (!walletType) {
+        return;
+      }
 
-        // Only auto-sign for Ledger or QR accounts
-        if (!isLedgerAccount && !isQRAccount) {
-          return;
-        }
+      // As the `TransactionController:unapprovedTransactionAdded` event is emitted
+      // before the approval request is added to `ApprovalController`, we need to wait
+      // for the next tick to make sure the approval request is present when auto-approve it
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-        // As the `TransactionController:unapprovedTransactionAdded` event is emitted
-        // before the approval request is added to `ApprovalController`, we need to wait
-        // for the next tick to make sure the approval request is present when auto-approve it
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        // For Ledger Accounts we handover the signing to the confirmation flow
-        if (isLedgerAccount) {
-          const deviceId = await getDeviceId();
-
-          props.navigation.navigate(
-            ...createLedgerTransactionModalNavDetails({
-              transactionId: transactionMeta.id,
-              deviceId,
-              // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => {},
-              type: 'signTransaction',
-            }),
-          );
-        } else if (isQRAccount) {
+      if (walletType === HardwareWalletType.Qr) {
+        try {
           props.navigation.navigate(
             ...createQRSigningTransactionModalNavDetails({
               transactionId: transactionMeta.id,
@@ -78,28 +101,60 @@ const RootRPCMethodsUI = (props) => {
               onConfirmationComplete: () => {},
             }),
           );
-        }
-      } catch (error) {
-        if (
-          !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
-          !error?.message.startsWith(STX_NO_HASH_ERROR)
-        ) {
-          Alert.alert(
-            strings('transactions.transaction_error'),
-            error && error.message,
-            [{ text: strings('navigation.ok') }],
-          );
-          Logger.error(error, 'error while trying to send transaction (Main)');
-        } else {
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-            ).build(),
-          );
+          return;
+        } catch (error) {
+          if (!trackCancelledTransaction(error)) {
+            Alert.alert(
+              strings('transactions.transaction_error'),
+              error && error.message,
+              [{ text: strings('navigation.ok') }],
+            );
+            Logger.error(
+              error,
+              'error while trying to send transaction (Main)',
+            );
+          }
+          return;
         }
       }
+
+      await executeHardwareWalletOperation({
+        address: transactionMeta.txParams.from,
+        operationType: 'transaction',
+        ensureDeviceReady,
+        setTargetWalletType,
+        showAwaitingConfirmation,
+        hideAwaitingConfirmation,
+        showHardwareWalletError,
+        onError: handleAutoSignError,
+        execute: async () => {
+          await Engine.context.ApprovalController.acceptRequest(
+            transactionMeta.id,
+            undefined,
+            {
+              waitForResult: true,
+            },
+          );
+        },
+        onRejected: () => {
+          Engine.rejectPendingApproval(
+            transactionMeta.id,
+            new Error('User rejected the transaction'),
+            { ignoreMissing: true, logErrors: false },
+          );
+        },
+      });
     },
-    [props.navigation, trackEvent, createEventBuilder],
+    [
+      props.navigation,
+      ensureDeviceReady,
+      setTargetWalletType,
+      showAwaitingConfirmation,
+      hideAwaitingConfirmation,
+      showHardwareWalletError,
+      trackCancelledTransaction,
+      handleAutoSignError,
+    ],
   );
 
   const handleUnapprovedTransaction = useCallback(
