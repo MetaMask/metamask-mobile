@@ -1,12 +1,12 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper.js';
-import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
+import { PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 
 /* Scenario 7: Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3 */
-test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
+test.describe(PerformanceSwaps, () => {
   test(
     'Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
