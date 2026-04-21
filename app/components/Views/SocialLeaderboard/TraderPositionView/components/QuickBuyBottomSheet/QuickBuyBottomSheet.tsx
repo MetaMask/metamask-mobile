@@ -3,14 +3,14 @@ import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
+  BottomSheet,
   Text,
   TextVariant,
   TextColor,
   BoxAlignItems,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
@@ -154,7 +154,6 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      shouldNavigateBack={false}
       isInteractable={!isSubmittingTx}
       onClose={onClose}
     >

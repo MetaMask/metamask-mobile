@@ -20,33 +20,32 @@ jest.mock('./useQuickBuySetup', () => ({
 }));
 
 // Render children directly so inner component content is visible
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactMock = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ReactMock.forwardRef(
-        (
-          {
-            children,
-            onClose,
-          }: {
-            children: unknown;
-            onClose?: () => void;
-          },
-          _ref: unknown,
-        ) =>
-          ReactMock.createElement(
-            View,
-            { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
-            children,
-          ),
-      ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactMock = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    ...actual,
+    BottomSheet: ReactMock.forwardRef(
+      (
+        {
+          children,
+          onClose,
+        }: {
+          children: unknown;
+          onClose?: () => void;
+        },
+        _ref: unknown,
+      ) =>
+        ReactMock.createElement(
+          View,
+          { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
+          children,
+        ),
+    ),
+  };
+});
 
 // Mock sub-components so their own dep trees don't pollute these tests
 jest.mock('./QuickBuyHeader', () => {
