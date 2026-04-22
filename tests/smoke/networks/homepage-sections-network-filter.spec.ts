@@ -39,7 +39,7 @@ describe(
       jest.setTimeout(170000);
     });
 
-    it('should navigate from homepage tokens section to tokens full view', async () => {
+    it('navigates from homepage tokens section to tokens full view', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
@@ -75,11 +75,17 @@ describe(
       );
     });
 
-    it('should filter tokens by selected network in tokens full view', async () => {
+    it('filters tokens by selected network in tokens full view', async () => {
       await withFixtures(
         {
+          // Seed ETH/USDC/DAI on both Ethereum and Linea so we have tokens on
+          // two chains. withNetworkEnabledMap enables both chains so both appear
+          // in the full view when "all networks" is the filter. Selecting
+          // Ethereum-only should show ETH/USDC/DAI; switching to Linea-only
+          // should hide them (Linea has no native ETH balance seeded).
           fixture: new FixtureBuilder()
             .withTokensForAllPopularNetworks([ETH_TOKEN, USDC_TOKEN, DAI_TOKEN])
+            .withNetworkEnabledMap({ eip155: { '0x1': true, '0xe708': true } })
             .build(),
           restartDevice: true,
           testSpecificMock: async (mockServer: Mockttp) => {
@@ -97,7 +103,6 @@ describe(
 
           // Open network manager and select Ethereum
           await NetworkManager.openNetworkManager();
-          await NetworkManager.checkPopularNetworksContainerIsVisible();
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
 
           // Verify the control bar now shows Ethereum filter
@@ -110,14 +115,21 @@ describe(
           await NetworkManager.checkTokenIsVisible('USDC');
           await NetworkManager.checkTokenIsVisible('DAI');
 
-          // Tokens from other networks should not appear when filtered to Ethereum only
-          await NetworkManager.checkTokenIsNotVisible('BNB');
-          await NetworkManager.checkTokenIsNotVisible('AVAX');
+          // Switch to Linea filter — no native balance seeded on Linea so
+          // the Ethereum tokens should no longer appear
+          await NetworkManager.openNetworkManager();
+          await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
+
+          await NetworkManager.checkBaseControlBarText(
+            NetworkToCaipChainId.LINEA,
+          );
+
+          await NetworkManager.checkTokenIsNotVisible('ETH');
         },
       );
     });
 
-    it('should show all tokens on homepage regardless of network filter set in tokens full view', async () => {
+    it('shows all tokens on homepage regardless of network filter set in tokens full view', async () => {
       await withFixtures(
         {
           // withTokensForAllPopularNetworks seeds both TokensController.allTokens
@@ -151,6 +163,7 @@ describe(
           await TokensFullView.waitForVisible();
 
           await NetworkManager.openNetworkManager();
+
           await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.LINEA,
@@ -168,8 +181,8 @@ describe(
           });
 
           // Homepage tokens section shows ALL tokens regardless of the Linea-only filter
-          await NetworkManager.checkTokenIsVisible('ETH');
           await NetworkManager.checkTokenIsVisible('SOL');
+          await NetworkManager.checkTokenIsVisible('ETH');
         },
       );
     });
