@@ -15,17 +15,15 @@ import {
 export function useInitPerpsPaymentToken(initialAsset: string) {
   const { payToken, setPayToken } = useTransactionPayToken();
   const selectedPaymentToken = usePerpsPayWithToken();
-  const hasNativeTradeablePerpsBalance = useHasNativeTradeablePerpsBalance();
-  const fallbackPayTokenCandidate = usePreferredFallbackPayTokenCandidate();
   const defaultPayTokenWhenNoPerpsBalance =
     useDefaultPayWithTokenWhenNoPerpsBalance();
+  const fallbackPayTokenCandidate = usePreferredFallbackPayTokenCandidate();
+  const hasNativeTradeablePerpsBalance = useHasNativeTradeablePerpsBalance();
 
   const pendingConfig = usePerpsSelector((state) =>
     selectPendingTradeConfiguration(state, initialAsset),
   );
   const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
-  const pendingConfigSelectedPaymentTokenSource =
-    pendingConfig?.selectedPaymentTokenSource;
 
   const appliedPendingTokenRef = useRef<
     { address: string; chainId: string } | null | undefined
@@ -83,22 +81,6 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
 
     const pendingAddr = pendingConfigSelectedPaymentToken.address;
     const pendingChainId = pendingConfigSelectedPaymentToken.chainId;
-    // Compatibility shim for pending configs persisted before
-    // selectedPaymentTokenSource existed. Safe to remove after the 5-minute
-    // pending-config TTL has cycled past release.
-    const isLegacyAutoFallbackToken =
-      pendingConfigSelectedPaymentTokenSource == null &&
-      arePaymentTokensEqual(
-        pendingConfigSelectedPaymentToken,
-        fallbackPayTokenCandidate,
-      );
-    const isAutoFallbackToken =
-      pendingConfigSelectedPaymentTokenSource === 'autoNoPerpsBalance' ||
-      isLegacyAutoFallbackToken;
-    const shouldRestorePendingToken =
-      pendingConfigSelectedPaymentTokenSource === 'explicit' ||
-      !isAutoFallbackToken ||
-      !hasNativeTradeablePerpsBalance;
     const alreadyApplied =
       appliedPendingTokenRef.current !== undefined &&
       (appliedPendingTokenRef.current === null
@@ -107,7 +89,16 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
           appliedPendingTokenRef.current.chainId === pendingChainId);
     if (alreadyApplied) return;
 
-    if (!shouldRestorePendingToken) {
+    // Saved token was previously auto-selected (pay-with-any-token fallback)
+    // but the user now has native perps buying power. Clear the stale selection
+    // so the form defaults to Perps balance.
+    const isStaleAutoFallback =
+      hasNativeTradeablePerpsBalance &&
+      arePaymentTokensEqual(
+        pendingConfigSelectedPaymentToken,
+        fallbackPayTokenCandidate,
+      );
+    if (isStaleAutoFallback) {
       appliedPendingTokenRef.current = {
         address: pendingAddr,
         chainId: pendingChainId,
@@ -144,7 +135,6 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
     initialAsset,
     payToken,
     pendingConfigSelectedPaymentToken,
-    pendingConfigSelectedPaymentTokenSource,
     setPayToken,
     selectedPaymentToken,
   ]);
