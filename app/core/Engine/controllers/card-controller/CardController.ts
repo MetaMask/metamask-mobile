@@ -642,12 +642,7 @@ export class CardController extends BaseController<
 
   getCapabilities(): CardProviderCapabilities {
     const provider = this.getActiveProvider();
-    const pid = this.state.activeProviderId ?? '';
-    const provData = this.state.providerData[pid] as
-      | { location?: string }
-      | undefined;
-    const location = provData?.location ?? '';
-    return provider.resolveCapabilities?.(location) ?? provider.capabilities;
+    return provider.capabilities;
   }
 
   async getCardHomeData(address: string): Promise<CardHomeData> {
