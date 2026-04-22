@@ -51,6 +51,12 @@ export interface NetworkFormState {
   addMode: boolean;
 }
 
+/** Options when auto-persisting after RPC / block explorer sheet commits. */
+export interface UrlSheetPersistOptions {
+  /** Skip redundant eth_chainId check (e.g. RPC sheet add after sheet validation). */
+  skipChainIdSubmitValidation?: boolean;
+}
+
 /** Validation warnings displayed under form fields. */
 export interface ValidationState {
   warningRpcUrl: string | undefined;

@@ -1,8 +1,16 @@
+import { RpcEndpointType } from '@metamask/network-controller';
 import {
+  appendBlockExplorerItemToFormState,
+  appendRpcItemToFormState,
+  applyBlockExplorerSelectionToFormState,
+  applyRpcSelectionToFormState,
   formatNetworkRpcUrl,
-  templateInfuraRpc,
   getDefaultBlockExplorerUrl,
+  removeBlockExplorerUrlFromFormState,
+  removeRpcUrlFromFormState,
+  templateInfuraRpc,
 } from './NetworkDetailsView.utils';
+import type { NetworkFormState } from './NetworkDetailsView.types';
 
 jest.mock('../../../../util/stripProtocol', () => (url: string | undefined) => {
   if (!url) return undefined;
@@ -95,6 +103,132 @@ describe('NetworkDetailsView.utils', () => {
       expect(
         getDefaultBlockExplorerUrl('0xdeadbeef', 'unknown-type'),
       ).toBeUndefined();
+    });
+  });
+
+  describe('appendRpcItemToFormState', () => {
+    const editFormFixture = (): NetworkFormState =>
+      ({
+        rpcUrl: 'https://existing.com',
+        failoverRpcUrls: ['https://failover.com'],
+        rpcName: 'Old',
+        rpcUrlForm: 'typed',
+        rpcNameForm: 'typedName',
+        rpcUrls: [
+          {
+            url: 'https://existing.com',
+            name: 'Old',
+            type: RpcEndpointType.Custom,
+          },
+        ],
+        blockExplorerUrls: [],
+        selectedRpcEndpointIndex: 0,
+        blockExplorerUrl: undefined,
+        blockExplorerUrlForm: undefined,
+        nickname: 'Net',
+        chainId: '0x1',
+        ticker: 'ETH',
+        editable: true,
+        addMode: false,
+      }) as NetworkFormState;
+
+    it('appends endpoint, selects it, clears sheet fields and failover', () => {
+      const prev = editFormFixture();
+      const next = appendRpcItemToFormState(prev, 'https://new.com', 'New');
+
+      expect(next.rpcUrls).toHaveLength(2);
+      expect(next.rpcUrls[1]).toEqual({
+        url: 'https://new.com',
+        name: 'New',
+        type: RpcEndpointType.Custom,
+      });
+      expect(next.rpcUrl).toBe('https://new.com');
+      expect(next.rpcName).toBe('New');
+      expect(next.failoverRpcUrls).toBeUndefined();
+      expect(next.rpcUrlForm).toBe('');
+      expect(next.rpcNameForm).toBe('');
+    });
+
+    it('returns prev when url is empty', () => {
+      const prev = editFormFixture();
+      expect(appendRpcItemToFormState(prev, '', 'x')).toBe(prev);
+    });
+  });
+
+  describe('applyRpcSelectionToFormState', () => {
+    it('uses type when name is empty', () => {
+      const prev = {
+        rpcUrl: 'https://a.com',
+        rpcUrls: [
+          { url: 'https://a.com', name: 'A', type: RpcEndpointType.Custom },
+        ],
+        rpcName: 'A',
+        failoverRpcUrls: undefined,
+      } as NetworkFormState;
+      const next = applyRpcSelectionToFormState(
+        prev,
+        'https://b.com',
+        ['https://f.com'],
+        '',
+        'Custom',
+      );
+      expect(next.rpcUrl).toBe('https://b.com');
+      expect(next.rpcName).toBe('Custom');
+      expect(next.failoverRpcUrls).toEqual(['https://f.com']);
+    });
+  });
+
+  describe('removeRpcUrlFromFormState', () => {
+    it('repoints selection to first endpoint when current is removed', () => {
+      const prev = {
+        rpcUrl: 'https://b.com',
+        rpcName: 'B',
+        rpcUrls: [
+          { url: 'https://a.com', name: 'A', type: RpcEndpointType.Custom },
+          { url: 'https://b.com', name: 'B', type: RpcEndpointType.Custom },
+        ],
+      } as NetworkFormState;
+      const next = removeRpcUrlFromFormState(prev, 'https://b.com');
+      expect(next.rpcUrls).toHaveLength(1);
+      expect(next.rpcUrl).toBe('https://a.com');
+      expect(next.rpcName).toBe('A');
+    });
+  });
+
+  describe('appendBlockExplorerItemToFormState', () => {
+    it('appends url and sets selection', () => {
+      const prev = {
+        blockExplorerUrls: [],
+        blockExplorerUrl: undefined,
+      } as unknown as NetworkFormState;
+      const next = appendBlockExplorerItemToFormState(prev, 'https://scan.com');
+      expect(next.blockExplorerUrls).toEqual(['https://scan.com']);
+      expect(next.blockExplorerUrl).toBe('https://scan.com');
+    });
+  });
+
+  describe('applyBlockExplorerSelectionToFormState', () => {
+    it('sets blockExplorerUrl', () => {
+      const prev = {
+        blockExplorerUrls: ['https://a.com'],
+        blockExplorerUrl: 'https://a.com',
+      } as NetworkFormState;
+      expect(
+        applyBlockExplorerSelectionToFormState(prev, 'https://b.com')
+          .blockExplorerUrl,
+      ).toBe('https://b.com');
+    });
+  });
+
+  describe('removeBlockExplorerUrlFromFormState', () => {
+    it('removes matching url', () => {
+      const prev = {
+        blockExplorerUrls: ['https://a.com', 'https://b.com'],
+      } as NetworkFormState;
+      expect(
+        removeBlockExplorerUrlFromFormState(prev, 'https://a.com')
+          .blockExplorerUrls,
+      ).toEqual(['https://b.com']);
     });
   });
 });

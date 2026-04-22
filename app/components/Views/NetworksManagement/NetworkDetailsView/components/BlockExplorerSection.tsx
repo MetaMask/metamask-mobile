@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { Animated as RNAnimated, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import isUrl from 'is-url';
@@ -28,6 +28,15 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import SelectField from './SelectField';
 import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
+import {
+  appendBlockExplorerItemToFormState,
+  applyBlockExplorerSelectionToFormState,
+  removeBlockExplorerUrlFromFormState,
+} from '../NetworkDetailsView.utils';
+import type {
+  NetworkFormState,
+  UrlSheetPersistOptions,
+} from '../NetworkDetailsView.types';
 import type { UseNetworkFormReturn } from '../hooks/useNetworkForm';
 import type { NetworkDetailsStyles } from '../NetworkDetailsView.styles';
 
@@ -38,6 +47,11 @@ interface BlockExplorerSectionProps {
   styles: NetworkDetailsStyles;
   themeAppearance: 'light' | 'dark' | 'default';
   placeholderTextColor: string;
+  /** Invoked after add / select / delete explorer URL is applied in edit mode (persists to network store). */
+  onUrlSheetMutationCommitted?: (
+    committedFormSnapshot?: NetworkFormState,
+    persistOptions?: UrlSheetPersistOptions,
+  ) => void | Promise<boolean>;
 }
 
 const BlockExplorerSection: React.FC<BlockExplorerSectionProps> = ({
@@ -94,13 +108,15 @@ const BlockExplorerSection: React.FC<BlockExplorerSectionProps> = ({
 interface BlockExplorerListItemProps {
   url: string;
   isSelected: boolean;
-  onSelect: (url: string) => void;
-  onDelete: (url: string) => void;
+  onSelect: (url: string) => void | Promise<void>;
+  onDelete: (url: string) => void | Promise<void>;
 }
 
 const BlockExplorerListItem: React.FC<BlockExplorerListItemProps> = React.memo(
   ({ url, isSelected, onSelect, onDelete }) => {
-    const handlePress = useCallback(() => onSelect(url), [onSelect, url]);
+    const handlePress = useCallback(async () => {
+      await onSelect(url);
+    }, [onSelect, url]);
     const handleDelete = useCallback(() => onDelete(url), [onDelete, url]);
 
     return (
@@ -130,6 +146,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
   styles,
   themeAppearance,
   placeholderTextColor,
+  onUrlSheetMutationCommitted,
 }) => {
   const {
     form: { blockExplorerUrl, blockExplorerUrls, blockExplorerUrlForm },
@@ -148,6 +165,14 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const hadListWhenFormOpened = useRef(false);
+  const latestFormRef = useRef(formHook.form);
+  latestFormRef.current = formHook.form;
+
+  const [blockExplorerSheetError, setBlockExplorerSheetError] = useState<
+    string | undefined
+  >(undefined);
+  const [isBlockExplorerSheetSubmitting, setIsBlockExplorerSheetSubmitting] =
+    useState(false);
 
   const { onContentLayout, contentWrapperStyle, toggleButtonStyle } =
     useExpandableFormAnimation(showForm);
@@ -160,16 +185,58 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showForm]);
 
+  useEffect(() => {
+    if (showMultiBlockExplorerAddModal) {
+      setBlockExplorerSheetError(undefined);
+      setIsBlockExplorerSheetSubmitting(false);
+    }
+  }, [showMultiBlockExplorerAddModal]);
+
+  useEffect(() => {
+    setBlockExplorerSheetError(undefined);
+  }, [blockExplorerUrlForm]);
+
   const handleDismiss = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
   const handleSelectAndDismiss = useCallback(
-    (url: string) => {
+    async (url: string) => {
+      setBlockExplorerSheetError(undefined);
+      const nextForm = applyBlockExplorerSelectionToFormState(
+        latestFormRef.current,
+        url,
+      );
+      const persisted = await onUrlSheetMutationCommitted?.(nextForm);
+      if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
+        setBlockExplorerSheetError(
+          strings('app_settings.url_sheet_network_update_failed'),
+        );
+        return;
+      }
       onBlockExplorerSelect(url);
       handleDismiss();
     },
-    [onBlockExplorerSelect, handleDismiss],
+    [onBlockExplorerSelect, handleDismiss, onUrlSheetMutationCommitted],
+  );
+
+  const onBlockExplorerUrlDeletePersisted = useCallback(
+    async (url: string) => {
+      setBlockExplorerSheetError(undefined);
+      const nextForm = removeBlockExplorerUrlFromFormState(
+        latestFormRef.current,
+        url,
+      );
+      const persisted = await onUrlSheetMutationCommitted?.(nextForm);
+      if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
+        setBlockExplorerSheetError(
+          strings('app_settings.url_sheet_network_update_failed'),
+        );
+        return;
+      }
+      onBlockExplorerUrlDelete(url);
+    },
+    [onBlockExplorerUrlDelete, onUrlSheetMutationCommitted],
   );
 
   const handleBack = () => {
@@ -180,19 +247,37 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
     }
   };
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = async () => {
     if (
       !blockExplorerUrlForm ||
       !isUrl(blockExplorerUrlForm) ||
-      blockExplorerUrls.includes(blockExplorerUrlForm)
+      blockExplorerUrls.includes(blockExplorerUrlForm) ||
+      isBlockExplorerSheetSubmitting
     ) {
       return;
     }
-    onBlockExplorerItemAdd(blockExplorerUrlForm);
-    if (hadListWhenFormOpened.current) {
-      setShowForm(false);
-    } else {
-      handleDismiss();
+    setBlockExplorerSheetError(undefined);
+    setIsBlockExplorerSheetSubmitting(true);
+    try {
+      const nextForm = appendBlockExplorerItemToFormState(
+        latestFormRef.current,
+        blockExplorerUrlForm,
+      );
+      const persisted = await onUrlSheetMutationCommitted?.(nextForm);
+      if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
+        setBlockExplorerSheetError(
+          strings('app_settings.url_sheet_network_update_failed'),
+        );
+        return;
+      }
+      onBlockExplorerItemAdd(blockExplorerUrlForm);
+      if (hadListWhenFormOpened.current) {
+        setShowForm(false);
+      } else {
+        handleDismiss();
+      }
+    } finally {
+      setIsBlockExplorerSheetSubmitting(false);
     }
   };
 
@@ -228,12 +313,26 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
                   url={url}
                   isSelected={blockExplorerUrl === url}
                   onSelect={handleSelectAndDismiss}
-                  onDelete={onBlockExplorerUrlDelete}
+                  onDelete={onBlockExplorerUrlDeletePersisted}
                 />
               </React.Fragment>
             ))}
           </Box>
         )}
+
+        {blockExplorerSheetError ? (
+          <Box twClassName="mx-4 mt-2">
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-error-default"
+              testID={
+                NetworkDetailsViewSelectorsIDs.BLOCK_EXPLORER_SHEET_SUBMIT_ERROR
+              }
+            >
+              {blockExplorerSheetError}
+            </Text>
+          </Box>
+        ) : null}
 
         {/* Form — always mounted, height-animated to drive sheet resize */}
         <RNAnimated.View style={contentWrapperStyle}>
@@ -242,46 +341,53 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
             onLayout={onContentLayout}
             pointerEvents={showForm ? 'auto' : 'none'}
           >
-            <Box twClassName="mx-4 mt-4 p-4 gap-4 rounded-xl bg-background-muted">
-              <Box twClassName="gap-1">
-                <Label>
-                  {strings('app_settings.network_block_explorer_label')}
-                </Label>
-                <TextField
-                  ref={inputBlockExplorerURL}
-                  autoCapitalize="none"
-                  value={blockExplorerUrlForm}
-                  autoCorrect={false}
-                  onChangeText={onBlockExplorerUrlChange}
-                  placeholder={strings(
-                    'app_settings.network_block_explorer_placeholder',
+            <View
+              pointerEvents={isBlockExplorerSheetSubmitting ? 'none' : 'auto'}
+            >
+              <Box twClassName="mx-4 mt-4 p-4 gap-4 rounded-xl bg-background-muted">
+                <Box twClassName="gap-1">
+                  <Label>
+                    {strings('app_settings.network_block_explorer_label')}
+                  </Label>
+                  <TextField
+                    ref={inputBlockExplorerURL}
+                    autoCapitalize="none"
+                    value={blockExplorerUrlForm}
+                    autoCorrect={false}
+                    onChangeText={onBlockExplorerUrlChange}
+                    placeholder={strings(
+                      'app_settings.network_block_explorer_placeholder',
+                    )}
+                    testID={NetworkDetailsViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
+                    placeholderTextColor={placeholderTextColor}
+                    onSubmitEditing={handleFormSubmit}
+                    keyboardAppearance={themeAppearance}
+                    isError={hasInvalidUrl}
+                  />
+                  {hasInvalidUrl && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      twClassName="text-error-default"
+                    >
+                      {strings('app_settings.invalid_block_explorer_url')}
+                    </Text>
                   )}
-                  testID={NetworkDetailsViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
-                  placeholderTextColor={placeholderTextColor}
-                  onSubmitEditing={handleFormSubmit}
-                  keyboardAppearance={themeAppearance}
-                  isError={hasInvalidUrl}
+                </Box>
+                <ButtonPrimary
+                  label={strings('app_settings.add_block_explorer_url')}
+                  testID={NetworkDetailsViewSelectorsIDs.ADD_BLOCK_EXPLORER}
+                  size={ButtonSize.Lg}
+                  onPress={handleFormSubmit}
+                  width={ButtonWidthTypes.Full}
+                  loading={isBlockExplorerSheetSubmitting}
+                  isDisabled={
+                    !blockExplorerUrlForm ||
+                    !isUrl(blockExplorerUrlForm) ||
+                    isBlockExplorerSheetSubmitting
+                  }
                 />
-                {hasInvalidUrl && (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    twClassName="text-error-default"
-                  >
-                    {strings('app_settings.invalid_block_explorer_url')}
-                  </Text>
-                )}
               </Box>
-              <ButtonPrimary
-                label={strings('app_settings.add_block_explorer_url')}
-                testID={NetworkDetailsViewSelectorsIDs.ADD_BLOCK_EXPLORER}
-                size={ButtonSize.Lg}
-                onPress={handleFormSubmit}
-                width={ButtonWidthTypes.Full}
-                isDisabled={
-                  !blockExplorerUrlForm || !isUrl(blockExplorerUrlForm)
-                }
-              />
-            </Box>
+            </View>
           </View>
         </RNAnimated.View>
 

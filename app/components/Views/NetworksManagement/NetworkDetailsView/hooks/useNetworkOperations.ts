@@ -55,8 +55,21 @@ export interface UseNetworkOperationsReturn {
         parsedChainId: string,
         rpcUrl: string,
       ) => Promise<boolean>;
+      /** Persist without navigating (e.g. RPC / block explorer bottom sheet). */
+      skipPostSaveNavigation?: boolean;
+      /** Persist even when enableAction is false (paired with a confirmed URL-list edit). */
+      bypassEnableActionGuard?: boolean;
+      /**
+       * Skip disabledBy* checks (sheet persist only). Built-in edit can leave stale
+       * warningChainId while name/chain/symbol are locked; submit RPC check still runs.
+       */
+      bypassFormDisabledGuards?: boolean;
+      /**
+       * Skip eth_chainId submit check (RPC bottom sheet already validated this URL).
+       */
+      skipChainIdSubmitValidation?: boolean;
     },
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   /** Remove the current network and navigate back. */
   removeNetwork: (chainId: string) => Promise<void>;
   /** Navigate to the edit screen for the current network. */
@@ -87,6 +100,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       isCustomMainnet,
       shouldNetworkSwitchPopToWallet,
       trackRpcUpdateFromBanner,
+      skipPostSaveNavigation,
     }: {
       rpcUrl: string;
       chainId: string;
@@ -99,6 +113,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       isCustomMainnet: boolean;
       shouldNetworkSwitchPopToWallet: boolean;
       trackRpcUpdateFromBanner: boolean;
+      skipPostSaveNavigation?: boolean;
     }) => {
       const { NetworkController } = Engine.context;
 
@@ -174,12 +189,14 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         addTraitsToUser(addItemToChainIdList(networkConfig.chainId));
       }
 
-      if (isCustomMainnet) {
-        navigation.navigate('OptinMetrics');
-      } else if (shouldNetworkSwitchPopToWallet) {
-        navigation.navigate('WalletView');
-      } else {
-        navigation.goBack();
+      if (!skipPostSaveNavigation) {
+        if (isCustomMainnet) {
+          navigation.navigate('OptinMetrics');
+        } else if (shouldNetworkSwitchPopToWallet) {
+          navigation.navigate('WalletView');
+        } else {
+          navigation.goBack();
+        }
       }
     },
     [
@@ -208,6 +225,10 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
           parsedChainId: string,
           rpcUrl: string,
         ) => Promise<boolean>;
+        skipPostSaveNavigation?: boolean;
+        bypassEnableActionGuard?: boolean;
+        bypassFormDisabledGuards?: boolean;
+        skipChainIdSubmitValidation?: boolean;
       },
     ) => {
       const {
@@ -219,15 +240,21 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         shouldNetworkSwitchPopToWallet,
         trackRpcUpdateFromBanner,
         validateChainIdOnSubmit,
+        skipPostSaveNavigation = false,
+        bypassEnableActionGuard = false,
+        bypassFormDisabledGuards = false,
+        skipChainIdSubmitValidation = false,
       } = params;
 
+      if (!bypassEnableActionGuard && !enableAction) {
+        return false;
+      }
+
       if (
-        !enableAction ||
-        disabledByChainId ||
-        disabledByName ||
-        disabledBySymbol
+        !bypassFormDisabledGuards &&
+        (disabledByChainId || disabledByName || disabledBySymbol)
       ) {
-        return;
+        return false;
       }
 
       const {
@@ -242,7 +269,9 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
 
       const ticker = form.ticker ? form.ticker.toUpperCase() : undefined;
 
-      if (!stateChainId || !rpcUrl || !nickname?.trim()) return;
+      if (!stateChainId || !rpcUrl || !nickname?.trim()) {
+        return false;
+      }
 
       // Check if network with this chainId already exists
       const isNetworkNew = addMode
@@ -257,8 +286,11 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         chainId = `0x${parseInt(chainId, 10).toString(16)}`;
       }
 
-      if (!(await validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
-        return;
+      if (
+        !skipChainIdSubmitValidation &&
+        !(await validateChainIdOnSubmit(formChainId, chainId, rpcUrl))
+      ) {
+        return false;
       }
 
       // Update token network filter
@@ -287,7 +319,9 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         isCustomMainnet,
         shouldNetworkSwitchPopToWallet,
         trackRpcUpdateFromBanner,
+        skipPostSaveNavigation,
       });
+      return true;
     },
     [
       networkConfigurations,

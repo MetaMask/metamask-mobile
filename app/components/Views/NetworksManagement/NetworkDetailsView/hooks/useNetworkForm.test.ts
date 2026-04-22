@@ -13,6 +13,9 @@ jest.mock('../NetworkDetailsView.constants', () => ({
 }));
 
 jest.mock('../NetworkDetailsView.utils', () => ({
+  ...jest.requireActual<typeof import('../NetworkDetailsView.utils')>(
+    '../NetworkDetailsView.utils',
+  ),
   getDefaultBlockExplorerUrl: jest.fn(() => 'https://etherscan.io'),
 }));
 

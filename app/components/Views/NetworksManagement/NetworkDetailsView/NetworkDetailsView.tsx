@@ -67,7 +67,11 @@ import BlockExplorerSection, {
 
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
 import createStyles from './NetworkDetailsView.styles';
-import type { NetworkDetailsViewParams } from './NetworkDetailsView.types';
+import type {
+  NetworkDetailsViewParams,
+  NetworkFormState,
+  UrlSheetPersistOptions,
+} from './NetworkDetailsView.types';
 
 type NetworkDetailsRouteParams = RouteProp<
   { AddNetworkForm: NetworkDetailsViewParams },
@@ -106,12 +110,36 @@ const NetworkDetailsView = () => {
     });
   }, [formHook, validation]);
 
+  // `editable` only locks name/symbol fields — RPC & block explorer lists still change;
+  // Save / sheet persist must run when those lists diverge from the last saved baseline.
   const isActionDisabled =
     !formHook.enableAction ||
-    formHook.form.editable === false ||
     validation.disabledByChainId(formHook.form) ||
     validation.disabledByName(formHook.form) ||
     validation.disabledBySymbol(formHook.form);
+
+  // Latest form + deps for sheet persist. Reassigned every render; async persist reads
+  // `persistSheetCtxRef.current` inside `runPersist` so data is never "initial render" stale.
+  const persistSheetCtxRef = useRef({
+    form: formHook.form,
+    enableAction: formHook.enableAction,
+    validation,
+    operations,
+    isCustomMainnet,
+    shouldNetworkSwitchPopToWallet,
+    trackRpcUpdateFromBanner,
+    commitBaselineFromFormState: formHook.commitBaselineFromFormState,
+  });
+  persistSheetCtxRef.current = {
+    form: formHook.form,
+    enableAction: formHook.enableAction,
+    validation,
+    operations,
+    isCustomMainnet,
+    shouldNetworkSwitchPopToWallet,
+    trackRpcUpdateFromBanner,
+    commitBaselineFromFormState: formHook.commitBaselineFromFormState,
+  };
 
   const handleSave = useCallback(async () => {
     await operations.saveNetwork(formHook.form, {
@@ -133,6 +161,71 @@ const NetworkDetailsView = () => {
     shouldNetworkSwitchPopToWallet,
     trackRpcUpdateFromBanner,
   ]);
+
+  /**
+   * Persist after RPC / block-explorer sheet mutations.
+   * Default path uses double rAF until React commits setState. When passing
+   * committedFormSnapshot (RPC sheet add after async validation), persist runs immediately.
+   *
+   * Intentionally `[]` deps: the callback must stay referentially stable for sheet children,
+   * and always reads fresh `form` / `operations` / `validation` via `persistSheetCtxRef.current`
+   * at invoke time (ref is updated synchronously each render above).
+   */
+  const schedulePersistAfterUrlSheetMutation = useCallback(
+    async (
+      committedFormSnapshot?: NetworkFormState,
+      persistOptions?: UrlSheetPersistOptions,
+    ): Promise<boolean> => {
+      const runPersist = async (
+        snapshot?: NetworkFormState,
+        opts?: UrlSheetPersistOptions,
+      ): Promise<boolean> => {
+        const ctx = persistSheetCtxRef.current;
+        const formSnapshot = snapshot ?? ctx.form;
+        if (formSnapshot.addMode) {
+          return false;
+        }
+        const saved = await ctx.operations.saveNetwork(formSnapshot, {
+          enableAction: ctx.enableAction,
+          disabledByChainId: ctx.validation.disabledByChainId(formSnapshot),
+          disabledByName: ctx.validation.disabledByName(formSnapshot),
+          disabledBySymbol: ctx.validation.disabledBySymbol(formSnapshot),
+          isCustomMainnet: ctx.isCustomMainnet,
+          shouldNetworkSwitchPopToWallet: ctx.shouldNetworkSwitchPopToWallet,
+          trackRpcUpdateFromBanner: ctx.trackRpcUpdateFromBanner,
+          validateChainIdOnSubmit: ctx.validation.validateChainIdOnSubmit,
+          skipPostSaveNavigation: true,
+          bypassEnableActionGuard: true,
+          bypassFormDisabledGuards: true,
+          skipChainIdSubmitValidation:
+            opts?.skipChainIdSubmitValidation === true,
+        });
+        if (saved === true) {
+          ctx.commitBaselineFromFormState(formSnapshot);
+        }
+        return saved === true;
+      };
+
+      if (committedFormSnapshot !== undefined) {
+        return runPersist(committedFormSnapshot, persistOptions).catch(
+          () => false,
+        );
+      }
+
+      return new Promise<boolean>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            runPersist(undefined, persistOptions)
+              .then(resolve)
+              .catch(() => {
+                resolve(false);
+              });
+          });
+        });
+      });
+    },
+    [],
+  );
 
   const handleValidateChainId = useCallback(() => {
     validation.validateChainId(formHook.form);
@@ -317,12 +410,14 @@ const NetworkDetailsView = () => {
             styles={styles}
             themeAppearance={themeAppearance}
             placeholderTextColor={placeholderTextColor}
+            onUrlSheetMutationCommitted={schedulePersistAfterUrlSheetMutation}
           />
           <BlockExplorerModals
             formHook={formHook}
             styles={styles}
             themeAppearance={themeAppearance}
             placeholderTextColor={placeholderTextColor}
+            onUrlSheetMutationCommitted={schedulePersistAfterUrlSheetMutation}
           />
         </>
       )}

@@ -487,6 +487,139 @@ describe('useNetworkOperations', () => {
       expect(mockAddNetwork).not.toHaveBeenCalled();
     });
 
+    it('does not navigate when skipPostSaveNavigation is true', async () => {
+      setupExistingNetwork();
+
+      const { result } = renderHook(() => useNetworkOperations());
+
+      await act(async () => {
+        await result.current.saveNetwork(
+          {
+            ...baseForm,
+            chainId: '42',
+            addMode: false,
+            rpcUrls: [
+              {
+                url: 'https://rpc.example.com/',
+                name: 'Test RPC',
+                type: 'Custom',
+              },
+            ],
+          },
+          {
+            ...defaultSaveOpts(),
+            shouldNetworkSwitchPopToWallet: false,
+            skipPostSaveNavigation: true,
+          },
+        );
+      });
+
+      expect(mockUpdateNetwork).toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('skips validateChainIdOnSubmit when skipChainIdSubmitValidation is true', async () => {
+      setupExistingNetwork();
+
+      const validateChainIdOnSubmit = jest.fn().mockResolvedValue(false);
+      const { result } = renderHook(() => useNetworkOperations());
+
+      await act(async () => {
+        await result.current.saveNetwork(
+          {
+            ...baseForm,
+            chainId: '42',
+            addMode: false,
+            rpcUrls: [
+              {
+                url: 'https://rpc.example.com/',
+                name: 'Test RPC',
+                type: 'Custom',
+              },
+            ],
+          },
+          {
+            ...defaultSaveOpts(),
+            validateChainIdOnSubmit,
+            shouldNetworkSwitchPopToWallet: false,
+            skipPostSaveNavigation: true,
+            bypassEnableActionGuard: true,
+            bypassFormDisabledGuards: true,
+            skipChainIdSubmitValidation: true,
+          },
+        );
+      });
+
+      expect(validateChainIdOnSubmit).not.toHaveBeenCalled();
+      expect(mockUpdateNetwork).toHaveBeenCalled();
+    });
+
+    it('persists when bypassEnableActionGuard is true even if enableAction is false', async () => {
+      setupExistingNetwork();
+
+      const { result } = renderHook(() => useNetworkOperations());
+
+      await act(async () => {
+        await result.current.saveNetwork(
+          {
+            ...baseForm,
+            chainId: '42',
+            addMode: false,
+            rpcUrls: [
+              {
+                url: 'https://rpc.example.com/',
+                name: 'Test RPC',
+                type: 'Custom',
+              },
+            ],
+          },
+          {
+            ...defaultSaveOpts(),
+            enableAction: false,
+            shouldNetworkSwitchPopToWallet: false,
+            skipPostSaveNavigation: true,
+            bypassEnableActionGuard: true,
+          },
+        );
+      });
+
+      expect(mockUpdateNetwork).toHaveBeenCalled();
+    });
+
+    it('persists when bypassFormDisabledGuards is true despite disabledByChainId', async () => {
+      setupExistingNetwork();
+
+      const { result } = renderHook(() => useNetworkOperations());
+
+      await act(async () => {
+        await result.current.saveNetwork(
+          {
+            ...baseForm,
+            chainId: '42',
+            addMode: false,
+            rpcUrls: [
+              {
+                url: 'https://rpc.example.com/',
+                name: 'Test RPC',
+                type: 'Custom',
+              },
+            ],
+          },
+          {
+            ...defaultSaveOpts(),
+            disabledByChainId: true,
+            shouldNetworkSwitchPopToWallet: false,
+            skipPostSaveNavigation: true,
+            bypassEnableActionGuard: true,
+            bypassFormDisabledGuards: true,
+          },
+        );
+      });
+
+      expect(mockUpdateNetwork).toHaveBeenCalled();
+    });
+
     it('passes options with indexRpc when form rpcUrl is not in rpcUrls list', async () => {
       setupExistingNetwork();
 
