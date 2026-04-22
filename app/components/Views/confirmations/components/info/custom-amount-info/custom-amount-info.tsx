@@ -54,14 +54,17 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
+import { AlertKeys } from '../../../constants/alerts';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useSelector } from 'react-redux';
 import AccountSelector from '../../AccountSelector';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -71,10 +74,9 @@ export interface CustomAmountInfoProps {
   preferredToken?: SetPayTokenRequest;
   footerText?: string;
   /**
-   * Optional render function that overrides the default content.
-   * When set, automatically hides PayTokenAmount, PayWithRow, and children.
+   * When true, hides the default PayTokenAmount below the fiat amount.
    */
-  overrideContent?: (amountHuman: string) => ReactNode;
+  hidePayTokenAmount?: boolean;
   /**
    * Callback fired when user presses Done after entering an amount.
    */
@@ -93,7 +95,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disablePay,
     hasMax,
     onAmountSubmit,
-    overrideContent,
+    hidePayTokenAmount,
     preferredToken,
     footerText,
   }) => {
@@ -120,9 +122,22 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountWithdraw,
     ]);
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]);
     const [selectedRecipientAddress, setSelectedRecipientAddress] = useState<
       string | undefined
     >(undefined);
+
+    const globalSelectedAddress = useSelector(
+      selectSelectedInternalAccountAddress,
+    );
+    const initialFromAddress =
+      (transactionMeta?.txParams?.from as string | undefined) ??
+      globalSelectedAddress;
+    const [selectedFromAddress, setSelectedFromAddress] = useState<
+      string | undefined
+    >(initialFromAddress);
 
     const handleRecipientAccountSelected = useCallback(
       (address: string) => {
@@ -134,10 +149,31 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       [transactionId],
     );
 
+    const handleFromAccountSelected = useCallback(
+      (address: string) => {
+        if (transactionId) {
+          updateEditableParams(transactionId, { from: address as Hex });
+        }
+        setSelectedFromAddress(address);
+      },
+      [transactionId],
+    );
+
     const isRecipientMissing =
       isMoneyAccountWithdraw && !selectedRecipientAddress;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
+    const quotes = useTransactionPayQuotes();
+    const isQuotesLoading = useIsTransactionPayLoading();
+    const hasSourceAmount = useTransactionPayHasSourceAmount();
+    const { alerts } = useAlerts();
+    const hasNoQuotesAlert = alerts.some(
+      (a) => a.key === AlertKeys.NoPayTokenQuotes,
+    );
+    const showPaymentDetails =
+      isQuotesLoading ||
+      Boolean(quotes?.length) ||
+      (!hasSourceAmount && !hasNoQuotesAlert);
 
     const {
       amountFiat,
@@ -193,37 +229,44 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {overrideContent
-            ? overrideContent(amountHuman)
-            : disablePay !== true && (
-                <PayTokenAmount
-                  amountHuman={amountHuman}
-                  disabled={!hasTokens}
-                />
-              )}
-          {!overrideContent && children}
+          {!hidePayTokenAmount && disablePay !== true && (
+            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+          )}
+          {!hidePayTokenAmount && children}
         </Box>
         <Box gap={16}>
-          {!overrideContent && (
+          <AlertMessage alertMessage={alertMessage} />
+          {!hidePayTokenAmount && (
             <>
+              {isMoneyAccountDeposit && (
+                <AccountSelector
+                  label={strings('confirm.label.from')}
+                  selectedAddress={selectedFromAddress}
+                  onAccountSelected={handleFromAccountSelected}
+                />
+              )}
               {isMoneyAccountWithdraw && (
                 <AccountSelector
                   selectedAddress={selectedRecipientAddress}
                   onAccountSelected={handleRecipientAccountSelected}
                 />
               )}
-              {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
-          <AlertMessage alertMessage={alertMessage} />
+          {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
           {isResultReady && (
             <Box>
-              <BridgeFeeRow />
-              <BridgeTimeRow />
-              {canSelectWithdrawToken ? (
-                <ReceiveRow inputAmountUsd={amountFiat} />
-              ) : (
-                <TotalRow />
+              {disablePay !== true && hasTokens && <PayWithRow />}
+              {showPaymentDetails && (
+                <>
+                  <BridgeFeeRow />
+                  <BridgeTimeRow />
+                  {canSelectWithdrawToken ? (
+                    <ReceiveRow inputAmountUsd={amountFiat} />
+                  ) : (
+                    <TotalRow />
+                  )}
+                </>
               )}
               <PercentageRow />
             </Box>

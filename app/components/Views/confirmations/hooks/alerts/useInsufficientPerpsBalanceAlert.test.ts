@@ -9,10 +9,20 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
+import {
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../pay/useTransactionPayData';
+import {
+  TransactionPayQuote,
+  TransactionPayTotals,
+} from '@metamask/transaction-pay-controller';
+import { Json } from '@metamask/utils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useTokenAmount');
+jest.mock('../pay/useTransactionPayData');
 
 const mockPerpsState = (availableBalance: string | null = '45.31') => ({
   engine: {
@@ -39,6 +49,7 @@ function runHook({
 
 describe('useInsufficientPerpsBalanceAlert', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
+  const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
 
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
@@ -55,6 +66,8 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     } as unknown as TransactionMeta);
 
     useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
+    useTransactionPayTotalsMock.mockReturnValue(undefined);
+    jest.mocked(useTransactionPayQuotes).mockReturnValue(undefined);
   });
 
   it('returns alert if perps balance less than pending amount', () => {
@@ -133,6 +146,72 @@ describe('useInsufficientPerpsBalanceAlert', () => {
       pendingAmount: '50',
       availableBalance: null,
     });
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert on confirmation screen when fees exceed withdraw amount', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '10',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '5' },
+        sourceNetwork: { estimate: { usd: '3' } },
+        targetNetwork: { usd: '4' },
+        metaMask: { usd: '1' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { result } = runHook();
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].key).toBe(AlertKeys.InsufficientPerpsBalance);
+  });
+
+  it('does not trigger fee check during pending input even when fees exceed amount', () => {
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '100' },
+        sourceNetwork: { estimate: { usd: '0' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { result } = runHook({ pendingAmount: '10' });
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert on confirmation screen when fees are less than amount', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '40',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '0.05' },
+        sourceNetwork: { estimate: { usd: '0' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0.003' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
   });

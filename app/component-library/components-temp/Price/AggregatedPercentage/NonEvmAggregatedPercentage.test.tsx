@@ -151,9 +151,7 @@ describe('NonEvmAggregatedPercentage', () => {
     });
     const { getByTestId } = render(<NonEvmAggregatedPercentage />);
 
-    expect(
-      getByTestId(FORMATTED_PERCENTAGE_TEST_ID).props.children,
-    ).toBeDefined();
+    expect(getByTestId(FORMATTED_PERCENTAGE_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders positive percentage change correctly', () => {

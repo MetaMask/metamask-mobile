@@ -63,13 +63,33 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
     prices: {
       subscribeToSymbols: jest.fn(() => jest.fn()),
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
-    positions: { subscribe: jest.fn(() => jest.fn()) },
-    orders: { subscribe: jest.fn(() => jest.fn()) },
-    fills: { subscribe: jest.fn(() => jest.fn()) },
-    account: { subscribe: jest.fn(() => jest.fn()) },
-    marketData: { subscribe: jest.fn(() => jest.fn()), getMarkets: jest.fn() },
-    oiCaps: { subscribe: jest.fn(() => jest.fn()) },
+    positions: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    orders: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    fills: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    account: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    marketData: {
+      subscribe: jest.fn(() => jest.fn()),
+      getMarkets: jest.fn(),
+      getSnapshot: jest.fn(() => null),
+    },
+    oiCaps: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
@@ -1064,6 +1084,47 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeTruthy();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows add funds CTA when total balance is funded but spendable balance has no direct order path', () => {
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUsePerpsAccount.mockReturnValue({
+        account: {
+          availableBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalBalance: '100.00',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '100',
+        },
+        isInitialLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
       expect(
         queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
       ).toBeNull();

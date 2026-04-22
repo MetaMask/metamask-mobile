@@ -4,7 +4,7 @@ import {
 } from '@metamask/snaps-controllers';
 import { Duration, inMilliseconds } from '@metamask/utils';
 import { hmacSha512 } from '@metamask/native-utils';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import { SnapControllerInitMessenger } from '../../messengers/snaps';
 import {
   EndowmentPermissions,
@@ -42,7 +42,7 @@ import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const snapControllerInit: ControllerInitFunction<
+export const snapControllerInit: MessengerClientInitFunction<
   SnapController,
   SnapControllerMessenger,
   SnapControllerInitMessenger

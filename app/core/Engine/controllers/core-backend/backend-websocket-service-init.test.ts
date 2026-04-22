@@ -1,6 +1,6 @@
 import { BackendWebSocketService } from '@metamask/core-backend';
 import Logger from '../../../../util/Logger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { backendWebSocketServiceInit } from './backend-websocket-service-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { BackendWebSocketServiceInitMessenger } from '../../messengers/core-backend';
@@ -21,7 +21,7 @@ describe('backendWebSocketServiceInit', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    const initRequestMock = buildControllerInitRequestMock(
+    const initRequestMock = buildMessengerClientInitRequestMock(
       baseControllerMessenger,
     );
 

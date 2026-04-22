@@ -84,9 +84,21 @@ jest.mock(
   './components/Sections/SectionTypes/SectionCarrousel',
   () => () => null,
 );
+jest.mock(
+  './components/Sections/SectionTypes/PerpsExploreSection',
+  () => () => null,
+);
 jest.mock('../../UI/Predict/components/PredictMarket', () => () => null);
 jest.mock(
   '../../UI/Predict/components/PredictMarketSkeleton',
+  () => () => null,
+);
+jest.mock(
+  '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCard',
+  () => () => null,
+);
+jest.mock(
+  '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton',
   () => () => null,
 );
 jest.mock('fuse.js', () =>
@@ -96,6 +108,8 @@ jest.mock('fuse.js', () =>
 );
 
 import { SECTIONS_CONFIG } from './sections.config';
+import { renderHook } from '@testing-library/react-native';
+import { usePerpsMarkets } from '../../UI/Perps/hooks';
 
 describe('SECTIONS_CONFIG getItemIdentifier', () => {
   describe('tokens section', () => {
@@ -202,5 +216,81 @@ describe('SECTIONS_CONFIG getItemIdentifier', () => {
         expect(SECTIONS_CONFIG[sectionId].getItemIdentifier).toBeDefined();
       });
     });
+  });
+});
+
+describe('SECTIONS_CONFIG perps useSectionData sorting', () => {
+  const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
+    typeof usePerpsMarkets
+  >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('sorts markets by change24hPercent descending when no search query', () => {
+    const unsortedMarkets = [
+      { symbol: 'ETH', change24hPercent: '2.5' },
+      { symbol: 'BTC', change24hPercent: '10.0' },
+      { symbol: 'SOL', change24hPercent: '-3.0' },
+      { symbol: 'DOGE', change24hPercent: '5.0' },
+    ];
+
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: unsortedMarkets,
+      isLoading: false,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as never);
+
+    const { result } = renderHook(() => SECTIONS_CONFIG.perps.useSectionData());
+
+    const symbols = result.current.data.map(
+      (m: unknown) => (m as { symbol: string }).symbol,
+    );
+    expect(symbols).toEqual(['BTC', 'DOGE', 'ETH', 'SOL']);
+  });
+
+  it('places markets with invalid change24hPercent at the end', () => {
+    const markets = [
+      { symbol: 'ETH', change24hPercent: '5.0' },
+      { symbol: 'BAD', change24hPercent: 'invalid' },
+      { symbol: 'BTC', change24hPercent: '10.0' },
+    ];
+
+    mockUsePerpsMarkets.mockReturnValue({
+      markets,
+      isLoading: false,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as never);
+
+    const { result } = renderHook(() => SECTIONS_CONFIG.perps.useSectionData());
+
+    const symbols = result.current.data.map(
+      (m: unknown) => (m as { symbol: string }).symbol,
+    );
+    expect(symbols).toEqual(['BTC', 'ETH', 'BAD']);
+  });
+
+  it('does not sort when search query is provided (delegates to fuse)', () => {
+    const markets = [
+      { symbol: 'ETH', change24hPercent: '2.5' },
+      { symbol: 'BTC', change24hPercent: '10.0' },
+    ];
+
+    mockUsePerpsMarkets.mockReturnValue({
+      markets,
+      isLoading: false,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as never);
+
+    const { result } = renderHook(() =>
+      SECTIONS_CONFIG.perps.useSectionData('btc'),
+    );
+
+    // fuse.search is mocked to return [], verifying search path is taken
+    expect(result.current.data).toEqual([]);
   });
 });

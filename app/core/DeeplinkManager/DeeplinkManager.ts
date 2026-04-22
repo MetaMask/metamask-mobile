@@ -8,6 +8,10 @@ import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
 import { BranchParams } from './types/deepLinkAnalytics.types';
+import {
+  getBrazeInitialDeeplink,
+  subscribeToBrazePushDeeplinks,
+} from '../Braze/BrazeDeeplinks';
 
 /**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
@@ -129,6 +133,22 @@ export class DeeplinkManager {
           source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
         });
       }
+    });
+
+    getBrazeInitialDeeplink().then((deeplink) => {
+      if (deeplink) {
+        handleDeeplink({
+          uri: deeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+        });
+      }
+    });
+
+    subscribeToBrazePushDeeplinks((deeplink) => {
+      handleDeeplink({
+        uri: deeplink,
+        source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+      });
     });
 
     Linking.getInitialURL().then((url) => {

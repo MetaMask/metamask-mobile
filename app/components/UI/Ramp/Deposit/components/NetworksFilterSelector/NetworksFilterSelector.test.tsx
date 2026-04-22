@@ -21,7 +21,7 @@ describe('NetworksFilterSelector', () => {
   });
 
   it('renders correctly when networkFilter is null', () => {
-    const { toJSON, getByText } = render(
+    const { getByText } = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={null}
@@ -30,7 +30,7 @@ describe('NetworksFilterSelector', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Select all')).toBeOnTheScreen();
 
     const selectAllButton = getByText('Select all');
     fireEvent.press(selectAllButton);
@@ -39,7 +39,7 @@ describe('NetworksFilterSelector', () => {
   });
 
   it('renders correctly when networkFilter is the same as uniqueNetworks', () => {
-    const { toJSON, getByText } = render(
+    const { getByText } = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={networks}
@@ -48,7 +48,7 @@ describe('NetworksFilterSelector', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Deselect all')).toBeOnTheScreen();
 
     const deselectAllButton = getByText('Deselect all');
     fireEvent.press(deselectAllButton);
@@ -58,7 +58,7 @@ describe('NetworksFilterSelector', () => {
 
   it('renders correctly when networkFilter is a subset of uniqueNetworks', () => {
     const subsetNetworkFilter: CaipChainId[] = ['eip155:1', 'eip155:59144'];
-    const { toJSON, getByText } = render(
+    const { getByText } = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={subsetNetworkFilter}
@@ -67,7 +67,8 @@ describe('NetworksFilterSelector', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
+    expect(getByText('BNB Smart Chain')).toBeOnTheScreen();
 
     const ethereumCheckbox = getByText('Ethereum');
     fireEvent.press(ethereumCheckbox);

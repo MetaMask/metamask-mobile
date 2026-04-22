@@ -1,6 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { View, Linking } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
   Text,
   TextVariant,
   TextColor,
@@ -8,10 +12,6 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 
 import styleSheet from './EligibilityFailedModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -19,8 +19,9 @@ import { createNavigationDetails } from '../../../../../util/navigation/navUtils
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { ELIGIBILITY_FAILED_MODAL_TEST_IDS } from './EligibilityFailedModal.testIds';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
-const SUPPORT_URL = 'https://support.metamask.io';
+const SUPPORT_URL = METAMASK_SUPPORT_URL;
 
 export const createEligibilityFailedModalNavigationDetails =
   createNavigationDetails(
@@ -30,6 +31,7 @@ export const createEligibilityFailedModalNavigationDetails =
 
 function EligibilityFailedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
   const navigateToContactSupport = useCallback(() => {
@@ -45,7 +47,7 @@ function EligibilityFailedModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       isInteractable={false}
       testID={ELIGIBILITY_FAILED_MODAL_TEST_IDS.MODAL}
     >

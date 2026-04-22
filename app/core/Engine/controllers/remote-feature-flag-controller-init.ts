@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   ClientConfigApiService,
   ClientType,
@@ -22,7 +22,7 @@ import { getBaseSemVerVersion } from '../../../util/version';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const remoteFeatureFlagControllerInit: ControllerInitFunction<
+export const remoteFeatureFlagControllerInit: MessengerClientInitFunction<
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerMessenger
 > = ({ controllerMessenger, persistedState, getState, analyticsId }) => {

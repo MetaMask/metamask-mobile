@@ -94,6 +94,14 @@ export const createMockInfrastructure =
       rewards: {
         getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
       },
+
+      // === Disk Cache (cold-start persistence) ===
+      diskCache: {
+        getItem: jest.fn().mockResolvedValue(null),
+        getItemSync: jest.fn().mockReturnValue(null),
+        setItem: jest.fn().mockResolvedValue(undefined),
+        removeItem: jest.fn().mockResolvedValue(undefined),
+      },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
 /**

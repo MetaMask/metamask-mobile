@@ -100,6 +100,7 @@ describe('AppStateEventListener', () => {
     appStateManager.setCurrentDeeplink(
       'metamask://connect?attributionId=test123',
     );
+    mockAppStateListener('background');
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
@@ -121,6 +122,7 @@ describe('AppStateEventListener', () => {
       .mockReturnValue({} as unknown as ReduxStore);
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
+    mockAppStateListener('background');
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
@@ -168,6 +170,7 @@ describe('AppStateEventListener', () => {
       throw testError;
     });
 
+    mockAppStateListener('background');
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
@@ -206,10 +209,46 @@ describe('AppStateEventListener', () => {
       .mockReturnValue({} as unknown as ReduxStore);
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
+    mockAppStateListener('background');
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
     mockAnalytics.trackEvent.mockClear();
 
+    // Sending 'active' again without going through 'background' should not re-fire
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+  });
+
+  it('fires APP_OPENED when transitioning from background through inactive to active (iOS intermediate state)', () => {
+    jest.clearAllMocks();
+    jest
+      .spyOn(ReduxService, 'store', 'get')
+      .mockReturnValue({} as unknown as ReduxStore);
+    (processAttribution as jest.Mock).mockReturnValue(undefined);
+
+    // Simulate iOS background → inactive → active sequence
+    mockAppStateListener('background');
+    mockAppStateListener('inactive');
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.APP_OPENED,
+    );
+    expect(mockAnalytics.trackEvent).toHaveBeenCalled();
+  });
+
+  it('does not fire APP_OPENED when transitioning from inactive to active (e.g. system permission dialog dismissed)', () => {
+    jest.clearAllMocks();
+    jest
+      .spyOn(ReduxService, 'store', 'get')
+      .mockReturnValue({} as unknown as ReduxStore);
+    (processAttribution as jest.Mock).mockReturnValue(undefined);
+
+    // Simulate iOS system permission dialog: active → inactive → active
+    mockAppStateListener('inactive');
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
@@ -225,6 +264,7 @@ describe('AppStateEventListener', () => {
       realProcessAttribution,
     );
 
+    mockAppStateListener('background');
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 

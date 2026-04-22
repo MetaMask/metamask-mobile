@@ -26,7 +26,7 @@ import {
 } from '../../utils/rampsNavigation';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { strings } from '../../../../../../locales/i18n';
-import { getRampsOrderDetailsNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
@@ -134,6 +134,18 @@ const OrderDetails = () => {
     [getOrderFromCallback, addOrder, navigation],
   );
 
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Order Details',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [navigation, trackEvent, createEventBuilder]);
+
   const handleRetryCallbackFetch = useCallback(async () => {
     if (!params.callbackUrl || !params.providerCode || !params.walletAddress) {
       return;
@@ -151,26 +163,6 @@ const OrderDetails = () => {
     params.walletAddress,
     executeCallbackFetch,
   ]);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getRampsOrderDetailsNavbarOptions(
-        navigation,
-        { title: strings('ramps_order_details.title') },
-        theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Order Details',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
-      ),
-    );
-  }, [theme, navigation, createEventBuilder, trackEvent]);
 
   const hasTrackedScreenView = useRef(false);
   useEffect(() => {
@@ -253,6 +245,14 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderCompactStandard
+            title={strings('ramps_order_details.title')}
+            onBack={handleHeaderBack}
+            backButtonProps={{
+              testID: 'ramps-order-details-back-navbar-button',
+            }}
+            includesTopInset
+          />
           <ScreenLayout.Content>
             <ActivityIndicator />
           </ScreenLayout.Content>
@@ -268,6 +268,14 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderCompactStandard
+            title={strings('ramps_order_details.title')}
+            onBack={handleHeaderBack}
+            backButtonProps={{
+              testID: 'ramps-order-details-back-navbar-button',
+            }}
+            includesTopInset
+          />
           <Box twClassName="flex-1 items-center justify-center px-16 py-16">
             <Icon
               name={IconName.Danger}
@@ -302,31 +310,52 @@ const OrderDetails = () => {
   }
 
   if (!order) {
-    return <ScreenLayout />;
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <HeaderCompactStandard
+            title={strings('ramps_order_details.title')}
+            onBack={handleHeaderBack}
+            backButtonProps={{
+              testID: 'ramps-order-details-back-navbar-button',
+            }}
+            includesTopInset
+          />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
   }
 
   return (
     <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContentContainer}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={isRefreshing}
-            onRefresh={handleOnRefresh}
-          />
-        }
-      >
-        <ScreenLayout.Body>
+      <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={strings('ramps_order_details.title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{
+            testID: 'ramps-order-details-back-navbar-button',
+          }}
+          includesTopInset
+        />
+        <ScrollView
+          contentContainerStyle={styles.scrollContentContainer}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={isRefreshing}
+              onRefresh={handleOnRefresh}
+            />
+          }
+        >
           <ScreenLayout.Content style={styles.contentContainer}>
             <OrderContent
               order={order}
               showCloseButton={params.showCloseButton}
             />
           </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScrollView>
+        </ScrollView>
+      </ScreenLayout.Body>
     </ScreenLayout>
   );
 };

@@ -331,13 +331,13 @@ Market data and user data are preloaded in the background before the user opens 
 
 #### Preload Pipeline
 
-| Step              | Method                                  | What It Does                                                 |
-| ----------------- | --------------------------------------- | ------------------------------------------------------------ |
-| 1. Trigger        | `startMarketDataPreload()` (Wallet tab) | Starts immediate fetch + 5-min periodic refresh              |
-| 2. Market data    | `performMarketDataPreload()`            | Fetches market data via standalone REST → `cachedMarketData` |
-| 3. User data      | `performUserDataPreload()`              | Fetches positions, orders, account state → cached fields     |
-| 4. Cache guard    | `PRELOAD_GUARD_MS` (30s)                | Debounce to prevent rapid re-fetches                         |
-| 5. Account change | State-change handler                    | Clears user data cache, re-preloads                          |
+| Step              | Method                                               | What It Does                                                 |
+| ----------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
+| 1. Trigger        | `startMarketDataPreload()` (`PerpsAlwaysOnProvider`) | Starts immediate fetch + 5-min periodic refresh              |
+| 2. Market data    | `performMarketDataPreload()`                         | Fetches market data via standalone REST → `cachedMarketData` |
+| 3. User data      | `performUserDataPreload()`                           | Fetches positions, orders, account state → cached fields     |
+| 4. Cache guard    | `PRELOAD_GUARD_MS` (30s)                             | Debounce to prevent rapid re-fetches                         |
+| 5. Account change | State-change handler                                 | Clears user data cache, re-preloads                          |
 
 #### Cache-Seeded Hook Initialization
 

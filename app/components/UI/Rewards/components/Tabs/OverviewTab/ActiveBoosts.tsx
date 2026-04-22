@@ -37,7 +37,8 @@ import { formatTimeRemaining } from '../../../utils/formatUtils';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { handleDeeplink } from '../../../../../../core/DeeplinkManager/handlers/legacy/handleDeeplink';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -61,7 +62,7 @@ const BoostCard: React.FC<BoostCardProps> = ({
   isLast: _isLast,
 }) => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({

@@ -95,7 +95,10 @@ describe(SmokeConfirmations('7702 - smart account'), () => {
     });
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      Object.assign({}, ...confirmationFeatureFlags),
+      Object.assign({}, ...confirmationFeatureFlags, {
+        homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
+        homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
+      }),
     );
   };
   beforeAll(async () => {

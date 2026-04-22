@@ -3,7 +3,7 @@ import {
   selectBitcoinRewardsEnabledFlag,
   selectTronRewardsEnabledFlag,
 } from '../../../../selectors/featureFlagController/rewards/rewardsEnabled';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import {
   RewardsController,
   RewardsControllerMessenger,
@@ -16,7 +16,7 @@ import {
  * @param request - The request object.
  * @returns The RewardsController.
  */
-export const rewardsControllerInit: ControllerInitFunction<
+export const rewardsControllerInit: MessengerClientInitFunction<
   RewardsController,
   RewardsControllerMessenger
 > = (request) => {
@@ -63,6 +63,7 @@ export type {
   RewardsControllerGetGeoRewardsMetadataAction,
   RewardsControllerGetHasAccountOptedInAction,
   RewardsControllerGetOffDeviceSubscriptionAccountsAction,
+  RewardsControllerGetOndoCampaignDepositsAction,
   RewardsControllerGetOndoCampaignLeaderboardAction,
   RewardsControllerGetOndoCampaignLeaderboardPositionAction,
   RewardsControllerGetOndoCampaignPortfolioPositionAction,

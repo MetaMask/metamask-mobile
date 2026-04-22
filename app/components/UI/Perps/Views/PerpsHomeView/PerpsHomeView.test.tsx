@@ -145,16 +145,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: 'SafeAreaView',
-  useSafeAreaInsets: () => ({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  }),
-}));
-
 // Mock design system - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
@@ -221,6 +211,7 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   PERPS_EVENT_PROPERTY: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',

@@ -63,14 +63,6 @@ describe('PaymentMethodPill', () => {
     expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(
-      <PaymentMethodPill label="Debit card" />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders PaymentMethodIcon for any non-empty paymentType like the payment list', () => {
     const { getByTestId, getByText } = renderWithTheme(
       <PaymentMethodPill
@@ -121,7 +113,7 @@ describe('PaymentMethodPill', () => {
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
-      expect(queryByText('Select payment method')).toBeNull();
+      expect(queryByText('Select payment method')).not.toBeOnTheScreen();
     });
 
     it('does not render arrow icon', () => {
@@ -149,12 +141,12 @@ describe('PaymentMethodPill', () => {
       );
     });
 
-    it('matches snapshot when loading', () => {
-      const { toJSON } = renderWithTheme(
+    it('renders the pill container when loading', () => {
+      const { getByTestId } = renderWithTheme(
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
     });
   });
 });

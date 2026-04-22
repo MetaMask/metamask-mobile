@@ -4,7 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import { WaysToEarn } from './WaysToEarn';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
-import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../../util/test/analyticsMock';
 import { RewardsMetricsButtons } from '../../../../utils';
 import { SeasonWayToEarnDto } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -25,17 +27,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-// Mock useMetrics hook
-jest.mock('../../../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  })),
-  MetaMetricsEvents: {
-    REWARDS_WAYS_TO_EARN_CTA_CLICKED: 'rewards_ways_to_earn_cta_clicked',
-    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
-  },
-}));
+jest.mock('../../../../../../hooks/useAnalytics/useAnalytics');
 
 // Mock i18n strings
 jest.mock('../../../../../../../../locales/i18n', () => ({
@@ -252,6 +244,12 @@ describe('WaysToEarn', () => {
       addSensitiveProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({}),
     }));
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     const mockUseSelector = jest.requireMock('react-redux')
       .useSelector as jest.Mock;

@@ -14,7 +14,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 
-export const useOndoAccountPicker = (campaignId: string) => {
+export const useOndoAccountPicker = (campaignId: string | undefined) => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [pendingPicker, setPendingPicker] =
     useState<AccountPickerConfig | null>(null);
