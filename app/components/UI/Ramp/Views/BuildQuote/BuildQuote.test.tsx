@@ -1942,6 +1942,106 @@ describe('BuildQuote', () => {
           }),
         );
       });
+
+      it('skips quote fetch while the current provider does not support the selected token', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+          selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+          paymentMethods: [SELECTED_PAYMENT_METHOD],
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+        expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+      });
+
+      it('does not render "Powered by" for the outgoing provider while the token is unavailable', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+          selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+          paymentMethods: [SELECTED_PAYMENT_METHOD],
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        // No quotes response yet — isolates the isTokenUnavailable gate from
+        // the hasGenericNoQuotes branch so this test exercises the gate directly.
+        mockUseRampsQuotes.mockReturnValue({
+          data: null,
+          loading: false,
+          error: null,
+        });
+
+        const { queryByText } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        expect(queryByText('Powered by PayPal')).not.toBeOnTheScreen();
+      });
+
+      it('shows Continue button as loading (not just disabled) while the switch is pending', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+          selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+          paymentMethods: [SELECTED_PAYMENT_METHOD],
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        mockUseRampsQuotes.mockReturnValue({
+          data: null,
+          loading: false,
+          error: null,
+        });
+
+        const { getByTestId } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+        expect(continueButton.props.accessibilityState?.busy).toBe(true);
+      });
+    });
+
+    describe('Powered by during controller sync gap', () => {
+      it('does not render "Powered by" while nav params assetId does not match controller-selected token', () => {
+        // Simulates the window where the user navigated back to BuildQuote with
+        // a new nav params.assetId but the controller has not yet updated
+        // selectedToken. tokenStateIsSettled is false during this render.
+        mockUseParams.mockReturnValue({ assetId: 'eip155:1/slip44:999' });
+
+        const { queryByText } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        expect(queryByText('Powered by MoonPay')).not.toBeOnTheScreen();
+      });
+
+      it('shows Continue button as loading while nav params have not caught up to controller-selected token', () => {
+        mockUseParams.mockReturnValue({ assetId: 'eip155:1/slip44:999' });
+
+        const { getByTestId } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+        expect(continueButton.props.accessibilityState?.busy).toBe(true);
+      });
     });
   });
 
