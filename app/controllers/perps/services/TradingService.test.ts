@@ -961,6 +961,7 @@ describe('TradingService', () => {
 
       expect(result).toEqual(mockResult);
       expect(mockProvider.cancelOrder).toHaveBeenCalledWith(cancelParams);
+      expect(mockProvider.refreshLiveAccountState).toHaveBeenCalled();
     });
 
     it('tracks analytics event when cancellation succeeds', async () => {
@@ -1053,6 +1054,7 @@ describe('TradingService', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe('Order already filled');
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
+      expect(mockProvider.refreshLiveAccountState).not.toHaveBeenCalled();
     });
 
     it('handles provider exception during order cancel', async () => {
@@ -1076,6 +1078,28 @@ describe('TradingService', () => {
         expect.any(Object),
       );
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
+    });
+
+    it('does not require refreshLiveAccountState to cancel orders successfully', async () => {
+      const cancelParams: CancelOrderParams = {
+        orderId: 'order-123',
+        symbol: 'BTC',
+      };
+      const mockResult = {
+        success: true,
+        orderId: 'order-123',
+      };
+
+      mockProvider.cancelOrder.mockResolvedValue(mockResult);
+      mockProvider.refreshLiveAccountState = undefined as never;
+
+      await expect(
+        tradingService.cancelOrder({
+          provider: mockProvider,
+          params: cancelParams,
+          context: mockContext,
+        }),
+      ).resolves.toEqual(mockResult);
     });
   });
 
@@ -1136,6 +1160,8 @@ describe('TradingService', () => {
       mockGetOpenOrders.mockResolvedValue(mockOrders);
       (mockProvider.cancelOrders as jest.Mock).mockResolvedValue({
         success: true,
+        successCount: 1,
+        failureCount: 0,
         results: [{ success: true, orderId: 'order-1' }],
       });
 
@@ -1150,6 +1176,7 @@ describe('TradingService', () => {
       expect(mockProvider.cancelOrders).toHaveBeenCalledWith([
         { symbol: 'BTC', orderId: 'order-1' },
       ]);
+      expect(mockProvider.refreshLiveAccountState).toHaveBeenCalled();
     });
 
     it('allows canceling TP/SL orders when specified by orderId', async () => {

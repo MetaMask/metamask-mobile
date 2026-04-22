@@ -1129,6 +1129,8 @@ export class TradingService {
           },
         );
 
+        this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+        this.#refreshLiveAccountStateInBackground(provider, 'cancelOrder');
         traceData = { success: true, orderId: params.orderId };
       } else {
         // Track order cancel failed
@@ -1346,6 +1348,16 @@ export class TradingService {
         PerpsAnalyticsEvent.OrderCancelTransaction,
         batchCancelProps,
       );
+
+      if (operationResult?.success && operationResult.successCount > 0) {
+        this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+        // Only trigger one explicit refresh for the batch cancel path.
+        // The fallback path calls cancelOrder() per order, and each
+        // successful cancelOrder() already refreshes live account state.
+        if (provider.cancelOrders) {
+          this.#refreshLiveAccountStateInBackground(provider, 'cancelOrders');
+        }
+      }
 
       this.#deps.tracer.endTrace({
         name: PerpsTraceNames.CancelOrder,
