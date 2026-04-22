@@ -26,7 +26,7 @@ import {
   parsePriceImpact,
 } from '../../utils/getPriceImpactViewData';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
-import { NEGATIVE_FEATURE_LABELS } from '../../../SecurityTrust/utils/securityUtils';
+import { getNegativeFeatureLabels } from '../../../SecurityTrust/utils/securityUtils';
 import { getBridgeTokenSecurityConfig } from '../../utils/tokenSecurityUtils';
 import {
   SecurityDataType,
@@ -240,7 +240,7 @@ export const TokenWarningModal = () => {
                   />
                   <Box twClassName="flex-1">
                     <Text variant={TextVariant.BodyMd}>
-                      {NEGATIVE_FEATURE_LABELS[feature.featureId]?.label ??
+                      {getNegativeFeatureLabels()[feature.featureId]?.label ??
                         fallbackFeatureRowTitle}
                     </Text>
                     <Text

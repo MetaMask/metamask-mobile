@@ -135,7 +135,7 @@ interface FeatureDefinition {
 }
 
 /** Positive-signal features (Benign / Info) */
-const POSITIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
+const getPositiveFeatureLabels = (): Record<string, FeatureDefinition> => ({
   HIGH_REPUTATION_TOKEN: {
     label: strings('security_trust.features.positive.high_reputation_token'),
     type: 'Benign',
@@ -154,10 +154,13 @@ const POSITIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
     label: strings('security_trust.features.positive.high_trade_volume'),
     type: 'Info',
   },
-};
+});
 
 /** Negative-signal features (Malicious / Spam / Warning / risk-bearing Info) */
-export const NEGATIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
+export const getNegativeFeatureLabels = (): Record<
+  string,
+  FeatureDefinition
+> => ({
   // Malicious
   KNOWN_MALICIOUS: {
     label: strings('security_trust.features.negative.known_malicious'),
@@ -371,7 +374,7 @@ export const NEGATIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
     label: strings('security_trust.features.negative.non_transerable'),
     type: 'Info',
   },
-};
+});
 
 export interface FeatureTagsResult {
   tags: FeatureTag[];
@@ -398,8 +401,9 @@ export const getFeatureTags = (
   let totalMatching = 0;
 
   if (resultType === 'Malicious') {
+    const negativeLabels = getNegativeFeatureLabels();
     for (const feature of features) {
-      const def = NEGATIVE_FEATURE_LABELS[feature.featureId];
+      const def = negativeLabels[feature.featureId];
       if (def?.type === 'Malicious') {
         totalMatching++;
         if (showAll || tags.length < FEATURE_TAG_DISPLAY_MAX) {
@@ -408,8 +412,9 @@ export const getFeatureTags = (
       }
     }
   } else if (resultType === 'Warning' || resultType === 'Spam') {
+    const negativeLabels = getNegativeFeatureLabels();
     for (const feature of features) {
-      const def = NEGATIVE_FEATURE_LABELS[feature.featureId];
+      const def = negativeLabels[feature.featureId];
       if (def?.type === 'Warning' || def?.type === 'Spam') {
         totalMatching++;
         if (showAll || tags.length < FEATURE_TAG_DISPLAY_MAX) {
@@ -419,8 +424,9 @@ export const getFeatureTags = (
     }
   } else {
     // Low (Verified/Benign) or no resultType: positive features only
+    const positiveLabels = getPositiveFeatureLabels();
     for (const feature of features) {
-      const def = POSITIVE_FEATURE_LABELS[feature.featureId];
+      const def = positiveLabels[feature.featureId];
       if (def) {
         if (showAll || tags.length < POSITIVE_FEATURE_TAG_DISPLAY_MAX) {
           tags.push({ label: def.label });
