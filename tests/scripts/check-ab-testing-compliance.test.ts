@@ -166,6 +166,21 @@ describe('check-ab-testing-compliance.sh', () => {
     );
   });
 
+  it('passes when helper-only active_ab_tests has sibling metadata key/value fields', () => {
+    const repo = createRepo();
+    appendFileSync(
+      path.join(repo, 'app/sample.ts'),
+      `const payload = { ${ACTIVE_AB_TESTS_KEY}: [createActiveABTestAssignment(FLAG_KEY, variantName)], metadata: { key: 'foo', value: 'bar' } };\n`,
+    );
+
+    const result = runChecker(repo, ['--staged']);
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain(
+      'malformed literal active_ab_tests object',
+    );
+  });
+
   it('does not warn on key_value_pair strings when literal payload is complete', () => {
     const repo = createRepo();
     appendFileSync(

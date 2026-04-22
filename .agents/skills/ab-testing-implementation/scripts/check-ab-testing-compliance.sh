@@ -249,12 +249,27 @@ for file in "${CHANGED_FILES[@]}"; do
     # Rule: validate literal active_ab_tests payloads include key, value, and key_value_pair.
     if [[ "$line" =~ active_ab_tests[[:space:]]*: ]]; then
       if [[ "$line" =~ active_ab_tests[[:space:]]*:[[:space:]]*(\[|\{) ]]; then
-        window="$line"
-        for ((j=i+1; j<line_count && j<=i+8; j++)); do
-          window+=$'\n'"${added_lines[$j]}"
-        done
-        if grep -Eq 'key[[:space:]]*:|value[[:space:]]*:|key_value_pair[[:space:]]*:' <<< "$window"; then
-          if ! grep -Eq 'key[[:space:]]*:' <<< "$window" || ! grep -Eq 'value[[:space:]]*:' <<< "$window" || ! grep -Eq 'key_value_pair[[:space:]]*:' <<< "$window"; then
+        payload="$(sed -E 's/.*active_ab_tests[[:space:]]*:[[:space:]]*//; q' <<< "$line")"
+        closing_char="]"
+        if [[ "${BASH_REMATCH[1]}" == "{" ]]; then
+          closing_char="}"
+        fi
+
+        if [[ "$payload" == *"$closing_char"* ]]; then
+          payload="$(printf '%s' "$payload" | cut -d "$closing_char" -f 1)$closing_char"
+        else
+          for ((j=i+1; j<line_count && j<=i+8; j++)); do
+            next_line="${added_lines[$j]}"
+            if [[ "$next_line" == *"$closing_char"* ]]; then
+              payload+=$'\n'"$(printf '%s' "$next_line" | cut -d "$closing_char" -f 1)$closing_char"
+              break
+            fi
+            payload+=$'\n'"${next_line}"
+          done
+        fi
+
+        if grep -Eq 'key[[:space:]]*:|value[[:space:]]*:|key_value_pair[[:space:]]*:' <<< "$payload"; then
+          if ! grep -Eq 'key[[:space:]]*:' <<< "$payload" || ! grep -Eq 'value[[:space:]]*:' <<< "$payload" || ! grep -Eq 'key_value_pair[[:space:]]*:' <<< "$payload"; then
             FAILURES+=("$file: malformed literal active_ab_tests object (expected key, value, and key_value_pair).")
           fi
         fi
