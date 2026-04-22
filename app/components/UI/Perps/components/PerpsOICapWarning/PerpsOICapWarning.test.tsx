@@ -3,6 +3,7 @@ import { render } from '@testing-library/react-native';
 import PerpsOICapWarning from './PerpsOICapWarning';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { strings } from '../../../../../../locales/i18n';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 
 jest.mock('../../hooks/usePerpsOICap');
 
@@ -81,25 +82,34 @@ describe('PerpsOICapWarning', () => {
     });
 
     it('should render inline variant by default', () => {
-      const { getByTestId } = render(<PerpsOICapWarning symbol="BTC" />);
+      const { UNSAFE_getByProps } = render(<PerpsOICapWarning symbol="BTC" />);
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      // Inline variant uses BodySM text
+      expect(
+        UNSAFE_getByProps({ variant: TextVariant.BodySM }).props.variant,
+      ).toBe(TextVariant.BodySM);
     });
 
     it('should render banner variant when specified', () => {
-      const { getByTestId } = render(
+      const { UNSAFE_getByProps } = render(
         <PerpsOICapWarning symbol="BTC" variant="banner" />,
       );
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      // Banner variant uses BodyMD text (larger text for banner prominence)
+      expect(
+        UNSAFE_getByProps({ variant: TextVariant.BodyMD }).props.variant,
+      ).toBe(TextVariant.BodyMD);
     });
 
     it('should render inline variant when specified', () => {
-      const { getByTestId } = render(
+      const { UNSAFE_getByProps } = render(
         <PerpsOICapWarning symbol="BTC" variant="inline" />,
       );
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      // Inline variant uses BodySM text
+      expect(
+        UNSAFE_getByProps({ variant: TextVariant.BodySM }).props.variant,
+      ).toBe(TextVariant.BodySM);
     });
   });
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { FlatList } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -580,11 +581,16 @@ describe('PerpsMarketTradesList', () => {
         createMockFillsReturn(mockOrderFills),
       );
 
-      render(<PerpsMarketTradesList symbol="ETH" />);
+      const { UNSAFE_getByType } = render(
+        <PerpsMarketTradesList symbol="ETH" />,
+      );
 
-      expect(screen.getByText('Opened long')).toBeOnTheScreen();
-      expect(screen.getByText('Closed long')).toBeOnTheScreen();
-      expect(screen.getByText('Opened short')).toBeOnTheScreen();
+      const flatList = UNSAFE_getByType(FlatList);
+      // keyExtractor uses item.id — verify it returns the item's id
+      const firstItem = flatList.props.data[0];
+      expect(flatList.props.keyExtractor(firstItem, 0)).toBe(
+        String(firstItem.id),
+      );
     });
 
     it('disables scroll on FlatList', () => {
@@ -592,9 +598,12 @@ describe('PerpsMarketTradesList', () => {
         createMockFillsReturn(mockOrderFills),
       );
 
-      const { root } = render(<PerpsMarketTradesList symbol="ETH" />);
+      const { UNSAFE_getByType } = render(
+        <PerpsMarketTradesList symbol="ETH" />,
+      );
 
-      expect(root).toBeTruthy();
+      const flatList = UNSAFE_getByType(FlatList);
+      expect(flatList.props.scrollEnabled).toBe(false);
     });
   });
 

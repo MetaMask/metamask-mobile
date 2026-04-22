@@ -26,8 +26,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('PerpsBadge', () => {
-  it('renders badges with correct labels and styles for all types', () => {
-    // Arrange
+  it('renders correct i18n label for each badge type', () => {
     const badgeTypes: BadgeType[] = [
       'experimental',
       'crypto',
@@ -43,12 +42,11 @@ describe('PerpsBadge', () => {
       'Forex',
     ];
 
-    // Act & Assert - Test each badge type
     badgeTypes.forEach((type, index) => {
-      const { getByText } = render(<PerpsBadge type={type} />);
+      const { getByText, unmount } = render(<PerpsBadge type={type} />);
 
-      const labelElement = getByText(expectedLabels[index]);
-      expect(labelElement).toBeTruthy();
+      expect(getByText(expectedLabels[index])).toBeOnTheScreen();
+      unmount();
     });
   });
 

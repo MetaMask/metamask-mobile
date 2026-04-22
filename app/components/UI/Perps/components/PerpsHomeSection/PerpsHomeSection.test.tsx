@@ -177,7 +177,7 @@ describe('PerpsHomeSection', () => {
     });
 
     it('header is not pressable when onActionPress not provided', () => {
-      const { getByText } = render(
+      const { queryByTestId, getByText } = render(
         <PerpsHomeSection
           title="Test Section"
           isLoading={false}
@@ -188,8 +188,9 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      // Header should render but not be pressable
       expect(getByText('Test Section')).toBeTruthy();
+      // Action button must be absent when no onActionPress is provided
+      expect(queryByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON)).toBeNull();
     });
 
     it('hides action icon when loading', () => {
