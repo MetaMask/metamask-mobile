@@ -81,6 +81,7 @@ export const useNavigateToInternalBrowserPage = (
         ...(newTabUrl && { newTabUrl }),
         ...(existingTabId && { existingTabId, newTabUrl: undefined }),
         timestamp: Date.now(),
+        fromCard: true,
       };
 
       navigation.navigate(Routes.BROWSER.HOME, {

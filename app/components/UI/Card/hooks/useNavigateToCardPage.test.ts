@@ -161,6 +161,7 @@ describe('useNavigateToInternalBrowserPage', () => {
             screen: Routes.BROWSER.VIEW,
             params: expect.objectContaining({
               newTabUrl: url,
+              fromCard: true,
             }),
           }),
         );
@@ -186,6 +187,7 @@ describe('useNavigateToInternalBrowserPage', () => {
             params: expect.objectContaining({
               existingTabId: tabId,
               newTabUrl: undefined,
+              fromCard: true,
             }),
           }),
         );
@@ -295,7 +297,10 @@ describe('useNavigateToInternalBrowserPage', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.BROWSER.HOME,
         expect.objectContaining({
-          params: expect.objectContaining({ existingTabId: 'first-tab' }),
+          params: expect.objectContaining({
+            existingTabId: 'first-tab',
+            fromCard: true,
+          }),
         }),
       );
     });
@@ -348,6 +353,7 @@ describe('useNavigateToCardPage', () => {
           screen: Routes.BROWSER.VIEW,
           params: expect.objectContaining({
             newTabUrl: 'https://card.metamask.io',
+            fromCard: true,
           }),
         }),
       );
@@ -391,6 +397,7 @@ describe('useNavigateToCardPage', () => {
           screen: Routes.BROWSER.VIEW,
           params: expect.objectContaining({
             newTabUrl: 'https://travel.metamask.io/access',
+            fromCard: true,
           }),
         }),
       );
