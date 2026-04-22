@@ -30,6 +30,33 @@ jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../hooks/pay/useMoneyAccountPayToken');
 jest.mock('../../../../../../util/address');
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+}));
+
+jest.mock('../../../hooks/pay/useTransactionPayToken', () => ({
+  useTransactionPayToken: jest.fn(),
+}));
+jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
+  useTransactionPayWithdraw: jest.fn(),
+}));
+jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
+  useTransactionPayRequiredTokens: jest.fn(),
+}));
+jest.mock(
+  '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod',
+  () => ({
+    useTransactionPaySelectedFiatPaymentMethod: jest.fn(),
+  }),
+);
+jest.mock('../../../hooks/pay/useMoneyAccountPayToken', () => ({
+  useMoneyAccountPayToken: jest.fn(),
+}));
+jest.mock('../../../../../../util/address');
+jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
+  useConfirmationMetricEvents: jest.fn(),
+}));
 
 jest.mock('../../token-icon/', () => ({
   TokenIcon: (props: TokenIconProps) => (
@@ -307,9 +334,9 @@ describe('PayWithRow', () => {
         setPayToken: jest.fn(),
       });
 
-      const { getByText } = render();
+      const { getByTestId, getByText } = render();
 
-      expect(getByText('mUSD')).toBeOnTheScreen();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/mUSD/);
       expect(getByText('0xMUSD 0x1')).toBeOnTheScreen();
     });
 
@@ -326,10 +353,10 @@ describe('PayWithRow', () => {
         isMoneyAccountWithdraw: true,
       });
 
-      const { getByText, queryByText } = render();
+      const { getByTestId } = render();
 
-      expect(getByText('mUSD')).toBeOnTheScreen();
-      expect(queryByText('test')).toBeNull();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/mUSD/);
+      expect(getByTestId('pay-with-symbol')).not.toHaveTextContent(/^test/);
     });
 
     it('falls back to payToken when moneyAccountDisplayToken is undefined', () => {
@@ -340,9 +367,9 @@ describe('PayWithRow', () => {
         isMoneyAccountWithdraw: false,
       });
 
-      const { getByText } = render();
+      const { getByTestId } = render();
 
-      expect(getByText('test')).toBeOnTheScreen();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/test/);
     });
   });
 });
