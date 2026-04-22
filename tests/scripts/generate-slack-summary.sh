@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Generate Slack notification summary for performance E2E tests
-# Usage: ./scripts/generate-slack-summary.sh [summary_file_path]
+# Usage: ./tests/scripts/generate-slack-summary.sh [summary_file_path]
 
 SUMMARY_FILE="${1:-aggregated-reports/summary.json}"
 
