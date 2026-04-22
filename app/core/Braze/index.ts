@@ -45,7 +45,6 @@ export async function setBrazeUser(): Promise<void> {
     const sessionProfile = await AuthenticationController.getSessionProfile();
     if (sessionProfile?.profileId) {
       getBrazePlugin().setBrazeProfileId(sessionProfile.profileId);
-      Logger.log('[Braze] Identified user with profileId');
     }
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to set Braze user');
