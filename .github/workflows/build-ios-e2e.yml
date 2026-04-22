@@ -17,6 +17,15 @@ on:
         required: false
         default: 'qa'
         type: string
+      source-fingerprint:
+        description: >-
+          Canonical @expo/fingerprint hash for this commit, computed once in
+          the `post-build-source-hash` job. Used for cache keys and cross-run
+          artifact lookups. When empty (e.g. forked PR where the hash job is
+          skipped), the build compiles fresh with no cache reuse.
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -155,43 +164,51 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications
-      - name: Generate current fingerprint
-        id: generate-fingerprint
+      # Use the canonical fingerprint computed upstream by `post-build-source-hash`.
+      # Do NOT recompute it here — macOS `node_modules/` differs from Linux
+      # `node_modules/` in ways @expo/fingerprint hashes (prebuilt binaries,
+      # platform-conditional deps), so recomputing per-runner would give a
+      # different value than the one posted as the `build-source-hash` commit
+      # status and break cross-run artifact reuse.
+      - name: Report source fingerprint
         run: |
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Current fingerprint: ${FINGERPRINT}"
+          if [[ -z "$SOURCE_FINGERPRINT" ]]; then
+            echo "::warning::No source-fingerprint provided (likely a forked PR); caches and reuse disabled."
+          else
+            echo "Source fingerprint: $SOURCE_FINGERPRINT"
+          fi
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
 
       - name: Restore iOS app matching fingerprint from branch cache
         id: cache-restore
-        if: ${{ steps.force-builds.outputs.force != 'true' }}
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
 
       - name: Restore iOS app matching fingerprint from main cache
-        if: ${{ steps.force-builds.outputs.force != 'true' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
 
       # Cross-PR reuse: before building, try to find a prior workflow run whose
       # build-source-hash commit status matches our fingerprint AND whose
       # MetaMask.app artifact is still available. Falls back to a fresh build.
       - name: Find reusable build from prior run
         id: find-reusable-build
-        if: ${{ steps.force-builds.outputs.force != 'true' && steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
         uses: ./.github/actions/find-reusable-build
         with:
-          fingerprint: ${{ steps.generate-fingerprint.outputs.fingerprint }}
+          fingerprint: ${{ inputs.source-fingerprint }}
           artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
           github-token: ${{ github.token }}
 

@@ -90,8 +90,12 @@ jobs:
       statuses: write
     needs:
       - check-skip-merge-queue
+    outputs:
+      fingerprint: ${{ steps.publish.outputs.fingerprint }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
@@ -104,6 +108,7 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Post build-source-hash commit status
+        id: publish
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
@@ -578,12 +583,13 @@ jobs:
       id-token: write
       actions: read
       pull-requests: read
-    needs: [needs_e2e_build, smart-e2e-selection]
+    needs: [needs_e2e_build, smart-e2e-selection, post-build-source-hash]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
       keystore_target: 'qa'
+      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
     secrets: inherit
 
   e2e-smoke-tests-android:
@@ -617,8 +623,10 @@ jobs:
       id-token: write
       actions: read
       pull-requests: read
-    needs: [needs_e2e_build, smart-e2e-selection]
+    needs: [needs_e2e_build, smart-e2e-selection, post-build-source-hash]
     uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
     secrets: inherit
 
   ios-tests-ready:
