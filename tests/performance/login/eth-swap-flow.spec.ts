@@ -1,12 +1,12 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
+import { PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 
 /* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
-test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
+test.describe(PerformanceSwaps, () => {
   test(
     'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },

@@ -4,13 +4,10 @@ import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
-import {
-  PerformanceLogin,
-  PerformanceAssetLoading,
-} from '../../tags.performance.js';
+import { PerformanceAssetLoading } from '../../tags.performance.js';
 
 /* Scenario 8: Asset View, SRP 1 + SRP 2 + SRP 3 */
-perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
+perfTest.describe(PerformanceAssetLoading, () => {
   perfTest(
     'Asset View, SRP 1 + SRP 2 + SRP 3',
     { tag: '@assets-dev-team' },

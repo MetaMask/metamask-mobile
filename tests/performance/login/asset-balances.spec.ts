@@ -5,13 +5,10 @@ import TimerHelper from '../../framework/TimerHelper';
 import WalletView from '../../page-objects/wallet/WalletView';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 
-import {
-  PerformanceLogin,
-  PerformanceAssetLoading,
-} from '../../tags.performance.js';
+import { PerformanceAssetLoading } from '../../tags.performance.js';
 
 /* Scenario: Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3 */
-test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
+test.describe(PerformanceAssetLoading, () => {
   test(
     'Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3',
     { tag: '@assets-dev-team' },

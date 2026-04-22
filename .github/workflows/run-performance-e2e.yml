@@ -40,6 +40,11 @@ on:
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
+      performance_tags:
+        description: 'JSON array of performance tags (e.g. ["@PerformanceLogin","@PerformanceSwaps"]). Omit/blank = run all. "[]" = skip all (PR with no relevant changes).'
+        required: false
+        type: string
+        default: ''
   workflow_call:
     inputs:
       description:
@@ -77,6 +82,11 @@ on:
         required: false
         type: string
         default: 'rc'
+      performance_tags:
+        description: 'JSON array of performance tags (e.g. ["@PerformanceLogin","@PerformanceSwaps"]). Omit/blank = run all. "[]" = skip all (PR with no relevant changes).'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -196,6 +206,45 @@ jobs:
           echo "  Android: Android-Performance-$BRANCH_NAME-Branch"
           echo "  iOS: iOS-Performance-$BRANCH_NAME-Branch"
 
+  compute-test-selection:
+    name: Compute Performance Test Selection
+    runs-on: ubuntu-latest
+    outputs:
+      run_tests: ${{ steps.map.outputs.run_tests }}
+      grep_pattern: ${{ steps.map.outputs.grep_pattern }}
+    steps:
+      - name: Map performance tags to grep pattern
+        id: map
+        run: |
+          TAGS='${{ inputs.performance_tags }}'
+
+          # No input (blank) → schedule/dispatch: run all tests with no grep filter
+          if [[ -z "$TAGS" ]]; then
+            echo "run_tests=true" >> "$GITHUB_OUTPUT"
+            echo "grep_pattern="  >> "$GITHUB_OUTPUT"
+            echo "No tag input - running all performance tests (schedule/dispatch mode)"
+            exit 0
+          fi
+
+          # '[]' → PR with no performance-relevant changes: skip all tests
+          if [[ "$TAGS" == "[]" ]]; then
+            echo "run_tests=false" >> "$GITHUB_OUTPUT"
+            echo "grep_pattern="   >> "$GITHUB_OUTPUT"
+            echo "Empty tag array - skipping performance tests (no relevant PR changes)"
+            exit 0
+          fi
+
+          # Build OR-pattern for playwright --grep (e.g. "@PerformanceSwaps|@PerformanceLogin")
+          # Playwright matches against the full test name (describe + test title), so each tag
+          # selects only the individual tests that use it in their describe block.
+          GREP=$(echo "$TAGS" | jq -r 'join("|")')
+
+          echo "run_tests=true"      >> "$GITHUB_OUTPUT"
+          echo "grep_pattern=$GREP"  >> "$GITHUB_OUTPUT"
+
+          echo "Test selection:"
+          echo "  grep_pattern: $GREP"
+
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
@@ -229,8 +278,9 @@ jobs:
         trigger-android-dual-versions,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: always() && !failure() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: android
       build_type: onboarding
@@ -241,6 +291,7 @@ jobs:
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   run-ios-onboarding-tests:
@@ -252,8 +303,9 @@ jobs:
         trigger-ios-dual-versions,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: always() && !failure() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: onboarding
@@ -264,6 +316,7 @@ jobs:
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   # =============================================================================
@@ -291,8 +344,9 @@ jobs:
         wait-for-onboarding-completion,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: always() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: android
       build_type: imported-wallet
@@ -303,6 +357,7 @@ jobs:
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   run-ios-imported-wallet-tests:
@@ -315,8 +370,9 @@ jobs:
         wait-for-onboarding-completion,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: always() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: imported-wallet
@@ -327,6 +383,7 @@ jobs:
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   fetch-rn-playground-apk-upload-to-browserstack:

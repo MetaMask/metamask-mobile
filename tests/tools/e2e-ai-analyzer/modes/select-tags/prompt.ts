@@ -51,7 +51,7 @@ Performance tests measure app responsiveness and render times. Select performanc
 - Account/network list components (AccountSelector, NetworkSelector, related hooks)
 - Critical user flows (login, balance loading, swap flows, send flows)
 - App startup and initialization (Engine, background services, navigation)
-- Changes to the tests/performance/ directory (performance test infrastructure)`;
+Changes that ONLY modify tests/performance/ directory (test specs, page objects, infrastructure) do NOT require performance tests - select none unless app code is also changed. Performance tests measure app performance, not test correctness.`;
 
   const prompt = [
     role,
