@@ -371,7 +371,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
             <AvatarToken
               name={token.symbol}
               imageSource={getTokenImageSource(token.symbol, token.image)}
-              size={AvatarSize.Md}
+              size={AvatarSize.Lg}
               testID={
                 isNative
                   ? `network-logo-${token.symbol}`
