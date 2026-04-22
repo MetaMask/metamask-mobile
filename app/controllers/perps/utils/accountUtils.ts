@@ -132,8 +132,6 @@ export function addSpotBalanceToAccountState(
 
   const next: AccountState = { ...accountState };
   if (Number.isFinite(currentTotal)) {
-    // totalBalance is a non-numeric sentinel (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--').
-    // Adding spot would yield 'NaN' — leave the sentinel intact for the UI to render.
     next.totalBalance = (currentTotal + spotBalance).toString();
   }
   if (Number.isFinite(currentAvailableToTrade)) {

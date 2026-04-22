@@ -306,6 +306,25 @@ describe('spot balance helpers', () => {
     expect(result.availableToTradeBalance).toBe('30');
     expect(result.totalBalance).toBe('45');
   });
+
+  it('bumps availableToTradeBalance and leaves the totalBalance sentinel intact when totalBalance is non-numeric', () => {
+    const accountState: AccountState = {
+      availableBalance: '5',
+      availableToTradeBalance: '5',
+      totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [{ coin: 'USDC', total: '25' }],
+    } as never);
+
+    expect(result.availableBalance).toBe('5');
+    expect(result.availableToTradeBalance).toBe('30');
+    expect(result.totalBalance).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
+  });
 });
 
 describe('calculateWeightedReturnOnEquity', () => {
