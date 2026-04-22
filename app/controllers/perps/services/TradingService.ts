@@ -1658,6 +1658,9 @@ export class TradingService {
       if (operationResult?.success && operationResult.successCount > 0) {
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+        // Only trigger one explicit refresh for the batch close path.
+        // The fallback path calls closePosition() per position, and each
+        // successful closePosition() already refreshes live account state.
         if (provider.closePositions) {
           this.#refreshLiveAccountStateInBackground(provider, 'closePositions');
         }
