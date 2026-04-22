@@ -91,6 +91,10 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
   };
 }
 
+const ERC20_BALANCE_OF_ABI = [
+  'function balanceOf(address account) view returns (uint256)',
+];
+
 function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
   if (error instanceof CardApiError) {
     const body =
@@ -808,6 +812,7 @@ export class BaanxProvider implements ICardProvider {
       address: string;
       globalAllowance: ethers.BigNumber;
       usAllowance: ethers.BigNumber;
+      walletBalance: ethers.BigNumber;
     }[]
   > {
     const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
@@ -838,12 +843,35 @@ export class BaanxProvider implements ICardProvider {
         spenders,
       );
 
+    const walletBalances = await Promise.all(
+      tokenAddresses.map(async (tokenAddr) => {
+        try {
+          const erc20 = new ethers.Contract(
+            tokenAddr,
+            ERC20_BALANCE_OF_ABI,
+            provider,
+          );
+          return (await erc20.balanceOf(owner)) as ethers.BigNumber;
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            getErrorContext('fetchOnChainAllowances/balanceOf', {
+              tokenAddr,
+              owner,
+            }),
+          );
+          return ethers.BigNumber.from(0);
+        }
+      }),
+    );
+
     return tokenAddresses.map((addr, i) => {
       const [globalTuple, usTuple] = results[i];
       return {
         address: addr,
         globalAllowance: ethers.BigNumber.from(globalTuple[1]),
         usAllowance: ethers.BigNumber.from(usTuple[1]),
+        walletBalance: walletBalances[i] ?? ethers.BigNumber.from(0),
       };
     });
   }
@@ -853,6 +881,7 @@ export class BaanxProvider implements ICardProvider {
       address: string;
       globalAllowance: ethers.BigNumber;
       usAllowance: ethers.BigNumber;
+      walletBalance: ethers.BigNumber;
     }[],
     supportedTokens: (SupportedToken & { address: string })[],
     chainId: string,
@@ -868,9 +897,14 @@ export class BaanxProvider implements ICardProvider {
         const allowance = raw.usAllowance.isZero()
           ? raw.globalAllowance
           : raw.usAllowance;
+        const decimals = tokenInfo.decimals ?? 6;
         const allowanceFloat = parseFloat(
-          ethers.utils.formatUnits(allowance, tokenInfo.decimals ?? 6),
+          ethers.utils.formatUnits(allowance, decimals),
         );
+        const balanceFloat = parseFloat(
+          ethers.utils.formatUnits(raw.walletBalance, decimals),
+        );
+        const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
         return {
           symbol: tokenInfo.symbol ?? '',
@@ -879,7 +913,7 @@ export class BaanxProvider implements ICardProvider {
           walletAddress: ownerAddress,
           decimals: tokenInfo.decimals ?? 0,
           chainId,
-          spendableBalance: '0',
+          spendableBalance: availableBalance.toString(),
           spendingCap: allowance.toString(),
           priority: 0,
           status: mapAllowanceToFundingStatus(allowanceFloat),
