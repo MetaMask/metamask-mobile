@@ -167,6 +167,16 @@ export const useNotificationPreferences =
     const pendingSocialAIRef = useRef<SocialAIPreference>(socialAI);
     pendingSocialAIRef.current = socialAI;
 
+    // Mirrors `remoteSocialAI` so the async rollback path always reads the
+    // latest server-side value without capturing a stale closure.
+    const remoteRef = useRef<SocialAIPreference>(remoteSocialAI);
+    remoteRef.current = remoteSocialAI;
+
+    // Monotonically increasing counter. Each applyChange call captures its
+    // own generation; a failing call only rolls back if no newer mutation has
+    // since taken ownership of the overlay.
+    const generationRef = useRef(0);
+
     /**
      * Executes a single read-merge-write cycle for the `socialAI` slice:
      * 1. GET the full preferences from the server so we have the freshest baseline (prevents stomping concurrent changes to other slices).
@@ -210,8 +220,10 @@ export const useNotificationPreferences =
 
     const applyChange = useCallback(
       async (updater: (prev: SocialAIPreference) => SocialAIPreference) => {
-        const previousSocialAI = pendingSocialAIRef.current;
-        const nextSocialAI = updater(previousSocialAI);
+        generationRef.current += 1;
+        const myGeneration = generationRef.current;
+
+        const nextSocialAI = updater(pendingSocialAIRef.current);
         // Update the ref synchronously so the next rapid call chains on
         // top of this mutation's output, not the stale render-time value.
         pendingSocialAIRef.current = nextSocialAI;
@@ -225,12 +237,21 @@ export const useNotificationPreferences =
             err as Error,
             'useNotificationPreferences: persist failed',
           );
-          // The PUT failed, so we revert to the last known good value.
-          pendingSocialAIRef.current = previousSocialAI;
-          setOverlay(previousSocialAI);
-          setPersistError(
-            err instanceof Error ? err.message : String(err ?? 'Unknown error'),
-          );
+          if (generationRef.current === myGeneration) {
+            // No newer mutation has taken over — safe to roll back.
+            // Revert to the server truth (not a captured local snapshot)
+            // so any prior successful mutations are correctly preserved.
+            pendingSocialAIRef.current = remoteRef.current;
+            setOverlay(undefined);
+            setPersistError(
+              err instanceof Error
+                ? err.message
+                : String(err ?? 'Unknown error'),
+            );
+          }
+          // If a newer mutation is in flight, skip the rollback entirely.
+          // It already owns the overlay; rolling back here would corrupt
+          // its optimistic state.
           return;
         }
 

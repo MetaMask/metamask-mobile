@@ -383,6 +383,39 @@ describe('useNotificationPreferences', () => {
         'useNotificationPreferences: cache refresh after persist failed',
       );
     });
+
+    it('does not corrupt state when a first rapid mutation fails but a second succeeds', async () => {
+      // Remote: enabled=true, txAmountLimit=500
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+
+      let putCount = 0;
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return buildRemote();
+        if (action === PUT_ACTION) {
+          putCount += 1;
+          // First PUT (from setEnabled) fails; second (from setTxAmountLimit) succeeds.
+          if (putCount === 1) throw new Error('first PUT failed');
+          return undefined;
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        const first = result.current.setEnabled(false);
+        const second = result.current.setTxAmountLimit(100);
+        await Promise.all([first, second]);
+      });
+
+      // The second mutation's overlay must survive the first mutation's rollback.
+      // B built its nextSocialAI on top of A's pending state (enabled:false,
+      // txAmountLimit:100), and its PUT succeeded, so both changes are on the server.
+      expect(result.current.preferences.enabled).toBe(false);
+      expect(result.current.preferences.txAmountLimit).toBe(100);
+      // A's failure was swallowed because a newer mutation was in flight.
+      expect(result.current.error).toBeNull();
+    });
   });
 
   describe('write serialization', () => {
