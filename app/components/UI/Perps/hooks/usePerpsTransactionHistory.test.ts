@@ -586,13 +586,13 @@ describe('usePerpsTransactionHistory', () => {
           accountId: undefined,
           aggregateByTime: false,
         },
-        { forceRefresh: false },
+        { forceRefresh: true },
       );
       expect(mockProvider.getOrders).toHaveBeenCalledWith(
         {
           accountId: undefined,
         },
-        { forceRefresh: false },
+        { forceRefresh: true },
       );
       // startTime default is handled in HyperLiquidProvider, not here
       expect(mockProvider.getFunding).toHaveBeenCalledWith(
@@ -601,7 +601,7 @@ describe('usePerpsTransactionHistory', () => {
           startTime: undefined,
           endTime: undefined,
         },
-        { forceRefresh: false },
+        { forceRefresh: true },
       );
 
       // Fills are enriched with detailedOrderType from matching orders
@@ -639,20 +639,20 @@ describe('usePerpsTransactionHistory', () => {
           accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
           aggregateByTime: false,
         },
-        { forceRefresh: false },
+        { forceRefresh: true },
       );
       expect(mockProvider.getOrders).toHaveBeenCalledWith(
         {
           accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
         },
-        { forceRefresh: false },
+        { forceRefresh: true },
       );
       // startTime/endTime defaults are handled in HyperLiquidProvider via 30-day window
       expect(mockProvider.getFunding).toHaveBeenCalledWith(
         {
           accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
         },
-        { forceRefresh: false },
+        { forceRefresh: true },
       );
     });
 
@@ -691,13 +691,13 @@ describe('usePerpsTransactionHistory', () => {
           accountId: undefined,
           aggregateByTime: false,
         },
-        { forceRefresh: false },
+        { forceRefresh: true },
       );
       expect(mockProvider.getOrders).toHaveBeenCalledWith(
         {
           accountId: undefined,
         },
-        { forceRefresh: false },
+        { forceRefresh: true },
       );
       // startTime default is handled in HyperLiquidProvider, not here
       expect(mockProvider.getFunding).toHaveBeenCalledWith(
@@ -706,7 +706,7 @@ describe('usePerpsTransactionHistory', () => {
           startTime: undefined,
           endTime: undefined,
         },
-        { forceRefresh: false },
+        { forceRefresh: true },
       );
       expect(mockUseUserHistory).toHaveBeenCalledWith({
         startTime: undefined,
@@ -1038,7 +1038,10 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getOrderFills).toHaveBeenCalled();
     });
 
-    it('initial mount load does not force-refresh the coalesce cache', async () => {
+    it('initial mount load force-refreshes past the coalesce cache', async () => {
+      // Activity-screen orders/funding have no WS backfill, so mount
+      // must fetch fresh — the coalesce cache would otherwise hide
+      // state changes that happened while the screen was closed.
       renderHook(() => usePerpsTransactionHistory());
 
       await act(async () => {
@@ -1047,7 +1050,7 @@ describe('usePerpsTransactionHistory', () => {
 
       expect(mockController.getOrderFills).toHaveBeenCalled();
       const [, options] = mockController.getOrderFills.mock.calls[0];
-      expect(options).toEqual({ forceRefresh: false });
+      expect(options).toEqual({ forceRefresh: true });
     });
 
     it('user-initiated refetch forces a fresh fetch past the coalesce cache', async () => {

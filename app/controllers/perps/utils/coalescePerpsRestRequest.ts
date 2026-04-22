@@ -59,8 +59,14 @@ export function coalescePerpsRestRequest<TValue>(
   } else {
     const now = Date.now();
     const cached = cache.get(key) as CacheEntry<TValue> | undefined;
-    if (cached && cached.expiresAt > now) {
-      return Promise.resolve(cached.value);
+    if (cached) {
+      if (cached.expiresAt > now) {
+        return Promise.resolve(cached.value);
+      }
+      // Evict expired entry so callers with per-call-unique keys (e.g.
+      // CandleStreamChannel historical paging with per-page endTime) do
+      // not accumulate dead blobs for the life of the process.
+      cache.delete(key);
     }
     const existing = inflight.get(key) as Promise<TValue> | undefined;
     if (existing !== undefined) {

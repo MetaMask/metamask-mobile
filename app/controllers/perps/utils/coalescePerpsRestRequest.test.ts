@@ -146,6 +146,24 @@ describe('coalescePerpsRestRequest', () => {
     expect(retryFetcher).toHaveBeenCalledTimes(1);
   });
 
+  it('evicts expired entries on TTL-miss', async () => {
+    const fetcher = jest
+      .fn()
+      .mockResolvedValueOnce('first')
+      .mockResolvedValueOnce('second');
+
+    // Populate under key A and let it expire.
+    await coalescePerpsRestRequest('a', fetcher, { ttlMs: 1000 });
+    jest.setSystemTime(1001);
+    // Next call under key A must evict the stale entry before running.
+    const refreshed = await coalescePerpsRestRequest('a', fetcher, {
+      ttlMs: 1000,
+    });
+
+    expect(refreshed).toBe('second');
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
   it('resetPerpsRestCacheForTests clears cache and in-flight entries', async () => {
     const fetcher = jest
       .fn()

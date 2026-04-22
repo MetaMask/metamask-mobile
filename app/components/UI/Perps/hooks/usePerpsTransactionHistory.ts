@@ -370,10 +370,12 @@ export const usePerpsTransactionHistory = ({
       (!initialFetchDone.current || justBecameConnected)
     ) {
       initialFetchDone.current = true;
-      // Mount / reconnect path must stay cacheable — rapid reopens of the
-      // activity screen within the TTL window should not bypass the
-      // coalesce layer. Only user-initiated refetch() forces a refresh.
-      runFetch({ force: false });
+      // Activity-screen orders and funding have no WebSocket backfill, so
+      // reusing a cached payload on remount hides changes that happened while
+      // the screen was closed. Force a fresh fetch on mount / reconnect;
+      // rate-limit burst absorption comes from the market-switch hooks, not
+      // from activity-screen opens.
+      runFetch({ force: true });
     }
   }, [skipInitialFetch, prevSkipInitialFetch, runFetch]);
 
