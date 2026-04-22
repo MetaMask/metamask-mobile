@@ -2,12 +2,10 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState } from '../types';
 
 import {
-  addSpotUsdcToAvailableToTradeBalance,
   addSpotBalanceToAccountState,
   aggregateAccountStates,
   calculateWeightedReturnOnEquity,
   getSpotBalance,
-  getSpotBalanceByCoin,
 } from './accountUtils';
 
 describe('aggregateAccountStates', () => {
@@ -190,20 +188,6 @@ describe('spot balance helpers', () => {
     expect(getSpotBalance()).toBe(0);
   });
 
-  it('returns a specific spot coin balance when present', () => {
-    expect(
-      getSpotBalanceByCoin(
-        {
-          balances: [
-            { coin: 'USDC', total: '25.5' },
-            { coin: 'USDH', total: '4' },
-          ],
-        } as never,
-        'USDC',
-      ),
-    ).toBe(25.5);
-  });
-
   it('adds spot balance to totalBalance without mutating the input state', () => {
     const accountState: AccountState = {
       availableBalance: '0',
@@ -301,7 +285,7 @@ describe('spot balance helpers', () => {
     ).toBe(accountState);
   });
 
-  it('adds only spot USDC to availableToTradeBalance', () => {
+  it('bumps availableToTradeBalance alongside totalBalance and leaves availableBalance alone', () => {
     const accountState: AccountState = {
       availableBalance: '5',
       availableToTradeBalance: '5',
@@ -311,7 +295,7 @@ describe('spot balance helpers', () => {
       returnOnEquity: '0',
     };
 
-    const result = addSpotUsdcToAvailableToTradeBalance(accountState, {
+    const result = addSpotBalanceToAccountState(accountState, {
       balances: [
         { coin: 'USDC', total: '25' },
         { coin: 'USDH', total: '30' },
@@ -320,6 +304,7 @@ describe('spot balance helpers', () => {
 
     expect(result.availableBalance).toBe('5');
     expect(result.availableToTradeBalance).toBe('30');
+    expect(result.totalBalance).toBe('45');
   });
 });
 

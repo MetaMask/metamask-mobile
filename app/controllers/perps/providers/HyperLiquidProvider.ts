@@ -110,7 +110,6 @@ import type {
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import {
-  addSpotUsdcToAvailableToTradeBalance,
   addSpotBalanceToAccountState,
   aggregateAccountStates,
 } from '../utils/accountUtils';
@@ -5585,11 +5584,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         const dexAccountStates = standalonePerpsResults.map((perpsState) =>
           adaptAccountStateFromSDK(perpsState),
         );
-        const aggregatedAccountState = addSpotUsdcToAvailableToTradeBalance(
-          addSpotBalanceToAccountState(
-            aggregateAccountStates(dexAccountStates),
-            standaloneSpotStateResult,
-          ),
+        const aggregatedAccountState = addSpotBalanceToAccountState(
+          aggregateAccountStates(dexAccountStates),
           standaloneSpotStateResult,
         );
 
@@ -5711,11 +5707,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         );
         return dexAccountState;
       });
-      const aggregatedAccountState = addSpotUsdcToAvailableToTradeBalance(
-        addSpotBalanceToAccountState(
-          aggregateAccountStates(dexAccountStates),
-          spotState,
-        ),
+      const aggregatedAccountState = addSpotBalanceToAccountState(
+        aggregateAccountStates(dexAccountStates),
         spotState,
       );
 
