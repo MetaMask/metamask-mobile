@@ -282,7 +282,7 @@ describe('TraderPositionView', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     expect(screen.getByText('Closed position')).toBeOnTheScreen();
-    expect(screen.getByText('+$300')).toBeOnTheScreen();
+    expect(screen.getByText('+$300.00')).toBeOnTheScreen();
     expect(screen.getByText('+25%')).toBeOnTheScreen();
   });
 
