@@ -78,7 +78,7 @@ export function useUnifiedTxActions() {
   const navigation = useNavigation();
   const {
     ensureDeviceReady,
-    setTargetWalletType,
+    setPendingOperationAddress,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
@@ -139,7 +139,7 @@ export function useUnifiedTxActions() {
         address: selectedAddress,
         operationType: 'transaction',
         ensureDeviceReady,
-        setTargetWalletType,
+        setPendingOperationAddress,
         showAwaitingConfirmation,
         hideAwaitingConfirmation,
         showHardwareWalletError,
@@ -181,7 +181,7 @@ export function useUnifiedTxActions() {
     [
       selectedAddress,
       ensureDeviceReady,
-      setTargetWalletType,
+      setPendingOperationAddress,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
       showHardwareWalletError,

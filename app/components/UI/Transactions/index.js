@@ -208,7 +208,7 @@ class Transactions extends PureComponent {
     location: PropTypes.string,
     hardwareWallet: PropTypes.shape({
       ensureDeviceReady: PropTypes.func,
-      setTargetWalletType: PropTypes.func,
+      setPendingOperationAddress: PropTypes.func,
       showAwaitingConfirmation: PropTypes.func,
       hideAwaitingConfirmation: PropTypes.func,
       showHardwareWalletError: PropTypes.func,
@@ -219,7 +219,7 @@ class Transactions extends PureComponent {
     headerHeight: 0,
     hardwareWallet: {
       ensureDeviceReady: async () => false,
-      setTargetWalletType: () => undefined,
+      setPendingOperationAddress: () => undefined,
       showAwaitingConfirmation: () => undefined,
       hideAwaitingConfirmation: () => undefined,
       showHardwareWalletError: () => undefined,
@@ -664,7 +664,7 @@ class Transactions extends PureComponent {
       address: selectedAddress,
       operationType: 'transaction',
       ensureDeviceReady: hardwareWallet.ensureDeviceReady,
-      setTargetWalletType: hardwareWallet.setTargetWalletType,
+      setPendingOperationAddress: hardwareWallet.setPendingOperationAddress,
       showAwaitingConfirmation: hardwareWallet.showAwaitingConfirmation,
       hideAwaitingConfirmation: hardwareWallet.hideAwaitingConfirmation,
       showHardwareWalletError: hardwareWallet.showHardwareWalletError,

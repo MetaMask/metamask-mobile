@@ -38,7 +38,7 @@ const RootRPCMethodsUI = (props) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const {
     ensureDeviceReady,
-    setTargetWalletType,
+    setPendingOperationAddress,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
@@ -122,7 +122,7 @@ const RootRPCMethodsUI = (props) => {
         address: transactionMeta.txParams.from,
         operationType: 'transaction',
         ensureDeviceReady,
-        setTargetWalletType,
+        setPendingOperationAddress,
         showAwaitingConfirmation,
         hideAwaitingConfirmation,
         showHardwareWalletError,
@@ -148,7 +148,7 @@ const RootRPCMethodsUI = (props) => {
     [
       props.navigation,
       ensureDeviceReady,
-      setTargetWalletType,
+      setPendingOperationAddress,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
       showHardwareWalletError,

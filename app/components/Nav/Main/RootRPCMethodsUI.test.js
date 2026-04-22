@@ -54,7 +54,7 @@ const mockExecuteHardwareWalletOperation = jest.fn();
 jest.mock('../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     ensureDeviceReady: jest.fn(),
-    setTargetWalletType: jest.fn(),
+    setPendingOperationAddress: jest.fn(),
     showAwaitingConfirmation: jest.fn(),
     hideAwaitingConfirmation: jest.fn(),
     showHardwareWalletError: jest.fn(),
@@ -152,7 +152,7 @@ describe('RootRPCMethodsUI', () => {
         address: LEDGER_ADDRESS,
         operationType: 'transaction',
         ensureDeviceReady: expect.any(Function),
-        setTargetWalletType: expect.any(Function),
+        setPendingOperationAddress: expect.any(Function),
         showAwaitingConfirmation: expect.any(Function),
         hideAwaitingConfirmation: expect.any(Function),
         showHardwareWalletError: expect.any(Function),
