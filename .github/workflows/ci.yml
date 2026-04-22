@@ -573,6 +573,9 @@ jobs:
     name: 'Build Android APKs'
     if: >-
       ${{
+        !cancelled() &&
+        needs.needs_e2e_build.result == 'success' &&
+        needs.smart-e2e-selection.result == 'success' &&
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
         (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
@@ -611,8 +614,15 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
+    # See `build-android-apks` above for why `!cancelled()` + explicit
+    # `result == 'success'` checks are used here: a failure/skip of
+    # `post-build-source-hash` must NOT block the E2E build — it only
+    # disables cross-run cache reuse.
     if: >-
       ${{
+        !cancelled() &&
+        needs.needs_e2e_build.result == 'success' &&
+        needs.smart-e2e-selection.result == 'success' &&
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
         (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&

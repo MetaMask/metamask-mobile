@@ -9,7 +9,9 @@ description: >-
 
 inputs:
   github-token:
-    description: 'GitHub token with `pull-requests: read` access (for label lookup)'
+    description: >-
+      GitHub token with `pull-requests: read` (for label lookup) and
+      `contents: read` (to fetch the head commit message via the REST API).
     required: true
   label-name:
     description: 'PR label that, when present, forces fresh builds'
@@ -48,11 +50,18 @@ runs:
           exit 0
         fi
 
-        # Commit-message tag
-        if git show --format='%B' --no-patch "$HEAD_COMMIT_HASH" \
-            | grep --fixed-strings --quiet "$COMMIT_TAG"; then
-          echo "-> force=true because '$COMMIT_TAG' was found in commit message of $HEAD_COMMIT_HASH"
-          FORCE="true"
+        # Commit-message tag.
+        COMMIT_MESSAGE=""
+        if COMMIT_MESSAGE=$(gh api \
+            "repos/$REPOSITORY/commits/$HEAD_COMMIT_HASH" \
+            --jq '.commit.message' 2>/dev/null); then
+          if printf '%s' "$COMMIT_MESSAGE" \
+              | grep --fixed-strings --quiet "$COMMIT_TAG"; then
+            echo "-> force=true because '$COMMIT_TAG' was found in commit message of $HEAD_COMMIT_HASH"
+            FORCE="true"
+          fi
+        else
+          echo "::warning::Failed to fetch commit message for $HEAD_COMMIT_HASH via GitHub API; commit-tag force-builds check skipped for this run (the '$LABEL_NAME' label path still works)."
         fi
 
         # PR label
