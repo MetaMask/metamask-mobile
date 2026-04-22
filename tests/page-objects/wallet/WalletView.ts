@@ -3,6 +3,7 @@ import {
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
+import { CashGetMusdEmptyStateSelectors } from '../../../app/components/Views/Homepage/Sections/Cash/CashGetMusdEmptyState.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
   PredictTabViewSelectorsIDs,
@@ -329,6 +330,14 @@ class WalletView {
     return Matchers.getElementByID(
       EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
     );
+  }
+
+  get cashGetMusdContainer(): DetoxElement {
+    return Matchers.getElementByID(CashGetMusdEmptyStateSelectors.CONTAINER);
+  }
+
+  get cashGetMusdButton(): DetoxElement {
+    return Matchers.getElementByID(CashGetMusdEmptyStateSelectors.BUTTON);
   }
 
   get getMusdButton(): DetoxElement {
@@ -1151,6 +1160,12 @@ class WalletView {
   async tapGetMusdButton(): Promise<void> {
     await Gestures.waitAndTap(this.getMusdButton, {
       elemDescription: 'Get mUSD button',
+    });
+  }
+
+  async tapCashGetMusdButton(): Promise<void> {
+    await Gestures.waitAndTap(this.cashGetMusdButton, {
+      elemDescription: 'Cash section Get mUSD button',
     });
   }
 
