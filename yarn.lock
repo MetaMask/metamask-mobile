@@ -7714,6 +7714,78 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/design-system-react-native@npm:0.13.0-preview.e480b50":
+  version: 0.13.0-preview.e480b50
+  resolution: "@metamask-previews/design-system-react-native@npm:0.13.0-preview.e480b50"
+  dependencies:
+    "@metamask-previews/design-system-shared": "npm:0.6.0-preview.e480b50"
+    fast-text-encoding: "npm:^1.0.6"
+    react-native-jazzicon: "npm:^0.1.2"
+  peerDependencies:
+    "@metamask/design-system-twrnc-preset": ^0.4.0
+    "@metamask/design-tokens": ^8.2.0
+    "@metamask/utils": ^11.11.0
+    lodash: ^4.17.23
+    react: ">=18.2.0"
+    react-native: ">=0.72.0"
+    react-native-gesture-handler: ">=1.10.3"
+    react-native-reanimated: ">=3.3.0"
+    react-native-safe-area-context: ">=4.0.0"
+  checksum: 10/75874e5a6ecb1715c6d8b2e128e29cf7a9fd790c6c4da28c2b89b7829ac11c74778bb069399294334223c2e6901f82b1c232eae058ac27ffce277cc8b8b2cb92
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.13.0-preview.e480b50#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.13.0-preview.e480b50-d995a0823b.patch":
+  version: 0.13.0-preview.e480b50
+  resolution: "@metamask-previews/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.13.0-preview.e480b50#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.13.0-preview.e480b50-d995a0823b.patch::version=0.13.0-preview.e480b50&hash=7688f9"
+  dependencies:
+    "@metamask-previews/design-system-shared": "npm:0.6.0-preview.e480b50"
+    fast-text-encoding: "npm:^1.0.6"
+    react-native-jazzicon: "npm:^0.1.2"
+  peerDependencies:
+    "@metamask/design-system-twrnc-preset": ^0.4.0
+    "@metamask/design-tokens": ^8.2.0
+    "@metamask/utils": ^11.11.0
+    lodash: ^4.17.23
+    react: ">=18.2.0"
+    react-native: ">=0.72.0"
+    react-native-gesture-handler: ">=1.10.3"
+    react-native-reanimated: ">=3.3.0"
+    react-native-safe-area-context: ">=4.0.0"
+  checksum: 10/b51f638c884a031853bf86f703cf0ec0f95683694a23b826f6a564872110773b95eaab8aad2b7c316c3509b098013733a5b20fcf86959386fd484c1bc398e6fa
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-system-shared@npm:0.6.0-preview.e480b50, @metamask/design-system-shared@npm:@metamask-previews/design-system-shared@0.6.0-preview.e480b50":
+  version: 0.6.0-preview.e480b50
+  resolution: "@metamask-previews/design-system-shared@npm:0.6.0-preview.e480b50"
+  dependencies:
+    "@metamask/utils": "npm:^11.11.0"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0
+  checksum: 10/07019efa19498321b0077b9de20e91ef8899dc9533b535eff7adbb52b1516bc114113eb7cadaec6484a24806780bdcd27082d2a72a498028f00a208510f1cc4b
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.e480b50":
+  version: 0.4.1-preview.e480b50
+  resolution: "@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.e480b50"
+  dependencies:
+    twrnc: "npm:^4.5.1"
+  peerDependencies:
+    "@metamask/design-tokens": ^8.0.0
+    react: ^18.2.0
+  checksum: 10/bd6a686e4a4e9bff336ed56d1b251691a75f400ea9b86570d09ab8e3fab57f1d6b97370266b5d92cbc24b8400f04799fbf91df0e89f1b79e7d310cb4302e8f1f
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-tokens@npm:8.3.0-preview.e480b50, @metamask/design-tokens@npm:@metamask-previews/design-tokens@8.3.0-preview.e480b50":
+  version: 8.3.0-preview.e480b50
+  resolution: "@metamask-previews/design-tokens@npm:8.3.0-preview.e480b50"
+  checksum: 10/8472aff8d714facee15599ce50c0982c26f0a9fadf9dba8ea55e733ebe55a3021df59554cbaeb56cbfdc4e8c67c811b4a798462dacc68a4ac9652595c9af37ec
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^0.5.0":
   version: 0.5.0
   resolution: "@metamask/7715-permission-types@npm:0.5.0"
@@ -8293,11 +8365,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.17.0":
-  version: 0.17.0
-  resolution: "@metamask/design-system-react-native@npm:0.17.0"
+"@metamask/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.13.0-preview.e480b50#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.13.0-preview.e480b50-d995a0823b.patch":
+  version: 0.13.0-preview.e480b50
+  resolution: "@metamask/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.13.0-preview.e480b50#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.13.0-preview.e480b50-d995a0823b.patch::version=0.13.0-preview.e480b50&hash=7688f9"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.10.0"
+    "@metamask-previews/design-system-shared": "npm:0.6.0-preview.e480b50"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8310,37 +8382,19 @@ __metadata:
     react-native-gesture-handler: ">=1.10.3"
     react-native-reanimated: ">=3.3.0"
     react-native-safe-area-context: ">=4.0.0"
-  checksum: 10/21ff5fda446c57425385285c4080fd3a77549d8c71053570d413aeaec7bd07450ada0ac82ae74084423a72df70e5fa4fabc541dd5bcfa3de659d76691b035896
-  languageName: node
-  linkType: hard
-
-"@metamask/design-system-shared@npm:^0.10.0":
-  version: 0.10.0
-  resolution: "@metamask/design-system-shared@npm:0.10.0"
-  dependencies:
-    "@metamask/utils": "npm:^11.11.0"
-  peerDependencies:
-    react: ^17.0.0 || ^18.0.0
-  checksum: 10/d61374fb2c22bc4110b59b4e8ea982257543f5b4c4367cc5f4ccb8c75f4b5a8a6e2e5e928bc85086ed9d28b0281b1481b9aa3e202397651e40b95edd59580811
+  checksum: 10/01b134a7d88c7762b22430148c2e4a532ea814dde489573ace881152913d8fffb150a064b6ba364d9251d7a814b35eed9fc6efc52f18851e0b13e473fe7efc76
   languageName: node
   linkType: hard
 
 "@metamask/design-system-twrnc-preset@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "@metamask/design-system-twrnc-preset@npm:0.4.1"
+  version: 0.4.2
+  resolution: "@metamask/design-system-twrnc-preset@npm:0.4.2"
   dependencies:
     twrnc: "npm:^4.5.1"
   peerDependencies:
     "@metamask/design-tokens": ^8.0.0
-    react: ^18.2.0
-  checksum: 10/03efe62d594abf8ae1752e4833c7249af38047bd912b908b41530fa6ac1e4a115854dd0a1493cbb224cf87fe5612213463f1f052dff78dfb958f5d1edc9f3726
-  languageName: node
-  linkType: hard
-
-"@metamask/design-tokens@npm:^8.3.0":
-  version: 8.3.0
-  resolution: "@metamask/design-tokens@npm:8.3.0"
-  checksum: 10/b8fc870792f1d66986dce1e2c0d71f291f64a2da3e6c9d74de69b0f814b6479b922420c80bf59d03d9f22072b004c413029517619569ec5c21345a5aedd4c882
+    react: ">=18.2.0"
+  checksum: 10/03bb582760e69ee898f07c1a06def43c4bfbbfe52212136c6b8ddc8c592df40d577bfa4b9098ce5ecad850510bc2cefdab930818dbdcf02b9e357750836bff70
   languageName: node
   linkType: hard
 
@@ -35796,6 +35850,10 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
+    "@metamask-previews/design-system-react-native": "patch:@metamask-previews/design-system-react-native@npm%3A0.13.0-preview.e480b50#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.13.0-preview.e480b50-d995a0823b.patch"
+    "@metamask-previews/design-system-shared": "npm:0.6.0-preview.e480b50"
+    "@metamask-previews/design-system-twrnc-preset": "npm:0.4.1-preview.e480b50"
+    "@metamask-previews/design-tokens": "npm:8.3.0-preview.e480b50"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^7.1.0"
@@ -35823,9 +35881,10 @@ __metadata:
     "@metamask/core-backend": "npm:^6.2.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.17.0"
+    "@metamask/design-system-react-native": "patch:@metamask-previews/design-system-react-native@npm%3A0.13.0-preview.e480b50#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.13.0-preview.e480b50-d995a0823b.patch"
+    "@metamask/design-system-shared": "npm:@metamask-previews/design-system-shared@0.6.0-preview.e480b50"
     "@metamask/design-system-twrnc-preset": "npm:^0.4.1"
-    "@metamask/design-tokens": "npm:^8.3.0"
+    "@metamask/design-tokens": "npm:@metamask-previews/design-tokens@8.3.0-preview.e480b50"
     "@metamask/earn-controller": "npm:^12.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
