@@ -311,6 +311,38 @@ describe('useQuickBuyBottomSheet', () => {
     });
   });
 
+  describe('quoteOverride wiring', () => {
+    it('passes null to useIsInsufficientBalance when there is no active quote', () => {
+      renderHook(() => useQuickBuyBottomSheet(createPosition(), jest.fn()));
+
+      expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          quoteOverride: null,
+        }),
+      );
+    });
+
+    it('passes the active quote to useIsInsufficientBalance when one is available', () => {
+      const activeQuote = createActiveQuote();
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote,
+        destTokenAmount: '5',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+
+      renderHook(() => useQuickBuyBottomSheet(createPosition(), jest.fn()));
+
+      expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          quoteOverride: activeQuote,
+        }),
+      );
+    });
+  });
+
   describe('isConfirmDisabled', () => {
     it('is disabled when usdAmount is empty', () => {
       const { result } = renderHook(() =>
