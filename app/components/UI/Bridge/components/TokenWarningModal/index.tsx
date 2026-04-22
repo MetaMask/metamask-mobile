@@ -64,11 +64,11 @@ export const getTokenWarningContent = (
   const isMalicious = warningType === SecurityDataType.Malicious;
   return {
     isMalicious,
-    headlineIconName: isMalicious ? IconName.Error : IconName.Warning,
+    headlineIconName: isMalicious ? IconName.Error : IconName.Danger,
     headlineIconColor: isMalicious
       ? IconColor.ErrorDefault
       : IconColor.WarningDefault,
-    featureIconName: isMalicious ? IconName.Error : IconName.Warning,
+    featureIconName: isMalicious ? IconName.Error : IconName.Danger,
     featureIconColor: isMalicious
       ? IconColor.ErrorDefault
       : IconColor.WarningDefault,

@@ -18,6 +18,10 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
+  Icon,
+  IconColor,
+  IconName as DSIconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
@@ -39,10 +43,7 @@ import {
   selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
 import { SecurityDataType } from '../../hooks/usePopularTokens';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import {
@@ -491,8 +492,8 @@ const BridgeView = () => {
                       style={quoteStreamErrorBannerStyle}
                       startAccessory={
                         <Icon
-                          name={IconName.Danger}
-                          color={colors.error.default}
+                          name={DSIconName.Error}
+                          color={IconColor.ErrorDefault}
                           size={IconSize.Lg}
                         />
                       }
@@ -534,9 +535,13 @@ const BridgeView = () => {
                         startAccessory={
                           <Icon
                             name={
-                              isMalicious ? IconName.Danger : IconName.Warning
+                              isMalicious ? DSIconName.Error : DSIconName.Danger
                             }
-                            color={bannerColors.default}
+                            color={
+                              isMalicious
+                                ? IconColor.ErrorDefault
+                                : IconColor.WarningDefault
+                            }
                             size={IconSize.Lg}
                           />
                         }
