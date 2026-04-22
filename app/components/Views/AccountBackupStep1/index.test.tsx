@@ -11,6 +11,8 @@ import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { InteractionManager, Platform } from 'react-native';
 import { AccountType } from '../../../constants/onboarding';
+import SRPDesignDark from '../../../images/secure_wallet_dark.png';
+import SRPDesignLight from '../../../images/secure_wallet_light.png';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -412,7 +414,7 @@ describe('AccountBackupStep1', () => {
       });
     });
 
-    it('renders dark SRP design image by default (dark theme)', () => {
+    it('renders dark SRP design image for dark theme', () => {
       mockUseTheme.mockReturnValue({
         colors: {},
         themeAppearance: 'dark',
@@ -420,9 +422,10 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      expect(
-        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
-      ).toBeOnTheScreen();
+      const image = wrapper.UNSAFE_getByProps({
+        source: SRPDesignDark,
+      });
+      expect(image).toBeTruthy();
     });
 
     it('renders light SRP design image for light theme', () => {
@@ -433,9 +436,10 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      expect(
-        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
-      ).toBeOnTheScreen();
+      const image = wrapper.UNSAFE_getByProps({
+        source: SRPDesignLight,
+      });
+      expect(image).toBeTruthy();
     });
   });
 });
