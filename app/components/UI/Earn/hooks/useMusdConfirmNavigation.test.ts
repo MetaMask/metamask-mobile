@@ -1,5 +1,4 @@
 import { act, renderHook } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { useMusdConfirmNavigation } from './useMusdConfirmNavigation';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
@@ -9,11 +8,6 @@ import { AssetType } from '../../../Views/confirmations/types/token';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -54,8 +48,6 @@ const createTokenWithBalance = (
   }) as AssetType;
 
 describe('useMusdConfirmNavigation', () => {
-  const useSelectorMock = useSelector as jest.Mock;
-
   beforeEach(() => {
     jest.resetAllMocks();
     mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
@@ -71,8 +63,7 @@ describe('useMusdConfirmNavigation', () => {
     });
   });
 
-  it('goes back when quick convert is enabled and navigation can go back', () => {
-    useSelectorMock.mockReturnValue(true);
+  it('goes back when navigation can go back', () => {
     mockCanGoBack.mockReturnValue(true);
 
     const { result } = renderHook(() => useMusdConfirmNavigation());
@@ -85,8 +76,7 @@ describe('useMusdConfirmNavigation', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates to wallet view when quick convert is enabled and cannot go back', () => {
-    useSelectorMock.mockReturnValue(true);
+  it('navigates to wallet view when navigation cannot go back', () => {
     mockCanGoBack.mockReturnValue(false);
 
     const { result } = renderHook(() => useMusdConfirmNavigation());
@@ -99,22 +89,7 @@ describe('useMusdConfirmNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
 
-  it('navigates to wallet view when quick convert is disabled', () => {
-    useSelectorMock.mockReturnValue(false);
-
-    const { result } = renderHook(() => useMusdConfirmNavigation());
-
-    act(() => {
-      result.current.navigateOnConfirm();
-    });
-
-    expect(mockCanGoBack).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
-  });
-
   it('navigates to wallet view when max converting the last token', () => {
-    useSelectorMock.mockReturnValue(true);
     mockCanGoBack.mockReturnValue(true);
     mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
     mockUseMusdConversionTokens.mockReturnValue({
@@ -136,7 +111,6 @@ describe('useMusdConfirmNavigation', () => {
   });
 
   it('goes back when max converting with multiple tokens remaining', () => {
-    useSelectorMock.mockReturnValue(true);
     mockCanGoBack.mockReturnValue(true);
     mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
 
@@ -151,7 +125,6 @@ describe('useMusdConfirmNavigation', () => {
   });
 
   it('goes back when custom converting the last token with partial amount', () => {
-    useSelectorMock.mockReturnValue(true);
     mockCanGoBack.mockReturnValue(true);
     mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
     mockUseMusdConversionTokens.mockReturnValue({
