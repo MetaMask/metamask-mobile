@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -14,67 +14,24 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
-import { TabViewProps } from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
-import QuickActions from './components/QuickActions/QuickActions';
-import SectionHeader from './components/SectionHeader/SectionHeader';
-import { useHomeSections, SectionId } from './sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import Section, { RefreshConfig } from './components/Sections/Section';
+import { RefreshConfig } from './components/Sections/Section';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
-
-const TabView: React.FC<TabViewProps & { children?: React.ReactNode }> = ({
-  children,
-}) => <Box twClassName="flex-1">{children}</Box>;
-
-const curriedSetSectionState =
-  (setState: (updater: (prev: Set<SectionId>) => Set<SectionId>) => void) =>
-  (sectionId: SectionId) =>
-  (isActive: boolean): void => {
-    setState((prev) => {
-      const newSet = new Set(prev);
-
-      if (isActive) {
-        newSet.add(sectionId);
-      } else {
-        newSet.delete(sectionId);
-      }
-
-      return newSet;
-    });
-  };
-
-/**
- * Custom hook to track boolean state for each section
- * Returns the Set of sections with that state and callbacks to update them
- */
-const useSectionStateTracker = (
-  sections: { id: SectionId }[],
-): {
-  sectionsWithState: Set<SectionId>;
-  callbacks: Record<SectionId, (isActive: boolean) => void>;
-} => {
-  const [activeSections, setActiveSections] = useState<Set<SectionId>>(
-    new Set(),
-  );
-
-  const callbacks = useMemo(() => {
-    const result = {} as Record<SectionId, (isActive: boolean) => void>;
-    sections.forEach((s) => {
-      result[s.id] = curriedSetSectionState(setActiveSections)(s.id);
-    });
-    return result;
-  }, [sections]);
-
-  return { sectionsWithState: activeSections, callbacks };
-};
+import { TabView } from './tabs/TabView';
+import { NowTabPanel } from './tabs/NowTabPanel';
+import { MacroTabPanel } from './tabs/MacroTabPanel';
+import { RwasTabPanel } from './tabs/RwasTabPanel';
+import { CryptoTabPanel } from './tabs/CryptoTabPanel';
+import { SportsTabPanel } from './tabs/SportsTabPanel';
+import { DappsTabPanel } from './tabs/DappsTabPanel';
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -86,14 +43,6 @@ export const ExploreFeed: React.FC = () => {
     trigger: 0,
     silentRefresh: true,
   });
-
-  const homeSections = useHomeSections();
-
-  // Track which sections have empty data (for QuickActions empty state)
-  const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
-    useSectionStateTracker(homeSections);
-
-  const noopLoadingState = useCallback((_isLoading: boolean) => undefined, []);
 
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
@@ -223,56 +172,59 @@ export const ExploreFeed: React.FC = () => {
         {isBasicFunctionalityEnabled ? (
           <TabsList tabsListContentTwClassName="px-0 pb-3">
             <TabView key="now" tabLabel={strings('trending.tabs.now')}>
-              <ScrollView
-                testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
-                style={tw.style('flex-1 px-4')}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                    tintColor={colors.icon.default}
-                    colors={[colors.primary.default]}
-                  />
-                }
-              >
-                <QuickActions emptySections={emptySections} />
-
-                {homeSections.map((section) => {
-                  const isHidden = emptySections.has(section.id);
-
-                  const sectionComponent = (
-                    <Section
-                      sectionId={section.id}
-                      refreshConfig={refreshConfig}
-                      toggleSectionEmptyState={emptyStateCallbacks[section.id]}
-                      toggleSectionLoadingState={noopLoadingState}
-                    />
-                  );
-
-                  return (
-                    <Box
-                      key={section.id}
-                      twClassName={isHidden ? 'hidden' : undefined}
-                    >
-                      <SectionHeader sectionId={section.id} />
-                      {section.SectionWrapper ? (
-                        <section.SectionWrapper>
-                          {sectionComponent}
-                        </section.SectionWrapper>
-                      ) : (
-                        sectionComponent
-                      )}
-                    </Box>
-                  );
-                })}
-              </ScrollView>
+              <NowTabPanel
+                refreshConfig={refreshConfig}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={colors}
+                tw={tw}
+              />
             </TabView>
-            <TabView key="macro" tabLabel={strings('trending.tabs.macro')} />
-            <TabView key="rwas" tabLabel={strings('trending.tabs.rwas')} />
-            <TabView key="crypto" tabLabel={strings('trending.tabs.crypto')} />
-            <TabView key="sports" tabLabel={strings('trending.tabs.sports')} />
-            <TabView key="dapps" tabLabel={strings('trending.tabs.dapps')} />
+            <TabView key="macro" tabLabel={strings('trending.tabs.macro')}>
+              <MacroTabPanel
+                refreshConfig={refreshConfig}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={colors}
+                tw={tw}
+              />
+            </TabView>
+            <TabView key="rwas" tabLabel={strings('trending.tabs.rwas')}>
+              <RwasTabPanel
+                refreshConfig={refreshConfig}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={colors}
+                tw={tw}
+              />
+            </TabView>
+            <TabView key="crypto" tabLabel={strings('trending.tabs.crypto')}>
+              <CryptoTabPanel
+                refreshConfig={refreshConfig}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={colors}
+                tw={tw}
+              />
+            </TabView>
+            <TabView key="sports" tabLabel={strings('trending.tabs.sports')}>
+              <SportsTabPanel
+                refreshConfig={refreshConfig}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={colors}
+                tw={tw}
+              />
+            </TabView>
+            <TabView key="dapps" tabLabel={strings('trending.tabs.dapps')}>
+              <DappsTabPanel
+                refreshConfig={refreshConfig}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={colors}
+                tw={tw}
+              />
+            </TabView>
           </TabsList>
         ) : (
           <BasicFunctionalityEmptyState />

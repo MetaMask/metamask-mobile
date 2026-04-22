@@ -144,11 +144,11 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
  *
  * To add a new section (EVERYTHING IN THIS FILE):
  * 1. Add the section ID to the SectionId type above
- * 2. Add the config to SECTIONS_CONFIG, HOME_SECTIONS_ARRAY, and SECTIONS_ARRAY below
- * 3. Add the hook to useSectionsData below
+ * 2. Add the config to SECTIONS_CONFIG and wire it in useSectionsData
+ * 3. Add the section to the `home` / `quickActions` / `search` orders (feature flag defaults) as needed
  *
  * The section will automatically appear in:
- * - TrendingView main feed
+ * - The **Now** tab (via `useNowSections` / `DEFAULT_HOME_ORDER`) and other tab hooks when you list them
  * - QuickActions buttons
  * - Search results
  * - Section headers with "View All" navigation
@@ -175,6 +175,18 @@ const SEARCH_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
   networkFilter: 'all',
   isSearchResult: true,
 };
+
+/**
+ * Explore home tabs (order matches {@link useNowSections} / feed tabs in TrendingView).
+ * Each tab has its own section list; only `now` is wired today — other tabs are placeholders.
+ */
+export type ExploreTabId =
+  | 'now'
+  | 'macro'
+  | 'rwas'
+  | 'crypto'
+  | 'sports'
+  | 'dapps';
 
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
@@ -425,7 +437,14 @@ const buildSections = (
     .filter((id) => isPerpsEnabled || id !== 'perps')
     .map((id) => SECTIONS_CONFIG[id]);
 
-export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {
+const useEmptyExploreTabSections = (): (SectionConfig & { id: SectionId })[] =>
+  useMemo(() => [], []);
+
+/**
+ * Section list for the **Now** tab (the main explore feed, ordered by feature flag / default).
+ * @deprecated Prefer {@link useNowSections}; kept for call sites that still use the old name.
+ */
+export const useNowSections = (): (SectionConfig & { id: SectionId })[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const orderConfig = useSelector(selectExploreSectionsOrder);
 
@@ -435,6 +454,20 @@ export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {
     [isPerpsEnabled, orderConfig],
   );
 };
+
+/** @deprecated Use {@link useNowSections} */
+export const useHomeSections = useNowSections;
+
+/**
+ * Per-tab section lists. Non-`now` hooks return an empty list until that tab is populated.
+ * Add entries here the same way as the Now feed, then point the hook at `buildSections` or a
+ * custom `SectionId` order.
+ */
+export const useMacroSections = useEmptyExploreTabSections;
+export const useRwasSections = useEmptyExploreTabSections;
+export const useCryptoSections = useEmptyExploreTabSections;
+export const useSportsSections = useEmptyExploreTabSections;
+export const useDappsSections = useEmptyExploreTabSections;
 
 export const useQuickActionsSectionsArray = (): (SectionConfig & {
   id: SectionId;
