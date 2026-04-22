@@ -1,31 +1,48 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { useMusdConversionTokens } from './useMusdConversionTokens';
-import { useTransactionPayIsMaxAmount } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { selectMoneyHubEnabledFlag } from '../../Money/selectors/featureFlags';
+import { useSelector } from 'react-redux';
 
 export const useMusdConfirmNavigation = () => {
   const navigation = useNavigation();
 
-  const isMaxAmount = useTransactionPayIsMaxAmount();
+  const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
-  const { tokens: conversionTokens } = useMusdConversionTokens();
+  // We must operate on the parent (MainNavigator) stack because the
+  // confirmation screen lives inside a nested EarnScreenStack. A plain
+  // navigation.navigate() from inside EarnScreenStack would push
+  // CashTokensFullView on top without removing EarnScreens, leaving the
+  // stale confirmation screen in the back stack. To prevent that:
+  //  - pop: if CashTokensFullView is already below (entered from Money Hub)
+  //  - replace: if it isn't (entered from TokenListItem or asset detail)
+  const handleMoneyHubNavigation = useCallback(() => {
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation) {
+      const parentState = parentNavigation.getState();
+      const isCashTokensFullViewInStack = parentState.routes.some(
+        (route) => route.name === Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      );
 
-  const isLastConvertibleToken = conversionTokens.length <= 1;
+      if (isCashTokensFullViewInStack) {
+        parentNavigation.dispatch(StackActions.pop());
+      } else {
+        parentNavigation.dispatch(
+          StackActions.replace(Routes.WALLET.CASH_TOKENS_FULL_VIEW),
+        );
+      }
+    }
+    return;
+  }, [navigation]);
 
   const navigateOnConfirm = useCallback(() => {
-    if (isMaxAmount && isLastConvertibleToken) {
-      navigation.navigate(Routes.WALLET_VIEW);
-      return;
-    }
-
-    if (navigation.canGoBack()) {
-      navigation.goBack();
+    if (isMoneyHubEnabled) {
+      handleMoneyHubNavigation();
       return;
     }
 
     navigation.navigate(Routes.WALLET_VIEW);
-  }, [navigation, isMaxAmount, isLastConvertibleToken]);
+  }, [handleMoneyHubNavigation, isMoneyHubEnabled, navigation]);
 
   return {
     navigateOnConfirm,
