@@ -23,8 +23,9 @@ import {
   useDeviceConnectionFlow,
   useQRSigningState,
 } from './hooks';
-import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import { getHardwareWalletTypeForAddress } from './helpers';
 
 interface HardwareWalletProviderProps {
   children: ReactNode;
@@ -44,7 +45,16 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const { state, refs, setters } = useHardwareWalletStateManager();
   const { connectionState, deviceId, walletType, targetWalletType } = state;
 
-  const effectiveWalletType = targetWalletType ?? walletType;
+  const [pendingOperationAddress, setPendingOperationAddress] = useState<
+    string | null
+  >(null);
+
+  const walletTypeFromPendingAddress = pendingOperationAddress
+    ? (getHardwareWalletTypeForAddress(pendingOperationAddress) ?? null)
+    : null;
+
+  const effectiveWalletType =
+    targetWalletType ?? walletTypeFromPendingAddress ?? walletType;
 
   const { handleDeviceEvent, handleError, updateConnectionState } =
     useDeviceEventHandlers({
@@ -192,6 +202,13 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     hideAwaitingConfirmation();
   }, [hideAwaitingConfirmation, refs.adapterRef]);
 
+  const setPendingOperationAddressWrapper = useCallback(
+    (address: string | null) => {
+      setPendingOperationAddress(address);
+    },
+    [],
+  );
+
   const contextValue = useMemo(
     () => ({
       walletType: effectiveWalletType,
@@ -199,7 +216,9 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       connectionState,
       deviceSelection,
       ensureDeviceReady,
-      setTargetWalletType: setters.setTargetWalletType,
+      setTargetWalletType: (wt: HardwareWalletType) =>
+        setters.setTargetWalletType(wt),
+      setPendingOperationAddress: setPendingOperationAddressWrapper,
       showHardwareWalletError,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
@@ -210,7 +229,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       connectionState,
       deviceSelection,
       ensureDeviceReady,
-      setters.setTargetWalletType,
+      setters,
+      setPendingOperationAddressWrapper,
       showHardwareWalletError,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
