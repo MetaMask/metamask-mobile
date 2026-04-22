@@ -58,6 +58,7 @@ import {
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
 import {
+  useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
   useTransactionPayTotals,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
@@ -582,6 +583,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // token balance, catching cases the margin-only check above misses.
   const insufficientPayAlerts = useInsufficientPayTokenBalanceAlert();
   const noQuotesAlerts = useNoPayTokenQuotesAlert();
+  const isQuotesLoading = useIsTransactionPayLoading();
 
   const blockingPayAlerts = useMemo(() => {
     const allPayAlerts = [...insufficientPayAlerts, ...noQuotesAlerts];
@@ -590,6 +592,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const hasBlockingPayAlerts =
     hasCustomTokenSelected && blockingPayAlerts.length > 0;
+
+  const hasPendingPayAlerts = hasCustomTokenSelected && isQuotesLoading;
 
   const blockingPayAlertMessage = useMemo(
     () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
@@ -1777,7 +1781,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
+                hasBlockingPayAlerts ||
+                hasPendingPayAlerts
               }
               loading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
@@ -1799,7 +1804,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
+                hasBlockingPayAlerts ||
+                hasPendingPayAlerts
               }
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
