@@ -32,7 +32,6 @@ import { RewardsMetricsButtons } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
-import Routes from '../../../../constants/navigation/Routes';
 import campaignWinningHero from '../../../../images/rewards/campaign_winning.png';
 
 const PRIZE_EMAIL = 'ondocampaign@consensys.net';
@@ -41,12 +40,11 @@ const styles = StyleSheet.create({
   heroBox: { aspectRatio: 1 },
 });
 
-interface OndoCampaignWinningRouteParams {
-  [Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW]: {
-    campaignId: string;
-    campaignName?: string;
-  };
-}
+// ParamListBase requires an index signature, which interfaces don't support
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type OndoCampaignWinningRouteParams = {
+  RewardsOndoCampaignWinning: { campaignId: string; campaignName?: string };
+};
 
 export const ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS = {
   CONTAINER: 'ondo-campaign-winning-view-container',
@@ -57,13 +55,11 @@ const OndoCampaignWinningView: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { campaignId } =
+  const route =
     useRoute<
-      RouteProp<
-        OndoCampaignWinningRouteParams,
-        typeof Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW
-      >
-    >().params;
+      RouteProp<OndoCampaignWinningRouteParams, 'RewardsOndoCampaignWinning'>
+    >();
+  const { campaignId } = route.params;
 
   const { position, isLoading: positionLoading } =
     useGetOndoLeaderboardPosition(campaignId);
