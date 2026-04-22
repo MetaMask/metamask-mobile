@@ -170,7 +170,7 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
         '0',
     );
 
-    if (tradeableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
+    if (tradeableBalance >= PERPS_MIN_BALANCE_THRESHOLD) {
       return null;
     }
 

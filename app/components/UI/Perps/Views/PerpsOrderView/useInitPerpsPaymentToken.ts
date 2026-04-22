@@ -42,14 +42,18 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
   );
 
   useEffect(() => {
-    if (
-      pendingConfigSelectedPaymentToken != null ||
-      appliedPendingTokenRef.current != null
-    )
-      return;
+    if (pendingConfigSelectedPaymentToken != null) return;
 
     const defaultToken = defaultPayTokenWhenNoPerpsBalance;
+    const applied = appliedPendingTokenRef.current;
+
     if (defaultToken != null) {
+      const alreadyAppliedSameFallback =
+        applied != null &&
+        applied.address === defaultToken.address &&
+        applied.chainId === defaultToken.chainId;
+      if (alreadyAppliedSameFallback) return;
+
       appliedPendingTokenRef.current = {
         address: defaultToken.address,
         chainId: defaultToken.chainId,
@@ -67,7 +71,10 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
       return;
     }
 
-    if (appliedPendingTokenRef.current === null) return;
+    // Fallback no longer needed (e.g. balance arrived after mount). Clear any
+    // fallback we previously auto-applied so the form defaults back to Perps
+    // balance.
+    if (applied == null) return;
     appliedPendingTokenRef.current = null;
     Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
   }, [
