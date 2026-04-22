@@ -2,15 +2,12 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { TokenWarningModal } from './index';
 import { TokenWarningModalMode } from './constants';
-import {
-  MetaMetricsSwapsEventSource,
-  TokenFeatureType,
-} from '@metamask/bridge-controller';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import Routes from '../../../../../constants/navigation/Routes';
+import { SecurityDataType } from '../../hooks/usePopularTokens';
 
-// Mock BottomSheet
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -68,6 +65,7 @@ import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useSelector } from 'react-redux';
 import {
   selectSourceToken,
+  selectDestToken,
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -96,6 +94,15 @@ const mockSourceToken = {
   image: '',
 };
 
+const mockDestToken = {
+  address: '0xdef',
+  decimals: 18,
+  chainId: '0x1' as Hex,
+  symbol: 'SQUID',
+  name: 'Squid',
+  image: '',
+};
+
 const mockBridgeFeatureFlags = {
   priceImpactThreshold: { error: 0.25, warning: 0.05 },
 };
@@ -106,11 +113,24 @@ const mockActiveQuote = {
   },
 };
 
+const mockFeatures = [
+  {
+    featureId: 'low_locked_liquidity',
+    type: SecurityDataType.Warning,
+    description: 'Low locked liquidity description',
+  },
+  {
+    featureId: 'honeypot_risk',
+    type: SecurityDataType.Warning,
+    description: 'Honeypot risk description',
+  },
+];
+
 const defaultWarningParams = {
-  warningType: TokenFeatureType.WARNING as
-    | TokenFeatureType.WARNING
-    | TokenFeatureType.MALICIOUS,
-  description: 'This token has suspicious activity.',
+  warningType: SecurityDataType.Warning as
+    | SecurityDataType.Warning
+    | SecurityDataType.Malicious,
+  features: mockFeatures,
   mode: TokenWarningModalMode.Execution,
   location: MetaMetricsSwapsEventSource.MainView,
 };
@@ -129,30 +149,68 @@ describe('TokenWarningModal', () => {
     } as ReturnType<typeof useBridgeQuoteData>);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSourceToken) return mockSourceToken;
+      if (selector === selectDestToken) return mockDestToken;
       if (selector === selectBridgeFeatureFlags) return mockBridgeFeatureFlags;
       return undefined;
     });
   });
 
-  describe('rendering — WARNING type', () => {
-    it('shows the suspicious title for WARNING type', () => {
+  describe('rendering — Warning type', () => {
+    it('shows the suspicious title', () => {
       const { getByText } = renderModal();
       expect(
         getByText(strings('bridge.token_warning_modal_suspicious_title')),
       ).toBeOnTheScreen();
     });
 
-    it('shows the description from params', () => {
+    it('shows the suspicious description with the dest token symbol', () => {
       const { getByText } = renderModal();
-      expect(getByText(defaultWarningParams.description)).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('bridge.token_warning_modal_suspicious_description', {
+            symbol: 'SQUID',
+          }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders one row per feature with the suspicious title and description', () => {
+      const { getAllByText, getByText } = renderModal();
+      expect(
+        getAllByText(
+          strings('bridge.token_warning_modal_suspicious_feature_title'),
+        ),
+      ).toHaveLength(mockFeatures.length);
+      expect(getByText('Low locked liquidity description')).toBeOnTheScreen();
+      expect(getByText('Honeypot risk description')).toBeOnTheScreen();
+    });
+
+    it('does not render any feature rows when features is empty', () => {
+      mockUseParams.mockReturnValue({
+        ...defaultWarningParams,
+        features: [],
+      });
+      const { queryByText } = renderModal();
+      expect(
+        queryByText(
+          strings('bridge.token_warning_modal_suspicious_feature_title'),
+        ),
+      ).toBeNull();
+      expect(
+        queryByText(
+          strings('bridge.token_warning_modal_suspicious_description', {
+            symbol: 'SQUID',
+          }),
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
-  describe('rendering — MALICIOUS type', () => {
+  describe('rendering — Malicious type', () => {
     beforeEach(() => {
       mockUseParams.mockReturnValue({
         ...defaultWarningParams,
-        warningType: TokenFeatureType.MALICIOUS,
+        warningType: SecurityDataType.Malicious,
       });
     });
 
@@ -163,9 +221,48 @@ describe('TokenWarningModal', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows the description from params', () => {
+    it('shows the malicious description with the dest token symbol', () => {
       const { getByText } = renderModal();
-      expect(getByText(defaultWarningParams.description)).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('bridge.token_warning_modal_malicious_description', {
+            symbol: 'SQUID',
+          }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders feature rows with the malicious title', () => {
+      const { getAllByText } = renderModal();
+      expect(
+        getAllByText(
+          strings('bridge.token_warning_modal_malicious_feature_title'),
+        ),
+      ).toHaveLength(mockFeatures.length);
+    });
+
+    it('shows Continue anyway and Cancel (not Proceed) in Execution mode', () => {
+      const { getByText, queryByText } = renderModal();
+      expect(
+        getByText(strings('bridge.token_warning_modal_continue_anyway')),
+      ).toBeOnTheScreen();
+      expect(getByText(strings('bridge.cancel'))).toBeOnTheScreen();
+      expect(queryByText(strings('bridge.proceed'))).toBeNull();
+    });
+
+    it('calls confirmBridge when Continue anyway is pressed', async () => {
+      const { getByTestId } = renderModal();
+      fireEvent.press(getByTestId('footer-secondary-button'));
+
+      await waitFor(() => {
+        expect(mockConfirmBridge).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not call confirmBridge when Cancel is pressed', () => {
+      const { getByTestId } = renderModal();
+      fireEvent.press(getByTestId('footer-primary-button'));
+      expect(mockConfirmBridge).not.toHaveBeenCalled();
     });
   });
 
@@ -315,6 +412,7 @@ describe('TokenWarningModal', () => {
       // Feature flag sets error threshold to 0.50 — a 0.40 impact should NOT trigger the modal
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSourceToken) return mockSourceToken;
+        if (selector === selectDestToken) return mockDestToken;
         if (selector === selectBridgeFeatureFlags)
           return { priceImpactThreshold: { error: 0.5, warning: 0.05 } };
         return undefined;

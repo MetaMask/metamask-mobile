@@ -18,10 +18,11 @@ import {
   RequestStatus,
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
-  TokenFeatureType,
   QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
+import { SecurityDataType } from '../../hooks/usePopularTokens';
+import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -1898,34 +1899,43 @@ describe('BridgeView', () => {
   });
 
   describe('Token Warning Banner', () => {
-    const mockWarning = {
-      type: TokenFeatureType.WARNING,
-      feature_id: 'warn-1',
-      description: 'This token is suspicious.',
-    };
+    const mockWarningFeatures = [
+      {
+        featureId: 'low_locked_liquidity',
+        type: SecurityDataType.Warning,
+        description: 'This token is suspicious.',
+      },
+    ];
 
-    const mockMaliciousWarning = {
-      type: TokenFeatureType.MALICIOUS,
-      feature_id: 'mal-1',
-      description: 'This token is malicious.',
-    };
+    const mockMaliciousFeatures = [
+      {
+        featureId: 'honeypot',
+        type: SecurityDataType.Malicious,
+        description: 'This token is malicious.',
+      },
+    ];
 
     // createBridgeTestState sets bridge from mockBridgeReducerState (sourceAmount non-zero,
     // destToken.symbol = 'USDC') which puts the view into 'quote' contentMode.
-    const stateWithWarnings = (
-      warnings: {
-        type: TokenFeatureType;
-        feature_id: string;
-        description: string;
-      }[],
+    const stateWithDestSecurityData = (
+      type: SecurityDataType,
+      features: typeof mockWarningFeatures,
     ) =>
       createBridgeTestState(
-        { bridgeControllerOverrides: { tokenWarnings: warnings } },
+        {
+          bridgeReducerOverrides: {
+            destToken: {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              ...mockBridgeReducerState.destToken!,
+              securityData: { type, metadata: { features } },
+            },
+          },
+        },
         mockState,
       );
 
-    it('does not show the banner when tokenWarnings is empty', () => {
-      const testState = stateWithWarnings([]);
+    it('does not show the banner when destToken has no securityData', () => {
+      const testState = createBridgeTestState({}, mockState);
 
       const { queryByText } = renderScreen(
         BridgeView,
@@ -1948,8 +1958,17 @@ describe('BridgeView', () => {
     it('does not show the banner in zero state (no source amount)', () => {
       const testState = createBridgeTestState(
         {
-          bridgeControllerOverrides: { tokenWarnings: [mockWarning] },
-          bridgeReducerOverrides: { sourceAmount: undefined },
+          bridgeReducerOverrides: {
+            sourceAmount: undefined,
+            destToken: {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              ...mockBridgeReducerState.destToken!,
+              securityData: {
+                type: SecurityDataType.Warning,
+                metadata: { features: mockWarningFeatures },
+              },
+            },
+          },
         },
         mockState,
       );
@@ -1967,8 +1986,11 @@ describe('BridgeView', () => {
       ).toBeNull();
     });
 
-    it('shows the suspicious banner for a WARNING type token', () => {
-      const testState = stateWithWarnings([mockWarning]);
+    it('shows the suspicious banner for a Warning type token', () => {
+      const testState = stateWithDestSecurityData(
+        SecurityDataType.Warning,
+        mockWarningFeatures,
+      );
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -1983,8 +2005,11 @@ describe('BridgeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows the malicious banner for a MALICIOUS type token', () => {
-      const testState = stateWithWarnings([mockMaliciousWarning]);
+    it('shows the malicious banner for a Malicious type token', () => {
+      const testState = stateWithDestSecurityData(
+        SecurityDataType.Malicious,
+        mockMaliciousFeatures,
+      );
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -2005,7 +2030,10 @@ describe('BridgeView', () => {
         bridgeViewMode: BridgeViewMode.Swap,
         location: MetaMetricsSwapsEventSource.MainView,
       };
-      const testState = stateWithWarnings([mockWarning]);
+      const testState = stateWithDestSecurityData(
+        SecurityDataType.Warning,
+        mockWarningFeatures,
+      );
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -2023,21 +2051,24 @@ describe('BridgeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params: {
-          warningType: TokenFeatureType.WARNING,
-          description: mockWarning.description,
+          warningType: SecurityDataType.Warning,
+          features: mockWarningFeatures,
           mode: TokenWarningModalMode.Info,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
     });
 
-    it('passes MALICIOUS warningType when navigating from a malicious banner', async () => {
+    it('passes Malicious warningType when navigating from a malicious banner', async () => {
       mockRoute.params = {
         sourcePage: 'test',
         bridgeViewMode: BridgeViewMode.Swap,
         location: MetaMetricsSwapsEventSource.MainView,
       };
-      const testState = stateWithWarnings([mockMaliciousWarning]);
+      const testState = stateWithDestSecurityData(
+        SecurityDataType.Malicious,
+        mockMaliciousFeatures,
+      );
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -2055,8 +2086,8 @@ describe('BridgeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params: expect.objectContaining({
-          warningType: TokenFeatureType.MALICIOUS,
-          description: mockMaliciousWarning.description,
+          warningType: SecurityDataType.Malicious,
+          features: mockMaliciousFeatures,
           mode: TokenWarningModalMode.Info,
         }),
       });
