@@ -36150,7 +36150,7 @@ __metadata:
     react-native-background-timer: "npm:2.1.1"
     react-native-ble-plx: "npm:3.4.0"
     react-native-blob-util: "npm:^0.19.9"
-    react-native-branch: "npm:^6.9.0"
+    react-native-branch: "patch:react-native-branch@npm%3A6.9.0#~/.yarn/patches/react-native-branch-npm-6.9.0-01e1a29b1e.patch"
     react-native-browser-polyfill: "npm:0.1.2"
     react-native-confetti: "npm:^0.1.0"
     react-native-confetti-cannon: "npm:^1.5.0"
@@ -40533,12 +40533,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-branch@npm:^6.9.0":
+"react-native-branch@npm:6.9.0":
   version: 6.9.0
   resolution: "react-native-branch@npm:6.9.0"
   peerDependencies:
     react-native: ">= 0.60"
   checksum: 10/206c5f777a419018d580469a4f81f58537db17680e5eeeae6033489b1a930dddde295ad4f4730aa880b3cd8e1661f000ad9b40e39a4c03261dacb77ec7050183
+  languageName: node
+  linkType: hard
+
+"react-native-branch@patch:react-native-branch@npm%3A6.9.0#~/.yarn/patches/react-native-branch-npm-6.9.0-01e1a29b1e.patch":
+  version: 6.9.0
+  resolution: "react-native-branch@patch:react-native-branch@npm%3A6.9.0#~/.yarn/patches/react-native-branch-npm-6.9.0-01e1a29b1e.patch::version=6.9.0&hash=5ce815"
+  peerDependencies:
+    react-native: ">= 0.60"
+  checksum: 10/a9aa171fcd43964a22952baf1f90c5d3e9d20fd478b3cb26d89ff27bd64efc18df450e32dac9b9e0949fa04d42214644e7d515967c749cd75b3457fb74812581
   languageName: node
   linkType: hard
 
