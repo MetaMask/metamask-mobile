@@ -384,7 +384,6 @@ export const otherControllersMock = merge(
   swapsState,
   smartTransactionsControllerMock,
   preferencesControllerMock,
-  tokenListControllerMock,
   tokenRatesControllerMock,
   tokensControllerMock,
   gasFeeControllerMock,
