@@ -215,6 +215,7 @@ describe('ProviderSelectionModal', () => {
         amount: 100,
         walletAddress: '0x123',
         assetId: 'eip155:1/slip44:60',
+        redirectUrl: expect.stringContaining('/regions/fake-callback'),
         providers: ['/providers/transak', '/providers/moonpay'],
         paymentMethods: ['/payments/debit-credit-card-1'],
       }),

@@ -91,6 +91,7 @@ describe('CashGetMusdEmptyState', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
+      refetch: jest.fn(),
     });
   });
 
@@ -230,6 +231,7 @@ describe('CashGetMusdEmptyState', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
+      refetch: jest.fn(),
     });
 
     renderWithProvider(<CashGetMusdEmptyState />);
@@ -251,6 +253,7 @@ describe('CashGetMusdEmptyState', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
+      refetch: jest.fn(),
     });
 
     renderWithProvider(<CashGetMusdEmptyState />);
@@ -268,6 +271,7 @@ describe('CashGetMusdEmptyState', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
+      refetch: jest.fn(),
     });
 
     renderWithProvider(<CashGetMusdEmptyState />);

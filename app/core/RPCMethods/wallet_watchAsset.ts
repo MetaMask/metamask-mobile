@@ -20,6 +20,29 @@ import {
 } from '@metamask/utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
 
+/**
+ * Strips `undefined` properties (and any other non-JSON-serializable values
+ * such as functions or symbols) from a value by round-tripping it through
+ * `JSON.stringify` / `JSON.parse`.
+ *
+ * This is needed because `_pageMeta` is assembled in the middleware from refs
+ * (`url`, `title`, `icon`) and optional fields (`channelId`, `analytics.*`)
+ * that are often `undefined` at runtime. `getSafeJson` from `@metamask/utils`
+ * rejects any object that contains a non-JSON value (including `undefined`),
+ * which surfaces to dapps as:
+ * "Expected a value of type `JSON`, but received: `[object Object]`"
+ *
+ * Pre-sanitizing with this helper drops those properties before validation,
+ * so `getSafeJson` only has to enforce the prototype-pollution safeguards.
+ *
+ * @param value - The value to sanitize. Must be JSON-serializable once
+ * `undefined` / function / symbol values are dropped.
+ * @returns A deep clone of `value` with all non-JSON-serializable properties
+ * removed.
+ */
+const stripNonJsonValues = <Type>(value: Type): Type =>
+  JSON.parse(JSON.stringify(value));
+
 export const wallet_watchAsset = async ({
   req,
   res,
@@ -112,7 +135,7 @@ export const wallet_watchAsset = async ({
 
   const safePageMeta =
     _pageMeta !== undefined
-      ? getSafeJson<Record<string, Json>>(_pageMeta)
+      ? getSafeJson<Record<string, Json>>(stripNonJsonValues(_pageMeta))
       : undefined;
 
   await TokensController.watchAsset({
