@@ -85,7 +85,10 @@ describe('usePerpsBalanceTokenFilter', () => {
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
         if (selector === selectPerpsAccountState) {
-          return { availableBalance: '1500.00' };
+          return {
+            availableBalance: '1500.00',
+            availableToTradeBalance: '1500.00',
+          };
         }
         if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) {
           return [];
@@ -154,6 +157,7 @@ describe('usePerpsBalanceTokenFilter', () => {
     it('prepends highlighted row with perps balance and Add funds button', () => {
       mockUseSelector.mockReturnValue({
         availableBalance: '2000.50',
+        availableToTradeBalance: '2000.50',
       });
       mockUseIsPerpsBalanceSelected.mockReturnValue(true);
       const inputTokens: AssetType[] = [
@@ -190,9 +194,10 @@ describe('usePerpsBalanceTokenFilter', () => {
       expect((output[1] as AssetType).address).toBe('0xusdc');
     });
 
-    it('uses availableBalance from perps account in highlighted row', () => {
+    it('uses availableToTradeBalance from perps account in highlighted row', () => {
       mockUseSelector.mockReturnValue({
-        availableBalance: '999.99',
+        availableBalance: '0',
+        availableToTradeBalance: '999.99',
       });
       const inputTokens: AssetType[] = [];
 
@@ -232,7 +237,10 @@ describe('usePerpsBalanceTokenFilter', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
           if (selector === selectPerpsAccountState)
-            return { availableBalance: '1500.00' };
+            return {
+              availableBalance: '1500.00',
+              availableToTradeBalance: '1500.00',
+            };
           if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
@@ -264,7 +272,10 @@ describe('usePerpsBalanceTokenFilter', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
           if (selector === selectPerpsAccountState)
-            return { availableBalance: '1500.00' };
+            return {
+              availableBalance: '1500.00',
+              availableToTradeBalance: '1500.00',
+            };
           if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
@@ -290,7 +301,10 @@ describe('usePerpsBalanceTokenFilter', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
           if (selector === selectPerpsAccountState)
-            return { availableBalance: '100.00' };
+            return {
+              availableBalance: '100.00',
+              availableToTradeBalance: '100.00',
+            };
           if (selector === selectPerpsPayWithAnyTokenAllowlistAssets)
             return [allowlistKey];
           return [];
@@ -325,6 +339,7 @@ describe('usePerpsBalanceTokenFilter', () => {
     it('calls onReject, depositWithConfirmation and navigation.navigate when Add funds is pressed', async () => {
       mockUseSelector.mockReturnValue({
         availableBalance: '500.00',
+        availableToTradeBalance: '500.00',
       });
       const inputTokens: AssetType[] = [
         {
@@ -361,6 +376,7 @@ describe('usePerpsBalanceTokenFilter', () => {
     it('calls onPerpsPaymentTokenChange with null when row action is invoked', () => {
       mockUseSelector.mockReturnValue({
         availableBalance: '100.00',
+        availableToTradeBalance: '100.00',
       });
       const inputTokens: AssetType[] = [];
 

@@ -2,7 +2,12 @@ import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePerpsPayWithToken } from '../../hooks/useIsPerpsBalanceSelected';
-import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
+import {
+  arePaymentTokensEqual,
+  useDefaultPayWithTokenWhenNoPerpsBalance,
+  useHasNativeTradeablePerpsBalance,
+  usePreferredFallbackPayTokenCandidate,
+} from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 
@@ -30,6 +35,17 @@ const mockUseDefaultPayToken =
   useDefaultPayWithTokenWhenNoPerpsBalance as jest.MockedFunction<
     typeof useDefaultPayWithTokenWhenNoPerpsBalance
   >;
+const mockUseHasNativeTradeablePerpsBalance =
+  useHasNativeTradeablePerpsBalance as jest.MockedFunction<
+    typeof useHasNativeTradeablePerpsBalance
+  >;
+const mockUsePreferredFallbackPayTokenCandidate =
+  usePreferredFallbackPayTokenCandidate as jest.MockedFunction<
+    typeof usePreferredFallbackPayTokenCandidate
+  >;
+const mockArePaymentTokensEqual = arePaymentTokensEqual as jest.MockedFunction<
+  typeof arePaymentTokensEqual
+>;
 const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
   typeof usePerpsSelector
 >;
@@ -41,6 +57,8 @@ function setupDefaults({
   selectedPaymentToken = null,
   defaultPayToken = null,
   pendingConfig = undefined,
+  hasNativeTradeablePerpsBalance = false,
+  fallbackPayTokenCandidate = null,
 }: {
   payToken?: ReturnType<typeof useTransactionPayToken>['payToken'];
   selectedPaymentToken?: ReturnType<typeof usePerpsPayWithToken>;
@@ -52,8 +70,13 @@ function setupDefaults({
           chainId: string;
           description?: string;
         };
+        selectedPaymentTokenSource?: 'explicit' | 'autoNoPerpsBalance';
       }
     | undefined;
+  hasNativeTradeablePerpsBalance?: boolean;
+  fallbackPayTokenCandidate?: ReturnType<
+    typeof usePreferredFallbackPayTokenCandidate
+  >;
 } = {}) {
   mockUseTransactionPayToken.mockReturnValue({
     payToken,
@@ -61,6 +84,17 @@ function setupDefaults({
   } as unknown as ReturnType<typeof useTransactionPayToken>);
   mockUsePerpsPayWithToken.mockReturnValue(selectedPaymentToken);
   mockUseDefaultPayToken.mockReturnValue(defaultPayToken);
+  mockUseHasNativeTradeablePerpsBalance.mockReturnValue(
+    hasNativeTradeablePerpsBalance,
+  );
+  mockUsePreferredFallbackPayTokenCandidate.mockReturnValue(
+    fallbackPayTokenCandidate,
+  );
+  mockArePaymentTokensEqual.mockImplementation(
+    (tokenA, tokenB) =>
+      tokenA?.address === tokenB?.address &&
+      tokenA?.chainId === tokenB?.chainId,
+  );
   mockUsePerpsSelector.mockReturnValue(pendingConfig);
 }
 
@@ -136,6 +170,74 @@ describe('useInitPerpsPaymentToken', () => {
           chainId: '0x1',
           description: 'DAI',
         },
+      },
+    });
+
+    renderHook(() => useInitPerpsPaymentToken('BTC'));
+
+    expect(mockSetPayToken).toHaveBeenCalledWith({
+      address: '0xdai',
+      chainId: '0x1',
+    });
+    expect(mockSetSelectedPaymentToken).toHaveBeenCalledWith({
+      description: 'DAI',
+      address: '0xdai',
+      chainId: '0x1',
+    });
+  });
+
+  it('does not restore auto fallback pending token when native tradeable balance exists', () => {
+    const pendingToken = {
+      address: '0xusdc',
+      chainId: '0xa4b1',
+      description: 'USDC',
+    };
+    setupDefaults({
+      hasNativeTradeablePerpsBalance: true,
+      fallbackPayTokenCandidate: pendingToken,
+      pendingConfig: {
+        selectedPaymentToken: pendingToken,
+        selectedPaymentTokenSource: 'autoNoPerpsBalance',
+      },
+    });
+
+    renderHook(() => useInitPerpsPaymentToken('BTC'));
+
+    expect(mockSetPayToken).not.toHaveBeenCalled();
+    expect(mockSetSelectedPaymentToken).toHaveBeenCalledWith(null);
+  });
+
+  it('does not restore legacy auto fallback token when native tradeable balance exists', () => {
+    const pendingToken = {
+      address: '0xusdc',
+      chainId: '0xa4b1',
+      description: 'USDC',
+    };
+    setupDefaults({
+      hasNativeTradeablePerpsBalance: true,
+      fallbackPayTokenCandidate: pendingToken,
+      pendingConfig: {
+        selectedPaymentToken: pendingToken,
+      },
+    });
+
+    renderHook(() => useInitPerpsPaymentToken('BTC'));
+
+    expect(mockSetPayToken).not.toHaveBeenCalled();
+    expect(mockSetSelectedPaymentToken).toHaveBeenCalledWith(null);
+  });
+
+  it('restores explicit pending token when native tradeable balance exists', () => {
+    const pendingToken = {
+      address: '0xdai',
+      chainId: '0x1',
+      description: 'DAI',
+    };
+    setupDefaults({
+      hasNativeTradeablePerpsBalance: true,
+      pendingConfig: {
+        selectedPaymentToken: pendingToken,
+        selectedPaymentTokenSource: 'explicit',
       },
     });
 

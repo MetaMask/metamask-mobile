@@ -115,6 +115,26 @@ export function getSpotBalance(
   );
 }
 
+export function getSpotBalanceByCoin(
+  spotState: SpotClearinghouseStateResponse | null | undefined,
+  coin: string,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  const matchingBalance = spotState.balances.find(
+    (balance: { coin?: string }) => balance.coin === coin,
+  );
+
+  if (!matchingBalance) {
+    return 0;
+  }
+
+  const value = parseFloat(matchingBalance.total ?? '0');
+  return Number.isFinite(value) ? value : 0;
+}
+
 export function addSpotBalanceToAccountState(
   accountState: AccountState,
   spotState?: SpotClearinghouseStateResponse | null,
@@ -138,6 +158,31 @@ export function addSpotBalanceToAccountState(
   };
 }
 
+export function addSpotUsdcToAvailableToTradeBalance(
+  accountState: AccountState,
+  spotState?: SpotClearinghouseStateResponse | null,
+): AccountState {
+  const spotUsdcBalance = getSpotBalanceByCoin(spotState, 'USDC');
+
+  if (spotUsdcBalance === 0) {
+    return accountState;
+  }
+
+  const currentAvailableToTrade = parseFloat(
+    accountState.availableToTradeBalance ?? accountState.availableBalance,
+  );
+  if (!Number.isFinite(currentAvailableToTrade)) {
+    return accountState;
+  }
+
+  return {
+    ...accountState,
+    availableToTradeBalance: (
+      currentAvailableToTrade + spotUsdcBalance
+    ).toString(),
+  };
+}
+
 /**
  * Aggregate multiple per-DEX AccountState objects into one by summing numeric fields.
  * ROE is recalculated as (totalUnrealizedPnl / totalMarginUsed) * 100.
@@ -148,6 +193,7 @@ export function addSpotBalanceToAccountState(
 export function aggregateAccountStates(states: AccountState[]): AccountState {
   const fallback: AccountState = {
     availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    availableToTradeBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
     unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
@@ -165,6 +211,10 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
     return {
       availableBalance: (
         parseFloat(acc.availableBalance) + parseFloat(state.availableBalance)
+      ).toString(),
+      availableToTradeBalance: (
+        parseFloat(acc.availableToTradeBalance ?? acc.availableBalance) +
+        parseFloat(state.availableToTradeBalance ?? state.availableBalance)
       ).toString(),
       totalBalance: (
         parseFloat(acc.totalBalance) + parseFloat(state.totalBalance)

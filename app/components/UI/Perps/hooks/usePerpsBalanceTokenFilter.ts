@@ -83,7 +83,10 @@ export function usePerpsBalanceTokenFilter(): (
         return tokens;
       }
 
-      const availableBalance = perpsAccount?.availableBalance || '0';
+      const availableBalance =
+        perpsAccount?.availableToTradeBalance ??
+        perpsAccount?.availableBalance ??
+        '0';
       const balanceInSelectedCurrency = formatFiat(
         new BigNumber(availableBalance),
       );
@@ -134,6 +137,7 @@ export function usePerpsBalanceTokenFilter(): (
       formatFiat,
       onPerpsPaymentTokenChange,
       isPerpsBalanceSelected,
+      perpsAccount?.availableToTradeBalance,
       perpsAccount?.availableBalance,
       transactionMeta,
     ],

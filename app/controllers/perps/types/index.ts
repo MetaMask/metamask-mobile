@@ -59,6 +59,8 @@ export type GetUserHistoryParams = {
 };
 
 // Trade configuration saved per market per network
+export type SelectedPaymentTokenSource = 'explicit' | 'autoNoPerpsBalance';
+
 export type TradeConfiguration = {
   leverage?: number; // Last used leverage for this market
   // Pending trade configuration (temporary, expires after 5 minutes)
@@ -69,6 +71,8 @@ export type TradeConfiguration = {
     stopLossPrice?: string; // Stop loss price
     limitPrice?: string; // Limit price (for limit orders)
     orderType?: OrderType; // Market vs limit
+    selectedPaymentToken?: PerpsSelectedPaymentToken | null; // Saved custom token selection
+    selectedPaymentTokenSource?: SelectedPaymentTokenSource; // Whether the saved token was explicit or auto-selected fallback
     timestamp: number; // When the config was saved (for expiration check)
   };
 };
@@ -213,6 +217,7 @@ export type Position = {
 // Using 'type' instead of 'interface' for BaseController Json compatibility
 export type AccountState = {
   availableBalance: string; // Based on HyperLiquid: withdrawable
+  availableToTradeBalance?: string; // Buying power for order entry (HyperLiquid: withdrawable + supported spot USDC)
   totalBalance: string; // Based on HyperLiquid: accountValue
   marginUsed: string; // Based on HyperLiquid: marginUsed
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl

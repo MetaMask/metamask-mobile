@@ -3799,6 +3799,48 @@ describe('PerpsOrderView', () => {
         getByTestId('perps-order-view-place-order-button'),
       ).toBeOnTheScreen();
     });
+
+    it('should use availableToTradeBalance when availableBalance is zero', () => {
+      (usePerpsLiveAccount as jest.Mock).mockReturnValue({
+        account: {
+          availableBalance: '0',
+          availableToTradeBalance: '10000',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '10000',
+        },
+        isInitialLoading: false,
+      });
+
+      (useMinimumOrderAmount as jest.Mock).mockReturnValue({
+        minimumOrderAmount: 10,
+        isLoading: false,
+      });
+
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsOrderContext,
+        orderForm: {
+          ...defaultMockHooks.usePerpsOrderContext.orderForm,
+          amount: '100',
+          leverage: 2,
+        },
+        balanceForValidation: 10000,
+      });
+
+      const { getByTestId, queryByText } = render(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <TestWrapper>
+            <PerpsOrderView />
+          </TestWrapper>
+        </SafeAreaProvider>,
+      );
+
+      expect(queryByText('Insufficient funds')).toBeNull();
+      expect(
+        getByTestId('perps-order-view-place-order-button'),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Order header interactions', () => {

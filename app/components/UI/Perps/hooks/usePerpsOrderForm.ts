@@ -89,14 +89,17 @@ export function usePerpsOrderForm(
     selectPendingTradeConfiguration(state, initialAsset),
   );
 
-  const availableBalance = Number.parseFloat(
+  const availableToTradeBalance = Number.parseFloat(
     effectiveAvailableBalanceParam != null
       ? effectiveAvailableBalanceParam.toString()
-      : (account?.availableBalance?.toString() ?? '0'),
+      : (account?.availableToTradeBalance?.toString() ??
+          account?.availableBalance?.toString() ??
+          '0'),
   );
 
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
-  const balanceForMax = effectiveAvailableBalanceParam ?? availableBalance;
+  const balanceForMax =
+    effectiveAvailableBalanceParam ?? availableToTradeBalance;
 
   // Determine default amount based on network
   const defaultAmount =
@@ -161,8 +164,8 @@ export function usePerpsOrderForm(
   const initialMarginRequired =
     Number.parseFloat(initialAmountValue) / defaultLeverage;
   const initialBalancePercent =
-    availableBalance > 0
-      ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
+    availableToTradeBalance > 0
+      ? Math.min((initialMarginRequired / availableToTradeBalance) * 100, 100)
       : TRADING_DEFAULTS.marginPercent;
 
   // Initialize form state with pending config if available

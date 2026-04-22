@@ -132,6 +132,7 @@ export const selectPendingTradeConfiguration = createSelector(
         limitPrice?: string;
         orderType?: 'market' | 'limit';
         selectedPaymentToken?: PerpsSelectedPaymentToken | null;
+        selectedPaymentTokenSource?: 'explicit' | 'autoNoPerpsBalance';
       }
     | undefined => {
     const network = isTestnet ? 'testnet' : 'mainnet';

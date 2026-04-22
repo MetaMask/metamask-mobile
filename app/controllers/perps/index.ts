@@ -241,6 +241,7 @@ export type {
   MarketDataFormatters,
   PaymentToken,
   PerpsSelectedPaymentToken,
+  SelectedPaymentTokenSource,
   VersionGatedFeatureFlag,
 } from './types';
 export {

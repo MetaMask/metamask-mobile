@@ -1,4 +1,7 @@
-import type { PerpsSelectedPaymentToken } from '@metamask/perps-controller';
+import type {
+  AccountState,
+  PerpsSelectedPaymentToken,
+} from '@metamask/perps-controller';
 import type { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -18,16 +21,117 @@ import {
 import { usePerpsNetwork } from './index';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
-/**
- * When the user has no perps balance and the pay-with-any-token allowlist is enabled,
- * returns the allowlist token with the highest balance to use as the default payment method.
- * Otherwise returns null (caller should default to "Perps balance").
- */
-export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPaymentToken | null {
+function getTradeablePerpsBalance(
+  perpsAccount:
+    | Pick<AccountState, 'availableBalance' | 'availableToTradeBalance'>
+    | null
+    | undefined,
+): number {
+  return Number.parseFloat(
+    perpsAccount?.availableToTradeBalance?.toString() ??
+      perpsAccount?.availableBalance?.toString() ??
+      '0',
+  );
+}
+
+function getIsNativeTradeablePerpsBalanceAvailable(
+  perpsAccount:
+    | Pick<AccountState, 'availableBalance' | 'availableToTradeBalance'>
+    | null
+    | undefined,
+): boolean {
+  return getTradeablePerpsBalance(perpsAccount) > PERPS_MIN_BALANCE_THRESHOLD;
+}
+
+function arePaymentTokensEqual(
+  tokenA: Pick<PerpsSelectedPaymentToken, 'address' | 'chainId'> | null,
+  tokenB: Pick<PerpsSelectedPaymentToken, 'address' | 'chainId'> | null,
+): boolean {
+  if (!tokenA || !tokenB) {
+    return false;
+  }
+
+  return tokenA.address === tokenB.address && tokenA.chainId === tokenB.chainId;
+}
+
+function getPreferredFallbackPayTokenCandidate(params: {
+  featureEnabled: boolean;
+  allowlistAssets?: string[];
+  activeProvider?: string;
+  currentNetwork: ReturnType<typeof usePerpsNetwork>;
+  paymentTokens: ReturnType<typeof usePerpsPaymentTokens>;
+}): PerpsSelectedPaymentToken | null {
+  const {
+    featureEnabled,
+    allowlistAssets,
+    activeProvider,
+    currentNetwork,
+    paymentTokens,
+  } = params;
+
+  if (!featureEnabled || !allowlistAssets?.length) {
+    return null;
+  }
+
+  const allowSet = new Set(allowlistAssets);
+  const effectiveProvider =
+    activeProvider === 'aggregated' || activeProvider === undefined
+      ? PROVIDER_CONFIG.DefaultProvider
+      : activeProvider;
+  const perpsProviderChainId = getPerpsProviderChainId(
+    effectiveProvider,
+    currentNetwork,
+  );
+
+  const allowlistTokens = paymentTokens.filter((token) => {
+    if (
+      perpsProviderChainId !== undefined &&
+      token.chainId === perpsProviderChainId
+    ) {
+      return false;
+    }
+
+    const key = `${token.chainId}.${(token.address ?? '').toLowerCase()}`;
+    return allowSet.has(key);
+  });
+
+  if (allowlistTokens.length === 0) {
+    return null;
+  }
+
+  const top = allowlistTokens
+    .map((token) => ({
+      ...token,
+      balanceFiat: Number.parseFloat(
+        token.balanceFiat?.replace('US$', '').trim() || '0',
+      ),
+    }))
+    .sort((tokenA, tokenB) => tokenB.balanceFiat - tokenA.balanceFiat)[0];
+
+  if (top.balanceFiat < PERPS_MIN_BALANCE_THRESHOLD) {
+    return null;
+  }
+
+  return {
+    address: top.address as Hex,
+    chainId: top.chainId as Hex,
+    description: top.symbol,
+  };
+}
+
+export function useHasNativeTradeablePerpsBalance(): boolean {
+  const perpsAccount = useSelector(selectPerpsAccountState);
+
+  return useMemo(
+    () => getIsNativeTradeablePerpsBalanceAvailable(perpsAccount),
+    [perpsAccount],
+  );
+}
+
+export function usePreferredFallbackPayTokenCandidate(): PerpsSelectedPaymentToken | null {
   const featureEnabled = useSelector(
     selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag,
   );
-  const perpsAccount = useSelector(selectPerpsAccountState);
   const allowlistAssets = useSelector(
     selectPerpsPayWithAnyTokenAllowlistAssets,
   );
@@ -35,71 +139,40 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
   const currentNetwork = usePerpsNetwork();
   const paymentTokens = usePerpsPaymentTokens();
 
-  return useMemo(() => {
-    if (!featureEnabled) {
-      return null;
-    }
-    // Gate on availableBalance (spendable): order-form pay-token preselection
-    // must fire when withdrawable is 0 but totalBalance > 0 (spot-funded or
-    // margin-locked). The CTA consumer layers its own totalBalance guard on
-    // top of this hook's result to hide "Add Funds" for spot-funded accounts.
-    const availableBalance = Number.parseFloat(
-      perpsAccount?.availableBalance?.toString() ?? '0',
-    );
-
-    if (availableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
-      return null;
-    }
-    if (!allowlistAssets?.length) {
-      return null;
-    }
-
-    const allowSet = new Set(allowlistAssets);
-    const effectiveProvider =
-      activeProvider === 'aggregated' || activeProvider === undefined
-        ? PROVIDER_CONFIG.DefaultProvider
-        : activeProvider;
-    const perpsProviderChainId = getPerpsProviderChainId(
-      effectiveProvider,
+  return useMemo(
+    () =>
+      getPreferredFallbackPayTokenCandidate({
+        featureEnabled,
+        allowlistAssets,
+        activeProvider,
+        currentNetwork,
+        paymentTokens,
+      }),
+    [
+      featureEnabled,
+      allowlistAssets,
+      activeProvider,
       currentNetwork,
-    );
+      paymentTokens,
+    ],
+  );
+}
 
-    const allowlistTokens = paymentTokens.filter((token) => {
-      if (
-        perpsProviderChainId !== undefined &&
-        token.chainId === perpsProviderChainId
-      )
-        return false;
-      const key = `${token.chainId}.${(token.address ?? '').toLowerCase()}`;
-      return allowSet.has(key);
-    });
+export { arePaymentTokensEqual };
 
-    if (allowlistTokens.length === 0) return null;
+/**
+ * Returns the default fallback pay token only when native Perps tradeable balance
+ * is unavailable. Otherwise returns null so the caller defaults to "Perps balance".
+ */
+export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPaymentToken | null {
+  const hasNativeTradeablePerpsBalance = useHasNativeTradeablePerpsBalance();
+  const fallbackCandidate = usePreferredFallbackPayTokenCandidate();
 
-    const tokensWithBalance = allowlistTokens
-      .map((token) => ({
-        ...token,
-        balanceFiat: Number.parseFloat(
-          token.balanceFiat?.replace('US$', '').trim() || '0',
-        ),
-      }))
-      .sort((a, b) => b.balanceFiat - a.balanceFiat);
+  return useMemo(() => {
+    if (hasNativeTradeablePerpsBalance) {
+      return null;
+    }
 
-    const top = tokensWithBalance[0];
-
-    if (top.balanceFiat < PERPS_MIN_BALANCE_THRESHOLD) return null;
-
-    return {
-      address: top.address as Hex,
-      chainId: top.chainId as Hex,
-      description: top.symbol,
-    };
-  }, [
-    featureEnabled,
-    perpsAccount?.availableBalance,
-    allowlistAssets,
-    activeProvider,
-    currentNetwork,
-    paymentTokens,
-  ]);
+    return fallbackCandidate;
+  }, [hasNativeTradeablePerpsBalance, fallbackCandidate]);
 }

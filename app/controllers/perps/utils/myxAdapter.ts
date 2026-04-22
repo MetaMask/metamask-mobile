@@ -466,6 +466,7 @@ export function adaptAccountStateFromMYX(
 
   return {
     availableBalance: availableBalance.toString(),
+    availableToTradeBalance: availableBalance.toString(),
     totalBalance: totalBalance.toString(),
     marginUsed: marginUsed.toString(),
     unrealizedPnl: unrealizedPnl.toString(),

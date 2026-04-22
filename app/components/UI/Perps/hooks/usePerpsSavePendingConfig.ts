@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
-import { type OrderFormState } from '@metamask/perps-controller';
+import {
+  type OrderFormState,
+  type SelectedPaymentTokenSource,
+} from '@metamask/perps-controller';
 import { usePerpsPayWithToken } from './useIsPerpsBalanceSelected';
+import {
+  arePaymentTokensEqual,
+  useDefaultPayWithTokenWhenNoPerpsBalance,
+} from './useDefaultPayWithTokenWhenNoPerpsBalance';
 
 /**
  * Hook to save pending trade configuration when user navigates away from the trade screen
@@ -11,6 +18,23 @@ import { usePerpsPayWithToken } from './useIsPerpsBalanceSelected';
 export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
   const { PerpsController } = Engine.context;
   const selectedPaymentToken = usePerpsPayWithToken();
+  const defaultPayTokenWhenNoPerpsBalance =
+    useDefaultPayWithTokenWhenNoPerpsBalance();
+
+  const selectedPaymentTokenSource = useMemo<
+    SelectedPaymentTokenSource | undefined
+  >(() => {
+    if (!selectedPaymentToken) {
+      return undefined;
+    }
+
+    return arePaymentTokensEqual(
+      selectedPaymentToken,
+      defaultPayTokenWhenNoPerpsBalance,
+    )
+      ? 'autoNoPerpsBalance'
+      : 'explicit';
+  }, [defaultPayTokenWhenNoPerpsBalance, selectedPaymentToken]);
 
   const config = useMemo(
     () => ({
@@ -27,6 +51,7 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
             chainId: selectedPaymentToken.chainId,
           }
         : null,
+      ...(selectedPaymentToken && { selectedPaymentTokenSource }),
     }),
     [
       orderForm.amount,
@@ -36,6 +61,7 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
       orderForm.limitPrice,
       orderForm.type,
       selectedPaymentToken,
+      selectedPaymentTokenSource,
     ],
   );
 

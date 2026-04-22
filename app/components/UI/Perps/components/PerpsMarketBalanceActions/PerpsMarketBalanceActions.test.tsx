@@ -312,6 +312,7 @@ describe('PerpsMarketBalanceActions', () => {
   const defaultPerpsAccount = {
     totalBalance: '10.57',
     availableBalance: '10.57',
+    availableToTradeBalance: '10.57',
     marginUsed: '0.00',
     totalUSDBalance: 10.57,
     positions: [],
@@ -447,6 +448,29 @@ describe('PerpsMarketBalanceActions', () => {
           PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('uses availableToTradeBalance when availableBalance is zero', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...defaultPerpsAccount,
+          availableBalance: '0',
+          availableToTradeBalance: '100.77',
+        },
+        isInitialLoading: false,
+        isLoading: false,
+        error: null,
+      });
+
+      const { queryByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(queryByText('$100.77')).toBeOnTheScreen();
+      expect(queryByText('$0')).toBeNull();
+      expect(queryByText('$0.00')).toBeNull();
     });
 
     it('returns null when no perps account is available', () => {

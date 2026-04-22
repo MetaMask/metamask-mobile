@@ -5,11 +5,18 @@ import Engine from '../../../../../core/Engine';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePerpsPayWithToken } from '../../hooks/useIsPerpsBalanceSelected';
-import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
+import {
+  arePaymentTokensEqual,
+  useDefaultPayWithTokenWhenNoPerpsBalance,
+  useHasNativeTradeablePerpsBalance,
+  usePreferredFallbackPayTokenCandidate,
+} from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 
 export function useInitPerpsPaymentToken(initialAsset: string) {
   const { payToken, setPayToken } = useTransactionPayToken();
   const selectedPaymentToken = usePerpsPayWithToken();
+  const hasNativeTradeablePerpsBalance = useHasNativeTradeablePerpsBalance();
+  const fallbackPayTokenCandidate = usePreferredFallbackPayTokenCandidate();
   const defaultPayTokenWhenNoPerpsBalance =
     useDefaultPayWithTokenWhenNoPerpsBalance();
 
@@ -17,6 +24,8 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
     selectPendingTradeConfiguration(state, initialAsset),
   );
   const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
+  const pendingConfigSelectedPaymentTokenSource =
+    pendingConfig?.selectedPaymentTokenSource;
 
   const appliedPendingTokenRef = useRef<
     { address: string; chainId: string } | null | undefined
@@ -74,6 +83,19 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
 
     const pendingAddr = pendingConfigSelectedPaymentToken.address;
     const pendingChainId = pendingConfigSelectedPaymentToken.chainId;
+    const isLegacyAutoFallbackToken =
+      pendingConfigSelectedPaymentTokenSource == null &&
+      arePaymentTokensEqual(
+        pendingConfigSelectedPaymentToken,
+        fallbackPayTokenCandidate,
+      );
+    const isAutoFallbackToken =
+      pendingConfigSelectedPaymentTokenSource === 'autoNoPerpsBalance' ||
+      isLegacyAutoFallbackToken;
+    const shouldRestorePendingToken =
+      pendingConfigSelectedPaymentTokenSource === 'explicit' ||
+      !isAutoFallbackToken ||
+      !hasNativeTradeablePerpsBalance;
     const alreadyApplied =
       appliedPendingTokenRef.current !== undefined &&
       (appliedPendingTokenRef.current === null
@@ -81,6 +103,15 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
         : appliedPendingTokenRef.current.address === pendingAddr &&
           appliedPendingTokenRef.current.chainId === pendingChainId);
     if (alreadyApplied) return;
+
+    if (!shouldRestorePendingToken) {
+      appliedPendingTokenRef.current = {
+        address: pendingAddr,
+        chainId: pendingChainId,
+      };
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
+      return;
+    }
 
     appliedPendingTokenRef.current = {
       address: pendingAddr,
@@ -105,9 +136,12 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
       });
     }
   }, [
+    fallbackPayTokenCandidate,
+    hasNativeTradeablePerpsBalance,
     initialAsset,
     payToken,
     pendingConfigSelectedPaymentToken,
+    pendingConfigSelectedPaymentTokenSource,
     setPayToken,
     selectedPaymentToken,
   ]);

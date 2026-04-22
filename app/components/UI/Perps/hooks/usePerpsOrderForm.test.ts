@@ -470,6 +470,29 @@ describe('usePerpsOrderForm', () => {
         TRADING_DEFAULTS.amount.mainnet.toString(),
       );
     });
+
+    it('should use availableToTradeBalance when availableBalance is zero', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          availableToTradeBalance: '5',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '5',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.orderForm.amount).toBe(
+        TRADING_DEFAULTS.amount.mainnet.toString(),
+      );
+      expect(result.current.balanceForValidation).toBe(5);
+    });
   });
 
   describe('useMemo and useEffect behavior', () => {

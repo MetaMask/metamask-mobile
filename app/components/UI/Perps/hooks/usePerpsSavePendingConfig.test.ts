@@ -3,6 +3,7 @@ import { type OrderFormState } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { usePerpsSavePendingConfig } from './usePerpsSavePendingConfig';
 import { usePerpsPayWithToken } from './useIsPerpsBalanceSelected';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from './useDefaultPayWithTokenWhenNoPerpsBalance';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -17,12 +18,24 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('./useIsPerpsBalanceSelected', () => ({
   usePerpsPayWithToken: jest.fn(),
 }));
+jest.mock('./useDefaultPayWithTokenWhenNoPerpsBalance', () => ({
+  useDefaultPayWithTokenWhenNoPerpsBalance: jest.fn(),
+  arePaymentTokensEqual: jest.fn(
+    (tokenA, tokenB) =>
+      tokenA?.address === tokenB?.address &&
+      tokenA?.chainId === tokenB?.chainId,
+  ),
+}));
 
 const mockSavePendingTradeConfiguration = Engine.context.PerpsController
   .savePendingTradeConfiguration as jest.Mock;
 const mockUsePerpsPayWithToken = usePerpsPayWithToken as jest.MockedFunction<
   typeof usePerpsPayWithToken
 >;
+const mockUseDefaultPayToken =
+  useDefaultPayWithTokenWhenNoPerpsBalance as jest.MockedFunction<
+    typeof useDefaultPayWithTokenWhenNoPerpsBalance
+  >;
 
 describe('usePerpsSavePendingConfig', () => {
   const defaultOrderForm: OrderFormState = {
@@ -40,6 +53,7 @@ describe('usePerpsSavePendingConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsPayWithToken.mockReturnValue(null);
+    mockUseDefaultPayToken.mockReturnValue(null);
   });
 
   it('calls savePendingTradeConfiguration on unmount with asset and config', () => {
@@ -85,6 +99,38 @@ describe('usePerpsSavePendingConfig', () => {
         address: '0xusdc',
         chainId: '0xa4b1',
       },
+      selectedPaymentTokenSource: 'explicit',
+    });
+  });
+
+  it('marks selected payment token as auto fallback when it matches the default token', () => {
+    const defaultToken = {
+      description: 'USDC',
+      address: '0xusdc',
+      chainId: '0xa4b1',
+    };
+    mockUsePerpsPayWithToken.mockReturnValue(defaultToken);
+    mockUseDefaultPayToken.mockReturnValue(defaultToken);
+
+    const { unmount } = renderHook(() =>
+      usePerpsSavePendingConfig(defaultOrderForm),
+    );
+
+    unmount();
+
+    expect(mockSavePendingTradeConfiguration).toHaveBeenCalledWith('BTC', {
+      amount: '100',
+      leverage: 10,
+      takeProfitPrice: '',
+      stopLossPrice: '',
+      limitPrice: '',
+      orderType: 'market',
+      selectedPaymentToken: {
+        description: 'USDC',
+        address: '0xusdc',
+        chainId: '0xa4b1',
+      },
+      selectedPaymentTokenSource: 'autoNoPerpsBalance',
     });
   });
 

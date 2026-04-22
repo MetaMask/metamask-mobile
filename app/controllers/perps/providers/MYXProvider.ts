@@ -687,6 +687,7 @@ export class MYXProvider implements PerpsProvider {
       });
       return {
         availableBalance: '0',
+        availableToTradeBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',

@@ -50,6 +50,7 @@ describe('usePerpsPaymentTokens', () => {
 
   const mockAccountState: AccountState = {
     availableBalance: '1000.50',
+    availableToTradeBalance: '1000.50',
     marginUsed: '300.25',
     unrealizedPnl: '50.25',
     returnOnEquity: '0',
@@ -280,6 +281,7 @@ describe('usePerpsPaymentTokens', () => {
       const zeroBalanceAccountState = {
         ...mockAccountState,
         availableBalance: '0',
+        availableToTradeBalance: '0',
       };
 
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -292,6 +294,23 @@ describe('usePerpsPaymentTokens', () => {
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.balance).toBe('0');
       expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
+    });
+
+    it('uses availableToTradeBalance when availableBalance is zero', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccountState,
+          availableBalance: '0',
+          availableToTradeBalance: '100.77',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsPaymentTokens());
+
+      const hyperliquidUsdc = result.current[0];
+      expect(hyperliquidUsdc.balance).toBe('100770000');
+      expect(hyperliquidUsdc.balanceFiat).toBe('$100.77');
     });
 
     it('handles null account state', () => {

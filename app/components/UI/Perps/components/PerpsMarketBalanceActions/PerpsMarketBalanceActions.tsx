@@ -182,7 +182,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     [stopBalanceAnimation],
   );
 
-  const availableBalance = perpsAccount?.availableBalance || '0';
+  const availableBalance =
+    perpsAccount?.availableToTradeBalance ??
+    perpsAccount?.availableBalance ??
+    '0';
 
   // Show skeleton while loading initial account data
   if (isInitialLoading) {

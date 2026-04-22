@@ -3688,6 +3688,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('includes spot balance exactly once in streamed totalBalance across multiple DEXs', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '0',
+        availableToTradeBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -3743,6 +3744,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const accountState = mockCallback.mock.calls.at(-1)[0];
       expect(accountState.totalBalance).toBe('100.76531791');
       expect(accountState.availableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('100.76531791');
       expect(accountState.subAccountBreakdown).toEqual({
         main: { availableBalance: '0', totalBalance: '0' },
         xyz: { availableBalance: '0', totalBalance: '0' },
@@ -3755,6 +3757,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('includes spot balance in webData2 (single-DEX) account updates without flickering', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '50',
+        availableToTradeBalance: '50',
         totalBalance: '200',
         marginUsed: '10',
         unrealizedPnl: '5',
@@ -3803,6 +3806,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const firstUpdate = mockCallback.mock.calls.at(-1)[0];
       expect(firstUpdate.totalBalance).toBe('300.76531791');
       expect(firstUpdate.availableBalance).toBe('50');
+      expect(firstUpdate.availableToTradeBalance).toBe('150.76531791');
 
       // Simulate a second WebSocket tick — should still include spot balance,
       // not revert to perps-only 200.

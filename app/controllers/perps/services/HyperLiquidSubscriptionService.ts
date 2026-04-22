@@ -40,6 +40,7 @@ import type {
 } from '../types';
 import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
 import {
+  addSpotUsdcToAvailableToTradeBalance,
   addSpotBalanceToAccountState,
   calculateWeightedReturnOnEquity,
 } from '../utils/accountUtils';
@@ -702,7 +703,9 @@ export class HyperLiquidSubscriptionService {
   }
 
   #hashAccountState(account: AccountState): string {
-    return `${account.availableBalance}:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
+    return `${account.availableBalance}:${
+      account.availableToTradeBalance ?? account.availableBalance
+    }:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
   }
 
   // Cache hashes to avoid recomputation
@@ -961,6 +964,7 @@ export class HyperLiquidSubscriptionService {
       { availableBalance: string; totalBalance: string }
     > = {};
     let totalAvailableBalance = 0;
+    let totalAvailableToTradeBalance = 0;
     let totalBalance = 0;
     let totalMarginUsed = 0;
     let totalUnrealizedPnl = 0;
@@ -980,6 +984,9 @@ export class HyperLiquidSubscriptionService {
           totalBalance: state.totalBalance,
         };
         totalAvailableBalance += parseFloat(state.availableBalance);
+        totalAvailableToTradeBalance += parseFloat(
+          state.availableToTradeBalance ?? state.availableBalance,
+        );
         totalBalance += parseFloat(state.totalBalance);
         totalMarginUsed += parseFloat(state.marginUsed);
         totalUnrealizedPnl += parseFloat(state.unrealizedPnl);
@@ -999,16 +1006,20 @@ export class HyperLiquidSubscriptionService {
     // Calculate weighted returnOnEquity across all DEXs
     const returnOnEquity = calculateWeightedReturnOnEquity(accountStatesForROE);
 
-    return addSpotBalanceToAccountState(
-      {
-        ...firstDexAccount,
-        availableBalance: totalAvailableBalance.toString(),
-        totalBalance: totalBalance.toString(),
-        marginUsed: totalMarginUsed.toString(),
-        unrealizedPnl: totalUnrealizedPnl.toString(),
-        subAccountBreakdown,
-        returnOnEquity,
-      },
+    return addSpotUsdcToAvailableToTradeBalance(
+      addSpotBalanceToAccountState(
+        {
+          ...firstDexAccount,
+          availableBalance: totalAvailableBalance.toString(),
+          availableToTradeBalance: totalAvailableToTradeBalance.toString(),
+          totalBalance: totalBalance.toString(),
+          marginUsed: totalMarginUsed.toString(),
+          unrealizedPnl: totalUnrealizedPnl.toString(),
+          subAccountBreakdown,
+          returnOnEquity,
+        },
+        this.#cachedSpotState,
+      ),
       this.#cachedSpotState,
     );
   }
@@ -1534,8 +1545,11 @@ export class HyperLiquidSubscriptionService {
               // Notify subscribers (no aggregation needed - only main DEX).
               // Apply spot balance so single-DEX accounts see the same
               // spot-inclusive totalBalance as the HIP-3 aggregation path.
-              const spotAdjustedAccount = addSpotBalanceToAccountState(
-                accountState,
+              const spotAdjustedAccount = addSpotUsdcToAvailableToTradeBalance(
+                addSpotBalanceToAccountState(
+                  accountState,
+                  this.#cachedSpotState,
+                ),
                 this.#cachedSpotState,
               );
 

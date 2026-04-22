@@ -4608,6 +4608,7 @@ export class PerpsController extends BaseController<
    * @param config.limitPrice - The limit price.
    * @param config.orderType - The order type.
    * @param config.selectedPaymentToken - The selected payment token.
+   * @param config.selectedPaymentTokenSource - Whether the saved token was explicit or an auto-selected fallback.
    */
   savePendingTradeConfiguration(
     symbol: string,
@@ -4620,6 +4621,7 @@ export class PerpsController extends BaseController<
       orderType?: OrderType;
       /** When user used pay-with-token in PerpsPayRow: minimal token shape to restore selection */
       selectedPaymentToken?: PerpsSelectedPaymentToken | null;
+      selectedPaymentTokenSource?: 'explicit' | 'autoNoPerpsBalance';
     },
   ): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -4663,6 +4665,7 @@ export class PerpsController extends BaseController<
         limitPrice?: string;
         orderType?: OrderType;
         selectedPaymentToken?: PerpsSelectedPaymentToken | null;
+        selectedPaymentTokenSource?: 'explicit' | 'autoNoPerpsBalance';
       }
     | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
