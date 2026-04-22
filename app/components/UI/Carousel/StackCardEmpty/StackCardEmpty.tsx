@@ -36,59 +36,61 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
 }) => {
   const tw = useTailwind();
   const riveRef = useRef<RiveRef>(null);
-  const hasTriggeredAnimation = useRef(false);
-  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   const [riveError, setRiveError] = useState(false);
 
-  // Fire the confetti animation when the card transitions to full visibility (becomes current)
-  useEffect(() => {
-    // Use animated value listener to detect when opacity reaches ~1 (fully visible)
-    const listenerId = emptyStateOpacity.addListener(({ value }) => {
-      // Trigger animation when opacity is close to 1 (card is fully visible/current)
-      if (
-        value >= OPACITY_TRIGGER_THRESHOLD &&
-        !hasTriggeredAnimation.current
-      ) {
-        // Clear any existing timeout before creating a new one
-        if (timeoutIdRef.current) {
-          clearTimeout(timeoutIdRef.current);
-        }
+  // Keep the latest callback in a ref so the parent re-rendering (which passes
+  // a new inline arrow each time) doesn't tear down the timers below.
+  const onTransitionToEmptyRef = useRef(onTransitionToEmpty);
+  onTransitionToEmptyRef.current = onTransitionToEmpty;
 
-        timeoutIdRef.current = setTimeout(() => {
-          if (riveRef.current && !hasTriggeredAnimation.current) {
-            try {
-              // Fire the Confetti state machine with "Start" trigger
-              riveRef.current.fireState('Confetti', 'Start');
-              hasTriggeredAnimation.current = true;
-            } catch (error) {
-              console.warn('Error triggering Rive confetti animation:', error);
-            }
-          }
-          timeoutIdRef.current = null;
-        }, CONFETTI_TRIGGER_DELAY);
+  // Fire confetti and start the idle-dismiss timer once the card is fully visible.
+  useEffect(() => {
+    let listenerId: string | null = null;
+    let confettiTimer: NodeJS.Timeout | null = null;
+    let dismissTimer: NodeJS.Timeout | null = null;
+
+    const onVisible = () => {
+      if (listenerId !== null) {
+        emptyStateOpacity.removeListener(listenerId);
+        listenerId = null;
       }
+
+      confettiTimer = setTimeout(() => {
+        try {
+          riveRef.current?.fireState('Confetti', 'Start');
+        } catch (error) {
+          console.warn('Error triggering Rive confetti animation:', error);
+        }
+      }, CONFETTI_TRIGGER_DELAY);
+
+      dismissTimer = setTimeout(
+        () => onTransitionToEmptyRef.current?.(),
+        CONFETTI_TRIGGER_DELAY + ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME,
+      );
+    };
+
+    listenerId = emptyStateOpacity.addListener(({ value }) => {
+      if (value >= OPACITY_TRIGGER_THRESHOLD) onVisible();
     });
 
+    // addListener doesn't fire with the current value; handle the case where
+    // the card mounts already at full opacity.
+    const initialValue = (
+      emptyStateOpacity as Animated.Value & { __getValue?: () => number }
+    ).__getValue?.();
+    if (
+      typeof initialValue === 'number' &&
+      initialValue >= OPACITY_TRIGGER_THRESHOLD
+    ) {
+      onVisible();
+    }
+
     return () => {
-      emptyStateOpacity.removeListener(listenerId);
-      // Clear any pending timeout when the effect cleanup runs
-      if (timeoutIdRef.current) {
-        clearTimeout(timeoutIdRef.current);
-        timeoutIdRef.current = null;
-      }
+      if (listenerId !== null) emptyStateOpacity.removeListener(listenerId);
+      if (confettiTimer) clearTimeout(confettiTimer);
+      if (dismissTimer) clearTimeout(dismissTimer);
     };
   }, [emptyStateOpacity]);
-
-  // Auto-dismiss empty card after 2000ms when rendered
-  useEffect(() => {
-    if (onTransitionToEmpty) {
-      const timer = setTimeout(() => {
-        onTransitionToEmpty();
-      }, ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME);
-
-      return () => clearTimeout(timer);
-    }
-  }, [onTransitionToEmpty]);
 
   return (
     <Animated.View

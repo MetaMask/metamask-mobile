@@ -19,8 +19,15 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneyProgressBar from '../MoneyProgressBar';
 import { MoneyOnboardingCardTestIds } from './MoneyOnboardingCard.testIds';
 
+const NOOP = () => undefined;
+
 interface MoneyOnboardingCardProps {
   /**
+   * Handler fired when the CTA button is pressed.
+   */
+  onCtaPress?: () => void;
+  /**
+   * @deprecated Use onCtaPress instead.
    * Handler fired when the "Add" action is pressed. Opens the Add money sheet (MUSD-487).
    */
   onAddPress?: () => void;
@@ -34,74 +41,94 @@ interface MoneyOnboardingCardProps {
   totalSteps?: number;
 }
 
+const STEP_CONTENT = {
+  1: {
+    title: 'money.onboarding.title',
+    description: 'money.onboarding.description',
+    cta: 'money.onboarding.add',
+  },
+  2: {
+    title: 'money.onboarding.step2_title',
+    description: 'money.onboarding.step2_description',
+    cta: 'money.onboarding.step2_cta',
+  },
+} as const;
+
 const MoneyOnboardingCard = ({
-  onAddPress = () => undefined,
+  onCtaPress,
+  onAddPress,
   currentStep = 1,
   totalSteps = 2,
-}: MoneyOnboardingCardProps) => (
-  <Box
-    twClassName="mx-4 my-3 rounded-2xl bg-muted overflow-hidden"
-    testID={MoneyOnboardingCardTestIds.CONTAINER}
-  >
-    <Box twClassName="p-4 gap-2">
-      <Text
-        variant={TextVariant.HeadingSm}
-        fontWeight={FontWeight.Bold}
-        testID={MoneyOnboardingCardTestIds.STEP_LABEL}
-      >
-        {strings('money.onboarding.step_progress', {
-          current: currentStep,
-          total: totalSteps,
-        })}
-      </Text>
-      <MoneyProgressBar
-        current={currentStep}
-        total={totalSteps}
-        testID={MoneyOnboardingCardTestIds.PROGRESS_BAR}
-      />
-    </Box>
+}: MoneyOnboardingCardProps) => {
+  const content =
+    STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ?? STEP_CONTENT[1];
+  const handleCtaPress = onCtaPress ?? onAddPress ?? NOOP;
 
+  return (
     <Box
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="h-[202px]"
-      testID={MoneyOnboardingCardTestIds.COIN_ILLUSTRATION}
+      twClassName="mx-4 my-3 rounded-2xl bg-muted overflow-hidden"
+      testID={MoneyOnboardingCardTestIds.CONTAINER}
     >
-      <Icon
-        name={IconName.Stake}
-        size={IconSize.Xl}
-        color={IconColor.IconAlternative}
-      />
-    </Box>
-
-    <Box twClassName="p-4 gap-4">
-      <Box twClassName="gap-1">
+      <Box twClassName="p-4 gap-2">
         <Text
-          variant={TextVariant.HeadingLg}
+          variant={TextVariant.HeadingSm}
           fontWeight={FontWeight.Bold}
-          testID={MoneyOnboardingCardTestIds.TITLE}
+          testID={MoneyOnboardingCardTestIds.STEP_LABEL}
         >
-          {strings('money.onboarding.title')}
+          {strings('money.onboarding.step_progress', {
+            current: currentStep,
+            total: totalSteps,
+          })}
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          testID={MoneyOnboardingCardTestIds.DESCRIPTION}
-        >
-          {strings('money.onboarding.description')}
-        </Text>
+        <MoneyProgressBar
+          current={currentStep}
+          total={totalSteps}
+          testID={MoneyOnboardingCardTestIds.PROGRESS_BAR}
+        />
       </Box>
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        isFullWidth
-        onPress={onAddPress}
-        testID={MoneyOnboardingCardTestIds.ADD_BUTTON}
+
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="h-[202px]"
+        testID={MoneyOnboardingCardTestIds.COIN_ILLUSTRATION}
       >
-        {strings('money.onboarding.add')}
-      </Button>
+        <Icon
+          name={IconName.Stake}
+          size={IconSize.Xl}
+          color={IconColor.IconAlternative}
+        />
+      </Box>
+
+      <Box twClassName="p-4 gap-4">
+        <Box twClassName="gap-1">
+          <Text
+            variant={TextVariant.HeadingLg}
+            fontWeight={FontWeight.Bold}
+            testID={MoneyOnboardingCardTestIds.TITLE}
+          >
+            {strings(content.title)}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={MoneyOnboardingCardTestIds.DESCRIPTION}
+          >
+            {strings(content.description)}
+          </Text>
+        </Box>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleCtaPress}
+          testID={MoneyOnboardingCardTestIds.CTA_BUTTON}
+        >
+          {strings(content.cta)}
+        </Button>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 export default MoneyOnboardingCard;
