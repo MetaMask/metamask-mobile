@@ -856,7 +856,8 @@ export class TradingService {
     provider: PerpsProvider,
     operation: string,
   ): void {
-    provider.refreshLiveAccountState?.().catch((refreshError) => {
+    const refreshPromise = provider.refreshLiveAccountState?.();
+    refreshPromise?.catch((refreshError) => {
       this.#deps.logger.error(
         ensureError(refreshError, 'TradingService.refreshLiveAccountState'),
         {
