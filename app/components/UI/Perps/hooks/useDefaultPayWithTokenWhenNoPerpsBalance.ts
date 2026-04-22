@@ -101,7 +101,7 @@ export function useHasNativeTradeablePerpsBalance(): boolean {
         perpsAccount?.availableToTradeBalance?.toString() ??
           perpsAccount?.availableBalance?.toString() ??
           '0',
-      ) > PERPS_MIN_BALANCE_THRESHOLD,
+      ) >= PERPS_MIN_BALANCE_THRESHOLD,
     [perpsAccount],
   );
 }
