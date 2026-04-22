@@ -425,7 +425,7 @@ describe('AccountBackupStep1', () => {
       const image = wrapper.UNSAFE_getByProps({
         source: SRPDesignDark,
       });
-      expect(image).toBeTruthy();
+      expect(image).toBeOnTheScreen();
     });
 
     it('renders light SRP design image for light theme', () => {
@@ -439,7 +439,7 @@ describe('AccountBackupStep1', () => {
       const image = wrapper.UNSAFE_getByProps({
         source: SRPDesignLight,
       });
-      expect(image).toBeTruthy();
+      expect(image).toBeOnTheScreen();
     });
   });
 });
