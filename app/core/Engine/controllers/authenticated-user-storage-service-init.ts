@@ -7,32 +7,24 @@ import type { MessengerClientInitFunction } from '../types';
 import Logger from '../../../util/Logger';
 
 /**
- * Map the mobile app's `METAMASK_ENVIRONMENT` value onto the environments
- * supported by the authenticated-user-storage package (`dev` | `uat` | `prod`).
+ * Returns the environment to use for the authenticated-user-storage service.
  *
- * - `production` / `beta` / `rc` → `prod`
- * - `rc` candidates still ship against prod storage.
- * - `exp` / `test` / `e2e` / `dev` / default → `dev`.
+ * The environment MUST match the one used by `AuthenticationController`, which
+ * on mobile is always `Env.PRD` (see `authentication-controller-init.ts` — no
+ * `config.env` override is passed, so it falls back to the controller's
+ * default of `Env.PRD`). Mobile (and extension) only ever mint PRD bearer
+ * tokens from the OIDC token endpoint.
  *
- * `uat` is reserved for the extension's intermediate staging ring and is not
- * currently targeted from mobile.
+ * Pointing user-storage at `dev` / `uat` on a non-production build would cause
+ * every request to 403 with "invalid access token" because a PRD-issued token
+ * cannot be validated by the dev/uat user-storage APIs. This mirrors the fix
+ * already applied in `profile-metrics-service-init.ts`, which also hardcodes
+ * `Env.PRD` for the same reason.
  *
- * @returns The Environment value for the current build.
+ * @returns Always `'prod'`.
  */
 export function getAuthenticatedUserStorageEnvironment(): Environment {
-  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  switch (metamaskEnvironment) {
-    case 'production':
-    case 'beta':
-    case 'rc':
-      return 'prod';
-    case 'dev':
-    case 'exp':
-    case 'test':
-    case 'e2e':
-    default:
-      return 'dev';
-  }
+  return 'prod';
 }
 
 /**

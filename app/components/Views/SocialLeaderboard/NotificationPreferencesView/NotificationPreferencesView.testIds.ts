@@ -2,6 +2,7 @@ export const NotificationPreferencesViewSelectorsIDs = {
   CONTAINER: 'notification-preferences-view-container',
   BACK_BUTTON: 'notification-preferences-view-back-button',
   GLOBAL_TOGGLE: 'notification-preferences-view-global-toggle',
+  PREFERENCES_LOADING: 'notification-preferences-view-preferences-loading',
   THRESHOLD_OPTION: (amount: number) =>
     `notification-preferences-view-threshold-${amount}`,
   TRADERS_SECTION: 'notification-preferences-view-traders-section',

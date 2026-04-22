@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import { useQueryClient } from '@tanstack/react-query';
 import type {
   NotificationPreferences as StoredNotificationPreferences,
   SocialAIPreference,
@@ -154,6 +155,11 @@ export const useNotificationPreferences =
       queryKey: [GET_ACTION, selectedAccountId],
     });
 
+    // Used below to prime the TanStack cache synchronously after a successful
+    // PUT so the next mount hydrates instantly with the new value — even if
+    // the user navigates away before the post-PUT refetch has returned.
+    const queryClient = useQueryClient();
+
     // Optimistic overlay on top of the remote socialAI slice. `undefined`
     // means "defer to remote". We never touch other slices from the UI;
     // the overlay exists purely for responsiveness.
@@ -257,20 +263,31 @@ export const useNotificationPreferences =
           return;
         }
 
-        // Persist succeeded. Refresh the query cache so the overlay auto-
-        // drops via the `useEffect` below once remote reflects the new
-        // value. A refetch failure is non-critical — the save already
-        // succeeded — so we log and keep the overlay in place.
-        try {
-          await refetch();
-        } catch (err) {
+        // Persist succeeded. Prime the TanStack cache synchronously so:
+        //   (a) the overlay can auto-drop on the next render via
+        //       `hasRemoteCaughtUp` (`data.socialAI` now matches),
+        //   (b) if the user closes this view before the background refetch
+        //       below returns, the next mount still hydrates with the
+        //       post-PUT value instead of flashing defaults.
+        queryClient.setQueryData<StoredNotificationPreferences | null>(
+          [GET_ACTION, selectedAccountId],
+          (prev) => mergeForPut(prev ?? null, nextSocialAI),
+        );
+
+        // Kick off a background refetch to reconcile with the server (picks
+        // up concurrent writes from other clients into `walletActivity`,
+        // `marketing`, `perps`). We don't await it — the UI is already
+        // correct from the cache priming above, and awaiting would delay
+        // the next enqueued mutation unnecessarily. A refetch failure is
+        // non-critical: the save itself succeeded.
+        refetch().catch((err) => {
           Logger.error(
             err as Error,
-            'useNotificationPreferences: cache refresh after persist failed',
+            'useNotificationPreferences: background refetch after persist failed',
           );
-        }
+        });
       },
-      [enqueuePersist, refetch],
+      [enqueuePersist, queryClient, refetch, selectedAccountId],
     );
 
     // Drop the optimistic overlay once the remote query has caught up.

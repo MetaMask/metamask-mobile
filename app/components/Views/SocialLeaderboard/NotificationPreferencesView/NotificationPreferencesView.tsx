@@ -37,7 +37,10 @@ import {
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import { TradersFollowedSkeleton } from './components/Skeletons';
+import {
+  PreferencesSkeleton,
+  TradersFollowedSkeleton,
+} from './components/Skeletons';
 const AVATAR_SIZE = 40;
 
 const radioStyles = StyleSheet.create({
@@ -256,6 +259,7 @@ const NotificationPreferencesView = () => {
 
   const {
     preferences,
+    isLoading: isLoadingPreferences,
     setEnabled,
     setTxAmountLimit,
     toggleTraderNotification,
@@ -266,6 +270,12 @@ const NotificationPreferencesView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  // On a cold (re)entry the GET is in flight, `preferences` falls back to
+  // defaults (`enabled: false`), and binding that straight into the Switch
+  // would render a visibly OFF toggle until the fetch resolves — even when
+  // the user previously had it ON. Render a skeleton instead; interaction
+  // remains disabled until we have authoritative server state.
+  const showPreferencesSkeleton = isLoadingPreferences;
   const globalOff = !preferences.enabled;
 
   const showFollowedError =
@@ -308,56 +318,62 @@ const NotificationPreferencesView = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
       >
-        {/* ── Global toggle ─────────────────────────────────────────── */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 py-4"
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {strings(
-              'social_leaderboard.notification_preferences.allow_push_notifications',
-            )}
-          </Text>
-          <Switch
-            value={preferences.enabled}
-            onValueChange={setEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={brandColors.white}
-            ios_backgroundColor={colors.border.muted}
-            testID={NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE}
-          />
-        </Box>
+        {/* ── Global toggle + thresholds ────────────────────────────── */}
+        {showPreferencesSkeleton ? (
+          <PreferencesSkeleton />
+        ) : (
+          <>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="px-4 py-4"
+            >
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+                {strings(
+                  'social_leaderboard.notification_preferences.allow_push_notifications',
+                )}
+              </Text>
+              <Switch
+                value={preferences.enabled}
+                onValueChange={setEnabled}
+                trackColor={{
+                  true: colors.primary.default,
+                  false: colors.border.muted,
+                }}
+                thumbColor={brandColors.white}
+                ios_backgroundColor={colors.border.muted}
+                testID={NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE}
+              />
+            </Box>
 
-        <View style={tw.style('h-px bg-muted mx-4')} />
+            <View style={tw.style('h-px bg-muted mx-4')} />
 
-        <Box twClassName="px-4 pt-4 pb-2">
-          <Text
-            variant={TextVariant.BodyMd}
-            color={globalOff ? TextColor.TextMuted : TextColor.TextDefault}
-          >
-            {strings(
-              'social_leaderboard.notification_preferences.trades_over_label',
-            )}
-          </Text>
-        </Box>
+            <Box twClassName="px-4 pt-4 pb-2">
+              <Text
+                variant={TextVariant.BodyMd}
+                color={globalOff ? TextColor.TextMuted : TextColor.TextDefault}
+              >
+                {strings(
+                  'social_leaderboard.notification_preferences.trades_over_label',
+                )}
+              </Text>
+            </Box>
 
-        {TX_AMOUNT_THRESHOLDS.map((amount) => (
-          <ThresholdRow
-            key={amount}
-            label={formatThreshold(amount, currentCurrency)}
-            isChecked={preferences.txAmountLimit === amount}
-            isDisabled={globalOff}
-            onPress={() => setTxAmountLimit(amount)}
-            testID={NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(
-              amount,
-            )}
-          />
-        ))}
+            {TX_AMOUNT_THRESHOLDS.map((amount) => (
+              <ThresholdRow
+                key={amount}
+                label={formatThreshold(amount, currentCurrency)}
+                isChecked={preferences.txAmountLimit === amount}
+                isDisabled={globalOff}
+                onPress={() => setTxAmountLimit(amount)}
+                testID={NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(
+                  amount,
+                )}
+              />
+            ))}
+          </>
+        )}
 
         {/* Separator */}
         <View style={tw.style('h-px bg-muted mx-4 mt-2')} />

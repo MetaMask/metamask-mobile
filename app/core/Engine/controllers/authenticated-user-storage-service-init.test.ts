@@ -41,75 +41,37 @@ describe('authenticatedUserStorageServiceInit', () => {
     expect(controller).toBeInstanceOf(AuthenticatedUserStorageService);
   });
 
-  it('passes the resolved environment to the service constructor', () => {
-    const originalEnv = process.env.METAMASK_ENVIRONMENT;
-    process.env.METAMASK_ENVIRONMENT = 'production';
+  it('passes prod as the environment to the service constructor', () => {
+    authenticatedUserStorageServiceInit(getInitRequestMock());
 
-    try {
-      authenticatedUserStorageServiceInit(getInitRequestMock());
-
-      expect(AuthenticatedUserStorageService).toHaveBeenCalledWith(
-        expect.objectContaining({ environment: 'prod' }),
-      );
-    } finally {
-      process.env.METAMASK_ENVIRONMENT = originalEnv;
-    }
+    expect(AuthenticatedUserStorageService).toHaveBeenCalledWith(
+      expect.objectContaining({ environment: 'prod' }),
+    );
   });
 });
 
 describe('getAuthenticatedUserStorageEnvironment', () => {
+  // The environment is pinned to `'prod'` to match `AuthenticationController`,
+  // which always mints PRD tokens on mobile. `METAMASK_ENVIRONMENT` therefore
+  // has no effect on this resolver — these cases document that contract so a
+  // future refactor doesn't silently reintroduce the token/env mismatch that
+  // caused 403 "invalid access token" responses.
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
 
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
   });
 
-  describe('Production Environment', () => {
-    it('returns prod when METAMASK_ENVIRONMENT is production', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
+  it.each(['production', 'beta', 'rc', 'dev', 'exp', 'test', 'e2e', 'unknown'])(
+    'returns prod regardless of METAMASK_ENVIRONMENT=%s',
+    (value) => {
+      process.env.METAMASK_ENVIRONMENT = value;
       expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
-    });
+    },
+  );
 
-    it('returns prod when METAMASK_ENVIRONMENT is beta', () => {
-      process.env.METAMASK_ENVIRONMENT = 'beta';
-      expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
-    });
-
-    it('returns prod when METAMASK_ENVIRONMENT is rc', () => {
-      process.env.METAMASK_ENVIRONMENT = 'rc';
-      expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
-    });
-  });
-
-  describe('Dev Environment', () => {
-    it('returns dev when METAMASK_ENVIRONMENT is dev', () => {
-      process.env.METAMASK_ENVIRONMENT = 'dev';
-      expect(getAuthenticatedUserStorageEnvironment()).toBe('dev');
-    });
-
-    it('returns dev when METAMASK_ENVIRONMENT is exp', () => {
-      process.env.METAMASK_ENVIRONMENT = 'exp';
-      expect(getAuthenticatedUserStorageEnvironment()).toBe('dev');
-    });
-
-    it('returns dev when METAMASK_ENVIRONMENT is test', () => {
-      process.env.METAMASK_ENVIRONMENT = 'test';
-      expect(getAuthenticatedUserStorageEnvironment()).toBe('dev');
-    });
-
-    it('returns dev when METAMASK_ENVIRONMENT is e2e', () => {
-      process.env.METAMASK_ENVIRONMENT = 'e2e';
-      expect(getAuthenticatedUserStorageEnvironment()).toBe('dev');
-    });
-
-    it('returns dev when METAMASK_ENVIRONMENT is not set', () => {
-      delete process.env.METAMASK_ENVIRONMENT;
-      expect(getAuthenticatedUserStorageEnvironment()).toBe('dev');
-    });
-
-    it('returns dev when METAMASK_ENVIRONMENT is an unknown value', () => {
-      process.env.METAMASK_ENVIRONMENT = 'unknown';
-      expect(getAuthenticatedUserStorageEnvironment()).toBe('dev');
-    });
+  it('returns prod when METAMASK_ENVIRONMENT is unset', () => {
+    delete process.env.METAMASK_ENVIRONMENT;
+    expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
   });
 });

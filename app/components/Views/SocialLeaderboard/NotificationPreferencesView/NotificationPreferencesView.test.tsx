@@ -344,6 +344,64 @@ describe('NotificationPreferencesView', () => {
     });
   });
 
+  describe('preferences loading state', () => {
+    // Prevents the "toggle flashes OFF on reopen" regression. While the GET
+    // is in flight we must show a skeleton — binding `preferences.enabled`
+    // (which falls back to the `enabled: false` default) directly into the
+    // Switch would render a visibly OFF toggle for users whose stored value
+    // is ON.
+    it('renders the skeleton and hides the real controls while preferences are loading', () => {
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({
+          isLoading: true,
+          preferences: makePreferences({ enabled: false }),
+        }),
+      );
+
+      renderScreen();
+
+      expect(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.PREFERENCES_LOADING,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
+        ),
+      ).toBeNull();
+      [10, 100, 500, 1000].forEach((amount) => {
+        expect(
+          screen.queryByTestId(
+            NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(amount),
+          ),
+        ).toBeNull();
+      });
+    });
+
+    it('renders the real controls once preferences have loaded', () => {
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({
+          isLoading: false,
+          preferences: makePreferences({ enabled: true }),
+        }),
+      );
+
+      renderScreen();
+
+      expect(
+        screen.queryByTestId(
+          NotificationPreferencesViewSelectorsIDs.PREFERENCES_LOADING,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('disabled state when global toggle is off', () => {
     beforeEach(() => {
       mockUseNotificationPreferences.mockReturnValue(

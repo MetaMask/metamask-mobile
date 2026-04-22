@@ -1,6 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import { useQueryClient } from '@tanstack/react-query';
 import type { NotificationPreferences as StoredNotificationPreferences } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -21,6 +22,10 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('@metamask/react-data-query');
 
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -33,7 +38,11 @@ const MOCK_ACCOUNT_ID = 'account-1';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseQueryClient = useQueryClient as jest.MockedFunction<
+  typeof useQueryClient
+>;
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
+const mockSetQueryData = jest.fn();
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
 
 const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
@@ -72,6 +81,9 @@ describe('useNotificationPreferences', () => {
     mockCall.mockResolvedValue(undefined);
     mockRefetch.mockResolvedValue(undefined);
     mockUseSelector.mockReturnValue(MOCK_ACCOUNT_ID);
+    mockUseQueryClient.mockReturnValue({
+      setQueryData: mockSetQueryData,
+    } as unknown as ReturnType<typeof useQueryClient>);
   });
 
   describe('query configuration', () => {
@@ -382,7 +394,7 @@ describe('useNotificationPreferences', () => {
       expect(mockRefetch).toHaveBeenCalledTimes(1);
     });
 
-    it('does NOT roll back or set an error when persist succeeds but refetch throws', async () => {
+    it('does NOT roll back or set an error when persist succeeds but the background refetch throws', async () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
       mockCall.mockImplementation(async (action: string) => {
         if (action === GET_ACTION) return buildRemote();
@@ -400,11 +412,65 @@ describe('useNotificationPreferences', () => {
       expect(result.current.preferences.enabled).toBe(false);
       // No error should be surfaced to the UI for a cache-refresh failure.
       expect(result.current.error).toBeNull();
-      // The refetch failure is still logged for observability.
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'useNotificationPreferences: cache refresh after persist failed',
+      // The refetch runs in the background; its failure is reported via Logger.
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          'useNotificationPreferences: background refetch after persist failed',
+        );
+      });
+    });
+
+    it('primes the TanStack cache with the merged payload after a successful PUT', async () => {
+      const latest = buildRemote({
+        walletActivity: {
+          enabled: false,
+          accounts: [{ address: '0xabc', enabled: true }],
+        },
+      });
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return latest;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.setEnabled(false);
+      });
+
+      // Cache must be primed synchronously after PUT so the next mount
+      // hydrates with the post-PUT value even if the user navigates away
+      // before the background refetch returns.
+      expect(mockSetQueryData).toHaveBeenCalledTimes(1);
+      const [keyArg, updaterArg] = mockSetQueryData.mock.calls[0];
+      expect(keyArg).toEqual([GET_ACTION, MOCK_ACCOUNT_ID]);
+      // The updater merges socialAI on top of the previous cached value.
+      const merged = (updaterArg as CallableFunction)(latest);
+      expect(merged).toEqual(
+        expect.objectContaining({
+          walletActivity: latest.walletActivity,
+          socialAI: expect.objectContaining({ enabled: false }),
+        }),
       );
+    });
+
+    it('does NOT prime the cache when the PUT fails', async () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return buildRemote();
+        if (action === PUT_ACTION) throw new Error('network down');
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNotificationPreferences());
+
+      await act(async () => {
+        await result.current.setEnabled(false);
+      });
+
+      expect(mockSetQueryData).not.toHaveBeenCalled();
     });
 
     it('does not corrupt state when a first rapid mutation fails but a second succeeds', async () => {
