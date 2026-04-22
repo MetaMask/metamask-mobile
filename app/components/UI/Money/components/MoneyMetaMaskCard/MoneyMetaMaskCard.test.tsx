@@ -128,13 +128,21 @@ describe('MoneyMetaMaskCard', () => {
       expect(mockLink).toHaveBeenCalledTimes(1);
     });
 
+    it('renders link-specific section title', () => {
+      const { getByText } = render(<MoneyMetaMaskCard mode="link" />);
+
+      expect(
+        getByText(strings('money.metamask_card.link_title')),
+      ).toBeOnTheScreen();
+    });
+
     it('calls onHeaderPress when section header is tapped in link mode', () => {
       const mockHeader = jest.fn();
       const { getByText } = render(
         <MoneyMetaMaskCard mode="link" onHeaderPress={mockHeader} />,
       );
 
-      fireEvent.press(getByText(strings('money.metamask_card.title')));
+      fireEvent.press(getByText(strings('money.metamask_card.link_title')));
       expect(mockHeader).toHaveBeenCalled();
     });
   });

@@ -86,6 +86,28 @@ const CardRow = ({
   </Box>
 );
 
+const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="gap-1"
+    testID={testID}
+  >
+    <Icon
+      name={IconName.Check}
+      size={IconSize.Sm}
+      color={IconColor.SuccessDefault}
+    />
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.SuccessDefault}
+    >
+      {text}
+    </Text>
+  </Box>
+);
+
 const LinkContent = ({ onLinkPress }: { onLinkPress: () => void }) => (
   <Box twClassName="gap-3">
     <Text
@@ -106,36 +128,14 @@ const LinkContent = ({ onLinkPress }: { onLinkPress: () => void }) => (
         testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
       />
       <Box twClassName="gap-2 flex-1 justify-center">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+        <CheckBullet
+          text={strings('money.metamask_card.link_bullet_cashback')}
           testID={MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK}
-        >
-          <Icon
-            name={IconName.Check}
-            size={IconSize.Sm}
-            color={IconColor.SuccessDefault}
-          />
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-            {strings('money.metamask_card.link_bullet_cashback')}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+        />
+        <CheckBullet
+          text={strings('money.metamask_card.link_bullet_apy')}
           testID={MoneyMetaMaskCardTestIds.LINK_BULLET_APY}
-        >
-          <Icon
-            name={IconName.Check}
-            size={IconSize.Sm}
-            color={IconColor.SuccessDefault}
-          />
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-            {strings('money.metamask_card.link_bullet_apy')}
-          </Text>
-        </Box>
+        />
       </Box>
     </Box>
     <Button
@@ -172,7 +172,11 @@ const MoneyMetaMaskCard = ({
       testID={MoneyMetaMaskCardTestIds.CONTAINER}
     >
       <MoneySectionHeader
-        title={strings('money.metamask_card.title')}
+        title={strings(
+          mode === 'link'
+            ? 'money.metamask_card.link_title'
+            : 'money.metamask_card.title',
+        )}
         onPress={onHeaderPress}
       />
       {mode === 'link' ? (

@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   BoxJustifyContent,
   Button,
   ButtonSize,
@@ -42,7 +41,7 @@ interface MoneyOnboardingCardProps {
   totalSteps?: number;
   /**
    * Controls step 2 content: 'get-card' (default) shows card acquisition,
-   * 'link-card' shows card linking with benefits bullets.
+   * 'link-card' shows card linking messaging.
    */
   variant?: 'get-card' | 'link-card';
 }
@@ -65,24 +64,6 @@ const STEP_2_LINK_CARD = {
   description: 'money.onboarding.link_card_description',
   cta: 'money.onboarding.link_card_cta',
 } as const;
-
-const BenefitBullet = ({ text, testID }: { text: string; testID: string }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="gap-1"
-    testID={testID}
-  >
-    <Icon
-      name={IconName.Check}
-      size={IconSize.Sm}
-      color={IconColor.SuccessDefault}
-    />
-    <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-      {text}
-    </Text>
-  </Box>
-);
 
 const MoneyOnboardingCard = ({
   onCtaPress,
@@ -149,32 +130,8 @@ const MoneyOnboardingCard = ({
             testID={MoneyOnboardingCardTestIds.DESCRIPTION}
           >
             {strings(content.description)}
-            {isLinkCard && (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.onboarding.link_card_description_highlight')}
-                {strings('money.onboarding.link_card_description_suffix')}
-              </Text>
-            )}
           </Text>
         </Box>
-        {isLinkCard && (
-          <Box
-            twClassName="gap-2"
-            testID={MoneyOnboardingCardTestIds.BENEFITS_CONTAINER}
-          >
-            <BenefitBullet
-              text={strings('money.onboarding.link_card_bullet_cashback')}
-              testID={MoneyOnboardingCardTestIds.BULLET_CASHBACK}
-            />
-            <BenefitBullet
-              text={strings('money.onboarding.link_card_bullet_apy')}
-              testID={MoneyOnboardingCardTestIds.BULLET_APY}
-            />
-          </Box>
-        )}
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

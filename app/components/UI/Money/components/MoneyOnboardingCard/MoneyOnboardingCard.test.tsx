@@ -111,6 +111,16 @@ describe('MoneyOnboardingCard', () => {
       );
     });
 
+    it('renders link card description when variant is link-card and step is 2', () => {
+      const { getByTestId } = render(
+        <MoneyOnboardingCard currentStep={2} variant="link-card" />,
+      );
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.DESCRIPTION),
+      ).toHaveTextContent(strings('money.onboarding.link_card_description'));
+    });
+
     it('renders link card CTA when variant is link-card and step is 2', () => {
       const { getByTestId } = render(
         <MoneyOnboardingCard currentStep={2} variant="link-card" />,
@@ -121,40 +131,14 @@ describe('MoneyOnboardingCard', () => {
       ).toHaveTextContent(strings('money.onboarding.link_card_cta'));
     });
 
-    it('renders benefits bullets when variant is link-card and step is 2', () => {
+    it('falls back to get-card content for step 1 even with link-card variant', () => {
       const { getByTestId } = render(
-        <MoneyOnboardingCard currentStep={2} variant="link-card" />,
-      );
-
-      expect(
-        getByTestId(MoneyOnboardingCardTestIds.BENEFITS_CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyOnboardingCardTestIds.BULLET_CASHBACK),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyOnboardingCardTestIds.BULLET_APY),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render benefits bullets for get-card variant', () => {
-      const { queryByTestId } = render(
-        <MoneyOnboardingCard currentStep={2} variant="get-card" />,
-      );
-
-      expect(
-        queryByTestId(MoneyOnboardingCardTestIds.BENEFITS_CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not render benefits bullets for step 1 even with link-card variant', () => {
-      const { queryByTestId } = render(
         <MoneyOnboardingCard currentStep={1} variant="link-card" />,
       );
 
-      expect(
-        queryByTestId(MoneyOnboardingCardTestIds.BENEFITS_CONTAINER),
-      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyOnboardingCardTestIds.TITLE)).toHaveTextContent(
+        strings('money.onboarding.title'),
+      );
     });
 
     it('calls onCtaPress when link card CTA is tapped', () => {

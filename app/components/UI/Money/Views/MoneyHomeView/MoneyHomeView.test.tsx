@@ -17,6 +17,7 @@ import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/Mon
 import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedInfoCards/MoneyCondensedInfoCards.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
+import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
@@ -324,9 +325,9 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
       ).toHaveTextContent('Step 2 of 2');
-      expect(
-        getByTestId(MoneyOnboardingCardTestIds.BENEFITS_CONTAINER),
-      ).toBeOnTheScreen();
+      expect(getByTestId(MoneyOnboardingCardTestIds.TITLE)).toHaveTextContent(
+        strings('money.onboarding.link_card_title'),
+      );
     });
 
     it('renders MetaMask Card section in link mode', () => {
