@@ -182,6 +182,8 @@ export function useQuickBuyQuotes({
       const result = await Engine.context.BridgeController.fetchQuotes(
         params,
         controller.signal,
+        // @ts-expect-error quickBuy has not been added as a FeatureId yet
+        'quickBuy',
       );
 
       if (controller.signal.aborted) {
