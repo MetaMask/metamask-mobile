@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   NotificationPreferences as StoredNotificationPreferences,
@@ -6,6 +7,7 @@ import type {
 } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
 
 export const TX_AMOUNT_THRESHOLDS = [10, 100, 500, 1000] as const;
 export type TxAmountThreshold = (typeof TX_AMOUNT_THRESHOLDS)[number];
@@ -58,8 +60,12 @@ const toErrorMessage = (err: unknown): string => {
 
 /**
  * True once the remote query reflects the optimistic overlay, signalling that
- * the overlay can be dropped. Order-independent comparison on the muted list:
- * the server may return the same IDs in a different order.
+ * the overlay can be dropped.
+ *
+ * The muted-list comparison treats both sides as sets: order-independent (the
+ * server may return IDs in a different order) and duplicate-safe (the arrays
+ * semantically represent a set of IDs, so `['a', 'a']` and `['a', 'b']` must
+ * not be considered equal even though they have the same length).
  */
 const hasRemoteCaughtUp = (
   overlay: SocialAIPreference,
@@ -68,13 +74,13 @@ const hasRemoteCaughtUp = (
   if (overlay === remote) return true;
   if (overlay.enabled !== remote.enabled) return false;
   if (overlay.txAmountLimit !== remote.txAmountLimit) return false;
-  if (
-    overlay.mutedTraderProfileIds.length !== remote.mutedTraderProfileIds.length
-  ) {
-    return false;
-  }
+  const overlaySet = new Set(overlay.mutedTraderProfileIds);
   const remoteSet = new Set(remote.mutedTraderProfileIds);
-  return overlay.mutedTraderProfileIds.every((id) => remoteSet.has(id));
+  if (overlaySet.size !== remoteSet.size) return false;
+  for (const id of overlaySet) {
+    if (!remoteSet.has(id)) return false;
+  }
+  return true;
 };
 
 /**
@@ -132,17 +138,20 @@ const mergeForPut = (
  */
 export const useNotificationPreferences =
   (): UseNotificationPreferencesResult => {
+    // Scope the query cache to the active account so a stale entry from a
+    // previous user can never be served after an account switch. Falls back
+    // to 'anonymous' when no account is selected so the hook remains usable
+    // in tests and pre-auth screens.
+    const selectedAccountId =
+      useSelector(selectSelectedInternalAccountId) ?? 'anonymous';
+
     const {
       data,
       isLoading,
       error: queryError,
       refetch,
     } = useQuery<StoredNotificationPreferences | null>({
-      // The query key intentionally omits a user/profile identifier: on
-      // mobile the bearer token is always the active account's, and an
-      // account switch triggers a full session reset that unmounts this
-      // hook and clears the query cache.
-      queryKey: [GET_ACTION],
+      queryKey: [GET_ACTION, selectedAccountId],
     });
 
     // Optimistic overlay on top of the remote socialAI slice. `undefined`

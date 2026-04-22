@@ -1,4 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type { NotificationPreferences as StoredNotificationPreferences } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
@@ -20,6 +21,17 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('@metamask/react-data-query');
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountId: jest.fn(),
+}));
+
+const MOCK_ACCOUNT_ID = 'account-1';
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
@@ -59,14 +71,25 @@ describe('useNotificationPreferences', () => {
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockCall.mockResolvedValue(undefined);
     mockRefetch.mockResolvedValue(undefined);
+    mockUseSelector.mockReturnValue(MOCK_ACCOUNT_ID);
   });
 
   describe('query configuration', () => {
-    it('passes the getNotificationPreferences queryKey to useQuery', () => {
+    it('scopes the queryKey to the getNotificationPreferences action AND the active account id', () => {
       renderHook(() => useNotificationPreferences());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ queryKey: [GET_ACTION] }),
+        expect.objectContaining({ queryKey: [GET_ACTION, MOCK_ACCOUNT_ID] }),
+      );
+    });
+
+    it('falls back to "anonymous" when no account is selected', () => {
+      mockUseSelector.mockReturnValue(undefined);
+
+      renderHook(() => useNotificationPreferences());
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ queryKey: [GET_ACTION, 'anonymous'] }),
       );
     });
   });
