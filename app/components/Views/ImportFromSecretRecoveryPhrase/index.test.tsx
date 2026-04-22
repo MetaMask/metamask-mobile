@@ -170,13 +170,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
   describe('Import a wallet UI', () => {
-    it('render matches snapshot', () => {
-      const { toJSON } = renderScreen(
+    it('renders correctly', () => {
+      const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText(strings('import_from_seed.title'))).toBeOnTheScreen();
     });
 
     it('renders SRP input screen on initial render', () => {

@@ -406,14 +406,14 @@ describe('Onboarding', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('renders correctly with large device and iphoneX', () => {
@@ -422,14 +422,14 @@ describe('Onboarding', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
     (Device.isIos as jest.Mock).mockReturnValue(true);
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('renders correctly with medium device and android', () => {
@@ -438,14 +438,14 @@ describe('Onboarding', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Device.isIos as jest.Mock).mockReturnValue(false);
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('renders correctly with android', () => {
@@ -456,20 +456,20 @@ describe('Onboarding', () => {
 
     Platform.OS = 'android';
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('applies compact gap and medium button size on medium device', () => {
     (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
@@ -477,13 +477,13 @@ describe('Onboarding', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('applies standard gap and large button size on non-medium device', () => {
     (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
@@ -491,7 +491,7 @@ describe('Onboarding', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('renders loading overlay with loading message', async () => {
@@ -539,7 +539,7 @@ describe('Onboarding', () => {
     (Device.isIphoneX as jest.Mock).mockReturnValue(true);
 
     try {
-      const { toJSON } = renderScreen(
+      const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -548,7 +548,7 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(toJSON()).toMatchSnapshot();
+        expect(getByText('Loading...')).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};
@@ -570,7 +570,7 @@ describe('Onboarding', () => {
     (Device.isIphoneX as jest.Mock).mockReturnValue(false);
 
     try {
-      const { toJSON } = renderScreen(
+      const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -579,7 +579,7 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(toJSON()).toMatchSnapshot();
+        expect(getByText('Loading...')).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};

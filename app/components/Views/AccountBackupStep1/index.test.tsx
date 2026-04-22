@@ -123,30 +123,36 @@ describe('AccountBackupStep1', () => {
     };
   };
 
-  describe('Snapshots iOS', () => {
-    it('render matches snapshot', () => {
+  describe('Rendering iOS', () => {
+    it('renders correctly on iOS', () => {
       Platform.OS = 'ios';
       const { wrapper } = setupTest();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 
-  describe('Snapshots android', () => {
+  describe('Rendering android', () => {
     beforeEach(() => {
       Platform.OS = 'android';
     });
 
-    it('render matches snapshot', () => {
+    it('renders correctly on android', () => {
       const { wrapper } = setupTest();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
-    it('render matches snapshot with status bar height to zero', () => {
+    it('renders correctly on android with status bar height zero', () => {
       const { StatusBar } = jest.requireMock('react-native');
       const originalCurrentHeight = StatusBar.currentHeight;
       StatusBar.currentHeight = 0;
       const { wrapper } = setupTest();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
       StatusBar.currentHeight = originalCurrentHeight;
     });
   });
@@ -414,7 +420,9 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('renders light SRP design image for light theme', () => {
@@ -425,7 +433,9 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 });

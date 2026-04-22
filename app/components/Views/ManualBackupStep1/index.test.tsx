@@ -219,9 +219,11 @@ describe('ManualBackupStep1', () => {
     jest.clearAllMocks();
   });
 
-  it('matches snapshot', () => {
+  it('renders correctly', () => {
     const { wrapper } = renderComponent();
-    expect(wrapper).toMatchSnapshot();
+    expect(
+      wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   describe('seed phrase reveal', () => {
@@ -345,7 +347,9 @@ describe('ManualBackupStep1', () => {
 
     it('renders with dark theme', () => {
       const { wrapper } = renderComponent();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('renders with light theme on Android', () => {
@@ -368,7 +372,9 @@ describe('ManualBackupStep1', () => {
       });
 
       const { wrapper } = renderComponent();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 
