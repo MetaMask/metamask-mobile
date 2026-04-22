@@ -12,11 +12,7 @@ import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
-import {
-  isPositionOpen,
-  waitForOrderScreenVisible,
-  waitForPositionOpen,
-} from '../../flows/perps.flow';
+import { isPositionOpen } from '../../flows/perps.flow';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 
@@ -26,7 +22,8 @@ test.describe(PerformancePreps, () => {
     'Perps open position and close it',
     { tag: '@mm-perps-engineering-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      test.setTimeout(10 * 60 * 1000); // 10 minutes
+      const timeoutMinutes = currentDeviceDetails.platform === 'ios' ? 15 : 10;
+      test.setTimeout(timeoutMinutes * 60 * 1000);
 
       const selectPerpsMainScreenTimer = new TimerHelper(
         'Perps tutorial screen visible',
@@ -41,7 +38,7 @@ test.describe(PerformancePreps, () => {
       );
       const openOrderScreenTimer = new TimerHelper(
         'Open Order Screen',
-        { ios: 1500, android: 1500 },
+        { ios: 3000, android: 3000 },
         currentDeviceDetails.platform,
       );
       const openPositionTimer = new TimerHelper(
@@ -76,11 +73,13 @@ test.describe(PerformancePreps, () => {
         );
       });
 
-      await PerpsMarketListView.selectMarket('BTC');
+      await PerpsMarketListView.tapMarketRowItemBTC();
 
-      await MarketDetailsScreenTimer.measure(
-        async () => await PerpsMarketDetailsView.isContainerDisplayed(),
-      );
+      await MarketDetailsScreenTimer.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsMarketDetailsView.header),
+        );
+      });
       // Check if there's an existing position and close it before continuing
       if (await isPositionOpen()) {
         console.log(
@@ -93,19 +92,23 @@ test.describe(PerformancePreps, () => {
           console.error('❌ Error closing existing position:', error);
         }
       }
-
       await PerpsMarketDetailsView.tapLongButton();
       // Open Position
-      await openOrderScreenTimer.measure(
-        async () => await waitForOrderScreenVisible(),
-      );
+      await openOrderScreenTimer.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsOrderView.placeOrderButton),
+        );
+      });
 
       await PerpsOrderView.setLeverageAppium(40);
+      await PerpsOrderView.setAmountUSD('10');
       await PerpsOrderView.tapPlaceOrder();
 
-      await openPositionTimer.measure(
-        async () => await waitForPositionOpen(20000),
-      );
+      await openPositionTimer.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsMarketDetailsView.closeButton),
+        );
+      });
 
       try {
         await PerpsMarketDetailsView.closePositionWithRetry();

@@ -9,6 +9,7 @@ import {
   PredictBalanceSelectorsIDs,
   PredictBalanceSelectorsText,
   PredictMarketListSelectorsIDs,
+  getPredictFeedSelector,
   getPredictMarketListSelector,
 } from '../../../app/components/UI/Predict/Predict.testIds';
 
@@ -101,6 +102,50 @@ class PredictMarketList {
       appium: () =>
         PlaywrightMatchers.getElementByText(
           PredictBalanceSelectorsText.AVAILABLE_BALANCE,
+        ),
+    });
+  }
+
+  get trendingSkeleton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          getPredictFeedSelector.skeletonLoading('trending', 1),
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          getPredictFeedSelector.skeletonLoading('trending', 1),
+          { exact: true },
+        ),
+    });
+  }
+
+  get firstTrendingMarketCard(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PredictMarketListSelectorsIDs.TRENDING_MARKET_CARD + 1,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictMarketListSelectorsIDs.TRENDING_MARKET_CARD + 1,
+        ),
+    });
+  }
+
+  get firstYesButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Yes'),
+      appium: () => PlaywrightMatchers.getElementByText('Yes'),
+    });
+  }
+
+  get getIsraelXHezbollahCeasefireButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('No'),
+      appium: () =>
+        PlaywrightMatchers.getElementByXPath(
+          '//*[contains(@content-desc, "Israel x Hezbollah ceasefire by")]',
         ),
     });
   }

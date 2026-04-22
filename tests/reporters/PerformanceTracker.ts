@@ -81,7 +81,7 @@ export class PerformanceTracker {
       const duration = timer.getDuration();
       const durationInSeconds = timer.getDurationInSeconds();
 
-      if (duration !== null && !isNaN(duration) && duration > 0) {
+      if (duration !== null && !isNaN(duration) && duration >= 0) {
         const threshold = timer.threshold;
         const hasThreshold = threshold !== null;
         const passed = !hasThreshold || duration <= (threshold ?? 0);

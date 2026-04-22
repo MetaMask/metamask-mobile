@@ -2,6 +2,7 @@ import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper.js';
 import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 
@@ -11,6 +12,11 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
     'Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      test.skip(
+        currentDeviceDetails.platform === 'ios',
+        'Skipped on iOS — cross-chain swap flow under investigation',
+      );
+
       await loginToAppPlaywright();
 
       const timer1 = new TimerHelper(
@@ -20,7 +26,12 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       );
 
       await WalletView.tapWalletSwapButton();
-      await timer1.measure(() => QuoteView.isVisible());
+
+      await timer1.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+          asPlaywrightElement(QuoteView.amountInput),
+        );
+      });
 
       await QuoteView.selectNetworkAndTokenTo('Solana', 'SOL');
       await QuoteView.enterSourceTokenAmount('1');

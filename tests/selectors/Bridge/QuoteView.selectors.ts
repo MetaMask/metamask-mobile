@@ -52,4 +52,5 @@ export const QuoteViewSelectorIDs = {
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
   KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
   BACK_BUTTON: 'button-icon',
+  PRICE_IMPACT_INFO_BUTTON: 'price-impact-info-button',
 };

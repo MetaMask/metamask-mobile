@@ -76,9 +76,14 @@ class PerformanceReporter {
     const testId = `${test.title}-${projectName}`;
 
     if (this.processedTests.has(testId)) {
-      logger.warn(
-        `Test already processed, skipping: ${test.title} (${projectName})`,
-      );
+      // If this retry passed, update the existing failed entry to reflect final success
+      if (result.status === 'passed') {
+        this.resolveRetrySuccess(test);
+      } else {
+        logger.warn(
+          `Test already processed, skipping: ${test.title} (${projectName})`,
+        );
+      }
       return;
     }
     this.processedTests.add(testId);
@@ -503,6 +508,31 @@ class PerformanceReporter {
         logger.info(
           `   Files: ${files.slice(0, 15).join(', ')}${files.length > 15 ? ` (+${files.length - 15} more)` : ''}`,
         );
+      }
+    }
+  }
+
+  private resolveRetrySuccess(test: PlaywrightTestCase): void {
+    const testTags: string[] = Array.isArray(test.tags) ? test.tags : [];
+    const teamInfo: TeamInfo = getTeamInfoFromTags(testTags) as TeamInfo;
+
+    logger.info(`Test passed on retry, updating result: ${test.title}`);
+
+    // Mark the existing metric entry as passed
+    const metric = this.metrics.find((m) => m.testName === test.title);
+    if (metric) {
+      metric.testFailed = false;
+      metric.failureReason = null;
+    }
+
+    // Remove from failedTestsByTeam since the test ultimately passed
+    const teamId = teamInfo.teamId;
+    if (this.failedTestsByTeam[teamId]) {
+      this.failedTestsByTeam[teamId].tests = this.failedTestsByTeam[
+        teamId
+      ].tests.filter((t) => t.testName !== test.title);
+      if (this.failedTestsByTeam[teamId].tests.length === 0) {
+        delete this.failedTestsByTeam[teamId];
       }
     }
   }

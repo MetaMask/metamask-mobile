@@ -233,11 +233,13 @@ class PredictDetailsPage {
   async tapAboutTab(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.aboutTab, {
       description: 'About tab',
+      checkForDisplayed: false,
     });
   }
   async tapOutcomesTab(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.outcomesTab, {
       description: 'Outcomes tab',
+      checkForDisplayed: false,
     });
   }
   async tapCashOutButton(): Promise<void> {

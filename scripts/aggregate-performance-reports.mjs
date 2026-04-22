@@ -401,12 +401,17 @@ function createSummary(groupedResults) {
     });
   });
   
+  // Unique test count: each test counts once per device regardless of retries
+  const uniqueTestCount = Object.keys(testExecutions).length;
+
   // Second pass: determine final test status
   // A test is only considered failed if ALL executions failed (no successful retry)
   const failedTestsByTeam = {};
   let totalFailedTests = 0;
   const failedTestsByPlatform = { android: 0, ios: 0 };
   
+  const uniqueFailedTestNames = new Set();
+
   Object.values(testExecutions).forEach(execution => {
     // If test passed at least once, it's considered passed (successful retry)
     if (execution.hasPassed) {
@@ -416,6 +421,7 @@ function createSummary(groupedResults) {
     // Test failed all executions - count as 1 failure
     if (execution.hasFailed) {
       totalFailedTests++;
+      uniqueFailedTestNames.add(execution.testInfo.testName);
       
       const { testInfo } = execution;
       const platformKey = testInfo.platform.toLowerCase();
@@ -485,6 +491,7 @@ function createSummary(groupedResults) {
   
   const summary = {
     totalTests,
+    uniqueTests: uniqueTestCount,
     platforms,
     testsByPlatform,
     devices: summaryDevices,
@@ -503,6 +510,7 @@ function createSummary(groupedResults) {
     // Only includes tests that failed ALL retries (if a retry passed, test is not counted as failed)
     failedTestsStats: {
       totalFailedTests,
+      uniqueFailedTests: uniqueFailedTestNames.size,
       teamsAffected: Object.keys(failedTestsByTeam).length,
       failedTestsByTeam
     },
@@ -1473,13 +1481,12 @@ function aggregateReports() {
       console.log(`📁 Created output directory: ${outputDir}`);
     }
     
-    // Search in multiple directories for different test types
+    // Search only in directories where CI artifacts are downloaded
     const searchDirs = [
       './test-results',
       './performance-results', 
       './onboarding-results',
-      './',  // Current directory where artifacts are typically extracted
-      './tests',  // Where artifacts are uploaded from
+      './tests/reporters/reports',
     ];
     
     const jsonFiles = [];

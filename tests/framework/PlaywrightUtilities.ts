@@ -1,7 +1,12 @@
 import test from '@playwright/test';
 import type { DeviceMatrix } from './types';
 import { PlaywrightElement } from './PlaywrightAdapter';
-import { DEFAULT_IMPLICIT_WAIT_MS } from './Constants';
+import {
+  DEFAULT_IMPLICIT_WAIT_MS,
+  DEFAULT_SNAPSHOT_MAX_DEPTH,
+  DEFAULT_SNAPSHOT_MAX_CHILDREN,
+  DEFAULT_CUSTOM_SNAPSHOT_TIMEOUT,
+} from './Constants';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
@@ -34,6 +39,35 @@ export async function withImplicitWait<T>(
     return await fn();
   } finally {
     await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
+  }
+}
+
+export interface SnapshotSettings {
+  snapshotMaxDepth?: number;
+  snapshotMaxChildren?: number;
+  customSnapshotTimeout?: number;
+}
+
+/**
+ * Runs a callback with temporarily adjusted WDA snapshot settings.
+ * Restores defaults afterward, even if the callback throws.
+ * Use this for heavy screens (e.g. token selector lists) where
+ * a smaller depth/children limit speeds up element lookups.
+ */
+export async function withSnapshotSettings<T>(
+  settings: SnapshotSettings,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const drv = getDriver();
+  await drv.updateSettings(settings);
+  try {
+    return await fn();
+  } finally {
+    await drv.updateSettings({
+      snapshotMaxDepth: DEFAULT_SNAPSHOT_MAX_DEPTH,
+      snapshotMaxChildren: DEFAULT_SNAPSHOT_MAX_CHILDREN,
+      customSnapshotTimeout: DEFAULT_CUSTOM_SNAPSHOT_TIMEOUT,
+    });
   }
 }
 
@@ -106,6 +140,50 @@ export function boxedStep<This, Args extends unknown[], Return>(
   };
 
   return replacementMethod;
+}
+
+/**
+ * Lightweight Appium overhead accumulator for performance measurements.
+ *
+ * Problem: every WebDriver HTTP call (findElement, isExisting, click …) adds
+ * infrastructure latency — on BrowserStack this can be 3-18 s per command.
+ * Without compensation a 3 s app-load would be reported as 20+ s.
+ *
+ * Solution: framework methods call `addOverhead(ms)` for operations whose
+ * duration is *pure infra cost* (element resolution, post-detection probes).
+ * `TimerHelper.measure()` activates tracking before the action and subtracts
+ * the accumulated value after the timer stops.
+ *
+ * When no `measure()` is active (`_tracking === false`) all functions are
+ * no-ops, so regular (non-performance) tests pay zero cost.
+ */
+let _overheadMs = 0;
+let _tracking = false;
+
+export function startOverheadTracking(): void {
+  if (_tracking) {
+    console.warn(
+      'TimerHelper: startOverheadTracking() called while already active — nested measure() calls are not supported; inner call ignored',
+    );
+    return;
+  }
+  _overheadMs = 0;
+  _tracking = true;
+}
+
+export function addOverhead(ms: number): void {
+  if (_tracking) _overheadMs += ms;
+}
+
+export function stopOverheadTracking(): number {
+  _tracking = false;
+  const result = _overheadMs;
+  _overheadMs = 0;
+  return result;
+}
+
+export function isOverheadTrackingActive(): boolean {
+  return _tracking;
 }
 
 class PlaywrightUtilities {

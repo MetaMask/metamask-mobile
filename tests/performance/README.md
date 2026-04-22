@@ -100,8 +100,8 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 {
   "android_devices": [
     {
-      "name": "Samsung Galaxy S23 Ultra",
-      "os_version": "13.0",
+      "name": "Samsung Galaxy S25 Ultra",
+      "os_version": "15.0",
       "category": "high"
     },
     { "name": "Google Pixel 8 Pro", "os_version": "14.0", "category": "low" }
@@ -537,8 +537,8 @@ BROWSERSTACK_USERNAME=your_username
 BROWSERSTACK_ACCESS_KEY=your_access_key
 
 # Device Configuration (optional, defaults provided in config)
-BROWSERSTACK_DEVICE="Samsung Galaxy S23 Ultra"
-BROWSERSTACK_OS_VERSION="13.0"
+BROWSERSTACK_DEVICE="Samsung Galaxy S25 Ultra"
+BROWSERSTACK_OS_VERSION="15.0"
 
 # App URLs (required for BrowserStack tests)
 BROWSERSTACK_ANDROID_APP_URL=bs://your-android-app-id

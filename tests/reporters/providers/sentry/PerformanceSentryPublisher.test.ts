@@ -51,7 +51,7 @@ function createMetrics(overrides: Partial<MetricsOutput> = {}): MetricsOutput {
       percentOver: null,
     },
     device: {
-      name: 'Samsung Galaxy S23 Ultra',
+      name: 'Samsung Galaxy S25 Ultra',
       osVersion: '13.0',
       provider: 'browserstack',
     },
@@ -226,8 +226,8 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.spans[0].data.retry).toBe(0);
     expect(payload.spans[0].data.worker_index).toBe(3);
     expect(payload.spans[0].data.build_variant).toBe('exp');
-    expect(payload.spans[0].data.device_name).toBe('Samsung Galaxy S23 Ultra');
-    expect(payload.spans[0].data.device_os_version).toBe('13.0');
+    expect(payload.spans[0].data.device_name).toBe('Samsung Galaxy S25 Ultra');
+    expect(payload.spans[0].data.device_os_version).toBe('15.0');
     expect(payload.spans[0].data.test_file_path).toBe(
       'tests/performance/onboarding/import-wallet.spec.js',
     );

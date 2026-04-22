@@ -51,7 +51,7 @@ export default class PlaywrightMatchers {
     elementId: string,
     options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
-    const { exact = false } = options;
+    const { exact = true } = options;
 
     let locator: string;
     const isAndroid = await PlatformDetector.isAndroid();
@@ -61,10 +61,9 @@ export default class PlaywrightMatchers {
         ? `${locator}.resourceId("${elementId}")`
         : `${locator}.resourceIdMatches(".*${elementId}.*")`;
     } else {
-      locator = '-ios predicate string:';
       locator = exact
-        ? `${locator}name == "${elementId}"`
-        : `${locator}name CONTAINS "${elementId}"`;
+        ? `~${elementId}`
+        : `-ios predicate string:name CONTAINS "${elementId}"`;
     }
 
     const drv = getDriver();

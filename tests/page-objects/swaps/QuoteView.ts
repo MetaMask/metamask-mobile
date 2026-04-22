@@ -72,10 +72,28 @@ class QuoteView {
     });
   }
 
-  get searchToken(): Promise<Detox.IndexableNativeElement> {
-    return Matchers.getElementByID(
-      QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
-    ) as Promise<Detox.IndexableNativeElement>;
+  get destinationTokenInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT,
+          { exact: true },
+        ),
+    });
+  }
+
+  get searchToken(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
+          { exact: true },
+        ),
+    });
   }
 
   get seeAllButton(): DetoxElement {
@@ -105,11 +123,15 @@ class QuoteView {
   /** Fee disclaimer (e.g. "Includes 0.875% MetaMask fee") - used for isQuoteDisplayed. */
   get feeDisclaimerLabel(): EncapsulatedElementType {
     return encapsulated({
-      detox: () => Matchers.getElementByID(QuoteViewSelectorIDs.FEE_DISCLAIMER),
+      detox: () =>
+        Matchers.getElementByID(QuoteViewSelectorIDs.PRICE_IMPACT_INFO_BUTTON),
       appium: () =>
-        PlaywrightMatchers.getElementById(QuoteViewSelectorIDs.FEE_DISCLAIMER, {
-          exact: true,
-        }),
+        PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.PRICE_IMPACT_INFO_BUTTON,
+          {
+            exact: true,
+          },
+        ),
     });
   }
 
@@ -148,8 +170,21 @@ class QuoteView {
   }
 
   async tapSearchToken(): Promise<void> {
-    await Gestures.waitAndTap(this.searchToken, {
-      elemDescription: 'Tap on token search input element',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(asDetoxElement(this.searchToken), {
+          elemDescription: 'Tap on token search input element',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.searchToken),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          },
+        );
+      },
     });
   }
 
@@ -200,8 +235,16 @@ class QuoteView {
   }
 
   async typeSearchToken(symbol: string): Promise<void> {
-    await Gestures.typeText(this.searchToken, symbol, {
-      elemDescription: `Search Token with symbol ${symbol}`,
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.typeText(asDetoxElement(this.searchToken), symbol, {
+          elemDescription: `Search Token with symbol ${symbol}`,
+        });
+      },
+      appium: async () => {
+        const searchField = await asPlaywrightElement(this.searchToken);
+        await searchField.fill(symbol);
+      },
     });
   }
 
@@ -343,30 +386,25 @@ class QuoteView {
   }
 
   /**
-   * Asserts the quote is displayed (fee disclaimer visible).
-   * BridgeScreen.isQuoteDisplayed equivalent.
+   * Asserts the quote is displayed by verifying the destination token input
+   * contains a numeric value (meaning a quote result has populated the field).
    */
   async isQuoteDisplayed(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(
-          asDetoxElement(this.feeDisclaimerLabel),
-          {
-            timeout: TIMEOUT.QUOTE_DISPLAYED,
-            description: 'Fee disclaimer (quote) should be visible',
-          },
-        );
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(this.feeDisclaimerLabel),
-          {
-            timeout: TIMEOUT.QUOTE_DISPLAYED,
-            description: 'Fee disclaimer (quote) should be visible',
-          },
-        );
-      },
-    });
+    const el = await asPlaywrightElement(this.destinationTokenInput);
+    const timeout = TIMEOUT.QUOTE_DISPLAYED;
+    const interval = 300;
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      const text = await el.textContent();
+      if (text && /\d/.test(text) && parseFloat(text) > 0) {
+        return;
+      }
+      await new Promise((r) => setTimeout(r, interval));
+    }
+    const finalText = await el.textContent();
+    throw new Error(
+      `Destination token input does not contain a numeric value after ${timeout}ms, got: "${finalText}"`,
+    );
   }
 
   /**
@@ -378,6 +416,7 @@ class QuoteView {
     if (network !== 'Ethereum') {
       await this.selectNetwork(network);
     }
+    await this.typeSearchToken(token);
     const chainId = getChainIdForNetwork(network);
     await this.tapToken(chainId, token);
   }
