@@ -2158,6 +2158,24 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalled();
     });
 
+    it('does not count USDH-only spot balance in funded-state totals', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          spotClearinghouseState: jest.fn().mockResolvedValue({
+            balances: [{ coin: 'USDH', hold: '1000', total: '10000' }],
+          }),
+        }),
+      );
+
+      const accountState = await provider.getAccountState();
+
+      expect(accountState).toBeDefined();
+      expect(accountState.totalBalance).toBe('10500');
+      expect(
+        mockClientService.getInfoClient().spotClearinghouseState,
+      ).toHaveBeenCalled();
+    });
+
     it('gets markets successfully', async () => {
       const markets = await provider.getMarkets();
 
@@ -8880,6 +8898,7 @@ describe('HyperLiquidProvider', () => {
         clearinghouseState: jest.fn(),
         frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
+        spotClearinghouseState: jest.fn().mockResolvedValue({ balances: [] }),
       };
     });
 

@@ -123,6 +123,7 @@ import {
   TopTradersView,
   TraderProfileView,
   TraderPositionView,
+  NotificationPreferencesView,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -1306,6 +1307,13 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES}
+          component={NotificationPreferencesView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}

@@ -578,6 +578,136 @@ describe('PredictionsSection', () => {
     });
   });
 
+  describe('claimable-only (no active positions)', () => {
+    const setupClaimableOnly = () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable ? mockClaimablePositions : [],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: claimable ? 200 : 0,
+          refetch: jest.fn(),
+        }),
+      );
+    };
+
+    it('renders claim button when only claimable positions exist', async () => {
+      setupClaimableOnly();
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+    });
+
+    it('renders trending carousel above claim button when no active positions', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+        expect(screen.getByText('Will BTC reach 100k?')).toBeOnTheScreen();
+      });
+    });
+
+    it('renders only claim button when no active positions and no markets', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('Will BTC reach 100k?')).not.toBeOnTheScreen();
+    });
+
+    it('does not render active position rows in claimable-only state', async () => {
+      setupClaimableOnly();
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('Test Position 1')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Test Position 2')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('positions-only mode with claimable-only', () => {
+    it('renders claim button when only claimable positions exist', async () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable ? mockClaimablePositions : [],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: claimable ? 200 : 0,
+          refetch: jest.fn(),
+        }),
+      );
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+    });
+
+    it('returns null when no active and no claimable positions', () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        (_options: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: [],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
+        }),
+      );
+
+      const { toJSON } = renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+  });
+
   describe('privacy mode', () => {
     beforeEach(() => {
       mockSelectPrivacyMode.mockReturnValue(true);
