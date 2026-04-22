@@ -95,6 +95,7 @@ export const WalletViewSelectorsIDs = {
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',
   HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
     `homepage-section-title-${sectionName}`,
+  VIEW_ALL_TOKENS_BUTTON: 'view-all-tokens-button',
 } as const;
 
 export const WalletViewSelectorsText = {
