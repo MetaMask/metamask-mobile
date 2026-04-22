@@ -9,7 +9,7 @@ Total screens/files: **16**
 
 ### `app/components/Views/Onboarding`
 
-![Onboarding home screen](../../screenshot/Onboarding_home_screen.png)
+<img src="../../screenshot/Onboarding_home_screen.png" alt="Onboarding home screen" width="240" />
 
 Events sent by this screen:
 
@@ -24,7 +24,7 @@ Events sent by this screen:
 
 ### `app/components/Views/ImportFromSecretRecoveryPhrase`
 
-![ImportFromSecretRecoveryPhrase screen](../../screenshot/ImportFromSecretRecoveryPhrase_screen.png)
+<img src="../../screenshot/ImportFromSecretRecoveryPhrase_screen.png" alt="ImportFromSecretRecoveryPhrase screen" width="240" />
 
 Events sent by this screen:
 
@@ -37,7 +37,7 @@ Events sent by this screen:
 
 ### `app/components/Views/ChoosePassword`
 
-![ChoosePassword create password screen](../../screenshot/ChoosePassword_create_password_screen.png)
+<img src="../../screenshot/ChoosePassword_create_password_screen.png" alt="ChoosePassword create password screen" width="240" />
 
 Events sent by this screen:
 
@@ -52,7 +52,7 @@ Events sent by this screen:
 
 ### `app/components/Views/AccountBackupStep1`
 
-![AccountBackupStep1 secure wallet screen](../../screenshot/AccountBackupStep1_secure_wallet_screen.png)
+<img src="../../screenshot/AccountBackupStep1_secure_wallet_screen.png" alt="AccountBackupStep1 secure wallet screen" width="240" />
 
 Events sent by this screen:
 
@@ -66,7 +66,7 @@ Events sent by this screen:
 
 ### `app/components/Views/AccountBackupStep1B`
 
-![AccountBackupStep1B secure wallet screen](../../screenshot/AccountBackupStep1B_secure_wallet_screen.png)
+<img src="../../screenshot/AccountBackupStep1B_secure_wallet_screen.png" alt="AccountBackupStep1B secure wallet screen" width="240" />
 
 Events sent by this screen:
 
@@ -77,7 +77,7 @@ Events sent by this screen:
 
 ### `app/components/Views/ManualBackupStep1`
 
-![ManualBackupStep1 save SRP screen](../../screenshot/ManualBackupStep1_save_srp_screen.png) ![ManualBackupStep1 save SRP screen alt](../../screenshot/ManualBackupStep1_save_srp_screen_alt.png)
+<img src="../../screenshot/ManualBackupStep1_save_srp_screen.png" alt="ManualBackupStep1 save SRP screen" width="240" /> <img src="../../screenshot/ManualBackupStep1_save_srp_screen_alt.png" alt="ManualBackupStep1 save SRP screen alt" width="240" />
 
 Events sent by this screen:
 
@@ -88,7 +88,7 @@ Events sent by this screen:
 
 ### `app/components/UI/OptinMetrics/index.tsx`
 
-![OptinMetrics improve MetaMask screen](../../screenshot/OptinMetrics_improve_metamask_screen.png)
+<img src="../../screenshot/OptinMetrics_improve_metamask_screen.png" alt="OptinMetrics improve MetaMask screen" width="240" />
 
 Events sent by this screen (on `Continue` press):
 
@@ -100,7 +100,7 @@ Events sent by this screen (on `Continue` press):
 
 ### `app/components/Views/ManualBackupStep3`
 
-![ManualBackupStep3 recovery hint modal](../../screenshot/ManualBackupStep3_recovery_hint_modal.png)
+<img src="../../screenshot/ManualBackupStep3_recovery_hint_modal.png" alt="ManualBackupStep3 recovery hint modal" width="240" />
 
 Remarks:
 
@@ -114,7 +114,7 @@ Remarks:
 
 ### `app/components/Views/OnboardingSuccess`
 
-![OnboardingSuccess wallet ready screen](../../screenshot/OnboardingSuccess_wallet_ready_screen.png) ![OnboardingSuccess keep SRP safe screen](../../screenshot/OnboardingSuccess_keep_srp_safe_screen.png)
+<img src="../../screenshot/OnboardingSuccess_wallet_ready_screen.png" alt="OnboardingSuccess wallet ready screen" width="240" /> <img src="../../screenshot/OnboardingSuccess_keep_srp_safe_screen.png" alt="OnboardingSuccess keep SRP safe screen" width="240" />
 
 Event note:
 
@@ -123,7 +123,7 @@ Event note:
 
 ### `app/components/Views/OnboardingSuccess/DefaultSettings` flow
 
-![DefaultSettings main screen](../../screenshot/DefaultSettings_main_screen.png) ![OnboardingGeneralSettings screen](../../screenshot/OnboardingGeneralSettings_screen.png) ![OnboardingAssetsSettings screen](../../screenshot/OnboardingAssetsSettings_screen.png) ![OnboardingSecuritySettings screen](../../screenshot/OnboardingSecuritySettings_screen.png)
+<img src="../../screenshot/DefaultSettings_main_screen.png" alt="DefaultSettings main screen" width="240" /> <img src="../../screenshot/OnboardingGeneralSettings_screen.png" alt="OnboardingGeneralSettings screen" width="240" /> <img src="../../screenshot/OnboardingAssetsSettings_screen.png" alt="OnboardingAssetsSettings screen" width="240" /> <img src="../../screenshot/OnboardingSecuritySettings_screen.png" alt="OnboardingSecuritySettings screen" width="240" />
 
 Events for this flow:
 
@@ -139,7 +139,7 @@ Notes:
 
 ### `app/components/Views/OnboardingSheet`
 
-![OnboardingSheet social login options](../../screenshot/OnboardingSheet_social_login_options.png)
+<img src="../../screenshot/OnboardingSheet_social_login_options.png" alt="OnboardingSheet social login options" width="240" />
 
 Events for this UI are emitted via `app/components/Views/Onboarding/index.tsx` handlers:
 
@@ -154,7 +154,7 @@ Events for this UI are emitted via `app/components/Views/Onboarding/index.tsx` h
 
 ### `app/components/Views/SocialLoginIosUser`
 
-![SocialLoginIosUser logged in screen](../../screenshot/SocialLoginIosUser_logged_in_screen.png)
+<img src="../../screenshot/SocialLoginIosUser_logged_in_screen.png" alt="SocialLoginIosUser logged in screen" width="240" />
 
 Events sent by this screen:
 
@@ -166,7 +166,7 @@ Events sent by this screen:
 
 ### `app/components/Views/AccountStatus` (Wallet Already Exists path)
 
-![AccountStatus wallet already exists](../../screenshot/AccountStatus_wallet_already_exists.png)
+<img src="../../screenshot/AccountStatus_wallet_already_exists.png" alt="AccountStatus wallet already exists" width="240" />
 
 Events sent by this screen:
 
@@ -178,7 +178,7 @@ Events sent by this screen:
 
 ### `app/components/Views/OAuthRehydration`
 
-![OAuthRehydration welcome back](../../screenshot/OAuthRehydration_welcome_back_screen.png) ![OAuthRehydration login](../../screenshot/OAuthRehydration_login_screen.png) ![OAuthRehydration welcome back unlock](../../screenshot/OAuthRehydration_welcome_back_unlock_screen.png) ![OAuthRehydration forgot password sheet](../../screenshot/OAuthRehydration_forgot_password_sheet.png) ![OAuthRehydration reset wallet confirm sheet](../../screenshot/OAuthRehydration_reset_wallet_confirm_sheet.png)
+<img src="../../screenshot/OAuthRehydration_welcome_back_screen.png" alt="OAuthRehydration welcome back" width="240" /> <img src="../../screenshot/OAuthRehydration_login_screen.png" alt="OAuthRehydration login" width="240" /> <img src="../../screenshot/OAuthRehydration_welcome_back_unlock_screen.png" alt="OAuthRehydration welcome back unlock" width="240" /> <img src="../../screenshot/OAuthRehydration_forgot_password_sheet.png" alt="OAuthRehydration forgot password sheet" width="240" /> <img src="../../screenshot/OAuthRehydration_reset_wallet_confirm_sheet.png" alt="OAuthRehydration reset wallet confirm sheet" width="240" />
 
 Events sent by this screen:
 
@@ -195,7 +195,7 @@ Events sent by this screen:
 
 ## `app/components/Views/ImportNewSecretRecoveryPhrase`
 
-![ImportNewSecretRecoveryPhrase import wallet screen](../../screenshot/ImportNewSecretRecoveryPhrase_import_wallet_screen.png)
+<img src="../../screenshot/ImportNewSecretRecoveryPhrase_import_wallet_screen.png" alt="ImportNewSecretRecoveryPhrase import wallet screen" width="240" />
 
 | event_name | line_refs | scenario |
 | --- | --- | --- |
@@ -203,7 +203,7 @@ Events sent by this screen:
 
 ## `app/components/Views/ManualBackupStep2`
 
-![ManualBackupStep2 confirm SRP screen](../../screenshot/ManualBackupStep2_confirm_srp_screen.png)
+<img src="../../screenshot/ManualBackupStep2_confirm_srp_screen.png" alt="ManualBackupStep2 confirm SRP screen" width="240" />
 
 | event_name | line_refs | scenario |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Events sent by this screen:
 
 ## `app/components/Views/RestoreWallet`
 
-![RestoreWallet restore needed screen](../../screenshot/RestoreWallet_restore_needed_screen.png)
+<img src="../../screenshot/RestoreWallet_restore_needed_screen.png" alt="RestoreWallet restore needed screen" width="240" />
 
 | event_name | occurrence_count | line_refs |
 | --- | ---: | --- |
@@ -226,7 +226,7 @@ Events sent by this screen:
 
 ## `app/components/Views/RevealPrivateCredential`
 
-![RevealPrivateCredential quiz intro](../../screenshot/RevealPrivateCredential_quiz_intro_screen.png) ![RevealPrivateCredential quiz question 1](../../screenshot/RevealPrivateCredential_quiz_q1_screen.png) ![RevealPrivateCredential quiz question 1 correct](../../screenshot/RevealPrivateCredential_quiz_q1_correct_screen.png) ![RevealPrivateCredential quiz question 2](../../screenshot/RevealPrivateCredential_quiz_q2_screen.png) ![RevealPrivateCredential quiz question 2 correct](../../screenshot/RevealPrivateCredential_quiz_q2_correct_screen.png) ![RevealPrivateCredential quiz question 2 wrong](../../screenshot/RevealPrivateCredential_quiz_q2_wrong_screen.png) ![RevealPrivateCredential password entry](../../screenshot/RevealPrivateCredential_password_entry_screen.png) ![RevealPrivateCredential action QR tab](../../screenshot/RevealPrivateCredential_action_qr_tab_screen.png) ![RevealPrivateCredential action text tab](../../screenshot/RevealPrivateCredential_action_text_tab_screen.png)
+<img src="../../screenshot/RevealPrivateCredential_quiz_intro_screen.png" alt="RevealPrivateCredential quiz intro" width="240" /> <img src="../../screenshot/RevealPrivateCredential_quiz_q1_screen.png" alt="RevealPrivateCredential quiz question 1" width="240" /> <img src="../../screenshot/RevealPrivateCredential_quiz_q1_correct_screen.png" alt="RevealPrivateCredential quiz question 1 correct" width="240" /> <img src="../../screenshot/RevealPrivateCredential_quiz_q2_screen.png" alt="RevealPrivateCredential quiz question 2" width="240" /> <img src="../../screenshot/RevealPrivateCredential_quiz_q2_correct_screen.png" alt="RevealPrivateCredential quiz question 2 correct" width="240" /> <img src="../../screenshot/RevealPrivateCredential_quiz_q2_wrong_screen.png" alt="RevealPrivateCredential quiz question 2 wrong" width="240" /> <img src="../../screenshot/RevealPrivateCredential_password_entry_screen.png" alt="RevealPrivateCredential password entry" width="240" /> <img src="../../screenshot/RevealPrivateCredential_action_qr_tab_screen.png" alt="RevealPrivateCredential action QR tab" width="240" /> <img src="../../screenshot/RevealPrivateCredential_action_text_tab_screen.png" alt="RevealPrivateCredential action text tab" width="240" />
 
 Screenshot coverage notes:
 
@@ -258,7 +258,7 @@ Screenshot coverage notes:
 
 ## `app/components/Views/WalletCreationError`
 
-![WalletCreationError choose password error screen](../../screenshot/WalletCreationError_choose_password_error_screen.png)
+<img src="../../screenshot/WalletCreationError_choose_password_error_screen.png" alt="WalletCreationError choose password error screen" width="240" />
 
 | event_name | line_refs | scenario |
 | --- | --- | --- |
