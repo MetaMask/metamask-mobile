@@ -4,6 +4,10 @@ import {
   TransactionPayController,
   TransactionPayControllerMessenger,
   TransactionPayStrategy,
+  // TODO: Remove @ts-expect-error below once @metamask/transaction-pay-controller
+  // is bumped to the version containing FiatStrategy, orderCode, and updated
+  // getStrategy signature.
+  TransactionFiatPayment,
 } from '@metamask/transaction-pay-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
@@ -35,6 +39,16 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
   }
 };
 
-function getStrategy(_transaction: TransactionMeta): TransactionPayStrategy {
+function getStrategy(
+  _transaction: TransactionMeta,
+  transactionData?: {
+    fiatPayment?: TransactionFiatPayment;
+  },
+): TransactionPayStrategy {
+  if (transactionData?.fiatPayment?.selectedPaymentMethodId) {
+    // @ts-expect-error TransactionPayStrategy.Fiat not available until dep bump
+    return TransactionPayStrategy.Fiat;
+  }
+
   return TransactionPayStrategy.Relay;
 }

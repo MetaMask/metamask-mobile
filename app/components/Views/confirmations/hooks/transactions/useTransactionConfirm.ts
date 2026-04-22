@@ -15,7 +15,10 @@ import { hasTransactionType } from '../../utils/transaction';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
-import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayQuotes,
+} from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 
 const log = createProjectLogger('transaction-confirm');
@@ -36,6 +39,10 @@ export function useTransactionConfirm() {
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
+  // @ts-expect-error orderCode not available until @metamask/transaction-pay-controller dep bump
+  const orderCode = fiatPayment?.orderCode as string | undefined;
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
     useMusdConfirmNavigation();
 
@@ -104,6 +111,28 @@ export function useTransactionConfirm() {
 
   const onConfirm = useCallback(
     async (options?: { onError?: (error: unknown) => void }) => {
+      if (isFiatPaymentSelected && !orderCode) {
+        // TODO: Replace with startHeadlessBuy() once Ramps team delivers the API.
+        // startHeadlessBuy({
+        //   assetId,
+        //   amount: fiatPayment.amountFiat,
+        //   currency: 'USD',
+        //   metadata: { transactionId: transactionMetadata?.id },
+        //   providerId,
+        //   paymentMethodId: fiatPayment.selectedPaymentMethodId,
+        //   walletAddress: transactionMetadata?.txParams?.from,
+        //   onOrderCreated: (orderId) => {
+        //     Engine.context.TransactionPayController.updateFiatPayment({
+        //       transactionId: transactionMetadata.id,
+        //       callback: (fp) => { fp.orderCode = orderId; },
+        //     });
+        //   },
+        //   onError: (error) => { log('Headless ramp error', error); },
+        // });
+        log('Fiat payment selected, awaiting ramp order completion');
+        return;
+      }
+
       if (!transactionMetadata) {
         return;
       }
@@ -155,11 +184,13 @@ export function useTransactionConfirm() {
       chainId,
       handleGasless7702,
       handleSmartTransaction,
+      isFiatPaymentSelected,
       isFullScreenConfirmation,
       isGaslessSupportedSTX,
       navigation,
       musdConversionNavigateOnConfirm,
       onRequestConfirm,
+      orderCode,
       selectedGasFeeToken,
       transactionMetadata,
       tryEnableEvmNetwork,
