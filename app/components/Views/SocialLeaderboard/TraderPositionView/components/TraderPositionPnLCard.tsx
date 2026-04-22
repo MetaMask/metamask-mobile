@@ -10,8 +10,8 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { formatPnl } from '../../../../UI/Perps/utils/formatUtils';
 import { formatUsd, formatPercent } from '../../utils/formatters';
-import { formatSignedUsd } from '../../../../UI/Rewards/utils/formatUtils';
 
 export interface TraderPositionPnLCardProps {
   isClosed: boolean;
@@ -68,7 +68,7 @@ const TraderPositionPnLCard: React.FC<TraderPositionPnLCardProps> = ({
             isPnlPositive ? 'text-success-default' : 'text-error-default'
           }
         >
-          {pnlValue != null ? formatSignedUsd(String(pnlValue)) : '\u2014'}
+          {pnlValue != null ? formatPnl(pnlValue) : '\u2014'}
         </Text>
         <Text
           variant={TextVariant.BodySm}
