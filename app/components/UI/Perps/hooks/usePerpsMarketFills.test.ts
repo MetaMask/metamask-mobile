@@ -18,6 +18,7 @@ jest.mock('../../../../core/Engine', () => ({
     PerpsController: {
       getActiveProvider: jest.fn(),
       getActiveProviderOrNull: jest.fn(),
+      getOrderFills: jest.fn(),
     },
   },
 }));
@@ -95,6 +96,12 @@ describe('usePerpsMarketFills', () => {
         typeof Engine.context.PerpsController.getActiveProvider
       >,
     );
+
+    // Controller delegates to provider — matches the post-coalesce path
+    // (MarketDataService is mocked away here and covered in its own suite).
+    (
+      Engine.context.PerpsController.getOrderFills as jest.Mock
+    ).mockImplementation((params) => mockProvider.getOrderFills(params));
 
     // Default WebSocket mock - not loading, empty fills
     mockUsePerpsLiveFills.mockReturnValue({
