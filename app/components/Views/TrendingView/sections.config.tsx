@@ -53,7 +53,7 @@ import PerpsMarketTileCard from '../Homepage/Sections/Perpetuals/components/Perp
 import PerpsMarketTileCardSkeleton from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
 import PerpsExploreSection from './components/Sections/SectionTypes/PerpsExploreSection';
 import PillToggledCardSection, {
-  type PillToggledGroup,
+  type PillToggledTab,
 } from './components/Sections/SectionTypes/PillToggledCardSection';
 
 export type SectionId =
@@ -220,13 +220,6 @@ export type ExploreTabId =
   | 'sports'
   | 'dapps';
 
-const MACRO_PILL_STOCKS = 'stocks';
-const MACRO_PILL_COMMODITIES = 'commodities';
-const MACRO_PILL_GROUP_ORDER: string[] = [
-  MACRO_PILL_STOCKS,
-  MACRO_PILL_COMMODITIES,
-];
-
 const sortPerpsByVolumeDesc = (a: PerpsMarketData, b: PerpsMarketData) => {
   const av = (a as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
   const bv = (b as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
@@ -242,43 +235,113 @@ const topThreePerpsByType = (
     .sort(sortPerpsByVolumeDesc)
     .slice(0, 3);
 
-const buildMacroStocksCommodityPillGroups = (
+const getMacroPillToggledTabs = (
   markets: PerpsMarketData[],
-): Record<string, PillToggledGroup> => ({
-  [MACRO_PILL_STOCKS]: {
+): PillToggledTab[] => [
+  {
+    key: 'stocks',
     name: strings('trending.macro_pill_stocks'),
     items: topThreePerpsByType(markets, 'equity'),
   },
-  [MACRO_PILL_COMMODITIES]: {
+  {
+    key: 'commodities',
     name: strings('trending.macro_pill_commodities'),
     items: topThreePerpsByType(markets, 'commodity'),
   },
-});
+];
 
-/** Wires this section’s perp `data` into `PillToggledCardSection` (labels + top 3 by type). */
-const pillToggledStocksCommodityPerps: React.FC<{
+const sortPerpsByChange24hDesc = (a: PerpsMarketData, b: PerpsMarketData) =>
+  (parseFloat(b.change24hPercent) || 0) - (parseFloat(a.change24hPercent) || 0);
+
+const topThreeRwaPerpsByType = (
+  list: PerpsMarketData[],
+  type: 'commodity' | 'equity' | 'forex',
+) =>
+  list
+    .filter((m) => m.marketType === type)
+    .sort(sortPerpsByChange24hDesc)
+    .slice(0, 3);
+
+const getRwaPillToggledTabs = (
+  markets: PerpsMarketData[],
+): PillToggledTab[] => [
+  {
+    key: 'commodities',
+    name: strings('trending.rwa_pill_commodities'),
+    items: topThreeRwaPerpsByType(markets, 'commodity'),
+  },
+  {
+    key: 'stocks',
+    name: strings('trending.rwa_pill_stocks'),
+    items: topThreeRwaPerpsByType(markets, 'equity'),
+  },
+  {
+    key: 'forex',
+    name: strings('trending.rwa_pill_forex'),
+    items: topThreeRwaPerpsByType(markets, 'forex'),
+  },
+];
+
+/** Shared shell: perp feed `data` → tabbed pills + one `PillToggledCardSection` per `buildPills` implementation. */
+const PerpsPillToggles: React.FC<{
   sectionId: SectionId;
   data: unknown[];
   isLoading: boolean;
-}> = ({ sectionId, data, isLoading }) => {
-  const groups = useMemo(
-    () =>
-      buildMacroStocksCommodityPillGroups((data as PerpsMarketData[]) ?? []),
-    [data],
+  buildPills: (markets: PerpsMarketData[]) => PillToggledTab[];
+  testIdPrefix: string;
+  listTestId: string;
+  defaultPillKey?: string;
+}> = ({
+  sectionId,
+  data,
+  isLoading,
+  buildPills,
+  testIdPrefix,
+  listTestId,
+  defaultPillKey,
+}) => {
+  const pills = useMemo(
+    () => buildPills((data as PerpsMarketData[]) ?? []),
+    [data, buildPills],
   );
 
   return (
     <PillToggledCardSection
       sectionId={sectionId}
       isLoading={isLoading}
-      groupOrder={MACRO_PILL_GROUP_ORDER}
-      groups={groups}
-      defaultGroupKey={MACRO_PILL_STOCKS}
-      testIdPrefix="macro-stocks-commodity-pills"
-      listTestId="macro-stocks-commodity-perps-list"
+      pills={pills}
+      defaultPillKey={defaultPillKey}
+      testIdPrefix={testIdPrefix}
+      listTestId={listTestId}
     />
   );
 };
+
+const pillToggledStocksCommodityPerps: React.FC<{
+  sectionId: SectionId;
+  data: unknown[];
+  isLoading: boolean;
+}> = (props) => (
+  <PerpsPillToggles
+    {...props}
+    buildPills={getMacroPillToggledTabs}
+    testIdPrefix="macro-stocks-commodity-pills"
+    listTestId="macro-stocks-commodity-perps-list"
+  />
+);
+
+const pillToggledRwaPerps: React.FC<{
+  sectionId: SectionId;
+  data: unknown[];
+  isLoading: boolean;
+}> = (props) => (
+  <PerpsPillToggles
+    {...props}
+    buildPills={getRwaPillToggledTabs}
+    testIdPrefix="rwa-perps-pills"
+    listTestId="rwa-perps-pill-toggled-list"
+  />
+);
 
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
@@ -474,9 +537,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     getItemIdentifier: (item) =>
       (item as Partial<PerpsMarketData>).symbol ?? '',
     RowItem: ({ item, index: _index, navigation }) => (
-      <PerpsMarketTileCard
+      <PerpsMarketRowItem
         market={item as PerpsMarketData}
-        testID={`rwa-perps-market-tile-card-${(item as PerpsMarketData).symbol}`}
         onPress={() => {
           (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
             Routes.PERPS.ROOT,
@@ -489,6 +551,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
             },
           );
         }}
+        showBadge={false}
+        compact
       />
     ),
     OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
@@ -510,14 +574,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         compact
       />
     ),
-    Skeleton: PerpsMarketTileCardSkeleton,
+    Skeleton: () => <PerpsRowSkeleton count={1} />,
     OverrideSkeletonSearch: TrendingTokensSkeleton,
     SectionWrapper: ({ children }) => (
       <PerpsConnectionProvider suppressErrorView>
         <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
-    Section: PerpsExploreSection,
+    Section: pillToggledRwaPerps,
     useSectionData: (searchQuery) => {
       const connectionContext = useContext(PerpsConnectionContext);
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
@@ -533,11 +597,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
             m.marketType === 'forex',
         );
         if (!searchQuery) {
-          return [...equityCommodityForex].sort(
-            (a, b) =>
-              (parseFloat(b.change24hPercent) || 0) -
-              (parseFloat(a.change24hPercent) || 0),
-          );
+          return [...equityCommodityForex].sort(sortPerpsByChange24hDesc);
         }
         const filteredByQuery = filterMarketsByQuery(
           equityCommodityForex,

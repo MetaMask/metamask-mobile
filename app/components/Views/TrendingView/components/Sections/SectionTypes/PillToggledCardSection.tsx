@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
@@ -14,10 +14,11 @@ import type { SectionId } from '../../../sections.config';
 import SectionCard, { type SectionCardProps } from './SectionCard';
 
 /**
- * A named group: localized label + items rendered via `SectionCard` for a section.
- * Keys are arbitrary (e.g. `stocks`, `commodities`) and must appear in `groupOrder`.
+ * One pill: stable `key` (E2E), visible `name`, items passed to the section’s `RowItem`s.
+ * Order in the parent array = left to right in the UI.
  */
-export interface PillToggledGroup {
+export interface PillToggledTab {
+  key: string;
   name: string;
   items: unknown[];
 }
@@ -26,12 +27,9 @@ export interface PillToggledCardSectionProps
   extends Pick<SectionCardProps, 'listTestId'> {
   sectionId: SectionId;
   isLoading: boolean;
-  /** Pills are rendered in this order (left to right). */
-  groupOrder: string[];
-  groups: Record<string, PillToggledGroup>;
-  /** Must exist in `groupOrder`. */
-  defaultGroupKey: string;
-  /** Base string for E2E; children get suffixes `-pill-<key>`. */
+  pills: PillToggledTab[];
+  /** If omitted, the first tab is selected. */
+  defaultPillKey?: string;
   testIdPrefix?: string;
 }
 
@@ -40,20 +38,19 @@ const DEFAULT_TEST_ID_PREFIX = 'pill-toggled-section';
 const PillToggledCardSection: React.FC<PillToggledCardSectionProps> = ({
   sectionId,
   isLoading,
-  groupOrder,
-  groups,
-  defaultGroupKey,
+  pills,
+  defaultPillKey,
   listTestId,
   testIdPrefix = DEFAULT_TEST_ID_PREFIX,
 }) => {
   const tw = useTailwind();
-  const [activeKey, setActiveKey] = useState(defaultGroupKey);
+  const firstKey = pills[0]?.key ?? '';
+  const [activeKey, setActiveKey] = useState(defaultPillKey ?? firstKey);
 
-  const onSelectPill = useCallback((key: string) => {
-    setActiveKey(key);
-  }, []);
-
-  const activeGroup = groups[activeKey] ?? { name: '', items: [] };
+  const active = pills.find((p) => p.key === activeKey) ??
+    pills[0] ?? {
+      items: [] as unknown[],
+    };
 
   return (
     <Box testID={testIdPrefix} twClassName="mb-6">
@@ -63,19 +60,15 @@ const PillToggledCardSection: React.FC<PillToggledCardSectionProps> = ({
         twClassName="mb-3 flex-wrap gap-2"
         testID={`${testIdPrefix}-pills`}
       >
-        {groupOrder.map((key) => {
-          const group = groups[key];
-          if (!group) {
-            return null;
-          }
-          const isSelected = activeKey === key;
+        {pills.map((pill) => {
+          const isSelected = activeKey === pill.key;
           return (
             <Pressable
-              key={key}
+              key={pill.key}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
-              onPress={() => onSelectPill(key)}
-              testID={`${testIdPrefix}-pill-${key}`}
+              onPress={() => setActiveKey(pill.key)}
+              testID={`${testIdPrefix}-pill-${pill.key}`}
               style={tw.style(
                 'rounded-xl px-4 py-2',
                 isSelected ? 'bg-icon-default' : 'bg-muted',
@@ -87,9 +80,9 @@ const PillToggledCardSection: React.FC<PillToggledCardSectionProps> = ({
                 color={
                   isSelected ? TextColor.InfoInverse : TextColor.TextAlternative
                 }
-                testID={`${testIdPrefix}-pill-label-${key}`}
+                testID={`${testIdPrefix}-pill-label-${pill.key}`}
               >
-                {group.name}
+                {pill.name}
               </Text>
             </Pressable>
           );
@@ -97,7 +90,7 @@ const PillToggledCardSection: React.FC<PillToggledCardSectionProps> = ({
       </Box>
       <SectionCard
         sectionId={sectionId}
-        data={activeGroup.items}
+        data={active.items}
         isLoading={isLoading}
         listTestId={listTestId}
       />
