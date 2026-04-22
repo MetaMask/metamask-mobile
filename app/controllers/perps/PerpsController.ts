@@ -106,6 +106,7 @@ import type {
   PerpsActiveProviderMode,
   PerpsProviderType,
   PerpsSelectedPaymentToken,
+  SelectedPaymentTokenSource,
   PerpsRemoteFeatureFlagState,
   PerpsTransactionParams,
   PerpsAddTransactionOptions,
@@ -4621,7 +4622,7 @@ export class PerpsController extends BaseController<
       orderType?: OrderType;
       /** When user used pay-with-token in PerpsPayRow: minimal token shape to restore selection */
       selectedPaymentToken?: PerpsSelectedPaymentToken | null;
-      selectedPaymentTokenSource?: 'explicit' | 'autoNoPerpsBalance';
+      selectedPaymentTokenSource?: SelectedPaymentTokenSource;
     },
   ): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -4665,7 +4666,7 @@ export class PerpsController extends BaseController<
         limitPrice?: string;
         orderType?: OrderType;
         selectedPaymentToken?: PerpsSelectedPaymentToken | null;
-        selectedPaymentTokenSource?: 'explicit' | 'autoNoPerpsBalance';
+        selectedPaymentTokenSource?: SelectedPaymentTokenSource;
       }
     | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';

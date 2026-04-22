@@ -5585,14 +5585,21 @@ export class HyperLiquidProvider implements PerpsProvider {
         const dexAccountStates = standalonePerpsResults.map((perpsState) =>
           adaptAccountStateFromSDK(perpsState),
         );
-        const aggregatedAccountState = addSpotBalanceToAccountState(
-          aggregateAccountStates(dexAccountStates),
+        const aggregatedAccountState = addSpotUsdcToAvailableToTradeBalance(
+          addSpotBalanceToAccountState(
+            aggregateAccountStates(dexAccountStates),
+            standaloneSpotStateResult,
+          ),
           standaloneSpotStateResult,
         );
 
         this.#deps.debugLogger.log(
           'HyperLiquidProvider: standalone account state fetched',
-          { totalBalance: aggregatedAccountState.totalBalance },
+          {
+            totalBalance: aggregatedAccountState.totalBalance,
+            availableToTradeBalance:
+              aggregatedAccountState.availableToTradeBalance,
+          },
         );
 
         return aggregatedAccountState;

@@ -83,6 +83,9 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
 
     const pendingAddr = pendingConfigSelectedPaymentToken.address;
     const pendingChainId = pendingConfigSelectedPaymentToken.chainId;
+    // Compatibility shim for pending configs persisted before
+    // selectedPaymentTokenSource existed. Safe to remove after the 5-minute
+    // pending-config TTL has cycled past release.
     const isLegacyAutoFallbackToken =
       pendingConfigSelectedPaymentTokenSource == null &&
       arePaymentTokensEqual(

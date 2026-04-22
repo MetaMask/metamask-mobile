@@ -9031,6 +9031,9 @@ describe('HyperLiquidProvider', () => {
     describe('getAccountState with standalone mode', () => {
       it('returns account state via standalone client when standalone mode enabled', async () => {
         // Arrange
+        mockStandaloneInfoClient.spotClearinghouseState.mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+        });
         mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
           assetPositions: [],
           marginSummary: {
@@ -9058,6 +9061,9 @@ describe('HyperLiquidProvider', () => {
           mockStandaloneInfoClient.clearinghouseState,
         ).toHaveBeenCalledWith({ user: mockUserAddress });
         expect(accountState.totalBalance).toBeDefined();
+        expect(parseFloat(accountState.availableToTradeBalance ?? '0')).toBe(
+          55000,
+        );
       });
 
       it('uses testnet endpoint when provider is in testnet mode', async () => {

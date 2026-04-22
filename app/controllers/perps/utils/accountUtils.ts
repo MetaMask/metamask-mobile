@@ -168,6 +168,8 @@ export function addSpotUsdcToAvailableToTradeBalance(
     return accountState;
   }
 
+  // Adapters are expected to populate availableToTradeBalance. Fall back to
+  // availableBalance only for legacy or partially migrated AccountState payloads.
   const currentAvailableToTrade = parseFloat(
     accountState.availableToTradeBalance ?? accountState.availableBalance,
   );

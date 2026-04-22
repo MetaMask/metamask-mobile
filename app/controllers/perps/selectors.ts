@@ -2,7 +2,10 @@ import { createSelector } from 'reselect';
 
 import { MARKET_SORTING_CONFIG, SortOptionId } from './constants/perpsConfig';
 import type { PerpsControllerState } from './PerpsController';
-import type { PerpsSelectedPaymentToken } from './types';
+import type {
+  PerpsSelectedPaymentToken,
+  SelectedPaymentTokenSource,
+} from './types';
 import type { SortDirection } from './utils/sortMarkets';
 
 /**
@@ -132,7 +135,7 @@ export const selectPendingTradeConfiguration = createSelector(
         limitPrice?: string;
         orderType?: 'market' | 'limit';
         selectedPaymentToken?: PerpsSelectedPaymentToken | null;
-        selectedPaymentTokenSource?: 'explicit' | 'autoNoPerpsBalance';
+        selectedPaymentTokenSource?: SelectedPaymentTokenSource;
       }
     | undefined => {
     const network = isTestnet ? 'testnet' : 'mainnet';
