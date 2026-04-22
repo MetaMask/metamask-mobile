@@ -77,7 +77,12 @@ describe('InputStepper', () => {
         <InputStepper {...defaultProps} value="1234567890" />,
       );
 
-      expect(getByTestId('input-stepper-input')).toBeOnTheScreen();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(40);
     });
 
     it('renders correct style when value character length is less or equal to 15', () => {
@@ -85,7 +90,12 @@ describe('InputStepper', () => {
         <InputStepper {...defaultProps} value="123456789012345" />,
       );
 
-      expect(getByTestId('input-stepper-input')).toBeOnTheScreen();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(35);
     });
 
     it('renders correct style when value character length is less or equal to 20', () => {
@@ -93,7 +103,12 @@ describe('InputStepper', () => {
         <InputStepper {...defaultProps} value="12345678901234567890" />,
       );
 
-      expect(getByTestId('input-stepper-input')).toBeOnTheScreen();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(30);
     });
 
     it('renders correct style when value character length is less or equal to 25', () => {
@@ -101,7 +116,12 @@ describe('InputStepper', () => {
         <InputStepper {...defaultProps} value="1234567890123456789012345" />,
       );
 
-      expect(getByTestId('input-stepper-input')).toBeOnTheScreen();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(25);
     });
 
     it('renders correct style when value character length is more than 25', () => {
@@ -109,7 +129,12 @@ describe('InputStepper', () => {
         <InputStepper {...defaultProps} value="12345678901234567890123456" />,
       );
 
-      expect(getByTestId('input-stepper-input')).toBeOnTheScreen();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(20);
     });
 
     it('renders custom placeholder if provided', () => {

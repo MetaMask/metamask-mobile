@@ -317,7 +317,7 @@ describe('CustomSlippageModal', () => {
 
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Confirm')).toBeOnTheScreen();
+      expect(getByText('Confirm')).toBeDisabled();
     });
 
     it('is enabled when shouldDisableConfirm is false', () => {
@@ -325,7 +325,7 @@ describe('CustomSlippageModal', () => {
 
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Confirm')).toBeOnTheScreen();
+      expect(getByText('Confirm')).toBeEnabled();
     });
   });
 

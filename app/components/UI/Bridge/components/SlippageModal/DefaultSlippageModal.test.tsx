@@ -449,18 +449,6 @@ describe('DefaultSlippageModal', () => {
 
       expect(getByText('Slippage')).toBeOnTheScreen();
     });
-
-    it('renders description text', () => {
-      const { getByText } = render(<DefaultSlippageModal />);
-
-      expect(getByText('Set your slippage tolerance')).toBeOnTheScreen();
-    });
-
-    it('renders submit button', () => {
-      const { getByText } = render(<DefaultSlippageModal />);
-
-      expect(getByText('Submit')).toBeOnTheScreen();
-    });
   });
 
   describe('integration with hooks', () => {

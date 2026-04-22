@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { DefaultSlippageButtonGroup } from './DefaultSlippageButtonGroup';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 
 describe('DefaultSlippageButtonGroup', () => {
   const mockOnPress1 = jest.fn();
@@ -256,11 +257,13 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '1', label: '1%', selected: true, onPress: jest.fn() },
       ];
 
-      const { getByText } = render(
+      const { UNSAFE_getByProps } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(getByText('1%')).toBeOnTheScreen();
+      expect(
+        UNSAFE_getByProps({ variant: ButtonVariant.Primary }).props.variant,
+      ).toBe(ButtonVariant.Primary);
     });
 
     it('uses Secondary variant for unselected button', () => {
@@ -268,11 +271,13 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '1', label: '1%', selected: false, onPress: jest.fn() },
       ];
 
-      const { getByText } = render(
+      const { UNSAFE_getByProps } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(getByText('1%')).toBeOnTheScreen();
+      expect(
+        UNSAFE_getByProps({ variant: ButtonVariant.Secondary }).props.variant,
+      ).toBe(ButtonVariant.Secondary);
     });
 
     it('handles mixed selected states correctly', () => {
