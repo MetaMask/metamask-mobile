@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -130,7 +129,7 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
 /**
  * Lightweight shell — opens the sheet immediately with just a placeholder
  * so the animation runs on an idle JS thread. The heavy content tree is
- * mounted via InteractionManager once the animation has finished.
+ * mounted after the sheet reports its open animation has finished.
  */
 const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   position,
@@ -142,13 +141,9 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   const { destToken } = useQuickBuySetup(position);
 
   useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-    const handle = InteractionManager.runAfterInteractions(() => {
+    bottomSheetRef.current?.onOpenBottomSheet(() => {
       setIsContentReady(true);
     });
-    return () => {
-      handle?.cancel?.();
-    };
   }, []);
 
   return (
