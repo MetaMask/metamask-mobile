@@ -111,6 +111,11 @@ const defaultParams = {
   maxBetAmount: 100,
   isPayFeesLoading: false,
   blockingPayAlertMessage: null as string | null,
+  // Inline banner UX is sheet-mode-only; default these tests to sheet mode so
+  // banner / errorMessage suppression behavior is exercised. The dedicated
+  // 'legacy mode' describe below overrides this to assert the alternative
+  // full-screen contract.
+  isSheetMode: true,
 };
 
 describe('usePredictBuyError', () => {
@@ -519,6 +524,86 @@ describe('usePredictBuyError', () => {
 
       expect(mockClearOrderError).toHaveBeenCalledTimes(1);
       expect(result.current.isOrderNotFilled).toBe(false);
+    });
+  });
+
+  describe('legacy mode (isSheetMode: false)', () => {
+    it('returns null buyErrorBanner regardless of activeOrder.error', () => {
+      mockActiveOrder = { error: 'order failed' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'parsed message',
+      });
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({ ...defaultParams, isSheetMode: false }),
+      );
+
+      expect(result.current.buyErrorBanner).toBeNull();
+    });
+
+    it('returns null buyErrorBanner for order_not_filled active errors', () => {
+      mockActiveOrder = { error: 'BUY_ORDER_NOT_FULLY_FILLED' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'order_not_filled',
+      });
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({ ...defaultParams, isSheetMode: false }),
+      );
+
+      expect(result.current.buyErrorBanner).toBeNull();
+    });
+
+    it('surfaces the active-order error string via errorMessage (no banner suppression)', () => {
+      mockActiveOrder = { error: 'something broke' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'Order placement failed',
+      });
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({ ...defaultParams, isSheetMode: false }),
+      );
+
+      expect(result.current.errorMessage).toBe('Order placement failed');
+      expect(result.current.buyErrorBanner).toBeNull();
+    });
+
+    it('still returns blockingPayAlertMessage as errorMessage in legacy mode', () => {
+      mockActiveOrder = { error: 'order failed' };
+      mockIsPredictBalanceSelected = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({
+          ...defaultParams,
+          isSheetMode: false,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+        }),
+      );
+
+      expect(result.current.errorMessage).toBe(
+        'Insufficient payment token balance',
+      );
+      expect(result.current.buyErrorBanner).toBeNull();
+    });
+
+    it('defaults to legacy mode when isSheetMode is omitted', () => {
+      mockActiveOrder = { error: 'something broke' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'Order placement failed',
+      });
+
+      const { isSheetMode: _ignored, ...paramsWithoutSheetMode } =
+        defaultParams;
+
+      const { result } = renderHook(() =>
+        usePredictBuyError(paramsWithoutSheetMode),
+      );
+
+      expect(result.current.buyErrorBanner).toBeNull();
+      expect(result.current.errorMessage).toBe('Order placement failed');
     });
   });
 });

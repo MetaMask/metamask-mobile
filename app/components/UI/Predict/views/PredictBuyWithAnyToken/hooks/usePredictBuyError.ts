@@ -26,6 +26,11 @@ interface UsePredictBuyInfoParams {
   isPayFeesLoading: boolean;
   blockingPayAlertMessage: string | null;
   outcomeTokenPrice?: number;
+  // Inline banner UX (price_changed / order_failed) only exists inside the
+  // bottom-sheet flow. In legacy full-screen mode we keep the previous
+  // surface: an inline error string returned via `errorMessage`. Defaults to
+  // false so callers that haven't opted in retain legacy behaviour.
+  isSheetMode?: boolean;
 }
 
 export const usePredictBuyError = ({
@@ -39,6 +44,7 @@ export const usePredictBuyError = ({
   isPayFeesLoading,
   blockingPayAlertMessage,
   outcomeTokenPrice,
+  isSheetMode = false,
 }: UsePredictBuyInfoParams) => {
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
@@ -111,9 +117,11 @@ export const usePredictBuyError = ({
     }
 
     if (errorResult.status === 'error') {
-      // Active-order errors (with no pay-alert priority) are surfaced via
-      // buyErrorBanner instead of inline text in sheet flows.
-      if (activeOrder?.error && !blockingPayAlertMessage) {
+      // In sheet mode, active-order errors (with no pay-alert priority) are
+      // surfaced via `buyErrorBanner` instead of inline text. In legacy
+      // (full-screen) mode there is no banner, so we keep the previous
+      // behaviour and return the error string here.
+      if (isSheetMode && activeOrder?.error && !blockingPayAlertMessage) {
         return undefined;
       }
       return errorResult.error;
@@ -128,9 +136,16 @@ export const usePredictBuyError = ({
     maxBetAmount,
     activeOrder?.error,
     blockingPayAlertMessage,
+    isSheetMode,
   ]);
 
   const buyErrorBanner = useMemo<PredictBuyErrorBannerData | null>(() => {
+    // Inline banners are a sheet-mode-only surface. In legacy full-screen
+    // mode the equivalent error is surfaced via `errorMessage` instead.
+    if (!isSheetMode) {
+      return null;
+    }
+
     if (isPlacingOrder || isConfirming) {
       return null;
     }
@@ -179,6 +194,7 @@ export const usePredictBuyError = ({
     isPlacingOrder,
     isConfirming,
     blockingPayAlertMessage,
+    isSheetMode,
   ]);
 
   const resetOrderNotFilled = useCallback(() => {

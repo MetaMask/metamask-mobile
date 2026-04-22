@@ -193,6 +193,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isPayFeesLoading,
     blockingPayAlertMessage,
     outcomeTokenPrice: outcomeToken?.price,
+    isSheetMode,
   });
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({
