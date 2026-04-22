@@ -1,10 +1,18 @@
 name: 'Find reusable build from prior run'
 description: >-
-  Searches recent workflow runs (same branch first, then base branch) for a run
-  whose `build-source-hash` commit status matches the current fingerprint AND
-  whose required build artifacts are still available. If a match is found,
-  outputs the run id so a subsequent `actions/download-artifact` step can pull
-  the artifacts directly instead of triggering a fresh native build.
+  Searches recent workflow runs across three tiers (same branch, base branch,
+  then any open PR branch) for a run whose `build-source-hash` commit status
+  matches the current fingerprint AND whose required build artifacts are still
+  available. If a match is found, outputs the run id so a subsequent
+  `actions/download-artifact` step can pull the artifacts directly instead of
+  triggering a fresh native build.
+
+  The third (cross-PR) tier is required because GitHub's `listWorkflowRuns`
+  `branch` parameter filters against `head_branch` — the PR source branch for
+  `pull_request` events — so branch-scoped lookups can never discover other
+  PRs' runs. The cross-PR tier drops the branch filter and instead uses
+  `event: pull_request` to let the fingerprint itself act as the cross-PR
+  deduplication key.
 
 inputs:
   fingerprint:
@@ -29,9 +37,17 @@ inputs:
     required: false
     default: 'build-source-hash'
   max-candidates-per-branch:
-    description: 'How many recent runs to inspect per branch'
+    description: 'How many recent runs to inspect per branch-scoped tier (same-branch, base-branch)'
     required: false
     default: '10'
+  max-candidates-cross-pr:
+    description: >-
+      How many recent `pull_request`-event runs (across all branches) to inspect
+      in the cross-PR tier. The fingerprint filter is highly discriminating, so
+      the practical cost is one `getCombinedStatusForRef` call per candidate
+      until a match is found.
+    required: false
+    default: '30'
 
 outputs:
   found:
@@ -61,6 +77,7 @@ runs:
         BASE_BRANCH: ${{ inputs.base-branch }}
         STATUS_CONTEXT: ${{ inputs.status-context }}
         MAX_CANDIDATES: ${{ inputs.max-candidates-per-branch }}
+        MAX_CANDIDATES_CROSS_PR: ${{ inputs.max-candidates-cross-pr }}
         HEAD_BRANCH: ${{ github.head_ref || github.ref_name }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         CURRENT_RUN_ID: ${{ github.run_id }}
@@ -74,6 +91,7 @@ runs:
             BASE_BRANCH,
             STATUS_CONTEXT,
             MAX_CANDIDATES,
+            MAX_CANDIDATES_CROSS_PR,
             HEAD_BRANCH,
             HEAD_SHA,
             CURRENT_RUN_ID,
@@ -107,12 +125,42 @@ runs:
           }
 
           const maxCandidates = Number(MAX_CANDIDATES) || 10;
+          const maxCandidatesCrossPr = Number(MAX_CANDIDATES_CROSS_PR) || 30;
           const currentRunId = String(CURRENT_RUN_ID);
 
-          const branchesToSearch = [HEAD_BRANCH];
+          // Three-tier discovery:
+          //   1. same-branch  — fastest path, catches retries and new commits
+          //                     on the current PR.
+          //   2. base-branch  — catches post-merge CI runs on `main`. Only
+          //                     matches `push`-event runs (pull_request runs
+          //                     have head_branch=<source branch>, not main).
+          //   3. cross-pr     — searches recent `pull_request` runs across
+          //                     ALL source branches so two unrelated PRs with
+          //                     the same fingerprint can reuse each other's
+          //                     artifacts. This tier deliberately drops the
+          //                     `branch` filter; without it, branch-scoped
+          //                     lookups can never discover another PR's run
+          //                     (GitHub filters `branch` against head_branch,
+          //                     which is the PR source branch).
+          const tiers = [
+            {
+              label: `same-branch (branch=${HEAD_BRANCH})`,
+              params: { branch: HEAD_BRANCH, per_page: maxCandidates },
+            },
+          ];
           if (BASE_BRANCH && BASE_BRANCH !== HEAD_BRANCH) {
-            branchesToSearch.push(BASE_BRANCH);
+            tiers.push({
+              label: `base-branch (branch=${BASE_BRANCH})`,
+              params: { branch: BASE_BRANCH, per_page: maxCandidates },
+            });
           }
+          tiers.push({
+            label: `cross-pr (event=pull_request, any branch, last ${maxCandidatesCrossPr} runs)`,
+            params: { event: 'pull_request', per_page: maxCandidatesCrossPr },
+            // Skip runs already visited by the same-branch tier to avoid
+            // wasting API calls on duplicates.
+            skipHeadBranch: HEAD_BRANCH,
+          });
 
           async function getFingerprintForSha(sha) {
             try {
@@ -158,31 +206,39 @@ runs:
             }
           }
 
-          for (const branch of branchesToSearch) {
-            core.info(`Searching recent ${WORKFLOW_FILE} runs on branch=${branch}`);
+          const seenRunIds = new Set();
+          seenRunIds.add(currentRunId);
+
+          for (const tier of tiers) {
+            core.info(`Searching tier: ${tier.label}`);
             let runs;
             try {
               const { data } = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: WORKFLOW_FILE,
-                branch,
-                per_page: maxCandidates,
+                ...tier.params,
               });
               runs = data.workflow_runs || [];
             } catch (err) {
-              core.warning(`listWorkflowRuns failed for ${branch}: ${err.message}`);
+              core.warning(`listWorkflowRuns failed for tier "${tier.label}": ${err.message}`);
               continue;
             }
 
             for (const run of runs) {
-              if (String(run.id) === currentRunId) continue;
+              const runIdStr = String(run.id);
+              if (seenRunIds.has(runIdStr)) continue;
+              seenRunIds.add(runIdStr);
+
+              if (tier.skipHeadBranch && run.head_branch === tier.skipHeadBranch) continue;
               if (run.status !== 'completed' && run.status !== 'in_progress') continue;
-              if (run.status === 'completed' && run.conclusion && run.conclusion !== 'success' && run.conclusion !== 'neutral') {
+              if (
+                run.status === 'completed' &&
+                run.conclusion &&
+                run.conclusion !== 'success' &&
+                run.conclusion !== 'neutral'
+              ) {
                 continue;
-              }
-              if (run.head_sha === HEAD_SHA && String(run.id) !== currentRunId) {
-                // allow same-SHA reuse from other runs (e.g. earlier attempts)
               }
 
               const fingerprint = await getFingerprintForSha(run.head_sha);
@@ -192,15 +248,15 @@ runs:
               if (!(await hasAllArtifacts(run.id))) continue;
 
               core.info(
-                `Match: run=${run.id} sha=${run.head_sha} branch=${branch} url=${run.html_url}`,
+                `Match: tier="${tier.label}" run=${run.id} sha=${run.head_sha} branch=${run.head_branch} url=${run.html_url}`,
               );
               core.setOutput('found', 'true');
-              core.setOutput('run-id', String(run.id));
+              core.setOutput('run-id', runIdStr);
               core.setOutput('source-sha', run.head_sha);
-              core.setOutput('source-branch', branch);
+              core.setOutput('source-branch', run.head_branch || '');
               return;
             }
           }
 
-          core.info('No reusable build found');
+          core.info('No reusable build found across any tier');
           setNotFound();

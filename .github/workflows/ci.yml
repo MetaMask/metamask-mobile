@@ -586,6 +586,7 @@ jobs:
       id-token: write
       actions: read
       pull-requests: read
+      statuses: read
     needs: [needs_e2e_build, smart-e2e-selection, post-build-source-hash]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
@@ -633,6 +634,7 @@ jobs:
       id-token: write
       actions: read
       pull-requests: read
+      statuses: read
     needs: [needs_e2e_build, smart-e2e-selection, post-build-source-hash]
     uses: ./.github/workflows/build-ios-e2e.yml
     with:

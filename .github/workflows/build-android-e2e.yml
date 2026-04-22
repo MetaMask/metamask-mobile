@@ -40,6 +40,11 @@ permissions:
   id-token: write
   actions: read
   pull-requests: read
+  # Required by `find-reusable-build` so `getCombinedStatusForRef` can read
+  # the `build-source-hash` commit status on candidate runs. On a public
+  # repo unauthenticated reads already work, but declaring this explicitly
+  # future-proofs us against visibility/token-scope changes.
+  statuses: read
 
 jobs:
   build-android-apks:

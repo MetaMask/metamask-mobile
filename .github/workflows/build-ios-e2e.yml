@@ -32,6 +32,7 @@ permissions:
   id-token: write
   actions: read
   pull-requests: read
+  statuses: read
 
 jobs:
   build-ios-apps:
