@@ -13,7 +13,7 @@ import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
-import { BridgeViewMode } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   RequestStatus,
   type QuoteResponse,
@@ -1925,8 +1925,7 @@ describe('BridgeView', () => {
         {
           bridgeReducerOverrides: {
             destToken: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              ...mockBridgeReducerState.destToken!,
+              ...(mockBridgeReducerState.destToken as BridgeToken),
               securityData: { type, metadata: { features } },
             },
           },
@@ -1961,8 +1960,7 @@ describe('BridgeView', () => {
           bridgeReducerOverrides: {
             sourceAmount: undefined,
             destToken: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              ...mockBridgeReducerState.destToken!,
+              ...(mockBridgeReducerState.destToken as BridgeToken),
               securityData: {
                 type: SecurityDataType.Warning,
                 metadata: { features: mockWarningFeatures },
