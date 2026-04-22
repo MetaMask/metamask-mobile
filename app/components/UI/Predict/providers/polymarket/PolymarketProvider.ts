@@ -685,9 +685,17 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const event = await getMarketDetailsFromGammaApi({
+      let event = await getMarketDetailsFromGammaApi({
         marketId,
       });
+
+      let resolvedMarketId = marketId;
+      if (event.parentEventId) {
+        resolvedMarketId = event.parentEventId;
+        event = await getMarketDetailsFromGammaApi({
+          marketId: resolvedMarketId,
+        });
+      }
 
       const supportedLeagues = this.#getSupportedLeagues();
       const liveSportsEnabled = supportedLeagues.length > 0;
@@ -695,14 +703,16 @@ export class PolymarketProvider implements PredictProvider {
         liveSportsEnabled && isLiveSportsEvent(event, supportedLeagues);
 
       let mergedEvent = event;
+      let childMarketIds: string[] | undefined;
       if (isSportsEvent) {
         const league = getEventLeague(event);
         if (league && this.#hasExtendedMarketsForLeague(league)) {
           try {
             const allEvents = await fetchChildEventsFromGammaApi({
-              parentEventId: marketId,
+              parentEventId: resolvedMarketId,
             });
             mergedEvent = mergeChildEventsIntoParent(allEvents);
+            childMarketIds = allEvents.map((e) => e.id);
           } catch (childFetchError) {
             DevLogger.log(
               'Failed to fetch child events, using parent only:',
@@ -724,6 +734,10 @@ export class PolymarketProvider implements PredictProvider {
 
       if (!parsedMarket) {
         throw new Error('Failed to parse market details');
+      }
+
+      if (childMarketIds) {
+        parsedMarket.childMarketIds = childMarketIds;
       }
 
       const result = isSportsEvent
