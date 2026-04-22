@@ -1,0 +1,128 @@
+{
+  "title": "HL fixture provisioning — abstraction={{abstraction}} transfer={{transferDirection}} amount={{transferAmount}}",
+  "description": "Admin/test flow. Drives the HyperLiquid SDK directly via HyperLiquidProvider.getExchangeClient() escape hatch. Guards each op with when/unless so callers can skip either phase. Amounts: transferAmount='max' (default when direction!='none') transfers the full source-side balance; explicit amount strings forward as-is. Requires mainnet HL (abstraction modes do not exist on testnet).",
+  "inputs": {
+    "abstraction": {
+      "type": "string",
+      "default": "none",
+      "description": "Target abstraction mode: 'unifiedAccount' | 'dexAbstraction' | 'portfolioMargin' | 'disabled' | 'none' (skip)"
+    },
+    "transferDirection": {
+      "type": "string",
+      "default": "none",
+      "description": "USDC move direction: 'to-spot' (perps -> spot), 'to-perp' (spot -> perps), 'none' (skip)"
+    },
+    "transferAmount": {
+      "type": "string",
+      "default": "max",
+      "description": "USDC amount as string. 'max' = full source-side balance read at execution time."
+    }
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.feature_enabled"
+      ],
+      "entry": "mode-switch",
+      "nodes": {
+        "mode-switch": {
+          "action": "switch",
+          "cases": [
+            {
+              "when": {
+                "operator": "neq",
+                "field": "inputs.abstraction",
+                "value": "none"
+              },
+              "next": "set-abstraction"
+            }
+          ],
+          "default": "transfer-switch"
+        },
+        "set-abstraction": {
+          "action": "eval_async",
+          "expression": "(function(){try{var ctrl=Engine.context.PerpsController;var provider=ctrl.getActiveProvider();var accs=Engine.context.AccountsController.state.internalAccounts;var user=accs.accounts[accs.selectedAccount].address;return provider.getExchangeClient().then(function(client){return client.userSetAbstraction({user:user,abstraction:'{{abstraction}}'})}).then(function(r){return JSON.stringify({ok:true,status:(r&&r.status)||'ok'})}).catch(function(e){return JSON.stringify({ok:false,error:String(e&&e.message||e)})})}catch(e){return JSON.stringify({ok:false,error:String(e)})}})()",
+          "assert": {
+            "operator": "eq",
+            "field": "ok",
+            "value": true
+          },
+          "timeout_ms": 30000,
+          "next": "wait-mode-settle"
+        },
+        "wait-mode-settle": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({refreshed:!!r,totalBalance:r&&r.totalBalance})}).catch(function(e){return JSON.stringify({refreshed:false,error:String(e)})})",
+          "assert": { "operator": "eq", "field": "refreshed", "value": true },
+          "timeout_ms": 30000,
+          "next": "transfer-switch"
+        },
+        "transfer-switch": {
+          "action": "switch",
+          "cases": [
+            {
+              "when": {
+                "operator": "eq",
+                "field": "inputs.transferDirection",
+                "value": "to-spot"
+              },
+              "next": "transfer-to-spot"
+            },
+            {
+              "when": {
+                "operator": "eq",
+                "field": "inputs.transferDirection",
+                "value": "to-perp"
+              },
+              "next": "transfer-to-perp"
+            }
+          ],
+          "default": "done"
+        },
+        "transfer-to-spot": {
+          "action": "eval_async",
+          "expression": "(function(){try{var ctrl=Engine.context.PerpsController;var provider=ctrl.getActiveProvider();var s=(ctrl.state&&ctrl.state.accountState)||{};var amountInput='{{transferAmount}}';var amount=amountInput==='max'?String(parseFloat(s.availableBalance||'0')):amountInput;if(!(parseFloat(amount)>0))return JSON.stringify({ok:false,error:'nothing to transfer',source:'perps',amount:amount});return provider.getExchangeClient().then(function(client){return client.usdClassTransfer({amount:amount,toPerp:false})}).then(function(r){return JSON.stringify({ok:true,direction:'to-spot',amount:amount,status:(r&&r.status)||'ok'})}).catch(function(e){return JSON.stringify({ok:false,error:String(e&&e.message||e),amount:amount})})}catch(e){return JSON.stringify({ok:false,error:String(e)})}})()",
+          "assert": {
+            "operator": "eq",
+            "field": "ok",
+            "value": true
+          },
+          "timeout_ms": 60000,
+          "next": "wait-transfer-settle"
+        },
+        "transfer-to-perp": {
+          "action": "eval_async",
+          "expression": "(function(){try{var ctrl=Engine.context.PerpsController;var provider=ctrl.getActiveProvider();var s=(ctrl.state&&ctrl.state.accountState)||{};var amountInput='{{transferAmount}}';var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=Math.max(0,trade-avail);var amount=amountInput==='max'?String(spotFold):amountInput;if(!(parseFloat(amount)>0))return JSON.stringify({ok:false,error:'nothing to transfer',source:'spot',amount:amount});return provider.getExchangeClient().then(function(client){return client.usdClassTransfer({amount:amount,toPerp:true})}).then(function(r){return JSON.stringify({ok:true,direction:'to-perp',amount:amount,status:(r&&r.status)||'ok'})}).catch(function(e){return JSON.stringify({ok:false,error:String(e&&e.message||e),amount:amount})})}catch(e){return JSON.stringify({ok:false,error:String(e)})}})()",
+          "assert": {
+            "operator": "eq",
+            "field": "ok",
+            "value": true
+          },
+          "timeout_ms": 60000,
+          "next": "wait-transfer-settle"
+        },
+        "wait-transfer-settle": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({refreshed:!!r,availableBalance:r&&r.availableBalance,availableToTradeBalance:r&&r.availableToTradeBalance})}).catch(function(e){return JSON.stringify({refreshed:false,error:String(e)})})",
+          "assert": { "operator": "eq", "field": "refreshed", "value": true },
+          "timeout_ms": 60000,
+          "next": "verify-state"
+        },
+        "verify-state": {
+          "action": "eval_ref",
+          "ref": "hl-fixture-state",
+          "assert": {
+            "operator": "not_null",
+            "field": "totalBalance"
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}

@@ -485,6 +485,22 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Test/admin escape hatch: return the underlying HyperLiquid SDK exchange
+   * client so agentic fixture flows can invoke arbitrary signed actions
+   * (`userSetAbstraction`, `usdClassTransfer`, etc.) without growing a
+   * controller method per admin operation. Not part of the `PerpsProvider`
+   * interface — callers must cast and accept the SDK surface.
+   *
+   * @returns The initialized HyperLiquid SDK exchange client.
+   */
+  public async getExchangeClient(): Promise<
+    ReturnType<HyperLiquidClientService['getExchangeClient']>
+  > {
+    await this.#ensureClientsInitialized();
+    return this.#clientService.getExchangeClient();
+  }
+
+  /**
    * Initialize HyperLiquid SDK clients (lazy initialization)
    *
    * This is called on first API operation to ensure Engine.context is ready.

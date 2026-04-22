@@ -48,5 +48,10 @@
     "description": "Position count + balance snapshot after a trade (compare with pre-trade output)",
     "expression": "Promise.all([Engine.context.PerpsController.getPositions(),Engine.context.PerpsController.getAccountState()]).then(function(r){return JSON.stringify({positionCount:r[0].length,positions:r[0].map(function(p){return{symbol:p.symbol,side:p.side,size:p.size,entryPrice:p.entryPrice,unrealizedPnl:p.unrealizedPnl}}),accountState:r[1]})})",
     "async": true
+  },
+  "hl-fixture-state": {
+    "description": "HL fixture provisioning snapshot: balances and derived shape flags used by hl-provision-fixture flow and post-op assertions",
+    "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var total=parseFloat(s.totalBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,totalBalance:total,spotFold:spotFold,hasPerpsBalance:avail>0.01,hasSpotBalance:spotFold>0.01,isEmpty:total<0.01})})()",
+    "async": false
   }
 }
