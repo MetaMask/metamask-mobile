@@ -1,33 +1,56 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
+import {
+  formatChainIdToCaip,
+  formatChainIdToHex,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
-import { useBridgeQuoteRequest } from '../../../../../UI/Bridge/hooks/useBridgeQuoteRequest';
-import { useBridgeQuoteData } from '../../../../../UI/Bridge/hooks/useBridgeQuoteData';
-import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
+import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import { useSubmitQuickBuyTx } from './useSubmitQuickBuyTx';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import { useIsSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsSendBundleSupported';
 import {
-  selectIsSubmittingTx,
-  selectDestAddress,
-  selectIsEvmNonEvmBridge,
-  selectIsNonEvmNonEvmBridge,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+  getGaslessBridgeWith7702EnabledForChain,
+  selectShouldUseSmartTransaction,
+} from '../../../../../../selectors/smartTransactionsController';
+import { selectIsGasIncluded7702Supported } from '../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-  useDispatch: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
+
+// Simple chainId helpers so inline selector lambdas in the hook evaluate
+// predictably. Hex chain IDs are EVM; anything that starts with `solana` is
+// treated as non-EVM for these tests. `FeatureId` is preserved from the real
+// module because it is read at import time by constants.ts.
+jest.mock('@metamask/bridge-controller', () => {
+  const actual = jest.requireActual('@metamask/bridge-controller');
+  return {
+    ...actual,
+    formatChainIdToCaip: jest.fn((chainId: string) =>
+      typeof chainId === 'string' && chainId.startsWith('solana')
+        ? chainId
+        : `eip155:${chainId}`,
+    ),
+    formatChainIdToHex: jest.fn((chainId: string) => chainId),
+    isNonEvmChainId: jest.fn(
+      (chainId: string | undefined) =>
+        typeof chainId === 'string' && chainId.startsWith('solana'),
+    ),
+  };
+});
 
 jest.mock('./useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
@@ -37,16 +60,12 @@ jest.mock('./useSourceTokenOptions', () => ({
   useSourceTokenOptions: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useBridgeQuoteRequest', () => ({
-  useBridgeQuoteRequest: jest.fn(),
+jest.mock('./useQuickBuyQuotes', () => ({
+  useQuickBuyQuotes: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn(),
-}));
-
-jest.mock('../../../../../UI/Bridge/hooks/useRewards', () => ({
-  useRewards: jest.fn(),
+jest.mock('./useSubmitQuickBuyTx', () => ({
+  useSubmitQuickBuyTx: jest.fn(),
 }));
 
 jest.mock('../../../../../UI/Bridge/hooks/useLatestBalance', () => ({
@@ -62,74 +81,32 @@ jest.mock('../../../../../UI/Bridge/hooks/useHasSufficientGas', () => ({
   useHasSufficientGas: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useInitialSlippage', () => ({
-  useInitialSlippage: jest.fn(),
-}));
-
-jest.mock('../../../../../UI/Bridge/hooks/useRecipientInitialization', () => ({
-  useRecipientInitialization: jest.fn(),
-}));
-
-jest.mock(
-  '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported',
-  () => ({
-    useIsGasIncludedSTXSendBundleSupported: jest.fn(),
-  }),
-);
-
-jest.mock('../../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../../../../UI/Bridge/hooks/useIsSendBundleSupported', () => ({
+  useIsSendBundleSupported: jest.fn(),
 }));
 
 jest.mock('../../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
 }));
 
-jest.mock('../../../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      BridgeController: { resetState: jest.fn() },
-    },
-  },
+jest.mock('../../../../../../selectors/smartTransactionsController', () => ({
+  selectShouldUseSmartTransaction: jest.fn(),
+  getGaslessBridgeWith7702EnabledForChain: jest.fn(),
 }));
 
 jest.mock('../../../../../../core/redux/slices/bridge', () => ({
-  setSourceAmount: jest.fn((v) => ({
-    type: 'bridge/setSourceAmount',
-    payload: v,
-  })),
-  setSourceToken: jest.fn((v) => ({
-    type: 'bridge/setSourceToken',
-    payload: v,
-  })),
-  setDestToken: jest.fn((v) => ({ type: 'bridge/setDestToken', payload: v })),
-  resetBridgeState: jest.fn(() => ({ type: 'bridge/resetBridgeState' })),
-  setIsSubmittingTx: jest.fn((v) => ({
-    type: 'bridge/setIsSubmittingTx',
-    payload: v,
-  })),
-  selectIsSubmittingTx: jest.fn(),
-  selectDestAddress: jest.fn(),
-  selectIsEvmNonEvmBridge: jest.fn(),
-  selectIsNonEvmNonEvmBridge: jest.fn(),
+  selectIsGasIncluded7702Supported: jest.fn(),
 }));
 
-jest.mock('../../../../../../selectors/bridge', () => ({
-  selectSourceWalletAddress: jest.fn(),
+jest.mock('../../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const mockDispatch = jest.fn();
-const mockCancelQuote = jest.fn();
-const mockUpdateQuoteParams = Object.assign(jest.fn(), {
-  cancel: mockCancelQuote,
-});
-const mockSubmitBridgeTx = jest.fn();
+const mockSubmitQuickBuyTx = jest.fn();
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>
   ({
@@ -170,21 +147,29 @@ const createActiveQuote = () => ({
   },
 });
 
-const setupDefaultMocks = () => {
-  (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+/** Default account map: any scope resolves to a wallet address. */
+const defaultAccountByScope = () => ({ address: '0xWALLET' });
 
-  // Each useSelector call is dispatched to the corresponding mocked selector.
-  // Selectors are jest.fn() so we set their return values.
+const setupDefaultMocks = () => {
+  // Each useSelector call is invoked with a dummy state `{}`. Inline lambdas
+  // in the hook delegate to the mocked module-level selectors, so we just
+  // control those selectors here.
   (useSelector as jest.Mock).mockImplementation(
     (selector: (state: unknown) => unknown) => selector({}),
   );
-  (selectIsSubmittingTx as unknown as jest.Mock).mockReturnValue(false);
-  (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
-    '0xWALLET',
+
+  (
+    selectSelectedInternalAccountByScope as unknown as jest.Mock
+  ).mockReturnValue(defaultAccountByScope);
+  (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
+    false,
   );
-  (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
-  (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
-  (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
+  (
+    getGaslessBridgeWith7702EnabledForChain as unknown as jest.Mock
+  ).mockReturnValue(false);
+  (selectIsGasIncluded7702Supported as unknown as jest.Mock).mockReturnValue(
+    false,
+  );
 
   (useQuickBuySetup as jest.Mock).mockReturnValue({
     chainId: '0x1',
@@ -204,24 +189,14 @@ const setupDefaultMocks = () => {
     isLoading: false,
   });
 
-  (useBridgeQuoteRequest as jest.Mock).mockReturnValue(mockUpdateQuoteParams);
-
-  (useBridgeQuoteData as jest.Mock).mockReturnValue({
-    activeQuote: null,
-    isLoading: false,
-    isNoQuotesAvailable: false,
+  (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+    activeQuote: undefined,
+    destTokenAmount: undefined,
+    isQuoteLoading: false,
     quoteFetchError: null,
+    isNoQuotesAvailable: false,
     blockaidError: null,
     isActiveQuoteForCurrentTokenPair: true,
-  });
-
-  (useRewards as jest.Mock).mockReturnValue({
-    estimatedPoints: undefined,
-    isLoading: false,
-    shouldShowRewardsRow: false,
-    hasError: false,
-    accountOptedIn: false,
-    rewardsAccountScope: null,
   });
 
   (useLatestBalance as jest.Mock).mockReturnValue({
@@ -231,9 +206,25 @@ const setupDefaultMocks = () => {
 
   (useIsInsufficientBalance as jest.Mock).mockReturnValue(false);
   (useHasSufficientGas as jest.Mock).mockReturnValue(true);
-  (useSubmitBridgeTx as jest.Mock).mockReturnValue({
-    submitBridgeTx: mockSubmitBridgeTx,
+  (useIsSendBundleSupported as jest.Mock).mockReturnValue(false);
+  (useSubmitQuickBuyTx as jest.Mock).mockReturnValue({
+    submitQuickBuyTx: mockSubmitQuickBuyTx,
   });
+
+  // Re-apply the bridge-controller helper impls because `jest.resetAllMocks()`
+  // in afterEach wipes any `jest.fn()` implementation between tests.
+  (isNonEvmChainId as jest.Mock).mockImplementation(
+    (chainId: string | undefined) =>
+      typeof chainId === 'string' && chainId.startsWith('solana'),
+  );
+  (formatChainIdToCaip as jest.Mock).mockImplementation((chainId: string) =>
+    typeof chainId === 'string' && chainId.startsWith('solana')
+      ? chainId
+      : `eip155:${chainId}`,
+  );
+  (formatChainIdToHex as jest.Mock).mockImplementation(
+    (chainId: string) => chainId,
+  );
 };
 
 describe('useQuickBuyBottomSheet', () => {
@@ -348,11 +339,12 @@ describe('useQuickBuyBottomSheet', () => {
         options: [],
         isLoading: false,
       });
-      (useBridgeQuoteData as jest.Mock).mockReturnValue({
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
         activeQuote: createActiveQuote(),
-        isLoading: false,
-        isNoQuotesAvailable: false,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
         quoteFetchError: null,
+        isNoQuotesAvailable: false,
         blockaidError: null,
         isActiveQuoteForCurrentTokenPair: true,
       });
@@ -370,12 +362,36 @@ describe('useQuickBuyBottomSheet', () => {
     });
 
     it('is disabled when a destination address is required but missing', () => {
-      (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(true);
-      (useBridgeQuoteData as jest.Mock).mockReturnValue({
-        activeQuote: createActiveQuote(),
+      // Make the destination chain non-EVM (Solana) while source stays EVM.
+      // That makes isEvmNonEvmBridge true, so a dest address is required.
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        destToken: {
+          address: 'solanaDestTokenAddress',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          decimals: 6,
+          symbol: 'TARGET',
+          name: 'Target Token',
+        },
         isLoading: false,
-        isNoQuotesAvailable: false,
+        isUnsupportedChain: false,
+      });
+      // Return a wallet for the source (EVM) scope but no account for the
+      // Solana dest scope.
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue((scope: string) => {
+        if (typeof scope === 'string' && scope.startsWith('solana')) {
+          return undefined;
+        }
+        return { address: '0xWALLET' };
+      });
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: createActiveQuote(),
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
         quoteFetchError: null,
+        isNoQuotesAvailable: false,
         blockaidError: null,
         isActiveQuoteForCurrentTokenPair: true,
       });
@@ -394,22 +410,24 @@ describe('useQuickBuyBottomSheet', () => {
 
     it('is enabled after quote loading settles for the entered amount', () => {
       const quoteState: {
-        activeQuote: ReturnType<typeof createActiveQuote> | null;
-        isLoading: boolean;
+        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
+        destTokenAmount: string | undefined;
+        isQuoteLoading: boolean;
         isNoQuotesAvailable: boolean;
         quoteFetchError: null;
         blockaidError: null;
         isActiveQuoteForCurrentTokenPair: boolean;
       } = {
-        activeQuote: null,
-        isLoading: false,
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         blockaidError: null,
         isActiveQuoteForCurrentTokenPair: true,
       };
 
-      (useBridgeQuoteData as jest.Mock).mockImplementation(() => quoteState);
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
         position: createPosition(),
@@ -426,10 +444,10 @@ describe('useQuickBuyBottomSheet', () => {
         result.current.handleAmountChange('20');
       });
 
-      quoteState.isLoading = true;
+      quoteState.isQuoteLoading = true;
       rerender(props);
 
-      quoteState.isLoading = false;
+      quoteState.isQuoteLoading = false;
       quoteState.activeQuote = createActiveQuote();
       rerender(props);
       rerender(props);
@@ -439,22 +457,24 @@ describe('useQuickBuyBottomSheet', () => {
 
     it('is disabled when amount changes after quote loading settles', () => {
       const quoteState: {
-        activeQuote: ReturnType<typeof createActiveQuote> | null;
-        isLoading: boolean;
+        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
+        destTokenAmount: string | undefined;
+        isQuoteLoading: boolean;
         isNoQuotesAvailable: boolean;
         quoteFetchError: null;
         blockaidError: null;
         isActiveQuoteForCurrentTokenPair: boolean;
       } = {
-        activeQuote: null,
-        isLoading: false,
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         blockaidError: null,
         isActiveQuoteForCurrentTokenPair: true,
       };
 
-      (useBridgeQuoteData as jest.Mock).mockImplementation(() => quoteState);
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
         position: createPosition(),
@@ -471,10 +491,10 @@ describe('useQuickBuyBottomSheet', () => {
         result.current.handleAmountChange('20');
       });
 
-      quoteState.isLoading = true;
+      quoteState.isQuoteLoading = true;
       rerender(props);
 
-      quoteState.isLoading = false;
+      quoteState.isQuoteLoading = false;
       quoteState.activeQuote = createActiveQuote();
       rerender(props);
       rerender(props);
@@ -517,6 +537,82 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('handleConfirm', () => {
+    it('calls submitQuickBuyTx with the active quote and closes on success', async () => {
+      const onClose = jest.fn();
+      const activeQuote = createActiveQuote();
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        quoteFetchError: null,
+        isNoQuotesAvailable: false,
+        blockaidError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+      mockSubmitQuickBuyTx.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), onClose),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockSubmitQuickBuyTx).toHaveBeenCalledWith({
+        quoteResponse: activeQuote,
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing when there is no active quote', async () => {
+      const onClose = jest.fn();
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), onClose),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockSubmitQuickBuyTx).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('keeps the sheet open if submitQuickBuyTx throws', async () => {
+      const onClose = jest.fn();
+      const activeQuote = createActiveQuote();
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        quoteFetchError: null,
+        isNoQuotesAvailable: false,
+        blockaidError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+      mockSubmitQuickBuyTx.mockRejectedValue(new Error('submit failed'));
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), onClose),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockSubmitQuickBuyTx).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      consoleErrorSpy.mockRestore();
     });
   });
 });

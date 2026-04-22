@@ -36,39 +36,6 @@ jest.mock('../../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => 0),
 }));
 
-jest.mock('../../../../../UI/Rewards/components/RewardPointsAnimation', () => {
-  const ReactMock = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ value }: { value: number }) =>
-      ReactMock.createElement(
-        Text,
-        { testID: 'mock-rewards-animation' },
-        `${value} pts`,
-      ),
-    RewardAnimationState: {
-      Loading: 'loading',
-      ErrorState: 'error',
-      Idle: 'idle',
-    },
-  };
-});
-
-jest.mock(
-  '../../../../../UI/Rewards/components/AddRewardsAccount/AddRewardsAccount',
-  () => {
-    const ReactMock = jest.requireActual('react');
-    const { Text } = jest.requireActual('react-native');
-    return ({ testID }: { testID?: string }) =>
-      ReactMock.createElement(
-        Text,
-        { testID: testID ?? 'mock-add-rewards-account' },
-        'Add Rewards',
-      );
-  },
-);
-
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -101,13 +68,6 @@ const defaultProps = {
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
   sourceBalanceFiat: '$2000.00',
-  estimatedPoints: null,
-  isRewardsLoading: false,
-  shouldShowLiveRewardsEstimate: false,
-  shouldShowRewardsOptInCta: false,
-  shouldShowRewardsFallbackZero: false,
-  hasRewardsError: false,
-  rewardsAccountScope: null,
   isConfirmDisabled: false,
   isConfirmLoading: false,
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',
@@ -169,21 +129,6 @@ describe('QuickBuyFooter', () => {
 
       expect(setSelectedSourceToken).toHaveBeenCalledWith(usdcToken);
       expect(setIsSourcePickerOpen).toHaveBeenCalledWith(false);
-    });
-  });
-
-  describe('est. points row', () => {
-    it('renders the rewards animation when a live estimate is available', () => {
-      renderWithProvider(
-        <QuickBuyFooter
-          {...defaultProps}
-          shouldShowLiveRewardsEstimate
-          estimatedPoints={42}
-        />,
-      );
-
-      expect(screen.getByTestId('mock-rewards-animation')).toBeOnTheScreen();
-      expect(screen.getByText('42 pts')).toBeOnTheScreen();
     });
   });
 

@@ -48,13 +48,6 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
     sourceBalanceFiat,
     isQuoteLoading,
     isSubmittingTx,
-    estimatedPoints,
-    isRewardsLoading,
-    shouldShowLiveRewardsEstimate,
-    shouldShowRewardsOptInCta,
-    shouldShowRewardsFallbackZero,
-    hasRewardsError,
-    rewardsAccountScope,
     hasError,
     hasValidAmount,
     isConfirmDisabled,
@@ -111,13 +104,6 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
             setIsSourcePickerOpen={setIsSourcePickerOpen}
             setSelectedSourceToken={setSelectedSourceToken}
             sourceBalanceFiat={sourceBalanceFiat}
-            estimatedPoints={estimatedPoints}
-            isRewardsLoading={isRewardsLoading}
-            shouldShowLiveRewardsEstimate={shouldShowLiveRewardsEstimate}
-            shouldShowRewardsOptInCta={shouldShowRewardsOptInCta}
-            shouldShowRewardsFallbackZero={shouldShowRewardsFallbackZero}
-            hasRewardsError={hasRewardsError}
-            rewardsAccountScope={rewardsAccountScope}
             isConfirmDisabled={isConfirmDisabled}
             isConfirmLoading={isConfirmLoading}
             getButtonLabel={getButtonLabel}

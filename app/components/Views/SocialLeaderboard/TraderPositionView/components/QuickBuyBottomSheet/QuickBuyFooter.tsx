@@ -24,13 +24,8 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import type { Hex } from '@metamask/utils';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import SourceTokenPicker from './SourceTokenPicker';
-import RewardsAnimations, {
-  RewardAnimationState,
-} from '../../../../../UI/Rewards/components/RewardPointsAnimation';
-import AddRewardsAccount from '../../../../../UI/Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import { strings } from '../../../../../../../locales/i18n';
 
 const USD_PRESETS = ['1', '20', '50', '100'];
@@ -47,13 +42,6 @@ interface QuickBuyFooterProps {
     React.SetStateAction<BridgeToken | undefined>
   >;
   sourceBalanceFiat: string | undefined;
-  estimatedPoints: number | null;
-  isRewardsLoading: boolean;
-  shouldShowLiveRewardsEstimate: boolean;
-  shouldShowRewardsOptInCta: boolean;
-  shouldShowRewardsFallbackZero: boolean;
-  hasRewardsError: boolean;
-  rewardsAccountScope: InternalAccount | null;
   isConfirmDisabled: boolean;
   isConfirmLoading: boolean;
   getButtonLabel: () => string;
@@ -72,13 +60,6 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   setIsSourcePickerOpen,
   setSelectedSourceToken,
   sourceBalanceFiat,
-  estimatedPoints,
-  isRewardsLoading,
-  shouldShowLiveRewardsEstimate,
-  shouldShowRewardsOptInCta,
-  shouldShowRewardsFallbackZero,
-  hasRewardsError,
-  rewardsAccountScope,
   isConfirmDisabled,
   isConfirmLoading,
   getButtonLabel,
@@ -216,61 +197,6 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {`$${usdAmount || '0'}`}
           </Text>
-        </Box>
-
-        {/* Est. points row */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('social_leaderboard.quick_buy.est_points')}
-            </Text>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={colors.icon.alternative}
-            />
-          </Box>
-          <Box alignItems={BoxAlignItems.End}>
-            {shouldShowLiveRewardsEstimate ? (
-              <RewardsAnimations
-                value={estimatedPoints ?? 0}
-                state={
-                  isRewardsLoading
-                    ? RewardAnimationState.Loading
-                    : hasRewardsError
-                      ? RewardAnimationState.ErrorState
-                      : RewardAnimationState.Idle
-                }
-              />
-            ) : shouldShowRewardsOptInCta ? (
-              <AddRewardsAccount
-                testID="quick-buy-add-rewards-account"
-                account={rewardsAccountScope ?? undefined}
-              />
-            ) : shouldShowRewardsFallbackZero ? (
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                0
-              </Text>
-            ) : (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                -
-              </Text>
-            )}
-          </Box>
         </Box>
       </Box>
 
