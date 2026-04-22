@@ -14,7 +14,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   it('should reflect the correct enabled networks state in the network manager', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
       async () => {
@@ -24,6 +24,9 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
 
         await Assertions.expectElementToBeVisible(
           NetworkManager.popularNetworksContainer,
+        );
+        await Assertions.expectElementToBeVisible(
+          NetworkManager.selectAllPopularNetworksSelected,
         );
 
         // Verify individual popular networks are in the "not selected" state
@@ -44,13 +47,11 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   it('should reflect the enabled networks state in the network manager, when all popular networks are selected', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
       async () => {
         await loginToApp();
-        await NetworkManager.navigateToTokensFullView();
-        await NetworkManager.navigateBackFromTokensFullView();
         await NetworkManager.openNetworkManagerFromHomepage();
         // verify popular networks container is visible
         await NetworkManager.checkPopularNetworksContainerIsVisible();
