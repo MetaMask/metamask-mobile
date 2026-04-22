@@ -27,6 +27,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { ConnectedAccountsSelectorsIDs } from './ConnectedAccountModal.testIds';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
+import useOriginSource from '../../hooks/useOriginSource';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
@@ -96,6 +97,8 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock('../../hooks/useOriginSource');
 
 jest.mock('../../../core/Engine', () => {
   const {
@@ -214,6 +217,13 @@ jest.mock('../../../core/AppConstants', () => ({
     ANDROID: 'io.metamask',
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  REQUEST_SOURCES: {
+    SDK_REMOTE_CONN: 'MetaMask-SDK-Remote-Conn',
+    MM_CONNECT: 'MetaMask-Connect',
+    WC: 'WalletConnect',
+    WC2: 'WalletConnectV2',
+    IN_APP_BROWSER: 'In-App-Browser',
+  },
 }));
 
 jest.mock('../../../core/HardwareWallets/analytics', () => ({
@@ -288,7 +298,13 @@ mockGetConnection.mockReturnValue(undefined);
 mockIsUUID.mockReturnValue(false);
 
 describe('AccountConnect', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useOriginSource as jest.Mock).mockImplementation(() => ({
+      source: 'in-app browser',
+      requestSource: 'In-App-Browser',
+    }));
+  });
   it('renders correctly with base request when there is no existing CAIP endowment', () => {
     (
       Engine.context.PermissionController.getCaveat as jest.Mock
@@ -546,6 +562,13 @@ describe('AccountConnect', () => {
     });
     // Verify createEventBuilder was called
     expect(mockCreateEventBuilder).toHaveBeenCalled();
+    // Verify addProperties was called with source and request_source
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'in-app browser',
+        request_source: 'In-App-Browser',
+      }),
+    );
   });
 
   it('should handle confirm button press correctly', async () => {

@@ -6,22 +6,20 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
-import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import MusdAggregatedRow from './MusdAggregatedRow';
+import { useCashNavigation } from './useCashNavigation';
 
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import Logger from '../../../../../util/Logger';
@@ -41,23 +39,14 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
     const [refreshVersion, setRefreshVersion] = useState(0);
-    const navigation = useNavigation();
     const isMusdConversionEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
     const { hasMusdBalanceOnAnyChain } = useMusdBalance();
-    const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
+    const { navigateToCash: handleViewCashTokens } = useCashNavigation();
 
     const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
-
-    const handleViewCashTokens = useCallback(() => {
-      if (isMoneyHomeEnabled) {
-        navigation.navigate(Routes.MONEY.ROOT);
-      } else {
-        navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
-      }
-    }, [navigation, isMoneyHomeEnabled]);
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,

@@ -369,8 +369,10 @@ describe('AssetOverviewContent', () => {
         Routes.MARKET_INSIGHTS.VIEW,
         expect.objectContaining({
           assetSymbol: 'ETH',
-          tokenAddress: '0x123',
-          tokenChainId: '0x1',
+          token: expect.objectContaining({
+            address: '0x123',
+            chainId: '0x1',
+          }),
         }),
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(

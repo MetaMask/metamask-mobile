@@ -61,6 +61,7 @@ import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import { getSecurityBadgeConfig } from '../../SecurityTrust/utils/securityUtils';
 import {
   Box,
   BoxFlexDirection,
@@ -140,7 +141,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
 export interface AssetOverviewContentProps {
   // Asset
-  token: TokenI;
+  token: TokenDetailsRouteParams;
 
   // Balance data
   balance: string | number | undefined;
@@ -246,6 +247,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
     fromTokenDetails: true,
+    transactionActiveAbTests: token.transactionActiveAbTests,
   });
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -332,39 +334,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [isMerklClaimingEnabled, token.chainId, token.address],
   );
 
-  const securityBadge = useMemo(() => {
-    switch (securityData?.resultType) {
-      case 'Verified':
-        return {
-          icon: IconName.VerifiedFilled,
-          iconColor: IconColor.PrimaryDefault,
-          label: null,
-          bg: null,
-          textColor: undefined,
-        };
-      case 'Benign':
-        return null;
-      case 'Warning':
-      case 'Spam':
-        return {
-          icon: IconName.Warning,
-          iconColor: IconColor.WarningDefault,
-          label: strings('security_trust.risky'),
-          bg: 'bg-warning-muted',
-          textColor: TextColor.WarningDefault,
-        };
-      case 'Malicious':
-        return {
-          icon: IconName.Danger,
-          iconColor: IconColor.ErrorDefault,
-          label: strings('security_trust.malicious'),
-          bg: 'bg-error-muted',
-          textColor: TextColor.ErrorDefault,
-        };
-      default:
-        return null;
-    }
-  }, [securityData?.resultType]);
+  const securityBadge = useMemo(
+    () => getSecurityBadgeConfig(securityData),
+    [securityData],
+  );
 
   const handleSecurityBadgePress = useCallback(() => {
     if (!securityData?.resultType || securityData.resultType === 'Benign')
@@ -545,25 +518,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       assetIdentifier: marketInsightsCaip19Id,
       tokenImageUrl: token.image || token.logo,
       pricePercentChange: percentChange,
-      // Pass token data needed for swap navigation
-      tokenAddress: token.address,
-      tokenDecimals: token.decimals,
-      tokenName: token.name,
-      tokenChainId: token.chainId,
+      token,
     });
   }, [
     navigation,
     trackEvent,
     createEventBuilder,
-    token.symbol,
+    token,
     marketInsightsCaip19Id,
     marketInsightsReport,
-    token.image,
-    token.logo,
-    token.address,
-    token.decimals,
-    token.name,
-    token.chainId,
     priceDiff,
     comparePrice,
   ]);

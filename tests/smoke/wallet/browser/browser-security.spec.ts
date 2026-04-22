@@ -1,6 +1,6 @@
 // eslint-disable-next-line import-x/no-nodejs-modules
 import path from 'path';
-import { SmokeWalletPlatform } from '../../../tags.js';
+import { SmokeBrowser } from '../../../tags.js';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../flows/browser.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -16,7 +16,7 @@ const SECURITY_FIXTURES_PATH = path.resolve(
   '../../../fixtures/security',
 );
 
-describe(SmokeWalletPlatform('Browser Security'), () => {
+describe(SmokeBrowser('Browser Security'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

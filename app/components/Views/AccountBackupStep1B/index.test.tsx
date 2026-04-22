@@ -8,6 +8,7 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager } from 'react-native';
+import { LEARN_MORE_URL } from '../../../constants/urls';
 
 jest.mock('../../UI/ActionModal', () => {
   const { View } = jest.requireActual('react-native');
@@ -205,7 +206,7 @@ describe('AccountBackupStep1B', () => {
       expect(mockNav.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+          url: LEARN_MORE_URL,
           title: strings('drawer.metamask_support'),
         },
       });

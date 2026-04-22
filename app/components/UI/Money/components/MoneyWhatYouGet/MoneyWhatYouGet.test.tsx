@@ -60,4 +60,28 @@ describe('MoneyWhatYouGet', () => {
       fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
     }).not.toThrow();
   });
+
+  it('renders the inline APY text in the auto-earn benefit when apy is a positive number', () => {
+    const { getByText } = render(<MoneyWhatYouGet apy={4} />);
+
+    expect(
+      getByText(strings('money.apy_label', { percentage: 4 })),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the inline APY text in the auto-earn benefit when apy is undefined', () => {
+    const { queryByText } = render(<MoneyWhatYouGet apy={undefined} />);
+
+    expect(
+      queryByText(strings('money.apy_label', { percentage: undefined })),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the inline APY text in the auto-earn benefit when apy is zero', () => {
+    const { queryByText } = render(<MoneyWhatYouGet apy={0} />);
+
+    expect(
+      queryByText(strings('money.apy_label', { percentage: 0 })),
+    ).not.toBeOnTheScreen();
+  });
 });

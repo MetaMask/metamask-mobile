@@ -4,10 +4,6 @@ import {
   MessengerEvents,
   MessengerActions,
 } from '@metamask/messenger';
-import type {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerStateChangeEvent,
-} from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../types';
 
 /**
@@ -28,39 +24,5 @@ export function getAnalyticsControllerMessenger(
     namespace: 'AnalyticsController',
     parent: rootMessenger,
   });
-  return messenger;
-}
-
-export type AnalyticsControllerInitMessenger = ReturnType<
-  typeof getAnalyticsControllerInitMessenger
->;
-
-/**
- * Get the init messenger for the AnalyticsController.
- * Scoped to reading remote feature flags during initialization and
- * reacting to flag updates at runtime (Braze allowlists).
- *
- * @param rootMessenger - The root messenger.
- * @returns The AnalyticsControllerInitMessenger.
- */
-export function getAnalyticsControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'AnalyticsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction,
-    RemoteFeatureFlagControllerStateChangeEvent,
-    RootMessenger
-  >({
-    namespace: 'AnalyticsControllerInit',
-    parent: rootMessenger,
-  });
-
-  rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
-    events: ['RemoteFeatureFlagController:stateChange'],
-    messenger,
-  });
-
   return messenger;
 }
