@@ -155,6 +155,11 @@ interface TrendingTokenRowItemProps {
    * asset details screen (including network-add logic and analytics tracking).
    */
   onPress?: (token: TrendingAsset) => void;
+  /**
+   * When the same token row appears in multiple Explore sections, set this to keep
+   * `testID` (and E2E selectors) unique per instance.
+   */
+  testIdInstanceKey?: string;
 }
 
 /**
@@ -204,6 +209,7 @@ const TrendingTokenRowItem = ({
   tokenDetailsSource = TokenDetailsSource.Trending,
   transactionActiveAbTests,
   onPress,
+  testIdInstanceKey,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -317,11 +323,15 @@ const TrendingTokenRowItem = ({
     sessionManager,
   ]);
 
+  const rowTestId = testIdInstanceKey
+    ? `trending-token-row-item-${testIdInstanceKey}-${token.assetId}`
+    : `trending-token-row-item-${token.assetId}`;
+
   return (
     <TouchableOpacity
       style={styles.container}
       onPress={handlePress}
-      testID={`trending-token-row-item-${token.assetId}`}
+      testID={rowTestId}
     >
       <View>
         <BadgeWrapper

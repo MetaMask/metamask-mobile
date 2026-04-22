@@ -18,8 +18,9 @@ import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types'
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectExploreSectionsOrder } from '../../../selectors/featureFlagController/exploreSectionsOrder';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
+import type { PerpsMarketDataWithVolumeNumber } from '../../UI/Perps/hooks/usePerpsMarkets';
 import {
   PerpsConnectionContext,
   PerpsConnectionProvider,
@@ -38,6 +39,7 @@ import { useTrendingSearch } from '../../UI/Trending/hooks/useTrendingSearch/use
 import {
   TimeOption,
   PriceChangeOption,
+  SortDirection,
 } from '../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
@@ -50,13 +52,25 @@ import PerpsMarketTileCard from '../Homepage/Sections/Perpetuals/components/Perp
 import PerpsMarketTileCardSkeleton from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
 import PerpsExploreSection from './components/Sections/SectionTypes/PerpsExploreSection';
 
-export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
+export type SectionId =
+  | 'predictions'
+  | 'sports_predictions'
+  | 'crypto_predictions'
+  | 'politics_predictions'
+  | 'tokens'
+  | 'crypto_movers'
+  | 'perps'
+  | 'rwa_perps'
+  | 'macro_stocks_commodity_perps'
+  | 'crypto_perps'
+  | 'stocks'
+  | 'sites';
 
 export type SectionIcon =
   | { source: 'local'; name: LocalIconName }
   | { source: 'design-system'; name: DSIconName };
 
-interface SectionData {
+export interface SectionData {
   data: unknown[];
   isLoading: boolean;
 }
@@ -144,11 +158,12 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
  *
  * To add a new section (EVERYTHING IN THIS FILE):
  * 1. Add the section ID to the SectionId type above
- * 2. Add the config to SECTIONS_CONFIG and wire it in useSectionsData
- * 3. Add the section to the `home` / `search` orders (and `quickActions` in the feature flag for API compatibility) as needed
+ * 2. Add the config to SECTIONS_CONFIG. For **Explore omni-search**, add it in `useExploreSearchSectionsData` in `useExploreSearch.ts` only if it should appear in search.
+ * 3. Add the section to `DEFAULT_HOME_ORDER` and/or `DEFAULT_SEARCH_ORDER` as needed, or to the per-tab `use*Sections` hook
  *
  * The section will automatically appear in:
- * - The **Now** tab (via `useNowSections` / `DEFAULT_HOME_ORDER`) and other tab hooks when you list them
+ * - The **Now** tab (via `useNowSections` / `DEFAULT_HOME_ORDER`); `sites` is only on the Crypto tab. **Stocks** appears on both **Now** and **RWAs** where applicable
+ * - Other tab hooks when you list them
  * - Search results
  * - Section headers with "View All" navigation
  */
@@ -171,6 +186,20 @@ const DEFAULT_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
 const SEARCH_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
   timeFilter: TimeOption.TwentyFourHours,
   sortOption: PriceChangeOption.PriceChange,
+  networkFilter: 'all',
+  isSearchResult: true,
+};
+
+const CRYPTO_MOVERS_HOME_FILTER_CONTEXT: TrendingFilterContext = {
+  timeFilter: TimeOption.TwentyFourHours,
+  sortOption: PriceChangeOption.Volume,
+  networkFilter: 'all',
+  isSearchResult: false,
+};
+
+const CRYPTO_MOVERS_SEARCH_FILTER_CONTEXT: TrendingFilterContext = {
+  timeFilter: TimeOption.TwentyFourHours,
+  sortOption: PriceChangeOption.Volume,
   networkFilter: 'all',
   isSearchResult: true,
 };
@@ -225,6 +254,55 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
             TOKEN_FUSE_OPTIONS,
             // Penalize zero marketCap tokens
             (a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0),
+          ),
+        [data, searchQuery],
+      );
+      return { data: filteredData, isLoading, refetch };
+    },
+  },
+  crypto_movers: {
+    id: 'crypto_movers',
+    title: strings('trending.crypto_movers'),
+    icon: { source: 'design-system', name: DSIconName.Ethereum },
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
+    },
+    getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
+    RowItem: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={CRYPTO_MOVERS_HOME_FILTER_CONTEXT}
+        testIdInstanceKey="crypto_movers"
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={CRYPTO_MOVERS_SEARCH_FILTER_CONTEXT}
+        testIdInstanceKey="crypto_movers"
+      />
+    ),
+    Skeleton: TrendingTokensSkeleton,
+    Section: SectionCard,
+    useSectionData: (searchQuery) => {
+      const { data, isLoading, refetch } = useTrendingSearch({
+        searchQuery,
+        enableDebounce: false,
+        sortTrendingTokensOptions: {
+          option: PriceChangeOption.Volume,
+          direction: SortDirection.Descending,
+        },
+      });
+      const filteredData = useMemo(
+        () =>
+          fuseSearch(
+            data,
+            searchQuery,
+            TOKEN_FUSE_OPTIONS,
+            (a, b) =>
+              (b.aggregatedUsdVolume ?? 0) - (a.aggregatedUsdVolume ?? 0),
           ),
         [data, searchQuery],
       );
@@ -316,6 +394,287 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       };
     },
   },
+  rwa_perps: {
+    id: 'rwa_perps',
+    title: strings('trending.rwa_perps_section'),
+    icon: { source: 'design-system', name: DSIconName.Candlestick },
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          defaultMarketTypeFilter: 'all',
+          source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+        },
+      });
+    },
+    getItemIdentifier: (item) =>
+      (item as Partial<PerpsMarketData>).symbol ?? '',
+    RowItem: ({ item, index: _index, navigation }) => (
+      <PerpsMarketTileCard
+        market={item as PerpsMarketData}
+        testID={`rwa-perps-market-tile-card-${(item as PerpsMarketData).symbol}`}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
+            },
+          );
+        }}
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
+      <PerpsMarketRowItem
+        market={item as PerpsMarketData}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
+            },
+          );
+        }}
+        showBadge={false}
+        compact
+      />
+    ),
+    Skeleton: PerpsMarketTileCardSkeleton,
+    OverrideSkeletonSearch: TrendingTokensSkeleton,
+    SectionWrapper: ({ children }) => (
+      <PerpsConnectionProvider suppressErrorView>
+        <PerpsStreamProvider>{children}</PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    ),
+    Section: PerpsExploreSection,
+    useSectionData: (searchQuery) => {
+      const connectionContext = useContext(PerpsConnectionContext);
+      const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
+
+      const filteredMarkets = useMemo(() => {
+        if (connectionContext?.error) {
+          return [];
+        }
+        const equityCommodityForex = markets.filter(
+          (m) =>
+            m.marketType === 'equity' ||
+            m.marketType === 'commodity' ||
+            m.marketType === 'forex',
+        );
+        if (!searchQuery) {
+          return [...equityCommodityForex].sort(
+            (a, b) =>
+              (parseFloat(b.change24hPercent) || 0) -
+              (parseFloat(a.change24hPercent) || 0),
+          );
+        }
+        const filteredByQuery = filterMarketsByQuery(
+          equityCommodityForex,
+          searchQuery,
+        );
+        return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);
+      }, [markets, searchQuery, connectionContext?.error]);
+
+      return {
+        data: filteredMarkets,
+        isLoading: connectionContext?.error ? false : isLoading || isRefreshing,
+        refetch: refresh,
+      };
+    },
+  },
+  /**
+   * Macro tab: perps for **stocks (equity)** and **commodities** only, sorted by 24h volume (high → low).
+   */
+  macro_stocks_commodity_perps: {
+    id: 'macro_stocks_commodity_perps',
+    title: strings('trending.macro_stocks_commodity_perps'),
+    icon: { source: 'design-system', name: DSIconName.Candlestick },
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          defaultMarketTypeFilter: 'all',
+          source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+        },
+      });
+    },
+    getItemIdentifier: (item) =>
+      (item as Partial<PerpsMarketData>).symbol ?? '',
+    RowItem: ({ item, index: _index, navigation }) => (
+      <PerpsMarketTileCard
+        market={item as PerpsMarketData}
+        testID={`macro-perps-stocks-commodity-tile-${(item as PerpsMarketData).symbol}`}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
+            },
+          );
+        }}
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
+      <PerpsMarketRowItem
+        market={item as PerpsMarketData}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
+            },
+          );
+        }}
+        showBadge={false}
+        compact
+      />
+    ),
+    Skeleton: PerpsMarketTileCardSkeleton,
+    OverrideSkeletonSearch: TrendingTokensSkeleton,
+    SectionWrapper: ({ children }) => (
+      <PerpsConnectionProvider suppressErrorView>
+        <PerpsStreamProvider>{children}</PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    ),
+    Section: PerpsExploreSection,
+    useSectionData: (searchQuery) => {
+      const connectionContext = useContext(PerpsConnectionContext);
+      const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
+
+      const filteredMarkets = useMemo(() => {
+        const sortByVolumeDesc = (a: PerpsMarketData, b: PerpsMarketData) => {
+          const av = (a as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
+          const bv = (b as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
+          return bv - av;
+        };
+        if (connectionContext?.error) {
+          return [];
+        }
+        const stocksAndCommodities = markets.filter(
+          (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+        );
+        if (!searchQuery) {
+          return [...stocksAndCommodities].sort(sortByVolumeDesc);
+        }
+        const filteredByQuery = filterMarketsByQuery(
+          stocksAndCommodities,
+          searchQuery,
+        );
+        return [
+          ...fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS),
+        ].sort(sortByVolumeDesc);
+      }, [markets, searchQuery, connectionContext?.error]);
+
+      return {
+        data: filteredMarkets,
+        isLoading: connectionContext?.error ? false : isLoading || isRefreshing,
+        refetch: refresh,
+      };
+    },
+  },
+  crypto_perps: {
+    id: 'crypto_perps',
+    title: strings('trending.crypto_perps_section'),
+    icon: { source: 'design-system', name: DSIconName.Candlestick },
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          defaultMarketTypeFilter: 'crypto',
+          source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+        },
+      });
+    },
+    getItemIdentifier: (item) =>
+      (item as Partial<PerpsMarketData>).symbol ?? '',
+    RowItem: ({ item, index: _index, navigation }) => (
+      <PerpsMarketTileCard
+        market={item as PerpsMarketData}
+        testID={`crypto-tab-perps-market-tile-card-${(item as PerpsMarketData).symbol}`}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
+            },
+          );
+        }}
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
+      <PerpsMarketRowItem
+        market={item as PerpsMarketData}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
+            },
+          );
+        }}
+        showBadge={false}
+        compact
+      />
+    ),
+    Skeleton: PerpsMarketTileCardSkeleton,
+    OverrideSkeletonSearch: TrendingTokensSkeleton,
+    SectionWrapper: ({ children }) => (
+      <PerpsConnectionProvider suppressErrorView>
+        <PerpsStreamProvider>{children}</PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    ),
+    Section: PerpsExploreSection,
+    useSectionData: (searchQuery) => {
+      const connectionContext = useContext(PerpsConnectionContext);
+      const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
+
+      const filteredMarkets = useMemo(() => {
+        if (connectionContext?.error) {
+          return [];
+        }
+        // Aligned with Perps market list “crypto” filter: main DEX (non–HIP-3) markets
+        const cryptoPerps = markets.filter((m) => !m.isHip3);
+        if (!searchQuery) {
+          return [...cryptoPerps].sort(
+            (a, b) =>
+              (parseFloat(b.change24hPercent) || 0) -
+              (parseFloat(a.change24hPercent) || 0),
+          );
+        }
+        const filteredByQuery = filterMarketsByQuery(cryptoPerps, searchQuery);
+        return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);
+      }, [markets, searchQuery, connectionContext?.error]);
+
+      return {
+        data: filteredMarkets,
+        isLoading: connectionContext?.error ? false : isLoading || isRefreshing,
+        refetch: refresh,
+      };
+    },
+  },
   stocks: {
     id: 'stocks',
     title: strings('trending.stocks'),
@@ -386,6 +745,129 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       return { data: filteredData, isLoading: isFetching, refetch };
     },
   },
+  sports_predictions: {
+    id: 'sports_predictions',
+    title: strings('predict.category.sports'),
+    icon: { source: 'design-system', name: DSIconName.Speedometer },
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: { tab: 'sports' },
+      });
+    },
+    getItemIdentifier: (item) => (item as Partial<PredictMarketType>).id ?? '',
+    RowItem: ({ item, index: _index }) => (
+      <Box twClassName="py-2">
+        <PredictMarket
+          market={item as PredictMarketType}
+          isCarousel
+          testID={`predict-sports-market-row-item-${(item as PredictMarketType).id}`}
+        />
+      </Box>
+    ),
+    OverrideRowItemSearch: ({ item }) => (
+      <PredictMarketRowItem market={item as PredictMarketType} />
+    ),
+    Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    OverrideSkeletonSearch: SiteSkeleton,
+    Section: SectionCarrousel,
+    useSectionData: (searchQuery) => {
+      const { marketData, isFetching, refetch } = usePredictMarketData({
+        category: 'sports',
+        pageSize: searchQuery ? 20 : 6,
+        q: searchQuery || undefined,
+      });
+
+      const filteredData = useMemo(
+        () => fuseSearch(marketData, searchQuery, PREDICTIONS_FUSE_OPTIONS),
+        [marketData, searchQuery],
+      );
+
+      return { data: filteredData, isLoading: isFetching, refetch };
+    },
+  },
+  crypto_predictions: {
+    id: 'crypto_predictions',
+    title: strings('predict.category.crypto'),
+    icon: { source: 'design-system', name: DSIconName.Speedometer },
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: { tab: 'crypto' },
+      });
+    },
+    getItemIdentifier: (item) => (item as Partial<PredictMarketType>).id ?? '',
+    RowItem: ({ item, index: _index }) => (
+      <Box twClassName="py-2">
+        <PredictMarket
+          market={item as PredictMarketType}
+          isCarousel
+          testID={`predict-crypto-market-row-item-${(item as PredictMarketType).id}`}
+        />
+      </Box>
+    ),
+    OverrideRowItemSearch: ({ item }) => (
+      <PredictMarketRowItem market={item as PredictMarketType} />
+    ),
+    Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    OverrideSkeletonSearch: SiteSkeleton,
+    Section: SectionCarrousel,
+    useSectionData: (searchQuery) => {
+      const { marketData, isFetching, refetch } = usePredictMarketData({
+        category: 'crypto',
+        pageSize: searchQuery ? 20 : 6,
+        q: searchQuery || undefined,
+      });
+
+      const filteredData = useMemo(
+        () => fuseSearch(marketData, searchQuery, PREDICTIONS_FUSE_OPTIONS),
+        [marketData, searchQuery],
+      );
+
+      return { data: filteredData, isLoading: isFetching, refetch };
+    },
+  },
+  politics_predictions: {
+    id: 'politics_predictions',
+    title: strings('predict.category.politics'),
+    icon: { source: 'design-system', name: DSIconName.Speedometer },
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: { tab: 'politics' },
+      });
+    },
+    getItemIdentifier: (item) => (item as Partial<PredictMarketType>).id ?? '',
+    RowItem: ({ item, index: _index }) => (
+      <Box twClassName="py-2">
+        <PredictMarket
+          market={item as PredictMarketType}
+          isCarousel
+          testID={`predict-rwa-politics-market-row-item-${(item as PredictMarketType).id}`}
+        />
+      </Box>
+    ),
+    OverrideRowItemSearch: ({ item }) => (
+      <PredictMarketRowItem market={item as PredictMarketType} />
+    ),
+    Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    OverrideSkeletonSearch: SiteSkeleton,
+    Section: SectionCarrousel,
+    useSectionData: (searchQuery) => {
+      const { marketData, isFetching, refetch } = usePredictMarketData({
+        category: 'politics',
+        pageSize: searchQuery ? 20 : 6,
+        q: searchQuery || undefined,
+      });
+
+      const filteredData = useMemo(
+        () => fuseSearch(marketData, searchQuery, PREDICTIONS_FUSE_OPTIONS),
+        [marketData, searchQuery],
+      );
+
+      return { data: filteredData, isLoading: isFetching, refetch };
+    },
+  },
   sites: {
     id: 'sites',
     title: strings('trending.sites'),
@@ -409,11 +891,13 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 const DEFAULT_HOME_ORDER: SectionId[] = [
   SECTIONS_CONFIG.predictions.id,
   SECTIONS_CONFIG.tokens.id,
+  SECTIONS_CONFIG.crypto_movers.id,
   SECTIONS_CONFIG.perps.id,
   SECTIONS_CONFIG.stocks.id,
-  SECTIONS_CONFIG.sites.id,
 ];
-const DEFAULT_SEARCH_ORDER: SectionId[] = [
+
+/** Section order for Explore omni-search (see `useExploreSearchSectionsData` in useExploreSearch.ts). */
+export const DEFAULT_SEARCH_ORDER: SectionId[] = [
   SECTIONS_CONFIG.tokens.id,
   SECTIONS_CONFIG.perps.id,
   SECTIONS_CONFIG.stocks.id,
@@ -433,17 +917,14 @@ const useEmptyExploreTabSections = (): (SectionConfig & { id: SectionId })[] =>
   useMemo(() => [], []);
 
 /**
- * Section list for the **Now** tab (the main explore feed, ordered by feature flag / default).
+ * Section list for the **Now** tab (the main explore feed, ordered by {@link DEFAULT_HOME_ORDER}).
  * @deprecated Prefer {@link useNowSections}; kept for call sites that still use the old name.
  */
 export const useNowSections = (): (SectionConfig & { id: SectionId })[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const orderConfig = useSelector(selectExploreSectionsOrder);
-
   return useMemo(
-    () =>
-      buildSections(orderConfig?.home ?? DEFAULT_HOME_ORDER, isPerpsEnabled),
-    [isPerpsEnabled, orderConfig],
+    () => buildSections(DEFAULT_HOME_ORDER, isPerpsEnabled),
+    [isPerpsEnabled],
   );
 };
 
@@ -455,75 +936,76 @@ export const useHomeSections = useNowSections;
  * Add entries here the same way as the Now feed, then point the hook at `buildSections` or a
  * custom `SectionId` order.
  */
-export const useMacroSections = useEmptyExploreTabSections;
-export const useRwasSections = useEmptyExploreTabSections;
-export const useCryptoSections = useEmptyExploreTabSections;
-export const useSportsSections = useEmptyExploreTabSections;
-export const useDappsSections = useEmptyExploreTabSections;
+/**
+ * Macro tab: **politics** prediction markets, then perps for **stocks (equity)** and **commodities** (volume-sorted), when the respective feature flags are on.
+ */
+export const useMacroSections = (): (SectionConfig & { id: SectionId })[] => {
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  return useMemo(() => {
+    const sections: (SectionConfig & { id: SectionId })[] = [];
+    if (isPredictEnabled) {
+      sections.push(SECTIONS_CONFIG.politics_predictions);
+    }
+    if (isPerpsEnabled) {
+      sections.push(SECTIONS_CONFIG.macro_stocks_commodity_perps);
+    }
+    return sections;
+  }, [isPerpsEnabled, isPredictEnabled]);
+};
+/**
+ * RWAs tab: RWA **stocks**, then **rwa perps** (if enabled), then **politics** prediction markets (if Predict enabled).
+ */
+export const useRwasSections = (): (SectionConfig & { id: SectionId })[] => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  return useMemo(() => {
+    const sections: (SectionConfig & { id: SectionId })[] = [
+      SECTIONS_CONFIG.stocks,
+    ];
+    if (isPredictEnabled) {
+      sections.push(SECTIONS_CONFIG.politics_predictions);
+    }
+    if (isPerpsEnabled) {
+      sections.push(SECTIONS_CONFIG.rwa_perps);
+    }
+    return sections;
+  }, [isPerpsEnabled, isPredictEnabled]);
+};
+/**
+ * Crypto tab: **crypto** predictions, **trending tokens**, **crypto movers** (same config as Now), **crypto perps** (if enabled), then **sites**.
+ */
+export const useCryptoSections = (): (SectionConfig & { id: SectionId })[] => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  return useMemo(() => {
+    const sections: (SectionConfig & { id: SectionId })[] = [
+      SECTIONS_CONFIG.tokens,
+      SECTIONS_CONFIG.crypto_movers,
+    ];
+    if (isPerpsEnabled) {
+      sections.push(SECTIONS_CONFIG.crypto_perps);
+    }
+    sections.push(SECTIONS_CONFIG.crypto_predictions);
+    return sections;
+  }, [isPerpsEnabled]);
+};
+/**
+ * Sports tab: sport prediction markets (same carousel UX as the Now tab’s predictions, `sports` category).
+ */
+export const useSportsSections = (): (SectionConfig & { id: SectionId })[] =>
+  useMemo(() => [SECTIONS_CONFIG.sports_predictions], []);
+/**
+ * Dapps tab: reuses the same **sites** section as explore search / Crypto (`SECTIONS_CONFIG.sites`).
+ */
+export const useDappsSections = (): (SectionConfig & { id: SectionId })[] =>
+  useMemo(() => [SECTIONS_CONFIG.sites], []);
 
 export const useSearchSectionsArray = (): (SectionConfig & {
   id: SectionId;
 })[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const orderConfig = useSelector(selectExploreSectionsOrder);
-
   return useMemo(
-    () =>
-      buildSections(
-        orderConfig?.search ?? DEFAULT_SEARCH_ORDER,
-        isPerpsEnabled,
-      ),
-    [isPerpsEnabled, orderConfig],
+    () => buildSections(DEFAULT_SEARCH_ORDER, isPerpsEnabled),
+    [isPerpsEnabled],
   );
-};
-
-/**
- * Centralized hook that fetches data for all sections.
- * When adding a new section, add its hook call here.
- * This keeps all section-related logic in one file.
- *
- * @param searchQuery - Optional search query for sections that support search
- * @returns Data and loading state for all sections
- */
-export const useSectionsData = (
-  searchQuery: string,
-): Record<SectionId, SectionData> => {
-  const { data: trendingTokens, isLoading: isTokensLoading } =
-    SECTIONS_CONFIG.tokens.useSectionData(searchQuery);
-
-  const { data: perpsMarkets, isLoading: isPerpsLoading } =
-    SECTIONS_CONFIG.perps.useSectionData(searchQuery);
-
-  const { data: stocks, isLoading: isStocksLoading } =
-    SECTIONS_CONFIG.stocks.useSectionData(searchQuery);
-
-  const { data: predictionMarkets, isLoading: isPredictionsLoading } =
-    SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
-
-  const { data: sites, isLoading: isSitesLoading } =
-    SECTIONS_CONFIG.sites.useSectionData(searchQuery);
-
-  return {
-    tokens: {
-      data: trendingTokens,
-      isLoading: isTokensLoading,
-    },
-    perps: {
-      data: perpsMarkets,
-      isLoading: isPerpsLoading,
-    },
-    stocks: {
-      // Avoids making 2 API calls to the search endpoint when searching on the main search
-      data: stocks,
-      isLoading: isStocksLoading,
-    },
-    predictions: {
-      data: predictionMarkets,
-      isLoading: isPredictionsLoading,
-    },
-    sites: {
-      data: sites,
-      isLoading: isSitesLoading,
-    },
-  };
 };

@@ -8428,6 +8428,7 @@
   "trending": {
     "title": "Explore",
     "trending_tokens": "Trending tokens",
+    "crypto_movers": "Crypto movers",
     "stocks": "Stocks",
     "price_change": "Price change",
     "all_networks": "All networks",
@@ -8447,6 +8448,9 @@
     "search_placeholder": "Search tokens, sites, URLs",
     "cancel": "Cancel",
     "perps": "Perps",
+    "rwa_perps_section": "Stocks, commodities & forex",
+    "macro_stocks_commodity_perps": "Stocks & commodities",
+    "crypto_perps_section": "Crypto perps",
     "predictions": "Predictions",
     "no_results": "No results found",
     "sites": "Sites",

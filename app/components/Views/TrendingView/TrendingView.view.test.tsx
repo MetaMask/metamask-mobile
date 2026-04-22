@@ -112,10 +112,17 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user sees trending tokens section with mocked data', async () => {
-    const { findByText, queryByTestId } = renderTrendingViewWithRoutes();
+    const { findAllByText, getByText, queryByTestId } =
+      renderTrendingViewWithRoutes();
 
     await waitFor(async () => {
-      expect(await findByText('Ethereum')).toBeOnTheScreen();
+      const ethRows = await findAllByText('Ethereum');
+      expect(ethRows.length).toBeGreaterThan(0);
+      expect(ethRows[0]).toBeOnTheScreen();
+    });
+
+    await waitFor(() => {
+      expect(getByText('Crypto movers')).toBeOnTheScreen();
     });
 
     await assertTrendingTokenRowsVisibility({
