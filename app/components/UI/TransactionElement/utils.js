@@ -838,7 +838,6 @@ function decodeConfirmTx(args) {
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
 
-  let symbol;
   let transactionType;
   if (actionKey === strings('transactions.approve'))
     transactionType = TRANSACTION_TYPES.APPROVE;
@@ -867,7 +866,7 @@ function decodeConfirmTx(args) {
   const transactionElement = {
     renderTo,
     renderFrom,
-    actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
+    actionKey,
     value: renderTotalEth,
     fiatValue: renderTotalEthFiat,
     transactionType,
