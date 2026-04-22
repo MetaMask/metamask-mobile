@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ResetPassword render matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -491,5 +488,5 @@ exports[`ResetPassword render matches snapshot 1`] = `
       </RCTScrollView>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

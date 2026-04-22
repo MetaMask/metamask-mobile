@@ -7,7 +7,7 @@
  */
 
 /** Supported card provider identifiers */
-export type CardProviderId = 'galileo' | 'monavate';
+export type CardProviderId = 'galileo';
 
 /** Supported mobile wallet types */
 export type WalletType = 'google_wallet' | 'apple_wallet';
@@ -161,7 +161,7 @@ export interface CardDetails {
 export interface UsePushProvisioningOptions {
   cardDetails?: CardDetails | null;
   userAddress?: UserAddress;
-  accountCreatedAt?: string | null;
+  provisioningEligible: boolean;
   onSuccess?: (result: ProvisioningResult) => void;
   onError?: (error: ProvisioningError) => void;
   onCancel?: () => void;

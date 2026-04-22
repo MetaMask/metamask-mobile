@@ -13,6 +13,7 @@ import { strings } from '../../../../locales/i18n';
 import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
+import Routes from '../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
@@ -49,6 +50,14 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const IMAGE_MAX_WIDTH = 343;
 const IMAGE_ASPECT_RATIO = 343 / 302;
 const HORIZONTAL_PADDING = 16;
+
+const ACCOUNT_STATUS_PRIMARY_FLOW = {
+  EXISTING_ACCOUNT_IMPORT: 'import',
+  NEW_ACCOUNT_CREATE: 'create',
+} as const;
+
+type AccountStatusPrimaryFlowMetric =
+  (typeof ACCOUNT_STATUS_PRIMARY_FLOW)[keyof typeof ACCOUNT_STATUS_PRIMARY_FLOW];
 
 interface AccountStatusRouteParams {
   AccountStatus: AccountStatusParams;
@@ -129,7 +138,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
   const navigateNextScreen = (
     targetRoute: string,
     previousScreen: string,
-    metricEvent: string,
+    metricFlow: AccountStatusPrimaryFlowMetric,
   ) => {
     const nextScenarioTraceName =
       type === 'found'
@@ -154,7 +163,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       }),
     );
     track(
-      metricEvent === 'import'
+      metricFlow === ACCOUNT_STATUS_PRIMARY_FLOW.EXISTING_ACCOUNT_IMPORT
         ? MetaMetricsEvents.WALLET_IMPORT_STARTED
         : MetaMetricsEvents.WALLET_SETUP_STARTED,
     );
@@ -240,9 +249,17 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
             isFullWidth
             onPress={() => {
               if (type === 'found') {
-                navigateNextScreen('Rehydrate', 'Onboarding', 'import');
+                navigateNextScreen(
+                  Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+                  Routes.ONBOARDING.ONBOARDING,
+                  ACCOUNT_STATUS_PRIMARY_FLOW.EXISTING_ACCOUNT_IMPORT,
+                );
               } else {
-                navigateNextScreen('ChoosePassword', 'Onboarding', 'create');
+                navigateNextScreen(
+                  Routes.ONBOARDING.CHOOSE_PASSWORD,
+                  Routes.ONBOARDING.ONBOARDING,
+                  ACCOUNT_STATUS_PRIMARY_FLOW.NEW_ACCOUNT_CREATE,
+                );
               }
             }}
             testID={

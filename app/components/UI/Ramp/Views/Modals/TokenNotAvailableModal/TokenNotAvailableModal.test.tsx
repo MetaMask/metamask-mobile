@@ -76,11 +76,12 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
 
 let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -97,9 +98,9 @@ jest.mock(
         }));
         return <>{children}</>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 function render(component: React.ComponentType) {
   return renderScreen(
@@ -132,10 +133,11 @@ describe('TokenNotAvailableModal', () => {
     };
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = render(TokenNotAvailableModal);
+  it('renders modal with Change token and Change provider buttons', () => {
+    const { getByText } = render(TokenNotAvailableModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Change token')).toBeOnTheScreen();
+    expect(getByText('Change provider')).toBeOnTheScreen();
   });
 
   it('navigates to token selection when Change token is pressed', () => {
@@ -191,13 +193,14 @@ describe('TokenNotAvailableModal', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('matches snapshot with missing provider and token names', () => {
+  it('renders modal when provider and token are null', () => {
     mockSelectedProvider = null;
     mockSelectedToken = null;
 
-    const { toJSON } = render(TokenNotAvailableModal);
+    const { getByText } = render(TokenNotAvailableModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Change token')).toBeOnTheScreen();
+    expect(getByText('Change provider')).toBeOnTheScreen();
   });
 
   it('fires RAMPS_SCREEN_VIEWED analytics event on mount', () => {

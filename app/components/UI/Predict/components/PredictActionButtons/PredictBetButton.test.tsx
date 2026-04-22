@@ -148,6 +148,42 @@ describe('PredictBetButton', () => {
     });
   });
 
+  describe('inline layout', () => {
+    it('renders label and price on a single line with dot separator', () => {
+      const props = createDefaultProps({
+        label: 'SEA',
+        price: 70,
+        layout: 'inline',
+      });
+
+      renderWithProvider(<PredictBetButton {...props} />);
+
+      expect(screen.getByText('SEA · 70¢')).toBeOnTheScreen();
+    });
+
+    it('renders inline with draw variant', () => {
+      const props = createDefaultProps({
+        label: 'Draw',
+        price: 20,
+        variant: 'draw',
+        layout: 'inline',
+      });
+
+      renderWithProvider(<PredictBetButton {...props} />);
+
+      expect(screen.getByText('DRAW · 20¢')).toBeOnTheScreen();
+    });
+
+    it('defaults to stacked layout when layout prop is omitted', () => {
+      const props = createDefaultProps({ label: 'Yes', price: 65 });
+
+      renderWithProvider(<PredictBetButton {...props} />);
+
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('65¢')).toBeOnTheScreen();
+    });
+  });
+
   describe('edge cases', () => {
     it('renders with zero price', () => {
       const props = createDefaultProps({ price: 0 });

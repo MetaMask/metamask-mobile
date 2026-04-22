@@ -11,7 +11,6 @@ import OrderDetailsView from '../../page-objects/Ramps/OrderDetailsView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import { getRegionLocationCode } from '../../framework/types';
 import { Mockttp } from 'mockttp';
 import {
   setupDepositOnRampMocks,
@@ -20,16 +19,15 @@ import {
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { ONRAMP_PERSONA } from '../../api-mocking/mock-responses/ramps/onramp-persona-data';
-import {
-  getEventsPayloads,
-  EventPayload,
-} from '../../helpers/analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
 
-import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import KYCScreen from '../../page-objects/Ramps/KYCScreen';
+import {
+  onrampNewUserDepositExpectations,
+  onrampReturningUserBuyExpectations,
+} from '../../helpers/analytics/expectations/onramp-unified-buy.analytics';
+
 const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
 const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
@@ -72,18 +70,6 @@ const aggregatorBuyOrder = {
   provider: 'Transak (Staging)',
 };
 
-const eventsToCheck: EventPayload[] = [];
-
-const expectedEvents = {
-  RampsButtonClicked: 'Ramps Button Clicked',
-  RampsTokenSelected: 'Ramps Token Selected',
-};
-
-const expectedEventNames = [
-  expectedEvents.RampsButtonClicked,
-  expectedEvents.RampsTokenSelected,
-];
-
 describe(SmokeRamps('Onramp Unified Buy'), () => {
   beforeEach(async () => {
     await device.clearKeychain();
@@ -99,13 +85,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: newUserUnifiedBuyV2Mocks,
-        endTestfn: async ({ mockServer }) => {
-          const events = await getEventsPayloads(
-            mockServer,
-            expectedEventNames,
-          );
-          eventsToCheck.push(...events);
-        },
+        analyticsExpectations: onrampNewUserDepositExpectations,
       },
       async () => {
         await loginToApp();
@@ -172,13 +152,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: returningUserUnifiedBuyV2Mocks,
-        endTestfn: async ({ mockServer }) => {
-          const events = await getEventsPayloads(
-            mockServer,
-            expectedEventNames,
-          );
-          eventsToCheck.push(...events);
-        },
+        analyticsExpectations: onrampReturningUserBuyExpectations,
       },
       async () => {
         await loginToApp();
@@ -225,140 +199,5 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         }
       },
     );
-  });
-
-  it('validates the segment events from the onramp unified buy test', async () => {
-    const softAssert = new SoftAssert();
-    for (const ev of expectedEventNames) {
-      const event = eventsToCheck.find((e) => e.event === ev);
-      await softAssert.checkAndCollect(
-        async () => await Assertions.checkIfValueIsDefined(event),
-        `${ev}: Should be defined`,
-      );
-    }
-
-    // Ramps Button Clicked - Property checks
-    const rampsButtonClicked = eventsToCheck.find(
-      (event) => event.event === expectedEvents.RampsButtonClicked,
-    );
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsButtonClicked?.properties.location,
-        ),
-      `Ramps Button Clicked: location should be defined`,
-    );
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsButtonClicked?.properties.chain_id_destination,
-        ),
-      `Ramps Button Clicked: chain_id_destination should be defined`,
-    );
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsButtonClicked?.properties.ramp_type,
-        ),
-      `Ramps Button Clicked: ramp_type should be defined`,
-    );
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsButtonClicked?.properties.region,
-        ),
-      `Ramps Button Clicked: region should be defined`,
-    );
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsButtonClicked?.properties.ramp_routing,
-        ),
-      `Ramps Button Clicked: ramp_routing should be defined`,
-    );
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfObjectContains(
-          rampsButtonClicked?.properties ?? {},
-          { location: 'FundActionMenu' },
-        ),
-      `Ramps Button Clicked: location should be FundActionMenu`,
-    );
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfObjectContains(
-          rampsButtonClicked?.properties ?? {},
-          { ramp_type: 'UNIFIED_BUY_2' },
-        ),
-      `Ramps Button Clicked: ramp_type should be UNIFIED_BUY_2`,
-    );
-    const rampsButtonClickedRegion = rampsButtonClicked?.properties
-      ?.region as string;
-    // The GeolocationController stores the ISO 3166-2 location code
-    // returned by the geolocation API (e.g. 'US-CA'), not the ramp region id.
-    const expectedRegionId = getRegionLocationCode(selectedRegion);
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfTextMatches(
-          rampsButtonClickedRegion,
-          expectedRegionId,
-        ),
-      `Ramps Button Clicked: region should be ${expectedRegionId}`,
-    );
-
-    // Ramps Token Selected - Property checks
-    const rampsTokenSelected = eventsToCheck.find(
-      (event) => event.event === expectedEvents.RampsTokenSelected,
-    );
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfObjectHasKeysAndValidValues(
-          rampsTokenSelected?.properties ?? {},
-          {
-            ramp_type: 'string',
-            region: 'string',
-            chain_id: 'string',
-            currency_destination: 'string',
-            currency_destination_symbol: 'string',
-            currency_destination_network: 'string',
-            currency_source: 'string',
-            is_authenticated: 'boolean',
-            token_caip19: 'string',
-            token_symbol: 'string',
-            ramp_routing: 'string',
-          },
-        ),
-      `Ramps Token Selected: Should have the correct properties`,
-    );
-
-    const rampsTokenSelectedRegion = rampsTokenSelected?.properties
-      ?.region as string;
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfTextMatches(
-          rampsTokenSelectedRegion,
-          expectedRegionId,
-        ),
-      `Ramps Token Selected: region should be ${expectedRegionId}`,
-    );
-
-    await softAssert.checkAndCollect(
-      async () =>
-        await Assertions.checkIfObjectContains(
-          rampsTokenSelected?.properties ?? {},
-          {
-            token_symbol: aggregatorBuyOrder.token,
-            token_caip19: 'eip155:1/slip44:60',
-            currency_destination: 'eip155:1/slip44:60',
-            currency_destination_symbol: aggregatorBuyOrder.token,
-            currency_destination_network:
-              CustomNetworks.Tenderly.Mainnet.providerConfig.nickname,
-            ramp_routing: UnifiedRampRoutingType.DEPOSIT,
-          },
-        ),
-      `Ramps Token Selected: token_symbol should be ${aggregatorBuyOrder.token}`,
-    );
-
-    softAssert.throwIfErrors();
   });
 });

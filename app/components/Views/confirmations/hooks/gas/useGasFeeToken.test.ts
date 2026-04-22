@@ -31,7 +31,10 @@ const GAS_FEE_TOKEN_MOCK: GasFeeToken = {
   tokenAddress: '0x1234567890123456789012345678901234567890',
 };
 
-function getState({ gasFeeTokens }: { gasFeeTokens?: GasFeeToken[] } = {}) {
+function getState({
+  gasFeeTokens,
+  excludeNativeTokenForFee,
+}: { gasFeeTokens?: GasFeeToken[]; excludeNativeTokenForFee?: boolean } = {}) {
   const state = merge({}, transferTransactionStateMock, {
     engine: {
       backgroundState: {
@@ -42,6 +45,7 @@ function getState({ gasFeeTokens }: { gasFeeTokens?: GasFeeToken[] } = {}) {
               address: FROM_MOCK,
               gasFeeTokens: gasFeeTokens ?? [GAS_FEE_TOKEN_MOCK],
               selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+              excludeNativeTokenForFee,
             },
           ],
         },
@@ -64,11 +68,13 @@ function getState({ gasFeeTokens }: { gasFeeTokens?: GasFeeToken[] } = {}) {
 function runHook({
   gasFeeTokens,
   tokenAddress,
+  excludeNativeTokenForFee,
 }: {
   gasFeeTokens?: GasFeeToken[];
   tokenAddress?: Hex;
+  excludeNativeTokenForFee?: boolean;
 }) {
-  const state = getState({ gasFeeTokens });
+  const state = getState({ gasFeeTokens, excludeNativeTokenForFee });
   const { result } = renderHookWithProvider(
     () => useGasFeeToken({ tokenAddress }),
     state,
@@ -151,6 +157,23 @@ describe('useGasFeeToken', () => {
   it('returns native gas fee token if no token address', () => {
     const result = runHook({ tokenAddress: undefined });
     expect(result.tokenAddress).toStrictEqual(NATIVE_TOKEN_ADDRESS);
+  });
+
+  it('returns native gas fee token if `tokenAddress` doesnt match any `gasFeeTokens`', () => {
+    const result = runHook({
+      gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+      tokenAddress: '0x00000000000d6ffc74a8feb35af5827bf57f6786', // non-existing
+    });
+    expect(result.tokenAddress).toStrictEqual(NATIVE_TOKEN_ADDRESS);
+  });
+
+  it('returns first of gasFeeTokens if `tokenAddress` doesnt match any `gasFeeTokens` but `excludeNativeTokenForFee` is set', () => {
+    const result = runHook({
+      gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+      tokenAddress: '0x00000000000d6ffc74a8feb35af5827bf57f6786', // non-existing
+      excludeNativeTokenForFee: true,
+    });
+    expect(result.tokenAddress).toStrictEqual(GAS_FEE_TOKEN_MOCK.tokenAddress);
   });
 
   it('returns token transfer transaction when tokenAddress is not the native token address', () => {

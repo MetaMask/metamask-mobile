@@ -46,6 +46,9 @@ import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens'
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
 import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
+import PerpsMarketTileCard from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCard';
+import PerpsMarketTileCardSkeleton from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
+import PerpsExploreSection from './components/Sections/SectionTypes/PerpsExploreSection';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
 
@@ -233,6 +236,24 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     getItemIdentifier: (item) =>
       (item as Partial<PerpsMarketData>).symbol ?? '',
     RowItem: ({ item, index: _index, navigation }) => (
+      <PerpsMarketTileCard
+        market={item as PerpsMarketData}
+        testID={`perps-market-tile-card-${(item as PerpsMarketData).symbol}`}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
+            },
+          );
+        }}
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
         onPress={() => {
@@ -251,14 +272,15 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         compact
       />
     ),
-    // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
-    Skeleton: TrendingTokensSkeleton,
+
+    Skeleton: PerpsMarketTileCardSkeleton,
+    OverrideSkeletonSearch: TrendingTokensSkeleton,
     SectionWrapper: ({ children }) => (
       <PerpsConnectionProvider suppressErrorView>
         <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
-    Section: SectionCard,
+    Section: PerpsExploreSection,
     useSectionData: (searchQuery) => {
       const connectionContext = useContext(PerpsConnectionContext);
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
@@ -266,7 +288,11 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       const filteredMarkets = useMemo(() => {
         if (connectionContext?.error) return [];
         if (!searchQuery) {
-          return markets;
+          return [...markets].sort(
+            (a, b) =>
+              (parseFloat(b.change24hPercent) || 0) -
+              (parseFloat(a.change24hPercent) || 0),
+          );
         }
         const filteredByQuery = filterMarketsByQuery(markets, searchQuery);
         return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);

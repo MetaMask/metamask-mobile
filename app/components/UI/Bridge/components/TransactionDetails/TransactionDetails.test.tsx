@@ -9,6 +9,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { Transaction } from '@metamask/keyring-api';
+import { isHardwareAccount } from '../../../../../util/address';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -21,6 +22,13 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  isHardwareAccount: jest.fn(),
+}));
+
+const mockIsHardwareAccount = jest.mocked(isHardwareAccount);
 
 describe('BridgeTransactionDetails', () => {
   const mockEVMTx = {
@@ -191,5 +199,78 @@ describe('BridgeTransactionDetails', () => {
         url: expect.stringContaining('solana-tx-hash-123'),
       }),
     });
+  });
+
+  it('does not show "Paid by MetaMask" when sender is a hardware wallet', () => {
+    mockIsHardwareAccount.mockReturnValue(true);
+
+    const hwSponsoredTx = {
+      ...mockEVMTx,
+      isGasFeeSponsored: true,
+      status: TransactionStatus.failed,
+    } as TransactionMeta;
+
+    const { queryByTestId } = renderScreen(
+      () => (
+        <BridgeTransactionDetails
+          route={{ params: { evmTxMeta: hwSponsoredTx } }}
+        />
+      ),
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState },
+    );
+
+    expect(queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
+  });
+
+  it('displays full amount from pricingData.amountSent when gas is sponsored', () => {
+    mockIsHardwareAccount.mockReturnValue(false);
+
+    const gasSponsoredTx = {
+      ...mockEVMTx,
+      id: 'gas-sponsored-tx-id',
+      isGasFeeSponsored: true,
+    } as TransactionMeta;
+
+    const { getByText } = renderScreen(
+      () => (
+        <BridgeTransactionDetails
+          route={{ params: { evmTxMeta: gasSponsoredTx } }}
+        />
+      ),
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState },
+    );
+
+    // Should display "1.00000 SEI" (from pricingData.amountSent),
+    // not "0.99125 SEI" (from srcTokenAmount)
+    expect(getByText(/1\.00000\s+SEI/)).toBeOnTheScreen();
+  });
+
+  it('shows "Paid by MetaMask" when gas is sponsored and sender is not a hardware wallet', () => {
+    mockIsHardwareAccount.mockReturnValue(false);
+
+    const sponsoredTx = {
+      ...mockEVMTx,
+      isGasFeeSponsored: true,
+    } as TransactionMeta;
+
+    const { getByTestId } = renderScreen(
+      () => (
+        <BridgeTransactionDetails
+          route={{ params: { evmTxMeta: sponsoredTx } }}
+        />
+      ),
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState },
+    );
+
+    expect(getByTestId('paid-by-metamask')).toBeOnTheScreen();
   });
 });

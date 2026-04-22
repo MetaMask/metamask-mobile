@@ -298,6 +298,18 @@ jobs:
             echo "HAS_CHANGES=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Set up Node.js for prettier
+        if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Format updated fixture with prettier
+        if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
+        run: |
+          npm install --no-save --ignore-scripts prettier@^3.6.2
+          ./node_modules/.bin/prettier --write tests/framework/fixtures/json/default-fixture.json
+
       # Note: Commits pushed with the default GITHUB_TOKEN do not trigger
       # downstream CI workflows (GitHub anti-loop protection). This is
       # intentional — a follow-up push or manual CI re-run will validate

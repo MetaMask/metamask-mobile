@@ -5,8 +5,17 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import Assertions from '../../framework/Assertions';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupRemoteFeatureFlagsMock(mockServer, {
+      homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
+      homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
+    });
+  };
+
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
@@ -16,6 +25,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -48,6 +58,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -66,6 +77,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -107,6 +119,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -137,6 +150,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();

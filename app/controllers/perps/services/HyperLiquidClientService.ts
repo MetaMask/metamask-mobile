@@ -7,7 +7,6 @@ import {
   WebSocketTransport,
 } from '@nktkas/hyperliquid';
 
-import { getPerpsConnectionAttemptContext } from '../../../util/perpsConnectionAttemptContext';
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -19,7 +18,8 @@ import type {
 } from '../types';
 import type { HyperLiquidNetwork } from '../types/config';
 import type { CandleData } from '../types/perps-types';
-import { ensureError } from '../utils/errorUtils';
+import { ensureError, isAbortError } from '../utils/errorUtils';
+import { getPerpsConnectionAttemptContext } from '../utils/perpsConnectionAttemptContext';
 
 /**
  * Maximum number of reconnection attempts before giving up.
@@ -490,9 +490,10 @@ export class HyperLiquidClientService {
       const intervalMs = this.#getIntervalMilliseconds(interval);
       const startTime = now - limit * intervalMs;
 
-      // Use the SDK's InfoClient to fetch candle data
-      // HyperLiquid SDK uses 'coin' terminology
-      const infoClient = this.getInfoClient();
+      // Use HTTP transport for historical candle snapshots (request/response).
+      // This avoids the WebSocket abort race condition that causes 429s
+      // during rapid market switching on extension (#TAT-2954).
+      const infoClient = this.getInfoClient({ useHttp: true });
       const data = await infoClient.candleSnapshot(
         {
           coin: symbol, // Map to HyperLiquid SDK's 'coin' parameter
@@ -531,6 +532,11 @@ export class HyperLiquidClientService {
         error,
         'HyperLiquidClientService.fetchHistoricalCandles',
       );
+
+      // Expected cancellation — skip Sentry to avoid noisy abort reports
+      if (isAbortError(error)) {
+        throw error;
+      }
 
       // Log to Sentry: prevents initial chart data load
       this.#deps.logger.error(errorInstance, {

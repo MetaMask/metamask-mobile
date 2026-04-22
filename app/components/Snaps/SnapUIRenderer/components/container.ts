@@ -3,7 +3,7 @@ import { getJsxChildren } from '@metamask/snaps-utils';
 import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 import { DEFAULT_FOOTER } from './footer';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 
 export const container: UIComponentFactory<BoxElement> = ({
   element: e,
@@ -40,7 +40,7 @@ export const container: UIComponentFactory<BoxElement> = ({
         key: 'default-button',
         props: {
           onCancel,
-          variant: ButtonVariants.Secondary,
+          variant: ButtonVariant.Secondary,
           isSnapAction: false,
           testID: 'default-snap-footer-button',
         },

@@ -581,6 +581,33 @@ describe('SwapsConfirmButton', () => {
       expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
+    it('is disabled when active quote is for a different token pair (stale quote during token change)', () => {
+      // Regression: after flipping tokens or changing the destination token the
+      // bridge controller keeps the previous quote in state until the first new
+      // quote arrives. isActiveQuoteForCurrentTokenPair catches this mismatch.
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockQuoteWithMetadata,
+          isLoading: true,
+          isActiveQuoteForCurrentTokenPair: false,
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+    });
+
     it('does not show loading when source amount is empty', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)

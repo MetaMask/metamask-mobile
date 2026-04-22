@@ -24,6 +24,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../../.."
 
+export CDP_TIMEOUT="${CDP_TIMEOUT:-30000}"
+export CDP_DISCOVERY_RETRIES="${CDP_DISCOVERY_RETRIES:-3}"
+
 COMMAND="${1:-route}"
 shift || true
 

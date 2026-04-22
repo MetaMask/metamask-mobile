@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { InputStepper } from './index';
 import { InputStepperDescriptionType } from './constants';
 import {
@@ -21,9 +22,14 @@ describe('InputStepper', () => {
     minAmount: 0,
     maxAmount: 100,
   };
+  const originalPlatform = Platform.OS;
 
   afterEach(() => {
     jest.clearAllMocks();
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
   });
 
   describe('input', () => {
@@ -113,6 +119,25 @@ describe('InputStepper', () => {
 
       const input = getByTestId('input-stepper-input');
       expect(input.props.placeholder).toBe('Enter amount');
+    });
+
+    it('applies Android text alignment styles to avoid clipping', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      const { getByTestId } = render(
+        <InputStepper {...defaultProps} value="2" postValue="%" />,
+      );
+
+      const input = getByTestId('input-stepper-input');
+      const inputStyle = StyleSheet.flatten(input.props.style);
+
+      expect(inputStyle.includeFontPadding).toBe(false);
+      expect(inputStyle.textAlignVertical).toBe('center');
+      expect(inputStyle.paddingVertical).toBe(0);
+      expect(inputStyle.paddingTop).toBe(1);
     });
   });
 

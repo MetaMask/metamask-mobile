@@ -34,7 +34,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
   const displayData = isLoading ? skeletonData : data;
 
   return (
-    <Box twClassName="mb-6">
+    <Box twClassName="-mx-4 mb-6">
       <FlashList
         ref={flashListRef}
         data={displayData}
@@ -61,6 +61,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
             </Box>
           );
         }}
+        contentContainerStyle={tw.style('px-4')}
         keyExtractor={
           isLoading
             ? (_, index) => `skeleton-${index}`

@@ -8,12 +8,13 @@ import {
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import {
   type AssetsControllerMessenger,
   type AssetsControllerInitMessenger,
 } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 
@@ -84,10 +85,10 @@ function getApiClient(
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state of the extension.
  * @param request.initMessenger - The init messenger to use for the controller.
- * @param request.getController - Function to get a controller by name.
+ * @param request.getMessengerClient - Function to get a controller by name.
  * @returns The initialized controller.
  */
-export const assetsControllerInit: ControllerInitFunction<
+export const assetsControllerInit: MessengerClientInitFunction<
   AssetsController,
   AssetsControllerMessenger,
   AssetsControllerInitMessenger
@@ -95,7 +96,7 @@ export const assetsControllerInit: ControllerInitFunction<
   controllerMessenger,
   persistedState,
   initMessenger,
-  getController: _getController,
+  getMessengerClient: _getController,
 }) => {
   /**
    * Check if the AssetsController feature is enabled based on the remote feature flag.
@@ -151,6 +152,7 @@ export const assetsControllerInit: ControllerInitFunction<
     },
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,
+    isOnboarded: () => selectCompletedOnboarding(store.getState()),
   });
 
   return { controller };

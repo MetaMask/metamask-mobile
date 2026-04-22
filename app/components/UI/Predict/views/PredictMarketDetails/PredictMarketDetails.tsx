@@ -37,9 +37,14 @@ import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
+import PredictCryptoUpDownDetails from '../../components/PredictCryptoUpDownDetails';
+import { isCryptoUpDown } from '../../utils/cryptoUpDown';
+import {
+  selectPredictUpDownEnabledFlag,
+  selectPredictFeeCollectionFlag,
+} from '../../selectors/featureFlags';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
 import PredictMarketDetailsTabBar from './components/PredictMarketDetailsTabBar';
@@ -49,7 +54,7 @@ import { useChartData } from './hooks/useChartData';
 import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
-import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
+import { usePredictPreviewSheet } from '../../contexts';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -58,7 +63,7 @@ interface PredictMarketDetailsProps {}
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { colors } = useTheme();
   const { claim, isClaimPending } = usePredictClaim();
   const route =
@@ -70,7 +75,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
-  const { marketId, entryPoint, title, image } = route.params || {};
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const { marketId, entryPoint, title, image, transactionActiveAbTests } =
+    route.params || {};
   const resolvedMarketId = marketId;
 
   const { executeGuardedAction } = usePredictActionGuard({
@@ -193,17 +200,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     executeGuardedAction(
       () => {
         const matchingOutcome =
-          market.outcomes.find((outcome) =>
-            outcome.tokens.some((marketToken) => marketToken.id === token.id),
+          market.outcomes.find((o) =>
+            o.tokens.some((marketToken) => marketToken.id === token.id),
           ) ??
           openOutcomes[0] ??
           market.outcomes?.[0];
-        navigateToBuyPreview({
+        openBuySheet({
           market,
           outcome: matchingOutcome,
           outcomeToken: token,
           entryPoint:
             entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
         });
       },
       {
@@ -346,6 +354,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const hasPositivePnl = claimablePositions.some(
     (position) => position.percentPnl > 0,
   );
+  if (upDownEnabled && market && isCryptoUpDown(market)) {
+    return (
+      <PredictCryptoUpDownDetails
+        market={market}
+        onBack={handleBackPress}
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
+      />
+    );
+  }
   if (market?.game) {
     return (
       <PredictGameDetailsContent

@@ -25,11 +25,6 @@ describe('getTokenDetails', () => {
     logo: 'https://example.com/logo.png',
   };
 
-  const mockEvmMetadata = {
-    decimals: 18,
-    aggregators: ['uniswap', '1inch'],
-  };
-
   beforeEach(() => {
     // Clear mock calls before each test for proper isolation
     (parseCaipAssetType as jest.Mock).mockClear();
@@ -51,7 +46,6 @@ describe('getTokenDetails', () => {
         mockAsset,
         true, // isNonEvmAsset
         undefined,
-        mockEvmMetadata,
       );
 
       expect(result).toEqual({
@@ -75,7 +69,6 @@ describe('getTokenDetails', () => {
         mockAsset,
         true, // isNonEvmAsset
         undefined,
-        mockEvmMetadata,
       );
 
       expect(result).toEqual({
@@ -95,7 +88,6 @@ describe('getTokenDetails', () => {
         ethAsset,
         false, // isNonEvmAsset
         undefined,
-        mockEvmMetadata,
       );
 
       expect(result).toEqual({
@@ -106,12 +98,7 @@ describe('getTokenDetails', () => {
     });
 
     it('should format regular token details for EVM networks', () => {
-      const result = getTokenDetails(
-        mockAsset,
-        false,
-        '0x456',
-        mockEvmMetadata,
-      );
+      const result = getTokenDetails(mockAsset, false, '0x456');
 
       expect(result).toEqual({
         contractAddress: '0x456',
@@ -141,7 +128,6 @@ describe('getTokenDetails', () => {
         solanaAsset,
         true, // isNonEvmAsset
         undefined,
-        mockEvmMetadata,
       );
 
       // Verify parseCaipAssetType was called with the converted CAIP format
@@ -179,7 +165,6 @@ describe('getTokenDetails', () => {
         solanaAssetWithCaipAddress,
         true, // isNonEvmAsset
         undefined,
-        mockEvmMetadata,
       );
 
       // Verify parseCaipAssetType was called with the original CAIP address (no conversion needed)
@@ -215,7 +200,6 @@ describe('getTokenDetails', () => {
         assetWithoutAddress,
         true, // isNonEvmAsset
         undefined,
-        mockEvmMetadata,
       );
 
       expect(result).toEqual({
@@ -226,39 +210,30 @@ describe('getTokenDetails', () => {
     });
   });
 
-  describe('Metadata handling', () => {
-    it('should handle missing decimals in token metadata', () => {
-      const metadataWithoutDecimals = {
-        aggregators: ['uniswap'],
-      };
-
+  describe('Asset property handling for EVM tokens', () => {
+    it('should return null tokenDecimal when asset has no decimals', () => {
       const { decimals, ...assetWithoutDecimals } = mockAsset;
 
       const result = getTokenDetails(
         assetWithoutDecimals as TokenI,
         false,
         '0x456',
-        metadataWithoutDecimals,
       );
 
       expect(result).toEqual({
         contractAddress: '0x456',
         tokenDecimal: null,
-        tokenList: 'uniswap',
+        tokenList: 'uniswap, 1inch',
       });
     });
 
-    it('should handle missing aggregators in token metadata', () => {
-      const metadataWithoutAggregators = {
-        decimals: 18,
+    it('should return null tokenList when asset has no aggregators', () => {
+      const assetWithoutAggregators: TokenI = {
+        ...mockAsset,
+        aggregators: undefined as unknown as string[],
       };
 
-      const result = getTokenDetails(
-        mockAsset,
-        false,
-        '0x456',
-        metadataWithoutAggregators,
-      );
+      const result = getTokenDetails(assetWithoutAggregators, false, '0x456');
 
       expect(result).toEqual({
         contractAddress: '0x456',
@@ -267,23 +242,13 @@ describe('getTokenDetails', () => {
       });
     });
 
-    it('should handle invalid aggregators type in token metadata', () => {
-      const metadataWithInvalidAggregators = {
-        decimals: 18,
-        aggregators: 'uniswap' as unknown as string[],
-      };
-
-      const result = getTokenDetails(
-        mockAsset,
-        false, // isNonEvmAsset
-        '0x456',
-        metadataWithInvalidAggregators,
-      );
+    it('should return aggregators joined as tokenList', () => {
+      const result = getTokenDetails(mockAsset, false, '0x456');
 
       expect(result).toEqual({
         contractAddress: '0x456',
         tokenDecimal: 18,
-        tokenList: null,
+        tokenList: 'uniswap, 1inch',
       });
     });
   });
@@ -308,7 +273,6 @@ describe('getTokenDetails', () => {
         assetWithoutDecimals,
         true, // isNonEvmAsset
         undefined,
-        mockEvmMetadata,
       );
 
       expect(result).toEqual({
@@ -337,7 +301,6 @@ describe('getTokenDetails', () => {
         assetWithoutAggregators,
         true, // isNonEvmAsset
         undefined,
-        mockEvmMetadata,
       );
 
       expect(result).toEqual({

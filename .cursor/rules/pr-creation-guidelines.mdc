@@ -7,6 +7,8 @@ alwaysApply: false
 
 Follow these rules when creating PRs to ensure consistent quality and smooth reviews.
 
+The canonical Definition of Ready For Review lives at [`docs/readme/ready-for-review.md`](../../docs/readme/ready-for-review.md).
+
 ## Core Principles
 
 Small focused PRs • Clear titles/descriptions • Complete template • Correct labels • Branch naming
@@ -36,10 +38,10 @@ Use `.github/pull-request-template.md` - fill ALL sections:
 
 - **Description**: What changed and why (context, constraints, trade-offs)
 - **Changelog**: User-facing summary in past participle (`Added`, `Fixed`) OR `CHANGELOG entry: null`
-- **Related issues**: `Fixes: #NUMBER`, `Closes: #NUMBER`, or `Refs: #NUMBER`
-- **Manual testing**: test cases desciption using Gherkin syntax (see sample in template)
-- **Screenshots/Recordings**: Required for UI changes (before/after)
-- **Pre-merge checklist**: Ensure all items checked, even if thye don't apply, it shows that you thought about the specific item.
+- **Related issues**: `Fixes: #NUMBER`, `Closes: #NUMBER`, or `Refs: #NUMBER`, or explicit rationale if no issue is linked
+- **Manual testing**: real Gherkin scenarios for the change, or explicit `N/A` with a short reason. The stock template example is not a real testing section.
+- **Screenshots/Recordings**: required for user-facing changes (before/after), or explicit `N/A` when not applicable
+- **Pre-merge checklist**: every item must be consciously assessed and checked. See the checklist semantics in [`docs/readme/ready-for-review.md`](../../docs/readme/ready-for-review.md): a checked box means the responsibility was deliberately considered (including "considered and not applicable"), and an unchecked box is ambiguous, not an implicit `N/A`.
 
 ## 3. Required Labels and Assignment
 
@@ -79,13 +81,13 @@ Use `.github/pull-request-template.md` - fill ALL sections:
 ## 5. PR Best Practices
 
 - Submit as **Draft** initially for CI
-- Mark "Ready for review" only after:
-  - Manually tested by yourself first
-  - Assigned to yourself
-  - Template complete
-  - Lint/tests/type-checks pass
-  - Screenshots attached (if UI)
-  - Labels applied
+- Mark "Ready for review" only when the PR meets the canonical Definition of Ready For Review in [`docs/readme/ready-for-review.md`](../../docs/readme/ready-for-review.md). Summary:
+  - Author has manually tested the change
+  - Template is complete (issue linked or explicit rationale, real manual testing steps or explicit `N/A`, real screenshots or explicit `N/A`, valid changelog, checklists consciously resolved)
+  - All status checks are **currently passing**, not just "green at some earlier point"
+  - The only expected follow-up commits are reviewer-driven
+  - PR is assigned
+  - Required labels are in place
 - Target `main` branch
 - Keep focused (single feature/fix)
 - Include tests (unit/Component-view/e2e)
@@ -98,30 +100,26 @@ Use `.github/pull-request-template.md` - fill ALL sections:
 - If you need to clean history, do it BEFORE requesting first review
 - After first review: use regular commits, squash on merge if needed
 
-**DO**: Assign yourself • Keep diff small • Include testing steps • Update docs/changelog • Regular push after reviews
+**DO**: Assign yourself • Keep diff small • Include testing steps • Update docs/changelog • Resolve all checklist items • Regular push after reviews
 
-**DON'T**: Leave unassigned • Skip template • Push unrelated changes • Force push after first review
+**DON'T**: Leave unassigned • Skip template • Leave checklist boxes unchecked • Push unrelated changes • Force push after first review
 
-## GitHub CLI Example
+## PR Creation
 
-```bash
-# Create PR with auto team detection
-gh pr create \
-  --title "feat: add NFT gallery to collectibles tab" \
-  --assignee @me \
-  --draft
-```
+To create a PR, use the `pr-create` skill.
+It validates preconditions, generates the title and description, and opens the PR as draft.
 
 ## Enforcement
 
 - PRs must use template with all sections complete
 - PRs must be assigned
 - Titles must follow Conventional Commits
-- Blocking labels must be resolved before asking for review
+- Merge-blocking labels must be resolved before asking for review, except when `DO-NOT-MERGE` is intentionally kept on a PR that is ready to be reviewed but must not be merged yet because it depends on another PR merging first
 - Non-compliant PRs converted to Draft with comment
 
 ## References
 
+- Definition of Ready For Review (canonical): [`docs/readme/ready-for-review.md`](../../docs/readme/ready-for-review.md)
 - Conventional Commits: https://www.conventionalcommits.org/
 - PR Template: `.github/pull-request-template.md`
 - E2E framework: `tests/`

@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   TokenDetectionController,
   type TokenDetectionControllerMessenger,
@@ -19,12 +19,12 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokenDetectionControllerInit: ControllerInitFunction<
+export const tokenDetectionControllerInit: MessengerClientInitFunction<
   TokenDetectionController,
   TokenDetectionControllerMessenger,
   TokenDetectionControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController, getState }) => {
-  const networkController = getController('NetworkController');
+> = ({ controllerMessenger, initMessenger, getMessengerClient, getState }) => {
+  const networkController = getMessengerClient('NetworkController');
 
   const getBalancesInSingleCall = (
     selectedAddress: string,

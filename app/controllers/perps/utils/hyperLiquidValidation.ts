@@ -371,6 +371,10 @@ export function applyPathFilters(
     });
   }
 
+  // Note: `in` is the idiomatic TypeScript way to narrow a string to
+  // `keyof typeof` for indexed access; `hasProperty` types the indexed
+  // result as `unknown` and loses the `{ testnet, mainnet }` shape.
+  /* eslint-disable-next-line no-restricted-syntax */
   if (params.symbol && params.symbol in HYPERLIQUID_ASSET_CONFIGS) {
     const config =
       HYPERLIQUID_ASSET_CONFIGS[
