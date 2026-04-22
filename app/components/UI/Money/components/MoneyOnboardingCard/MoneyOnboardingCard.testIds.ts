@@ -6,4 +6,7 @@ export const MoneyOnboardingCardTestIds = {
   TITLE: 'money-onboarding-card-title',
   DESCRIPTION: 'money-onboarding-card-description',
   CTA_BUTTON: 'money-onboarding-card-cta-button',
+  BENEFITS_CONTAINER: 'money-onboarding-card-benefits-container',
+  BULLET_CASHBACK: 'money-onboarding-card-bullet-cashback',
+  BULLET_APY: 'money-onboarding-card-bullet-apy',
 } as const;

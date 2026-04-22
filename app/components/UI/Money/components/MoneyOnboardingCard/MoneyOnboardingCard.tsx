@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Box,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
   Button,
   ButtonSize,
@@ -39,6 +40,11 @@ interface MoneyOnboardingCardProps {
    * Total number of onboarding steps. Defaults to 2.
    */
   totalSteps?: number;
+  /**
+   * Controls step 2 content: 'get-card' (default) shows card acquisition,
+   * 'link-card' shows card linking with benefits bullets.
+   */
+  variant?: 'get-card' | 'link-card';
 }
 
 const STEP_CONTENT = {
@@ -54,14 +60,42 @@ const STEP_CONTENT = {
   },
 } as const;
 
+const STEP_2_LINK_CARD = {
+  title: 'money.onboarding.link_card_title',
+  description: 'money.onboarding.link_card_description',
+  cta: 'money.onboarding.link_card_cta',
+} as const;
+
+const BenefitBullet = ({ text, testID }: { text: string; testID: string }) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="gap-1"
+    testID={testID}
+  >
+    <Icon
+      name={IconName.Check}
+      size={IconSize.Sm}
+      color={IconColor.SuccessDefault}
+    />
+    <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+      {text}
+    </Text>
+  </Box>
+);
+
 const MoneyOnboardingCard = ({
   onCtaPress,
   onAddPress,
   currentStep = 1,
   totalSteps = 2,
+  variant = 'get-card',
 }: MoneyOnboardingCardProps) => {
-  const content =
-    STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ?? STEP_CONTENT[1];
+  const isLinkCard = variant === 'link-card' && currentStep === 2;
+  const content = isLinkCard
+    ? STEP_2_LINK_CARD
+    : (STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ??
+      STEP_CONTENT[1]);
   const handleCtaPress = onCtaPress ?? onAddPress ?? NOOP;
 
   return (
@@ -115,8 +149,32 @@ const MoneyOnboardingCard = ({
             testID={MoneyOnboardingCardTestIds.DESCRIPTION}
           >
             {strings(content.description)}
+            {isLinkCard && (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.onboarding.link_card_description_highlight')}
+                {strings('money.onboarding.link_card_description_suffix')}
+              </Text>
+            )}
           </Text>
         </Box>
+        {isLinkCard && (
+          <Box
+            twClassName="gap-2"
+            testID={MoneyOnboardingCardTestIds.BENEFITS_CONTAINER}
+          >
+            <BenefitBullet
+              text={strings('money.onboarding.link_card_bullet_cashback')}
+              testID={MoneyOnboardingCardTestIds.BULLET_CASHBACK}
+            />
+            <BenefitBullet
+              text={strings('money.onboarding.link_card_bullet_apy')}
+              testID={MoneyOnboardingCardTestIds.BULLET_APY}
+            />
+          </Box>
+        )}
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

@@ -99,4 +99,76 @@ describe('MoneyOnboardingCard', () => {
       getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON),
     ).toHaveTextContent(strings('money.onboarding.step2_cta'));
   });
+
+  describe('link-card variant', () => {
+    it('renders link card title when variant is link-card and step is 2', () => {
+      const { getByTestId } = render(
+        <MoneyOnboardingCard currentStep={2} variant="link-card" />,
+      );
+
+      expect(getByTestId(MoneyOnboardingCardTestIds.TITLE)).toHaveTextContent(
+        strings('money.onboarding.link_card_title'),
+      );
+    });
+
+    it('renders link card CTA when variant is link-card and step is 2', () => {
+      const { getByTestId } = render(
+        <MoneyOnboardingCard currentStep={2} variant="link-card" />,
+      );
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON),
+      ).toHaveTextContent(strings('money.onboarding.link_card_cta'));
+    });
+
+    it('renders benefits bullets when variant is link-card and step is 2', () => {
+      const { getByTestId } = render(
+        <MoneyOnboardingCard currentStep={2} variant="link-card" />,
+      );
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.BENEFITS_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.BULLET_CASHBACK),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.BULLET_APY),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render benefits bullets for get-card variant', () => {
+      const { queryByTestId } = render(
+        <MoneyOnboardingCard currentStep={2} variant="get-card" />,
+      );
+
+      expect(
+        queryByTestId(MoneyOnboardingCardTestIds.BENEFITS_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render benefits bullets for step 1 even with link-card variant', () => {
+      const { queryByTestId } = render(
+        <MoneyOnboardingCard currentStep={1} variant="link-card" />,
+      );
+
+      expect(
+        queryByTestId(MoneyOnboardingCardTestIds.BENEFITS_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('calls onCtaPress when link card CTA is tapped', () => {
+      const mockCta = jest.fn();
+      const { getByTestId } = render(
+        <MoneyOnboardingCard
+          currentStep={2}
+          variant="link-card"
+          onCtaPress={mockCta}
+        />,
+      );
+
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+      expect(mockCta).toHaveBeenCalledTimes(1);
+    });
+  });
 });

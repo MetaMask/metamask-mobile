@@ -6319,7 +6319,14 @@
       "add": "Add",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your Money balance with your MetaMask Card and get ",
+      "link_card_description_highlight": "1-3% cashback",
+      "link_card_description_suffix": ".",
+      "link_card_cta": "Link card",
+      "link_card_bullet_cashback": "Get 1-3% cashback",
+      "link_card_bullet_apy": "Earn 4% APY on your balance"
     },
     "action": {
       "add": "Add",
