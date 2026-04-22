@@ -40,7 +40,6 @@ import type {
 } from '../types';
 import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
 import {
-  addSpotUsdcToAvailableToTradeBalance,
   addSpotBalanceToAccountState,
   calculateWeightedReturnOnEquity,
 } from '../utils/accountUtils';
@@ -1006,20 +1005,17 @@ export class HyperLiquidSubscriptionService {
     // Calculate weighted returnOnEquity across all DEXs
     const returnOnEquity = calculateWeightedReturnOnEquity(accountStatesForROE);
 
-    return addSpotUsdcToAvailableToTradeBalance(
-      addSpotBalanceToAccountState(
-        {
-          ...firstDexAccount,
-          availableBalance: totalAvailableBalance.toString(),
-          availableToTradeBalance: totalAvailableToTradeBalance.toString(),
-          totalBalance: totalBalance.toString(),
-          marginUsed: totalMarginUsed.toString(),
-          unrealizedPnl: totalUnrealizedPnl.toString(),
-          subAccountBreakdown,
-          returnOnEquity,
-        },
-        this.#cachedSpotState,
-      ),
+    return addSpotBalanceToAccountState(
+      {
+        ...firstDexAccount,
+        availableBalance: totalAvailableBalance.toString(),
+        availableToTradeBalance: totalAvailableToTradeBalance.toString(),
+        totalBalance: totalBalance.toString(),
+        marginUsed: totalMarginUsed.toString(),
+        unrealizedPnl: totalUnrealizedPnl.toString(),
+        subAccountBreakdown,
+        returnOnEquity,
+      },
       this.#cachedSpotState,
     );
   }
@@ -1545,11 +1541,8 @@ export class HyperLiquidSubscriptionService {
               // Notify subscribers (no aggregation needed - only main DEX).
               // Apply spot balance so single-DEX accounts see the same
               // spot-inclusive totalBalance as the HIP-3 aggregation path.
-              const spotAdjustedAccount = addSpotUsdcToAvailableToTradeBalance(
-                addSpotBalanceToAccountState(
-                  accountState,
-                  this.#cachedSpotState,
-                ),
+              const spotAdjustedAccount = addSpotBalanceToAccountState(
+                accountState,
                 this.#cachedSpotState,
               );
 

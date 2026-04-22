@@ -115,26 +115,6 @@ export function getSpotBalance(
   );
 }
 
-export function getSpotBalanceByCoin(
-  spotState: SpotClearinghouseStateResponse | null | undefined,
-  coin: string,
-): number {
-  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
-    return 0;
-  }
-
-  const matchingBalance = spotState.balances.find(
-    (balance: { coin?: string }) => balance.coin === coin,
-  );
-
-  if (!matchingBalance) {
-    return 0;
-  }
-
-  const value = parseFloat(matchingBalance.total ?? '0');
-  return Number.isFinite(value) ? value : 0;
-}
-
 export function addSpotBalanceToAccountState(
   accountState: AccountState,
   spotState?: SpotClearinghouseStateResponse | null,
@@ -146,43 +126,22 @@ export function addSpotBalanceToAccountState(
   }
 
   const currentTotal = parseFloat(accountState.totalBalance);
-  if (!Number.isFinite(currentTotal)) {
-    // totalBalance is a non-numeric sentinel (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--').
-    // Adding spot would yield 'NaN' — leave the sentinel intact for the UI to render.
-    return accountState;
-  }
-
-  return {
-    ...accountState,
-    totalBalance: (currentTotal + spotBalance).toString(),
-  };
-}
-
-export function addSpotUsdcToAvailableToTradeBalance(
-  accountState: AccountState,
-  spotState?: SpotClearinghouseStateResponse | null,
-): AccountState {
-  const spotUsdcBalance = getSpotBalanceByCoin(spotState, 'USDC');
-
-  if (spotUsdcBalance === 0) {
-    return accountState;
-  }
-
-  // Adapters are expected to populate availableToTradeBalance. Fall back to
-  // availableBalance only for legacy or partially migrated AccountState payloads.
   const currentAvailableToTrade = parseFloat(
     accountState.availableToTradeBalance ?? accountState.availableBalance,
   );
-  if (!Number.isFinite(currentAvailableToTrade)) {
-    return accountState;
-  }
 
-  return {
-    ...accountState,
-    availableToTradeBalance: (
-      currentAvailableToTrade + spotUsdcBalance
-    ).toString(),
-  };
+  const next: AccountState = { ...accountState };
+  if (Number.isFinite(currentTotal)) {
+    // totalBalance is a non-numeric sentinel (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--').
+    // Adding spot would yield 'NaN' — leave the sentinel intact for the UI to render.
+    next.totalBalance = (currentTotal + spotBalance).toString();
+  }
+  if (Number.isFinite(currentAvailableToTrade)) {
+    next.availableToTradeBalance = (
+      currentAvailableToTrade + spotBalance
+    ).toString();
+  }
+  return next;
 }
 
 /**

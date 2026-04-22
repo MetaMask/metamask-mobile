@@ -110,7 +110,6 @@ import type {
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import {
-  addSpotUsdcToAvailableToTradeBalance,
   addSpotBalanceToAccountState,
   aggregateAccountStates,
 } from '../utils/accountUtils';
@@ -483,6 +482,22 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
     }
     return compiled;
+  }
+
+  /**
+   * Test/admin escape hatch: return the underlying HyperLiquid SDK exchange
+   * client so agentic fixture flows can invoke arbitrary signed actions
+   * (`userSetAbstraction`, `usdClassTransfer`, etc.) without growing a
+   * controller method per admin operation. Not part of the `PerpsProvider`
+   * interface — callers must cast and accept the SDK surface.
+   *
+   * @returns The initialized HyperLiquid SDK exchange client.
+   */
+  public async getExchangeClient(): Promise<
+    ReturnType<HyperLiquidClientService['getExchangeClient']>
+  > {
+    await this.#ensureClientsInitialized();
+    return this.#clientService.getExchangeClient();
   }
 
   /**
@@ -5585,11 +5600,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         const dexAccountStates = standalonePerpsResults.map((perpsState) =>
           adaptAccountStateFromSDK(perpsState),
         );
-        const aggregatedAccountState = addSpotUsdcToAvailableToTradeBalance(
-          addSpotBalanceToAccountState(
-            aggregateAccountStates(dexAccountStates),
-            standaloneSpotStateResult,
-          ),
+        const aggregatedAccountState = addSpotBalanceToAccountState(
+          aggregateAccountStates(dexAccountStates),
           standaloneSpotStateResult,
         );
 
@@ -5711,11 +5723,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         );
         return dexAccountState;
       });
-      const aggregatedAccountState = addSpotUsdcToAvailableToTradeBalance(
-        addSpotBalanceToAccountState(
-          aggregateAccountStates(dexAccountStates),
-          spotState,
-        ),
+      const aggregatedAccountState = addSpotBalanceToAccountState(
+        aggregateAccountStates(dexAccountStates),
         spotState,
       );
 

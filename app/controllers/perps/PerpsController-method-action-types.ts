@@ -836,7 +836,6 @@ export type PerpsControllerSaveTradeConfigurationAction = {
  * @param config.limitPrice - The limit price.
  * @param config.orderType - The order type.
  * @param config.selectedPaymentToken - The selected payment token.
- * @param config.selectedPaymentTokenSource - Whether the saved token was explicit or an auto-selected fallback.
  */
 export type PerpsControllerSavePendingTradeConfigurationAction = {
   type: `PerpsController:savePendingTradeConfiguration`;
