@@ -62,7 +62,7 @@ describe('PredictBuyActionButton', () => {
       );
 
       expect(screen.getByText(/Placing prediction/)).toBeOnTheScreen();
-      expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+      UNSAFE_getByType(ActivityIndicator);
     });
 
     it('renders button with disabled state', () => {

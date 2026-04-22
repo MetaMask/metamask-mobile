@@ -586,11 +586,14 @@ describe('PerpsMarketTradesList', () => {
       );
 
       const flatList = UNSAFE_getByType(FlatList);
-      // keyExtractor uses item.id — verify it returns the item's id
+      // keyExtractor is `${item.id || index}` — verify both the truthy-id and
+      // the index-fallback branches match the production template literal
       const firstItem = flatList.props.data[0];
       expect(flatList.props.keyExtractor(firstItem, 0)).toBe(
-        String(firstItem.id),
+        `${firstItem.id || 0}`,
       );
+      expect(flatList.props.keyExtractor({ id: '' }, 3)).toBe('3');
+      expect(flatList.props.keyExtractor({ id: null }, 7)).toBe('7');
     });
 
     it('disables scroll on FlatList', () => {

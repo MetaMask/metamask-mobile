@@ -188,7 +188,7 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      expect(getByText('Test Section')).toBeTruthy();
+      getByText('Test Section');
       // Action button must be absent when no onActionPress is provided
       expect(queryByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON)).toBeNull();
     });

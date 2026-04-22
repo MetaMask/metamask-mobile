@@ -82,34 +82,30 @@ describe('PerpsOICapWarning', () => {
     });
 
     it('should render inline variant by default', () => {
-      const { UNSAFE_getByProps } = render(<PerpsOICapWarning symbol="BTC" />);
+      const { UNSAFE_getByProps, UNSAFE_queryByProps } = render(
+        <PerpsOICapWarning symbol="BTC" />,
+      );
 
-      // Inline variant uses BodySM text
-      expect(
-        UNSAFE_getByProps({ variant: TextVariant.BodySM }).props.variant,
-      ).toBe(TextVariant.BodySM);
+      UNSAFE_getByProps({ variant: TextVariant.BodySM });
+      expect(UNSAFE_queryByProps({ variant: TextVariant.BodyMD })).toBeNull();
     });
 
     it('should render banner variant when specified', () => {
-      const { UNSAFE_getByProps } = render(
+      const { UNSAFE_getByProps, UNSAFE_queryByProps } = render(
         <PerpsOICapWarning symbol="BTC" variant="banner" />,
       );
 
-      // Banner variant uses BodyMD text (larger text for banner prominence)
-      expect(
-        UNSAFE_getByProps({ variant: TextVariant.BodyMD }).props.variant,
-      ).toBe(TextVariant.BodyMD);
+      UNSAFE_getByProps({ variant: TextVariant.BodyMD });
+      expect(UNSAFE_queryByProps({ variant: TextVariant.BodySM })).toBeNull();
     });
 
     it('should render inline variant when specified', () => {
-      const { UNSAFE_getByProps } = render(
+      const { UNSAFE_getByProps, UNSAFE_queryByProps } = render(
         <PerpsOICapWarning symbol="BTC" variant="inline" />,
       );
 
-      // Inline variant uses BodySM text
-      expect(
-        UNSAFE_getByProps({ variant: TextVariant.BodySM }).props.variant,
-      ).toBe(TextVariant.BodySM);
+      UNSAFE_getByProps({ variant: TextVariant.BodySM });
+      expect(UNSAFE_queryByProps({ variant: TextVariant.BodyMD })).toBeNull();
     });
   });
 
