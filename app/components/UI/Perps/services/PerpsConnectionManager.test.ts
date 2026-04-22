@@ -75,6 +75,7 @@ const mockStreamManagerInstance = {
   fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   candles: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  resetDiskCacheThrottles: jest.fn(),
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -92,6 +93,12 @@ jest.mock('react-native-background-timer', () => ({
   clearTimeout: jest.fn(),
   start: jest.fn(),
   stop: jest.fn(),
+}));
+
+jest.mock('../../../../store/storage-wrapper', () => ({
+  getItem: jest.fn().mockResolvedValue(null),
+  setItem: jest.fn().mockResolvedValue(undefined),
+  removeItem: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Import non-singleton modules first
@@ -1129,9 +1136,11 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.disconnect.mockResolvedValue();
       await PerpsConnectionManager.connect();
       // Clear cache mock calls from connect/prewarm so we can assert specifically
-      Object.values(mockStreamManagerInstance).forEach(({ clearCache }) =>
-        clearCache.mockClear(),
-      );
+      Object.values(mockStreamManagerInstance).forEach((channel) => {
+        if (typeof channel === 'object' && channel?.clearCache) {
+          channel.clearCache.mockClear();
+        }
+      });
     });
 
     it('clears all stream channel caches when grace period fires', async () => {
@@ -1525,9 +1534,11 @@ describe('PerpsConnectionManager', () => {
         });
 
       // Clear cache mocks to track preserveCaches behavior
-      Object.values(mockStreamManagerInstance).forEach(({ clearCache }) =>
-        clearCache.mockClear(),
-      );
+      Object.values(mockStreamManagerInstance).forEach((manager) => {
+        if ('clearCache' in manager) {
+          (manager.clearCache as jest.Mock).mockClear();
+        }
+      });
       (Engine.context.PerpsController.init as jest.Mock).mockClear();
       (Engine.context.PerpsController.disconnect as jest.Mock).mockClear();
 

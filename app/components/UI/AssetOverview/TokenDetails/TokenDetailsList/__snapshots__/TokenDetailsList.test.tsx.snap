@@ -1,0 +1,207 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenDetails renders correctly 1`] = `
+<View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist-Bold",
+        "fontSize": 18,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "paddingBottom": 8,
+        "paddingTop": 8,
+      }
+    }
+  >
+    Token details
+  </Text>
+  <View
+    style={
+      {
+        "paddingBottom": 8,
+        "paddingTop": 8,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "paddingVertical": 4,
+          },
+          {
+            "paddingTop": 0,
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Contract address
+      </Text>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 4,
+            "opacity": 1,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          0x935E7...05477
+        </Text>
+        <SvgMock
+          fill="currentColor"
+          name="Copy"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 16,
+                "width": 16,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingVertical": 4,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Token decimal
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        18
+      </Text>
+    </View>
+    <View
+      style={
+        [
+          {
+            "flexDirection": "column",
+            "justifyContent": "space-between",
+            "paddingVertical": 4,
+          },
+          {
+            "paddingBottom": 0,
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Token list
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Metamask, Coinmarketcap
+      </Text>
+    </View>
+  </View>
+</View>
+`;

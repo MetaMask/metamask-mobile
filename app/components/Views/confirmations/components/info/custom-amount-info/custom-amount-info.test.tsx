@@ -110,15 +110,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  return {
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    useSafeAreaInsets: () => inset,
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-  };
-});
-
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   ...jest.requireActual('../../../../../UI/Ramp/hooks/useRampNavigation'),
   useRampNavigation: () => ({
@@ -388,27 +379,13 @@ describe('CustomAmountInfo', () => {
     },
   );
 
-  it('calls overrideContent with amountHuman and hides default content', () => {
-    const mockOverrideContent = jest.fn().mockReturnValue(null);
+  it('hides PayTokenAmount when hidePayTokenAmount is true', () => {
+    const { queryByText } = render({ hidePayTokenAmount: true });
 
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0.5',
-      amountHumanDebounced: '0.5',
-      hasInput: true,
-      isInputChanged: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
-      updateTokenAmount: noop,
-    });
-
-    const { queryByText } = render({ overrideContent: mockOverrideContent });
-
-    expect(mockOverrideContent).toHaveBeenCalledWith('0.5');
     expect(queryByText('0 TST')).toBeNull();
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
-    ).toBeNull();
+    ).toBeOnTheScreen();
   });
 
   it('calls onAmountSubmit when Done button is pressed', async () => {
@@ -466,7 +443,7 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  it('renders no funds message for moneyAccountDeposit when no tokens available', () => {
+  it('renders no funds alert message for moneyAccountDeposit when alert is present', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
@@ -477,16 +454,21 @@ describe('CustomAmountInfo', () => {
       hasTokens: false,
     });
 
+    useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertTitle: strings('alert_system.account_no_funds.message'),
+      alertMessage: strings('alert_system.account_no_funds.message'),
+    });
+
     const { getByText } = render({
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
     expect(
-      getByText(strings('confirm.no_funds_use_different_account')),
+      getByText(strings('alert_system.account_no_funds.message')),
     ).toBeOnTheScreen();
   });
 
-  it('does not render no funds message for moneyAccountDeposit when tokens available', () => {
+  it('does not render no funds alert for moneyAccountDeposit when tokens available', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
@@ -497,8 +479,8 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(
-      queryByText(strings('confirm.no_funds_use_different_account')),
-    ).not.toBeOnTheScreen();
+      queryByText(strings('alert_system.account_no_funds.message')),
+    ).toBeNull();
   });
 
   it('renders AccountSelector for moneyAccountDeposit transactions', () => {

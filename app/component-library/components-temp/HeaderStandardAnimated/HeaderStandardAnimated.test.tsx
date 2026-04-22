@@ -9,15 +9,6 @@ import type { SharedValue } from 'react-native-reanimated';
 // Internal dependencies.
 import HeaderStandardAnimated from './HeaderStandardAnimated';
 
-jest.mock('react-native-reanimated', () => {
-  const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  Reanimated.useSharedValue = jest.fn((initial: number) => ({
-    value: initial,
-  }));
-  Reanimated.useAnimatedStyle = jest.fn((fn: () => object) => fn());
-  return Reanimated;
-});
-
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }));

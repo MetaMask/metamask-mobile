@@ -28,13 +28,34 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           }
         }
       >
-        <TouchableOpacity
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          disabled={false}
-          onPress={[MockFunction]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -48,7 +69,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           testID="sheet-header-back-button"
         >
           <SvgMock
-            color="#131416"
+            color="#121314"
             fill="currentColor"
             height={20}
             name="ArrowLeft"
@@ -60,15 +81,15 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             }
             width={20}
           />
-        </TouchableOpacity>
+        </View>
       </View>
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
-            "fontFamily": "Geist-SemiBold",
-            "fontSize": 20,
+            "color": "#121314",
+            "fontFamily": "Geist-Bold",
+            "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -97,7 +118,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -123,9 +144,34 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         }
       >
         <View>
-          <TouchableOpacity
-            disabled={false}
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -180,7 +226,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -191,15 +237,37 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 Select all
               </Text>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -209,6 +277,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "paddingRight": 0,
@@ -230,7 +299,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           >
             New account
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
     <RCTScrollView
@@ -296,16 +365,34 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           onLayout={[Function]}
           style={null}
         >
-          <TouchableOpacity
-            buttonProps={
+          <View
+            accessibilityState={
               {
-                "buttonTestId": "multichain-account-cell-menu",
-                "onButtonClick": [Function],
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-            onLongPress={[Function]}
-            onPress={[Function]}
-            showSecondaryTextIcon={false}
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "backgroundColor": "#ffffff",
@@ -336,8 +423,34 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 <View
                   pointerEvents="none"
                 >
-                  <TouchableOpacity
-                    disabled={false}
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "center",
@@ -378,7 +491,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         width={20}
                       />
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   accessible={false}
@@ -432,7 +545,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -448,7 +561,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -467,7 +580,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               accessible={true}
               style={
                 {
-                  "backgroundColor": "#b4b4b528",
+                  "backgroundColor": "#3c4d9d0f",
                   "bottom": 0,
                   "flexDirection": "row",
                   "left": 0,
@@ -477,23 +590,41 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 }
               }
             />
-          </TouchableOpacity>
+          </View>
         </View>
         <View
           onFocusCapture={[Function]}
           onLayout={[Function]}
           style={null}
         >
-          <TouchableOpacity
-            buttonProps={
+          <View
+            accessibilityState={
               {
-                "buttonTestId": "multichain-account-cell-menu",
-                "onButtonClick": [Function],
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-            onLongPress={[Function]}
-            onPress={[Function]}
-            showSecondaryTextIcon={false}
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "backgroundColor": "#ffffff",
@@ -524,8 +655,34 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 <View
                   pointerEvents="none"
                 >
-                  <TouchableOpacity
-                    disabled={false}
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "center",
@@ -542,7 +699,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#949596",
+                          "borderColor": "#b7bbc8",
                           "borderRadius": 4,
                           "borderWidth": 2,
                           "height": 20,
@@ -551,7 +708,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         }
                       }
                     />
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   accessible={false}
@@ -605,7 +762,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -621,7 +778,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -635,7 +792,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 </View>
               </View>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </RCTScrollView>
@@ -663,24 +820,46 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
+          <View
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#131416",
+                "backgroundColor": "#121314",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "opacity": 1,
                 "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
@@ -701,7 +880,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             >
               Update
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

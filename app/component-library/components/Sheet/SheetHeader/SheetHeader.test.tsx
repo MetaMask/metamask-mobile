@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // Internal dependencies.
 import SheetHeader from './SheetHeader';
@@ -11,28 +11,22 @@ import {
 
 describe('SheetHeader', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<SheetHeader title={'Title'} />);
-    expect(wrapper).toBeDefined();
+    const { toJSON } = render(<SheetHeader title={'Title'} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render back button', () => {
-    const wrapper = shallow(<SheetHeader onBack={jest.fn} title={'Title'} />);
-    const backButton = wrapper.findWhere(
-      (node) => node.prop('testID') === SHEET_HEADER_BACK_BUTTON_ID,
-    );
-    expect(backButton.exists()).toBe(true);
+    render(<SheetHeader onBack={jest.fn} title={'Title'} />);
+    expect(screen.getByTestId(SHEET_HEADER_BACK_BUTTON_ID)).toBeDefined();
   });
 
   it('should render action button', () => {
-    const wrapper = shallow(
+    render(
       <SheetHeader
         title={'Title'}
         actionButtonOptions={{ label: 'Action', onPress: jest.fn }}
       />,
     );
-    const actionButton = wrapper.findWhere(
-      (node) => node.prop('testID') === SHEET_HEADER_ACTION_BUTTON_ID,
-    );
-    expect(actionButton.exists()).toBe(true);
+    expect(screen.getByTestId(SHEET_HEADER_ACTION_BUTTON_ID)).toBeDefined();
   });
 });

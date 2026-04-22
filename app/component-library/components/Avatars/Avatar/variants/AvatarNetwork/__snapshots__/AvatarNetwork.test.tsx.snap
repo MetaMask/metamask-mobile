@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarNetwork should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderRadius": 8,
+      "height": 32,
+      "justifyContent": "center",
+      "overflow": "hidden",
+      "width": 32,
+    }
+  }
+>
+  <Image
+    onError={[Function]}
+    resizeMode="contain"
+    source={
+      {
+        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+      }
+    }
+    style={
+      {
+        "height": 32,
+        "width": 32,
+      }
+    }
+    testID="network-avatar-image"
+  />
+</View>
+`;

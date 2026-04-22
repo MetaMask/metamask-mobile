@@ -53,11 +53,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({ bottom: 10 })),
-  useSafeAreaFrame: jest.fn(() => ({ width: 390, height: 844 })),
-}));
-
 // Mock InteractionManager.runAfterInteractions to execute callbacks immediately
 const mockRunAfterInteractions = jest.fn((callback) => {
   // Execute the callback immediately for testing

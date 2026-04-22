@@ -13,10 +13,8 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "flexBasis": "0%",
-      "flexGrow": 1,
-      "flexShrink": 1,
-      "paddingTop": 42,
+      "flex": 1,
+      "paddingTop": 24,
     }
   }
 >
@@ -29,10 +27,8 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
     style={
       {
         "backgroundColor": "#ffffff",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-        "paddingTop": 42,
+        "flex": 1,
+        "paddingTop": 24,
       }
     }
     testID="protect-your-account-screen"
@@ -40,67 +36,49 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
     <View>
       <View
         style={
-          [
-            {
-              "display": "flex",
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            undefined,
-          ]
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
         }
       >
         <Text
           accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#66676a",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-              undefined,
-            ]
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
         >
           Step 2 of 3
         </Text>
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexBasis": "0%",
-                "flexGrow": 1,
-                "flexShrink": 1,
-                "marginBottom": 10,
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+            }
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "color": "#131416",
-                  "fontFamily": "Geist-SemiBold",
-                  "fontSize": 32,
-                  "letterSpacing": 0,
-                  "lineHeight": 40,
-                  "marginBottom": 16,
-                  "textAlign": "left",
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+                "marginBottom": 16,
+                "textAlign": "left",
+              }
             }
           >
             Secure your wallet
@@ -110,38 +88,32 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
             style={
               {
                 "height": 250,
-                "marginLeft": "auto",
-                "marginRight": "auto",
+                "marginHorizontal": "auto",
                 "width": 250,
               }
             }
           />
           <View
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "display": "flex",
-                  "marginTop": 32,
-                  "rowGap": 16,
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 32,
+                "rowGap": 16,
+              }
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Don’t risk losing your funds. Protect your wallet by saving your
@@ -150,16 +122,13 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                 accessibilityRole="text"
                 onPress={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
                 testID="seedphrase-link"
               >
@@ -172,16 +141,13 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               It’s the only way to recover your wallet if you get locked out of the app or get a new device.
@@ -190,185 +156,139 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
         </View>
         <View
           style={
-            [
-              {
-                "display": "flex",
-                "marginBottom": 24,
-                "marginTop": "auto",
-                "rowGap": 16,
-              },
-              undefined,
-            ]
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "flex-end",
+              "marginBottom": 16,
+              "rowGap": 16,
+            }
           }
         >
-          <View
-            accessibilityLabel="Get started"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
                     "color": "#ffffff",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Get started
-            </Text>
+                  }
+                }
+              >
+                Get started
+              </Text>
+            </View>
           </View>
-          <View
-            accessibilityLabel="Remind me later"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#b4b4b528",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-            testID="remind-me-later-button"
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="remind-me-later-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
-                    "color": "#131416",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Remind me later
-            </Text>
+                  }
+                }
+              >
+                Remind me later
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -390,9 +310,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
   style={
     {
       "backgroundColor": "#ffffff",
-      "flexBasis": "0%",
-      "flexGrow": 1,
-      "flexShrink": 1,
+      "flex": 1,
       "paddingTop": 24,
     }
   }
@@ -406,9 +324,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
     style={
       {
         "backgroundColor": "#ffffff",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
+        "flex": 1,
         "paddingTop": 24,
       }
     }
@@ -417,67 +333,49 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
     <View>
       <View
         style={
-          [
-            {
-              "display": "flex",
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            undefined,
-          ]
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
         }
       >
         <Text
           accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#66676a",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-              undefined,
-            ]
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
         >
           Step 2 of 3
         </Text>
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexBasis": "0%",
-                "flexGrow": 1,
-                "flexShrink": 1,
-                "marginBottom": 10,
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+            }
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "color": "#131416",
-                  "fontFamily": "Geist-SemiBold",
-                  "fontSize": 32,
-                  "letterSpacing": 0,
-                  "lineHeight": 40,
-                  "marginBottom": 16,
-                  "textAlign": "left",
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+                "marginBottom": 16,
+                "textAlign": "left",
+              }
             }
           >
             Secure your wallet
@@ -487,38 +385,32 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
             style={
               {
                 "height": 250,
-                "marginLeft": "auto",
-                "marginRight": "auto",
+                "marginHorizontal": "auto",
                 "width": 250,
               }
             }
           />
           <View
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "display": "flex",
-                  "marginTop": 32,
-                  "rowGap": 16,
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 32,
+                "rowGap": 16,
+              }
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Don’t risk losing your funds. Protect your wallet by saving your
@@ -527,16 +419,13 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                 accessibilityRole="text"
                 onPress={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
                 testID="seedphrase-link"
               >
@@ -549,16 +438,13 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               It’s the only way to recover your wallet if you get locked out of the app or get a new device.
@@ -567,185 +453,139 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
         </View>
         <View
           style={
-            [
-              {
-                "display": "flex",
-                "marginBottom": 24,
-                "marginTop": "auto",
-                "rowGap": 16,
-              },
-              undefined,
-            ]
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "flex-end",
+              "marginBottom": 16,
+              "rowGap": 16,
+            }
           }
         >
-          <View
-            accessibilityLabel="Get started"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
                     "color": "#ffffff",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Get started
-            </Text>
+                  }
+                }
+              >
+                Get started
+              </Text>
+            </View>
           </View>
-          <View
-            accessibilityLabel="Remind me later"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#b4b4b528",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-            testID="remind-me-later-button"
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="remind-me-later-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
-                    "color": "#131416",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Remind me later
-            </Text>
+                  }
+                }
+              >
+                Remind me later
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -767,9 +607,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "flexBasis": "0%",
-      "flexGrow": 1,
-      "flexShrink": 1,
+      "flex": 1,
       "paddingTop": 8,
     }
   }
@@ -783,9 +621,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
     style={
       {
         "backgroundColor": "#ffffff",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
+        "flex": 1,
         "paddingTop": 8,
       }
     }
@@ -794,67 +630,49 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
     <View>
       <View
         style={
-          [
-            {
-              "display": "flex",
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            undefined,
-          ]
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
         }
       >
         <Text
           accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#66676a",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-              undefined,
-            ]
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
         >
           Step 2 of 3
         </Text>
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexBasis": "0%",
-                "flexGrow": 1,
-                "flexShrink": 1,
-                "marginBottom": 10,
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+            }
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "color": "#131416",
-                  "fontFamily": "Geist-SemiBold",
-                  "fontSize": 32,
-                  "letterSpacing": 0,
-                  "lineHeight": 40,
-                  "marginBottom": 16,
-                  "textAlign": "left",
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+                "marginBottom": 16,
+                "textAlign": "left",
+              }
             }
           >
             Secure your wallet
@@ -864,38 +682,32 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
             style={
               {
                 "height": 250,
-                "marginLeft": "auto",
-                "marginRight": "auto",
+                "marginHorizontal": "auto",
                 "width": 250,
               }
             }
           />
           <View
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "display": "flex",
-                  "marginTop": 32,
-                  "rowGap": 16,
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 32,
+                "rowGap": 16,
+              }
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Don’t risk losing your funds. Protect your wallet by saving your
@@ -904,16 +716,13 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                 accessibilityRole="text"
                 onPress={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
                 testID="seedphrase-link"
               >
@@ -926,16 +735,13 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               It’s the only way to recover your wallet if you get locked out of the app or get a new device.
@@ -944,185 +750,139 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
         </View>
         <View
           style={
-            [
-              {
-                "display": "flex",
-                "marginBottom": 16,
-                "marginTop": "auto",
-                "rowGap": 16,
-              },
-              undefined,
-            ]
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "flex-end",
+              "marginBottom": 16,
+              "rowGap": 16,
+            }
           }
         >
-          <View
-            accessibilityLabel="Get started"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
                     "color": "#ffffff",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Get started
-            </Text>
+                  }
+                }
+              >
+                Get started
+              </Text>
+            </View>
           </View>
-          <View
-            accessibilityLabel="Remind me later"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#b4b4b528",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-            testID="remind-me-later-button"
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="remind-me-later-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
-                    "color": "#131416",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Remind me later
-            </Text>
+                  }
+                }
+              >
+                Remind me later
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -1144,10 +904,8 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
   style={
     {
       "backgroundColor": "#ffffff",
-      "flexBasis": "0%",
-      "flexGrow": 1,
-      "flexShrink": 1,
-      "paddingTop": 42,
+      "flex": 1,
+      "paddingTop": 24,
     }
   }
 >
@@ -1160,10 +918,8 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
     style={
       {
         "backgroundColor": "#ffffff",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-        "paddingTop": 42,
+        "flex": 1,
+        "paddingTop": 24,
       }
     }
     testID="protect-your-account-screen"
@@ -1171,67 +927,49 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
     <View>
       <View
         style={
-          [
-            {
-              "display": "flex",
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            undefined,
-          ]
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
         }
       >
         <Text
           accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#66676a",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-              undefined,
-            ]
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
         >
           Step 2 of 3
         </Text>
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexBasis": "0%",
-                "flexGrow": 1,
-                "flexShrink": 1,
-                "marginBottom": 10,
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+            }
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "color": "#131416",
-                  "fontFamily": "Geist-SemiBold",
-                  "fontSize": 32,
-                  "letterSpacing": 0,
-                  "lineHeight": 40,
-                  "marginBottom": 16,
-                  "textAlign": "left",
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+                "marginBottom": 16,
+                "textAlign": "left",
+              }
             }
           >
             Secure your wallet
@@ -1241,38 +979,32 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
             style={
               {
                 "height": 250,
-                "marginLeft": "auto",
-                "marginRight": "auto",
+                "marginHorizontal": "auto",
                 "width": 250,
               }
             }
           />
           <View
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "display": "flex",
-                  "marginTop": 32,
-                  "rowGap": 16,
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 32,
+                "rowGap": 16,
+              }
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Don’t risk losing your funds. Protect your wallet by saving your
@@ -1281,16 +1013,13 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                 accessibilityRole="text"
                 onPress={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
                 testID="seedphrase-link"
               >
@@ -1303,16 +1032,13 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               It’s the only way to recover your wallet if you get locked out of the app or get a new device.
@@ -1321,185 +1047,139 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
         </View>
         <View
           style={
-            [
-              {
-                "display": "flex",
-                "marginBottom": 24,
-                "marginTop": "auto",
-                "rowGap": 16,
-              },
-              undefined,
-            ]
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "flex-end",
+              "marginBottom": 16,
+              "rowGap": 16,
+            }
           }
         >
-          <View
-            accessibilityLabel="Get started"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
                     "color": "#ffffff",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Get started
-            </Text>
+                  }
+                }
+              >
+                Get started
+              </Text>
+            </View>
           </View>
-          <View
-            accessibilityLabel="Remind me later"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#b4b4b528",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-            testID="remind-me-later-button"
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="remind-me-later-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
-                    "color": "#131416",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Remind me later
-            </Text>
+                  }
+                }
+              >
+                Remind me later
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -1521,10 +1201,8 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
   style={
     {
       "backgroundColor": "#ffffff",
-      "flexBasis": "0%",
-      "flexGrow": 1,
-      "flexShrink": 1,
-      "paddingTop": 42,
+      "flex": 1,
+      "paddingTop": 24,
     }
   }
 >
@@ -1537,10 +1215,8 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
     style={
       {
         "backgroundColor": "#ffffff",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-        "paddingTop": 42,
+        "flex": 1,
+        "paddingTop": 24,
       }
     }
     testID="protect-your-account-screen"
@@ -1548,67 +1224,49 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
     <View>
       <View
         style={
-          [
-            {
-              "display": "flex",
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            undefined,
-          ]
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
         }
       >
         <Text
           accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#66676a",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-              undefined,
-            ]
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
         >
           Step 2 of 3
         </Text>
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexBasis": "0%",
-                "flexGrow": 1,
-                "flexShrink": 1,
-                "marginBottom": 10,
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+            }
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "color": "#131416",
-                  "fontFamily": "Geist-SemiBold",
-                  "fontSize": 32,
-                  "letterSpacing": 0,
-                  "lineHeight": 40,
-                  "marginBottom": 16,
-                  "textAlign": "left",
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+                "marginBottom": 16,
+                "textAlign": "left",
+              }
             }
           >
             Secure your wallet
@@ -1618,38 +1276,32 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
             style={
               {
                 "height": 250,
-                "marginLeft": "auto",
-                "marginRight": "auto",
+                "marginHorizontal": "auto",
                 "width": 250,
               }
             }
           />
           <View
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "display": "flex",
-                  "marginTop": 32,
-                  "rowGap": 16,
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "flex-start",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 32,
+                "rowGap": 16,
+              }
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Don’t risk losing your funds. Protect your wallet by saving your
@@ -1658,16 +1310,13 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                 accessibilityRole="text"
                 onPress={[Function]}
                 style={
-                  [
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
                 testID="seedphrase-link"
               >
@@ -1680,16 +1329,13 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               It’s the only way to recover your wallet if you get locked out of the app or get a new device.
@@ -1698,185 +1344,139 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
         </View>
         <View
           style={
-            [
-              {
-                "display": "flex",
-                "marginBottom": 24,
-                "marginTop": "auto",
-                "rowGap": 16,
-              },
-              undefined,
-            ]
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "flex-end",
+              "marginBottom": 16,
+              "rowGap": 16,
+            }
           }
         >
-          <View
-            accessibilityLabel="Get started"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
                     "color": "#ffffff",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Get started
-            </Text>
+                  }
+                }
+              >
+                Get started
+              </Text>
+            </View>
           </View>
-          <View
-            accessibilityLabel="Remind me later"
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
+          <View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
               }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
               }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#b4b4b528",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
-                  "columnGap": 8,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "minWidth": 80,
                   "opacity": 1,
                   "overflow": "hidden",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                  "width": "100%",
-                },
-                {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              ]
-            }
-            testID="remind-me-later-button"
-          >
-            <Text
-              accessibilityRole="text"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="remind-me-later-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
                   {
-                    "color": "#131416",
-                    "flexGrow": 0,
-                    "flexShrink": 1,
-                    "flexWrap": "wrap",
+                    "color": "#121314",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "textAlign": "center",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Remind me later
-            </Text>
+                  }
+                }
+              >
+                Remind me later
+              </Text>
+            </View>
           </View>
         </View>
       </View>

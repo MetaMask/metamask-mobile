@@ -1,6 +1,6 @@
 import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import ConnectApproval from './ConnectApproval';
@@ -14,6 +14,9 @@ const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
     approvalRequest,
+    pageMeta: {},
+    onConfirm: jest.fn(),
+    onReject: jest.fn(),
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
@@ -21,7 +24,7 @@ const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
 
 describe('ConnectApproval', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('renders', () => {
@@ -31,16 +34,16 @@ describe('ConnectApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<ConnectApproval navigation={{}} />);
+    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('sets isVisible to false if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<ConnectApproval navigation={{}} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('sets isVisible to false if incorrect approval request type', () => {
@@ -48,7 +51,7 @@ describe('ConnectApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const wrapper = shallow(<ConnectApproval navigation={{}} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

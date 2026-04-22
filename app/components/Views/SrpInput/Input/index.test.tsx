@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // External dependencies.
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
@@ -12,32 +12,26 @@ import { INPUT_TEST_ID } from '../../../../component-library/components/Form/Tex
 
 describe('SRP -> Input', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<Input />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<Input />);
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render Input with the correct TextVariant', () => {
-    const wrapper = shallow(<Input textVariant={TextVariant.HeadingSM} />);
-    const inputComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === INPUT_TEST_ID,
-    );
-    expect(inputComponent.props().style.fontSize).toBe(
+    render(<Input textVariant={TextVariant.HeadingSM} />);
+    const inputComponent = screen.getByTestId(INPUT_TEST_ID);
+    expect(inputComponent.props.style.fontSize).toBe(
       mockTheme.typography.sHeadingSM.fontSize,
     );
   });
   it('should render the correct disabled state when disabled = true', () => {
-    const wrapper = shallow(<Input isDisabled />);
-    const inputComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === INPUT_TEST_ID,
-    );
-    expect(inputComponent.props().editable).toBe(false);
-    expect(inputComponent.props().style.opacity).toBe(0.5);
+    render(<Input isDisabled />);
+    const inputComponent = screen.getByTestId(INPUT_TEST_ID);
+    expect(inputComponent).toHaveProp('editable', false);
+    expect(inputComponent.props.style.opacity).toBe(0.5);
   });
 
   it('should not render state styles when isStateStylesDisabled = true', () => {
-    const wrapper = shallow(<Input isStateStylesDisabled />);
-    const inputComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === INPUT_TEST_ID,
-    );
-    expect(inputComponent.props().style.opacity).toBe(1);
+    render(<Input isStateStylesDisabled />);
+    const inputComponent = screen.getByTestId(INPUT_TEST_ID);
+    expect(inputComponent.props.style.opacity).toBe(1);
   });
 });

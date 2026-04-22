@@ -13,6 +13,10 @@ import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  PASSWORD_GUIDE_URL,
+  RESET_PASSWORD_GUIDE_URL,
+} from '../../../constants/urls';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import { Alert, InteractionManager } from 'react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -103,9 +107,12 @@ jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
 }));
 
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -542,7 +549,7 @@ describe('ResetPassword', () => {
       const getNewPasswordTextInput = () =>
         within(newPasswordField).getByDisplayValue('NewPassword123');
 
-      expect(getNewPasswordTextInput().props.secureTextEntry).toBe(true);
+      expect(newPasswordField).toHaveProp('secureTextEntry', true);
 
       const showIcon = component.getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID,
@@ -550,7 +557,7 @@ describe('ResetPassword', () => {
       fireEvent.press(showIcon);
 
       await waitFor(() => {
-        expect(getNewPasswordTextInput().props.secureTextEntry).toBe(false);
+        expect(newPasswordField).toHaveProp('secureTextEntry', false);
       });
     });
 
@@ -567,7 +574,7 @@ describe('ResetPassword', () => {
       const getConfirmPasswordTextInput = () =>
         within(confirmPasswordField).getByDisplayValue('NewPassword123');
 
-      expect(getConfirmPasswordTextInput().props.secureTextEntry).toBe(true);
+      expect(confirmPasswordField).toHaveProp('secureTextEntry', true);
 
       const showIcon = component.getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID,
@@ -575,7 +582,7 @@ describe('ResetPassword', () => {
       fireEvent.press(showIcon);
 
       await waitFor(() => {
-        expect(getConfirmPasswordTextInput().props.secureTextEntry).toBe(false);
+        expect(confirmPasswordField).toHaveProp('secureTextEntry', false);
       });
     });
 
@@ -620,7 +627,7 @@ describe('ResetPassword', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+          url: PASSWORD_GUIDE_URL,
           title: 'support.metamask.io',
         },
       });
@@ -639,7 +646,7 @@ describe('ResetPassword', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+          url: RESET_PASSWORD_GUIDE_URL,
           title: 'support.metamask.io',
         },
       });

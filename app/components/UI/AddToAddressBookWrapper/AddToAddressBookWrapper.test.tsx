@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import AddToAddressBookWrapper from './AddToAddressBookWrapper';
@@ -46,7 +46,7 @@ describe('AddToAddressBookWrapper', () => {
       },
     };
   });
-  it('should match default snapshot', async () => {
+  it('should match default snapshot', () => {
     const container = renderWithProvider(
       <AddToAddressBookWrapper address="0x10e08af911f2e48948">
         <Text>DUMMY</Text>
@@ -55,7 +55,7 @@ describe('AddToAddressBookWrapper', () => {
     );
     expect(container.toJSON()).toMatchSnapshot();
   });
-  it('should open addressbook for new address', async () => {
+  it('should open addressbook for new address', () => {
     const { queryByText, getByTestId, getByText } = renderWithProvider(
       <AddToAddressBookWrapper address="0x10e08af911f2e48948">
         <Text>DUMMY</Text>
@@ -70,7 +70,7 @@ describe('AddToAddressBookWrapper', () => {
     );
     expect(getByText('Add to address book')).toBeDefined();
   });
-  it('should not render touchable wrapper if address is already saved', async () => {
+  it('should not render touchable wrapper if address is already saved', () => {
     const { queryByText } = renderWithProvider(
       <AddToAddressBookWrapper address={MOCK_ADDRESS_1}>
         <Text>DUMMY</Text>
@@ -82,7 +82,7 @@ describe('AddToAddressBookWrapper', () => {
       queryByText(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON),
     ).toBeNull();
   });
-  it('should return null if address is already saved and defaultNull is true', async () => {
+  it('should return null if address is already saved and defaultNull is true', () => {
     const { queryByText } = renderWithProvider(
       <AddToAddressBookWrapper address={MOCK_ADDRESS_1} defaultNull>
         <Text>DUMMY</Text>
@@ -118,7 +118,9 @@ describe('AddToAddressBookWrapper', () => {
     fireEvent.changeText(aliasInput, 'New Alias');
     expect(aliasInput.props.value).toBe('New Alias');
 
-    fireEvent.press(getByTestId(AddAddressModalSelectorsIDs.SAVE_BUTTON));
+    await act(async () => {
+      fireEvent.press(getByTestId(AddAddressModalSelectorsIDs.SAVE_BUTTON));
+    });
 
     expect(Engine.context.AddressBookController.set).toHaveBeenCalledWith(
       '0x10e08af911f2e48948',

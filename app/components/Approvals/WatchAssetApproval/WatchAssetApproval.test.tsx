@@ -1,6 +1,6 @@
 import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import WatchAssetApproval from './WatchAssetApproval';
@@ -21,20 +21,27 @@ const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
 
 describe('WatchAssetApproval', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('renders', () => {
     mockApprovalRequest({
       type: ApprovalTypes.WATCH_ASSET,
-      requestData: {},
+      requestData: {
+        asset: {
+          address: '0x0000000000000000000000000000000000000001',
+          symbol: 'TEST',
+          decimals: 18,
+        },
+        interactingAddress: '0x0000000000000000000000000000000000000002',
+      },
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<WatchAssetApproval />);
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no request data', () => {
@@ -44,16 +51,16 @@ describe('WatchAssetApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<WatchAssetApproval />);
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<WatchAssetApproval />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('sets isVisible to false if incorrect approval request type', () => {
@@ -64,7 +71,7 @@ describe('WatchAssetApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<WatchAssetApproval />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

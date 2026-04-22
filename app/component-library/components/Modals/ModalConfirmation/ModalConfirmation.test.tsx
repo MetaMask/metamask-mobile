@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // Internal dependencies.
 import ModalConfirmation from './ModalConfirmation';
@@ -9,9 +9,14 @@ import {
   MODAL_CONFIRMATION_DANGER_BUTTON_ID,
 } from './ModalConfirmation.constants';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ goBack: jest.fn(), navigate: jest.fn() }),
+}));
+
 describe('ModalConfirmation', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ModalConfirmation
         route={{
           params: {
@@ -22,10 +27,10 @@ describe('ModalConfirmation', () => {
         }}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should show normal variant button', () => {
-    const wrapper = shallow(
+    render(
       <ModalConfirmation
         route={{
           params: {
@@ -36,13 +41,12 @@ describe('ModalConfirmation', () => {
         }}
       />,
     );
-    const buttonComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === MODAL_CONFIRMATION_NORMAL_BUTTON_ID,
-    );
-    expect(buttonComponent.exists()).toBe(true);
+    expect(
+      screen.getByTestId(MODAL_CONFIRMATION_NORMAL_BUTTON_ID),
+    ).toBeDefined();
   });
   it('should show danger variant button', () => {
-    const wrapper = shallow(
+    render(
       <ModalConfirmation
         route={{
           params: {
@@ -54,9 +58,8 @@ describe('ModalConfirmation', () => {
         }}
       />,
     );
-    const buttonComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === MODAL_CONFIRMATION_DANGER_BUTTON_ID,
-    );
-    expect(buttonComponent.exists()).toBe(true);
+    expect(
+      screen.getByTestId(MODAL_CONFIRMATION_DANGER_BUTTON_ID),
+    ).toBeDefined();
   });
 });
