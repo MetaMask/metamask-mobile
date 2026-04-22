@@ -1,18 +1,16 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
-  Box,
   Text,
   Icon,
   IconName,
   IconSize,
   IconColor,
-  BoxAlignItems,
-  BoxJustifyContent,
   TextVariant,
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 
 interface ViewMoreCardProps {
@@ -34,17 +32,16 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
   textVariant = TextVariant.BodyMd,
   activeOpacity,
   testID,
-}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    activeOpacity={activeOpacity}
-    testID={testID}
-  >
-    <Box
-      twClassName={`rounded-xl bg-background-muted ${twClassName}`}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      gap={2}
+}) => {
+  const tw = useTailwind();
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={activeOpacity}
+      testID={testID}
+      style={tw.style(
+        `rounded-xl bg-background-muted items-center justify-center gap-2 ${twClassName}`,
+      )}
     >
       <Icon
         name={IconName.ArrowRight}
@@ -58,8 +55,8 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
       >
         {strings('homepage.sections.view_more')}
       </Text>
-    </Box>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
+};
 
 export default ViewMoreCard;
