@@ -5,6 +5,7 @@ import {
   addSpotBalanceToAccountState,
   aggregateAccountStates,
   calculateWeightedReturnOnEquity,
+  getAvailableToTradeSpotBalance,
   getSpotBalance,
 } from './accountUtils';
 
@@ -186,6 +187,7 @@ describe('aggregateAccountStates', () => {
 describe('spot balance helpers', () => {
   it('returns zero spot balance when no spot state is provided', () => {
     expect(getSpotBalance()).toBe(0);
+    expect(getAvailableToTradeSpotBalance()).toBe(0);
   });
 
   it('adds spot balance to totalBalance without mutating the input state', () => {
@@ -270,6 +272,28 @@ describe('spot balance helpers', () => {
     expect(result.totalBalance).toBe('30');
   });
 
+  it('subtracts held USDC collateral from availableToTradeBalance', () => {
+    const accountState: AccountState = {
+      availableBalance: '5',
+      availableToTradeBalance: '5',
+      totalBalance: '20',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'USDC', total: '25', hold: '5' },
+        { coin: 'USDH', total: '30', hold: '0' },
+      ],
+    } as never);
+
+    expect(result.availableBalance).toBe('5');
+    expect(result.availableToTradeBalance).toBe('25');
+    expect(result.totalBalance).toBe('45');
+  });
+
   it('returns the original account state when spot balance is zero', () => {
     const accountState: AccountState = {
       availableBalance: '1',
@@ -285,7 +309,7 @@ describe('spot balance helpers', () => {
     ).toBe(accountState);
   });
 
-  it('bumps availableToTradeBalance alongside totalBalance and leaves availableBalance alone', () => {
+  it('uses free spot collateral for availableToTradeBalance and leaves availableBalance alone', () => {
     const accountState: AccountState = {
       availableBalance: '5',
       availableToTradeBalance: '5',
@@ -297,17 +321,17 @@ describe('spot balance helpers', () => {
 
     const result = addSpotBalanceToAccountState(accountState, {
       balances: [
-        { coin: 'USDC', total: '25' },
+        { coin: 'USDC', total: '25', hold: '5' },
         { coin: 'USDH', total: '30' },
       ],
     } as never);
 
     expect(result.availableBalance).toBe('5');
-    expect(result.availableToTradeBalance).toBe('30');
+    expect(result.availableToTradeBalance).toBe('25');
     expect(result.totalBalance).toBe('45');
   });
 
-  it('bumps availableToTradeBalance and leaves the totalBalance sentinel intact when totalBalance is non-numeric', () => {
+  it('uses free spot collateral and leaves the totalBalance sentinel intact when totalBalance is non-numeric', () => {
     const accountState: AccountState = {
       availableBalance: '5',
       availableToTradeBalance: '5',
@@ -318,11 +342,11 @@ describe('spot balance helpers', () => {
     };
 
     const result = addSpotBalanceToAccountState(accountState, {
-      balances: [{ coin: 'USDC', total: '25' }],
+      balances: [{ coin: 'USDC', total: '25', hold: '5' }],
     } as never);
 
     expect(result.availableBalance).toBe('5');
-    expect(result.availableToTradeBalance).toBe('30');
+    expect(result.availableToTradeBalance).toBe('25');
     expect(result.totalBalance).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
   });
 });

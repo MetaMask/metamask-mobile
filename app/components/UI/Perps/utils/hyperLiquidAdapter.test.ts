@@ -1112,7 +1112,7 @@ describe('hyperLiquidAdapter', () => {
 
       const spotState: SpotClearinghouseStateResponse = {
         balances: [
-          { coin: 'USDC', total: '200.0' },
+          { coin: 'USDC', total: '200.0', hold: '50.0' },
           { coin: 'HYPE', total: '300.5' },
         ] as unknown as SpotBalance[],
       };
@@ -1121,7 +1121,7 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '350.0',
-        availableToTradeBalance: '550',
+        availableToTradeBalance: '500',
         marginUsed: '150.0',
         unrealizedPnl: '100',
         returnOnEquity: '0',

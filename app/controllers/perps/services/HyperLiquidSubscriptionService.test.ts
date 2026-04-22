@@ -3755,6 +3755,10 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     it('includes spot balance in webData2 (single-DEX) account updates without flickering', async () => {
+      mockSpotClearinghouseState.mockResolvedValue({
+        balances: [{ coin: 'USDC', total: '100', hold: '3' }],
+      });
+
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '50',
         availableToTradeBalance: '50',
@@ -3804,9 +3808,9 @@ describe('HyperLiquidSubscriptionService', () => {
 
       expect(mockCallback).toHaveBeenCalled();
       const firstUpdate = mockCallback.mock.calls.at(-1)[0];
-      expect(firstUpdate.totalBalance).toBe('300.76531791');
+      expect(firstUpdate.totalBalance).toBe('300');
       expect(firstUpdate.availableBalance).toBe('50');
-      expect(firstUpdate.availableToTradeBalance).toBe('150.76531791');
+      expect(firstUpdate.availableToTradeBalance).toBe('147');
 
       // Simulate a second WebSocket tick — should still include spot balance,
       // not revert to perps-only 200.
@@ -3830,7 +3834,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       if (mockCallback.mock.calls.length > 0) {
         const secondUpdate = mockCallback.mock.calls.at(-1)[0];
-        expect(secondUpdate.totalBalance).toBe('300.76531791');
+        expect(secondUpdate.totalBalance).toBe('300');
       }
 
       unsubscribe();

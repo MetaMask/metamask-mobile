@@ -1,6 +1,6 @@
 import { hasProperty, Hex, isHexString } from '@metamask/utils';
 
-import { getSpotBalance } from './accountUtils';
+import { getAvailableToTradeSpotBalance, getSpotBalance } from './accountUtils';
 import {
   countSignificantFigures,
   roundToSignificantFigures,
@@ -289,12 +289,13 @@ export function adaptAccountStateFromSDK(
 
   const perpsBalance = parseFloat(perpsState.marginSummary.accountValue);
   const spotBalance = getSpotBalance(spotState);
+  const availableToTradeSpotBalance = getAvailableToTradeSpotBalance(spotState);
   const totalBalance = (spotBalance + perpsBalance).toString();
 
   const accountState: AccountState = {
     availableBalance: perpsState.withdrawable || '0',
     availableToTradeBalance: (
-      parseFloat(perpsState.withdrawable || '0') + spotBalance
+      parseFloat(perpsState.withdrawable || '0') + availableToTradeSpotBalance
     ).toString(),
     totalBalance: totalBalance || '0',
     marginUsed: perpsState.marginSummary.totalMarginUsed || '0',

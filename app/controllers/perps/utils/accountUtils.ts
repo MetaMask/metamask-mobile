@@ -115,13 +115,50 @@ export function getSpotBalance(
   );
 }
 
+export function getAvailableToTradeSpotBalance(
+  spotState?: SpotClearinghouseStateResponse | null,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (
+      sum: number,
+      balance: { coin?: string; total?: string; hold?: string | number },
+    ) => {
+      if (!balance.coin || !SPOT_COLLATERAL_COINS.has(balance.coin)) {
+        return sum;
+      }
+
+      const total = parseFloat(balance.total ?? '0');
+      const hold =
+        typeof balance.hold === 'number'
+          ? balance.hold
+          : parseFloat(balance.hold ?? '0');
+
+      if (!Number.isFinite(total)) {
+        return sum;
+      }
+
+      const freeCollateral = Math.max(
+        total - (Number.isFinite(hold) ? hold : 0),
+        0,
+      );
+      return sum + freeCollateral;
+    },
+    0,
+  );
+}
+
 export function addSpotBalanceToAccountState(
   accountState: AccountState,
   spotState?: SpotClearinghouseStateResponse | null,
 ): AccountState {
   const spotBalance = getSpotBalance(spotState);
+  const availableToTradeSpotBalance = getAvailableToTradeSpotBalance(spotState);
 
-  if (spotBalance === 0) {
+  if (spotBalance === 0 && availableToTradeSpotBalance === 0) {
     return accountState;
   }
 
@@ -134,9 +171,12 @@ export function addSpotBalanceToAccountState(
   if (Number.isFinite(currentTotal)) {
     next.totalBalance = (currentTotal + spotBalance).toString();
   }
-  if (Number.isFinite(currentAvailableToTrade)) {
+  if (
+    availableToTradeSpotBalance !== 0 &&
+    Number.isFinite(currentAvailableToTrade)
+  ) {
     next.availableToTradeBalance = (
-      currentAvailableToTrade + spotBalance
+      currentAvailableToTrade + availableToTradeSpotBalance
     ).toString();
   }
   return next;
