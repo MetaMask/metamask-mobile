@@ -129,32 +129,21 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       string | undefined
     >(undefined);
 
-    const globalSelectedAddress = useSelector(
-      selectSelectedInternalAccountAddress,
-    );
-    const initialFromAddress =
-      (transactionMeta?.txParams?.from as string | undefined) ??
-      globalSelectedAddress;
-    const [selectedFromAddress, setSelectedFromAddress] = useState<
-      string | undefined
-    >(initialFromAddress);
-
-    const handleRecipientAccountSelected = useCallback(
-      (address: string) => {
-        if (transactionId) {
-          updateEditableParams(transactionId, { to: address as Hex });
-        }
-        setSelectedRecipientAddress(address);
-      },
-      [transactionId],
+    const [selectedAddress, setSelectedAddress] = useState<string | undefined>(
+      undefined,
     );
 
-    const handleFromAccountSelected = useCallback(
+    const handleAccountSelected = useCallback(
       (address: string) => {
         if (transactionId) {
-          updateEditableParams(transactionId, { from: address as Hex });
+          setSelectedAddress(address);
+          Engine.context.TransactionPayController.setTransactionConfig(
+            transactionId,
+            (config) => {
+              config.accountOverride = address as Hex;
+            },
+          );
         }
-        setSelectedFromAddress(address);
       },
       [transactionId],
     );
@@ -241,14 +230,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {isMoneyAccountDeposit && (
                 <AccountSelector
                   label={strings('confirm.label.from')}
-                  selectedAddress={selectedFromAddress}
-                  onAccountSelected={handleFromAccountSelected}
+                  selectedAddress={selectedAddress}
+                  onAccountSelected={handleAccountSelected}
                 />
               )}
               {isMoneyAccountWithdraw && (
                 <AccountSelector
-                  selectedAddress={selectedRecipientAddress}
-                  onAccountSelected={handleRecipientAccountSelected}
+                  selectedAddress={selectedAddress}
+                  onAccountSelected={handleAccountSelected}
                 />
               )}
             </>

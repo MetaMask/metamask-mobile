@@ -37,6 +37,7 @@ import { useTransactionConfirm } from '../../../hooks/transactions/useTransactio
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -62,6 +63,13 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 }));
 jest.mock('../../../../../../util/transaction-controller', () => ({
   updateEditableParams: jest.fn(),
+}));
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TransactionPayController: {
+      setTransactionConfig: jest.fn(),
+    },
+  },
 }));
 jest.mock('../../AccountSelector', () => {
   const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
@@ -419,9 +427,9 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('account-selector')).toBeOnTheScreen();
   });
 
-  it('calls updateEditableParams when recipient account is selected', async () => {
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
+  it('calls setTransactionConfig with accountOverride when withdraw account is selected', async () => {
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
     );
 
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -438,9 +446,17 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(getByTestId('account-selector'));
     });
 
-    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      to: '0xTestRecipient',
-    });
+    expect(setTransactionConfigMock).toHaveBeenCalledWith(
+      'mock-tx-id',
+      expect.any(Function),
+    );
+
+    const configCallback = setTransactionConfigMock.mock.calls[0][1] as (
+      config: Record<string, unknown>,
+    ) => void;
+    const config: Record<string, unknown> = {};
+    configCallback(config);
+    expect(config.accountOverride).toBe('0xTestRecipient');
   });
 
   it('renders no funds alert message for moneyAccountDeposit when alert is present', () => {
@@ -509,9 +525,9 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('account-selector')).toBeOnTheScreen();
   });
 
-  it('calls updateEditableParams with from key when deposit account is selected', async () => {
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
+  it('calls setTransactionConfig with accountOverride when deposit account is selected', async () => {
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
     );
 
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -528,9 +544,17 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(getByTestId('account-selector'));
     });
 
-    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      from: '0xTestRecipient',
-    });
+    expect(setTransactionConfigMock).toHaveBeenCalledWith(
+      'mock-tx-id',
+      expect.any(Function),
+    );
+
+    const configCallback = setTransactionConfigMock.mock.calls[0][1] as (
+      config: Record<string, unknown>,
+    ) => void;
+    const config: Record<string, unknown> = {};
+    configCallback(config);
+    expect(config.accountOverride).toBe('0xTestRecipient');
   });
 
   describe('showPaymentDetails', () => {
