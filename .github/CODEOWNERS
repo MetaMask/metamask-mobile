@@ -307,10 +307,8 @@ tests/framework/                                                @MetaMask/qa
 tests/page-objects/                                             @MetaMask/qa
 tests/flows/                                                    @MetaMask/qa
 tests/scripts/                                                  @MetaMask/qa
-# Note: Test builds (main-test, flask-test) in build/builds.yml are owned by QA team
-# but the file itself is protected by mobile-platform for consistency
 
-# QA Team - workflows
+# QA Team - CI
 .github/workflows/needs-e2e-build.yml                           @MetaMask/qa
 .github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
@@ -334,13 +332,8 @@ tests/scripts/                                                  @MetaMask/qa
 .github/workflows/run-performance-e2e.yml                       @MetaMask/qa
 .github/workflows/run-performance-e2e-experimental.yml          @MetaMask/qa
 .github/workflows/run-performance-e2e-release.yml               @MetaMask/qa
-
-# QA Team - composite actions
-.github/actions/setup-e2e-env/                                  @MetaMask/qa
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
 .github/actions/validate-artifact-compatibility/                @MetaMask/qa
-
-# QA Team - scripts
 .github/scripts/e2e-check-build-needed.mjs                      @MetaMask/qa
 .github/scripts/e2e-create-json-test-report.mjs                 @MetaMask/qa
 .github/scripts/e2e-extract-test-results.mjs                    @MetaMask/qa
