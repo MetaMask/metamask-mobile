@@ -76,6 +76,7 @@ jest.mock(
               (props.onMaxPress as CallableFunction)?.({
                 address: '0xabc',
                 chainId: '0x1',
+                symbol: 'ETH',
               })
             }
           >
@@ -87,6 +88,7 @@ jest.mock(
               (props.onEditPress as CallableFunction)?.({
                 address: '0xdef',
                 chainId: '0xa',
+                symbol: 'USDC',
               })
             }
           >
@@ -165,14 +167,6 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-let mockMoneyHubFilledState = 'empty';
-jest.mock('../../UI/Money/hooks/useMoneyHubEvents', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    moneyHubFilledState: mockMoneyHubFilledState,
-  })),
-}));
-
 jest.mock('../../UI/Earn/utils/network', () => ({
   getNetworkName: jest.fn(() => 'Ethereum Mainnet'),
 }));
@@ -230,7 +224,6 @@ describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     flushInteractionManager();
-    mockMoneyHubFilledState = 'empty';
     mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
     mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
@@ -419,6 +412,7 @@ describe('CashTokensFullView', () => {
     expect(mockInitiateMaxConversion).toHaveBeenCalledWith({
       address: '0xabc',
       chainId: '0x1',
+      symbol: 'ETH',
     });
   });
 
@@ -587,11 +581,6 @@ describe('CashTokensFullView', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.MONEY_HUB_SWAP_BUTTON_CLICKED,
       );
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          money_hub_filled_state: 'empty',
-        }),
-      );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
@@ -604,11 +593,6 @@ describe('CashTokensFullView', () => {
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.MONEY_HUB_BUY_BUTTON_CLICKED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          money_hub_filled_state: 'empty',
-        }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
@@ -646,9 +630,8 @@ describe('CashTokensFullView', () => {
         expect.objectContaining({
           button_type: 'text_button',
           button_action: 'max',
-          asset_symbol: undefined,
+          asset_symbol: 'ETH',
           network_chain_id: '0x1',
-          money_hub_filled_state: 'filled',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -671,9 +654,8 @@ describe('CashTokensFullView', () => {
         expect.objectContaining({
           button_type: 'icon_button',
           button_action: 'custom',
-          asset_symbol: undefined,
+          asset_symbol: 'USDC',
           network_chain_id: '0xa',
-          money_hub_filled_state: 'filled',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();

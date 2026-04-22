@@ -60,7 +60,6 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../UI/Earn/constants/events/musdEvents';
 import { MONEY_EVENTS_CONSTANTS } from '../../UI/Money/constants/moneyEvents';
-import useMoneyHubEvents from '../../UI/Money/hooks/useMoneyHubEvents';
 import { getNetworkName } from '../../UI/Earn/utils/network';
 import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
 
@@ -74,7 +73,6 @@ const CashTokensFullView = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { hasMusdBalanceOnAnyChain } = useMusdBalance();
   const { tokens: conversionTokens } = useMusdConversionTokens();
-  const { moneyHubFilledState } = useMoneyHubEvents();
 
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
@@ -111,7 +109,6 @@ const CashTokensFullView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MONEY_HUB_SCREEN_VIEWED)
         .addProperties({
-          money_hub_filled_state: moneyHubFilledState,
           has_convertible_tokens: hasConvertibleTokens,
           ...(hasConvertibleTokens
             ? {
@@ -124,13 +121,7 @@ const CashTokensFullView = () => {
         })
         .build(),
     );
-  }, [
-    isLoading,
-    conversionTokens,
-    createEventBuilder,
-    moneyHubFilledState,
-    trackEvent,
-  ]);
+  }, [isLoading, conversionTokens, createEventBuilder, trackEvent]);
 
   const merklRefetchRef = useRef<(() => void) | null>(null);
   const handleRefetchReady = useCallback((refetch: () => void) => {
@@ -169,7 +160,6 @@ const CashTokensFullView = () => {
               network_name: token.chainId
                 ? getNetworkName(token.chainId as Hex)
                 : 'unknown',
-              money_hub_filled_state: MONEY_HUB_STATES.FILLED,
             })
             .build(),
         );
@@ -201,7 +191,6 @@ const CashTokensFullView = () => {
               network_name: token.chainId
                 ? getNetworkName(token.chainId as Hex)
                 : 'unknown',
-              money_hub_filled_state: MONEY_HUB_STATES.FILLED,
             })
             .build(),
         );
@@ -239,7 +228,6 @@ const CashTokensFullView = () => {
             network_name: topToken.chainId
               ? getNetworkName(topToken.chainId as Hex)
               : 'unknown',
-            money_hub_filled_state: MONEY_HUB_STATES.FILLED,
           })
           .build(),
       );
@@ -257,7 +245,6 @@ const CashTokensFullView = () => {
       createEventBuilder(MetaMetricsEvents.MONEY_HUB_SWAP_BUTTON_CLICKED)
         .addProperties({
           location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
-          money_hub_filled_state: MONEY_HUB_STATES.EMPTY,
         })
         .build(),
     );
@@ -270,7 +257,6 @@ const CashTokensFullView = () => {
       createEventBuilder(MetaMetricsEvents.MONEY_HUB_BUY_BUTTON_CLICKED)
         .addProperties({
           location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
-          money_hub_filled_state: MONEY_HUB_STATES.EMPTY,
         })
         .build(),
     );
@@ -285,14 +271,13 @@ const CashTokensFullView = () => {
       createEventBuilder(MetaMetricsEvents.MONEY_HUB_LEARN_MORE_PRESSED)
         .addProperties({
           location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
-          money_hub_filled_state: moneyHubFilledState,
           url: AppConstants.URLS.MUSD_LEARN_MORE,
         })
         .build(),
     );
 
     Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
-  }, [createEventBuilder, trackEvent, moneyHubFilledState]);
+  }, [createEventBuilder, trackEvent]);
 
   const bonusAndConvertSections = useMemo(
     () => (

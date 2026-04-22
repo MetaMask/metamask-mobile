@@ -35,10 +35,6 @@ jest.mock('../../../../hooks/useTooltipModal', () => ({
 
 jest.mock('../MerklRewards/hooks/useMerklBonusClaim');
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
-jest.mock('../../../Money/hooks/useMoneyHubEvents', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({ moneyHubFilledState: 'filled' })),
-}));
 jest.mock('../../../TokenDetails/hooks/useTokenBalance');
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
   selectAsset: jest.fn(),
@@ -805,27 +801,6 @@ describe('AssetOverviewClaimBonus', () => {
       expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
         expect.anything(),
         MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
-      );
-    });
-
-    it('includes money_hub_filled_state in claim analytics when location is money_hub', () => {
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewClaimBonus
-          asset={createMockAsset()}
-          location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB}
-        />,
-        { state: mockInitialState },
-      );
-
-      fireEvent.press(
-        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          location: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
-          money_hub_filled_state: 'filled',
-        }),
       );
     });
   });

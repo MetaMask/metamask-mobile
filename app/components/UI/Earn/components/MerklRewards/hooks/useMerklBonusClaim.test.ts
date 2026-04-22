@@ -44,14 +44,6 @@ jest.mock('../../../selectors/featureFlags', () => ({
     mockIsMerklCampaignClaimingEnabled,
 }));
 
-let mockMoneyHubFilledState = 'filled';
-jest.mock('../../../../Money/hooks/useMoneyHubEvents', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    moneyHubFilledState: mockMoneyHubFilledState,
-  })),
-}));
-
 let mockIsGeoEligible = true;
 jest.mock('../../../hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => ({
@@ -148,7 +140,6 @@ describe('useMerklBonusClaim', () => {
     jest.clearAllMocks();
     mockIsMerklCampaignClaimingEnabled = true;
     mockIsGeoEligible = true;
-    mockMoneyHubFilledState = 'filled';
 
     mockUseMerklRewards.mockReturnValue({
       claimableReward: null,
@@ -557,48 +548,6 @@ describe('useMerklBonusClaim', () => {
           has_claimed_before: true,
         }),
       );
-    });
-
-    it('includes money_hub_filled_state when location is money_hub', () => {
-      mockMoneyHubFilledState = 'filled';
-      mockUseMerklRewards.mockReturnValue({
-        claimableReward: '5.00',
-        hasClaimedBefore: false,
-        rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
-      });
-
-      renderHook(() =>
-        useMerklBonusClaim(
-          eligibleAsset,
-          MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
-          true,
-        ),
-      );
-
-      expect(getAnalyticsMocks().addProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          location: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
-          money_hub_filled_state: 'filled',
-        }),
-      );
-    });
-
-    it('omits money_hub_filled_state when location is not money_hub', () => {
-      mockUseMerklRewards.mockReturnValue({
-        claimableReward: '5.00',
-        hasClaimedBefore: false,
-        rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
-      });
-
-      renderHook(() =>
-        useMerklBonusClaim(eligibleAsset, 'test_location', true),
-      );
-
-      const addPropertiesCall =
-        getAnalyticsMocks().addProperties.mock.calls[0][0];
-      expect(addPropertiesCall).not.toHaveProperty('money_hub_filled_state');
     });
   });
 
