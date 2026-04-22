@@ -566,6 +566,10 @@ export const BridgeTokenSelector: React.FC = () => {
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmptyState}
         onLayout={handleFlatListLayout}
+        initialNumToRender={8}
+        maxToRenderPerBatch={5}
+        windowSize={5}
+        removeClippedSubviews
       />
     </SafeAreaView>
   );

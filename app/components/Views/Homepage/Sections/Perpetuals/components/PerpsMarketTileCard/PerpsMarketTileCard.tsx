@@ -103,61 +103,60 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
       activeOpacity={0.7}
       testID={testID}
     >
-      <View style={styles.content}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Start}
-          gap={2}
-        >
-          <Box twClassName="flex-1 min-w-0">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Start}
+        gap={2}
+        twClassName="flex-1 p-4"
+      >
+        <Box twClassName="flex-1 min-w-0">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+          >
+            {getPerpsDisplaySymbol(market.symbol)}
+          </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
             <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
+              variant={TextVariant.BodySm}
+              color={
+                isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
+              }
               numberOfLines={1}
+              twClassName="shrink"
             >
-              {getPerpsDisplaySymbol(market.symbol)}
+              {changePercent}
             </Text>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
-                }
-                numberOfLines={1}
-                twClassName="shrink"
-              >
-                {changePercent}
-              </Text>
-              <PerpsLeverage maxLeverage={market.maxLeverage} />
-            </Box>
+            <PerpsLeverage maxLeverage={market.maxLeverage} />
           </Box>
-
-          <View style={styles.tokenLogoWrapper}>
-            <PerpsTokenLogo
-              symbol={market.symbol}
-              size={TOKEN_LOGO_SIZE}
-              recyclingKey={market.symbol}
-            />
-            {showFavoriteTag && (
-              <View
-                style={styles.favoriteBadge}
-                testID={`favorite-badge-${market.symbol}`}
-              >
-                <Icon
-                  name={IconName.StarFilled}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </View>
-            )}
-          </View>
         </Box>
-      </View>
+
+        <View style={styles.tokenLogoWrapper}>
+          <PerpsTokenLogo
+            symbol={market.symbol}
+            size={TOKEN_LOGO_SIZE}
+            recyclingKey={market.symbol}
+          />
+          {showFavoriteTag && (
+            <View
+              style={styles.favoriteBadge}
+              testID={`favorite-badge-${market.symbol}`}
+            >
+              <Icon
+                name={IconName.StarFilled}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </View>
+          )}
+        </View>
+      </Box>
 
       <View style={styles.sparklineContainer}>
         {hasSparkline && (
