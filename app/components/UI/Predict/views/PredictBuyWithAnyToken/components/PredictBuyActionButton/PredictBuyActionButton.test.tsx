@@ -49,8 +49,8 @@ describe('PredictBuyActionButton', () => {
   });
 
   describe('when isLoading is true', () => {
-    it('displays ActivityIndicator and placing prediction text', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
+    it('displays placing prediction text', () => {
+      renderWithProvider(
         <PredictBuyActionButton
           isLoading
           onPress={mockOnPress}
@@ -62,6 +62,20 @@ describe('PredictBuyActionButton', () => {
       );
 
       expect(screen.getByText(/Placing prediction/)).toBeOnTheScreen();
+    });
+
+    it('displays ActivityIndicator', () => {
+      const { UNSAFE_getByType } = renderWithProvider(
+        <PredictBuyActionButton
+          isLoading
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+        />,
+      );
+
       UNSAFE_getByType(ActivityIndicator);
     });
 
