@@ -18,16 +18,21 @@ const createStyles = (theme: Theme) =>
       borderWidth: 0,
     },
   });
-interface SectionCardProps {
+export interface SectionCardProps {
   sectionId: SectionId;
   data: unknown[];
   isLoading: boolean;
+  /** @default perps-tokens-list */
+  listTestId?: string;
 }
+
+const DEFAULT_LIST_TEST_ID = 'perps-tokens-list';
 
 const SectionCard: React.FC<SectionCardProps> = ({
   sectionId,
   data,
   isLoading,
+  listTestId = DEFAULT_LIST_TEST_ID,
 }) => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
@@ -57,7 +62,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
           renderItem={renderFlatItem}
           keyExtractor={(_, index) => `${section.id}-${index}`}
           keyboardShouldPersistTaps="handled"
-          testID="perps-tokens-list"
+          testID={listTestId}
         />
       )}
     </Card>

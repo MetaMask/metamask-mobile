@@ -8450,6 +8450,8 @@
     "perps": "Perps",
     "rwa_perps_section": "Stocks, commodities & forex",
     "macro_stocks_commodity_perps": "Stocks & commodities",
+    "macro_pill_stocks": "Stocks",
+    "macro_pill_commodities": "Commodities",
     "crypto_perps_section": "Crypto perps",
     "predictions": "Predictions",
     "no_results": "No results found",
