@@ -419,8 +419,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": "auto",
-                                  "minHeight": 56,
+                                  "height": "auto"
                                 },
                                 {
                                   "marginTop": 0,
@@ -430,7 +429,6 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
