@@ -96,7 +96,9 @@ import {
   getBalance,
   getContractConfig,
   getL2Headers,
+  fetchChildEventsFromGammaApi,
   getMarketDetailsFromGammaApi,
+  mergeChildEventsIntoParent,
   getOrderTypedData,
   getPolymarketEndpoints,
   parsePolymarketActivity,
@@ -108,6 +110,7 @@ import {
 import { PredictFeatureFlags } from '../../types/flags';
 import {
   extractNeededTeamsFromEvents,
+  getEventLeague,
   isLiveSportsEvent,
 } from '../../utils/gameParser';
 import { GameCache } from './GameCache';
@@ -691,13 +694,29 @@ export class PolymarketProvider implements PredictProvider {
       const isSportsEvent =
         liveSportsEnabled && isLiveSportsEvent(event, supportedLeagues);
 
+      let mergedEvent = event;
       if (isSportsEvent) {
-        await this.#ensureTeamsLoadedForEvents([event], supportedLeagues);
+        const league = getEventLeague(event);
+        if (league && this.#hasExtendedMarketsForLeague(league)) {
+          try {
+            const allEvents = await fetchChildEventsFromGammaApi({
+              parentEventId: marketId,
+            });
+            mergedEvent = mergeChildEventsIntoParent(allEvents);
+          } catch (childFetchError) {
+            DevLogger.log(
+              'Failed to fetch child events, using parent only:',
+              childFetchError,
+            );
+          }
+        }
+
+        await this.#ensureTeamsLoadedForEvents([mergedEvent], supportedLeagues);
       }
 
       const teamLookup = this.#createTeamLookup(isSportsEvent);
 
-      const [parsedMarket] = parsePolymarketEvents([event], {
+      const [parsedMarket] = parsePolymarketEvents([mergedEvent], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),

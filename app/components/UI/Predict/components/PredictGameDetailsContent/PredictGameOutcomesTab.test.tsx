@@ -49,7 +49,7 @@ interface MockCardProps {
   buttons: PredictSportOutcomeButton[];
   lines?: number[];
   selectedLine?: number;
-  onSelectLine?: (line: number) => void;
+  onSelectLine?: (line: number, index: number) => void;
   testID?: string;
 }
 
@@ -83,11 +83,11 @@ jest.mock('../PredictSportOutcomeCard', () => {
           />
         ))}
         {props.lines &&
-          props.lines.map((line: number) => (
+          props.lines.map((line: number, lineIdx: number) => (
             <View
-              key={line}
-              testID={`${props.testID}-line-${line}`}
-              onTouchEnd={() => props.onSelectLine?.(line)}
+              key={`${lineIdx}-${line}`}
+              testID={`${props.testID}-line-${lineIdx}-${line}`}
+              onTouchEnd={() => props.onSelectLine?.(line, lineIdx)}
               accessibilityHint={
                 line === props.selectedLine ? 'selected' : 'unselected'
               }
@@ -777,7 +777,7 @@ describe('PredictGameOutcomesTab', () => {
         />,
       );
 
-      expect(mockCapturedCards[0].selectedLine).toBe(7.5);
+      expect(mockCapturedCards[0].selectedLine).toBe(3.5);
     });
 
     it('switches displayed outcome when line is selected', () => {
@@ -822,7 +822,7 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].buttons[0].price).toBe(60);
 
       mockCapturedCards = [];
-      fireEvent(getByTestId('game_lines-spreads-0-line-7.5'), 'touchEnd');
+      fireEvent(getByTestId('game_lines-spreads-0-line-1-7.5'), 'touchEnd');
 
       expect(mockCapturedCards[0].buttons[0].price).toBe(80);
     });

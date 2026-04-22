@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type {
   PredictMarketGame,
@@ -47,8 +47,7 @@ const formatOutcomeCardTitle = (outcome: PredictOutcome): string => {
   return raw;
 };
 
-const isMoneylineType = (type?: string): boolean =>
-  type === 'moneyline' || type === 'first_half_moneyline';
+import { isMoneylineLikeMarketType } from '../../constants/sports';
 
 const getTeamColor = (
   tokenTitle: string,
@@ -76,7 +75,7 @@ const buildButtons = (
   game?: PredictMarketGame,
   sportsMarketType?: string,
 ): PredictSportOutcomeButton[] => {
-  const moneyline = isMoneylineType(sportsMarketType);
+  const moneyline = isMoneylineLikeMarketType(sportsMarketType);
   return outcome.tokens.map((token, index) => ({
     label: token.shortTitle ?? token.title,
     price: Math.round(token.price * 100),
@@ -134,24 +133,40 @@ const LineOutcomeCard = memo(
     sportsMarketType?: string;
     testID: string;
   }) => {
-    const lines = useMemo(
+    const lineIndices = useMemo(
       () =>
         outcomes
-          .map((o) => o.line)
-          .filter((l): l is number => l != null)
-          .sort((a, b) => a - b),
+          .map((o, i) => (o.line != null ? i : -1))
+          .filter((i) => i !== -1)
+          .sort((a, b) => {
+            const lineA = outcomes[a].line ?? 0;
+            const lineB = outcomes[b].line ?? 0;
+            return lineA - lineB;
+          }),
       [outcomes],
     );
 
-    const [selectedLine, setSelectedLine] = useState(outcomes[0]?.line);
+    const lines = useMemo(
+      () => lineIndices.map((i) => Math.abs(outcomes[i].line ?? 0)),
+      [lineIndices, outcomes],
+    );
+
+    const [selectedIdx, setSelectedIdx] = useState(0);
 
     useEffect(() => {
-      setSelectedLine(outcomes[0]?.line);
+      setSelectedIdx(0);
     }, [outcomes]);
 
+    const handleSelectLine = useCallback(
+      (_line: number, indexInLines: number) => {
+        setSelectedIdx(indexInLines);
+      },
+      [],
+    );
+
     const selectedOutcome = useMemo(
-      () => outcomes.find((o) => o.line === selectedLine) ?? outcomes[0],
-      [outcomes, selectedLine],
+      () => outcomes[lineIndices[selectedIdx]] ?? outcomes[0],
+      [outcomes, lineIndices, selectedIdx],
     );
 
     return (
@@ -165,8 +180,9 @@ const LineOutcomeCard = memo(
           sportsMarketType,
         )}
         lines={lines}
-        selectedLine={selectedLine}
-        onSelectLine={setSelectedLine}
+        selectedLine={lines[selectedIdx]}
+        selectedIndex={selectedIdx}
+        onSelectLine={handleSelectLine}
         testID={testID}
       />
     );
@@ -174,6 +190,61 @@ const LineOutcomeCard = memo(
 );
 
 LineOutcomeCard.displayName = 'LineOutcomeCard';
+
+const isDrawOutcome = (outcome: PredictOutcome): boolean =>
+  outcome.groupItemTitle?.toLowerCase().startsWith('draw') ?? false;
+
+const sortMoneylineOutcomes = (
+  outcomes: PredictOutcome[],
+  game?: PredictMarketGame,
+): PredictOutcome[] => {
+  const hasThresholds = outcomes.some((o) => o.groupItemThreshold != null);
+  if (hasThresholds) {
+    return [...outcomes].sort(
+      (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
+    );
+  }
+
+  const draw = outcomes.find(isDrawOutcome);
+  const nonDraw = outcomes.filter((o) => !isDrawOutcome(o));
+  if (!draw || nonDraw.length < 2) {
+    return [...outcomes];
+  }
+
+  if (game) {
+    const homeAbbr = game.homeTeam.abbreviation;
+    const home = nonDraw.find((o) => o.tokens[0]?.shortTitle === homeAbbr);
+    const away = nonDraw.find((o) => o !== home);
+    if (home && away) {
+      return [home, draw, away];
+    }
+  }
+
+  return [nonDraw[0], draw, ...nonDraw.slice(1)];
+};
+
+const buildMoneylineButtons = (
+  outcomes: PredictOutcome[],
+  onBuyPress?: BuyHandler,
+  game?: PredictMarketGame,
+): PredictSportOutcomeButton[] => {
+  const sorted = sortMoneylineOutcomes(outcomes, game);
+  return sorted.map((outcome, i) => {
+    const yesToken = outcome.tokens[0];
+    return {
+      label: yesToken.shortTitle ?? yesToken.title,
+      price: Math.round(yesToken.price * 100),
+      onPress: onBuyPress ? () => onBuyPress(outcome, yesToken) : noop,
+      variant: getButtonVariant(i, sorted.length, true),
+      teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
+    };
+  });
+};
+
+const buildMoneylineSubtitle = (outcomes: PredictOutcome[]): string => {
+  const totalVolume = outcomes.reduce((sum, o) => sum + o.volume, 0);
+  return `$${formatVolume(totalVolume)} Vol`;
+};
 
 const SubgroupCards = memo(
   ({
@@ -191,6 +262,21 @@ const SubgroupCards = memo(
   }) => {
     const title = getSportsMarketTypeLabel(subgroup.key);
     const testID = `${groupKey}-${subgroup.key}-${index}`;
+
+    if (
+      isMoneylineLikeMarketType(subgroup.key) &&
+      subgroup.outcomes.length > 1
+    ) {
+      return (
+        <PredictSportOutcomeCard
+          title={title}
+          subtitle={buildMoneylineSubtitle(subgroup.outcomes)}
+          buttons={buildMoneylineButtons(subgroup.outcomes, onBuyPress, game)}
+          buttonLayout="stacked"
+          testID={testID}
+        />
+      );
+    }
 
     if (subgroup.outcomes.length === 1) {
       return (
@@ -244,6 +330,19 @@ const OutcomesContent = memo(
             />
           ))}
         </>
+      );
+    }
+
+    const firstType = group.outcomes[0]?.sportsMarketType;
+    if (isMoneylineLikeMarketType(firstType) && group.outcomes.length > 1) {
+      return (
+        <PredictSportOutcomeCard
+          title={getSportsMarketTypeLabel(firstType)}
+          subtitle={buildMoneylineSubtitle(group.outcomes)}
+          buttons={buildMoneylineButtons(group.outcomes, onBuyPress, game)}
+          buttonLayout="stacked"
+          testID={`${group.key}-moneyline`}
+        />
       );
     }
 
