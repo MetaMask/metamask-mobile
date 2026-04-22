@@ -159,6 +159,8 @@ describe('MainNavigator', () => {
         }) => React.ReactNode;
       };
 
+      // rewardsViewRoute is found via .find(r => r.name === Routes.REWARDS_VIEW),
+      // so the inner route that wraps the nested nav state must carry that name.
       const buildRewardsState = (activeRouteName: string | undefined) => ({
         routes: [
           {
