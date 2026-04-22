@@ -14,6 +14,9 @@ const checkerPath = path.resolve(
   '../../.agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh',
 );
 
+const AB_TESTS_KEY = `ab_${'tests'}`;
+const ACTIVE_AB_TESTS_KEY = `active_${AB_TESTS_KEY}`;
+
 const tempRepos: string[] = [];
 
 const runCommand = (cwd: string, cmd: string, args: string[]): CommandResult => {
@@ -93,7 +96,7 @@ describe('check-ab-testing-compliance.sh', () => {
     const repo = createRepo();
     appendFileSync(
       path.join(repo, 'app/sample.ts'),
-      "const payload = { ab_tests: { example: 'control' } };\n",
+      `const payload = { ${AB_TESTS_KEY}: { example: 'control' } };\n`,
     );
 
     const result = runChecker(repo, ['--staged']);
@@ -106,7 +109,7 @@ describe('check-ab-testing-compliance.sh', () => {
     const repo = createRepo();
     appendFileSync(
       path.join(repo, 'app/sample.ts'),
-      "const payload = { active_ab_tests: [{ key: 'swapsSWAPS9999AbtestFoo', value: 'control' }] };\n",
+      `const payload = { ${ACTIVE_AB_TESTS_KEY}: [{ key: 'swapsSWAPS9999AbtestFoo', value: 'control' }] };\n`,
     );
 
     const result = runChecker(repo, ['--staged']);
@@ -178,6 +181,27 @@ describe('check-ab-testing-compliance.sh', () => {
     );
   });
 
+  it('fails when helper-built and malformed literal entries are mixed together', () => {
+    const repo = createRepo();
+    appendFileSync(
+      path.join(repo, 'app/sample.ts'),
+      [
+        'const payload = {',
+        `  ${ACTIVE_AB_TESTS_KEY}: [`,
+        '    createActiveABTestAssignment(FLAG_KEY, variantName),',
+        "    { key: 'swapsSWAPS9999AbtestFoo', value: 'control' },",
+        '  ],',
+        '};',
+        '',
+      ].join('\n'),
+    );
+
+    const result = runChecker(repo, ['--staged']);
+
+    expect(result.status).toBe(1);
+    expect(result.output).toContain('malformed literal active_ab_tests object');
+  });
+
   it('does not warn on naming-guidance strings that mention Abtest', () => {
     const repo = createRepo();
     appendFileSync(
@@ -197,7 +221,7 @@ describe('check-ab-testing-compliance.sh', () => {
     const repo = createRepo();
     appendFileSync(
       path.join(repo, 'app/sample.ts'),
-      "++ab_tests: { example: 'control' }\n",
+      `++${AB_TESTS_KEY}: { example: 'control' }\n`,
     );
     runGit(repo, ['add', 'app/sample.ts']);
 

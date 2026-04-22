@@ -32,12 +32,29 @@ export const enrichWithABTests = <
   event: T,
   featureFlags: Record<string, unknown>,
 ): T => {
+  const existingAssignments = normalizeActiveABTestAssignments(
+    event.properties.active_ab_tests,
+  );
   const relevantMappings = AB_TEST_ANALYTICS_MAPPINGS.filter((mapping) =>
     hasEventName(mapping, event.name),
   );
 
   if (relevantMappings.length === 0) {
-    return event;
+    if (existingAssignments.length === 0) {
+      return event;
+    }
+
+    const normalizedEvent = Object.create(
+      Object.getPrototypeOf(event),
+      Object.getOwnPropertyDescriptors(event),
+    ) as T;
+
+    normalizedEvent.properties = {
+      ...event.properties,
+      active_ab_tests: existingAssignments,
+    };
+
+    return normalizedEvent;
   }
 
   const injectedAssignments = relevantMappings.flatMap((mapping) => {
@@ -53,12 +70,22 @@ export const enrichWithABTests = <
   });
 
   if (injectedAssignments.length === 0) {
-    return event;
-  }
+    if (existingAssignments.length === 0) {
+      return event;
+    }
 
-  const existingAssignments = normalizeActiveABTestAssignments(
-    event.properties.active_ab_tests,
-  );
+    const normalizedEvent = Object.create(
+      Object.getPrototypeOf(event),
+      Object.getOwnPropertyDescriptors(event),
+    ) as T;
+
+    normalizedEvent.properties = {
+      ...event.properties,
+      active_ab_tests: existingAssignments,
+    };
+
+    return normalizedEvent;
+  }
   const mergedAssignments = [...existingAssignments];
   const existingKeys = new Set(existingAssignments.map(({ key }) => key));
 

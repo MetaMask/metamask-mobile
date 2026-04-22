@@ -253,9 +253,6 @@ for file in "${CHANGED_FILES[@]}"; do
         for ((j=i+1; j<line_count && j<=i+8; j++)); do
           window+=$'\n'"${added_lines[$j]}"
         done
-        if grep -Eq 'createActiveABTestAssignment[[:space:]]*\(' <<< "$window"; then
-          continue
-        fi
         if grep -Eq 'key[[:space:]]*:|value[[:space:]]*:|key_value_pair[[:space:]]*:' <<< "$window"; then
           if ! grep -Eq 'key[[:space:]]*:' <<< "$window" || ! grep -Eq 'value[[:space:]]*:' <<< "$window" || ! grep -Eq 'key_value_pair[[:space:]]*:' <<< "$window"; then
             FAILURES+=("$file: malformed literal active_ab_tests object (expected key, value, and key_value_pair).")
