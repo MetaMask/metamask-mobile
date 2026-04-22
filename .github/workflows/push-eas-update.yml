@@ -407,6 +407,11 @@ jobs:
           ALL_SECRETS: ${{ toJSON(secrets) }}
         run: node scripts/set-secrets-from-config.js
 
+      - name: Check for whitespace in applied secrets
+        env:
+          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
+        run: node scripts/check-env-whitespace.js
+
       - name: Determine signing secret name
         shell: bash
         env:
