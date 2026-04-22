@@ -58,7 +58,9 @@ describe('Main', () => {
       </Provider>
     );
     const wrapper = shallow(<MainAppContainer />);
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.find(Provider)).toHaveLength(1);
+    expect(wrapper.find(NavigationContainer)).toHaveLength(1);
+    expect(wrapper.find(Main)).toHaveLength(1);
   });
 
   it('renders without crashing when isConnectionRemoved is true', () => {
@@ -76,6 +78,8 @@ describe('Main', () => {
       </Provider>
     );
     const wrapper = shallow(<MainAppContainer />);
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.find(Provider)).toHaveLength(1);
+    expect(wrapper.find(NavigationContainer)).toHaveLength(1);
+    expect(wrapper.find(Main)).toHaveLength(1);
   });
 });
