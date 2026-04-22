@@ -202,8 +202,16 @@ describe('TokenWarningModal', () => {
         ],
       });
       const { getByText, queryByText } = renderModal();
-      expect(getByText('Low locked liquidity')).toBeOnTheScreen();
-      expect(getByText('Honeypot risk')).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings(
+            'security_trust.features.negative.insufficient_locked_liquidity',
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('security_trust.features.negative.honeypot')),
+      ).toBeOnTheScreen();
       // Generic fallback should not be used
       expect(
         queryByText(
