@@ -16,13 +16,13 @@ export interface HardwareWalletContextValue {
   deviceSelection: DeviceSelectionState;
   /**
    * Ensure the device is ready for any kind of operation. BLOCKING: shows bottom sheet if needed.
-   * Wallet type from current account; for "Add Hardware Wallet" flows, use setTargetWalletType() first.
+   * Wallet type is auto-derived from the pending operation address or the selected account.
    * @param deviceId - Optional. If not provided, shows device selection for hardware wallets.
    * @returns true if device is ready, false if user cancelled
    */
   ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
-  /** Set the target wallet type for "Add Hardware Wallet" flows (no account yet). */
-  setTargetWalletType: (walletType: HardwareWalletType | null) => void;
+  /** Set the pending operation address so the provider can auto-derive the wallet type. */
+  setPendingOperationAddress: (address: string | null) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */
   showHardwareWalletError: (error: unknown) => void;
   /** Show "awaiting confirmation" bottom sheet. */
