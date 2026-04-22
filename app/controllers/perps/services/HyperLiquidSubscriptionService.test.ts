@@ -3839,6 +3839,214 @@ describe('HyperLiquidSubscriptionService', () => {
 
       unsubscribe();
     });
+
+    it('refreshes spot-backed availableToTradeBalance after streaming fills', async () => {
+      mockSpotClearinghouseState
+        .mockResolvedValueOnce({
+          balances: [{ coin: 'USDC', total: '100', hold: '0' }],
+        })
+        .mockResolvedValueOnce({
+          balances: [{ coin: 'USDC', total: '100', hold: '3' }],
+        });
+
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '50',
+        availableToTradeBalance: '50',
+        totalBalance: '200',
+        marginUsed: '10',
+        unrealizedPnl: '5',
+        returnOnEquity: '0.05',
+      }));
+
+      let userFillsCallback: ((data: any) => void) | undefined;
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, callback: any) => {
+          userFillsCallback = callback;
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const singleDexService = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        mockDeps,
+        false,
+      );
+
+      const mockCallback = jest.fn();
+      const unsubscribe = singleDexService.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(mockCallback).toHaveBeenCalled();
+      expect(mockCallback.mock.calls.at(-1)[0].availableToTradeBalance).toBe(
+        '150',
+      );
+
+      mockCallback.mockClear();
+      expect(userFillsCallback).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      userFillsCallback!({
+        isSnapshot: false,
+        fills: [{ oid: 12345, coin: 'BTC', side: 'B', sz: '0.1', px: '50000' }],
+      });
+
+      await jest.advanceTimersByTimeAsync(250);
+      await jest.runAllTimersAsync();
+
+      expect(mockSpotClearinghouseState).toHaveBeenCalledTimes(2);
+      expect(mockCallback).toHaveBeenCalled();
+      expect(mockCallback.mock.calls.at(-1)[0].availableToTradeBalance).toBe(
+        '147',
+      );
+
+      unsubscribe();
+    });
+
+    it('does not refresh spot state on userFills snapshot events', async () => {
+      mockSpotClearinghouseState.mockResolvedValue({
+        balances: [{ coin: 'USDC', total: '100', hold: '0' }],
+      });
+
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '50',
+        availableToTradeBalance: '50',
+        totalBalance: '200',
+        marginUsed: '10',
+        unrealizedPnl: '5',
+        returnOnEquity: '0.05',
+      }));
+
+      let userFillsCallback: ((data: any) => void) | undefined;
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, callback: any) => {
+          userFillsCallback = callback;
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const singleDexService = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        mockDeps,
+        false,
+      );
+
+      const unsubscribe = singleDexService.subscribeToAccount({
+        callback: jest.fn(),
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(userFillsCallback).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      userFillsCallback!({
+        isSnapshot: true,
+        fills: [{ oid: 12345, coin: 'BTC', side: 'B', sz: '0.1', px: '50000' }],
+      });
+
+      await jest.advanceTimersByTimeAsync(250);
+      await jest.runAllTimersAsync();
+
+      expect(mockSpotClearinghouseState).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
+    });
+
+    it('coalesces multiple streaming fills into one spot refresh', async () => {
+      mockSpotClearinghouseState
+        .mockResolvedValueOnce({
+          balances: [{ coin: 'USDC', total: '100', hold: '0' }],
+        })
+        .mockResolvedValueOnce({
+          balances: [{ coin: 'USDC', total: '100', hold: '3' }],
+        });
+
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '50',
+        availableToTradeBalance: '50',
+        totalBalance: '200',
+        marginUsed: '10',
+        unrealizedPnl: '5',
+        returnOnEquity: '0.05',
+      }));
+
+      let userFillsCallback: ((data: any) => void) | undefined;
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, callback: any) => {
+          userFillsCallback = callback;
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const singleDexService = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        mockDeps,
+        false,
+      );
+
+      const unsubscribe = singleDexService.subscribeToAccount({
+        callback: jest.fn(),
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(userFillsCallback).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      userFillsCallback!({
+        isSnapshot: false,
+        fills: [{ oid: 12345, coin: 'BTC', side: 'B', sz: '0.1', px: '50000' }],
+      });
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      userFillsCallback!({
+        isSnapshot: false,
+        fills: [{ oid: 12346, coin: 'BTC', side: 'S', sz: '0.1', px: '50010' }],
+      });
+
+      await jest.advanceTimersByTimeAsync(250);
+      await jest.runAllTimersAsync();
+
+      expect(mockSpotClearinghouseState).toHaveBeenCalledTimes(2);
+
+      unsubscribe();
+    });
+
+    it('cleans up the internal spot refresh fill subscription when account subscribers end', async () => {
+      const accountSpotRefreshSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, _callback: any) =>
+          Promise.resolve(accountSpotRefreshSubscription),
+      );
+
+      const singleDexService = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        mockDeps,
+        false,
+      );
+
+      const unsubscribe = singleDexService.subscribeToAccount({
+        callback: jest.fn(),
+      });
+
+      await jest.runAllTimersAsync();
+
+      unsubscribe();
+
+      expect(accountSpotRefreshSubscription.unsubscribe).toHaveBeenCalled();
+    });
   });
 
   describe('aggregateAccountStates - returnOnEquity calculation', () => {

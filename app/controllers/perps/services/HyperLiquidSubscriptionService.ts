@@ -58,6 +58,8 @@ import { calculateOpenInterestUSD } from '../utils/marketDataTransform';
  * Implements singleton subscription architecture with reference counting
  */
 export class HyperLiquidSubscriptionService {
+  static readonly #accountSpotRefreshDebounceMs = 250;
+
   // Service dependencies
   readonly #clientService: HyperLiquidClientService;
 
@@ -136,6 +138,14 @@ export class HyperLiquidSubscriptionService {
 
   // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
   readonly #orderFillSubscriptions = new Map<string, ISubscription>();
+
+  #accountSpotRefreshSubscription?: ISubscription;
+
+  #accountSpotRefreshSubscriptionPromise?: Promise<void>;
+
+  #accountSpotRefreshUserAddress?: string;
+
+  #accountSpotRefreshTimeout?: ReturnType<typeof setTimeout>;
 
   readonly #symbolSubscriberCounts = new Map<string, number>();
 
@@ -1024,7 +1034,17 @@ export class HyperLiquidSubscriptionService {
     const userAddress =
       await this.#walletService.getUserAddressWithDefault(accountId);
 
+    await this.#queueSpotStateRefreshForUser(userAddress);
+  }
+
+  async #queueSpotStateRefreshForUser(
+    userAddress: string,
+    options?: { force?: boolean },
+  ): Promise<void> {
+    const force = options?.force ?? false;
+
     if (
+      !force &&
       this.#cachedSpotState &&
       this.#cachedSpotStateUserAddress === userAddress
     ) {
@@ -1035,6 +1055,7 @@ export class HyperLiquidSubscriptionService {
     // A pending fetch for a different user is stale after an account switch —
     // start a fresh fetch; the stale one will self-discard via generation check.
     if (
+      !force &&
       this.#spotStatePromise &&
       this.#spotStatePromiseUserAddress === userAddress
     ) {
@@ -1103,6 +1124,117 @@ export class HyperLiquidSubscriptionService {
         this.#getErrorContext('refreshSpotState'),
       );
     }
+  }
+
+  #scheduleAccountSpotRefresh(userAddress: string): void {
+    if (this.#accountSubscriberCount === 0) {
+      return;
+    }
+
+    if (this.#accountSpotRefreshTimeout) {
+      clearTimeout(this.#accountSpotRefreshTimeout);
+    }
+
+    this.#accountSpotRefreshTimeout = setTimeout(() => {
+      this.#accountSpotRefreshTimeout = undefined;
+      this.#queueSpotStateRefreshForUser(userAddress, { force: true }).catch(
+        (error) => {
+          this.#logErrorUnlessClearing(
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.scheduleAccountSpotRefresh',
+            ),
+            this.#getErrorContext('scheduleAccountSpotRefresh'),
+          );
+        },
+      );
+    }, HyperLiquidSubscriptionService.#accountSpotRefreshDebounceMs);
+  }
+
+  async #ensureAccountSpotRefreshSubscription(
+    accountId?: CaipAccountId,
+  ): Promise<void> {
+    const userAddress =
+      await this.#walletService.getUserAddressWithDefault(accountId);
+
+    if (
+      this.#accountSpotRefreshSubscription &&
+      this.#accountSpotRefreshUserAddress === userAddress
+    ) {
+      return;
+    }
+
+    if (
+      this.#accountSpotRefreshSubscriptionPromise &&
+      this.#accountSpotRefreshUserAddress === userAddress
+    ) {
+      await this.#accountSpotRefreshSubscriptionPromise;
+      return;
+    }
+
+    this.#cleanupAccountSpotRefreshSubscription();
+
+    const promise = this.#createAccountSpotRefreshSubscription(userAddress);
+    this.#accountSpotRefreshSubscriptionPromise = promise;
+    this.#accountSpotRefreshUserAddress = userAddress;
+
+    try {
+      await promise;
+    } finally {
+      if (this.#accountSpotRefreshSubscriptionPromise === promise) {
+        this.#accountSpotRefreshSubscriptionPromise = undefined;
+      }
+    }
+  }
+
+  async #createAccountSpotRefreshSubscription(
+    userAddress: string,
+  ): Promise<void> {
+    const subscriptionClient = this.#clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      await this.#clientService.ensureSubscriptionClient(
+        this.#walletService.createWalletAdapter(),
+      );
+      return this.#createAccountSpotRefreshSubscription(userAddress);
+    }
+
+    const subscription = await subscriptionClient.userFills(
+      { user: userAddress },
+      (data: UserFillsWsEvent) => {
+        const { isSnapshot } = data as { isSnapshot?: boolean };
+        if (isSnapshot !== false) {
+          return;
+        }
+
+        this.#scheduleAccountSpotRefresh(userAddress);
+      },
+    );
+
+    this.#accountSpotRefreshSubscription = subscription;
+    return undefined;
+  }
+
+  #cleanupAccountSpotRefreshSubscription(): void {
+    if (this.#accountSpotRefreshTimeout) {
+      clearTimeout(this.#accountSpotRefreshTimeout);
+      this.#accountSpotRefreshTimeout = undefined;
+    }
+
+    if (this.#accountSpotRefreshSubscription) {
+      this.#accountSpotRefreshSubscription.unsubscribe().catch((error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.cleanupAccountSpotRefreshSubscription',
+          ),
+          this.#getErrorContext('cleanupAccountSpotRefreshSubscription'),
+        );
+      });
+    }
+
+    this.#accountSpotRefreshSubscription = undefined;
+    this.#accountSpotRefreshSubscriptionPromise = undefined;
+    this.#accountSpotRefreshUserAddress = undefined;
   }
 
   /**
@@ -2395,6 +2527,13 @@ export class HyperLiquidSubscriptionService {
       );
     });
 
+    this.#ensureAccountSpotRefreshSubscription(accountId).catch((error) => {
+      this.#logErrorUnlessClearing(
+        ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
+        this.#getErrorContext('subscribeToAccount.ensureAccountSpotRefresh'),
+      );
+    });
+
     // Ensure shared subscription is active (reuses existing connection)
     this.#ensureSharedWebData3Subscription(accountId).catch((error) => {
       this.#logErrorUnlessClearing(
@@ -2406,6 +2545,9 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.#accountSubscriberCount -= 1;
+      if (this.#accountSubscriberCount === 0) {
+        this.#cleanupAccountSpotRefreshSubscription();
+      }
       this.#cleanupSharedWebData3ISubscription();
     };
   }
@@ -3610,6 +3752,11 @@ export class HyperLiquidSubscriptionService {
       );
     }
 
+    if (this.#accountSubscriberCount > 0) {
+      this.#cleanupAccountSpotRefreshSubscription();
+      await this.#ensureAccountSpotRefreshSubscription();
+    }
+
     // Re-establish user data subscriptions if there are user data subscribers
     if (
       this.#positionSubscribers.size > 0 ||
@@ -3785,6 +3932,7 @@ export class HyperLiquidSubscriptionService {
       });
     });
     this.#orderFillSubscriptions.clear();
+    this.#cleanupAccountSpotRefreshSubscription();
 
     // Clear cached data
     this.#cachedPriceData = null;
