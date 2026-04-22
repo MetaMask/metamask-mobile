@@ -1,38 +1,35 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
 import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import type { Hex } from '@metamask/utils';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  formatChainIdToCaip,
+  formatChainIdToHex,
+  isNonEvmChainId,
+  type QuoteMetadata,
+  type QuoteResponse,
+} from '@metamask/bridge-controller';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
-import {
-  setSourceAmount,
-  setSourceToken,
-  setDestToken,
-  resetBridgeState,
-  selectIsSubmittingTx,
-  selectDestAddress,
-  selectIsEvmNonEvmBridge,
-  selectIsNonEvmNonEvmBridge,
-  setIsSubmittingTx,
-} from '../../../../../../core/redux/slices/bridge';
-import { useBridgeQuoteRequest } from '../../../../../UI/Bridge/hooks/useBridgeQuoteRequest';
-import { useBridgeQuoteData } from '../../../../../UI/Bridge/hooks/useBridgeQuoteData';
-import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
+import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import { useSubmitQuickBuyTx } from './useSubmitQuickBuyTx';
+import { QUICKBUY_DEFAULT_SLIPPAGE } from './constants';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import { useInitialSlippage } from '../../../../../UI/Bridge/hooks/useInitialSlippage';
-import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import { useIsSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsSendBundleSupported';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
-import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
-import { useRecipientInitialization } from '../../../../../UI/Bridge/hooks/useRecipientInitialization';
-import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
-import Engine from '../../../../../../core/Engine';
+import {
+  getGaslessBridgeWith7702EnabledForChain,
+  selectShouldUseSmartTransaction,
+} from '../../../../../../selectors/smartTransactionsController';
+import { selectIsGasIncluded7702Supported } from '../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
+import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { calcTokenValue } from '../../../../../../util/transactions';
@@ -62,15 +59,6 @@ export interface UseQuickBuyBottomSheetResult {
   // quote state
   isQuoteLoading: boolean;
   isSubmittingTx: boolean;
-  // rewards
-  estimatedPoints: number | null;
-  isRewardsLoading: boolean;
-  shouldShowLiveRewardsEstimate: boolean;
-  shouldShowRewardsOptInCta: boolean;
-  shouldShowRewardsFallbackZero: boolean;
-  hasRewardsError: boolean;
-  accountOptedIn: boolean | null;
-  rewardsAccountScope: InternalAccount | null;
   // button state
   hasError: boolean;
   hasValidAmount: boolean;
@@ -91,16 +79,13 @@ export function useQuickBuyBottomSheet(
 ): UseQuickBuyBottomSheetResult {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hiddenInputRef = useRef<TextInput>(null);
-  const dispatch = useDispatch();
   const navigation = useNavigation();
 
   const [usdAmount, setUsdAmount] = useState('');
-
-  const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const walletAddress = useSelector(selectSourceWalletAddress);
-  const destAddress = useSelector(selectDestAddress);
-  const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
-  const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
+  const [isSubmittingTx, setIsSubmittingTx] = useState(false);
+  // Slippage is kept local so QuickBuy does not share the Bridge/Swaps slice
+  // value. Expose a setter later if we need per-pair slippage overrides.
+  const [slippage] = useState(QUICKBUY_DEFAULT_SLIPPAGE);
 
   const {
     chainId: destChainId,
@@ -126,18 +111,77 @@ export function useQuickBuyBottomSheet(
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
 
   useRefreshSmartTransactionsLiveness(sourceChainId);
-  useIsGasIncludedSTXSendBundleSupported(sourceChainId);
-  useInitialSlippage();
 
-  useEffect(() => {
-    if (selectedSourceToken && destToken) {
-      dispatch(setSourceToken(selectedSourceToken));
-      dispatch(setDestToken(destToken));
+  // Wallet address — selected account for the source token's scope. Replaces
+  // `selectSourceWalletAddress`, which reads from the bridge slice.
+  const walletAddress = useSelector((state: RootState) => {
+    if (!sourceToken) return undefined;
+    const sourceCaip = formatChainIdToCaip(sourceToken.chainId);
+    return selectSelectedInternalAccountByScope(state)(sourceCaip)?.address;
+  });
+
+  // Destination address — selected account for the dest token's scope. Replaces
+  // `useRecipientInitialization` + `selectDestAddress`.
+  const destAddress = useSelector((state: RootState) => {
+    if (!destToken) return undefined;
+    const destCaip = formatChainIdToCaip(destToken.chainId);
+    return selectSelectedInternalAccountByScope(state)(destCaip)?.address;
+  });
+
+  // Cross-ecosystem bridge detection as pure functions over the chain IDs.
+  const { isEvmNonEvmBridge, isNonEvmNonEvmBridge } = useMemo(() => {
+    if (!sourceToken?.chainId || !destToken?.chainId) {
+      return { isEvmNonEvmBridge: false, isNonEvmNonEvmBridge: false };
     }
-  }, [selectedSourceToken, destToken, dispatch]);
+    const srcNonEvm = isNonEvmChainId(sourceToken.chainId);
+    const destNonEvm = isNonEvmChainId(destToken.chainId);
+    return {
+      isEvmNonEvmBridge: srcNonEvm !== destNonEvm,
+      isNonEvmNonEvmBridge: srcNonEvm && destNonEvm,
+    };
+  }, [sourceToken?.chainId, destToken?.chainId]);
 
-  const hasInitializedRecipient = useRef(false);
-  useRecipientInitialization(hasInitializedRecipient);
+  // Gas-included flags — inline replacement for useIsGasIncludedSTXSendBundleSupported
+  // + selectGasIncludedQuoteParams. No dispatches.
+  const evmSourceHexChainId =
+    sourceToken?.chainId && !isNonEvmChainId(sourceToken.chainId)
+      ? formatChainIdToHex(sourceToken.chainId)
+      : undefined;
+  const isSendBundleSupportedForChain =
+    useIsSendBundleSupported(evmSourceHexChainId);
+  const shouldUseSmartTransaction = useSelector((state: RootState) =>
+    selectShouldUseSmartTransaction(state, evmSourceHexChainId),
+  );
+  const isGasIncludedSTXSendBundleSupported = Boolean(
+    shouldUseSmartTransaction && isSendBundleSupportedForChain,
+  );
+  const isGasIncluded7702Supported = useSelector(
+    selectIsGasIncluded7702Supported,
+  );
+  const isGasIncluded7702BridgeEnabled = useSelector((state: RootState) => {
+    if (!evmSourceHexChainId) return false;
+    return getGaslessBridgeWith7702EnabledForChain(state, evmSourceHexChainId);
+  });
+  const isSwap = useMemo(() => {
+    if (!sourceToken?.chainId || !destToken?.chainId) return false;
+    return (
+      formatChainIdToCaip(sourceToken.chainId) ===
+      formatChainIdToCaip(destToken.chainId)
+    );
+  }, [sourceToken?.chainId, destToken?.chainId]);
+  const { gasIncluded, gasIncluded7702 } = useMemo(() => {
+    if (isGasIncludedSTXSendBundleSupported) {
+      return { gasIncluded: true, gasIncluded7702: false };
+    }
+    const enabled =
+      (isSwap || isGasIncluded7702BridgeEnabled) && isGasIncluded7702Supported;
+    return { gasIncluded: enabled, gasIncluded7702: enabled };
+  }, [
+    isGasIncludedSTXSendBundleSupported,
+    isGasIncluded7702Supported,
+    isGasIncluded7702BridgeEnabled,
+    isSwap,
+  ]);
 
   const sourceTokenAmount = useMemo(() => {
     if (!usdAmount || !sourceToken?.currencyExchangeRate) {
@@ -148,14 +192,6 @@ export function useQuickBuyBottomSheet(
     return (usd / sourceToken.currencyExchangeRate).toString();
   }, [usdAmount, sourceToken?.currencyExchangeRate]);
 
-  useEffect(() => {
-    if (sourceTokenAmount) {
-      dispatch(setSourceAmount(sourceTokenAmount));
-    } else {
-      dispatch(setSourceAmount(undefined));
-    }
-  }, [sourceTokenAmount, dispatch]);
-
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
@@ -163,60 +199,18 @@ export function useQuickBuyBottomSheet(
     balance: sourceToken?.balance,
   });
 
-  const updateQuoteParams = useBridgeQuoteRequest({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
-
-  const {
-    activeQuote,
-    destTokenAmount: estimatedReceiveAmount,
-    isLoading: isQuoteLoading,
-    isNoQuotesAvailable,
-    quoteFetchError,
-    blockaidError,
-    isActiveQuoteForCurrentTokenPair,
-  } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
-
-  const {
-    estimatedPoints,
-    isLoading: isRewardsLoading,
-    shouldShowRewardsRow,
-    hasError: hasRewardsError,
-    accountOptedIn,
-    rewardsAccountScope,
-  } = useRewards({
-    activeQuote,
-    isQuoteLoading,
-  });
-
-  const hasInsufficientBalance = useIsInsufficientBalance({
+  // Simple balance check (no gas) to feed into the quote request. Mirrors the
+  // `ignoreGasFees: true` call used inside the old useBridgeQuoteRequest.
+  const insufficientBalForRequest = useIsInsufficientBalance({
     amount: sourceTokenAmount,
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    ignoreGasFees: true,
   });
 
-  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
-
-  const shouldShowLiveRewardsEstimate = Boolean(
-    shouldShowRewardsRow && accountOptedIn,
-  );
-  const shouldShowRewardsOptInCta = Boolean(
-    shouldShowRewardsRow && !accountOptedIn && rewardsAccountScope,
-  );
-  const hasRewardsQuoteContext = Boolean(
-    sourceTokenAmount && walletAddress && activeQuote,
-  );
-  const shouldShowRewardsFallbackZero = Boolean(
-    hasRewardsQuoteContext &&
-      !shouldShowLiveRewardsEstimate &&
-      !shouldShowRewardsOptInCta,
-  );
-
-  const { submitBridgeTx } = useSubmitBridgeTx();
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
+
   const hasValidQuoteInputs = Boolean(
     sourceToken &&
       destToken &&
@@ -224,30 +218,55 @@ export function useQuickBuyBottomSheet(
       !isDestinationAddressMissing,
   );
 
-  useEffect(() => {
-    if (hasValidQuoteInputs) {
-      updateQuoteParams();
-    }
-    return () => {
-      updateQuoteParams.cancel();
-    };
-  }, [hasValidQuoteInputs, updateQuoteParams]);
+  const {
+    activeQuote,
+    destTokenAmount: estimatedReceiveAmount,
+    isQuoteLoading,
+    quoteFetchError,
+    isNoQuotesAvailable,
+    blockaidError,
+    isActiveQuoteForCurrentTokenPair,
+  } = useQuickBuyQuotes({
+    sourceToken,
+    destToken,
+    sourceTokenAmount,
+    slippage,
+    walletAddress,
+    destAddress,
+    insufficientBal: insufficientBalForRequest,
+    gasIncluded,
+    gasIncluded7702,
+    enabled: hasValidQuoteInputs,
+  });
+
+  // UI-facing insufficient balance. We pass `ignoreGasFees: true` for QuickBuy
+  // because the raw `fetchQuotes` response lacks `QuoteMetadata.gasFee.effective.amount`,
+  // so a gas-inclusive check has no data to work with. This also prevents the
+  // hook from reading stale `selectBridgeQuotes` data that may linger from a
+  // previous Bridge/Swaps session.
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceTokenAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    ignoreGasFees: true,
+  });
+
+  // The shared hook's `quote` prop is narrowly typed to the enriched
+  // `useBridgeQuoteData.activeQuote` shape. Our raw QuickBuy quote is
+  // structurally compatible (optional fields gracefully degrade to null
+  // return), so we cast at the call site.
+  const hasSufficientGas = useHasSufficientGas({
+    quote: activeQuote as unknown as Parameters<
+      typeof useHasSufficientGas
+    >[0]['quote'],
+  });
+
+  const { submitQuickBuyTx } = useSubmitQuickBuyTx({ walletAddress });
 
   // Open bottom sheet on mount
   useEffect(() => {
     bottomSheetRef.current?.onOpenBottomSheet();
   }, []);
-
-  // Cleanup bridge state on unmount
-  useEffect(
-    () => () => {
-      dispatch(resetBridgeState());
-      if (Engine.context.BridgeController?.resetState) {
-        Engine.context.BridgeController.resetState();
-      }
-    },
-    [dispatch],
-  );
 
   const handleClose = useCallback(() => {
     onClose();
@@ -274,24 +293,23 @@ export function useQuickBuyBottomSheet(
     if (!activeQuote || !walletAddress) return;
 
     try {
-      dispatch(setIsSubmittingTx(true));
-      await submitBridgeTx({ quoteResponse: activeQuote });
+      setIsSubmittingTx(true);
+      // submitQuickBuyTx expects an enriched QuoteResponse & QuoteMetadata but
+      // BridgeStatusController.submitTx only reads base QuoteResponse fields
+      // (quote/trade/approval/featureId/resetApproval). The metadata fields
+      // are UI-display only, so casting the raw fetchQuotes result is safe.
+      await submitQuickBuyTx({
+        quoteResponse: activeQuote as unknown as QuoteResponse & QuoteMetadata,
+      });
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
       // Keep sheet open on error
     } finally {
-      dispatch(setIsSubmittingTx(false));
+      setIsSubmittingTx(false);
     }
-  }, [
-    activeQuote,
-    walletAddress,
-    submitBridgeTx,
-    dispatch,
-    onClose,
-    navigation,
-  ]);
+  }, [activeQuote, walletAddress, submitQuickBuyTx, onClose, navigation]);
 
   const sourceBalanceFiat = useMemo(() => {
     if (
@@ -406,14 +424,6 @@ export function useQuickBuyBottomSheet(
     sourceBalanceFiat,
     isQuoteLoading,
     isSubmittingTx,
-    estimatedPoints,
-    isRewardsLoading,
-    shouldShowLiveRewardsEstimate,
-    shouldShowRewardsOptInCta,
-    shouldShowRewardsFallbackZero,
-    hasRewardsError,
-    accountOptedIn,
-    rewardsAccountScope,
     hasError,
     hasValidAmount,
     isConfirmDisabled,
