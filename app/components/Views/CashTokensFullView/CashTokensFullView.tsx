@@ -225,9 +225,8 @@ const CashTokensFullView = () => {
           .addProperties({
             location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
             button_type: 'text_button',
-            button_action: 'max',
-            redirects_to:
-              MUSD_EVENT_LOCATIONS.QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN,
+            button_action: 'custom',
+            redirects_to: MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
             asset_symbol: topToken.symbol,
             network_chain_id: topToken.chainId,
             network_name: topToken.chainId
@@ -237,17 +236,23 @@ const CashTokensFullView = () => {
           .build(),
       );
 
-                                         await initiateCustomConversion({
-                                                                        preferredPaymentToken: {
-                                                                        address: topToken.address as Hex,
-                                                                        chainId: topToken.chainId as Hex,
-                                                                        },
-                                                                        });    } catch (error) {
+      await initiateCustomConversion({
+        preferredPaymentToken: {
+          address: topToken.address as Hex,
+          chainId: topToken.chainId as Hex,
+        },
+      });
+    } catch (error) {
       Logger.error(error as Error, {
         message: '[CashTokensFullView] Failed to initiate convert CTA',
       });
     }
-  }, [conversionTokens, createEventBuilder, initiateMaxConversion, trackEvent]);
+  }, [
+    conversionTokens,
+    createEventBuilder,
+    initiateCustomConversion,
+    trackEvent,
+  ]);
 
   const handleSwapsPress = useCallback(() => {
     trackEvent(
