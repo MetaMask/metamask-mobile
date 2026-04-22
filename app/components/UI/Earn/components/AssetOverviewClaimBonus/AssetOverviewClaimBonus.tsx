@@ -247,7 +247,6 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
         .addProperties({
           location,
           action_type: 'claim_bonus',
-          button_text: ctaLabel,
           network_chain_id: asset.chainId,
           network_name: network?.name,
           asset_symbol: asset.symbol,
@@ -261,7 +260,6 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     trackEvent,
     createEventBuilder,
     location,
-    ctaLabel,
     asset.chainId,
     asset.symbol,
     network?.name,

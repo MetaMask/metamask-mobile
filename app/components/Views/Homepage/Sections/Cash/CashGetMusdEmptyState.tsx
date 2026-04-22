@@ -183,7 +183,6 @@ const CashGetMusdEmptyState = ({
       createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
         .addProperties({
           action_type: 'claim_bonus',
-          button_text: claimBonusButtonLabel,
           location: claimBonusAnalyticsLocation,
           network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
           network_name: lineaNetworkName ?? undefined,
@@ -195,7 +194,6 @@ const CashGetMusdEmptyState = ({
   }, [
     trackEvent,
     createEventBuilder,
-    claimBonusButtonLabel,
     claimBonusAnalyticsLocation,
     lineaNetworkName,
     claimRewards,

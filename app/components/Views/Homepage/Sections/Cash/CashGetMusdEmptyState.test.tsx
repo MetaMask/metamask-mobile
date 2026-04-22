@@ -274,7 +274,6 @@ describe('CashGetMusdEmptyState', () => {
       expect.objectContaining({
         location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
         action_type: 'claim_bonus',
-        button_text: expect.stringMatching(/Claim.*1\.00/),
       }),
     );
     expect(mockTrackEvent).toHaveBeenCalled();
