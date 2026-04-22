@@ -80,7 +80,16 @@ const mockHypeFill = createMockFill({
 
 describe('usePerpsMarketFills', () => {
   let mockProvider: {
-    getOrderFills: jest.MockedFunction<() => Promise<OrderFill[]>>;
+    getOrderFills: jest.MockedFunction<
+      (
+        params?: Parameters<
+          typeof Engine.context.PerpsController.getOrderFills
+        >[0],
+        options?: Parameters<
+          typeof Engine.context.PerpsController.getOrderFills
+        >[1],
+      ) => Promise<OrderFill[]>
+    >;
   };
 
   beforeEach(() => {
