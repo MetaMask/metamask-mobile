@@ -150,7 +150,6 @@ import { TransactionPayControllerInit } from './controllers/transaction-pay-cont
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
-import { tokenListControllerInit } from './controllers/token-list-controller-init';
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
 import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
@@ -329,7 +328,6 @@ export class Engine {
         MultichainNetworkController: multichainNetworkControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         TokenRatesController: tokenRatesControllerInit,
-        TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
@@ -462,7 +460,6 @@ export class Engine {
     const tokenBalancesController =
       messengerClientsByName.TokenBalancesController;
     const tokenRatesController = messengerClientsByName.TokenRatesController;
-    const tokenListController = messengerClientsByName.TokenListController;
     const tokenDetectionController =
       messengerClientsByName.TokenDetectionController;
     const tokenSearchDiscoveryDataController =
@@ -544,7 +541,6 @@ export class Engine {
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,
       TokensController: tokensController,
-      TokenListController: tokenListController,
       TokenDetectionController: tokenDetectionController,
       NftDetectionController: nftDetectionController,
       CurrencyRateController: currencyRateController,
@@ -1383,7 +1379,6 @@ export default {
       SignatureController,
       SmartTransactionsController,
       TokenBalancesController,
-      TokenListController,
       TokenRatesController,
       TokensController,
       TokenSearchDiscoveryDataController,
@@ -1455,7 +1450,6 @@ export default {
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
       TokenBalancesController: TokenBalancesController.state,
-      TokenListController: TokenListController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,
       TokenSearchDiscoveryDataController:

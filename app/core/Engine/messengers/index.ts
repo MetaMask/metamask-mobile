@@ -87,10 +87,6 @@ import {
   getTokensControllerMessenger,
 } from './tokens-controller-messenger';
 import {
-  getTokenListControllerInitMessenger,
-  getTokenListControllerMessenger,
-} from './token-list-controller-messenger';
-import {
   getTokenDetectionControllerInitMessenger,
   getTokenDetectionControllerMessenger,
 } from './token-detection-controller-messenger';
@@ -209,10 +205,6 @@ export const MESSENGER_FACTORIES = {
   LoggingController: {
     getMessenger: getLoggingControllerMessenger,
     getInitMessenger: noop,
-  },
-  TokenListController: {
-    getMessenger: getTokenListControllerMessenger,
-    getInitMessenger: getTokenListControllerInitMessenger,
   },
   TokensController: {
     getMessenger: getTokensControllerMessenger,

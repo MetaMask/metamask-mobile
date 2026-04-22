@@ -30,15 +30,6 @@ jest.mock('../Engine', () => {
       TokensController: {
         watchAsset: jest.fn(),
       },
-      TokenListController: {
-        state: {
-          tokensChainsCache: {
-            '0x1': {
-              data: [],
-            },
-          },
-        },
-      },
       PermissionController: {
         requestPermissions: jest.fn(),
         getPermissions: jest.fn(),

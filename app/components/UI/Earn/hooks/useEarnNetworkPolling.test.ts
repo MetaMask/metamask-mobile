@@ -1,5 +1,4 @@
 // Mock all the polling hooks
-jest.mock('../../../hooks/AssetPolling/useTokenListPolling', () => jest.fn());
 jest.mock('../../../hooks/AssetPolling/useTokenBalancesPolling', () =>
   jest.fn(),
 );
@@ -34,7 +33,6 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import useEarnNetworkPolling from './useEarnNetworkPolling';
 import { RootState } from '../../../../reducers';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
-import useTokenListPolling from '../../../hooks/AssetPolling/useTokenListPolling';
 import useTokenBalancesPolling from '../../../hooks/AssetPolling/useTokenBalancesPolling';
 import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenRatesPolling from '../../../hooks/AssetPolling/useTokenRatesPolling';
@@ -52,7 +50,6 @@ afterAll(() => {
 });
 
 describe('useEarnNetworkPolling', () => {
-  const mockUseTokenListPolling = jest.mocked(useTokenListPolling);
   const mockUseTokenBalancesPolling = jest.mocked(useTokenBalancesPolling);
   const mockUseCurrencyRatePolling = jest.mocked(useCurrencyRatePolling);
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
@@ -140,9 +137,6 @@ describe('useEarnNetworkPolling', () => {
       state: mockState,
     });
 
-    expect(mockUseTokenListPolling).toHaveBeenCalledWith({
-      chainIds: expect.any(Array),
-    });
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith({
       chainIds: expect.any(Array),
     });
@@ -164,9 +158,6 @@ describe('useEarnNetworkPolling', () => {
     });
 
     // Initially called with empty arrays
-    expect(mockUseTokenListPolling).toHaveBeenCalledWith({
-      chainIds: [],
-    });
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith({
       chainIds: [],
     });
@@ -367,7 +358,6 @@ describe('useEarnNetworkPolling', () => {
     rerender({});
 
     // All polling hooks should be called again
-    expect(mockUseTokenListPolling).toHaveBeenCalled();
     expect(mockUseTokenBalancesPolling).toHaveBeenCalled();
     expect(mockUseCurrencyRatePolling).toHaveBeenCalled();
     expect(mockUseTokenRatesPolling).toHaveBeenCalled();

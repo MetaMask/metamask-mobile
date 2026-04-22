@@ -10,9 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
-import Engine from '../../../core/Engine';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import NetworkListBottomSheet from './components/NetworkListBottomSheet/NetworkListBottomSheet';
@@ -54,11 +52,8 @@ const AddAsset = () => {
     () => (
       <NetworkListBottomSheet
         selectedNetwork={selectedNetwork}
-        setSelectedNetwork={async (network) => {
+        setSelectedNetwork={(network) => {
           setSelectedNetwork(network);
-          if (!isNonEvmChainId(network)) {
-            Engine.context.TokenListController.fetchTokenList(network as Hex);
-          }
         }}
         setOpenNetworkSelector={setOpenNetworkSelector}
         sheetRef={sheetRef}

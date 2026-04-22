@@ -3,7 +3,6 @@ import {
   selectAllAssets as _selectAllAssets,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
-  TokenListState,
   AssetListState,
   AccountGroupAssets,
 } from '@metamask/assets-controllers';

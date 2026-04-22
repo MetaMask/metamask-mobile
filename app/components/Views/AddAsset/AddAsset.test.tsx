@@ -82,7 +82,6 @@ jest.mock('../../../core/Multichain/utils', () => ({
 
 jest.mock('../../../core/Engine', () => ({
   context: {
-    TokenListController: { fetchTokenList: jest.fn() },
     NetworkController: {
       state: { networkConfigurationsByChainId: {} },
     },

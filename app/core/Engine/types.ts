@@ -21,10 +21,6 @@ import {
   NftControllerActions,
   NftControllerEvents,
   NftDetectionController,
-  TokenListController,
-  TokenListControllerActions,
-  TokenListControllerEvents,
-  TokenListState,
   TokensController,
   TokensControllerActions,
   TokensControllerEvents,
@@ -546,7 +542,6 @@ type GlobalActions =
   | TokensControllerActions
   | TokenDetectionControllerActions
   | TokenRatesControllerActions
-  | TokenListControllerActions
   | TransactionControllerActions
   | TransactionPayControllerActions
   | SelectedNetworkControllerActions
@@ -632,7 +627,6 @@ type GlobalEvents =
   | TokensControllerEvents
   | TokenDetectionControllerEvents
   | TokenRatesControllerEvents
-  | TokenListControllerEvents
   | TransactionControllerEvents
   | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
@@ -736,7 +730,6 @@ export type MessengerClients = {
   RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   TokenBalancesController: TokenBalancesController;
-  TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
   TokensController: TokensController;
@@ -817,7 +810,6 @@ export type EngineState = {
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
-  TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
@@ -967,7 +959,6 @@ export type MessengerClientsToInitialize =
   | 'SmartTransactionsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
-  | 'TokenListController'
   | 'TokenRatesController'
   | 'TokensController'
   | 'TokenSearchDiscoveryDataController'

@@ -62,14 +62,6 @@ jest.mock('../../app/core/Engine', () => {
           return undefined;
         },
       },
-      TokenListController: {
-        startPolling() {
-          return undefined;
-        },
-        stopPollingByPollingToken() {
-          return undefined;
-        },
-      },
       TokenBalancesController: {
         startPolling() {
           return undefined;

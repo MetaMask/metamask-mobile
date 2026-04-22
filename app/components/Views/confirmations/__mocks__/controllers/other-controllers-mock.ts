@@ -202,18 +202,6 @@ export const tokensControllerMock = {
   },
 };
 
-export const tokenListControllerMock = {
-  engine: {
-    backgroundState: {
-      TokenListController: {
-        tokensChainsCache: {
-          '0x1': {},
-        },
-      },
-    },
-  },
-};
-
 export const tokenRatesControllerMock = {
   engine: {
     backgroundState: {

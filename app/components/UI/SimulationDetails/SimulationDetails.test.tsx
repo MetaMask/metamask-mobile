@@ -86,11 +86,7 @@ jest.mock('../../hooks/useStyles', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
+  context: {},
 }));
 
 jest.mock('../AnimatedSpinner');
