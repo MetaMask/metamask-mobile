@@ -44,7 +44,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     );
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
     const { hasMusdBalanceOnAnyChain } = useMusdBalance();
-    const { navigateToCash: handleViewCashTokens } = useCashNavigation();
+    const { navigateToCash } = useCashNavigation();
 
     const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
 
@@ -84,7 +84,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewCashTokens} />
+          <SectionHeader title={title} onPress={navigateToCash} />
           {!hasMusdBalanceOnAnyChain ? (
             <SectionRow>
               <CashGetMusdEmptyState key={`cash-empty-${refreshVersion}`} />
