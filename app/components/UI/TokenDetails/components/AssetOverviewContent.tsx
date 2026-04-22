@@ -40,7 +40,6 @@ import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
-import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
@@ -62,6 +61,7 @@ import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import { getSecurityBadgeConfig } from '../../SecurityTrust/utils/securityUtils';
 import {
   Box,
   BoxFlexDirection,
@@ -117,14 +117,6 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.warning.muted,
       padding: 20,
     } as ViewStyle,
-    chartNavigationWrapper: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      paddingHorizontal: 10,
-      paddingTop: 20,
-      marginBottom: 16,
-    } as ViewStyle,
     tokenDetailsWrapper: {
       marginBottom: 20,
       paddingHorizontal: 16,
@@ -149,7 +141,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
 export interface AssetOverviewContentProps {
   // Asset
-  token: TokenI;
+  token: TokenDetailsRouteParams;
 
   // Balance data
   balance: string | number | undefined;
@@ -247,9 +239,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
-  const isTokenOverviewAdvancedChartEnabled = useSelector(
-    selectTokenOverviewAdvancedChartEnabled,
-  );
   const {
     hasPerpsMarket,
     marketData,
@@ -258,6 +247,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
     fromTokenDetails: true,
+    transactionActiveAbTests: token.transactionActiveAbTests,
   });
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -344,39 +334,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [isMerklClaimingEnabled, token.chainId, token.address],
   );
 
-  const securityBadge = useMemo(() => {
-    switch (securityData?.resultType) {
-      case 'Verified':
-        return {
-          icon: IconName.VerifiedFilled,
-          iconColor: IconColor.IconDefault,
-          label: null,
-          bg: null,
-          textColor: undefined,
-        };
-      case 'Benign':
-        return null;
-      case 'Warning':
-      case 'Spam':
-        return {
-          icon: IconName.Warning,
-          iconColor: IconColor.WarningDefault,
-          label: strings('security_trust.risky'),
-          bg: 'bg-warning-muted',
-          textColor: TextColor.WarningDefault,
-        };
-      case 'Malicious':
-        return {
-          icon: IconName.Danger,
-          iconColor: IconColor.ErrorDefault,
-          label: strings('security_trust.malicious'),
-          bg: 'bg-error-muted',
-          textColor: TextColor.ErrorDefault,
-        };
-      default:
-        return null;
-    }
-  }, [securityData?.resultType]);
+  const securityBadge = useMemo(
+    () => getSecurityBadgeConfig(securityData),
+    [securityData],
+  );
 
   const handleSecurityBadgePress = useCallback(() => {
     if (!securityData?.resultType || securityData.resultType === 'Benign')
@@ -557,25 +518,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       assetIdentifier: marketInsightsCaip19Id,
       tokenImageUrl: token.image || token.logo,
       pricePercentChange: percentChange,
-      // Pass token data needed for swap navigation
-      tokenAddress: token.address,
-      tokenDecimals: token.decimals,
-      tokenName: token.name,
-      tokenChainId: token.chainId,
+      token,
     });
   }, [
     navigation,
     trackEvent,
     createEventBuilder,
-    token.symbol,
+    token,
     marketInsightsCaip19Id,
     marketInsightsReport,
-    token.image,
-    token.logo,
-    token.address,
-    token.decimals,
-    token.name,
-    token.chainId,
     priceDiff,
     comparePrice,
   ]);
@@ -591,28 +542,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       });
     }
   }, [marketData, navigation]);
-
-  const handleSelectTimePeriod = useCallback(
-    (period: TimePeriod) => {
-      setTimePeriod(period);
-    },
-    [setTimePeriod],
-  );
-
-  const renderChartNavigationButton = useCallback(
-    () =>
-      chartNavigationButtons.map((label) => (
-        <ChartNavigationButton
-          key={label}
-          label={strings(
-            `asset_overview.chart_time_period_navigation.${label}`,
-          )}
-          onPress={() => handleSelectTimePeriod(label)}
-          selected={timePeriod === label}
-        />
-      )),
-    [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
-  );
 
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
@@ -687,7 +616,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </Text>
                 </Box>
                 {securityBadge && securityBadge.label === null && (
-                  <Box twClassName="shrink-0">
+                  <Box twClassName="shrink-0 pb-[2px]">
                     <TouchableOpacity
                       onPress={handleSecurityBadgePress}
                       testID="security-badge-verified"
@@ -701,7 +630,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </Box>
                 )}
                 {securityBadge && securityBadge.label !== null && (
-                  <Box twClassName="shrink-0">
+                  <Box twClassName="shrink-0 pb-[2px]">
                     <TouchableOpacity
                       onPress={handleSecurityBadgePress}
                       testID={
@@ -802,18 +731,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             asset={token}
             prices={prices}
             timePeriod={timePeriod}
+            chartNavigationButtons={chartNavigationButtons}
+            setTimePeriod={setTimePeriod}
             priceDiff={priceDiff}
             currentCurrency={currentCurrency}
             currentPrice={currentPrice}
             comparePrice={comparePrice}
             isLoading={isLoading}
           />
-          {/* Same as main: chart period tabs under the legacy line chart. Omitted when the advanced chart is on (range selector lives inside Price). */}
-          {!isTokenOverviewAdvancedChartEnabled && (
-            <View style={styles.chartNavigationWrapper}>
-              {renderChartNavigationButton()}
-            </View>
-          )}
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton

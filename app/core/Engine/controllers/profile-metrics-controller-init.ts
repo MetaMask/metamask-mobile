@@ -13,7 +13,7 @@ import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-met
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state to use for the
  * controller.
- * @param request.getController - A function to get other initialized controllers.
+ * @param request.getMessengerClient - A function to get other initialized controllers.
  * @returns The initialized controller.
  */
 export const profileMetricsControllerInit: MessengerClientInitFunction<

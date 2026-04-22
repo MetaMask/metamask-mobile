@@ -1,5 +1,6 @@
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import React, { useState } from 'react';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { strings } from '../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
 import { useSelector } from 'react-redux';
@@ -20,6 +21,8 @@ import BenefitEmptyList from '../components/Benefits/BenefitEmptyList.tsx';
 const BenefitsFullView = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+
+  useTrackRewardsPageView({ page_type: 'benefits' });
 
   const benefits = useSelector(selectBenefits);
   const [refreshing, setRefreshing] = useState(false);

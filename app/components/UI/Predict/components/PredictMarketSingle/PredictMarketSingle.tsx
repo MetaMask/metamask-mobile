@@ -19,7 +19,6 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket as PredictMarketType,
@@ -32,7 +31,7 @@ import {
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
+import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 
 interface SemiCircleYesPercentageProps {
@@ -151,7 +150,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
@@ -188,15 +187,12 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigateToBuyPreview(
-          {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint: resolvedEntryPoint,
-          },
-          { throughRoot: true },
-        );
+        openBuySheet({
+          market,
+          outcome,
+          outcomeToken: token,
+          entryPoint: resolvedEntryPoint,
+        });
       },
       {
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,

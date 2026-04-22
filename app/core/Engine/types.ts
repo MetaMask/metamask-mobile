@@ -303,6 +303,11 @@ import {
   MoneyAccountControllerState,
 } from '@metamask/money-account-controller';
 import {
+  MoneyAccountBalanceService,
+  MoneyAccountBalanceServiceActions,
+  MoneyAccountBalanceServiceEvents,
+} from '@metamask/money-account-balance-service';
+import {
   GeolocationController,
   GeolocationControllerState,
   GeolocationControllerActions,
@@ -424,6 +429,12 @@ import {
   AiDigestControllerEvents,
   AiDigestControllerState,
 } from '@metamask/ai-controllers';
+import {
+  ClientController,
+  ClientControllerActions,
+  ClientControllerEvents,
+  ClientControllerState,
+} from '@metamask/client-controller';
 import {
   SocialController,
   SocialService,
@@ -548,11 +559,13 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | MoneyAccountControllerActions
+  | MoneyAccountBalanceServiceActions
   | GeolocationControllerActions
   | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
   | CardControllerActions
+  | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
   | AppMetadataControllerActions
@@ -633,10 +646,12 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | MoneyAccountControllerEvents
+  | MoneyAccountBalanceServiceEvents
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
   | CardControllerEvents
+  | ClientControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
@@ -761,11 +776,13 @@ export type MessengerClients = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   MoneyAccountController: MoneyAccountController;
+  MoneyAccountBalanceService: MoneyAccountBalanceService;
   GeolocationController: GeolocationController;
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
   CardController: CardController;
+  ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
@@ -852,6 +869,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -926,6 +944,7 @@ export type MessengerClientsToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
+  | 'MoneyAccountBalanceService'
   | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
@@ -958,6 +977,7 @@ export type MessengerClientsToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'CardController'
+  | 'ClientController'
   | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
@@ -1024,11 +1044,11 @@ export type MessengerClientInitRequest<
 
   /**
    * Retrieve a controller instance by name.
-   * Throws an error if the controller is not yet initialized.
+   * Throws an error if the messenger client is not yet initialized.
    *
-   * @param name - The name of the controller to retrieve.
+   * @param name - The name of the messenger client to retrieve.
    */
-  getController<Name extends MessengerClientName>(
+  getMessengerClient<Name extends MessengerClientName>(
     name: Name,
   ): MessengerClientsByName[Name];
 

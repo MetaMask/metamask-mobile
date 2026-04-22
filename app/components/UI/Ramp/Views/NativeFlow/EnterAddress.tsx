@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -10,7 +10,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/EnterAddress/EnterAddress.styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -50,7 +50,7 @@ interface V2EnterAddressParams {
 
 const V2EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData } = useParams<V2EnterAddressParams>();
   const { patchUser } = useTransakController();
   const { userRegion } = useRampsUserRegion();
@@ -180,15 +180,9 @@ const V2EnterAddress = (): JSX.Element => {
     [formData, handleFormDataChange],
   );
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.enter_address.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
@@ -236,6 +230,12 @@ const V2EnterAddress = (): JSX.Element => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={strings('deposit.enter_address.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}

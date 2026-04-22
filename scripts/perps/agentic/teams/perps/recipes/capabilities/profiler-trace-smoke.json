@@ -1,0 +1,77 @@
+{
+  "title": "Capability: Hermes sampling profiler trace",
+  "description": "Proof recipe for mobile trace capture. Exercises trace_start -> bounded navigation workload -> trace_stop, asserting the Chrome-compatible .cpuprofile artifact is written and non-empty. This is the mobile mirror of extension's trace_start/trace_stop capability, backed by the Hermes Profiler domain over CDP. Artifact path is under artifacts.tracesDir (see ensureRunArtifacts in validate-recipe.js).",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
+      "setup": [
+        {
+          "id": "setup-complete-tutorial",
+          "action": "eval_sync",
+          "expression": "(function(){try{Engine.context.PerpsController.markTutorialCompleted()}catch(e){}return JSON.stringify({done:true})})()",
+          "assert": { "operator": "eq", "field": "done", "value": true }
+        }
+      ],
+      "entry": "ensure-testnet",
+      "nodes": {
+        "ensure-testnet": {
+          "action": "call",
+          "ref": "setup-testnet",
+          "next": "nav-perps"
+        },
+        "nav-perps": {
+          "action": "navigate",
+          "target": "PerpsHomeView",
+          "next": "wait-markets"
+        },
+        "wait-markets": {
+          "action": "wait_for",
+          "test_id": "perps-market-row-item-ETH",
+          "timeout_ms": 20000,
+          "next": "start-trace"
+        },
+        "start-trace": {
+          "action": "trace_start",
+          "label": "perps-nav-smoke",
+          "assert": { "operator": "eq", "field": "started", "value": true },
+          "next": "press-market"
+        },
+        "press-market": {
+          "action": "press",
+          "test_id": "perps-market-row-item-ETH",
+          "next": "wait-detail"
+        },
+        "wait-detail": {
+          "action": "wait_for",
+          "route": "PerpsMarketDetails",
+          "timeout_ms": 15000,
+          "next": "stop-trace"
+        },
+        "stop-trace": {
+          "action": "trace_stop",
+          "label": "perps-nav-smoke",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "ok", "value": true },
+              { "operator": "gt", "field": "sizeBytes", "value": 0 },
+              { "operator": "not_null", "field": "path" }
+            ]
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass",
+          "message": "Mobile Hermes sampling profiler trace captured as Chrome-compatible .cpuprofile"
+        }
+      },
+      "teardown": [
+        {
+          "id": "teardown-nav-home",
+          "action": "navigate",
+          "target": "PerpsHomeView"
+        }
+      ]
+    }
+  }
+}

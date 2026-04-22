@@ -122,13 +122,13 @@ const CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minut
 const ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaign leaderboard position cache threshold
-const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Campaign portfolio position cache threshold
-const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Campaign deposits cache threshold
-const ONDO_CAMPAIGN_DEPOSITS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_DEPOSITS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache

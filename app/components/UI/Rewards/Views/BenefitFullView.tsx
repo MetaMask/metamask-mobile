@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -36,6 +37,8 @@ const BenefitFullView = () => {
   const route = useRoute<BenefitFullViewRouteProp>();
   const { benefit } = route.params;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+
+  useTrackRewardsPageView({ page_type: 'benefit_detail' });
 
   useEffect(() => {
     if (!subscriptionId) return;

@@ -402,15 +402,16 @@ describe('OndoCampaignStatsView', () => {
     ).toBeDefined();
   });
 
-  it('shows qualified tag when position is qualified', () => {
+  it('shows check icon when position is qualified', () => {
     mockUseGetOndoLeaderboardPosition.mockReturnValue({
       ...positionDefaults,
       position: makeQualifiedPosition(),
     });
-    const { getByText } = render(<OndoCampaignStatsView />);
+    const { queryByText } = render(<OndoCampaignStatsView />);
     expect(
-      getByText('rewards.ondo_campaign_leaderboard.qualified'),
-    ).toBeDefined();
+      queryByText('rewards.ondo_campaign_leaderboard.qualified'),
+    ).toBeNull();
+    expect(queryByText('rewards.ondo_campaign_leaderboard.pending')).toBeNull();
   });
 
   it('shows error banner when leaderboard fails with no cached data', () => {
@@ -475,49 +476,6 @@ describe('OndoCampaignStatsView', () => {
     ).toBeDefined();
   });
 
-  it('navigates to pending sheet when qualify card is pressed', () => {
-    mockRewardsState.campaigns = [createTestCampaign()];
-    mockUseGetCampaignParticipantStatus.mockReturnValue({
-      status: { optedIn: true, participantCount: 1 },
-      isLoading: false,
-      hasError: false,
-      refetch: jest.fn(),
-    });
-    mockUseGetOndoLeaderboardPosition.mockReturnValue({
-      ...positionDefaults,
-      position: makePendingPosition({
-        projectedTier: 'STARTER',
-        qualifiedDays: 3,
-      }),
-    });
-    const { getByText } = render(<OndoCampaignStatsView />);
-    fireEvent.press(
-      getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'RewardsOndoPendingSheet',
-      expect.objectContaining({ variant: 'own', tier: 'STARTER' }),
-    );
-  });
-
-  it('shows qualified card when position is qualified and tierMinDeposit is set', () => {
-    mockRewardsState.campaigns = [createTestCampaign()];
-    mockUseGetCampaignParticipantStatus.mockReturnValue({
-      status: { optedIn: true, participantCount: 1 },
-      isLoading: false,
-      hasError: false,
-      refetch: jest.fn(),
-    });
-    mockUseGetOndoLeaderboardPosition.mockReturnValue({
-      ...positionDefaults,
-      position: makeQualifiedPosition({ projectedTier: 'MID' }),
-    });
-    const { getByText } = render(<OndoCampaignStatsView />);
-    expect(
-      getByText('rewards.ondo_campaign_stats.qualified_title'),
-    ).toBeDefined();
-  });
-
   describe('ineligible state', () => {
     const makeIneligibleCampaign = (): CampaignDto => {
       const now = new Date();
@@ -578,14 +536,6 @@ describe('OndoCampaignStatsView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides qualify card when ineligible', () => {
-      setupIneligible();
-      const { queryByText } = render(<OndoCampaignStatsView />);
-      expect(
-        queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-      ).toBeNull();
-    });
-
     it('shows dash for rank and tier values when ineligible', () => {
       setupIneligible();
       // position has rank: 8 and projectedTier: 'STARTER' — neither should appear
@@ -631,24 +581,5 @@ describe('OndoCampaignStatsView', () => {
         queryByText('rewards.ondo_campaign_leaderboard.ineligible'),
       ).toBeNull();
     });
-  });
-
-  it('hides qualified card when campaign is complete even if position is qualified', () => {
-    mockGetCampaignStatus.mockReturnValue('complete');
-    mockRewardsState.campaigns = [createTestCampaign()];
-    mockUseGetCampaignParticipantStatus.mockReturnValue({
-      status: { optedIn: true, participantCount: 1 },
-      isLoading: false,
-      hasError: false,
-      refetch: jest.fn(),
-    });
-    mockUseGetOndoLeaderboardPosition.mockReturnValue({
-      ...positionDefaults,
-      position: makeQualifiedPosition({ projectedTier: 'MID' }),
-    });
-    const { queryByText } = render(<OndoCampaignStatsView />);
-    expect(
-      queryByText('rewards.ondo_campaign_stats.qualified_title'),
-    ).toBeNull();
   });
 });

@@ -19553,7 +19553,7 @@ describe('RewardsController', () => {
     });
 
     it('returns cached position when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000;
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
         messenger: mockMessenger,
@@ -19609,7 +19609,7 @@ describe('RewardsController', () => {
           ondoCampaignLeaderboardPositions: {
             [cacheKey]: {
               notFound: true as const,
-              lastFetched: Date.now() - 60000,
+              lastFetched: Date.now() - 30000, // 30 seconds ago (within 1 minute threshold)
             },
           },
         },
@@ -19730,7 +19730,7 @@ describe('RewardsController', () => {
     });
 
     it('returns cached portfolio when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000;
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
         messenger: mockMessenger,
@@ -20059,7 +20059,7 @@ describe('RewardsController', () => {
     });
 
     it('returns cached deposits when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000;
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const state = {
         ...getRewardsControllerDefaultState(),
         ondoCampaignDeposits: {

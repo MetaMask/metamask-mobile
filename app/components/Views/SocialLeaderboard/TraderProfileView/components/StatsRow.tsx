@@ -17,7 +17,7 @@ import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 
 export interface StatsRowProps {
   stats: TraderStats;
-  avgHoldMinutes?: number | null;
+  holdTimeMinutes?: number | null;
 }
 
 function formatHoldTime(minutes: number): string {
@@ -42,7 +42,7 @@ function formatHoldTime(minutes: number): string {
   });
 }
 
-const StatsRow: React.FC<StatsRowProps> = ({ stats, avgHoldMinutes }) => {
+const StatsRow: React.FC<StatsRowProps> = ({ stats, holdTimeMinutes }) => {
   const winRate =
     stats.winRate30d != null
       ? `${Math.round(stats.winRate30d * 100)}%`
@@ -109,14 +109,14 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats, avgHoldMinutes }) => {
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
         >
-          {avgHoldMinutes != null ? formatHoldTime(avgHoldMinutes) : '\u2014'}
+          {holdTimeMinutes != null ? formatHoldTime(holdTimeMinutes) : '\u2014'}
         </Text>
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
         >
-          {strings('social_leaderboard.trader_profile.avg_hold')}
+          {strings('social_leaderboard.trader_profile.hold_time')}
         </Text>
       </Box>
     </Box>

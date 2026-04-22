@@ -5,7 +5,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Text,
@@ -54,15 +54,9 @@ const V2KycProcessing = () => {
   const [isContinueLoading, setIsContinueLoading] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.kyc_processing.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const quoteId = quote?.quoteId;
 
@@ -177,6 +171,12 @@ const V2KycProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderCompactStandard
+            title={strings('deposit.kyc_processing.navbar_title')}
+            onBack={handleHeaderBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
@@ -216,6 +216,12 @@ const V2KycProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderCompactStandard
+            title={strings('deposit.kyc_processing.navbar_title')}
+            onBack={handleHeaderBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
@@ -260,6 +266,12 @@ const V2KycProcessing = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={strings('deposit.kyc_processing.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={3} />
           <View style={styles.container}>

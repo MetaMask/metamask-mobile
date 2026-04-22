@@ -162,6 +162,7 @@ import { userStorageControllerInit } from './controllers/identity/user-storage-c
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
+import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
@@ -181,6 +182,7 @@ import { aiDigestControllerInit } from './controllers/ai-digest-controller-init'
 import { socialServiceInit } from './controllers/social-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
+import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
@@ -317,6 +319,7 @@ export class Engine {
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
         MoneyAccountController: moneyAccountControllerInit,
+        MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
         GeolocationApiService: geolocationApiServiceInit,
         GeolocationController: geolocationControllerInit,
         TokensController: tokensControllerInit,
@@ -363,7 +366,10 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
+        // AssetsController must be initialized before ClientController so it
+        // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
+        ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
@@ -431,6 +437,7 @@ export class Engine {
     const socialService = messengerClientsByName.SocialService;
     const socialController = messengerClientsByName.SocialController;
     const cardController = messengerClientsByName.CardController;
+    const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
 
@@ -586,6 +593,8 @@ export class Engine {
       BridgeStatusController: messengerClientsByName.BridgeStatusController,
       EarnController: earnController,
       MoneyAccountController: moneyAccountController,
+      MoneyAccountBalanceService:
+        messengerClientsByName.MoneyAccountBalanceService,
       GeolocationController: geolocationController,
       DeFiPositionsController: messengerClientsByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
@@ -606,6 +615,7 @@ export class Engine {
       SocialService: socialService,
       SocialController: socialController,
       CardController: cardController,
+      ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
     };
@@ -1381,6 +1391,7 @@ export default {
       TransactionPayController,
       RampsController,
       AiDigestController,
+      ClientController,
       SocialController,
       ComplianceController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1455,6 +1466,7 @@ export default {
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
       CardController: CardController.state,
+      ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController: AuthenticationController.state,
