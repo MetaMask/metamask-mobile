@@ -76,7 +76,7 @@ export const usePerpsMarketFills = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch historical fills via REST API (limited to last 3 months for performance)
-  const fetchRestFills = useCallback(async () => {
+  const fetchRestFills = useCallback(async (isRefresh = false) => {
     const controller = Engine.context.PerpsController;
     if (!controller) {
       return;
@@ -89,14 +89,17 @@ export const usePerpsMarketFills = ({
 
       // Use time-filtered API to limit data fetched for active traders.
       // Route through the controller so the MarketDataService request-coalesce
-      // layer absorbs rapid market-switch bursts (mobile parity with extension
-      // PR #41917, service-layer variant).
+      // layer absorbs rapid market-switch bursts. Explicit refresh bypasses
+      // the cache so pull-to-refresh hits the network.
       const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
 
-      const fills = await controller.getOrderFills({
-        aggregateByTime: false,
-        startTime,
-      });
+      const fills = await controller.getOrderFills(
+        {
+          aggregateByTime: false,
+          startTime,
+        },
+        { forceRefresh: isRefresh },
+      );
       setRestFills(fills);
     } catch (err) {
       // Get the current account for debugging context
@@ -129,7 +132,7 @@ export const usePerpsMarketFills = ({
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await fetchRestFills();
+      await fetchRestFills(true);
     } finally {
       setIsRefreshing(false);
     }

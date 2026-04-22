@@ -113,7 +113,7 @@ export const usePerpsHomeData = ({
         }
 
         // Route through the controller so the MarketDataService request-coalesce
-        // layer absorbs bursty mounts (mobile parity with extension PR #41917).
+        // layer absorbs bursty mounts.
         const fills = await controller.getOrderFills({
           aggregateByTime: false,
         });

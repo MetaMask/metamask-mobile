@@ -60,7 +60,7 @@ describe('CandleStreamChannel', () => {
 
   // Flush the debounce delay used by connect() → deferConnect() (#28141)
   const flushConnectDebounce = () => jest.advanceTimersByTime(500);
-  // Flush the deferred WS teardown delay (mobile parity with extension PR #41917).
+  // Flush the deferred WS teardown delay.
   const flushTeardownDelay = () =>
     jest.advanceTimersByTime(PERFORMANCE_CONFIG.CandleTeardownDelayMs);
 
@@ -329,7 +329,7 @@ describe('CandleStreamChannel', () => {
 
       unsubscribe2();
       // Teardown is deferred to coalesce rapid market switches — flush the
-      // delay before asserting the WS actually closed (#41917 mobile parity).
+      // delay before asserting the WS actually closed.
       flushTeardownDelay();
       expect(mockUnsubscribe).toHaveBeenCalled();
     });

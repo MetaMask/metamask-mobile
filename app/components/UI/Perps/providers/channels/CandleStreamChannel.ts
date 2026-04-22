@@ -119,7 +119,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   // Timer handles for deferred connect so they can be cancelled on disconnect
   private deferConnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
   // Timer handles for deferred WS teardown; a resubscribe inside the window
-  // cancels the teardown instead of churning the connection (#28141 mobile parity).
+  // cancels the teardown instead of churning the connection.
   private pendingTeardownTimers = new Map<
     string,
     ReturnType<typeof setTimeout>
@@ -151,8 +151,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Cancel a pending deferred teardown for a cacheKey if one is scheduled.
    * Called when a new subscriber arrives for a cacheKey whose WS is still
    * alive in the teardown window — avoids unsubscribe/resubscribe churn
-   * during rapid market switching (mobile parity with metamask-extension
-   * PR #41917's perps-stream-bridge).
+   * during rapid market switching.
    */
   private cancelPendingTeardown(cacheKey: string): boolean {
     const timer = this.pendingTeardownTimers.get(cacheKey);
@@ -275,8 +274,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       ).length;
 
       // Defer WS teardown so a rapid resubscribe (e.g. back-and-forth market
-      // switch) reuses the connection instead of tearing it down and redialing
-      // — reproduces mobile parity with extension PR #41917's 150ms window.
+      // switch) reuses the connection instead of tearing it down and redialing.
       if (remainingForThisKey === 0) {
         // Idempotent: clear any prior teardown for this cacheKey first
         this.cancelPendingTeardown(cacheKey);

@@ -8,9 +8,8 @@ import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 //
 // Lives at the service layer (MarketDataService) rather than per-hook so every
 // current and future caller — hooks, controller, aggregated provider — is
-// deduped automatically. Mirrors the intent of metamask-extension PR #41917
-// activity-page dedup; mobile implementation is centralized instead of
-// scattered because MarketDataService is already a single choke point.
+// deduped automatically. Centralized at MarketDataService because it is
+// already a single choke point.
 
 type CacheEntry<TValue> = {
   value: TValue;

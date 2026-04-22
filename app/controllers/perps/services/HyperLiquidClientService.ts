@@ -4,10 +4,9 @@ import {
   HttpTransport,
   InfoClient,
   SubscriptionClient,
-  WebSocketTransport
-  
+  WebSocketTransport,
 } from '@nktkas/hyperliquid';
-import type {HistoricalOrdersResponse} from '@nktkas/hyperliquid';
+import type { HistoricalOrdersResponse } from '@nktkas/hyperliquid';
 
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
@@ -491,9 +490,9 @@ export class HyperLiquidClientService {
       throw new DOMException('Aborted', 'AbortError');
     }
 
-    // Mobile parity with extension PR #41917 (TAT-2986): coalesce the
-    // candleSnapshot REST so rapid market switching (pass 1 → pass 2 of the
-    // 10-market stress loop) shares one snapshot per (symbol, interval).
+    // Coalesce the candleSnapshot REST so rapid market switching (pass 1 →
+    // pass 2 of the 10-market stress loop) shares one snapshot per
+    // (symbol, interval).
     // Signal is intentionally dropped inside the coalesced fetch — the HL
     // SDK charges weight for any request already sent, and dropping a
     // per-caller abort lets the next caller reuse the in-flight/cached
