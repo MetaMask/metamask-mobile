@@ -1954,7 +1954,7 @@ describe('BridgeView', () => {
       ).toBeNull();
     });
 
-    it('does not show the banner in zero state (no source amount)', () => {
+    it('shows the banner in zero state (no source amount) when destToken has securityData', () => {
       const testState = createBridgeTestState(
         {
           bridgeReducerOverrides: {
@@ -1971,17 +1971,17 @@ describe('BridgeView', () => {
         mockState,
       );
 
-      const { queryByText } = renderScreen(
+      const { getByText } = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
       expect(
-        queryByText(
+        getByText(
           strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
         ),
-      ).toBeNull();
+      ).toBeOnTheScreen();
     });
 
     it('shows the suspicious banner for a Warning type token', () => {

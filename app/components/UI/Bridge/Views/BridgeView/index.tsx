@@ -504,7 +504,7 @@ const BridgeView = () => {
                 })()
               : null}
 
-            {contentMode === 'quote' && tokenWarning
+            {tokenWarning
               ? (() => {
                   const isMalicious =
                     tokenWarning.type === SecurityDataType.Malicious;
