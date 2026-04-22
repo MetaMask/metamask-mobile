@@ -61,6 +61,7 @@ import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import { getSecurityBadgeConfig } from '../../SecurityTrust/utils/securityUtils';
 import {
   Box,
   BoxFlexDirection,
@@ -277,6 +278,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           return;
         }
         handlePerpsAction?.('long');
+      }).finally(() => {
+        // Release the TokenDetailsActions nav lock whenever gate() settles
+        // without navigating (compliance block modal or geo-block tooltip).
+        // Safe no-op if handlePerpsAction navigated since the focus/state
+        // listeners also clear the lock.
+        resetNavigationLockRef.current?.();
       }),
     [gate, isEligible, track, handlePerpsAction],
   );
@@ -295,6 +302,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           return;
         }
         handlePerpsAction?.('short');
+      }).finally(() => {
+        resetNavigationLockRef.current?.();
       }),
     [gate, isEligible, track, handlePerpsAction],
   );
@@ -333,39 +342,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [isMerklClaimingEnabled, token.chainId, token.address],
   );
 
-  const securityBadge = useMemo(() => {
-    switch (securityData?.resultType) {
-      case 'Verified':
-        return {
-          icon: IconName.VerifiedFilled,
-          iconColor: IconColor.PrimaryDefault,
-          label: null,
-          bg: null,
-          textColor: undefined,
-        };
-      case 'Benign':
-        return null;
-      case 'Warning':
-      case 'Spam':
-        return {
-          icon: IconName.Warning,
-          iconColor: IconColor.WarningDefault,
-          label: strings('security_trust.risky'),
-          bg: 'bg-warning-muted',
-          textColor: TextColor.WarningDefault,
-        };
-      case 'Malicious':
-        return {
-          icon: IconName.Danger,
-          iconColor: IconColor.ErrorDefault,
-          label: strings('security_trust.malicious'),
-          bg: 'bg-error-muted',
-          textColor: TextColor.ErrorDefault,
-        };
-      default:
-        return null;
-    }
-  }, [securityData?.resultType]);
+  const securityBadge = useMemo(
+    () => getSecurityBadgeConfig(securityData),
+    [securityData],
+  );
 
   const handleSecurityBadgePress = useCallback(() => {
     if (!securityData?.resultType || securityData.resultType === 'Benign')
