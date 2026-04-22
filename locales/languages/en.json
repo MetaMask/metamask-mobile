@@ -8464,6 +8464,14 @@
     "empty_search_result_state": {
       "title": "No tokens found",
       "description": "We were not able to find this token"
+    },
+    "tabs": {
+      "now": "Now",
+      "macro": "Macro",
+      "rwas": "RWAs",
+      "crypto": "Crypto",
+      "sports": "Sports",
+      "dapps": "Dapps"
     }
   },
   "ota_update_modal": {

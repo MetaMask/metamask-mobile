@@ -183,6 +183,18 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
+  it('renders all tab labels below the search bar', async () => {
+    const { getAllByText } = renderTrendingViewWithRoutes();
+
+    await waitFor(() => {
+      ['Now', 'Macro', 'RWAs', 'Crypto', 'Sports', 'Dapps'].forEach((label) => {
+        const elements = getAllByText(label);
+        expect(elements.length).toBeGreaterThan(0);
+        expect(elements[0]).toBeOnTheScreen();
+      });
+    });
+  });
+
   it('user can search for a trending token from the explore feed', async () => {
     const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
 

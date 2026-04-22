@@ -13,6 +13,8 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
+import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
+import { TabViewProps } from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
@@ -27,6 +29,10 @@ import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunct
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import Section, { RefreshConfig } from './components/Sections/Section';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
+
+const TabView: React.FC<TabViewProps & { children?: React.ReactNode }> = ({
+  children,
+}) => <Box twClassName="flex-1">{children}</Box>;
 
 const curriedSetSectionState =
   (setState: (updater: (prev: Set<SectionId>) => Set<SectionId>) => void) =>
@@ -215,51 +221,59 @@ export const ExploreFeed: React.FC = () => {
         </Box>
 
         {isBasicFunctionalityEnabled ? (
-          <ScrollView
-            testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
-            style={tw.style('flex-1 px-4')}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                tintColor={colors.icon.default}
-                colors={[colors.primary.default]}
-              />
-            }
-          >
-            <QuickActions emptySections={emptySections} />
+          <TabsList tabsListContentTwClassName="px-0 pb-3">
+            <TabView key="now" tabLabel={strings('trending.tabs.now')}>
+              <ScrollView
+                testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
+                style={tw.style('flex-1 px-4')}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    tintColor={colors.icon.default}
+                    colors={[colors.primary.default]}
+                  />
+                }
+              >
+                <QuickActions emptySections={emptySections} />
 
-            {homeSections.map((section) => {
-              // Hide section visually but keep mounted so it can report when data arrives
-              const isHidden = emptySections.has(section.id);
+                {homeSections.map((section) => {
+                  const isHidden = emptySections.has(section.id);
 
-              const sectionComponent = (
-                <Section
-                  sectionId={section.id}
-                  refreshConfig={refreshConfig}
-                  toggleSectionEmptyState={emptyStateCallbacks[section.id]}
-                  toggleSectionLoadingState={noopLoadingState}
-                />
-              );
+                  const sectionComponent = (
+                    <Section
+                      sectionId={section.id}
+                      refreshConfig={refreshConfig}
+                      toggleSectionEmptyState={emptyStateCallbacks[section.id]}
+                      toggleSectionLoadingState={noopLoadingState}
+                    />
+                  );
 
-              return (
-                <Box
-                  key={section.id}
-                  twClassName={isHidden ? 'hidden' : undefined}
-                >
-                  <SectionHeader sectionId={section.id} />
-                  {section.SectionWrapper ? (
-                    <section.SectionWrapper>
-                      {sectionComponent}
-                    </section.SectionWrapper>
-                  ) : (
-                    sectionComponent
-                  )}
-                </Box>
-              );
-            })}
-          </ScrollView>
+                  return (
+                    <Box
+                      key={section.id}
+                      twClassName={isHidden ? 'hidden' : undefined}
+                    >
+                      <SectionHeader sectionId={section.id} />
+                      {section.SectionWrapper ? (
+                        <section.SectionWrapper>
+                          {sectionComponent}
+                        </section.SectionWrapper>
+                      ) : (
+                        sectionComponent
+                      )}
+                    </Box>
+                  );
+                })}
+              </ScrollView>
+            </TabView>
+            <TabView key="macro" tabLabel={strings('trending.tabs.macro')} />
+            <TabView key="rwas" tabLabel={strings('trending.tabs.rwas')} />
+            <TabView key="crypto" tabLabel={strings('trending.tabs.crypto')} />
+            <TabView key="sports" tabLabel={strings('trending.tabs.sports')} />
+            <TabView key="dapps" tabLabel={strings('trending.tabs.dapps')} />
+          </TabsList>
         ) : (
           <BasicFunctionalityEmptyState />
         )}
