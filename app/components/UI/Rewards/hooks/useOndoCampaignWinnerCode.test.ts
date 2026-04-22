@@ -99,4 +99,25 @@ describe('useOndoCampaignWinnerCode', () => {
     await waitFor(() => expect(result.current.code).toBe('SECOND'));
     expect(mockCall).toHaveBeenCalledTimes(2);
   });
+
+  it('sets isLoading true while the controller promise is pending', async () => {
+    let resolvePromise: (value: string) => void = () => undefined;
+    const pending = new Promise<string>((resolve) => {
+      resolvePromise = resolve;
+    });
+    mockCall.mockReturnValueOnce(pending);
+
+    const { result } = renderHook(() =>
+      useOndoCampaignWinnerCode('campaign-abc'),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(true));
+    await act(async () => {
+      resolvePromise('LATE');
+    });
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.code).toBe('LATE');
+    });
+  });
 });
