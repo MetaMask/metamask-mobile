@@ -1,15 +1,11 @@
-import {
-  getDeviceIdForAddress,
-  getHardwareWalletTypeForAddress,
-} from './helpers';
+import { getDeviceIdForAddress } from './helpers';
 import { isUserCancellation } from './errors';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 interface ExecuteHardwareWalletOperationOptions {
   address: string;
   operationType: 'transaction' | 'message';
   ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
-  setTargetWalletType?: (walletType: HardwareWalletType | null) => void;
+  setPendingOperationAddress?: (address: string | null) => void;
   showAwaitingConfirmation: (
     operationType: 'transaction' | 'message',
     onReject?: () => void,
@@ -24,12 +20,15 @@ interface ExecuteHardwareWalletOperationOptions {
 /**
  * Run an operation behind the shared hardware-wallet readiness and
  * awaiting-confirmation flow.
+ *
+ * The provider auto-derives the wallet type from the pending address,
+ * so callers only need to supply the address — not the wallet type.
  */
 export async function executeHardwareWalletOperation({
   address,
   operationType,
   ensureDeviceReady,
-  setTargetWalletType,
+  setPendingOperationAddress,
   showAwaitingConfirmation,
   hideAwaitingConfirmation,
   showHardwareWalletError,
@@ -38,7 +37,6 @@ export async function executeHardwareWalletOperation({
   onRejected,
 }: ExecuteHardwareWalletOperationOptions): Promise<boolean> {
   let hasRejected = false;
-  const walletType = getHardwareWalletTypeForAddress(address) ?? null;
 
   const rejectOnce = async () => {
     if (hasRejected) {
@@ -49,9 +47,7 @@ export async function executeHardwareWalletOperation({
     await onRejected?.();
   };
 
-  if (walletType) {
-    setTargetWalletType?.(walletType);
-  }
+  setPendingOperationAddress?.(address);
 
   try {
     const deviceId = await getDeviceIdForAddress(address);
@@ -63,8 +59,6 @@ export async function executeHardwareWalletOperation({
     }
 
     showAwaitingConfirmation(operationType, () => {
-      // The UI callback is synchronous, so swallow async rejection here to
-      // avoid an unhandled promise rejection from caller-provided cleanup.
       rejectOnce().catch(() => undefined);
     });
 
@@ -82,8 +76,6 @@ export async function executeHardwareWalletOperation({
     await rejectOnce();
     return false;
   } finally {
-    if (walletType) {
-      setTargetWalletType?.(null);
-    }
+    setPendingOperationAddress?.(null);
   }
 }
