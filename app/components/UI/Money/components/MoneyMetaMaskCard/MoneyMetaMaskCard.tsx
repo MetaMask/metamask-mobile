@@ -9,6 +9,10 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -22,8 +26,12 @@ import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
 interface MoneyMetaMaskCardProps {
+  /** 'upsell' (default): virtual/metal card rows. 'link': card-linking CTA layout. */
+  mode?: 'upsell' | 'link';
   onGetNowPress?: (cardType: string) => void;
   onHeaderPress?: () => void;
+  /** Called when the "Link card" button is pressed (link mode only). */
+  onLinkPress?: () => void;
 }
 
 const CardRow = ({
@@ -78,9 +86,75 @@ const CardRow = ({
   </Box>
 );
 
+const LinkContent = ({ onLinkPress }: { onLinkPress: () => void }) => (
+  <Box twClassName="gap-3">
+    <Text
+      variant={TextVariant.BodySm}
+      color={TextColor.TextAlternative}
+      testID={MoneyMetaMaskCardTestIds.LINK_SUBTITLE}
+    >
+      {strings('money.metamask_card.link_subtitle')}
+    </Text>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      twClassName="gap-4"
+      testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
+    >
+      <Image
+        source={mmCardMetal}
+        style={styles.cardImage}
+        testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
+      />
+      <Box twClassName="gap-2 flex-1 justify-center">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+          testID={MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK}
+        >
+          <Icon
+            name={IconName.Check}
+            size={IconSize.Sm}
+            color={IconColor.SuccessDefault}
+          />
+          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+            {strings('money.metamask_card.link_bullet_cashback')}
+          </Text>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+          testID={MoneyMetaMaskCardTestIds.LINK_BULLET_APY}
+        >
+          <Icon
+            name={IconName.Check}
+            size={IconSize.Sm}
+            color={IconColor.SuccessDefault}
+          />
+          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+            {strings('money.metamask_card.link_bullet_apy')}
+          </Text>
+        </Box>
+      </Box>
+    </Box>
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      onPress={onLinkPress}
+      testID={MoneyMetaMaskCardTestIds.LINK_BUTTON}
+    >
+      {strings('money.metamask_card.link_card')}
+    </Button>
+  </Box>
+);
+
 const MoneyMetaMaskCard = ({
+  mode = 'upsell',
   onGetNowPress = () => undefined,
   onHeaderPress,
+  onLinkPress,
 }: MoneyMetaMaskCardProps) => {
   const handleVirtualPress = useCallback(
     () => onGetNowPress('virtual'),
@@ -90,6 +164,7 @@ const MoneyMetaMaskCard = ({
     () => onGetNowPress('metal'),
     [onGetNowPress],
   );
+  const handleLinkPress = useCallback(() => onLinkPress?.(), [onLinkPress]);
 
   return (
     <Box
@@ -100,30 +175,33 @@ const MoneyMetaMaskCard = ({
         title={strings('money.metamask_card.title')}
         onPress={onHeaderPress}
       />
-
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Regular}
-        color={TextColor.TextAlternative}
-      >
-        {strings('money.metamask_card.subtitle')}
-      </Text>
-
-      <CardRow
-        imageSource={mmCardRegular}
-        cardName={strings('money.metamask_card.virtual_card')}
-        cashbackPercentage="1"
-        onPress={handleVirtualPress}
-        testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
-      />
-
-      <CardRow
-        imageSource={mmCardMetal}
-        cardName={strings('money.metamask_card.metal_card')}
-        cashbackPercentage="3"
-        onPress={handleMetalPress}
-        testID={MoneyMetaMaskCardTestIds.METAL_CARD_ROW}
-      />
+      {mode === 'link' ? (
+        <LinkContent onLinkPress={handleLinkPress} />
+      ) : (
+        <>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+          >
+            {strings('money.metamask_card.subtitle')}
+          </Text>
+          <CardRow
+            imageSource={mmCardRegular}
+            cardName={strings('money.metamask_card.virtual_card')}
+            cashbackPercentage="1"
+            onPress={handleVirtualPress}
+            testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
+          />
+          <CardRow
+            imageSource={mmCardMetal}
+            cardName={strings('money.metamask_card.metal_card')}
+            cashbackPercentage="3"
+            onPress={handleMetalPress}
+            testID={MoneyMetaMaskCardTestIds.METAL_CARD_ROW}
+          />
+        </>
+      )}
     </Box>
   );
 };
