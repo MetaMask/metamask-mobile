@@ -596,6 +596,42 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [blockingPayAlerts],
   );
 
+  // Track blocking pay-token alerts in analytics when displayed
+  useEffect(() => {
+    if (!hasBlockingPayAlerts || blockingPayAlerts.length === 0) return;
+
+    const payAlert = blockingPayAlerts[0];
+    const alertMessage =
+      typeof payAlert?.message === 'string'
+        ? payAlert.message
+        : (payAlert?.title ?? payAlert?.key ?? 'unknown_blocking_alert');
+
+    track(MetaMetricsEvents.PERPS_ERROR, {
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+        PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: alertMessage,
+      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasBlockingPayAlerts]);
+
+  // Track custom pay-token insufficient balance warning in analytics when displayed
+  useEffect(() => {
+    if (!hasInsufficientPayTokenBalance) return;
+
+    track(MetaMetricsEvents.PERPS_ERROR, {
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+      [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]:
+        PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.INSUFFICIENT_BALANCE,
+      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasInsufficientPayTokenBalance]);
+
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
