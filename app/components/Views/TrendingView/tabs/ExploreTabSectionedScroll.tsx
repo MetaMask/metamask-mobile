@@ -3,7 +3,6 @@ import { ScrollView, RefreshControl } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
-import QuickActions from '../components/QuickActions/QuickActions';
 import SectionHeader from '../components/SectionHeader/SectionHeader';
 import { type SectionConfig, type SectionId } from '../sections.config';
 import Section, { RefreshConfig } from '../components/Sections/Section';
@@ -64,7 +63,7 @@ export type ExploreTabPanelProps = Omit<
 >;
 
 /**
- * Renders quick actions (when the tab has sections) and the section list for one Explore tab.
+ * Renders the section list for one Explore tab.
  * Each tab panel should call one `use*Sections` hook from `sections.config` and pass the result.
  */
 export const ExploreTabSectionedScroll: React.FC<
@@ -83,8 +82,6 @@ export const ExploreTabSectionedScroll: React.FC<
 
   const noopLoadingState = useCallback((_isLoading: boolean) => undefined, []);
 
-  const hasSections = sections.length > 0;
-
   return (
     <ScrollView
       testID={scrollViewTestId}
@@ -99,8 +96,6 @@ export const ExploreTabSectionedScroll: React.FC<
         />
       }
     >
-      {hasSections && <QuickActions emptySections={emptySections} />}
-
       {sections.map((section) => {
         const isHidden = emptySections.has(section.id);
 

@@ -140,16 +140,15 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
 
 /**
  * Centralized configuration for all Trending View sections.
- * This config is used by QuickActions, SectionHeaders, Search, and TrendingView rendering.
+ * This config is used by section headers, search, and TrendingView rendering.
  *
  * To add a new section (EVERYTHING IN THIS FILE):
  * 1. Add the section ID to the SectionId type above
  * 2. Add the config to SECTIONS_CONFIG and wire it in useSectionsData
- * 3. Add the section to the `home` / `quickActions` / `search` orders (feature flag defaults) as needed
+ * 3. Add the section to the `home` / `search` orders (and `quickActions` in the feature flag for API compatibility) as needed
  *
  * The section will automatically appear in:
  * - The **Now** tab (via `useNowSections` / `DEFAULT_HOME_ORDER`) and other tab hooks when you list them
- * - QuickActions buttons
  * - Search results
  * - Section headers with "View All" navigation
  */
@@ -414,13 +413,6 @@ const DEFAULT_HOME_ORDER: SectionId[] = [
   SECTIONS_CONFIG.stocks.id,
   SECTIONS_CONFIG.sites.id,
 ];
-const DEFAULT_QUICK_ACTIONS_ORDER: SectionId[] = [
-  SECTIONS_CONFIG.tokens.id,
-  SECTIONS_CONFIG.perps.id,
-  SECTIONS_CONFIG.stocks.id,
-  SECTIONS_CONFIG.predictions.id,
-  SECTIONS_CONFIG.sites.id,
-];
 const DEFAULT_SEARCH_ORDER: SectionId[] = [
   SECTIONS_CONFIG.tokens.id,
   SECTIONS_CONFIG.perps.id,
@@ -468,22 +460,6 @@ export const useRwasSections = useEmptyExploreTabSections;
 export const useCryptoSections = useEmptyExploreTabSections;
 export const useSportsSections = useEmptyExploreTabSections;
 export const useDappsSections = useEmptyExploreTabSections;
-
-export const useQuickActionsSectionsArray = (): (SectionConfig & {
-  id: SectionId;
-})[] => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const orderConfig = useSelector(selectExploreSectionsOrder);
-
-  return useMemo(
-    () =>
-      buildSections(
-        orderConfig?.quickActions ?? DEFAULT_QUICK_ACTIONS_ORDER,
-        isPerpsEnabled,
-      ),
-    [isPerpsEnabled, orderConfig],
-  );
-};
 
 export const useSearchSectionsArray = (): (SectionConfig & {
   id: SectionId;

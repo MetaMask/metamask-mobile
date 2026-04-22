@@ -13,7 +13,7 @@ export interface SectionHeaderProps {
  * All configuration is pulled from sections.config.tsx based on the sectionId.
  *
  * This component is part of the centralized section management system that ensures
- * consistency between QuickActions buttons and section "View All" buttons.
+ * section "View All" uses the same navigation as defined in the section config.
  */
 const TrendingSectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
   const navigation = useNavigation<AppNavigationProp>();

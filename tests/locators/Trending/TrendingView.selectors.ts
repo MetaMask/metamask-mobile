@@ -12,8 +12,6 @@ export const TrendingViewSelectorsIDs = {
   SITE_ROW_ITEM_PREFIX: 'site-row-item-',
   SEARCH_FOOTER_SEARCH_LINK: 'trending-search-footer-search-link',
   SCROLL_VIEW: AppTrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW,
-  QUICK_ACTIONS_SCROLL_VIEW:
-    AppTrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW,
   SEARCH_RESULTS_LIST: 'trending-search-results-list',
   VIEW_ALL_BUTTON_PREFIX: 'section-header-view-all-',
 } as const;

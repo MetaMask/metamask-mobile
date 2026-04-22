@@ -151,54 +151,6 @@ class TrendingView {
     return sectionIdMap[sectionTitle] || sectionTitle.toLowerCase();
   }
 
-  /**
-   * Get QuickAction button element for a section
-   */
-  getQuickActionButton(sectionTitle: string): DetoxElement {
-    const sectionId = this.getSectionId(sectionTitle);
-    return Matchers.getElementByID(`quick-action-${sectionId}`);
-  }
-
-  /**
-   * Scroll horizontally to make QuickAction button visible
-   */
-  private async scrollToQuickAction(
-    targetElement: DetoxElement,
-    description: string,
-  ): Promise<void> {
-    await Gestures.scrollToElement(
-      targetElement,
-      Matchers.getIdentifier(
-        TrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW,
-      ),
-      {
-        direction: 'right',
-        scrollAmount: 200,
-        elemDescription: description,
-        startPositionX: 0.5,
-        startPositionY: 0,
-      },
-    );
-  }
-
-  /**
-   * Tap on QuickAction button (buttons below search bar)
-   */
-  async tapQuickAction(sectionTitle: string): Promise<void> {
-    const quickActionButton = this.getQuickActionButton(sectionTitle);
-
-    // Scroll horizontally if needed to make the button visible
-    await this.scrollToQuickAction(
-      quickActionButton,
-      `Scroll to ${sectionTitle} QuickAction button`,
-    );
-
-    await Gestures.tap(quickActionButton, {
-      elemDescription: `Tap QuickAction button for ${sectionTitle}`,
-      checkStability: true, // Wait for element to stop moving after horizontal scroll
-    });
-  }
-
   async tapViewAll(sectionTitle: string): Promise<void> {
     const id = this.getSectionId(sectionTitle);
     const viewAllButton = Matchers.getElementByID(
