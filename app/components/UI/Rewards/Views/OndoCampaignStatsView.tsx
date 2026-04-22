@@ -189,9 +189,9 @@ const OndoCampaignStatsView: React.FC = () => {
   const navigateToWinningView = useCallback(() => {
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
       campaignId,
-      campaignName: campaign?.name ?? '',
+      campaignName: campaign?.name ?? routeCampaignName ?? '',
     });
-  }, [navigation, campaignId, campaign]);
+  }, [navigation, campaignId, campaign, routeCampaignName]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignStatsView">

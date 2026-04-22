@@ -448,7 +448,7 @@ describe('OndoCampaignStatsView', () => {
       Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
       {
         campaignId: 'campaign-ondo-123',
-        campaignName: '',
+        campaignName: 'From Route Only',
       },
     );
   });
