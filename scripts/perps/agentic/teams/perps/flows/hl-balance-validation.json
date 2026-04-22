@@ -1,233 +1,233 @@
 {
-  "title": "HL balance validation — phase={{phaseLabel}} expectedMode={{expectedMode}}",
-  "description": "Captures and asserts the three balance readouts the TAT-3016 hotfix touches: (1) PerpsController.state.accountState (availableBalance vs availableToTradeBalance), (2) PerpsMarketDetails balance text (perps-market-available-balance-text — gates order-entry Long/Add-Funds CTA), (3) PerpsWithdraw balance text (perps-withdraw-available-balance-text — must show availableBalance only, never the spot fold). Screenshots per screen tagged with phaseLabel for reviewer before/after comparison. Fold invariant (trade >= avail) is asserted unconditionally. expectedMode='unified' additionally asserts the fold amount is non-trivial when spot USDC is present; expectedMode='standard' asserts withdrawable==availableBalance (no leak from fold into the withdrawable path).",
-  "inputs": {
-    "expectedMode": {
-      "type": "string",
-      "default": "unified",
-      "description": "HL abstraction mode expected in this phase: 'unified' or 'standard'"
+    "title": "HL balance validation — phase={{phaseLabel}} expectedMode={{expectedMode}}",
+    "description": "Captures and asserts the three balance readouts the TAT-3016 hotfix touches: (1) PerpsController.state.accountState (availableBalance vs availableToTradeBalance), (2) PerpsMarketDetails balance text (perps-market-available-balance-text — gates order-entry Long/Add-Funds CTA), (3) PerpsWithdraw balance text (perps-withdraw-available-balance-text — must show availableBalance only, never the spot fold). Screenshots per screen tagged with phaseLabel for reviewer before/after comparison. Fold invariant (trade >= avail) is asserted unconditionally. expectedMode='unified' additionally asserts the fold amount is non-trivial when spot USDC is present; expectedMode='standard' asserts withdrawable==availableBalance (no leak from fold into the withdrawable path).",
+    "inputs": {
+      "expectedMode": {
+        "type": "string",
+        "default": "unified",
+        "description": "HL abstraction mode expected in this phase: 'unified' or 'standard'"
+      },
+      "phaseLabel": {
+        "type": "string",
+        "default": "phase",
+        "description": "Short label used in screenshot filenames and trace annotations (e.g. 'initial-unified', 'after-flip-standard', 'restored-unified')"
+      }
     },
-    "phaseLabel": {
-      "type": "string",
-      "default": "phase",
-      "description": "Short label used in screenshot filenames and trace annotations (e.g. 'initial-unified', 'after-flip-standard', 'restored-unified')"
-    }
-  },
-  "validate": {
-    "workflow": {
-      "pre_conditions": [
-        "wallet.unlocked",
-        "perps.feature_enabled"
-      ],
-      "entry": "refresh-state",
-      "nodes": {
-        "refresh-state": {
-          "action": "eval_async",
-          "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({ok:true,availableBalance:r.availableBalance,availableToTradeBalance:r.availableToTradeBalance,totalBalance:r.totalBalance,phase:'{{phaseLabel}}'})}).catch(function(e){return JSON.stringify({ok:false,error:String(e),phase:'{{phaseLabel}}'})})",
-          "assert": { "operator": "eq", "field": "ok", "value": true },
-          "timeout_ms": 20000,
-          "next": "capture-controller-state"
-        },
-        "capture-controller-state": {
-          "action": "eval_ref",
-          "ref": "perps/hl-fixture-state",
-          "assert": {
-            "operator": "not_null",
-            "field": "availableToTradeBalance"
+    "validate": {
+      "workflow": {
+        "pre_conditions": [
+          "wallet.unlocked",
+          "perps.feature_enabled"
+        ],
+        "entry": "refresh-state",
+        "nodes": {
+          "refresh-state": {
+            "action": "eval_async",
+            "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({ok:true,availableBalance:r.availableBalance,availableToTradeBalance:r.availableToTradeBalance,totalBalance:r.totalBalance,phase:'{{phaseLabel}}'})}).catch(function(e){return JSON.stringify({ok:false,error:String(e),phase:'{{phaseLabel}}'})})",
+            "assert": { "operator": "eq", "field": "ok", "value": true },
+            "timeout_ms": 20000,
+            "next": "capture-controller-state"
           },
-          "next": "assert-fold-invariant"
-        },
-        "assert-fold-invariant": {
-          "action": "eval_sync",
-          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,spotFold:spotFold,foldInvariant:trade>=avail,phase:'{{phaseLabel}}'})})()",
-          "assert": {
-            "operator": "eq",
-            "field": "foldInvariant",
-            "value": true
-          },
-          "next": "nav-market-list"
-        },
-        "nav-market-list": {
-          "action": "navigate",
-          "target": "PerpsMarketListView",
-          "next": "wait-market-list"
-        },
-        "wait-market-list": {
-          "action": "wait_for",
-          "expression": "(function(){try{var r=globalThis.__AGENTIC__&&globalThis.__AGENTIC__.getRoute();return JSON.stringify({route:r?r.name:'unknown'})}catch(e){return JSON.stringify({route:'unknown'})}})()",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsMarketListView"
-          },
-          "timeout_ms": 15000,
-          "next": "settle-market-list"
-        },
-        "settle-market-list": {
-          "action": "wait_for",
-          "expression": "(function(){var a=globalThis.__AGENTIC__;var mounted=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-market-available-balance-text'));return JSON.stringify({mounted:mounted})})()",
-          "assert": { "operator": "eq", "field": "mounted", "value": true },
-          "timeout_ms": 15000,
-          "next": "capture-market-list-balance"
-        },
-        "capture-market-list-balance": {
-          "action": "eval_sync",
-          "expression": "(function(){try{var a=globalThis.__AGENTIC__;var display=a&&a.getTextByTestId('perps-market-available-balance-text')||'';var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var tradeFloor=Math.floor(trade);var tradeStr=tradeFloor.toString();var mentionsTrade=display.length>0&&(display.indexOf(tradeStr)>=0||display.indexOf('$0')>=0&&trade<1);return JSON.stringify({display:display,availableToTradeBalance:trade,displayMatchesTradeBalance:mentionsTrade,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
-          "assert": {
-            "operator": "not_null",
-            "field": "display"
-          },
-          "next": "screenshot-market-list"
-        },
-        "screenshot-market-list": {
-          "action": "screenshot",
-          "filename": "tat3016-{{phaseLabel}}-market-list.png",
-          "next": "nav-withdraw"
-        },
-        "nav-withdraw": {
-          "action": "navigate",
-          "target": "PerpsWithdraw",
-          "next": "wait-withdraw"
-        },
-        "wait-withdraw": {
-          "action": "wait_for",
-          "expression": "(function(){try{var r=globalThis.__AGENTIC__&&globalThis.__AGENTIC__.getRoute();return JSON.stringify({route:r?r.name:'unknown'})}catch(e){return JSON.stringify({route:'unknown'})}})()",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsWithdraw"
-          },
-          "timeout_ms": 15000,
-          "next": "settle-withdraw"
-        },
-        "settle-withdraw": {
-          "action": "wait_for",
-          "expression": "(function(){var a=globalThis.__AGENTIC__;var mounted=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-withdraw-available-balance-text'));return JSON.stringify({mounted:mounted})})()",
-          "assert": { "operator": "eq", "field": "mounted", "value": true },
-          "timeout_ms": 15000,
-          "next": "capture-withdraw-balance"
-        },
-        "capture-withdraw-balance": {
-          "action": "eval_sync",
-          "expression": "(function(){try{var a=globalThis.__AGENTIC__;var display=a&&a.getTextByTestId('perps-withdraw-available-balance-text')||'';var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var availFloor=Math.floor(avail);var availStr=availFloor.toString();var mentionsAvail=display.length>0&&(display.indexOf(availStr)>=0||(avail<1&&display.indexOf('$0')>=0));var leaksFold=trade>avail+0.5&&display.indexOf(Math.floor(trade).toString())>=0;return JSON.stringify({display:display,availableBalance:avail,availableToTradeBalance:trade,displayMatchesWithdrawable:mentionsAvail,displayLeaksFold:leaksFold,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
-          "assert": {
-            "all": [
-              { "operator": "eq", "field": "displayMatchesWithdrawable", "value": true },
-              { "operator": "eq", "field": "displayLeaksFold", "value": false }
-            ]
-          },
-          "next": "screenshot-withdraw"
-        },
-        "screenshot-withdraw": {
-          "action": "screenshot",
-          "filename": "tat3016-{{phaseLabel}}-withdraw.png",
-          "next": "nav-market-details"
-        },
-        "nav-market-details": {
-          "action": "navigate",
-          "target": "PerpsMarketDetails",
-          "params": {
-            "market": {
-              "symbol": "BTC",
-              "name": "BTC",
-              "price": "0",
-              "change24h": "0",
-              "change24hPercent": "0",
-              "volume": "0",
-              "maxLeverage": "100"
-            }
-          },
-          "next": "wait-long-button"
-        },
-        "wait-long-button": {
-          "action": "wait_for",
-          "expression": "(function(){var a=globalThis.__AGENTIC__;var mounted=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-market-details-long-button'));return JSON.stringify({mounted:mounted})})()",
-          "assert": { "operator": "eq", "field": "mounted", "value": true },
-          "timeout_ms": 15000,
-          "next": "press-long"
-        },
-        "press-long": {
-          "action": "press",
-          "test_id": "perps-market-details-long-button",
-          "next": "wait-order-form"
-        },
-        "wait-order-form": {
-          "action": "wait_for",
-          "expression": "(function(){var a=globalThis.__AGENTIC__;var btn=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-order-view-place-order-button'));var payWith=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('pay-with-symbol'));return JSON.stringify({placeOrderMounted:btn,payWithMounted:payWith,ready:btn&&payWith})})()",
-          "assert": { "operator": "eq", "field": "ready", "value": true },
-          "timeout_ms": 15000,
-          "next": "capture-order-form"
-        },
-        "capture-order-form": {
-          "action": "eval_sync",
-          "expression": "(function(){try{var a=globalThis.__AGENTIC__;var paySymbol=a&&a.getTextByTestId('pay-with-symbol')||'';var placeOrderMounted=!!(a&&a.findFiberByTestId('perps-order-view-place-order-button'));var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var expectsPerpsBalance=trade>0;var paysWithPerps=paySymbol.toLowerCase().indexOf('perps')>=0;return JSON.stringify({paySymbol:paySymbol,paysWithPerpsBalance:paysWithPerps,placeOrderButtonMounted:placeOrderMounted,defaultsCorrectly:expectsPerpsBalance?paysWithPerps:true,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
-          "assert": {
-            "all": [
-              { "operator": "eq", "field": "defaultsCorrectly", "value": true },
-              { "operator": "eq", "field": "placeOrderButtonMounted", "value": true }
-            ]
-          },
-          "next": "screenshot-order-form"
-        },
-        "screenshot-order-form": {
-          "action": "screenshot",
-          "filename": "tat3016-{{phaseLabel}}-order-form.png",
-          "next": "back-to-wallet"
-        },
-        "back-to-wallet": {
-          "action": "navigate",
-          "target": "Wallet",
-          "next": "mode-switch"
-        },
-        "mode-switch": {
-          "action": "switch",
-          "cases": [
-            {
-              "label": "expect-unified",
-              "when": {
-                "operator": "eq",
-                "field": "inputs.expectedMode",
-                "value": "unified"
-              },
-              "next": "assert-unified-shape"
+          "capture-controller-state": {
+            "action": "eval_ref",
+            "ref": "perps/hl-fixture-state",
+            "assert": {
+              "operator": "not_null",
+              "field": "availableToTradeBalance"
             },
-            {
-              "label": "expect-standard",
-              "when": {
-                "operator": "eq",
-                "field": "inputs.expectedMode",
-                "value": "standard"
+            "next": "assert-fold-invariant"
+          },
+          "assert-fold-invariant": {
+            "action": "eval_sync",
+            "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,spotFold:spotFold,foldInvariant:trade>=avail,phase:'{{phaseLabel}}'})})()",
+            "assert": {
+              "operator": "eq",
+              "field": "foldInvariant",
+              "value": true
+            },
+            "next": "nav-market-list"
+          },
+          "nav-market-list": {
+            "action": "navigate",
+            "target": "PerpsMarketListView",
+            "next": "wait-market-list"
+          },
+          "wait-market-list": {
+            "action": "wait_for",
+            "expression": "(function(){try{var r=globalThis.__AGENTIC__&&globalThis.__AGENTIC__.getRoute();return JSON.stringify({route:r?r.name:'unknown'})}catch(e){return JSON.stringify({route:'unknown'})}})()",
+            "assert": {
+              "operator": "eq",
+              "field": "route",
+              "value": "PerpsMarketListView"
+            },
+            "timeout_ms": 15000,
+            "next": "settle-market-list"
+          },
+          "settle-market-list": {
+            "action": "wait_for",
+            "expression": "(function(){var a=globalThis.__AGENTIC__;var mounted=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-market-available-balance-text'));return JSON.stringify({mounted:mounted})})()",
+            "assert": { "operator": "eq", "field": "mounted", "value": true },
+            "timeout_ms": 15000,
+            "next": "capture-market-list-balance"
+          },
+          "capture-market-list-balance": {
+            "action": "eval_sync",
+            "expression": "(function(){try{var a=globalThis.__AGENTIC__;var display=a&&a.getTextByTestId('perps-market-available-balance-text')||'';var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var tradeFloor=Math.floor(trade);var tradeStr=tradeFloor.toString();var mentionsTrade=display.length>0&&(display.indexOf(tradeStr)>=0||display.indexOf('$0')>=0&&trade<1);return JSON.stringify({display:display,availableToTradeBalance:trade,displayMatchesTradeBalance:mentionsTrade,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
+            "assert": {
+              "operator": "not_null",
+              "field": "display"
+            },
+            "next": "screenshot-market-list"
+          },
+          "screenshot-market-list": {
+            "action": "screenshot",
+            "filename": "tat3016-{{phaseLabel}}-market-list.png",
+            "next": "nav-withdraw"
+          },
+          "nav-withdraw": {
+            "action": "navigate",
+            "target": "PerpsWithdraw",
+            "next": "wait-withdraw"
+          },
+          "wait-withdraw": {
+            "action": "wait_for",
+            "expression": "(function(){try{var r=globalThis.__AGENTIC__&&globalThis.__AGENTIC__.getRoute();return JSON.stringify({route:r?r.name:'unknown'})}catch(e){return JSON.stringify({route:'unknown'})}})()",
+            "assert": {
+              "operator": "eq",
+              "field": "route",
+              "value": "PerpsWithdraw"
+            },
+            "timeout_ms": 15000,
+            "next": "settle-withdraw"
+          },
+          "settle-withdraw": {
+            "action": "wait_for",
+            "expression": "(function(){var a=globalThis.__AGENTIC__;var mounted=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-withdraw-available-balance-text'));return JSON.stringify({mounted:mounted})})()",
+            "assert": { "operator": "eq", "field": "mounted", "value": true },
+            "timeout_ms": 15000,
+            "next": "capture-withdraw-balance"
+          },
+          "capture-withdraw-balance": {
+            "action": "eval_sync",
+            "expression": "(function(){try{var a=globalThis.__AGENTIC__;var display=a&&a.getTextByTestId('perps-withdraw-available-balance-text')||'';var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var availFloor=Math.floor(avail);var availStr=availFloor.toString();var mentionsAvail=display.length>0&&(display.indexOf(availStr)>=0||(avail<1&&display.indexOf('$0')>=0));var leaksFold=trade>avail+0.5&&display.indexOf(Math.floor(trade).toString())>=0;return JSON.stringify({display:display,availableBalance:avail,availableToTradeBalance:trade,displayMatchesWithdrawable:mentionsAvail,displayLeaksFold:leaksFold,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
+            "assert": {
+              "all": [
+                { "operator": "eq", "field": "displayMatchesWithdrawable", "value": true },
+                { "operator": "eq", "field": "displayLeaksFold", "value": false }
+              ]
+            },
+            "next": "screenshot-withdraw"
+          },
+          "screenshot-withdraw": {
+            "action": "screenshot",
+            "filename": "tat3016-{{phaseLabel}}-withdraw.png",
+            "next": "nav-market-details"
+          },
+          "nav-market-details": {
+            "action": "navigate",
+            "target": "PerpsMarketDetails",
+            "params": {
+              "market": {
+                "symbol": "BTC",
+                "name": "BTC",
+                "price": "0",
+                "change24h": "0",
+                "change24hPercent": "0",
+                "volume": "0",
+                "maxLeverage": "100"
+              }
+            },
+            "next": "wait-long-button"
+          },
+          "wait-long-button": {
+            "action": "wait_for",
+            "expression": "(function(){var a=globalThis.__AGENTIC__;var mounted=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-market-details-long-button'));return JSON.stringify({mounted:mounted})})()",
+            "assert": { "operator": "eq", "field": "mounted", "value": true },
+            "timeout_ms": 15000,
+            "next": "press-long"
+          },
+          "press-long": {
+            "action": "press",
+            "test_id": "perps-market-details-long-button",
+            "next": "wait-order-form"
+          },
+          "wait-order-form": {
+            "action": "wait_for",
+            "expression": "(function(){var a=globalThis.__AGENTIC__;var btn=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-order-view-place-order-button'));var payWith=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('pay-with-symbol'));return JSON.stringify({placeOrderMounted:btn,payWithMounted:payWith,ready:btn&&payWith})})()",
+            "assert": { "operator": "eq", "field": "ready", "value": true },
+            "timeout_ms": 15000,
+            "next": "capture-order-form"
+          },
+          "capture-order-form": {
+            "action": "eval_sync",
+            "expression": "(function(){try{var a=globalThis.__AGENTIC__;var paySymbol=a&&a.getTextByTestId('pay-with-symbol')||'';var placeOrderMounted=!!(a&&a.findFiberByTestId('perps-order-view-place-order-button'));var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var expectsPerpsBalance=trade>0;var paysWithPerps=paySymbol.toLowerCase().indexOf('perps')>=0;return JSON.stringify({paySymbol:paySymbol,paysWithPerpsBalance:paysWithPerps,placeOrderButtonMounted:placeOrderMounted,defaultsCorrectly:expectsPerpsBalance?paysWithPerps:true,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
+            "assert": {
+              "all": [
+                { "operator": "eq", "field": "defaultsCorrectly", "value": true },
+                { "operator": "eq", "field": "placeOrderButtonMounted", "value": true }
+              ]
+            },
+            "next": "screenshot-order-form"
+          },
+          "screenshot-order-form": {
+            "action": "screenshot",
+            "filename": "tat3016-{{phaseLabel}}-order-form.png",
+            "next": "back-to-wallet"
+          },
+          "back-to-wallet": {
+            "action": "navigate",
+            "target": "Wallet",
+            "next": "mode-switch"
+          },
+          "mode-switch": {
+            "action": "switch",
+            "cases": [
+              {
+                "label": "expect-unified",
+                "when": {
+                  "operator": "eq",
+                  "field": "inputs.expectedMode",
+                  "value": "unified"
+                },
+                "next": "assert-unified-shape"
               },
-              "next": "assert-standard-shape"
-            }
-          ],
-          "default": "done"
-        },
-        "assert-unified-shape": {
-          "action": "eval_sync",
-          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,spotFold:spotFold,tradeExceedsAvail:trade>=avail,expectedMode:'unified',phase:'{{phaseLabel}}'})})()",
-          "assert": {
-            "operator": "eq",
-            "field": "tradeExceedsAvail",
-            "value": true
+              {
+                "label": "expect-standard",
+                "when": {
+                  "operator": "eq",
+                  "field": "inputs.expectedMode",
+                  "value": "standard"
+                },
+                "next": "assert-standard-shape"
+              }
+            ],
+            "default": "done"
           },
-          "next": "done"
-        },
-        "assert-standard-shape": {
-          "action": "eval_sync",
-          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,spotFold:spotFold,foldInvariant:trade>=avail,standardContract:true,expectedMode:'standard',phase:'{{phaseLabel}}'})})()",
-          "assert": {
-            "operator": "eq",
-            "field": "foldInvariant",
-            "value": true
+          "assert-unified-shape": {
+            "action": "eval_sync",
+            "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,spotFold:spotFold,tradeExceedsAvail:trade>=avail,expectedMode:'unified',phase:'{{phaseLabel}}'})})()",
+            "assert": {
+              "operator": "eq",
+              "field": "tradeExceedsAvail",
+              "value": true
+            },
+            "next": "done"
           },
-          "next": "done"
-        },
-        "done": {
-          "action": "end",
-          "status": "pass"
+          "assert-standard-shape": {
+            "action": "eval_sync",
+            "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,spotFold:spotFold,foldInvariant:trade>=avail,standardContract:true,expectedMode:'standard',phase:'{{phaseLabel}}'})})()",
+            "assert": {
+              "operator": "eq",
+              "field": "foldInvariant",
+              "value": true
+            },
+            "next": "done"
+          },
+          "done": {
+            "action": "end",
+            "status": "pass"
+          }
         }
       }
     }
   }
-}
