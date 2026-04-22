@@ -258,6 +258,32 @@ describe('useQuickBuyBottomSheet', () => {
 
       expect(result.current.usdAmount).toBe('20');
     });
+
+    it('normalizes a leading decimal without digits', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('.');
+      });
+
+      expect(result.current.usdAmount).toBe('0.');
+      expect(result.current.hasValidAmount).toBe(false);
+    });
+
+    it('normalizes a leading decimal with digits', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('.5');
+      });
+
+      expect(result.current.usdAmount).toBe('0.5');
+      expect(result.current.hasValidAmount).toBe(true);
+    });
   });
 
   describe('handlePresetPress', () => {

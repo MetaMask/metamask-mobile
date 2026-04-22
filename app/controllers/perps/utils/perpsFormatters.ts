@@ -522,7 +522,11 @@ export const formatPositionSize = (
 
   // Use asset-specific decimals if provided (Hyperliquid metadata)
   if (szDecimals !== undefined) {
-    return value.toFixed(szDecimals).replace(/\.?0+$/u, '');
+    const fixed = value.toFixed(szDecimals);
+    // Only strip trailing zeros when a decimal point is present; toFixed(0)
+    // returns an integer string and the regex would otherwise eat valid zeros
+    // on whole-unit assets (szDecimals=0), e.g. "100" -> "1".
+    return fixed.includes('.') ? fixed.replace(/\.?0+$/u, '') : fixed;
   }
 
   // Fallback: magnitude-based decimal logic for backwards compatibility
