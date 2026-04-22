@@ -306,6 +306,74 @@ jobs:
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
+      # TEMPORARY: Diagnostic step to inspect trailing whitespace in CI secrets.
+      # GitHub masks raw secret values in logs, so we emit base64 (full or last N bytes)
+      # plus length and hex of the last bytes. Decode locally with: echo '<b64>' | base64 -d | xxd
+      # Remove this step once the offending secrets have been re-saved without trailing whitespace.
+      - name: DEBUG dump secrets (temporary)
+        env:
+          ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
+          ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
+          IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
+          ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
+          MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
+          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+          SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
+          SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
+          SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+        run: |
+          dump_full() {
+            local name="$1"
+            local value="${!name}"
+            if [ -z "$value" ]; then
+              echo "-- $name: <empty or unset>"
+              return
+            fi
+            local len
+            len=$(printf '%s' "$value" | wc -c | tr -d ' ')
+            local b64
+            b64=$(printf '%s' "$value" | base64 | tr -d '\n')
+            local tail_hex
+            tail_hex=$(printf '%s' "$value" | tail -c 8 | xxd -p)
+            echo "-- $name: len=$len"
+            echo "   base64(full): $b64"
+            echo "   hex(last 8 bytes): $tail_hex"
+          }
+
+          dump_last3() {
+            local name="$1"
+            local value="${!name}"
+            if [ -z "$value" ]; then
+              echo "-- $name: <empty or unset>"
+              return
+            fi
+            local len
+            len=$(printf '%s' "$value" | wc -c | tr -d ' ')
+            local tail3_b64
+            tail3_b64=$(printf '%s' "$value" | tail -c 3 | base64 | tr -d '\n')
+            local tail_hex
+            tail_hex=$(printf '%s' "$value" | tail -c 8 | xxd -p)
+            echo "-- $name: len=$len"
+            echo "   base64(last 3 bytes): $tail3_b64"
+            echo "   hex(last 8 bytes): $tail_hex"
+          }
+
+          echo "=== Full-dump secrets ==="
+          dump_full ANDROID_GOOGLE_CLIENT_ID
+          dump_full ANDROID_GOOGLE_SERVER_CLIENT_ID
+          dump_full IOS_GOOGLE_REDIRECT_URI
+          dump_full ANDROID_APPLE_CLIENT_ID
+
+          echo ""
+          echo "=== Last-3-chars secrets ==="
+          dump_last3 MM_CARD_BAANX_API_CLIENT_KEY
+          dump_last3 SEGMENT_WRITE_KEY
+          dump_last3 SEGMENT_PROXY_URL
+          dump_last3 SEGMENT_DELETE_API_SOURCE_ID
+          dump_last3 SEGMENT_REGULATIONS_ENDPOINT
+          dump_last3 MM_INFURA_PROJECT_ID
+
       - name: Validate secrets
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
