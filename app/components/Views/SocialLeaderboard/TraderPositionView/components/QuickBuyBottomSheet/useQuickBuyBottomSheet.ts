@@ -10,6 +10,7 @@ import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import useQuickBuyNativeGasInsufficient from './useQuickBuyNativeGasInsufficient';
 import {
   setSourceAmount,
   setSourceToken,
@@ -187,12 +188,25 @@ export function useQuickBuyBottomSheet(
     isQuoteLoading,
   });
 
-  const hasInsufficientBalance = useIsInsufficientBalance({
+  // The shared `useIsInsufficientBalance` reads quotes from Redux, but QuickBuy
+  // never populates `BridgeController.state.quotes`. Running it with
+  // `ignoreGasFees: true` still covers ERC-20 balance, SOL rent exemption, and
+  // the native-without-gas path. The native-EVM gas-adjusted branch is then
+  // handled by `useQuickBuyNativeGasInsufficient` against the local quote.
+  const hasInsufficientBasicBalance = useIsInsufficientBalance({
     amount: sourceTokenAmount,
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
-    quoteOverride: activeQuote ?? null,
+    ignoreGasFees: true,
   });
+  const hasInsufficientNativeGas = useQuickBuyNativeGasInsufficient({
+    amount: sourceTokenAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    quote: activeQuote,
+  });
+  const hasInsufficientBalance =
+    hasInsufficientBasicBalance || hasInsufficientNativeGas;
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
 

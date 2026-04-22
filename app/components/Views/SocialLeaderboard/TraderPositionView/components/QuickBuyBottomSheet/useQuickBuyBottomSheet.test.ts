@@ -5,6 +5,7 @@ import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import useQuickBuyNativeGasInsufficient from './useQuickBuyNativeGasInsufficient';
 import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
@@ -38,6 +39,11 @@ jest.mock('./useSourceTokenOptions', () => ({
 
 jest.mock('./useQuickBuyQuotes', () => ({
   useQuickBuyQuotes: jest.fn(),
+}));
+
+jest.mock('./useQuickBuyNativeGasInsufficient', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../../../../UI/Bridge/hooks/useRewards', () => ({
@@ -219,6 +225,7 @@ const setupDefaultMocks = () => {
   });
 
   (useIsInsufficientBalance as jest.Mock).mockReturnValue(false);
+  (useQuickBuyNativeGasInsufficient as jest.Mock).mockReturnValue(false);
   (useHasSufficientGas as jest.Mock).mockReturnValue(true);
   (useSubmitBridgeTx as jest.Mock).mockReturnValue({
     submitBridgeTx: mockSubmitBridgeTx,
@@ -302,6 +309,16 @@ describe('useQuickBuyBottomSheet', () => {
 
     it('returns insufficient funds label when source balance is too low', () => {
       (useIsInsufficientBalance as jest.Mock).mockReturnValue(true);
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      expect(result.current.getButtonLabel()).toBe('bridge.insufficient_funds');
+    });
+
+    it('returns insufficient funds label when native-gas adjustment flags the balance', () => {
+      (useQuickBuyNativeGasInsufficient as jest.Mock).mockReturnValue(true);
 
       const { result } = renderHook(() =>
         useQuickBuyBottomSheet(createPosition(), jest.fn()),
