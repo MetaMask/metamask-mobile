@@ -2,7 +2,7 @@
 # Fetch the React Native Playground APK from the connect-monorepo GitHub Releases.
 #
 # Usage:
-#   ./scripts/fetch-rn-playground-apk.sh [--version <version>] [--output <path>]
+#   ./tests/scripts/fetch-rn-playground-apk.sh [--version <version>] [--output <path>]
 #
 # Options:
 #   --version <version>   Pin to a specific release version (e.g., "17.0.0").
