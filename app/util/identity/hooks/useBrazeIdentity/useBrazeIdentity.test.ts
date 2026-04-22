@@ -1,16 +1,22 @@
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useBrazeIdentity } from './useBrazeIdentity';
-import { setBrazeUser, clearBrazeUser } from '../../../../core/Braze';
+import {
+  setBrazeUser,
+  clearBrazeUser,
+  refreshBrazeBanners,
+} from '../../../../core/Braze';
 import { backgroundState } from '../../../test/initial-root-state';
 
 jest.mock('../../../../core/Braze', () => ({
   ...jest.requireActual('../../../../core/Braze'),
   setBrazeUser: jest.fn(),
   clearBrazeUser: jest.fn(),
+  refreshBrazeBanners: jest.fn(),
 }));
 
 const mockSetBrazeUser = jest.mocked(setBrazeUser);
 const mockClearBrazeUser = jest.mocked(clearBrazeUser);
+const mockRefreshBrazeBanners = jest.mocked(refreshBrazeBanners);
 
 const createState = (isSignedIn: boolean) =>
   ({
@@ -48,12 +54,10 @@ describe('useBrazeIdentity', () => {
     expect(mockSetBrazeUser).not.toHaveBeenCalled();
   });
 
-  it('calls refreshBrazeBanners after setBrazeUser resolves when signed in', async () => {
+  it('calls refreshBrazeBanners immediately on sign-in without waiting for setBrazeUser', () => {
     renderHookWithProvider(() => useBrazeIdentity(), {
       state: createState(true),
     });
-
-    await Promise.resolve();
 
     expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(1);
   });
