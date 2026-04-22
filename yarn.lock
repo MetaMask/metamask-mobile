@@ -36150,7 +36150,7 @@ __metadata:
     react-native-background-timer: "npm:2.1.1"
     react-native-ble-plx: "npm:3.4.0"
     react-native-blob-util: "npm:^0.19.9"
-    react-native-branch: "npm:^5.6.2"
+    react-native-branch: "npm:^6.9.0"
     react-native-browser-polyfill: "npm:0.1.2"
     react-native-confetti: "npm:^0.1.0"
     react-native-confetti-cannon: "npm:^1.5.0"
@@ -40533,12 +40533,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-branch@npm:^5.6.2":
-  version: 5.6.2
-  resolution: "react-native-branch@npm:5.6.2"
+"react-native-branch@npm:^6.9.0":
+  version: 6.9.0
+  resolution: "react-native-branch@npm:6.9.0"
   peerDependencies:
     react-native: ">= 0.60"
-  checksum: 10/c233e0a58de9158668e047c9cac8bb92078e5b0d35ac3f943f0f36dabaf95a7ff17424a984ad43822f2cefc539bb332c70c3a15069fbe10726fa1e5f59620a5c
+  checksum: 10/206c5f777a419018d580469a4f81f58537db17680e5eeeae6033489b1a930dddde295ad4f4730aa880b3cd8e1661f000ad9b40e39a4c03261dacb77ec7050183
   languageName: node
   linkType: hard
 

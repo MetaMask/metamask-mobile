@@ -2,7 +2,7 @@ PODS:
   - Base64 (1.1.2)
   - BEMCheckBox (1.4.1)
   - boost (1.84.0)
-  - Branch (1.43.2)
+  - BranchSDK (3.13.3)
   - braze-react-native-sdk (19.1.0):
     - BrazeKit (~> 14.0.1)
     - BrazeLocation (~> 14.0.1)
@@ -1858,8 +1858,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-branch (5.6.2):
-    - Branch (= 1.43.2)
+  - react-native-branch (6.9.0):
+    - BranchSDK (= 3.13.3)
     - React-Core
   - react-native-compat (2.23.4):
     - DoubleConversion
@@ -3187,7 +3187,7 @@ SPEC REPOS:
   trunk:
     - Base64
     - BEMCheckBox
-    - Branch
+    - BranchSDK
     - BrazeKit
     - BrazeLocation
     - BrazeUI
@@ -3543,7 +3543,7 @@ SPEC CHECKSUMS:
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
-  Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
+  BranchSDK: 19a6e97115350db916a57823c7f6ed96d1e70e46
   braze-react-native-sdk: 65cb601695ec808e3739227864bfcb76f67cafaa
   BrazeKit: 737bca0f11642c9d9b962d7eb587e6fe1ce7262c
   BrazeLocation: d3d2055b25d1a0e4ae10b1166a783e959317f0ca
@@ -3641,7 +3641,7 @@ SPEC CHECKSUMS:
   react-native-background-timer: 007ff829f79644caf2ed013e22f0563560336f86
   react-native-ble-plx: d62fdd568ede8051369f8343f5bb9cf737b1c918
   react-native-blob-util: b968f30ac26f1330dd5bd6f62043e25eb4738582
-  react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
+  react-native-branch: a4913fbefeb50b8081f3cf8869ab281308e67a94
   react-native-compat: 05ab1639d30d6fb15a8bea309c96c18f00256af2
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
   react-native-fast-crypto: 6b448866f5310cf203714a21147ef67f735bea8e

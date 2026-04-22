@@ -44,16 +44,24 @@ class MainActivity : ReactActivity() {
         BrazeReactUtils.populateInitialPushPayloadFromIntent(intent)
 
         super.onNewIntent(intent)
+        setIntent(intent)
+
         /*
-         * if activity is in foreground (or in backstack but partially visible) launch the same
-         * activity will skip onStart, handle this case with reInit
-         * if reInit() is called without this flag, you will see the following message:
-         * BRANCH_SDK: Warning. Session initialization already happened.
-         * To force a new session,
-         * set intent extra, "branch_force_new_session", to true.
+         * Only reinit Branch when the caller explicitly flagged the intent with
+         * `branch_force_new_session=true` (intra-app deeplinks, push notifications).
+         *
+         * For external deeplinks on a singleTask activity, Android always calls
+         * onStart() right after onNewIntent(), and our onStart() handler already
+         * calls RNBranchModule.initSession(). Calling reInit() here as well would
+         * cause `branch.subscribe` to fire twice, which in turn opens the same
+         * deeplink twice.
+         *
+         * See: https://help.branch.io/developers-hub/docs/android-basic-integration
          */
-      intent.putExtra("branch_force_new_session", true)
-      RNBranchModule.onNewIntent(intent);
+        if (intent.hasExtra("branch_force_new_session") &&
+            intent.getBooleanExtra("branch_force_new_session", false)) {
+            RNBranchModule.onNewIntent(intent)
+        }
     }
 
     /**
