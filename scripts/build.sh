@@ -222,28 +222,7 @@ remapEnvVariable() {
 		fi
 		return 0
 	fi
-
-	# Defensive trim: strip leading/trailing space/tab/CR/LF before export.
-	# Protects against secrets pasted into Bitrise/GH Actions UIs with stray
-	# trailing newlines (a common footgun that silently breaks OAuth client
-	# IDs, URLs, and API keys baked into the app at build time).
-	# Every value remapped through this function is a token, URL, or ID that
-	# never legitimately contains surrounding whitespace, so trimming is
-	# semantically a no-op for well-formed inputs.
-	local raw_value="${!old_var_name}"
-	local trimmed_value="$raw_value"
-	while [[ "$trimmed_value" == *[$' \t\r\n'] ]]; do
-		trimmed_value="${trimmed_value%?}"
-	done
-	while [[ "$trimmed_value" == [$' \t\r\n']* ]]; do
-		trimmed_value="${trimmed_value#?}"
-	done
-
-	if [ "$trimmed_value" != "$raw_value" ]; then
-		echo "⚠️  Trimmed whitespace from $old_var_name (len ${#raw_value} -> ${#trimmed_value}) while remapping to $new_var_name. Re-save the CI secret without a trailing newline to silence this warning."
-	fi
-
-	export $new_var_name="$trimmed_value"
+	export $new_var_name="${!old_var_name}"
 	unset $old_var_name
 	echo "Successfully remapped $old_var_name to $new_var_name."
 }

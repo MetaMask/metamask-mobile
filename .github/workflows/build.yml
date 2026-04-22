@@ -332,11 +332,6 @@ jobs:
           ALL_SECRETS: ${{ toJSON(secrets) }}
         run: node scripts/set-secrets-from-config.js
 
-      - name: Check for whitespace in applied secrets
-        env:
-          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
-        run: node scripts/check-env-whitespace.js
-
       # Android only: minimal env (SDK is pre-installed on Cirrus runner)
       - name: Set Android environment variables
         if: matrix.platform == 'android'

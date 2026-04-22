@@ -37,33 +37,11 @@ function appendToGithubEnv(name, value) {
 }
 
 Object.entries(secretsMapping).forEach(([envVar, secretName]) => {
-  const rawValue = allSecrets[secretName];
-  if (rawValue === undefined || rawValue === null || rawValue === '') {
+  const value = allSecrets[secretName];
+  if (value) {
+    appendToGithubEnv(envVar, value);
+    console.log(`✓ ${envVar}`);
+  } else {
     console.warn(`⚠ ${secretName} not found (for ${envVar})`);
-    return;
   }
-
-  // Defensive trim: strip leading/trailing whitespace (space, tab, CR, LF) to
-  // protect against GitHub secrets pasted via the web UI or `gh secret set`
-  // with a trailing newline. Every secret mapped through builds.yml is a
-  // token, URL, ID, or base64 payload — none legitimately carry surrounding
-  // whitespace. Internal whitespace/newlines (e.g., line-wrapped base64) is
-  // preserved; base64 -d tolerates interior whitespace.
-  const value = typeof rawValue === 'string' ? rawValue.trim() : rawValue;
-
-  if (value === '') {
-    console.warn(
-      `⚠ ${secretName} is whitespace-only after trim (for ${envVar}). Re-save the CI secret with a real value.`,
-    );
-    return;
-  }
-
-  if (typeof rawValue === 'string' && value.length !== rawValue.length) {
-    console.warn(
-      `⚠ Trimmed whitespace from ${secretName} (len ${rawValue.length} -> ${value.length}) while mapping to ${envVar}. Re-save the CI secret without a trailing newline to silence this warning.`,
-    );
-  }
-
-  appendToGithubEnv(envVar, value);
-  console.log(`✓ ${envVar}`);
 });
