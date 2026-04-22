@@ -16,11 +16,46 @@ import {
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
+import { LEGACY_V2_CLOB_BASE_URL } from '../providers/polymarket/constants';
 import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
   remoteFeatureFlags?: Record<string, unknown>;
   localOverrides?: Record<string, unknown>;
+}
+
+function resolveVersionGatedBooleanFlag(flag: unknown): boolean {
+  return (
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flag),
+    ) ?? false
+  );
+}
+
+function resolvePredictClobV2Flag({
+  predictClobV2Flag,
+  predictClobV2UseLegacyClobHostFlag,
+}: {
+  predictClobV2Flag: unknown;
+  predictClobV2UseLegacyClobHostFlag: unknown;
+}): {
+  enabled: boolean;
+  clobBaseUrl?: string;
+} {
+  const enabled = resolveVersionGatedBooleanFlag(predictClobV2Flag);
+
+  if (!enabled) {
+    return { enabled: false, clobBaseUrl: undefined };
+  }
+
+  return {
+    enabled: true,
+    clobBaseUrl: resolveVersionGatedBooleanFlag(
+      predictClobV2UseLegacyClobHostFlag,
+    )
+      ? LEGACY_V2_CLOB_BASE_URL
+      : undefined,
+  };
 }
 
 /**
@@ -49,11 +84,11 @@ export function resolvePredictFeatureFlags(
     unwrapRemoteFeatureFlag<PredictMarketHighlightsFlag>(
       flags.predictMarketHighlights,
     );
-  const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
-    rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
-  );
   const marketHighlightsFlag =
-    isHighlightsFlagValid && rawMarketHighlightsFlag
+    rawMarketHighlightsFlag &&
+    validatedVersionGatedFeatureFlag(
+      rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
+    )
       ? rawMarketHighlightsFlag
       : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
@@ -65,35 +100,28 @@ export function resolvePredictFeatureFlags(
     DEFAULT_FEE_COLLECTION_FLAG,
   );
 
-  const fakOrdersEnabled =
-    validatedVersionGatedFeatureFlag(
-      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flags.predictFakOrders),
-    ) ?? false;
-
-  const predictWithAnyTokenEnabled =
-    validatedVersionGatedFeatureFlag(
-      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-        flags.predictWithAnyToken,
-      ),
-    ) ?? false;
-
-  const predictUpDownEnabled =
-    validatedVersionGatedFeatureFlag(
-      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flags.predictUpDown),
-    ) ?? false;
-
-  const rawExtendedSportsFlag =
+  const extendedSportsFlag =
     unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
       flags.predictExtendedSportsMarkets,
     ) ?? DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG;
-
-  const isExtendedSportsEnabled = validatedVersionGatedFeatureFlag(
-    rawExtendedSportsFlag,
-  );
-
-  const extendedSportsMarketsLeagues = isExtendedSportsEnabled
-    ? filterSupportedLeagues(rawExtendedSportsFlag.leagues ?? [])
+  const extendedSportsMarketsLeagues = validatedVersionGatedFeatureFlag(
+    extendedSportsFlag,
+  )
+    ? filterSupportedLeagues(extendedSportsFlag.leagues ?? [])
     : [];
+  const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictFakOrders,
+  );
+  const predictWithAnyTokenEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictWithAnyToken,
+  );
+  const predictUpDownEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictUpDown,
+  );
+  const predictClobV2 = resolvePredictClobV2Flag({
+    predictClobV2Flag: flags.predictClobV2,
+    predictClobV2UseLegacyClobHostFlag: flags.predictClobV2UseLegacyClobHost,
+  });
 
   return {
     feeCollection,
@@ -103,5 +131,7 @@ export function resolvePredictFeatureFlags(
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
+    predictClobV2Enabled: predictClobV2.enabled,
+    predictClobV2ClobBaseUrl: predictClobV2.clobBaseUrl,
   };
 }

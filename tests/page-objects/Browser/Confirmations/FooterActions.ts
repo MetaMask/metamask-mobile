@@ -14,7 +14,7 @@ class FooterActions {
     return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
   }
 
-  async tapConfirmButton(): Promise<void> {
+  async tapConfirmButton(timeout?: number): Promise<void> {
     const isAndroid = device.getPlatform() === 'android';
     // Android needs extra delay to avoid element being obscured by bottom toast notifications
     // eslint-disable-next-line no-restricted-syntax
@@ -22,6 +22,7 @@ class FooterActions {
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm button',
       delay: 1800,
+      timeout,
       waitForElementToDisappear: isAndroid,
     });
   }

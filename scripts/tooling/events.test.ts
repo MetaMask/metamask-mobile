@@ -122,6 +122,15 @@ describe('trackEvent', () => {
     expect(runArg.success).toBeNull();
   });
 
+  it('accepts "interrupted" as event_type with null success', () => {
+    trackEvent({ tool_name: 'yarn:test:unit', tool_type: 'yarn_script', event_type: 'interrupted', duration_ms: 5000 });
+
+    const runArg = mockRun.mock.calls[0][0] as Record<string, unknown>;
+    expect(runArg.event_type).toBe('interrupted');
+    expect(runArg.success).toBeNull();
+    expect(runArg.duration_ms).toBe(5000);
+  });
+
   it('JSON-serialises the metadata field', () => {
     trackEvent({
       tool_name: 'test',
