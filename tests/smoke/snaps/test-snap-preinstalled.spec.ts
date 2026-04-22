@@ -8,8 +8,11 @@ import Assertions from '../../framework/Assertions';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import TestHelpers from '../../helpers';
 import { DappVariants } from '../../framework/Constants';
+import { getDappUrlForFixture } from '../../framework/fixtures/FixtureUtils';
 
 jest.setTimeout(150_000);
+
+const localhostOrigin = getDappUrlForFixture(0);
 
 const eventToTrack = 'Test Event';
 
@@ -23,7 +26,32 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
     await withFixtures(
       {
         dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
-        fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
+        fixture: new FixtureBuilder()
+          .withMetaMetricsOptIn()
+          .withPermissionController({
+            subjects: {
+              [localhostOrigin]: {
+                origin: localhostOrigin,
+                permissions: {
+                  wallet_snap: {
+                    id: 'preinstalled-snap-localhost',
+                    parentCapability: 'wallet_snap',
+                    invoker: localhostOrigin,
+                    caveats: [
+                      {
+                        type: 'snapIds',
+                        value: {
+                          'npm:@metamask/preinstalled-example-snap': {},
+                        },
+                      },
+                    ],
+                    date: 1713744000000,
+                  },
+                },
+              },
+            },
+          })
+          .build(),
         restartDevice: true,
         skipReactNativeReload: true,
       },
