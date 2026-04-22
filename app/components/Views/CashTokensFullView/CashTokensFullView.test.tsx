@@ -678,5 +678,31 @@ describe('CashTokensFullView', () => {
       );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
+
+    it('tracks MONEY_HUB_SCREEN_VIEWED when Money Hub flag is enabled', () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+
+      renderWithProvider(<CashTokensFullView />);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MONEY_HUB_SCREEN_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ has_convertible_tokens: false }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('does not track MONEY_HUB_SCREEN_VIEWED when Money Hub flag is disabled', () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+
+      renderWithProvider(<CashTokensFullView />);
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.MONEY_HUB_SCREEN_VIEWED,
+      );
+    });
   });
 });
