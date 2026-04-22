@@ -534,7 +534,8 @@ const rewardsSlice = createSlice({
 
     // Campaigns reducers
     setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
-      state.campaigns = action.payload;
+      // Immer draft typing + nested CampaignDto blows TS recursion; payload is plain JSON from API.
+      state.campaigns = action.payload as unknown as typeof state.campaigns;
       state.campaignsError = false;
       state.campaignsHasLoaded = true;
     },

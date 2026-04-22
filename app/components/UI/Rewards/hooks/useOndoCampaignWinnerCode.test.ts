@@ -4,11 +4,6 @@ import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useOndoCampaignWinnerCode } from './useOndoCampaignWinnerCode';
 
-jest.mock('./__devWinnerMock', () => ({
-  DEV_WINNER_MOCK_ENABLED: false,
-  DEV_MOCK_WINNER_CODE: 'SHOULD_NOT_USE',
-}));
-
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),

@@ -1701,11 +1701,32 @@ export class RewardsDataService {
     return (await response.json()) as OndoGmCampaignDepositsDto;
   }
 
+  /**
+   * Get the current user's winner code for an ended Ondo GM campaign.
+   * Authenticated endpoint: GET /ondo-gm/:campaignId/winner-code/me
+   * Returns plain text (`text/plain`). The API responds with 400 when the
+   * campaign is ineligible (e.g. not ended, wrong type, or user not top 5 in
+   * tier) and 404 when the user is eligible but no code row exists yet.
+   * @param campaignId - The campaign ID (UUID).
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The trimmed winner code from the response body.
+   */
   async getOndoCampaignWinnerCode(
-    _campaignId: string,
-    _subscriptionId: string,
+    campaignId: string,
+    subscriptionId: string,
   ): Promise<string> {
-    // TODO: implement when GET /ondo-gm/:campaignId/winner-code is available
-    return '';
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/winner-code/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Ondo GM campaign winner code failed: ${response.status}`,
+      );
+    }
+
+    return (await response.text()).trim();
   }
 }
