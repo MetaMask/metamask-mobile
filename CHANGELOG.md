@@ -9,17 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.73.0]
 
-### Uncategorized
-
-- fix ota version (#28769)
-- chore:cherry pick 28490 (#28556)
-- chore: cherry pick 28423 (#28540)
-- cherry pick 28368 (#28535)
-- chore: use push EAS directly (#28362)
-- Null (#28510)
-
----
-
 ### Added
 
 - Added runway production workflows (#27887)
