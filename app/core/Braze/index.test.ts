@@ -3,8 +3,11 @@ import {
   clearBrazeUser,
   getBrazePlugin,
   resetBrazePluginForTesting,
+  refreshBrazeBanners,
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
+import Braze from '@braze/react-native-sdk';
+import { BRAZE_BANNER_PLACEMENT_ID } from './constants';
 
 const mockGetSessionProfile = jest.fn();
 const mockSetBrazeProfileId = jest.fn();

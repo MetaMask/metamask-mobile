@@ -1,8 +1,10 @@
+import Braze from '@braze/react-native-sdk';
 import I18n, { I18nEvents } from '../../../locales/i18n';
 import Logger from '../../util/Logger';
 import { isE2E } from '../../util/test/utils';
 import Engine from '../Engine/Engine';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
+import { BRAZE_BANNER_PLACEMENT_ID } from './constants';
 
 let brazePlugin: BrazePlugin | undefined;
 
