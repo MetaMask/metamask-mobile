@@ -63,8 +63,7 @@ import { MONEY_EVENTS_CONSTANTS } from '../../UI/Money/constants/moneyEvents';
 import { getNetworkName } from '../../UI/Earn/utils/network';
 import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
 
-const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS, MONEY_HUB_STATES } =
-  MONEY_EVENTS_CONSTANTS;
+const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 const CashTokensFullView = () => {
