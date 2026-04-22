@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -7,7 +7,6 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -31,96 +30,17 @@ import {
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
-import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
-import type { Hex } from '@metamask/utils';
-import { handleFetch } from '@metamask/controller-utils';
 import { strings } from '../../../../../locales/i18n';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
-import { chainNameToId } from '../utils/chainMapping';
-import {
-  getAssetImageUrl,
-  toAssetId,
-} from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { formatUsd, formatPercent, formatTradeDate } from '../utils/formatters';
 import {
   formatSignedUsd,
   formatCompactUsd,
-  caipChainIdToHex,
 } from '../../../UI/Rewards/utils/formatUtils';
-import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import Logger from '../../../../util/Logger';
 import PriceChart from '../../../UI/AssetOverview/PriceChart';
 import { PriceChartProvider } from '../../../UI/AssetOverview/PriceChart/PriceChart.context';
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const TIME_PERIODS = ['1H', '1D', '1W', '1M', 'All'] as const;
-type TimePeriod = (typeof TIME_PERIODS)[number];
-
-// Maps UI time period labels to the historical-prices API `timePeriod` param.
-// The API returns a sensible default granularity per period (e.g. ~289 points
-// for 1d, ~169 for 7d). We don't pass `interval` — it's not consistently
-// supported across all tokens/chains. 1H reuses the '1d' data truncated to
-// the last 60 minutes.
-// Fallback durations in ms for trade filtering when no historical price
-// data is available (unindexed tokens returning 204).
-const PERIOD_DURATION_MS: Record<TimePeriod, number> = {
-  '1H': 60 * 60 * 1000,
-  '1D': 24 * 60 * 60 * 1000,
-  '1W': 7 * 24 * 60 * 60 * 1000,
-  '1M': 30 * 24 * 60 * 60 * 1000,
-  All: 3 * 365 * 24 * 60 * 60 * 1000,
-};
-
-const PERIOD_TO_API: Record<TimePeriod, string> = {
-  '1H': '1d',
-  '1D': '1d',
-  '1W': '7d',
-  '1M': '1m',
-  All: '3y',
-};
-
-/**
- * Derives percentage change from historical price data points.
- *
- * We compute this ourselves rather than relying on pre-computed fields from
- * the spot-prices API because most social leaderboard tokens (small-cap /
- * meme tokens) are not indexed there — the API returns null for them. The
- * historical-prices endpoint covers a wider set of tokens, so we fetch the
- * price series and calculate: (endPrice - startPrice) / startPrice * 100.
- *
- * For the "1H" period we use the 1-day data set and find the point closest
- * to one hour ago, since the historical-prices API has no sub-day period.
- */
-function derivePercentChange(
-  prices: TokenPrice[],
-  period: TimePeriod,
-): number | undefined {
-  if (!prices.length) return undefined;
-
-  const endPrice = prices[prices.length - 1][1];
-  let startPrice: number;
-
-  if (period === '1H') {
-    const oneHourAgo = Date.now() - 60 * 60 * 1000;
-    const closest = prices.reduce((best, pt) =>
-      Math.abs(Number(pt[0]) - oneHourAgo) <
-      Math.abs(Number(best[0]) - oneHourAgo)
-        ? pt
-        : best,
-    );
-    startPrice = closest[1];
-  } else {
-    startPrice = prices[0][1];
-  }
-
-  if (startPrice === 0) return undefined;
-  return ((endPrice - startPrice) / startPrice) * 100;
-}
+import { useTraderPositionData } from './useTraderPositionData';
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -248,166 +168,26 @@ const TraderPositionView = () => {
     position: positionParam,
   } = route.params;
 
-  const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
 
-  const caipChainId = useMemo(
-    () => (positionParam ? chainNameToId(positionParam.chain) : undefined),
-    [positionParam],
-  );
-
-  const hexChainId = useMemo(
-    () => (caipChainId ? caipChainIdToHex(caipChainId) : undefined),
-    [caipChainId],
-  );
-
-  const tokenImageUrl = useMemo(() => {
-    if (!positionParam || !caipChainId) return undefined;
-    return getAssetImageUrl(positionParam.tokenAddress, caipChainId);
-  }, [positionParam, caipChainId]);
-
-  // Try cache first (TokenRatesController), then fetch from price API
-  const allMarketData = useSelector(selectTokenMarketData);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const cachedMarket = hexChainId
-    ? allMarketData?.[hexChainId]?.[
-        positionParam?.tokenAddress?.toLowerCase() as Hex
-      ]
-    : undefined;
-
-  // Fetch market cap from spot-prices API (cache miss fallback)
-  const [fetchedMarketCap, setFetchedMarketCap] = useState<number>();
-
-  useEffect(() => {
-    if (cachedMarket?.marketCap || !positionParam || !caipChainId) return;
-    const assetId = toAssetId(positionParam.tokenAddress, caipChainId);
-    if (!assetId) return;
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const url = `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
-          {
-            assetIds: assetId,
-            includeMarketData: 'true',
-            vsCurrency: currentCurrency.toLowerCase(),
-          },
-        )}`;
-        const response = (await handleFetch(url)) as Record<
-          string,
-          Record<string, unknown>
-        >;
-        const cap = response?.[assetId]?.marketCap;
-        if (!cancelled && typeof cap === 'number') {
-          setFetchedMarketCap(cap);
-        }
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          'TraderPositionView: failed to fetch market data',
-        );
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [cachedMarket?.marketCap, positionParam, caipChainId, currentCurrency]);
-
-  const marketCap = cachedMarket?.marketCap ?? fetchedMarketCap;
-
-  // Fetch historical prices for ALL time periods on mount so tab switching
-  // is instant. Each period fires in parallel; results land as they resolve.
-  const [allPrices, setAllPrices] = useState<
-    Partial<Record<TimePeriod, TokenPrice[]>>
-  >({});
-  const [isPricesLoading, setIsPricesLoading] = useState(true);
-
-  useEffect(() => {
-    if (!positionParam || !caipChainId) return;
-    setIsPricesLoading(true);
-    const assetIdentifier = `erc20:${positionParam.tokenAddress}`;
-    const vsCurrency = currentCurrency.toLowerCase();
-    let cancelled = false;
-
-    const fetchPeriod = async (period: TimePeriod) => {
-      const apiPeriod = PERIOD_TO_API[period];
-      const uri = `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
-      try {
-        const response = await fetch(uri);
-        if (response.status === 204 || !response.ok)
-          return { period, prices: [] as TokenPrice[] };
-        const data: { prices: [number, number][] } = await response.json();
-        // Normalize to TokenPrice format [string, number]
-        const prices: TokenPrice[] = (data.prices ?? []).map(
-          ([timestamp, price]) =>
-            [timestamp.toString(), Number(price)] as TokenPrice,
-        );
-        return { period, prices };
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          `TraderPositionView: failed to fetch ${period} prices`,
-        );
-        return { period, prices: [] as TokenPrice[] };
-      }
-    };
-
-    // 1H and 1D share the same API call ('1d') — fetch once, reuse.
-    const uniquePeriods: TimePeriod[] = ['1D', '1W', '1M', 'All'];
-
-    Promise.all(uniquePeriods.map(fetchPeriod)).then((results) => {
-      if (cancelled) return;
-      const cache: Partial<Record<TimePeriod, TokenPrice[]>> = {};
-      for (const { period, prices } of results) {
-        cache[period] = prices;
-        if (period === '1D') cache['1H'] = prices;
-      }
-      setAllPrices(cache);
-      setIsPricesLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [positionParam, caipChainId, currentCurrency]);
-
-  // Resolve historical prices for the active period with fallbacks:
-  // - 1H: truncate 1d data to last 60 min; if < 5 points, use full 1d
-  // - All: if 3y returns empty, cascade through 1M → 1W → 1D
-  const historicalPrices = useMemo(() => {
-    let prices = allPrices[activeTimePeriod] ?? [];
-
-    if (activeTimePeriod === 'All' && !prices.length) {
-      prices =
-        [allPrices['1M'], allPrices['1W'], allPrices['1D']].find(
-          (fallbackPrices) => fallbackPrices?.length,
-        ) ?? [];
-    }
-
-    if (activeTimePeriod === '1H' && prices.length) {
-      const oneHourAgo = Date.now() - 60 * 60 * 1000;
-      const lastHour = prices.filter((pt) => Number(pt[0]) >= oneHourAgo);
-      return lastHour.length >= 5 ? lastHour : prices;
-    }
-
-    return prices;
-  }, [allPrices, activeTimePeriod]);
-
-  const priceDiff = useMemo(() => {
-    if (historicalPrices.length < 2) return 0;
-    return (
-      historicalPrices[historicalPrices.length - 1][1] - historicalPrices[0][1]
-    );
-  }, [historicalPrices]);
-
-  const handleChartIndexChange = useCallback((_index: number) => {
-    // Future: update displayed price on scrub
-  }, []);
-
-  const pricePercentChange = derivePercentChange(
+  const {
+    symbol,
+    tokenImageUrl,
+    marketCap,
     historicalPrices,
+    priceDiff,
+    isPricesLoading,
+    pricePercentChange,
+    isClosed,
+    positionValue,
+    pnlValue,
+    pnlPercent,
+    isPnlPositive,
+    trades,
     activeTimePeriod,
-  );
+    setActiveTimePeriod,
+    timePeriods,
+  } = useTraderPositionData(positionParam, tokenSymbol);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -421,32 +201,9 @@ const TraderPositionView = () => {
     setIsQuickBuyVisible(false);
   }, []);
 
-  const symbol = positionParam?.tokenSymbol ?? tokenSymbol;
-  const isClosed =
-    positionParam != null &&
-    positionParam.positionAmount === 0 &&
-    positionParam.soldUsd > 0;
-
-  // For open positions: show current value + unrealized P&L
-  // For closed positions: show realized P&L (sum of all exits) + percentage
-  const positionValue = isClosed ? null : positionParam?.currentValueUSD;
-  const pnlValue = isClosed
-    ? positionParam?.realizedPnl
-    : positionParam?.pnlValueUsd;
-  const pnlPercent = isClosed
-    ? positionParam?.boughtUsd
-      ? (positionParam.realizedPnl / positionParam.boughtUsd) * 100
-      : null
-    : positionParam?.pnlPercent;
-  const isPnlPositive = (pnlValue ?? 0) >= 0;
-  // Filter trades to the active chart time range. Uses PERIOD_DURATION_MS
-  // (calendar time from now) so trades aren't excluded just because the
-  // price API has a shorter history.
-  const trades = (positionParam?.trades ?? []).filter((t) => {
-    const tsMs =
-      t.timestamp > 0 && t.timestamp < 1e12 ? t.timestamp * 1000 : t.timestamp;
-    return tsMs >= Date.now() - PERIOD_DURATION_MS[activeTimePeriod];
-  });
+  const handleChartIndexChange = useCallback((_index: number) => {
+    // Future: update displayed price on scrub
+  }, []);
 
   return (
     <SafeAreaView
@@ -574,7 +331,7 @@ const TraderPositionView = () => {
           justifyContent={BoxJustifyContent.Between}
           twClassName="px-4 pb-3"
         >
-          {TIME_PERIODS.map((period) => (
+          {timePeriods.map((period) => (
             <TimePeriodButton
               key={period}
               label={period}
@@ -688,6 +445,7 @@ const TraderPositionView = () => {
         </Button>
       </Box>
 
+      {/* Quick Buy Bottom Sheet */}
       <QuickBuyBottomSheet
         isVisible={isQuickBuyVisible}
         position={positionParam ?? null}

@@ -1,42 +1,30 @@
 import {
-  formatPerpsFiat,
   formatPercentage,
-  formatOrderCardDate,
+  formatTransactionDate,
 } from '../../../UI/Perps/utils/formatUtils';
-import { addThousandsSeparator } from './numberFormatting';
+import { formatUsd as formatUsdFiat } from '../../../UI/Rewards/utils/formatUtils';
+import formatNumber from '../../../../util/formatNumber';
+
+const EM_DASH = '\u2014';
 
 export function formatUsd(value: number | null | undefined): string {
-  if (value == null) return '\u2014';
-  const sign = value < 0 ? '-' : '';
-  return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+  if (value == null) return EM_DASH;
+  return formatUsdFiat(value);
 }
 
 export function formatTokenAmount(value: number): string {
-  const sign = value < 0 ? '-' : '';
-  const abs = Math.abs(value);
-  const [whole, frac = ''] = abs.toString().split('.');
-  const commaWhole = addThousandsSeparator(whole);
-  return frac ? `${sign}${commaWhole}.${frac}` : `${sign}${commaWhole}`;
+  return formatNumber(value);
 }
 
 export function formatPercent(value: number | null | undefined): string {
-  if (value == null) return '\u2014';
+  if (value == null) return EM_DASH;
   return formatPercentage(value, 0);
 }
 
+/**
+ * Trade timestamps from the social API may be seconds or milliseconds.
+ */
 export function formatTradeDate(timestamp: number): string {
-  // Trade timestamps from the social API are in seconds.
   const ms = timestamp < 1e12 ? timestamp * 1000 : timestamp;
-  const date = new Date(ms);
-  const dateStr = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date);
-  const timeStr = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).format(date);
-  return `${dateStr} at ${timeStr}`;
+  return formatTransactionDate(ms);
 }
