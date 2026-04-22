@@ -633,6 +633,7 @@ export const isMoneylineMarket = (market: PolymarketApiMarket): boolean =>
 
 const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
   isMoneylineLikeMarketType(market.sportsMarketType);
+
 /**
  * Sort markets within a sports market type group by liquidity + volume (descending)
  */

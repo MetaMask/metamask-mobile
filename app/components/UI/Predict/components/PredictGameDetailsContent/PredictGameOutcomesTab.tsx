@@ -11,10 +11,9 @@ import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
 } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
+import { isMoneylineLikeMarketType } from '../../constants/sports';
 import { strings } from '../../../../../../locales/i18n';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
-
-const noop = () => undefined;
 
 const I18N_PREFIX = 'predict.sports_market_types';
 
@@ -47,8 +46,6 @@ const formatOutcomeCardTitle = (outcome: PredictOutcome): string => {
   return raw;
 };
 
-import { isMoneylineLikeMarketType } from '../../constants/sports';
-
 const getTeamColor = (
   tokenTitle: string,
   game?: PredictMarketGame,
@@ -71,7 +68,7 @@ const getButtonVariant = (
 
 const buildButtons = (
   outcome: PredictOutcome,
-  onBuyPress?: BuyHandler,
+  onBuyPress: BuyHandler,
   game?: PredictMarketGame,
   sportsMarketType?: string,
 ): PredictSportOutcomeButton[] => {
@@ -79,7 +76,7 @@ const buildButtons = (
   return outcome.tokens.map((token, index) => ({
     label: token.shortTitle ?? token.title,
     price: Math.round(token.price * 100),
-    onPress: onBuyPress ? () => onBuyPress(outcome, token) : noop,
+    onPress: () => onBuyPress(outcome, token),
     variant: getButtonVariant(index, outcome.tokens.length, moneyline),
     teamColor: moneyline
       ? getTeamColor(token.shortTitle ?? token.title, game)
@@ -101,7 +98,7 @@ const SimpleOutcomeCard = memo(
   }: {
     outcome: PredictOutcome;
     title: string;
-    onBuyPress?: BuyHandler;
+    onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
     testID: string;
@@ -128,7 +125,7 @@ const LineOutcomeCard = memo(
   }: {
     outcomes: PredictOutcome[];
     title: string;
-    onBuyPress?: BuyHandler;
+    onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
     testID: string;
@@ -225,7 +222,7 @@ const sortMoneylineOutcomes = (
 
 const buildMoneylineButtons = (
   outcomes: PredictOutcome[],
-  onBuyPress?: BuyHandler,
+  onBuyPress: BuyHandler,
   game?: PredictMarketGame,
 ): PredictSportOutcomeButton[] => {
   const sorted = sortMoneylineOutcomes(outcomes, game);
@@ -234,7 +231,7 @@ const buildMoneylineButtons = (
     return {
       label: yesToken.shortTitle ?? yesToken.title,
       price: Math.round(yesToken.price * 100),
-      onPress: onBuyPress ? () => onBuyPress(outcome, yesToken) : noop,
+      onPress: () => onBuyPress(outcome, yesToken),
       variant: getButtonVariant(i, sorted.length, true),
       teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
     };
@@ -255,7 +252,7 @@ const SubgroupCards = memo(
     index,
   }: {
     subgroup: PredictOutcomeGroup;
-    onBuyPress?: BuyHandler;
+    onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     groupKey: string;
     index: number;
@@ -313,7 +310,7 @@ const OutcomesContent = memo(
     game,
   }: {
     group: PredictOutcomeGroup;
-    onBuyPress?: BuyHandler;
+    onBuyPress: BuyHandler;
     game?: PredictMarketGame;
   }) => {
     if (group.subgroups && group.subgroups.length > 0) {
@@ -334,7 +331,11 @@ const OutcomesContent = memo(
     }
 
     const firstType = group.outcomes[0]?.sportsMarketType;
-    if (isMoneylineLikeMarketType(firstType) && group.outcomes.length > 1) {
+    if (
+      firstType &&
+      isMoneylineLikeMarketType(firstType) &&
+      group.outcomes.length > 1
+    ) {
       return (
         <PredictSportOutcomeCard
           title={getSportsMarketTypeLabel(firstType)}
