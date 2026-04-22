@@ -1024,7 +1024,17 @@ export class HyperLiquidSubscriptionService {
     const userAddress =
       await this.#walletService.getUserAddressWithDefault(accountId);
 
+    await this.#requestSpotStateRefresh(userAddress);
+  }
+
+  async #requestSpotStateRefresh(
+    userAddress: string,
+    options?: { force?: boolean },
+  ): Promise<void> {
+    const { force = false } = options ?? {};
+
     if (
+      !force &&
       this.#cachedSpotState &&
       this.#cachedSpotStateUserAddress === userAddress
     ) {
@@ -1035,6 +1045,7 @@ export class HyperLiquidSubscriptionService {
     // A pending fetch for a different user is stale after an account switch —
     // start a fresh fetch; the stale one will self-discard via generation check.
     if (
+      !force &&
       this.#spotStatePromise &&
       this.#spotStatePromiseUserAddress === userAddress
     ) {
@@ -2408,6 +2419,22 @@ export class HyperLiquidSubscriptionService {
       this.#accountSubscriberCount -= 1;
       this.#cleanupSharedWebData3ISubscription();
     };
+  }
+
+  public async refreshLiveAccountState(
+    accountId?: CaipAccountId,
+  ): Promise<void> {
+    if (
+      this.#accountSubscriberCount === 0 ||
+      this.#dexAccountCache.size === 0
+    ) {
+      return;
+    }
+
+    const userAddress =
+      await this.#walletService.getUserAddressWithDefault(accountId);
+
+    await this.#requestSpotStateRefresh(userAddress, { force: true });
   }
 
   /**

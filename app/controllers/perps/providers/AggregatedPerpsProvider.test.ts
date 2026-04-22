@@ -86,6 +86,7 @@ const createMockProvider = (providerId: string): jest.Mocked<PerpsProvider> => {
     subscribeToOrderFills: jest.fn().mockReturnValue(() => undefined),
     subscribeToOrders: jest.fn().mockReturnValue(() => undefined),
     subscribeToAccount: jest.fn().mockReturnValue(() => undefined),
+    refreshLiveAccountState: jest.fn().mockResolvedValue(undefined),
     subscribeToOICaps: jest.fn().mockReturnValue(() => undefined),
     subscribeToCandles: jest.fn().mockReturnValue(() => undefined),
     subscribeToOrderBook: jest.fn().mockReturnValue(() => undefined),
@@ -722,6 +723,12 @@ describe('AggregatedPerpsProvider', () => {
       aggregatedProvider.subscribeToAccount({ callback });
 
       expect(mockHLProvider.subscribeToAccount).toHaveBeenCalled();
+    });
+
+    it('delegates live account refresh to default provider', async () => {
+      await aggregatedProvider.refreshLiveAccountState();
+
+      expect(mockHLProvider.refreshLiveAccountState).toHaveBeenCalled();
     });
 
     it('delegates subscribeToOICaps to default provider', () => {

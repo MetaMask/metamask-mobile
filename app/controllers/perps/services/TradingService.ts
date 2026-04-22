@@ -457,6 +457,7 @@ export class TradingService {
         // Invalidate standalone caches so external hooks (e.g., usePerpsPositionForAsset) refresh
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+        this.#refreshLiveAccountStateInBackground(provider, 'placeOrder');
       } else {
         traceData = { success: false, error: result.error ?? 'Unknown error' };
       }
@@ -845,6 +846,24 @@ export class TradingService {
               operation: 'reportOrderToDataLake',
               symbol,
             },
+          },
+        },
+      );
+    });
+  }
+
+  #refreshLiveAccountStateInBackground(
+    provider: PerpsProvider,
+    operation: string,
+  ): void {
+    provider.refreshLiveAccountState?.().catch((refreshError) => {
+      this.#deps.logger.error(
+        ensureError(refreshError, 'TradingService.refreshLiveAccountState'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'TradingService.refreshLiveAccountState',
+            data: { operation, provider: provider.protocolId },
           },
         },
       );
@@ -1414,6 +1433,7 @@ export class TradingService {
         // Invalidate standalone caches so external hooks (e.g., usePerpsPositionForAsset) refresh
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+        this.#refreshLiveAccountStateInBackground(provider, 'closePosition');
       } else {
         traceData = { success: false, error: result.error ?? 'Unknown error' };
       }
@@ -1638,6 +1658,9 @@ export class TradingService {
       if (operationResult?.success && operationResult.successCount > 0) {
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+        if (provider.closePositions) {
+          this.#refreshLiveAccountStateInBackground(provider, 'closePositions');
+        }
       }
 
       this.#deps.tracer.endTrace({
@@ -1866,6 +1889,7 @@ export class TradingService {
         // Invalidate standalone caches so external hooks refresh
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+        this.#refreshLiveAccountStateInBackground(provider, 'updateMargin');
       }
 
       this.#deps.tracer.endTrace({
@@ -1997,6 +2021,7 @@ export class TradingService {
         // Invalidate standalone caches so external hooks refresh
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+        this.#refreshLiveAccountStateInBackground(provider, 'flipPosition');
       }
 
       this.#deps.tracer.endTrace({

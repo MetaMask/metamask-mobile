@@ -1052,6 +1052,7 @@ export type PerpsProvider = {
   subscribeToOICaps(params: SubscribeOICapsParams): () => void;
   subscribeToCandles(params: SubscribeCandlesParams): () => void;
   subscribeToOrderBook(params: SubscribeOrderBookParams): () => void;
+  refreshLiveAccountState?(): Promise<void>;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

@@ -7127,6 +7127,10 @@ export class HyperLiquidProvider implements PerpsProvider {
     return this.#subscriptionService.subscribeToAccount(params);
   }
 
+  async refreshLiveAccountState(): Promise<void> {
+    await this.#subscriptionService.refreshLiveAccountState();
+  }
+
   /**
    * Subscribe to open interest cap updates
    * Zero additional overhead - data extracted from existing webData2 subscription

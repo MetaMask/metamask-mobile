@@ -51,6 +51,7 @@ export const createMockHyperLiquidProvider =
       getOpenOrders: jest.fn(),
       subscribeToOrders: jest.fn(),
       subscribeToAccount: jest.fn(),
+      refreshLiveAccountState: jest.fn().mockResolvedValue(undefined),
       setUserFeeDiscount: jest.fn(),
       // WebSocket connection state methods
       getWebSocketConnectionState: jest.fn(),

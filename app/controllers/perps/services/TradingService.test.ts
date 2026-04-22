@@ -110,6 +110,7 @@ describe('TradingService', () => {
       expect(result).toEqual(mockOrderResult);
       expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
       expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(undefined);
+      expect(mockProvider.refreshLiveAccountState).toHaveBeenCalled();
     });
 
     it('places order successfully with fee discount applied and cleared', async () => {
@@ -395,6 +396,58 @@ describe('TradingService', () => {
           status: 'failed',
         }),
       );
+    });
+
+    it('does not refresh live account state when order placement fails', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+      };
+      const mockOrderResult: OrderResult = {
+        success: false,
+        error: 'Insufficient margin',
+      };
+
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockProvider.refreshLiveAccountState).not.toHaveBeenCalled();
+    });
+
+    it('does not require refreshLiveAccountState to place orders successfully', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+      };
+      const mockOrderResult: OrderResult = {
+        success: true,
+        orderId: 'order-123',
+      };
+
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockProvider.refreshLiveAccountState = undefined as never;
+
+      await expect(
+        tradingService.placeOrder({
+          provider: mockProvider,
+          params: orderParams,
+          context: mockContext,
+          reportOrderToDataLake: mockReportOrderToDataLake,
+        }),
+      ).resolves.toEqual(mockOrderResult);
     });
 
     it('reports order to data lake on success (fire-and-forget)', async () => {
@@ -1304,6 +1357,7 @@ describe('TradingService', () => {
       expect(result).toEqual(mockResult);
       expect(mockProvider.closePosition).toHaveBeenCalledWith(params);
       expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(undefined);
+      expect(mockProvider.refreshLiveAccountState).toHaveBeenCalled();
     });
 
     it('closes position successfully with fee discount applied and cleared', async () => {
@@ -1506,6 +1560,8 @@ describe('TradingService', () => {
       mockGetPositions.mockResolvedValue(mockPositions);
       (mockProvider.closePositions as jest.Mock).mockResolvedValue({
         success: true,
+        successCount: 2,
+        failureCount: 0,
         results: [
           { success: true, orderId: 'close-1', symbol: 'BTC' },
           { success: true, orderId: 'close-2', symbol: 'ETH' },
@@ -1523,6 +1579,7 @@ describe('TradingService', () => {
 
       expect(result.success).toBe(true);
       expect(result.results).toHaveLength(2);
+      expect(mockProvider.refreshLiveAccountState).toHaveBeenCalled();
     });
 
     it('closes specific coins when provided', async () => {
@@ -1841,6 +1898,7 @@ describe('TradingService', () => {
         symbol: 'BTC',
         amount: '100',
       });
+      expect(mockProvider.refreshLiveAccountState).toHaveBeenCalled();
     });
 
     it('updates margin successfully when removing margin', async () => {
@@ -2004,6 +2062,7 @@ describe('TradingService', () => {
           size: '1',
         }),
       );
+      expect(mockProvider.refreshLiveAccountState).toHaveBeenCalled();
     });
 
     it('flips long position to short (isBuy=false)', async () => {

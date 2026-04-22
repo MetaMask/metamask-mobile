@@ -600,6 +600,10 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     return this.#getDefaultProvider().subscribeToAccount(params);
   }
 
+  async refreshLiveAccountState(): Promise<void> {
+    await this.#getDefaultProvider().refreshLiveAccountState?.();
+  }
+
   subscribeToOICaps(params: SubscribeOICapsParams): () => void {
     // Delegate to default provider
     return this.#getDefaultProvider().subscribeToOICaps(params);
