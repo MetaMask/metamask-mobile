@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import-x/no-commonjs */
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -14,7 +14,10 @@ import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
-import { SRP_GUIDE_URL } from '../../../../constants/urls';
+import {
+  SRP_GUIDE_URL,
+  SRP_DOS_AND_DONTS_URL,
+} from '../../../../constants/urls';
 
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
@@ -34,22 +37,15 @@ import { useSelector } from 'react-redux';
 
 const introductionImg = require('../../../../images/reveal_srp.png');
 
-export interface SRPQuizProps {
-  route: {
-    params: {
-      keyringId?: string;
-    };
-  };
+interface SRPQuizRouteParams {
+  keyringId?: string;
 }
 
-const SRPQuiz = (props: SRPQuizProps) => {
-  // It has be destructured like this because of prettier
-  // shifting the fence to the ending curly brace.
+const SRPQuiz = () => {
+  const route = useRoute<RouteProp<{ params: SRPQuizRouteParams }, 'params'>>();
   const {
-    route: {
-      params: { keyringId },
-    },
-  } = props;
+    params: { keyringId },
+  } = route;
   const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
@@ -70,12 +66,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
 
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
-  const SRP_GUIDE_SOCIAL_LOGIN_URL =
-    'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/#metamask-secret-recovery-phrase-dos-and-donts';
-
-  const LEARN_MORE_URL = isSocialLogin
-    ? SRP_GUIDE_SOCIAL_LOGIN_URL
-    : SRP_GUIDE_URL;
+  const LEARN_MORE_URL = isSocialLogin ? SRP_DOS_AND_DONTS_URL : SRP_GUIDE_URL;
 
   const openSupportArticle = useCallback((): void => {
     Linking.openURL(LEARN_MORE_URL);

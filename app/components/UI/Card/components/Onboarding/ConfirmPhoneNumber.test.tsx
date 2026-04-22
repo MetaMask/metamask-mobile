@@ -98,6 +98,36 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       BodyLg: 'BodyLg',
     },
+    Button: ({
+      children,
+      testID,
+      onPress,
+      isDisabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      isDisabled?: boolean;
+      [key: string]: unknown;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: isDisabled, ...props },
+        React.createElement(Text, {}, children),
+      );
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
   };
 });
 
@@ -443,7 +473,7 @@ describe('ConfirmPhoneNumber Component', () => {
   describe('Continue Button', () => {
     it('should render continue button', () => {
       const store = createTestStore();
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <Provider store={store}>
           <ConfirmPhoneNumber />
         </Provider>,
@@ -451,7 +481,7 @@ describe('ConfirmPhoneNumber Component', () => {
 
       const button = getByTestId('confirm-phone-number-continue-button');
       expect(button).toBeTruthy();
-      expect(getByTestId('button-label')).toHaveTextContent('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
 
     it('should be disabled when confirmation code is empty', () => {
@@ -694,10 +724,12 @@ describe('ConfirmPhoneNumber Component', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('confirm-phone-number-code-field-error')).toBeNull();
+      expect(
+        queryByTestId('confirm-phone-number-code-field-error'),
+      ).not.toBeOnTheScreen();
       expect(
         queryByTestId('confirm-phone-number-phone-number-error'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('shows verification error when verifyIsError is true', () => {

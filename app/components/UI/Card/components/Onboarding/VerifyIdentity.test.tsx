@@ -144,6 +144,33 @@ jest.mock('@metamask/design-system-react-native', () => {
     IconColor: {
       IconAlternative: 'IconAlternative',
     },
+    Button: ({
+      children,
+      label,
+      onPress,
+      isDisabled,
+      isFullWidth,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) => {
+      const { TouchableOpacity, Text: RNText } =
+        jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        {
+          ...props,
+          testID: 'verify-identity-continue-button',
+          onPress,
+          disabled: isDisabled,
+        },
+        React.createElement(RNText, null, label || children),
+      );
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+    },
+    ButtonSize: {
+      Lg: 'Lg',
+    },
   };
 });
 
@@ -242,7 +269,6 @@ const createTestStore = (initialState = {}) =>
             user: null,
             ...initialState,
           },
-          userCardLocation: 'international',
         },
         action = { type: '', payload: null },
       ) => {

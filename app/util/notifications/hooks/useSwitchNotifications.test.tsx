@@ -1,12 +1,12 @@
 import { act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Actions from '../../../actions/notification/helpers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Selectors from '../../../selectors/notifications';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from './useNotifications';
 import {
   useAccountNotificationsToggle,
@@ -458,15 +458,14 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
     );
   });
 
-  it('returns updating account settings text when accounts are being updated', () => {
+  it('returns undefined when accounts are being updated (no modal for account updates)', () => {
     const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotificationsAccount.mockReturnValue([
         '0xAddr1',
       ]);
     });
-    expect(hook.result.current).toBe(
-      strings('app_settings.updating_account_settings'),
-    );
+    // Account loading is now handled inline per-toggle, not in a modal
+    expect(hook.result.current).toBeUndefined();
   });
 
   it('returns undefined when no loading state is active', () => {

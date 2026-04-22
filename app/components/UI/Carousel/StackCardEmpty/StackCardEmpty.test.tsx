@@ -6,10 +6,11 @@ import { StackCardEmpty } from './StackCardEmpty';
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn(() => ({})),
-    color: jest.fn(() => '#000000'),
-  }),
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
+  },
 }));
 
 // Mock design system components
@@ -91,7 +92,9 @@ describe('StackCardEmpty', () => {
     it('calls onTransitionToEmpty after idle timeout', () => {
       render(<StackCardEmpty {...defaultProps} />);
 
-      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME);
+      // The dismiss timer only starts after the card reaches full visibility
+      // and the confetti-trigger delay (50ms) elapses, so advance past both.
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME + 100);
 
       expect(defaultProps.onTransitionToEmpty).toHaveBeenCalledTimes(1);
     });

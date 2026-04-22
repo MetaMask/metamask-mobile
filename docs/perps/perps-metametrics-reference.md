@@ -74,7 +74,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Deposit screens:** `'deposit_input'` | `'deposit_review'`
   - **Market list screens:** `'market_list'` | `'market_list_all'` | `'market_list_crypto'` | `'market_list_stocks'`
   - **Position management:** `'close_all_positions'` | `'cancel_all_orders'` | `'increase_exposure'` | `'add_margin'` | `'remove_margin'`
-  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'`
+  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from
@@ -83,9 +83,13 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Home section sources:** `'perps_home'` | `'perps_home_position'` | `'perps_home_orders'` | `'perps_home_watchlist'` | `'perps_home_explore_crypto'` | `'perps_home_explore_stocks'` | `'perps_home_activity'` | `'perps_home_empty_state'`
   - **Market list sources:** `'perps_market_list_all'` | `'perps_market_list_crypto'` | `'perps_market_list_stocks'`
   - **Trade/Position sources:** `'trade_screen'` | `'position_screen'` | `'tp_sl_view'` | `'trade_menu_action'` | `'open_position'` | `'trade_details'`
+  - **Explore source:** `'explore'` (from Explore/Trending page)
   - **Other sources:** `'tutorial'` | `'perps_tutorial'` | `'close_toast'` | `'position_close_toast'` | `'tooltip'` | `'magnifying_glass'` | `'crypto_button'` | `'stocks_button'` | `'order_book'` | `'full_screen_chart'` | `'stop_loss_prompt_banner'` | `'wallet_home'` | `'wallet_main_action_menu'` | `'homescreen_tab'` | `'perps_asset_screen_no_funds'`
   - **Geo-block sources:** `'deposit_button'` | `'withdraw_button'` | `'trade_action'` | `'add_funds_action'` | `'cancel_order'` | `'asset_detail_screen'` | `'close_position_action'` | `'modify_position_action'` | `'order_book_long_button'` | `'order_book_short_button'` | `'order_book_close_button'` | `'order_book_modify_button'` | `'auto_close_action'` | `'adjust_margin_action'` | `'stop_loss_prompt_add_margin'` | `'stop_loss_prompt_set_sl'` | `'close_all_positions_button'`
-- `open_position` (optional): Number of open positions (used for close_all_positions screen, number)
+- `open_position` (optional): Number of open positions (used for homepage_perps_tab, perps_home, asset_details, order_book, trading, close_all_positions screens; number)
+- `open_order` (optional): Number of open orders (used for wallet_home_perps_tab, perps_home, asset_details screens; number)
+- `market_category` (optional): Currently active market filter tab (e.g., `'All'`, `'Crypto'`, `'Stocks'`, `'Commodities'`, `'Forex'`; used for market_list screen)
+- `error_type` (optional): Type of error for error screen views (e.g., `'network'`, `'backend'`; used when screen_type is `'error'`)
 - `has_perp_balance` (optional): Whether user has a perps balance or positions (boolean)
 - `has_take_profit` (optional): Whether take profit is set (boolean, used for TP/SL screens)
 - `has_stop_loss` (optional): Whether stop loss is set (boolean, used for TP/SL screens)
@@ -110,7 +114,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Position management:** `'add_margin'` | `'remove_margin'` | `'increase_exposure'` | `'reduce_exposure'` | `'flip_position'` | `'contact_support'` | `'stop_loss_one_click_prompt'`
   - **Hero card interactions:** `'display_hero_card'` | `'share_pnl_hero_card'`
   - **Pay-with interactions:** `'payment_token_selector'` | `'payment_method_changed'`
-- `action` (optional): Specific action performed: `'connection_retry'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'`
+- `action` (optional): Specific action performed: `'connection_retry'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
@@ -152,6 +156,9 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `order_size` (required for executed): Size of the order in tokens (number)
 - `asset_price` (required for executed): Price of the asset (number)
 - `completion_duration` (required): Duration in milliseconds (number)
+- `source` (optional): Screen where trade was initiated (e.g., `'perp_asset_screen'`, `'order_book_long_button'`, `'position_screen'`, `'explore'`)
+- `action` (optional): Specific trade action: `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
+- `order_value` (optional): USD value of the order (order_size × asset_price; number)
 - `margin_used` (optional): Margin required/used in USDC (number)
 - `metamask_fee` (optional): MetaMask fee amount in USDC (number)
 - `metamask_fee_rate` (optional): MetaMask fee rate as decimal (number)
@@ -177,6 +184,8 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `open_position_size` (required): Size of the open position (number)
 - `order_size` (required): Size being closed (number)
 - `completion_duration` (required): Duration in milliseconds (number)
+- `source` (optional): Screen where close was initiated (e.g., `'perp_asset_screen'`, `'order_book'`, `'position_screen'`)
+- `order_value` (optional): USD value of the close order (requested_size × asset_price; number)
 - `close_type` (optional): `'full' | 'partial'`
 - `percentage_closed` (optional): Percentage of position closed (number)
 - `dollar_pnl` (optional): Profit/loss in dollars (number)
@@ -218,6 +227,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `stop_loss_price` (at least one required): Stop loss trigger price (number)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where TP/SL update originated (e.g., `'tp_sl_view'`, `'position_screen'`)
+- `action` (optional): Which TP/SL fields were set: `'tp'` (take profit only) | `'sl'` (stop loss only) | `'tpsl'` (both)
 - `position_size` (optional): Size of the position (number)
 - `screen_type` (optional): `'create_tpsl' | 'edit_tpsl'` - Whether creating TP/SL for new order or editing existing position
 - `has_take_profit` (optional): Whether take profit is set (boolean)
@@ -547,6 +557,52 @@ usePerpsEventTracking({
 
 ---
 
+## Compliance (OFAC) Blocking Tracking
+
+When a wallet is blocked by an OFAC compliance check, the `compliance_block_notif` screen type is used. The event fires automatically via `AccessRestrictedContext` whenever `showAccessRestrictedModal()` is called — no per-action tracking is needed.
+
+### Properties
+
+- `screen_type`: `'compliance_block_notif'`
+
+### Constant
+
+```typescript
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
+// PERPS_EVENT_VALUE.SCREEN_TYPE.COMPLIANCE_BLOCK_NOTIF === 'compliance_block_notif'
+```
+
+### Where the event fires
+
+The event is tracked in `showAccessRestrictedModal` inside `AccessRestrictedContext.tsx`. All call sites — `useComplianceGate` and every gated action handler — call this method, so coverage is automatic.
+
+```typescript
+// app/components/UI/Compliance/contexts/AccessRestrictedContext.tsx
+const showAccessRestrictedModal = useCallback(() => {
+  notificationAsync(NotificationFeedbackType.Warning);
+  setIsVisible(true);
+  track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+      PERPS_EVENT_VALUE.SCREEN_TYPE.COMPLIANCE_BLOCK_NOTIF,
+  });
+}, [track]);
+```
+
+### Difference from geo-blocking
+
+|                    | Geo-blocking                       | Compliance blocking                            |
+| ------------------ | ---------------------------------- | ---------------------------------------------- |
+| `screen_type`      | `geo_block_notif`                  | `compliance_block_notif`                       |
+| Tracked per action | Yes — each handler tracks `source` | No — tracked once in context                   |
+| Source property    | Identifies the blocked action      | Not included (all routes share the same modal) |
+| Feature flag       | Geo eligibility                    | `complianceEnabled`                            |
+
+---
+
 ## Best Practices
 
 1. **Use constants** - Never hardcode strings
@@ -556,6 +612,8 @@ usePerpsEventTracking({
 5. **Auto timestamp** - `usePerpsEventTracking` adds it automatically
 6. **AB test tracking** - Only in screen view events, not every interaction
 7. **Entry point tracking** - Include `button_clicked` and `button_location` to track user navigation flows
+8. **Source = current screen** - The `source` property must always identify the screen the user is currently on, never a screen from earlier in the navigation chain. If the user navigates A → B → action C, the source for C must be B, not A.
+9. **Explicit source passing** - Reusable components (e.g., `PerpsMarketTypeSection`, `PerpsWatchlistMarkets`, `PerpsCard`) must receive `source` as a prop from the parent screen rather than setting it implicitly. The screen component is the single owner of the `source` value.
 
 ## Sentry vs MetaMetrics
 

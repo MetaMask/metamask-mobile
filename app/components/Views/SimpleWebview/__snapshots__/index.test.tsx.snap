@@ -1,27 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SimpleWebview renders correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
-    }
-  }
-  style={
+<View
+  containerStyle={
     {
       "flex": 1,
     }
   }
->
-  <View
-    source={
-      {
-        "uri": "https://etherscan.io",
-      }
+  source={
+    {
+      "uri": "https://etherscan.io",
     }
-  />
-</RNCSafeAreaView>
+  }
+/>
 `;

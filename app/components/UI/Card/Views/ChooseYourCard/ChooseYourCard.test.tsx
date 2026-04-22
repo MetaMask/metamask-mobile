@@ -5,7 +5,7 @@ import { ChooseYourCardSelectors } from './ChooseYourCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { AllowanceState, CardType } from '../../types';
+import { CardType } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
@@ -105,21 +105,6 @@ jest.mock('../../components/CardImage/CardImage', () => {
   };
 });
 
-// Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-    SafeAreaProvider: View,
-  };
-});
-
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: jest.fn(() => ({})),
@@ -132,6 +117,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
   return {
     Box: ({
       children,
@@ -143,6 +130,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(RNText, props, children),
+    Button: ({
+      children,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(
+        TouchableOpacity,
+        { onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(RNText, {}, children || label),
+      ),
     TextVariant: {
       HeadingLg: 'HeadingLg',
       HeadingMd: 'HeadingMd',
@@ -153,6 +153,16 @@ jest.mock('@metamask/design-system-react-native', () => {
       Regular: 'Regular',
       Medium: 'Medium',
       Bold: 'Bold',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -279,31 +289,10 @@ describe('ChooseYourCard', () => {
       });
     });
 
-    it('navigates to spending limit with manage flow params when flow is home and virtual card selected', () => {
-      const priorityToken = {
-        caipChainId: 'eip155:1',
-        symbol: 'USDC',
-        name: 'USD Coin',
-        address: '0x123',
-        decimals: 6,
-        allowanceState: AllowanceState.Enabled,
-        allowance: '1000',
-      };
-      const allTokens = [priorityToken];
-      const delegationSettings = { networks: [] };
-      const externalWalletDetailsData = {
-        walletDetails: {},
-        mappedWalletDetails: [priorityToken],
-        priorityWalletDetail: priorityToken,
-      };
-
+    it('navigates to spending limit with manage flow when flow is home and virtual card selected', () => {
       mockUseParams.mockImplementationOnce(() => ({
         flow: 'home',
         shippingAddress: undefined,
-        priorityToken,
-        allTokens,
-        delegationSettings,
-        externalWalletDetailsData,
       }));
 
       const { getByTestId } = render(<ChooseYourCard />);
@@ -312,10 +301,6 @@ describe('ChooseYourCard', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
         flow: 'manage',
-        priorityToken,
-        allTokens,
-        delegationSettings,
-        externalWalletDetailsData,
       });
     });
   });

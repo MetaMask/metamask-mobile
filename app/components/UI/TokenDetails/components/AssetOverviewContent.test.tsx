@@ -17,13 +17,25 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+// eslint-disable-next-line import-x/no-namespace
+import * as TokenDetailsActionsModule from './TokenDetailsActions';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      state: {
+        selectedNetworkClientId: 'mainnet',
+      },
+    },
+  },
+}));
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockAddProperties = jest.fn();
-const mockBuild = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockCreateEventBuilder = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn(() => true);
@@ -31,6 +43,7 @@ const mockUsePerpsPositionForAsset = jest.fn();
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
+  MarketInsightsEntryCardSkeleton: () => null,
   MarketInsightsEntryCard: ({
     onPress,
     testID,
@@ -57,10 +70,13 @@ jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+  useAnalytics: jest.fn(() => ({
     trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
+    createEventBuilder: mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    }),
+  })),
 }));
 
 // Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
@@ -71,9 +87,12 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
 }));
 
-jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
-  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
-}));
+jest.mock(
+  '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart',
+  () => ({
+    selectTokenOverviewAdvancedChartEnabled: jest.fn(() => false),
+  }),
+);
 
 jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
   usePerpsPositionForAsset: (...args: unknown[]) =>
@@ -111,6 +130,15 @@ jest.mock('@react-navigation/native', () => {
     useFocusEffect: jest.fn((cb: () => void) => cb()),
   };
 });
+
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: (action: () => Promise<unknown>) => action(),
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
 
 function createState(isEligible: boolean) {
   return {
@@ -159,15 +187,12 @@ const defaultProps: AssetOverviewContentProps = {
   isLoading: false,
   timePeriod: '1d',
   setTimePeriod: jest.fn(),
-  chartNavigationButtons: ['1d', '1w', '1m'],
+  chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
   isPerpsEnabled: true,
-  displayBuyButton: false,
-  displaySwapsButton: false,
   currentCurrency: 'USD',
   onBuy: jest.fn(),
   onSend: jest.fn().mockResolvedValue(undefined),
   onReceive: jest.fn(),
-  goToSwaps: jest.fn(),
 };
 
 const createMockSecurityData = (
@@ -202,6 +227,7 @@ const createMockSecurityData = (
 
 const defaultMarketInsightsResult = {
   report: {
+    digestId: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
     asset: 'eth',
     generatedAt: '2026-02-17T11:55:00.000Z',
     headline: 'ETH outlook stays positive',
@@ -343,8 +369,10 @@ describe('AssetOverviewContent', () => {
         Routes.MARKET_INSIGHTS.VIEW,
         expect.objectContaining({
           assetSymbol: 'ETH',
-          tokenAddress: '0x123',
-          tokenChainId: '0x1',
+          token: expect.objectContaining({
+            address: '0x123',
+            chainId: '0x1',
+          }),
         }),
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -352,6 +380,8 @@ describe('AssetOverviewContent', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         caip19: 'eip155:1/erc20:0x123',
+        asset_symbol: 'eth',
+        digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({
         category: 'market-insights-opened',
@@ -370,7 +400,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: false,
+        severity: undefined,
+      });
     });
 
     it('does not resolve market insights display while market insights is loading', () => {
@@ -403,7 +436,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(true);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: true,
+        severity: undefined,
+      });
     });
 
     it('resolves market insights display as false when report is unavailable after loading', () => {
@@ -422,7 +458,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: false,
+        severity: undefined,
+      });
     });
   });
 
@@ -775,5 +814,60 @@ describe('AssetOverviewContent', () => {
         queryByText(strings('security_trust.malicious_token_title')),
       ).toBeNull();
     });
+  });
+
+  describe('TokenDetailsActions hasBalance prop', () => {
+    let tokenDetailsActionsSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'test-event' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: null,
+        hasFundsInPerps: false,
+        accountState: null,
+        isLoading: false,
+      });
+      tokenDetailsActionsSpy = jest.spyOn(
+        TokenDetailsActionsModule,
+        'TokenDetailsActions',
+      );
+    });
+
+    afterEach(() => {
+      tokenDetailsActionsSpy.mockRestore();
+    });
+
+    it.each([
+      [false, undefined],
+      [false, ''],
+      [false, '0'],
+      [true, '1,000.50'],
+      [true, '1.000,50'],
+    ])(
+      'passes hasBalance %s when balance is %s',
+      (expectedHasBalance, balance) => {
+        renderWithProvider(
+          <AssetOverviewContent {...defaultProps} balance={balance} />,
+          { state: createState(true) },
+        );
+
+        expect(tokenDetailsActionsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ hasBalance: expectedHasBalance }),
+          expect.anything(),
+        );
+      },
+    );
   });
 });

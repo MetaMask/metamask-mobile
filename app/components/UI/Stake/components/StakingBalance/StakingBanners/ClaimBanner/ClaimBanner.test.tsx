@@ -4,7 +4,9 @@ import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import Engine from '../../../../../../../core/Engine';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
+import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import { createMockUseAnalyticsHook } from '../../../../../../../util/test/analyticsMock';
 import { mockNetworkState } from '../../../../../../../util/test/network';
 import renderWithProvider, {
   DeepPartial,
@@ -36,7 +38,6 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: 'keyring:test-wallet/ethereum',
           wallets: {
             'keyring:test-wallet': {
               groups: {
@@ -47,6 +48,7 @@ const mockInitialState: DeepPartial<RootState> = {
             },
           },
         },
+        selectedAccountGroup: 'keyring:test-wallet/ethereum',
       },
     },
   },
@@ -86,6 +88,7 @@ jest.mock('../../../../hooks/usePoolStakedClaim', () => ({
     attemptPoolStakedClaimTransaction: mockAttemptPoolStakedClaimTransaction,
   }),
 }));
+jest.mock('../../../../../../hooks/useAnalytics/useAnalytics');
 
 const mockNavigate = jest.fn();
 const noop = () => undefined;
@@ -103,6 +106,7 @@ jest.mock('@react-navigation/native', () => ({
 describe('ClaimBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockNavigate.mockClear();
     (useStakingChain as jest.Mock).mockReturnValue({
       isStakingSupportedChain: true,

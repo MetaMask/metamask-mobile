@@ -29,11 +29,10 @@ import {
   getUrlObj,
   prefixUrlWithProtocol,
 } from '../../../../util/browser/index.ts';
-
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import PhishingModal from '../../../UI/PhishingModal/index.js';
-import { useMetrics } from '../../../hooks/useMetrics/index.ts';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../constants/navigation/Routes.ts';
 import {
   MM_BLOCKLIST_ISSUE_URL,
@@ -133,7 +132,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const [tabIndex, setTabIndex] = useState(0);
   const previousIdentitiesListSize = useRef<number>();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
@@ -258,6 +257,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
 
   const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
+  const anonId = sdkV2Connection?.originatorInfo?.anonId;
   const isOriginMMSDKV2RemoteConn = useMemo(
     () => Boolean(sdkV2Connection?.isV2),
     [sdkV2Connection?.isV2],
@@ -480,6 +480,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     sdkV2Connection?.originatorInfo?.url ??
     '';
 
+  // Should be the self reported dapp url if SDK or WC connection, empty/null if no self reported dapp url.
+  // If not SDK or WC connection, i.e. a regular external connection, it should be the hostname.
+  let referrer = channelIdOrHostname;
+  if (isOriginMMSDKRemoteConn) {
+    referrer = dappUrl;
+  } else if (isOriginWalletConnect) {
+    referrer = wc2Metadata?.url;
+  }
+
   const { domainTitle, hostname } = useMemo(() => {
     let title = strings('sdk.unknown');
     let dappHostname = dappUrl || channelIdOrHostname;
@@ -542,7 +551,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const { faviconURI: faviconSource } = useFavicon(dappUrl);
 
-  const eventSource = useOriginSource({ origin: channelIdOrHostname });
+  const originSource = useOriginSource({ origin: channelIdOrHostname });
 
   const suggestedAccountGroupIds = useMemo(
     () =>
@@ -588,10 +597,12 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
           .addProperties({
             number_of_accounts: accountsLength,
-            source: eventSource,
+            source: originSource?.source,
+            request_source: originSource?.requestSource,
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );
@@ -599,9 +610,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [
       accountsLength,
       channelIdOrHostname,
+      anonId,
       trackEvent,
       createEventBuilder,
-      eventSource,
+      originSource,
       hostInfo.metadata.isEip1193Request,
       hostInfo.permissions,
     ],
@@ -692,10 +704,12 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             number_of_accounts_connected: connectedAccountLength,
             // TODO: Fix this. Not accurate
             account_type: 'multichain',
-            source: eventSource,
+            source: originSource?.source,
+            request_source: originSource?.requestSource,
             chain_id_list: selectedChainIds,
-            referrer: request.metadata.origin,
+            referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );
@@ -719,6 +733,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
+    anonId,
     hostInfo,
     channelIdOrHostname,
     requestedRequestWithExistingPermissions,
@@ -729,9 +744,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     trackEvent,
     createEventBuilder,
     accountsLength,
-    eventSource,
+    originSource,
     toastRef,
     faviconSource,
+    referrer,
   ]);
 
   const handleAccountGroupsSelected = useCallback(

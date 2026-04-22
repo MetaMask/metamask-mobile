@@ -7,7 +7,7 @@ import { strings } from '../../../locales/i18n';
  * Helper to get wallet type display name
  */
 export const getHardwareWalletTypeName = (
-  walletType?: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): string => {
   switch (walletType) {
     case HardwareWalletType.Ledger:
@@ -49,7 +49,6 @@ export function getConnectionTipsForWalletType(
         'hardware_wallet.connecting.tip_unlock',
         'hardware_wallet.connecting.tip_open_app',
         'hardware_wallet.connecting.tip_enable_bluetooth',
-        'hardware_wallet.connecting.tip_dnd_off',
       ];
     default:
       return [];

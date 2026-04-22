@@ -19,7 +19,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { formatAddress } from '../../../util/address';
 import SensitiveText, {
   SensitiveTextLength,
@@ -27,12 +26,15 @@ import SensitiveText, {
 import AccountNetworkIndicator from '../../UI/AccountNetworkIndicator';
 import { useStyles } from '../../hooks/useStyles';
 import { stylesheet } from './SnapUIAccountSelector.styles';
-import { strings } from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../selectors/settings';
+import { selectAccountGroups } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainNetworkAggregatedBalanceForAllAccounts } from '../../../selectors/multichain/multichain';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { formatWithThreshold } from '../../../util/assets';
 
 export interface SnapUIAccountSelectorElementProps {
-  account: Account;
-  ensName?: string;
+  account: Account & { fiatBalance: string };
   privacyMode: boolean;
   avatarType: AvatarAccountType;
 }
@@ -42,22 +44,19 @@ export interface SnapUIAccountSelectorElementProps {
  *
  * @param props - The component props.
  * @param props.account - The account to display.
- * @param props.ensName - The ENS name of the account.
  * @param props.privacyMode - Whether the client is in privacy mode.
  * @param props.avatarType - The type of avatar to display.
  * @returns The AccountSelector element.
  */
 export const SnapUIAccountSelectorElement: FunctionComponent<
   SnapUIAccountSelectorElementProps
-> = ({ account, ensName, privacyMode, avatarType }) => {
-  const { name, address, assets, scopes } = account;
+> = ({ account, privacyMode, avatarType }) => {
+  const { name, address, scopes, fiatBalance } = account;
 
-  const accountName = isDefaultAccountName(name) && ensName ? ensName : name;
   const shortAddress = formatAddress(address, 'short');
 
-  const fiatBalance = assets?.fiatBalance.split('\n')[0] || '';
-
   const { styles } = useStyles(stylesheet, {});
+
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -76,7 +75,7 @@ export const SnapUIAccountSelectorElement: FunctionComponent<
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          {accountName}
+          {name}
         </Text>
         <Text
           variant={TextVariant.BodySM}
@@ -139,10 +138,17 @@ export const SnapUIAccountSelector: FunctionComponent<
   ...props
 }) => {
   const { snapId } = useSnapInterfaceContext();
-  const { accounts: internalAccounts, ensByAccountAddress } = useAccounts();
+  const { accounts: internalAccounts } = useAccounts({
+    fetchENS: false,
+  });
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const privacyMode = useSelector(selectPrivacyMode);
+  const accountGroups = useSelector(selectAccountGroups);
+  const multichainBalances = useSelector(
+    selectMultichainNetworkAggregatedBalanceForAllAccounts,
+  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const accounts = useMemo(() => {
     // Filter out the accounts that are not owned by the snap
@@ -159,8 +165,37 @@ export const SnapUIAccountSelector: FunctionComponent<
       return filteredChainIds.length > 0;
     });
 
-    return filteredAccounts;
-  }, [internalAccounts, chainIds, hideExternalAccounts, snapId]);
+    // Get the name from the account group if it exists, otherwise use the account name
+    // This is necessary because the account name is empty now and the group name is used instead,
+    // but we still want to show the account name if the group name is not available.
+    return filteredAccounts.map((account) => {
+      const group = accountGroups.find(({ accounts: accountGroup }) =>
+        accountGroup.includes(account.id),
+      );
+      const name = group?.metadata.name ?? account.name;
+
+      const amount = multichainBalances[account.id]?.totalBalanceFiat ?? 0;
+
+      const fiatBalance = formatWithThreshold(amount, 0.01, I18n.locale, {
+        style: 'currency',
+        currency: currentCurrency.toUpperCase(),
+      });
+
+      return {
+        ...account,
+        name,
+        fiatBalance,
+      };
+    });
+  }, [
+    internalAccounts,
+    chainIds,
+    hideExternalAccounts,
+    snapId,
+    accountGroups,
+    currentCurrency,
+    multichainBalances,
+  ]);
 
   const options = accounts.map((account) => ({
     key: 'accountId',
@@ -178,7 +213,6 @@ export const SnapUIAccountSelector: FunctionComponent<
     <SnapUIAccountSelectorElement
       key={index}
       account={account}
-      ensName={ensByAccountAddress[account.address]}
       privacyMode={privacyMode}
       avatarType={avatarAccountType}
     />

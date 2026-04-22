@@ -3,7 +3,7 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
 import { DepositNavigationParams } from '../types';
@@ -33,6 +33,7 @@ import ConfigurationModal from '../Views/Modals/ConfigurationModal';
 import ErrorDetailsModal from '../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
+import { clearStackNavigatorOptions } from '../../../../../constants/navigation/clearStackNavigatorOptions';
 
 interface DepositParamList {
   [key: string]:
@@ -44,13 +45,8 @@ interface DepositParamList {
     | undefined;
 }
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ScreenComponent = React.ComponentType<any>;
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator<DepositParamList>();
@@ -69,15 +65,13 @@ const getAnimationOptions = ({
   return { animationEnabled };
 };
 
-interface MainRoutesProps {
-  route: RouteProp<{ params: DepositNavigationParams }, 'params'>;
-}
-
-const MainRoutes = ({ route }: MainRoutesProps) => {
+const MainRoutes = () => {
+  const route =
+    useRoute<RouteProp<{ params: DepositNavigationParams }, 'params'>>();
   const parentParams = route.params;
 
   return (
-    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} headerMode="screen">
+    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT}>
       <Stack.Screen
         name={Routes.DEPOSIT.ROOT}
         component={Root}
@@ -140,8 +134,7 @@ const MainRoutes = ({ route }: MainRoutesProps) => {
 
 const DepositModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
@@ -198,9 +191,12 @@ const DepositRoutes = () => (
   <DepositSDKProvider>
     <RootStack.Navigator
       initialRouteName={Routes.DEPOSIT.ROOT}
-      headerMode="none"
+      screenOptions={{ headerShown: false }}
     >
-      <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
+      <RootStack.Screen
+        name={Routes.DEPOSIT.ROOT}
+        component={MainRoutes as ScreenComponent}
+      />
       <RootStack.Screen
         name={Routes.DEPOSIT.MODALS.ID}
         component={DepositModalsRoutes}

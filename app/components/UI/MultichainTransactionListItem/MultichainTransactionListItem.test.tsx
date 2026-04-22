@@ -227,6 +227,7 @@ describe('MultichainTransactionListItem', () => {
       expect.objectContaining({
         screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
         params: expect.objectContaining({
+          displayData: expect.any(Object),
           transaction: mockTransaction,
         }),
       }),

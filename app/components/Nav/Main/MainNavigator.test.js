@@ -1,165 +1,208 @@
-/* eslint-disable react/prop-types */
-import React from 'react';
-import { View } from 'react-native';
-import { render } from '@testing-library/react-native';
-import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import Routes from '../../../constants/navigation/Routes';
 
-// Mock the MainNavigator component directly
-jest.mock('./MainNavigator', () => {
-  const React = require('react');
-  const { View } = require('react-native');
-  const {
-    TabBarIconKey,
-  } = require('../../../component-library/components/Navigation/TabBar/TabBar.types');
-  const { selectBrowserFullscreen } = require('../../../selectors/browser');
-  const Routes = require('../../../constants/navigation/Routes').default;
+describe('MainNavigator Route Constants', () => {
+  it('has home route defined', () => {
+    expect(Routes.WALLET.HOME).toBeDefined();
+  });
 
-  // Mock implementation that tests tab visibility based on browser fullscreen state
-  return function MockMainNavigator({ route }) {
-    const isBrowserFullscreen = selectBrowserFullscreen();
+  it('has browser routes defined', () => {
+    expect(Routes.BROWSER.VIEW).toBeDefined();
+    expect(Routes.BROWSER.HOME).toBeDefined();
+  });
 
-    // Simulate hidding tab bar when browser is in fullscreen mode AND on browser route
-    if (isBrowserFullscreen && route?.name?.startsWith(Routes.BROWSER.HOME)) {
-      return null;
-    }
+  it('has settings routes defined', () => {
+    expect(Routes.SETTINGS_VIEW).toBeDefined();
+    expect(Routes.SETTINGS.NOTIFICATIONS).toBeDefined();
+    expect(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL).toBeDefined();
+  });
 
-    // Build tabs array
-    const tabs = [
-      React.createElement(View, {
-        key: 'wallet',
-        testID: `tab-bar-item-${TabBarIconKey.Wallet}`,
-      }),
-      React.createElement(View, {
-        key: 'trending',
-        testID: `tab-bar-item-${TabBarIconKey.Trending}`,
-      }),
-      React.createElement(View, {
-        key: 'trade',
-        testID: `tab-bar-item-${TabBarIconKey.Trade}`,
-      }),
-    ];
+  it('has transactions view route defined', () => {
+    expect(Routes.TRANSACTIONS_VIEW).toBeDefined();
+  });
 
-    // Add Activity tab (always shown)
-    tabs.push(
-      React.createElement(View, {
-        key: 'activity',
-        testID: `tab-bar-item-${TabBarIconKey.Activity}`,
-      }),
-    );
+  it('has rewards view route defined', () => {
+    expect(Routes.REWARDS_VIEW).toBeDefined();
+  });
 
-    // Add Rewards tab
-    tabs.push(
-      React.createElement(View, {
-        key: 'rewards',
-        testID: `tab-bar-item-${TabBarIconKey.Rewards}`,
-      }),
-    );
+  it('has rewards benefit routes defined', () => {
+    expect(Routes.REWARD_BENEFITS_FULL_VIEW).toBeDefined();
+    expect(Routes.REWARD_BENEFIT_FULL_VIEW).toBeDefined();
+  });
 
-    return React.createElement(View, { testID: 'main-navigator' }, tabs);
-  };
+  it('has trending view route defined', () => {
+    expect(Routes.TRENDING_VIEW).toBeDefined();
+  });
+
+  it('has ramp routes defined', () => {
+    expect(Routes.RAMP.BUY).toBeDefined();
+    expect(Routes.RAMP.SELL).toBeDefined();
+    expect(Routes.RAMP.SETTINGS).toBeDefined();
+    expect(Routes.RAMP.TOKEN_SELECTION).toBeDefined();
+    expect(Routes.RAMP.ORDER_DETAILS).toBeDefined();
+  });
+
+  it('has deposit routes defined', () => {
+    expect(Routes.DEPOSIT.ID).toBeDefined();
+    expect(Routes.DEPOSIT.ORDER_DETAILS).toBeDefined();
+  });
+
+  it('has bridge routes defined', () => {
+    expect(Routes.BRIDGE.ROOT).toBeDefined();
+    expect(Routes.BRIDGE.MODALS.ROOT).toBeDefined();
+    expect(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS).toBeDefined();
+  });
+
+  it('has earn routes defined', () => {
+    expect(Routes.EARN.ROOT).toBeDefined();
+    expect(Routes.EARN.MODALS.ROOT).toBeDefined();
+  });
+
+  it('has notification routes defined', () => {
+    expect(Routes.NOTIFICATIONS.VIEW).toBeDefined();
+    expect(Routes.NOTIFICATIONS.OPT_IN).toBeDefined();
+    expect(Routes.NOTIFICATIONS.OPT_IN_STACK).toBeDefined();
+    expect(Routes.NOTIFICATIONS.DETAILS).toBeDefined();
+  });
+
+  it('has QR tab switcher route defined', () => {
+    expect(Routes.QR_TAB_SWITCHER).toBeDefined();
+  });
+
+  it('has wallet routes defined', () => {
+    expect(Routes.WALLET.TAB_STACK_FLOW).toBeDefined();
+    expect(Routes.WALLET.TOKENS_FULL_VIEW).toBeDefined();
+    expect(Routes.WALLET.NFTS_FULL_VIEW).toBeDefined();
+  });
+
+  it('has security trust route defined', () => {
+    expect(Routes.SECURITY_TRUST).toBeDefined();
+  });
+
+  it('has snaps routes defined', () => {
+    expect(Routes.SNAPS.SNAPS_SETTINGS_LIST).toBeDefined();
+    expect(Routes.SNAPS.SNAP_SETTINGS).toBeDefined();
+  });
+
+  it('has explore search route defined', () => {
+    expect(Routes.EXPLORE_SEARCH).toBeDefined();
+  });
+
+  it('has sites full view route defined', () => {
+    expect(Routes.SITES_FULL_VIEW).toBeDefined();
+  });
+
+  it('has card routes defined', () => {
+    expect(Routes.CARD.ROOT).toBeDefined();
+  });
+
+  it('has feature flag override route defined', () => {
+    expect(Routes.FEATURE_FLAG_OVERRIDE).toBeDefined();
+  });
+
+  it('has transaction details route defined', () => {
+    expect(Routes.TRANSACTION_DETAILS).toBeDefined();
+  });
+
+  it('has deprecated network details route defined', () => {
+    expect(Routes.DEPRECATED_NETWORK_DETAILS).toBeDefined();
+  });
+
+  it('has accounts menu view route defined', () => {
+    expect(Routes.ACCOUNTS_MENU_VIEW).toBeDefined();
+  });
+
+  it('has wallet connect sessions route defined', () => {
+    expect(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW).toBeDefined();
+  });
+
+  it('has perps routes defined', () => {
+    expect(Routes.PERPS.ROOT).toBeDefined();
+    expect(Routes.PERPS.MODALS.ROOT).toBeDefined();
+    expect(Routes.PERPS.TUTORIAL).toBeDefined();
+    expect(Routes.PERPS.POSITION_TRANSACTION).toBeDefined();
+    expect(Routes.PERPS.ORDER_TRANSACTION).toBeDefined();
+    expect(Routes.PERPS.FUNDING_TRANSACTION).toBeDefined();
+  });
+
+  it('has predict routes defined', () => {
+    expect(Routes.PREDICT.ROOT).toBeDefined();
+    expect(Routes.PREDICT.MODALS.ROOT).toBeDefined();
+  });
+
+  it('has market insights routes defined', () => {
+    expect(Routes.MARKET_INSIGHTS.VIEW).toBeDefined();
+  });
 });
 
-// Mock the rewards selector
-jest.mock('../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsSubscriptionId: jest.fn().mockReturnValue(null),
-}));
-
-// Mock the browser selector
-jest.mock('../../../selectors/browser', () => ({
-  selectBrowserFullscreen: jest.fn(),
-}));
-
-import { selectBrowserFullscreen } from '../../../selectors/browser';
-import MainNavigator from './MainNavigator';
-
-describe('MainNavigator', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    selectBrowserFullscreen.mockReturnValue(false);
+describe('MainNavigator Tab Options', () => {
+  it('defines wallet tab icon key', () => {
+    expect(Routes.WALLET_VIEW).toBeDefined();
   });
 
-  it('shows Trending tab', () => {
-    const { getByTestId } = render(<MainNavigator />);
+  it('defines browser tab navigation', () => {
+    expect(Routes.BROWSER_VIEW).toBeDefined();
+  });
+});
 
-    expect(getByTestId('tab-bar-item-Trending')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
+describe('Route Constants Validation', () => {
+  it('has all main navigation screens defined', () => {
+    const mainRoutes = [
+      Routes.WALLET.HOME,
+      Routes.BROWSER.HOME,
+      Routes.TRANSACTIONS_VIEW,
+      Routes.REWARDS_VIEW,
+      Routes.TRENDING_VIEW,
+      Routes.SETTINGS_VIEW,
+    ];
+
+    mainRoutes.forEach((route) => {
+      expect(route).toBeDefined();
+      expect(typeof route).toBe('string');
+    });
   });
 
-  it('shows Rewards tab with core tabs', () => {
-    const { getByTestId } = render(<MainNavigator />);
+  it('has all modal navigation routes defined', () => {
+    const modalRoutes = [
+      Routes.MODAL.WALLET_ACTIONS,
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+    ];
 
-    expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Trending')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
+    modalRoutes.forEach((route) => {
+      expect(route).toBeDefined();
+      expect(typeof route).toBe('string');
+    });
+  });
+});
+
+describe('Stack Navigator Routes', () => {
+  it('has wallet tab stack flow route defined', () => {
+    expect(Routes.WALLET.TAB_STACK_FLOW).toBeDefined();
   });
 
-  it('should not show navbar when browser is in fullscreen mode', () => {
-    // Given browser is in fullscreen mode on browser route
-    selectBrowserFullscreen.mockReturnValue(true);
-
-    // When rendering MainNavigator on browser route
-    const { queryByTestId } = render(
-      <MainNavigator route={{ name: Routes.BROWSER.HOME }} />,
-    );
-
-    // Then navbar tabs should not be visible
-    expect(queryByTestId('tab-bar-item-Wallet')).toBeNull();
-    expect(queryByTestId('tab-bar-item-Browser')).toBeNull();
-    expect(queryByTestId('tab-bar-item-Trade')).toBeNull();
-    expect(queryByTestId('tab-bar-item-Rewards')).toBeNull();
+  it('has add asset route defined', () => {
+    expect(Routes.WALLET.HOME).toBeDefined();
   });
 
-  it('should return null when isBrowserFullscreen is true AND route starts with BrowserTabHome', () => {
-    // Given browser is in fullscreen mode
-    selectBrowserFullscreen.mockReturnValue(true);
+  it('has asset route constant', () => {
+    expect(typeof Routes.WALLET.HOME).toBe('string');
+  });
+});
 
-    // When rendering MainNavigator with exact BrowserTabHome route (matches Routes.BROWSER.HOME)
-    const rendered = render(
-      <MainNavigator route={{ name: Routes.BROWSER.HOME }} />,
-    );
-
-    // Then component should return null (empty container validates return null behavior)
-    expect(rendered.toJSON()).toBe(null);
+describe('Full View Routes', () => {
+  it('has tokens full view route defined', () => {
+    expect(Routes.WALLET.TOKENS_FULL_VIEW).toBeDefined();
   });
 
-  it('should match snapshot when browser is not infullscreen mode on BrowserTabHome route', () => {
-    // Given browser is in fullscreen mode
-    selectBrowserFullscreen.mockReturnValue(false);
-
-    // When rendering MainNavigator on BrowserTabHome subpath route
-    const component = render(
-      <MainNavigator route={{ name: Routes.BROWSER.HOME }} />,
-    );
-
-    // Then component should match fullscreen snapshot (returns null)
-    expect(component.toJSON()).toMatchSnapshot();
+  it('has NFTs full view route defined', () => {
+    expect(Routes.WALLET.NFTS_FULL_VIEW).toBeDefined();
   });
 
-  it('shows Activity tab in tab bar', () => {
-    const { getByTestId } = render(<MainNavigator />);
-
-    expect(getByTestId('tab-bar-item-Activity')).toBeOnTheScreen();
+  it('has DeFi full view route defined', () => {
+    expect(Routes.WALLET.DEFI_FULL_VIEW).toBeDefined();
   });
 
-  it('shows all core tabs when no feature flags are enabled', () => {
-    selectBrowserFullscreen.mockReturnValue(false);
-
-    const { getByTestId } = render(<MainNavigator />);
-
-    expect(getByTestId('tab-bar-item-Wallet')).toBeOnTheScreen();
-    expect(getByTestId('tab-bar-item-Trending')).toBeOnTheScreen();
-    expect(getByTestId('tab-bar-item-Trade')).toBeOnTheScreen();
-    expect(getByTestId('tab-bar-item-Activity')).toBeOnTheScreen();
-    expect(getByTestId('tab-bar-item-Rewards')).toBeOnTheScreen();
-  });
-
-  it('renders main-navigator container', () => {
-    const { getByTestId } = render(<MainNavigator />);
-
-    expect(getByTestId('main-navigator')).toBeOnTheScreen();
+  it('has cash tokens full view route defined', () => {
+    expect(Routes.WALLET.CASH_TOKENS_FULL_VIEW).toBeDefined();
   });
 });

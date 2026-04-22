@@ -14,12 +14,18 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { OrderPreview, PredictMarket, PredictOutcome } from '../../../../types';
+import {
+  OrderPreview,
+  PredictMarket,
+  PredictOutcome,
+  PredictOutcomeToken,
+} from '../../../../types';
 import { formatCents } from '../../../../utils/format';
 
 export interface PredictBuyPreviewHeaderProps {
   market: PredictMarket;
   outcome: PredictOutcome;
+  outcomeToken: PredictOutcomeToken;
   preview?: OrderPreview | null;
   onBack?: () => void;
 }
@@ -27,16 +33,18 @@ export interface PredictBuyPreviewHeaderProps {
 export interface PredictBuyPreviewHeaderTitleProps {
   market: PredictMarket;
   outcome: PredictOutcome;
+  outcomeToken: PredictOutcomeToken;
   preview?: OrderPreview | null;
 }
 
 const getOutcomeTokenLabel = (
   outcome: PredictOutcome,
+  outcomeToken: PredictOutcomeToken,
   preview?: OrderPreview | null,
 ) => {
   const selectedOutcomeToken =
     outcome.tokens.find((token) => token.id === preview?.outcomeTokenId) ??
-    outcome.tokens[0];
+    outcomeToken;
   const sharePrice = preview?.sharePrice ?? selectedOutcomeToken?.price ?? 0;
 
   return {
@@ -48,11 +56,13 @@ const getOutcomeTokenLabel = (
 export function PredictBuyPreviewHeaderTitle({
   market,
   outcome,
+  outcomeToken,
   preview,
 }: PredictBuyPreviewHeaderTitleProps) {
   const tw = useTailwind();
   const { title: outcomeTokenTitle, sharePrice } = getOutcomeTokenLabel(
     outcome,
+    outcomeToken,
     preview,
   );
 
@@ -66,29 +76,21 @@ export function PredictBuyPreviewHeaderTitle({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      twClassName="flex-1 min-w-0 gap-3"
     >
       <Image
         source={{ uri: outcome.image }}
         style={tw.style('w-10 h-10 rounded')}
       />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
-        <Text
-          variant={TextVariant.HeadingSm}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {market.title}
-        </Text>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+        <Text variant={TextVariant.HeadingSm}>{market.title}</Text>
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1 flex-wrap">
           {!!outcome.groupItemTitle && (
             <>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="font-medium"
                 color={TextColor.TextAlternative}
-                numberOfLines={1}
-                ellipsizeMode="tail"
               >
                 {outcome.groupItemTitle}
               </Text>
@@ -109,8 +111,6 @@ export function PredictBuyPreviewHeaderTitle({
                 ? TextColor.SuccessDefault
                 : TextColor.ErrorDefault
             }
-            numberOfLines={1}
-            ellipsizeMode="tail"
           >
             {outcomeTokenLabel}
           </Text>
@@ -137,6 +137,7 @@ export function PredictBuyPreviewHeaderBack({
 const PredictBuyPreviewHeader = ({
   market,
   outcome,
+  outcomeToken,
   preview,
   onBack,
 }: PredictBuyPreviewHeaderProps) => (
@@ -149,6 +150,7 @@ const PredictBuyPreviewHeader = ({
     <PredictBuyPreviewHeaderTitle
       market={market}
       outcome={outcome}
+      outcomeToken={outcomeToken}
       preview={preview}
     />
   </Box>

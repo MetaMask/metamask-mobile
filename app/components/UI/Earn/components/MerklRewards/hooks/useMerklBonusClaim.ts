@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../../../../Tokens/types';
@@ -15,12 +15,17 @@ import { selectNetworkConfigurationByChainId } from '../../../../../../selectors
 import { RootState } from '../../../../../../reducers';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { getUsdAmountRange } from '../../../../../../util/analytics/usdAmountRange';
 
 export interface MerklClaimData {
   /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
   claimableReward: string | null;
+  /** Lifetime bonus claimed in human-readable USD (e.g. "221.59"); null while loading. */
+  lifetimeBonusClaimed: string | null;
   hasPendingClaim: boolean;
   isClaiming: boolean;
+  /** Set when the last claim attempt failed (e.g. no reward data, network). */
+  error: string | null;
   claimRewards: () => Promise<
     | {
         txHash: string;
@@ -28,23 +33,18 @@ export interface MerklClaimData {
       }
     | undefined
   >;
+  /** Manually re-fetches the Merkl rewards data. No-op for ineligible assets. */
+  refetch: () => void;
 }
 
 const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   claimableReward: null,
+  lifetimeBonusClaimed: null,
   hasPendingClaim: false,
   isClaiming: false,
+  error: null,
   claimRewards: async () => undefined,
-};
-
-const getBonusAmountRange = (bonusAmount: string): string => {
-  if (bonusAmount.startsWith('<')) return '< 0.01';
-  const value = parseFloat(bonusAmount);
-  if (value < 1) return '0.01 - 0.99';
-  if (value < 10) return '1.00 - 9.99';
-  if (value < 100) return '10.00 - 99.99';
-  if (value < 1000) return '100.00 - 999.99';
-  return '1000.00+';
+  refetch: () => undefined,
 };
 
 /**
@@ -96,16 +96,46 @@ export const useMerklBonusClaim = (
 
   const eligibleAsset = isEligible ? asset : undefined;
 
-  const { claimableReward, hasClaimedBefore } = useMerklRewards({
+  const {
+    claimableReward,
+    lifetimeBonusClaimed,
+    hasClaimedBefore,
+    rewardsFetchVersion,
+    refetch,
+  } = useMerklRewards({
     asset: eligibleAsset,
   });
   const { hasPendingClaim } = usePendingMerklClaim();
-  const { claimRewards, isClaiming } = useMerklClaimTransaction(eligibleAsset);
+  const {
+    claimRewards,
+    isClaiming,
+    error: claimError,
+  } = useMerklClaimTransaction(eligibleAsset);
+  const [claimLockFetchVersion, setClaimLockFetchVersion] = useState<
+    number | null
+  >(null);
+  const latestRewardsFetchVersionRef = useRef(rewardsFetchVersion);
+  useEffect(() => {
+    latestRewardsFetchVersionRef.current = rewardsFetchVersion;
+  }, [rewardsFetchVersion]);
+  const isClaimLocked =
+    claimLockFetchVersion !== null &&
+    claimLockFetchVersion === rewardsFetchVersion;
+
+  const claimRewardsWithSessionLock = useCallback(async () => {
+    const claimResult = await claimRewards();
+    // Keep CTA hidden until the next rewards refetch resolves.
+    if (claimResult) {
+      setClaimLockFetchVersion(latestRewardsFetchVersionRef.current);
+    }
+    return claimResult;
+  }, [claimRewards]);
 
   const hasClaimableBonus =
     isEligible &&
     isClaimableBonusAboveThreshold(claimableReward) &&
-    !hasPendingClaim;
+    !hasPendingClaim &&
+    !isClaimLocked;
 
   const hasFiredCtaAvailableEvent = useRef(false);
 
@@ -128,7 +158,7 @@ export const useMerklBonusClaim = (
           network_chain_id: asset?.chainId,
           network_name: network?.name,
           asset_symbol: asset?.symbol,
-          bonus_amount_range: getBonusAmountRange(claimableReward),
+          bonus_amount_range: getUsdAmountRange(claimableReward),
           has_claimed_before: hasClaimedBefore,
         })
         .build(),
@@ -148,16 +178,30 @@ export const useMerklBonusClaim = (
 
   return useMemo(() => {
     if (!isEligible) {
-      return DEFAULT_MERKL_CLAIM_DATA;
+      return { ...DEFAULT_MERKL_CLAIM_DATA, refetch };
     }
 
     return {
-      claimableReward: isClaimableBonusAboveThreshold(claimableReward)
-        ? claimableReward
-        : null,
+      claimableReward:
+        !isClaimLocked && isClaimableBonusAboveThreshold(claimableReward)
+          ? claimableReward
+          : null,
+      lifetimeBonusClaimed,
       hasPendingClaim,
-      claimRewards,
+      claimRewards: claimRewardsWithSessionLock,
       isClaiming,
+      error: claimError,
+      refetch,
     };
-  }, [isEligible, claimableReward, hasPendingClaim, claimRewards, isClaiming]);
+  }, [
+    isEligible,
+    claimableReward,
+    lifetimeBonusClaimed,
+    hasPendingClaim,
+    claimRewardsWithSessionLock,
+    isClaiming,
+    claimError,
+    isClaimLocked,
+    refetch,
+  ]);
 };

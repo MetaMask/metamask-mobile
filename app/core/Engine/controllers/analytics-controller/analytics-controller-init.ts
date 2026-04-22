@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import {
   AnalyticsController,
   AnalyticsControllerMessenger,
@@ -8,6 +8,7 @@ import {
 import { createPlatformAdapter } from './platform-adapter';
 import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
 import { isE2E } from '../../../../util/test/utils';
+import { getBrazePlugin } from '../../../Braze';
 
 /**
  * Initialize the analytics controller.
@@ -18,11 +19,10 @@ import { isE2E } from '../../../../util/test/utils';
  * @param request.persistedState - The persisted state for all controllers.
  * @returns The initialized controller.
  */
-export const analyticsControllerInit: ControllerInitFunction<
+export const analyticsControllerInit: MessengerClientInitFunction<
   AnalyticsController,
   AnalyticsControllerMessenger
 > = ({ controllerMessenger, analyticsId, persistedState }) => {
-  // Get persisted state for AnalyticsController, or use defaults
   const persistedAnalyticsState = persistedState.AnalyticsController;
   const defaultState = getDefaultAnalyticsControllerState();
 
@@ -33,7 +33,7 @@ export const analyticsControllerInit: ControllerInitFunction<
 
   const platformAdapter = isE2E
     ? createE2EPlatformAdapter()
-    : createPlatformAdapter();
+    : createPlatformAdapter([getBrazePlugin()]);
 
   const controller = new AnalyticsController({
     messenger: controllerMessenger,

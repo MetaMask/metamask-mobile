@@ -16,6 +16,7 @@ import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
@@ -28,10 +29,15 @@ export function BridgeTimeRow() {
   const { payToken } = useTransactionPayToken();
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId } = transactionMetadata ?? {};
+  const selectedFiatPaymentMethod =
+    useTransactionPaySelectedFiatPaymentMethod();
+
+  const isSameChain = payToken?.chainId != null && payToken.chainId === chainId;
 
   const showEstimate =
     !hasTransactionType(transactionMetadata, HIDE_TYPES) &&
-    (isLoading || Boolean(quotes?.length));
+    (isLoading || Boolean(quotes?.length) || isSameChain) &&
+    !selectedFiatPaymentMethod;
 
   if (!showEstimate) {
     return null;
@@ -40,8 +46,6 @@ export function BridgeTimeRow() {
   if (isLoading) {
     return <InfoRowSkeleton testId="bridge-time-row-skeleton" />;
   }
-
-  const isSameChain = payToken?.chainId === chainId;
   const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
 
   return (

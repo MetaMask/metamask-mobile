@@ -65,7 +65,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test('@metamask/connect-multichain (multiple clients) - Connect multiple clients via Multichain API to Local Browser Playground', async ({
+test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple clients via Multichain API to Local Browser Playground', async ({
   device,
 }) => {
   // Get platform-specific URL

@@ -32,6 +32,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
 import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
+import { PERPS_LEARN_MORE_URL } from '../../../../../constants/urls';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
@@ -42,13 +43,14 @@ import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../../constants/perpsConfig';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding-carousel-light.riv');
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-carousel-dark.riv');
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 import Character from '../../../../../images/character_3x.png';
 import { PerpsTutorialSelectorsIDs } from '../../Perps.testIds';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
@@ -197,7 +199,10 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   // Initialize connection in background while user views tutorial
   useEffect(() => {
-    PerpsConnectionManager.connect().catch((error) => {
+    PerpsConnectionManager.connect({
+      source: PERPS_CONNECTION_SOURCE.TUTORIAL_PRELOAD,
+      suppressError: true,
+    }).catch((error) => {
       DevLogger.log(
         'Background connection initialization during tutorial:',
         error,
@@ -375,7 +380,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     NavigationService.navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {
-        newTabUrl: 'https://support.metamask.io/manage-crypto/trade/perps',
+        newTabUrl: PERPS_LEARN_MORE_URL,
         linkType: EXTERNAL_LINK_TYPE,
         timestamp: Date.now(),
         fromPerps: true,

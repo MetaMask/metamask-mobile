@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { usePerpsHomeActions } from './usePerpsHomeActions';
 import { usePerpsTrading } from './usePerpsTrading';
-import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -33,12 +32,6 @@ jest.mock('./usePerpsTrading', () => ({
   })),
 }));
 
-jest.mock('./usePerpsNetworkManagement', () => ({
-  usePerpsNetworkManagement: jest.fn(() => ({
-    ensureArbitrumNetworkExists: jest.fn().mockReturnValue(Promise.resolve()),
-  })),
-}));
-
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(() => ({
     navigateToConfirmation: jest.fn(),
@@ -56,6 +49,26 @@ jest.mock('./usePerpsEventTracking', () => ({
   })),
 }));
 
+const mockWithdrawWithConfirmation = jest.fn().mockResolvedValue(undefined);
+jest.mock('./usePerpsWithdrawConfirmation', () => ({
+  usePerpsWithdrawConfirmation: jest.fn(() => ({
+    withdrawWithConfirmation: mockWithdrawWithConfirmation,
+  })),
+}));
+
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
+
 describe('usePerpsHomeActions', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -64,21 +77,19 @@ describe('usePerpsHomeActions', () => {
   const mockDepositWithConfirmation = jest
     .fn()
     .mockReturnValue(Promise.resolve());
-  const mockEnsureArbitrumNetworkExists = jest
-    .fn()
-    .mockReturnValue(Promise.resolve());
   const mockNavigateToConfirmation = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrack.mockClear();
+    mockWithdrawWithConfirmation.mockResolvedValue(undefined);
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockReturnValue(true);
     (usePerpsTrading as jest.Mock).mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
-    });
-    (usePerpsNetworkManagement as jest.Mock).mockReturnValue({
-      ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
     });
     (useConfirmNavigation as jest.Mock).mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
@@ -124,14 +135,13 @@ describe('usePerpsHomeActions', () => {
   });
 
   describe('handleAddFunds - eligible user', () => {
-    it('calls network check, navigates to confirmation, and initiates deposit', async () => {
+    it('navigates to confirmation and initiates deposit', async () => {
       const { result } = renderHook(() => usePerpsHomeActions());
 
       await act(async () => {
         await result.current.handleAddFunds();
       });
 
-      expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         stack: Routes.PERPS.ROOT,
       });
@@ -165,9 +175,9 @@ describe('usePerpsHomeActions', () => {
       });
     });
 
-    it('handles network error during add funds', async () => {
-      const networkError = new Error('Network not available');
-      mockEnsureArbitrumNetworkExists.mockRejectedValueOnce(networkError);
+    it('handles deposit error during add funds', async () => {
+      const depositError = new Error('Deposit failed');
+      mockDepositWithConfirmation.mockRejectedValueOnce(depositError);
 
       const onError = jest.fn();
       const { result } = renderHook(() => usePerpsHomeActions({ onError }));
@@ -177,8 +187,8 @@ describe('usePerpsHomeActions', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.error).toEqual(networkError);
-        expect(onError).toHaveBeenCalledWith(networkError, 'deposit');
+        expect(result.current.error).toEqual(depositError);
+        expect(onError).toHaveBeenCalledWith(depositError, 'deposit');
       });
     });
   });
@@ -194,7 +204,6 @@ describe('usePerpsHomeActions', () => {
       });
 
       expect(result.current.isEligibilityModalVisible).toBe(true);
-      expect(mockEnsureArbitrumNetworkExists).not.toHaveBeenCalled();
       expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
@@ -219,15 +228,42 @@ describe('usePerpsHomeActions', () => {
     });
   });
 
+  describe('handleAddFunds - compliance blocked', () => {
+    it('does not call deposit functions when compliance gate blocks the action', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not set processing state when compliance gate blocks', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(result.current.isProcessing).toBe(false);
+      expect(result.current.error).toBeNull();
+    });
+  });
+
   describe('handleWithdraw - eligible user', () => {
-    it('calls network check and navigates to withdraw screen', async () => {
+    it('navigates to withdraw screen', async () => {
       const { result } = renderHook(() => usePerpsHomeActions());
 
       await act(async () => {
         await result.current.handleWithdraw();
       });
 
-      expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.WITHDRAW,
       });
@@ -247,23 +283,6 @@ describe('usePerpsHomeActions', () => {
         expect(onWithdrawSuccess).toHaveBeenCalledTimes(1);
       });
     });
-
-    it('handles navigation error during withdraw', async () => {
-      const navError = new Error('Navigation failed');
-      mockEnsureArbitrumNetworkExists.mockRejectedValueOnce(navError);
-
-      const onError = jest.fn();
-      const { result } = renderHook(() => usePerpsHomeActions({ onError }));
-
-      await act(async () => {
-        await result.current.handleWithdraw();
-      });
-
-      await waitFor(() => {
-        expect(result.current.error).toEqual(navError);
-        expect(onError).toHaveBeenCalledWith(navError, 'withdraw');
-      });
-    });
   });
 
   describe('handleWithdraw - ineligible user (TAT-2337: withdrawals not geo-blocked)', () => {
@@ -278,7 +297,6 @@ describe('usePerpsHomeActions', () => {
 
       // Withdrawal should proceed regardless of eligibility
       expect(result.current.isEligibilityModalVisible).toBe(false);
-      expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.WITHDRAW,
       });
@@ -346,6 +364,74 @@ describe('usePerpsHomeActions', () => {
     });
   });
 
+  describe('handleWithdraw - feature flag enabled (withdraw to any token)', () => {
+    beforeEach(() => {
+      // First call: selectPerpsEligibility → true
+      // Second call: selectSelectedInternalAccountAddress → address string
+      // Third call: selectPayQuoteConfig → { enabled: true }
+      (useSelector as jest.Mock)
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce('0x1234567890abcdef1234567890abcdef12345678')
+        .mockReturnValueOnce({ enabled: true });
+    });
+
+    it('calls withdrawWithConfirmation instead of legacy navigation', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockWithdrawWithConfirmation).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('triggers onWithdrawSuccess after withdrawWithConfirmation', async () => {
+      const onWithdrawSuccess = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsHomeActions({ onWithdrawSuccess }),
+      );
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      await waitFor(() => {
+        expect(onWithdrawSuccess).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('handles error from withdrawWithConfirmation', async () => {
+      mockWithdrawWithConfirmation.mockRejectedValueOnce(
+        new Error('Withdraw failed'),
+      );
+
+      const onError = jest.fn();
+      const { result } = renderHook(() => usePerpsHomeActions({ onError }));
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toEqual(new Error('Withdraw failed'));
+        expect(onError).toHaveBeenCalledWith(expect.any(Error), 'withdraw');
+      });
+    });
+
+    it('resets isProcessing after completion', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isProcessing).toBe(false);
+      });
+    });
+  });
+
   describe('eligibility modal management', () => {
     it('closes eligibility modal when closeEligibilityModal is called', async () => {
       (useSelector as jest.Mock).mockReturnValue(false);
@@ -368,7 +454,7 @@ describe('usePerpsHomeActions', () => {
 
   describe('error handling with non-Error objects', () => {
     it('converts string error to Error object', async () => {
-      mockEnsureArbitrumNetworkExists.mockRejectedValueOnce('String error');
+      mockDepositWithConfirmation.mockRejectedValueOnce('String error');
 
       const onError = jest.fn();
       const { result } = renderHook(() => usePerpsHomeActions({ onError }));

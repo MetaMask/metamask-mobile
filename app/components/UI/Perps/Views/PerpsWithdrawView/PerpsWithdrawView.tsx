@@ -54,7 +54,11 @@ import { TraceName } from '../../../../../util/trace';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
-import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  parseCurrencyString,
+  truncateToTwoDecimals,
+} from '../../utils/formatUtils';
 
 import type { Hex } from '@metamask/utils';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
@@ -104,11 +108,10 @@ const PerpsWithdrawView: React.FC = () => {
   // Get withdrawal tokens from hook
   const { destToken } = useWithdrawTokens();
 
-  // Parse available balance from perps account state
+  // Truncate to 2 decimals so the user can withdraw exactly what they see.
   const availableBalance = useMemo(() => {
     if (!account?.availableBalance) return 0;
-    // Use parseCurrencyString to properly parse formatted currency
-    return parseCurrencyString(account.availableBalance);
+    return truncateToTwoDecimals(parseCurrencyString(account.availableBalance));
   }, [account?.availableBalance]);
 
   const formattedBalance = useMemo(
@@ -494,11 +497,15 @@ const PerpsWithdrawView: React.FC = () => {
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.networkFee || '$1.00',
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.FEE_VALUE}
+                >
+                  {formattedQuoteData?.networkFee || '$1.00'}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -523,11 +530,15 @@ const PerpsWithdrawView: React.FC = () => {
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.estimatedTime,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.TIME_VALUE}
+                >
+                  {formattedQuoteData?.estimatedTime}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -542,10 +553,14 @@ const PerpsWithdrawView: React.FC = () => {
               },
             }}
             value={{
-              label: {
-                text: formatReceiveAmount,
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  testID={PerpsWithdrawViewSelectorsIDs.RECEIVE_VALUE}
+                >
+                  {formatReceiveAmount}
+                </Text>
+              ),
             }}
           />
         </Box>

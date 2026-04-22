@@ -1,5 +1,5 @@
 /* eslint-disable no-unsafe-finally */
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
 import {
   AnvilManager,
@@ -46,6 +46,10 @@ import ContractAddressRegistry from '../../../app/util/test/contract-address-reg
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import {
+  runAnalyticsExpectations,
+  shouldRunAnalyticsExpectations,
+} from '../../helpers/analytics/runAnalyticsExpectations';
 import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import type { Fixture } from './types';
@@ -467,9 +471,8 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
-  // Feature Flags
-  // testSpecificMock can override this if needed
-  await setupRemoteFeatureFlagsMock(mockServer);
+  // Feature Flags — use lower priority so testSpecificMock overrides take precedence
+  await setupRemoteFeatureFlagsMock(mockServer, {}, 998);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
@@ -512,6 +515,7 @@ export async function withFixtures(
     endTestfn,
     skipReactNativeReload = false,
     useCommandQueueServer = false,
+    analyticsExpectations,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -672,7 +676,25 @@ export async function withFixtures(
       }
     }
 
-    // Enter drain mode AFTER endTestfn so analytics events are still captured,
+    if (
+      mockServerInstance &&
+      shouldRunAnalyticsExpectations(analyticsExpectations)
+    ) {
+      logger.debug('Running analytics expectations');
+      try {
+        await runAnalyticsExpectations(
+          mockServerInstance.server,
+          analyticsExpectations,
+        );
+        logger.debug('Analytics expectations completed');
+      } catch (analyticsError) {
+        logger.error('Error in analyticsExpectations:', analyticsError);
+        cleanupErrors.push(analyticsError as Error);
+        logger.error('Analytics expectations failed');
+      }
+    }
+
+    // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,
     // but BEFORE stopping backends — prevents forwarding to dead Anvil/Ganache.
     if (mockServerInstance) {
       mockServerInstance.startDraining();
@@ -772,9 +794,12 @@ export async function withFixtures(
 
     // Remove the abort filter AFTER all cleanup is complete so late async
     // "Aborted" rejections from destroyed sockets are still caught.
+    // removeAbortFilter() is async — it holds the filter active for an extra
+    // 500ms before restoring Jest's handlers to cover abort events that fire
+    // after all cleanup has completed (observed up to ~200ms on loaded CI).
     if (mockServerInstance) {
       logger.info('Removing abort filter after full cleanup');
-      mockServerInstance.removeAbortFilter();
+      await mockServerInstance.removeAbortFilter();
     }
 
     // Handle error reporting: prioritize test error over cleanup errors

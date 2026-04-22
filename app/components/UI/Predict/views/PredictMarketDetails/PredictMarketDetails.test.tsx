@@ -60,7 +60,6 @@ jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     initializeActiveOrder: jest.fn(),
     activeOrder: null,
-    updateActiveOrder: jest.fn(),
     clearActiveOrder: jest.fn(),
   }),
 }));
@@ -71,21 +70,6 @@ jest.mock('@react-navigation/stack', () => ({
     Screen: ({ children }: { children: React.ReactNode }) => children,
   }),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: View,
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
-  };
-});
 
 // Minimal mock to add testID pattern for icon assertions
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
@@ -141,6 +125,15 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     },
   };
 });
+
+const mockOpenBuySheet = jest.fn();
+const mockOpenSellSheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: mockOpenSellSheet,
+  }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
@@ -322,6 +315,39 @@ jest.mock('../../components/PredictGameDetailsContent', () => {
   };
 });
 
+jest.mock('../../components/PredictCryptoUpDownDetails', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPredictCryptoUpDownDetails() {
+    return <View testID="predict-crypto-up-down-details" />;
+  };
+});
+
+jest.mock('../../utils/cryptoUpDown', () => ({
+  isCryptoUpDown: jest.fn(() => false),
+  UP_OR_DOWN_TAG: 'up-or-down',
+  CRYPTO_TAG: 'crypto',
+}));
+
+let mockSelectPredictUpDownEnabledFlag = false;
+const mockSelectPredictFeeCollectionFlag = {
+  enabled: true,
+  collector: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+  metamaskFee: 0.02,
+  providerFee: 0.02,
+  waiveList: ['middle-east'],
+  executors: [],
+  permit2Enabled: false,
+};
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPredictUpDownEnabledFlag: jest.fn(
+    () => mockSelectPredictUpDownEnabledFlag,
+  ),
+  selectPredictFeeCollectionFlag: jest.fn(
+    () => mockSelectPredictFeeCollectionFlag,
+  ),
+}));
+
 jest.mock('../../../../Base/TabBar', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockTabBar({ textStyle }: { textStyle: object }) {
@@ -484,6 +510,15 @@ function setupPredictMarketDetailsTest(
   jest.clearAllMocks();
   runAfterInteractionsCallbacks.length = 0;
   mockRunAfterInteractions.mockImplementation(runAfterInteractionsMockImpl);
+
+  const { selectPredictUpDownEnabledFlag, selectPredictFeeCollectionFlag } =
+    jest.requireMock('../../selectors/featureFlags');
+  selectPredictUpDownEnabledFlag.mockReturnValue(
+    mockSelectPredictUpDownEnabledFlag,
+  );
+  selectPredictFeeCollectionFlag.mockReturnValue(
+    mockSelectPredictFeeCollectionFlag,
+  );
 
   const mockNavigate = jest.fn();
   const mockSetOptions = jest.fn();
@@ -687,10 +722,13 @@ const getActionButtons = () =>
     .getAllByTestId('button')
     .filter((button) => getActionButtonText(button).includes('¢'));
 
+const getActionButtonPrice = (button: ReactTestInstance) => {
+  const match = getActionButtonText(button).match(/(\d+(?:\.\d+)?)¢$/);
+  return match ? Number(match[1]) : null;
+};
+
 const findActionButtonByPrice = (price: number) =>
-  getActionButtons().find(
-    (button) => getActionButtonText(button) === `•${price}¢`,
-  );
+  getActionButtons().find((button) => getActionButtonPrice(button) === price);
 
 describe('PredictMarketDetails', () => {
   afterEach(() => {
@@ -802,7 +840,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -815,7 +853,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -831,7 +869,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -845,7 +883,7 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -1174,7 +1212,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -1221,7 +1259,9 @@ describe('PredictMarketDetails', () => {
       const buttonLabels = actionButtons.map(getActionButtonText);
 
       expect(actionButtons).toHaveLength(2);
-      expect(buttonLabels).toEqual(expect.arrayContaining(['•65¢', '•35¢']));
+      expect(buttonLabels).toEqual(
+        expect.arrayContaining(['Yes•65¢', 'No•35¢']),
+      );
     });
 
     it('calculates percentage correctly from market price', () => {
@@ -1245,7 +1285,9 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toEqual(expect.arrayContaining(['•75¢', '•25¢']));
+      expect(buttonLabels).toEqual(
+        expect.arrayContaining(['Yes•75¢', 'No•25¢']),
+      );
     });
   });
 
@@ -1298,7 +1340,7 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toContain('•65¢');
+      expect(buttonLabels).toContain('Yes•65¢');
     });
 
     it('handles missing price data gracefully', () => {
@@ -1323,7 +1365,9 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toEqual(expect.arrayContaining(['•0¢', '•100¢']));
+      expect(buttonLabels).toEqual(
+        expect.arrayContaining(['Yes•0¢', 'No•100¢']),
+      );
     });
   });
 
@@ -1342,7 +1386,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithoutEndDate);
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -1393,7 +1437,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
     });
 
-    it('handles cash out button press', () => {
+    it('cash out uses context sell sheet instead of navigation', () => {
       const mockPosition = {
         id: 'position-1',
         outcomeId: 'outcome-1',
@@ -1406,33 +1450,29 @@ describe('PredictMarketDetails', () => {
         icon: 'https://example.com/icon.png',
       };
 
-      const { mockNavigate } = setupPredictMarketDetailsTest(
+      setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
         { positions: { data: [mockPosition] } },
       );
 
-      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
       const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        {
+      expect(mockOpenSellSheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           position: mockPosition,
-          outcome: expect.any(Object),
-          market: expect.any(Object),
           entryPoint: 'predict_market_details',
-        },
+        }),
       );
     });
 
-    it('handles Yes button press for betting', () => {
+    it('calls openBuySheet via context when Yes button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1448,25 +1488,23 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const yesButton = findActionButtonByPrice(65);
       expect(yesButton).toBeDefined();
       fireEvent.press(yesButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
     });
 
-    it('handles No button press for betting', () => {
+    it('calls openBuySheet via context when No button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1482,22 +1520,45 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const noButton = findActionButtonByPrice(35);
       expect(noButton).toBeDefined();
       fireEvent.press(noButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
+    });
+
+    it('renders stacked footer labels for long outcome names', () => {
+      const singleOutcomeMarket = createMockMarket({
+        title: 'College basketball winner',
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Winner',
+            tokens: [
+              { id: 'token-1', title: 'Howard Bison', price: 0.98 },
+              { id: 'token-2', title: 'Coppin State Eagles', price: 0.02 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
+
+      expect(screen.getByText('Howard Bison')).toBeOnTheScreen();
+      expect(screen.getByText('98¢')).toBeOnTheScreen();
+      expect(screen.getByText('Coppin State Eagles')).toBeOnTheScreen();
+      expect(screen.getByText('2¢')).toBeOnTheScreen();
     });
   });
 
@@ -1572,7 +1633,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -1607,7 +1668,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -1690,7 +1751,7 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toContain('•65¢');
+      expect(buttonLabels).toContain('Yes•65¢');
     });
 
     it('renders action buttons only for single outcome markets', () => {
@@ -1714,7 +1775,60 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toEqual(expect.arrayContaining(['•65¢', '•35¢']));
+      expect(buttonLabels).toEqual(
+        expect.arrayContaining(['Yes•65¢', 'No•35¢']),
+      );
+    });
+  });
+
+  describe('Crypto Up/Down Branching', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectPredictUpDownEnabledFlag = false;
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      isCryptoUpDown.mockReturnValue(false);
+    });
+
+    it('renders PredictCryptoUpDownDetails when upDownEnabled and isCryptoUpDown are true', () => {
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      mockSelectPredictUpDownEnabledFlag = true;
+      isCryptoUpDown.mockReturnValue(true);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId('predict-crypto-up-down-details'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders default market details when upDownEnabled is false', () => {
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      mockSelectPredictUpDownEnabledFlag = false;
+      isCryptoUpDown.mockReturnValue(true);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-crypto-up-down-details'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders default market details when isCryptoUpDown returns false', () => {
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      mockSelectPredictUpDownEnabledFlag = true;
+      isCryptoUpDown.mockReturnValue(false);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-crypto-up-down-details'),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -1752,7 +1866,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -1785,7 +1899,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -1818,7 +1932,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -2185,7 +2299,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -2625,7 +2739,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(closedMarket);
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -2661,7 +2775,7 @@ describe('PredictMarketDetails', () => {
       );
 
       const aboutTabWithPositions = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(2),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTabWithPositions);
 

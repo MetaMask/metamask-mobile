@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-shadow, import/no-extraneous-dependencies
+// eslint-disable-next-line @typescript-eslint/no-shadow, import-x/no-extraneous-dependencies
 import { WebSocket, WebSocketServer } from 'ws';
 import { createLogger, LogLevel } from '../framework/logger.ts';
 import { Resource, ServerStatus } from '../framework/types.ts';
@@ -134,16 +134,21 @@ class LocalWebSocketServer implements Resource {
 
     this.websocketConnections = [];
 
-    this.server.close(() => {
-      logger.info(
-        `[${this.name}] WebSocket server stopped on ws://localhost:${this.port}`,
-      );
+    await new Promise<void>((resolve, reject) => {
+      this.server?.close((err) => {
+        if (err) {
+          logger.warn(`[${this.name}] Error closing WebSocket server:`, err);
+          reject(err);
+        } else {
+          logger.info(
+            `[${this.name}] WebSocket server stopped on ws://localhost:${this.port}`,
+          );
+          resolve();
+        }
+      });
     });
     this.server = null;
     this.status = ServerStatus.STOPPED;
-
-    // Give a delay to ensure all connections are fully closed
-    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
   /**

@@ -4,21 +4,12 @@ import TransactionsFooter from './TransactionsFooter';
 import { strings } from '../../../../locales/i18n';
 import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#24272a',
-      },
-    },
-    typography: {
-      sBodySM: {
-        fontSize: 14,
-        lineHeight: 20,
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('../../../util/networks', () => ({
   getBlockExplorerName: jest.fn(),
@@ -105,6 +96,7 @@ describe('TransactionsFooter', () => {
   describe('EVM Chain Block Explorer', () => {
     it('renders Etherscan button for mainnet', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter
@@ -120,6 +112,7 @@ describe('TransactionsFooter', () => {
 
     it('renders Etherscan button for non-RPC networks', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter
@@ -149,6 +142,57 @@ describe('TransactionsFooter', () => {
       expect(getByText('View full history on Custom Explorer')).toBeTruthy();
     });
 
+    it('uses explorer URL for label when chainId does not match global providerType', () => {
+      mockIsMainnetByChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Gnosisscan');
+
+      const { getByText } = render(
+        <TransactionsFooter
+          chainId="0x64"
+          providerType="mainnet"
+          rpcBlockExplorer="https://gnosisscan.io"
+          onViewBlockExplorer={mockOnViewBlockExplorer}
+        />,
+      );
+
+      expect(getByText('View full history on Gnosisscan')).toBeTruthy();
+    });
+
+    it('uses explorer hostname for label when omitGlobalProviderExplorerFallback is set', () => {
+      mockIsMainnetByChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Lineascan');
+
+      const { queryByText, getByText } = render(
+        <TransactionsFooter
+          chainId="0xe708"
+          providerType="mainnet"
+          rpcBlockExplorer="https://lineascan.build"
+          omitGlobalProviderExplorerFallback
+          onViewBlockExplorer={mockOnViewBlockExplorer}
+        />,
+      );
+
+      expect(
+        queryByText('View full history on Etherscan'),
+      ).not.toBeOnTheScreen();
+      expect(getByText('View full history on Lineascan')).toBeTruthy();
+    });
+
+    it('does not show generic Etherscan fallback without explorer URL when omitGlobalProviderExplorerFallback', () => {
+      mockIsMainnetByChainId.mockReturnValue(false);
+
+      const { queryByText } = render(
+        <TransactionsFooter
+          chainId="0xe708"
+          providerType="mainnet"
+          omitGlobalProviderExplorerFallback
+          onViewBlockExplorer={mockOnViewBlockExplorer}
+        />,
+      );
+
+      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
+    });
+
     it('hides button for RPC networks without block explorer', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
@@ -161,7 +205,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).toBeNull();
+      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
     });
 
     it('hides button for RPC networks with undefined block explorer', () => {
@@ -175,11 +219,12 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).toBeNull();
+      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
     });
 
     it('calls onViewBlockExplorer when button is pressed', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter
@@ -220,7 +265,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).toBeNull();
+      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
     });
 
     it('hides button for non-EVM chains with NO_RPC_BLOCK_EXPLORER', () => {
@@ -233,7 +278,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).toBeNull();
+      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
     });
 
     it('calls onViewBlockExplorer for non-EVM chains', () => {
@@ -281,7 +326,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText('This is a disclaimer text')).toBeNull();
+      expect(queryByText('This is a disclaimer text')).not.toBeOnTheScreen();
     });
   });
 
@@ -314,6 +359,7 @@ describe('TransactionsFooter', () => {
 
     it('renders both button and disclaimer when both conditions are met', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter
@@ -342,7 +388,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).toBeNull();
+      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
       expect(getByText('This is a disclaimer text')).toBeTruthy();
     });
   });
@@ -404,6 +450,7 @@ describe('TransactionsFooter', () => {
   describe('Component Structure', () => {
     it('renders with correct structure when both elements are present', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter
@@ -432,8 +479,8 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).toBeNull();
-      expect(queryByText('This is a disclaimer text')).toBeNull();
+      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
+      expect(queryByText('This is a disclaimer text')).not.toBeOnTheScreen();
     });
   });
 });

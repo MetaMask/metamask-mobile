@@ -268,9 +268,12 @@ describe('PopularTokenRow', () => {
 
       fireEvent.press(screen.getByText('Buy'));
 
-      expect(mockGoToBuy).toHaveBeenCalledWith({
-        assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
-      });
+      expect(mockGoToBuy).toHaveBeenCalledWith(
+        {
+          assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
+        },
+        { buyFlowOrigin: 'homeTokenList' },
+      );
     });
 
     it('fires Ramps Button Clicked analytics event when Buy is pressed', () => {
@@ -281,6 +284,16 @@ describe('PopularTokenRow', () => {
       fireEvent.press(screen.getByText('Buy'));
 
       expect(mockTrackBuyButtonClicked).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes the token symbol to the analytics event when Buy is pressed', () => {
+      const token = createMockToken({ symbol: 'USDC' });
+
+      renderWithProvider(<PopularTokenRow token={token} />);
+
+      fireEvent.press(screen.getByText('Buy'));
+
+      expect(mockTrackBuyButtonClicked).toHaveBeenCalledWith('USDC');
     });
   });
 

@@ -4,6 +4,7 @@ import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import { TEST_NETWORK_IDS } from '../../../../constants/network';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import { getHexEvmChainId } from '../../../../util/networks';
 import { toFormattedAddress } from '../../../../util/address';
 
 export interface NetworkAddressItem {
@@ -13,21 +14,11 @@ export interface NetworkAddressItem {
 }
 
 /**
- * Extracts hex chain ID from CAIP chain ID format for EVM networks
- * @param chainId - Chain ID (can be hex or CAIP format)
- * @returns Hex chain ID for EVM networks, original for non-EVM
+ * Hex EVM chain id for comparisons (CHAIN_IDS, PopularList, testnets), or the
+ * original CAIP id for non-EVM. Uses shared {@link getHexEvmChainId}.
  */
-const extractHexChainId = (chainId: CaipChainId): string => {
-  if (chainId.startsWith('eip155:')) {
-    const chainIdPart = chainId.split(':')[1];
-    // Convert decimal to hex format if needed (CAIP format uses decimal)
-    if (!chainIdPart.startsWith('0x')) {
-      return `0x${parseInt(chainIdPart, 10).toString(16)}`;
-    }
-    return chainIdPart;
-  }
-  return chainId;
-};
+const evmHexOrOriginalChainId = (chainId: CaipChainId): string =>
+  getHexEvmChainId(chainId) ?? chainId;
 
 /**
  * Gets priority score for sorting networks (lower = higher priority)
@@ -36,8 +27,7 @@ const extractHexChainId = (chainId: CaipChainId): string => {
  * @returns Priority score
  */
 const getNetworkPriority = (chainId: CaipChainId): number => {
-  // For EVM networks, extract hex chain ID for comparison
-  const hexChainId = extractHexChainId(chainId);
+  const hexChainId = evmHexOrOriginalChainId(chainId);
 
   // Hardcoded order for top networks
   if (hexChainId === CHAIN_IDS.MAINNET) {

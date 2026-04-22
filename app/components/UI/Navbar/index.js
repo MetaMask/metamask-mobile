@@ -2,7 +2,6 @@
 import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
-import AccountRightButton from '../AccountRightButton';
 import {
   Alert,
   Image,
@@ -34,7 +33,6 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { NetworksViewSelectorsIDs } from '../../Views/Settings/NetworksSettings/NetworksView.testIds';
-import { SendLinkViewSelectorsIDs } from '../ReceiveRequest/SendLinkView.testIds';
 import Icon, {
   IconName,
   IconSize,
@@ -47,7 +45,6 @@ import HeaderBase, {
 } from '../../../component-library/components/HeaderBase';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 import {
@@ -143,52 +140,6 @@ const styles = StyleSheet.create({
 
 const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/branding/fox.png'); // eslint-disable-line
-/**
- * Function that returns the navigation options
- * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
- *
- * @param {string} title - Title in string format
- * @param {Object} navigation - Navigation object required to push new views
- * @param {bool} disableNetwork - Boolean that specifies if the network can be changed, defaults to false
- * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
- */
-export function getTransactionsNavbarOptions(
-  title,
-  themeColors,
-  _,
-  selectedAddress,
-  handleRightButtonPress,
-) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-  });
-
-  return {
-    headerTitle: () => <NavbarTitle title={title} />,
-    headerLeft: null,
-    headerRight: () => (
-      <AccountRightButton
-        selectedAddress={selectedAddress}
-        onPress={handleRightButtonPress}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
-    headerTintColor: themeColors.primary.default,
-  };
-}
 
 /**
  * Function that returns the navigation options
@@ -326,120 +277,6 @@ export function getEditableOptions(title, navigation, route, themeColors) {
         <View />
       ),
     headerStyle: innerStyles.headerStyle,
-    headerTintColor: themeColors.primary.default,
-  };
-}
-
-/**
- * Function that returns the navigation options
- * This is used by payment request view showing close and back buttons
- *
- * @param {string} title - Title in string format
- * @param {Object} navigation - Navigation object required to push new views
- * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
- */
-export function getPaymentRequestOptionsTitle(
-  title,
-  navigation,
-  route,
-  themeColors,
-) {
-  const goBack = route.params?.dispatch;
-  const innerStyles = StyleSheet.create({
-    headerTitleStyle: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerCloseButton: {
-      marginRight: 16,
-    },
-  });
-
-  return {
-    headerTitleAlign: 'center',
-    headerTitle: () => (
-      <View>
-        <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
-      </View>
-    ),
-    headerLeft: () =>
-      goBack ? (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
-          onPress={goBack}
-          style={styles.backButton}
-          testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
-        >
-          <IonicIcon
-            name={'arrow-back'}
-            size={Device.isAndroid() ? 24 : 28}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        <View />
-      ),
-    headerRight: () => (
-      <ButtonIcon
-        iconName={IconName.Close}
-        size={ButtonIconSize.Md}
-        onPress={() => navigation.pop()}
-        style={innerStyles.headerCloseButton}
-        testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
-    headerTintColor: themeColors.primary.default,
-  };
-}
-
-/**
- * Function that returns the navigation options
- * This is used by payment request view showing close button
- *
- * @returns {Object} - Corresponding navbar options containing title, and headerRight
- */
-export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-  });
-
-  return {
-    headerStyle: innerStyles.headerStyle,
-    title: null,
-    headerLeft: () => <View />,
-    headerRight: () => (
-      <TouchableOpacity
-        // eslint-disable-next-line react/jsx-no-bind
-        onPress={() => navigation.pop()}
-        style={styles.closeButton}
-        {...generateTestId(
-          Platform,
-          SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON,
-        )}
-      >
-        <IonicIcon
-          name="close"
-          size={38}
-          style={[innerStyles.headerIcon, styles.backIconIOS]}
-        />
-      </TouchableOpacity>
-    ),
     headerTintColor: themeColors.primary.default,
   };
 }
@@ -587,7 +424,7 @@ export function getOnboardingNavbarOptions(
             />
           </View>
         )
-      : null,
+      : '',
     headerRight: headerRightHide,
     headerLeft: headerLeftHide,
     headerTintColor: themeColors.primary.default,
@@ -1006,7 +843,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onPop?.();
         }}
         style={styles.closeButton}
@@ -1051,7 +888,7 @@ export function getPaymentMethodApplePayNavbar(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onExit?.();
         }}
         style={styles.closeButton}
@@ -1180,7 +1017,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => navigation.getParent()?.pop()}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
@@ -1245,7 +1082,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 
   const rightAction = () => {
     trackQuotesCancelledIfNeeded();
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.getParent()?.pop();
   };
 
   return {
@@ -1293,7 +1130,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
 
   return getHeaderCompactStandardNavbarOptions({
     title,
-    onClose: () => navigation.dangerouslyGetParent()?.pop(),
+    onBack: () => navigation.goBack(),
     includesTopInset: true,
   });
 }
@@ -1401,6 +1238,9 @@ export function getDepositNavbarOptions(
     startButtonIconProps,
     closeButtonProps,
     includesTopInset: true,
+    style: {
+      backgroundColor: theme.colors.background.default,
+    },
   });
 }
 
@@ -1606,6 +1446,7 @@ export function getStakingNavbar(
  */
 export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
   return {
+    headerShown: true,
     headerTitle: () => null,
     headerLeft: () => (
       <ButtonIcon

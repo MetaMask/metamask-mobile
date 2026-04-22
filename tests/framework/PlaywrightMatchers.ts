@@ -58,13 +58,13 @@ export default class PlaywrightMatchers {
     if (isAndroid) {
       locator = 'android=new UiSelector()';
       locator = exact
-        ? `${locator}.resourceId('${elementId}')`
-        : `${locator}.resourceIdMatches('.*${elementId}.*')`;
+        ? `${locator}.resourceId("${elementId}")`
+        : `${locator}.resourceIdMatches(".*${elementId}.*")`;
     } else {
       locator = '-ios predicate string:';
       locator = exact
-        ? `${locator}name == '${elementId}'`
-        : `${locator}name CONTAINS '${elementId}'`;
+        ? `${locator}name == "${elementId}"`
+        : `${locator}name CONTAINS "${elementId}"`;
     }
 
     const drv = getDriver();
@@ -79,10 +79,14 @@ export default class PlaywrightMatchers {
    * @returns The wrapped element
    */
   static async getElementByText(text: string): Promise<PlaywrightElement> {
-    const drv = getDriver();
-    if (!drv) throw new Error('Driver is not available');
-    const element = await drv.$(`*.=${text}`);
-    return wrapElement(element);
+    const isAndroid = await PlatformDetector.isAndroid();
+
+    if (isAndroid) {
+      return await this.getElementByAndroidUIAutomator(`.text("${text}")`);
+    }
+    return await this.getElementByXPath(
+      `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`,
+    );
   }
 
   /**
@@ -124,10 +128,19 @@ export default class PlaywrightMatchers {
    * @param xpath - The XPath selector to search for
    * @returns The wrapped element
    */
-  static async getElementByXPath(xpath: string): Promise<PlaywrightElement> {
+  static async getElementByXPath(
+    xpath: string,
+    options: MatcherOptions = {},
+  ): Promise<PlaywrightElement> {
+    const { lastElement = true } = options;
+
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
-    const element = await drv.$(xpath);
+    const elements = await drv.$$(xpath);
+    const length = await elements.length;
+    if (length === 0) throw new Error(`No elements found for XPath: ${xpath}`);
+    const element = lastElement ? elements[length - 1] : elements[0];
+
     return wrapElement(element);
   }
 
@@ -164,15 +177,18 @@ export default class PlaywrightMatchers {
   /**
    * Get element by Android UIAutomator selector
    * Only works on Android
+   * TODO: Add support for list reverse like Xpath does as a best effort with
+   * the possibility to override
    * @param selector - The Android UIAutomator selector to search for
    * @returns The wrapped element
    */
   static async getElementByAndroidUIAutomator(
     selector: string,
   ): Promise<PlaywrightElement> {
+    const baseUiAutomatorSelector = 'android=new UiSelector()';
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
-    const element = await drv.$(`android=${selector}`);
+    const element = await drv.$(`${baseUiAutomatorSelector}${selector}`);
     return wrapElement(element);
   }
 

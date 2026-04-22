@@ -3,19 +3,37 @@ import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
+import Share from 'react-native-share';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
-
-export const REWARDS_REFERRAL_SAFE_AREA_TEST_ID = 'rewards-referral-safe-area';
+import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  selectReferralCode,
+  selectReferralDetailsLoading,
+} from '../../../../reducers/rewards/selectors';
+import { buildReferralUrl, RewardsMetricsButtons } from '../utils';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const hasTrackedReferralsViewed = useRef(false);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const referralCode = useSelector(selectReferralCode);
+  const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
+
+  useTrackRewardsPageView({ page_type: 'referrals' });
 
   useEffect(() => {
     if (!hasTrackedReferralsViewed.current) {
@@ -26,12 +44,27 @@ const ReferralRewardsView: React.FC = () => {
     }
   }, [trackEvent, createEventBuilder]);
 
+  const handleShareLink = async () => {
+    if (!referralCode) return;
+    const link = buildReferralUrl(referralCode);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: RewardsMetricsButtons.SHARE_REFERRAL_LINK,
+        })
+        .build(),
+    );
+    await Share.open({
+      message: strings('rewards.referral.actions.share_referral_subject'),
+      url: link,
+    });
+  };
+
   return (
     <ErrorBoundary navigation={navigation} view="ReferralRewardsView">
       <SafeAreaView
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
-        testID={REWARDS_REFERRAL_SAFE_AREA_TEST_ID}
       >
         <HeaderCompactStandard
           title={strings('rewards.referral_title')}
@@ -40,12 +73,24 @@ const ReferralRewardsView: React.FC = () => {
           includesTopInset
         />
         <ScrollView
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('px-4 py-4')}
+          contentContainerStyle={tw.style('flex-grow p-4')}
           showsVerticalScrollIndicator={false}
         >
           <ReferralDetails />
         </ScrollView>
+
+        <Box twClassName="p-4 mb-2">
+          <Button
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            size={ButtonSize.Lg}
+            onPress={handleShareLink}
+            disabled={!referralCode || referralDetailsLoading}
+            testID="referral-share-button"
+          >
+            {strings('rewards.referral.actions.share_referral_link')}
+          </Button>
+        </Box>
       </SafeAreaView>
     </ErrorBoundary>
   );

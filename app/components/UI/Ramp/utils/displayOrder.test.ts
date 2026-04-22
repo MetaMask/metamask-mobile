@@ -71,13 +71,32 @@ describe('displayOrder', () => {
     it('converts a legacy FiatOrder to a DisplayOrder', () => {
       const fiatOrder = createMockFiatOrder();
       const result = fiatOrderToDisplayOrder(fiatOrder);
-      expect(result).toMatchSnapshot();
+      expect(result).toEqual({
+        account: '0xabc',
+        createdAt: 1000,
+        cryptoAmount: '...',
+        cryptoCurrencySymbol: 'ETH',
+        fiatAmount: '100',
+        fiatCurrencyCode: 'USD',
+        id: 'legacy-1',
+        network: '1',
+        orderType: 'BUY',
+        providerName: 'MockProvider_AGGREGATOR',
+        source: 'legacy',
+        status: 'COMPLETED',
+      });
     });
 
-    it('defaults cryptoAmount to 0 when undefined', () => {
-      const fiatOrder = createMockFiatOrder({ cryptoAmount: undefined });
-      const result = fiatOrderToDisplayOrder(fiatOrder);
-      expect(result.cryptoAmount).toBe(0);
+    it('uses placeholder when cryptoAmount is undefined or zero', () => {
+      expect(
+        fiatOrderToDisplayOrder(
+          createMockFiatOrder({ cryptoAmount: undefined }),
+        ).cryptoAmount,
+      ).toBe('...');
+      expect(
+        fiatOrderToDisplayOrder(createMockFiatOrder({ cryptoAmount: 0 }))
+          .cryptoAmount,
+      ).toBe('...');
     });
   });
 
@@ -85,7 +104,20 @@ describe('displayOrder', () => {
     it('converts a V2 RampsOrder to a DisplayOrder', () => {
       const order = createMockRampsOrder();
       const result = rampsOrderToDisplayOrder(order);
-      expect(result).toMatchSnapshot();
+      expect(result).toEqual({
+        account: '0x123',
+        createdAt: 2000,
+        cryptoAmount: '0.5',
+        cryptoCurrencySymbol: 'ETH',
+        fiatAmount: 100,
+        fiatCurrencyCode: 'USD',
+        id: 'v2-1',
+        network: 'eip155:1',
+        orderType: 'BUY',
+        providerName: 'TestProvider',
+        source: 'v2',
+        status: 'COMPLETED',
+      });
     });
 
     it('maps all RampsOrderStatus values to display strings', () => {
@@ -140,6 +172,23 @@ describe('displayOrder', () => {
       });
       const result = rampsOrderToDisplayOrder(order);
       expect(result.createdAt).toBe(0);
+    });
+
+    it('uses placeholder when cryptoAmount is 0 or missing', () => {
+      expect(
+        rampsOrderToDisplayOrder(createMockRampsOrder({ cryptoAmount: 0 }))
+          .cryptoAmount,
+      ).toBe('...');
+      expect(
+        rampsOrderToDisplayOrder(
+          createMockRampsOrder({ cryptoAmount: undefined }),
+        ).cryptoAmount,
+      ).toBe('...');
+      expect(
+        rampsOrderToDisplayOrder(
+          createMockRampsOrder({ cryptoAmount: null as unknown as string }),
+        ).cryptoAmount,
+      ).toBe('...');
     });
   });
 

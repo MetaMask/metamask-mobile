@@ -1,4 +1,10 @@
 import test from '@playwright/test';
+import type { DeviceMatrix } from './types';
+import { PlaywrightElement } from './PlaywrightAdapter';
+import { DEFAULT_IMPLICIT_WAIT_MS } from './Constants';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
+const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
 
 /**
  * Get the driver instance.
@@ -8,6 +14,27 @@ export function getDriver(): WebdriverIO.Browser {
   const drv = globalThis.driver;
   if (!drv) throw new Error('driver is not available');
   return drv;
+}
+
+/**
+ * Runs a callback with a temporarily increased implicit wait timeout.
+ * Restores the default timeout afterward, even if the callback throws.
+ * Use this for operations that legitimately need a longer wait (e.g. waitForDisplayed with 30s).
+ * @param timeoutMs - The timeout in milliseconds.
+ * @param fn - The callback to run.
+ * @returns The result of the callback.
+ */
+export async function withImplicitWait<T>(
+  timeoutMs: number,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const drv = getDriver();
+  await drv.setTimeout({ implicit: timeoutMs });
+  try {
+    return await fn();
+  } finally {
+    await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
+  }
 }
 
 /**
@@ -92,6 +119,54 @@ class PlaywrightUtilities {
   }> {
     const screenSize = await getDriver().getWindowSize();
     return { width: screenSize.width, height: screenSize.height };
+  }
+
+  /**
+   * Temporary wait method for the Playwright framework migration to keep the
+   * 1:1 to the old Appwright implementation.
+   * See: https://github.com/MetaMask/metamask-mobile/blob/main/tests/framework/utils/Flows.js#L228
+   * @param ms - The time to wait in milliseconds
+   * @returns A promise that resolves when the wait is complete
+   */
+  static async wait(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  static buildDeviceAccountMapping(): Record<string, string | null> {
+    const mapping: Record<string, string | null> = {};
+
+    // Process Android devices
+    deviceMatrix.android_devices.forEach((device) => {
+      if (device.category === 'high') {
+        mapping[device.name] = 'Account 3';
+      } else if (device.category === 'low') {
+        // Low category Android devices use default Account 1
+        mapping[device.name] = null;
+      }
+    });
+
+    // Process iOS devices
+    deviceMatrix.ios_devices.forEach((device) => {
+      if (device.category === 'high') {
+        mapping[device.name] = 'Account 4';
+      } else if (device.category === 'low') {
+        mapping[device.name] = 'Account 5';
+      }
+    });
+
+    return mapping;
+  }
+
+  /**
+   * Wait for element to be not visible and throw on failure
+   * @param element - The element to wait for
+   * @param timeout - The timeout in milliseconds
+   */
+  static async waitForElementToDisappear(
+    element: PlaywrightElement,
+    timeout = 5000,
+  ): Promise<void> {
+    await element.waitForDisplayed({ reverse: true, timeout });
   }
 }
 

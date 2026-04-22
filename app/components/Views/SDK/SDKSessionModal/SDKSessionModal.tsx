@@ -3,14 +3,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 // External dependencies
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
@@ -71,21 +69,18 @@ const createStyles = (
       justifyContent: 'center',
     },
   });
-interface SDKSEssionMoodalProps {
-  route: {
-    params: {
-      channelId?: string;
-      icon?: string;
-      urlOrTitle: string;
-      version?: string;
-      platform?: string;
-      isV2?: boolean;
-    };
-  };
+interface SDKSessionModalRouteParams {
+  channelId?: string;
+  icon?: string;
+  urlOrTitle: string;
+  version?: string;
+  platform?: string;
+  isV2?: boolean;
 }
 
-const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
-  const { params } = route;
+const SDKSessionModal = () => {
+  const { params } =
+    useRoute<RouteProp<{ params: SDKSessionModalRouteParams }, 'params'>>();
   const { channelId, icon, urlOrTitle, version, platform, isV2 } = params;
 
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -169,7 +164,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
         >
           <View style={styles.btnAction}>
             <Button
-              variant={ButtonVariants.Link}
+              variant={ButtonVariant.Tertiary}
               onPress={() => {
                 DevLogger.log(`Disconnect account: ${account}`, accounts);
                 if (channelId && account) {
@@ -186,15 +181,15 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
                   });
                 }
               }}
-              label={strings('sdk.disconnect')}
-            />
+            >
+              {strings('sdk.disconnect')}
+            </Button>
           </View>
         </Cell>
       ))}
       <View style={styles.actionsContainer}>
         <Button
-          label={strings('sdk.disconnect_all_accounts')}
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           style={styles.disconnectBtn}
           onPress={() => {
             DevLogger.log(`Disconnect all accounts channelId=${channelId}`);
@@ -209,7 +204,9 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
               },
             });
           }}
-        />
+        >
+          {strings('sdk.disconnect_all_accounts')}
+        </Button>
       </View>
     </BottomSheet>
   );

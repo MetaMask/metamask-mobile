@@ -7,50 +7,47 @@ import {
   PanResponder,
   View,
 } from 'react-native';
-import {
-  Circle,
-  Defs,
-  G,
-  LinearGradient,
-  Path,
-  Rect,
-  Stop,
-  Line as SvgLine,
-} from 'react-native-svg';
+import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { strings } from '../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Title from '../../../Base/Title';
-import styleSheet, { CHART_HEIGHT } from './PriceChart.styles';
-import { placeholderData } from './utils';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  CHART_DATA_THRESHOLD,
+  TOKEN_OVERVIEW_CHART_HEIGHT,
+} from '../Price/tokenOverviewChart.constants';
+import styleSheet from './PriceChart.styles';
 import PriceChartContext from './PriceChart.context';
+import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
+import { Box } from '@metamask/design-system-react-native';
 
 interface LineProps {
   line: string;
-  chartHasData: boolean;
+  lineStrokeActive: boolean;
 }
 
 interface TooltipProps {
   x: (index: number) => number;
   y: (value: number) => number;
   ticks: number[];
+  width?: number;
+  height?: number;
 }
+
+/** Design: 16×16 logical px circle (TradingView-style last-point marker). */
+const END_DOT_DIAMETER = 16;
 
 interface PriceChartProps {
   prices: TokenPrice[];
   priceDiff: number;
   isLoading: boolean;
   onChartIndexChange: (index: number) => void;
+  /** Match token overview AdvancedChart height. */
+  chartHeight?: number;
 }
 
 const PriceChart = ({
@@ -58,26 +55,25 @@ const PriceChart = ({
   priceDiff,
   isLoading,
   onChartIndexChange,
+  chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
 }: PriceChartProps) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const emptyDisplayTrackedRef = useRef(false);
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
 
   const [positionX, setPositionX] = useState(-1); // The currently selected X coordinate position
-  const { styles, theme } = useStyles(styleSheet, {});
+  /** Laid-out width of the chart row — used for touch mapping and skeleton (not screen width). */
+  const [chartRowWidth, setChartRowWidth] = useState(0);
+  const { styles, theme } = useStyles(styleSheet, { chartHeight });
+  const { themeAppearance } = useTheme();
+  const chartColor =
+    themeAppearance === AppThemeKey.light
+      ? LIGHT_MODE_SUCCESS_GREEN
+      : theme.colors.success.default;
 
   useEffect(() => {
     setPositionX(-1);
   }, [prices]);
-
-  const chartColor =
-    priceDiff > 0
-      ? theme.themeAppearance === 'dark'
-        ? theme.brandColors.blue300
-        : theme.colors.primary.default
-      : priceDiff < 0
-        ? theme.themeAppearance === 'dark'
-          ? theme.brandColors.blue300
-          : theme.colors.primary.default
-        : theme.colors.text.alternative;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
@@ -128,6 +124,24 @@ const PriceChart = ({
     };
   }, [priceList]);
 
+  const chartHasData = priceList.length >= CHART_DATA_THRESHOLD;
+  const hasInsufficientData =
+    priceList.length > 0 && priceList.length < CHART_DATA_THRESHOLD;
+
+  useEffect(() => {
+    if (chartHasData || isLoading) {
+      emptyDisplayTrackedRef.current = false;
+      return;
+    }
+    if (emptyDisplayTrackedRef.current) {
+      return;
+    }
+    emptyDisplayTrackedRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_EMPTY_DISPLAYED).build(),
+    );
+  }, [chartHasData, isLoading, trackEvent, createEventBuilder]);
+
   const onActiveIndexChange = (index: number) => {
     setPositionX(index);
     onChartIndexChange(index);
@@ -138,7 +152,8 @@ const PriceChart = ({
       onActiveIndexChange(-1);
       return;
     }
-    const chartWidth = Dimensions.get('window').width;
+    const chartWidth =
+      chartRowWidth > 0 ? chartRowWidth : Dimensions.get('window').width;
     const xDistance = chartWidth / priceList.length;
     if (x <= 0) {
       x = 0;
@@ -192,126 +207,31 @@ const PriceChart = ({
   );
 
   const Line = (props: Partial<LineProps>) => {
-    const { line, chartHasData } = props as LineProps;
+    const { line, lineStrokeActive } = props as LineProps;
     return (
       <Path
         key="line"
         d={line}
-        stroke={chartHasData ? chartColor : theme.colors.text.alternative}
+        stroke={lineStrokeActive ? chartColor : theme.colors.text.alternative}
         strokeWidth={apx(4)}
         fill="none"
-        opacity={chartHasData ? 1 : 0.85}
+        opacity={lineStrokeActive ? 1 : 0.85}
       />
     );
   };
 
-  const DataGradient = () => (
-    <Defs key="dataGradient">
-      <LinearGradient
-        id="dataGradient"
-        x1="0"
-        y1="0%"
-        x2="0%"
-        y2={`${CHART_HEIGHT}px`}
-      >
-        <Stop offset="0%" stopColor={chartColor} stopOpacity={0.25} />
-        <Stop offset="90%" stopColor={chartColor} stopOpacity={0} />
-      </LinearGradient>
-    </Defs>
-  );
-
-  const NoDataGradient = () => {
-    // gradient with transparent center and grey edges
-    const gradient = (
-      <Defs key="gradient">
-        <LinearGradient id="gradient" x1="0" y1="1" x2="0" y2="0">
-          <Stop
-            offset="0"
-            stopColor={theme.colors.background.default}
-            stopOpacity="1"
-          />
-          <Stop
-            offset="0.5"
-            stopColor={theme.colors.background.default}
-            stopOpacity="0.5"
-          />
-          <Stop
-            offset="1"
-            stopColor={theme.colors.background.default}
-            stopOpacity="1"
-          />
-        </LinearGradient>
-      </Defs>
-    );
-
-    return (
-      <G key="no-data-gradient">
-        {gradient}
-        <Rect
-          x="0"
-          y="0"
-          width={Dimensions.get('screen').width}
-          height={CHART_HEIGHT}
-          fill="url(#gradient)"
-        />
-      </G>
-    );
-  };
-
-  const NoDataOverlay = () => {
-    const hasInsufficientData = priceList.length > 0 && priceList.length <= 1;
-
-    if (hasInsufficientData) {
-      // Show simplified message for 1 data point
-      return (
-        <View
-          style={styles.noDataOverlay}
-          testID="price-chart-insufficient-data"
-        >
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            style={styles.noDataOverlayText}
-          >
-            {strings('asset_overview.no_chart_data.insufficient_data')}
-          </Text>
-        </View>
-      );
-    }
-
-    // Show full overlay for no data
-    return (
-      <View style={styles.noDataOverlay} testID="price-chart-no-data">
-        <Text>
-          <Icon
-            name={IconName.Warning}
-            color={IconColor.Muted}
-            size={IconSize.Xl}
-            testID="price-chart-no-data-icon"
-          />
-        </Text>
-        <Title style={styles.noDataOverlayTitle}>
-          {strings('asset_overview.no_chart_data.title')}
-        </Title>
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          style={styles.noDataOverlayText}
-        >
-          {strings('asset_overview.no_chart_data.description')}
-        </Text>
-      </View>
-    );
-  };
-
-  const Tooltip = ({ x, y }: Partial<TooltipProps>) => {
+  const Tooltip = ({ x, y, height: svgHeight }: Partial<TooltipProps>) => {
     if (positionX < 0) {
       return null;
     }
+    const lineHeight =
+      typeof svgHeight === 'number' && svgHeight > 0 ? svgHeight : chartHeight;
     return (
       <G x={x?.(positionX)} key="tooltip">
         <G>
           <SvgLine
             y1={1}
-            y2={CHART_HEIGHT}
+            y2={lineHeight}
             stroke={styles.tooltipLine.color}
             strokeWidth={1}
           />
@@ -327,6 +247,40 @@ const PriceChart = ({
     );
   };
 
+  const endDotRadius = END_DOT_DIAMETER / 2;
+  const endDotInsetRight = endDotRadius + 8;
+
+  /** Last-point marker — TradingView-style line end dot. Requires right contentInset or SVG clips half the circle. */
+  const EndDot = ({ x, y }: Partial<TooltipProps>) => {
+    if (!chartHasData || x === undefined || y === undefined) {
+      return null;
+    }
+    const lastIdx = priceList.length - 1;
+    const lastY = priceList[lastIdx];
+    const cx = x(lastIdx);
+    const cy = y(lastY);
+    if (
+      typeof cx !== 'number' ||
+      typeof cy !== 'number' ||
+      Number.isNaN(cx) ||
+      Number.isNaN(cy)
+    ) {
+      return null;
+    }
+    return (
+      <Circle
+        key="end-dot"
+        testID="price-chart-end-dot"
+        cx={cx}
+        cy={cy}
+        r={endDotRadius}
+        fill={chartColor}
+        stroke={theme.colors.background.default}
+        strokeWidth={Math.max(1.5, apx(2))}
+      />
+    );
+  };
+
   /**
    * Loading overlay component.
    * Note: We render this conditionally in the return statement rather than early-returning
@@ -334,47 +288,71 @@ const PriceChart = ({
    * @see https://github.com/MetaMask/metamask-mobile/issues/20854
    */
   const LoadingOverlay = () => (
-    <View style={styles.noDataOverlay} testID="price-chart-loading">
+    <Box twClassName="justify-center items-center" testID="price-chart-loading">
       <SkeletonPlaceholder
         backgroundColor={theme.colors.background.section}
         highlightColor={theme.colors.background.subsection}
       >
         <SkeletonPlaceholder.Item
-          width={Dimensions.get('screen').width - 32}
-          height={CHART_HEIGHT}
+          width={
+            chartRowWidth > 0
+              ? chartRowWidth
+              : Dimensions.get('window').width - 32
+          }
+          height={chartHeight}
           borderRadius={6}
         ></SkeletonPlaceholder.Item>
       </SkeletonPlaceholder>
-    </View>
+    </Box>
   );
 
-  const chartHasData = priceList.length > 1;
-
   return (
-    <View style={styles.chart}>
+    <View
+      style={styles.chart}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w > 0) {
+          setChartRowWidth(w);
+        }
+      }}
+    >
       <View
-        style={styles.chartArea}
+        style={styles.chartAreaWrapper}
         testID={chartHasData ? 'price-chart-area' : undefined}
-        {...panResponder.current.panHandlers}
+        {...(chartHasData ? panResponder.current.panHandlers : {})}
       >
-        {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
-        {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
-        <AreaChart
-          style={styles.chartArea}
-          data={chartHasData ? priceList : placeholderData}
-          contentInset={{ top: apx(40), bottom: apx(40) }}
-          svg={
-            chartHasData && !isLoading
-              ? { fill: `url(#dataGradient)` }
-              : undefined
-          }
-          yMin={isStablecoin && chartHasData ? yMin : undefined}
-          yMax={isStablecoin && chartHasData ? yMax : undefined}
-        >
-          {!isLoading && <Line chartHasData={chartHasData} />}
-          {chartHasData ? <Tooltip /> : <NoDataGradient />}
-          {chartHasData && <DataGradient />}
-        </AreaChart>
+        {chartHasData ? (
+          <AreaChart
+            style={styles.chartArea}
+            data={priceList}
+            contentInset={{
+              top: apx(40),
+              bottom: apx(40),
+              right: endDotInsetRight,
+            }}
+            svg={!isLoading ? { fill: 'none' } : undefined}
+            yMin={isStablecoin ? yMin : undefined}
+            yMax={isStablecoin ? yMax : undefined}
+          >
+            {!isLoading && <Line lineStrokeActive />}
+            {!isLoading && <Tooltip />}
+            {!isLoading && <EndDot />}
+          </AreaChart>
+        ) : null}
+        {isLoading && (
+          <View style={styles.loadingOverlayContainer}>
+            <LoadingOverlay />
+          </View>
+        )}
+        {!isLoading && !chartHasData && (
+          <View style={styles.noDataOverlayContainer} pointerEvents="box-none">
+            <NoDataOverlay
+              chartHeight={chartHeight}
+              chartPlaceholderFill={theme.colors.border.muted}
+              hasInsufficientData={hasInsufficientData}
+            />
+          </View>
+        )}
       </View>
     </View>
   );

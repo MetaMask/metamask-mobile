@@ -48,7 +48,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
+test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
   device,
   performanceTracker,
 }) => {

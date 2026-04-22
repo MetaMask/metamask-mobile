@@ -22,6 +22,16 @@ export interface UnifiedGestureOptions {
   speed?: 'fast' | 'slow';
   /** Swipe percentage (0–1) — Detox only; Appium ignores this */
   percentage?: number;
+  /** Scroll direction — Detox only; used by scrollToElement */
+  direction?: 'up' | 'down' | 'left' | 'right';
+  /** Scroll amount in px — Detox only; used by scrollToElement */
+  scrollAmount?: number;
+  /** Delay before tapping (ms) */
+  delay?: number;
+  /** Check if the element is displayed — Appium only; Detox ignores this */
+  checkForDisplayed?: boolean;
+  /** Check if the element is enabled — Appium only; Detox ignores this */
+  checkForEnabled?: boolean;
 }
 
 /**
@@ -220,6 +230,8 @@ export class DetoxGestureStrategy implements GestureStrategy {
       {
         timeout: opts?.timeout,
         elemDescription: opts?.description,
+        direction: opts?.direction,
+        scrollAmount: opts?.scrollAmount,
       },
     );
   }
@@ -315,7 +327,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async tap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await el.click();
+    await PlaywrightGestures.waitAndTap(el);
   }
 
   /**
@@ -325,7 +337,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async waitAndTap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await el.click();
+    await PlaywrightGestures.waitAndTap(el);
   }
 
   /**

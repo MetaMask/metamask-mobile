@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import React, {
   useCallback,
@@ -7,7 +7,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -42,24 +47,23 @@ import {
   FilterTab,
   ListItem,
   PerpsTransaction,
-  PerpsTransactionsViewProps,
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
+import { PerpsTransactionsViewSelectorsIDs } from '../../Perps.testIds';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
+const PerpsTransactionsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const navigation = useNavigation();
 
-  // Transaction data is now computed from hooks instead of stored in state
-  const [flatListData, setFlatListData] = useState<ListItem[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Trades');
   const [refreshing, setRefreshing] = useState(false);
+  const [isFocusRefreshing, setIsFocusRefreshing] = useState(false);
 
   // Ref for FlashList to control scrolling
   const flashListRef = useRef(null);
@@ -84,6 +88,9 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     transactions: allTransactions,
     isLoading: transactionsLoading,
     refetch: refreshTransactions,
+    loadMoreFunding,
+    hasFundingMore,
+    isFetchingMoreFunding,
   } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
     accountId,
@@ -179,16 +186,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     groupTransactionsByDate,
   ]);
 
-  // Memoized flat data for current filter - prevents re-flattening on every change
-  const currentFlatListData = useMemo(() => {
+  const flatListData = useMemo(() => {
     const currentGrouped = allGroupedTransactions[activeFilter] || [];
     return flattenGroupedTransactions(currentGrouped, activeFilter);
-  }, [allGroupedTransactions, activeFilter]);
-
-  // Update state only when needed - much faster tab switching
-  useEffect(() => {
-    setFlatListData(currentFlatListData);
-  }, [allGroupedTransactions, activeFilter, currentFlatListData]);
+  }, [activeFilter, allGroupedTransactions]);
 
   // Note: Removed automatic scroll to top on tab change to allow switching tabs while scrolling
 
@@ -207,7 +208,57 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     }
   }, [isConnected, refreshTransactions]);
 
-  // Initial loading is handled by the hooks themselves
+  // Auto-advance funding cursor when the Funding tab is empty but more data
+  // exists. FlashList does not reliably call onEndReached on empty lists, so
+  // we trigger loadMoreFunding directly when the tab shows no results.
+  useEffect(() => {
+    if (
+      activeFilter === 'Funding' &&
+      !transactionsLoading &&
+      !isFetchingMoreFunding &&
+      hasFundingMore &&
+      fundingTransactions.length === 0
+    ) {
+      loadMoreFunding();
+    }
+  }, [
+    activeFilter,
+    transactionsLoading,
+    isFetchingMoreFunding,
+    hasFundingMore,
+    fundingTransactions,
+    loadMoreFunding,
+  ]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isConnected) {
+        setIsFocusRefreshing(false);
+        return;
+      }
+
+      let isMounted = true;
+
+      const refreshOnFocus = async () => {
+        setIsFocusRefreshing(true);
+        try {
+          await refreshTransactions();
+        } catch (error) {
+          console.warn('Failed to refresh perps transactions on focus:', error);
+        } finally {
+          if (isMounted) {
+            setIsFocusRefreshing(false);
+          }
+        }
+      };
+
+      refreshOnFocus();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [isConnected, refreshTransactions]),
+  );
 
   const renderFilterTab = useCallback(
     (tab: FilterTab, index: number) => {
@@ -216,6 +267,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       // Convert tab to i18n key
       const i18nKeys = ['trades', 'orders', 'funding', 'deposits'];
       const i18nKey = i18nKeys[index];
+      const tabTestIDs = [
+        PerpsTransactionsViewSelectorsIDs.TAB_TRADES,
+        PerpsTransactionsViewSelectorsIDs.TAB_ORDERS,
+        PerpsTransactionsViewSelectorsIDs.TAB_FUNDING,
+        PerpsTransactionsViewSelectorsIDs.TAB_DEPOSITS,
+      ];
 
       const handleTabPress = () => {
         // Immediately scroll to top and switch tabs
@@ -242,6 +299,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           size={ButtonSize.Md}
           onPress={handleTabPress}
           accessibilityRole="button"
+          testID={tabTestIDs[index]}
         >
           {strings(`perps.transactions.tabs.${i18nKey}`)}
         </ButtonFilter>
@@ -380,9 +438,18 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Determine if we should show loading skeleton
   const isInitialLoading = useMemo(
     () =>
-      // Show loading if we're connecting or if transaction data is loading
-      isConnecting || transactionsLoading,
-    [isConnecting, transactionsLoading],
+      // Show loading for connection/data fetch states and focus-refresh with no cached rows.
+      isConnecting ||
+      transactionsLoading ||
+      (!isConnected && flatListData.length === 0) ||
+      (isFocusRefreshing && flatListData.length === 0),
+    [
+      isConnecting,
+      transactionsLoading,
+      isConnected,
+      isFocusRefreshing,
+      flatListData.length,
+    ],
   );
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive
@@ -450,6 +517,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       )}
 
       <FlashList
+        testID="perps-transactions-flash-list"
         ref={flashListRef}
         data={flatListData}
         renderItem={renderListItem}
@@ -458,9 +526,26 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           item.type === 'header' ? 'header' : 'transaction'
         }
         ListEmptyComponent={shouldShowEmptyState ? renderEmptyState : null}
+        ListFooterComponent={
+          activeFilter === 'Funding' && isFetchingMoreFunding ? (
+            <View style={styles.loadMoreContainer}>
+              <ActivityIndicator
+                testID={
+                  PerpsTransactionsViewSelectorsIDs.FUNDING_LOAD_MORE_SPINNER
+                }
+              />
+            </View>
+          ) : null
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        onEndReached={
+          activeFilter === 'Funding' && hasFundingMore
+            ? loadMoreFunding
+            : undefined
+        }
+        onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
         drawDistance={
           PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FLASH_LIST_DRAW_DISTANCE

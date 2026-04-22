@@ -1,7 +1,7 @@
 import { NativeModules } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
@@ -215,10 +215,6 @@ const mockUseAnalytics = createMockUseAnalyticsHook();
 
 jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => mockUseAnalytics),
-}));
-
-jest.mock('../../components/hooks/useAnalytics/withAnalyticsAwareness', () => ({
-  withAnalyticsAwareness: jest.fn((Component) => Component),
 }));
 
 let mockState = {};
@@ -513,6 +509,34 @@ jest.mock('@segment/analytics-react-native', () => {
     }
   }
 
+  class EventPlugin extends Plugin {
+    execute(event) {
+      return event;
+    }
+    identify(event) {
+      return event;
+    }
+    track(event) {
+      return event;
+    }
+    screen(event) {
+      return event;
+    }
+    alias(event) {
+      return event;
+    }
+    group(event) {
+      return event;
+    }
+    flush() {}
+    reset() {}
+  }
+
+  class DestinationPlugin extends EventPlugin {
+    type = 'destination';
+    key = '';
+  }
+
   class CountFlushPolicy {
     constructor(count) {
       this.count = count;
@@ -529,6 +553,7 @@ jest.mock('@segment/analytics-react-native', () => {
     createClient: jest.fn(() => initializeMockClient()),
     PluginType: {
       enrichment: 'enrichment',
+      destination: 'destination',
       utility: 'utility',
     },
     EventType: {
@@ -536,10 +561,26 @@ jest.mock('@segment/analytics-react-native', () => {
       IdentifyEvent: 'identify',
     },
     Plugin,
+    EventPlugin,
+    DestinationPlugin,
     CountFlushPolicy,
     TimerFlushPolicy,
   };
 });
+
+jest.mock('@braze/react-native-sdk', () => ({
+  __esModule: true,
+  default: {
+    changeUser: jest.fn(),
+    logCustomEvent: jest.fn(),
+    requestImmediateDataFlush: jest.fn(),
+    setCustomUserAttribute: jest.fn(),
+    setLanguage: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    Events: { PUSH_NOTIFICATION_EVENT: 'push_notification_event' },
+    getInitialPushPayload: jest.fn(),
+  },
+}));
 
 jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
@@ -566,7 +607,7 @@ jest.mock('../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
 
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 require('react-native-reanimated').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
@@ -575,10 +616,33 @@ jest.mock('../../core/Engine', () =>
   require('../../core/__mocks__/MockedEngine'),
 );
 
-jest.mock('react-native-safe-area-context', () => ({
-  ...jest.requireActual('react-native-safe-area-context'),
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-}));
+jest.mock('react-native-safe-area-context', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('react-native-safe-area-context');
+  // Always stub SafeAreaView with View: the real SafeAreaView is a forwardRef to
+  // codegenNativeComponent('RNCSafeAreaView'), which is often undefined in Jest, so
+  // the import looks defined but rendering throws "element type is invalid" (e.g.
+  // PermissionsSummary, AccountConnectMultiSelector, AddAccount).
+  const SafeAreaView = React.forwardRef((props, ref) =>
+    React.createElement(View, { ...props, ref }),
+  );
+  const mockInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+  // Match typical per-test mocks (zero frame) so BottomSheet layout snapshots stay stable.
+  const mockFrame = { width: 0, height: 0, x: 0, y: 0 };
+  // The real SafeAreaInsetsContext defaults to null without <SafeAreaProvider>. Many unit
+  // tests render components that use SafeAreaInsetsContext.Consumer but do not wrap the
+  // tree in a provider; align the default with useSafeAreaInsets above so insets.top works.
+  const SafeAreaInsetsContext = React.createContext(mockInsets);
+  return {
+    ...actual,
+    SafeAreaView,
+    SafeAreaInsetsContext,
+    useSafeAreaInsets: () => mockInsets,
+    // Real hook throws without <SafeAreaProvider>; many tests render BottomSheet only.
+    useSafeAreaFrame: () => mockFrame,
+  };
+});
 
 jest.mock(
   'react-native-keyboard-controller',

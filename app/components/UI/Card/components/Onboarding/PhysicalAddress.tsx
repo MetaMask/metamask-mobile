@@ -11,12 +11,10 @@ import {
   Label,
   Text,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import Button, {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -30,8 +28,6 @@ import {
   selectConsentSetId,
   selectOnboardingId,
   setConsentSetId,
-  setIsAuthenticatedCard,
-  setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
@@ -39,6 +35,7 @@ import { CardError, type Region } from '../../types';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import useRegions from '../../hooks/useRegions';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
+import Engine from '../../../../../core/Engine';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
@@ -510,9 +507,11 @@ const PhysicalAddress = () => {
         });
 
         if (storeResult.success) {
-          // Update Redux state to reflect authentication
-          dispatch(setIsAuthenticatedCard(true));
-          dispatch(setUserCardLocation(location));
+          // Sync controller state: sets CardController.isAuthenticated = true
+          // and providerData.baanx.location so route guards read the correct state.
+          await Engine.context.CardController.validateAndRefreshSession().catch(
+            () => undefined,
+          );
         }
 
         // Step 10: Link consent to user (only if needed)
@@ -804,15 +803,16 @@ const PhysicalAddress = () => {
         </Text>
       ) : null}
       <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         isDisabled={isDisabled}
-        loading={registerLoading || isPollingVerification}
+        isLoading={registerLoading || isPollingVerification}
         testID="physical-address-continue-button"
-      />
+      >
+        {strings('card.card_onboarding.continue_button')}
+      </Button>
     </Box>
   );
 

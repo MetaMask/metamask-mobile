@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
 
@@ -18,11 +19,16 @@ const shortenedEthAddress = '0x4FeC2...fdcB5';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
+const mockIsFocused = jest.fn().mockReturnValue(true);
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    setOptions: mockSetOptions,
+    isFocused: mockIsFocused,
+    dispatch: jest.fn(),
   }),
 }));
 
@@ -174,11 +180,11 @@ describe('PrivateKeyList', () => {
   it('renders password input box correctly', () => {
     const { getByTestId } = renderWithPrivateKeyList();
 
-    expect(getByTestId(PrivateKeyListIds.PASSWORD_TITLE)).toBeDefined();
-    expect(getByTestId(PrivateKeyListIds.BANNER)).toBeDefined();
-    expect(getByTestId(PrivateKeyListIds.PASSWORD_INPUT)).toBeDefined();
-    expect(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON)).toBeDefined();
-    expect(getByTestId(PrivateKeyListIds.CANCEL_BUTTON)).toBeDefined();
+    expect(getByTestId(PrivateKeyListIds.PASSWORD_TITLE)).toBeOnTheScreen();
+    expect(getByTestId(PrivateKeyListIds.BANNER)).toBeOnTheScreen();
+    expect(getByTestId(PrivateKeyListIds.PASSWORD_INPUT)).toBeOnTheScreen();
+    expect(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON)).toBeOnTheScreen();
+    expect(getByTestId(PrivateKeyListIds.CANCEL_BUTTON)).toBeOnTheScreen();
   });
 
   it('shows an error message for an incorrect password', async () => {
@@ -211,11 +217,131 @@ describe('PrivateKeyList', () => {
 
     await findByTestId(PrivateKeyListIds.LIST);
 
-    expect(getByText(TITLE)).toBeDefined();
-
     expect(getAllByText(shortenedEthAddress).length).toBe(3);
-    expect(getByText('Ethereum')).toBeDefined();
-    expect(getByText('Base')).toBeDefined();
-    expect(getByText('Arbitrum One')).toBeDefined();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
+    expect(getByText('Base')).toBeOnTheScreen();
+    expect(getByText('Arbitrum One')).toBeOnTheScreen();
+
+    // Stack navigator shows the route name in the header; the param title is applied via setOptions.
+    const navOptionsWithHeader = mockSetOptions.mock.calls
+      .map(([opts]) => opts)
+      .find(
+        (opts) =>
+          opts &&
+          opts.headerShown === true &&
+          typeof opts.header === 'function',
+      );
+    expect(navOptionsWithHeader).toBeDefined();
+    const { getByText: getTextInNavHeader, unmount } = render(
+      navOptionsWithHeader.header(),
+    );
+    expect(getTextInNavHeader(TITLE)).toBeOnTheScreen();
+    unmount();
+  });
+
+  it('clears wrong-password error and shows list when correct password is entered after wrong', async () => {
+    const { getByTestId, findByTestId, queryByTestId } =
+      renderWithPrivateKeyList();
+
+    // First attempt – wrong password
+    fireEvent.changeText(
+      getByTestId(PrivateKeyListIds.PASSWORD_INPUT),
+      'wrong-password',
+    );
+    fireEvent.press(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON));
+    await findByTestId(PrivateKeyListIds.PASSWORD_ERROR);
+
+    // Second attempt – correct password
+    fireEvent.changeText(
+      getByTestId(PrivateKeyListIds.PASSWORD_INPUT),
+      'correct-password',
+    );
+    fireEvent.press(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON));
+
+    await findByTestId(PrivateKeyListIds.LIST);
+    expect(queryByTestId(PrivateKeyListIds.PASSWORD_ERROR)).toBeNull();
+  });
+
+  it('renders warning banner with correct title', () => {
+    const { getByTestId, getByText } = renderWithPrivateKeyList();
+
+    expect(getByTestId(PrivateKeyListIds.BANNER)).toBeOnTheScreen();
+    expect(
+      getByText(strings('multichain_accounts.private_key_list.warning_title')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders warning banner with a "Learn more" link', () => {
+    const { getByText } = renderWithPrivateKeyList();
+
+    expect(
+      getByText(strings('reveal_credential.learn_more')),
+    ).toBeOnTheScreen();
+  });
+
+  it('pressing cancel button does not throw', () => {
+    const { getByTestId } = renderWithPrivateKeyList();
+
+    expect(() => {
+      fireEvent.press(getByTestId(PrivateKeyListIds.CANCEL_BUTTON));
+    }).not.toThrow();
+  });
+
+  it('calls navigation.goBack when cancel is pressed', async () => {
+    const { getByTestId } = renderWithPrivateKeyList();
+    fireEvent.press(getByTestId(PrivateKeyListIds.CANCEL_BUTTON));
+
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
+  it('hides SOL-only accounts from the private key list', async () => {
+    const { getByTestId, findByTestId, queryByText } =
+      renderWithPrivateKeyList();
+
+    fireEvent.changeText(
+      getByTestId(PrivateKeyListIds.PASSWORD_INPUT),
+      'correct-password',
+    );
+    fireEvent.press(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON));
+
+    await findByTestId(PrivateKeyListIds.LIST);
+
+    // Solana account should not appear in the private-key list
+    expect(queryByText('Sol Account 1')).toBeNull();
+  });
+
+  describe('on Android', () => {
+    const originalOS = Platform.OS;
+
+    beforeEach(() => {
+      Platform.OS = 'android';
+    });
+
+    afterEach(() => {
+      Platform.OS = originalOS;
+    });
+
+    it('renders the password screen without error on Android', () => {
+      const { getByTestId } = renderWithPrivateKeyList();
+
+      expect(getByTestId(PrivateKeyListIds.PASSWORD_TITLE)).toBeOnTheScreen();
+      expect(getByTestId(PrivateKeyListIds.CANCEL_BUTTON)).toBeOnTheScreen();
+      expect(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('reveals private key list on Android after correct password', async () => {
+      const { getByTestId, findByTestId } = renderWithPrivateKeyList();
+
+      fireEvent.changeText(
+        getByTestId(PrivateKeyListIds.PASSWORD_INPUT),
+        'correct-password',
+      );
+      fireEvent.press(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON));
+
+      const list = await findByTestId(PrivateKeyListIds.LIST);
+      expect(list).toBeOnTheScreen();
+    });
   });
 });

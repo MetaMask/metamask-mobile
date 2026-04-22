@@ -101,6 +101,7 @@ describe('getTransactionTypeValue', () => {
     ['predict_claim', TransactionType.predictClaim],
     ['predict_deposit', TransactionType.predictDeposit],
     ['predict_withdraw', TransactionType.predictWithdraw],
+    ['perps_withdraw', TransactionType.perpsWithdraw],
     ['musd_conversion', TransactionType.musdConversion],
     ['musd_claim', TransactionType.musdClaim],
   ])('returns %s if nested transaction type is %s', (expected, nestedType) => {
@@ -116,5 +117,34 @@ describe('getTransactionTypeValue', () => {
     expect(
       getTransactionTypeValue(mockTransactionMeta.type, mockTransactionMeta),
     ).toBe(expected);
+  });
+
+  it.each([
+    ['perps_deposit_batch', TransactionType.perpsRelayDeposit],
+    ['predict_deposit_batch', TransactionType.predictRelayDeposit],
+    ['musd_conversion_batch', TransactionType.musdRelayDeposit],
+  ])(
+    'returns %s for batch transaction with nested %s type',
+    (expected, nestedType) => {
+      const mockTransactionMeta = {
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: TransactionType.tokenMethodApprove },
+          { type: nestedType },
+        ],
+      } as TransactionMeta;
+
+      expect(
+        getTransactionTypeValue(mockTransactionMeta.type, mockTransactionMeta),
+      ).toBe(expected);
+    },
+  );
+
+  it.each([
+    ['musd_relay_deposit', TransactionType.musdRelayDeposit],
+    ['perps_relay_deposit', TransactionType.perpsRelayDeposit],
+    ['predict_relay_deposit', TransactionType.predictRelayDeposit],
+  ])('returns %s for standalone relay deposit type %s', (expected, txType) => {
+    expect(getTransactionTypeValue(txType)).toBe(expected);
   });
 });
