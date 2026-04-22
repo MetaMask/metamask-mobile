@@ -40,10 +40,12 @@ const PERIOD_DURATION_MS: Record<TimePeriod, number> = {
 /**
  * Derives percentage change from historical price data points.
  * For "1H" we find the point closest to one hour ago within the data set.
+ * @param nowMs - Same clock as used to slice 1H prices (avoids mismatched "now").
  */
 function derivePercentChange(
   prices: TokenPrice[],
   period: TimePeriod,
+  nowMs: number,
 ): number | undefined {
   if (!prices.length) return undefined;
 
@@ -51,7 +53,7 @@ function derivePercentChange(
   let startPrice: number;
 
   if (period === '1H') {
-    const oneHourAgo = Date.now() - 60 * 60 * 1000;
+    const oneHourAgo = nowMs - 60 * 60 * 1000;
     const closest = prices.reduce((best, pt) =>
       Math.abs(Number(pt[0]) - oneHourAgo) <
       Math.abs(Number(best[0]) - oneHourAgo)
@@ -234,10 +236,11 @@ export function useTraderPositionData(
     };
   }, [positionParam, caipChainId, currentCurrency]);
 
-  // Resolve with fallbacks:
-  // - 1H: truncate 1d data to last 60 min; if < 5 points, use full 1d
-  // - All: if 3y returns empty, cascade through 1M → 1W → 1D
-  const historicalPrices = useMemo(() => {
+  // Resolve with fallbacks (single useMemo + one Date.now() per recompute so 1H
+  // slice and derivePercentChange share the same clock; deps omit "now" so
+  // window updates when price data or period changes, not on every parent render).
+  const { historicalPrices, priceDiff, pricePercentChange } = useMemo(() => {
+    const now = Date.now();
     let prices = allPrices[activeTimePeriod] ?? [];
 
     if (activeTimePeriod === 'All' && !prices.length) {
@@ -248,25 +251,20 @@ export function useTraderPositionData(
     }
 
     if (activeTimePeriod === '1H' && prices.length) {
-      const oneHourAgo = Date.now() - 60 * 60 * 1000;
+      const oneHourAgo = now - 60 * 60 * 1000;
       const lastHour = prices.filter((pt) => Number(pt[0]) >= oneHourAgo);
-      return lastHour.length >= 5 ? lastHour : prices;
+      prices = lastHour.length >= 5 ? lastHour : prices;
     }
 
-    return prices;
+    const diff =
+      prices.length < 2 ? 0 : prices[prices.length - 1][1] - prices[0][1];
+
+    return {
+      historicalPrices: prices,
+      priceDiff: diff,
+      pricePercentChange: derivePercentChange(prices, activeTimePeriod, now),
+    };
   }, [allPrices, activeTimePeriod]);
-
-  const priceDiff = useMemo(() => {
-    if (historicalPrices.length < 2) return 0;
-    return (
-      historicalPrices[historicalPrices.length - 1][1] - historicalPrices[0][1]
-    );
-  }, [historicalPrices]);
-
-  const pricePercentChange = derivePercentChange(
-    historicalPrices,
-    activeTimePeriod,
-  );
 
   // ── Position card ──────────────────────────────────────────────────────
 
@@ -289,11 +287,16 @@ export function useTraderPositionData(
 
   // ── Trades (filtered by period) ────────────────────────────────────────
 
-  const trades = (positionParam?.trades ?? []).filter((t) => {
-    const tsMs =
-      t.timestamp > 0 && t.timestamp < 1e12 ? t.timestamp * 1000 : t.timestamp;
-    return tsMs >= Date.now() - PERIOD_DURATION_MS[activeTimePeriod];
-  });
+  const trades = useMemo(() => {
+    const now = Date.now();
+    return (positionParam?.trades ?? []).filter((t) => {
+      const tsMs =
+        t.timestamp > 0 && t.timestamp < 1e12
+          ? t.timestamp * 1000
+          : t.timestamp;
+      return tsMs >= now - PERIOD_DURATION_MS[activeTimePeriod];
+    });
+  }, [positionParam?.trades, activeTimePeriod]);
 
   // ── Return ─────────────────────────────────────────────────────────────
 
