@@ -181,7 +181,7 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Lock,
-        iconColor: mockTheme.colors.icon.muted,
+        iconColor: mockTheme.colors.icon.default,
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Warning,
         hasNoTimeout: false,
@@ -200,20 +200,21 @@ describe('useRewardsToast', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.entriesClosed(
         'Entries closed',
-        'You missed the opt-in window',
+        'You missed the opt-in window. Check back for more campaigns in the future.',
       );
 
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Lock,
-        iconColor: mockTheme.colors.icon.muted,
+        iconColor: mockTheme.colors.icon.default,
         hapticsType: NotificationFeedbackType.Warning,
       });
       expect(config.labelOptions).toEqual([
         { label: 'Entries closed', isBold: true },
       ]);
       expect(config.descriptionOptions).toEqual({
-        description: 'You missed the opt-in window',
+        description:
+          'You missed the opt-in window. Check back for more campaigns in the future.',
       });
     });
 

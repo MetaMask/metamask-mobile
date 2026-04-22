@@ -7,28 +7,32 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
+
 import {
   Box,
+  IconName,
   Skeleton,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
-import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
 import OndoActivityRow from '../components/Campaigns/OndoActivityRow';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RewardsInfoBanner from '../components/RewardsInfoBanner';
-import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetOndoCampaignActivity } from '../hooks/useGetOndoCampaignActivity';
-import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
-import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
+import { formatRewardsDateLabel } from '../utils/formatUtils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+
+type ActivityListItem =
+  | { kind: 'date-header'; dateKey: string; label: string }
+  | { kind: 'activity'; entry: OndoGmActivityEntryDto; index: number };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PortfolioRouteParams = {
@@ -45,22 +49,10 @@ const OndoCampaignPortfolioView: React.FC = () => {
   const route = useRoute<RouteProp<PortfolioRouteParams>>();
   const { campaignId } = route.params;
 
-  const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
-    useOndoAccountPicker(campaignId);
-
-  const { campaigns } = useRewardCampaigns();
-  const campaign = useMemo(
-    () => campaigns.find((c) => c.id === campaignId) ?? null,
-    [campaigns, campaignId],
-  );
-
-  const {
-    portfolio,
-    isLoading: isPortfolioLoading,
-    hasError: hasPortfolioError,
-    hasFetched: portfolioHasFetched,
-    refetch: refetchPortfolio,
-  } = useGetOndoPortfolioPosition(campaignId);
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_activity',
+    campaign_id: campaignId,
+  });
 
   const {
     activityEntries,
@@ -73,25 +65,51 @@ const OndoCampaignPortfolioView: React.FC = () => {
     isRefreshing,
   } = useGetOndoCampaignActivity(campaignId);
 
-  const handleRefresh = useCallback(async () => {
-    await Promise.all([refetchPortfolio(), refreshActivity()]);
-  }, [refetchPortfolio, refreshActivity]);
+  const groupedItems = useMemo<ActivityListItem[]>(() => {
+    if (!activityEntries) return [];
+    const items: ActivityListItem[] = [];
+    let lastDateKey = '';
+    activityEntries.forEach((entry, index) => {
+      const dateKey = entry.timestamp.slice(0, 10);
+      if (dateKey !== lastDateKey) {
+        lastDateKey = dateKey;
+        items.push({
+          kind: 'date-header',
+          dateKey,
+          label: formatRewardsDateLabel(new Date(entry.timestamp)),
+        });
+      }
+      items.push({ kind: 'activity', entry, index });
+    });
+    return items;
+  }, [activityEntries]);
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: OndoGmActivityEntryDto; index: number }) => (
+  const renderItem = useCallback(({ item }: { item: ActivityListItem }) => {
+    if (item.kind === 'date-header') {
+      return (
+        <Box twClassName="px-4 pt-4 pb-1">
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {item.label}
+          </Text>
+        </Box>
+      );
+    }
+    return (
       <Box twClassName="px-4">
         <OndoActivityRow
-          entry={item}
-          testID={`portfolio-activity-row-${index}`}
+          entry={item.entry}
+          timeOnly
+          testID={`portfolio-activity-row-${item.index}`}
         />
       </Box>
-    ),
-    [],
-  );
+    );
+  }, []);
 
   const keyExtractor = useCallback(
-    (item: OndoGmActivityEntryDto, index: number) =>
-      `${item.timestamp}-${index}`,
+    (item: ActivityListItem, index: number) =>
+      item.kind === 'date-header'
+        ? `header-${item.dateKey}`
+        : `activity-${index}`,
     [],
   );
 
@@ -146,49 +164,16 @@ const OndoCampaignPortfolioView: React.FC = () => {
     const showActivitySkeletons =
       isActivityLoading && (!activityEntries || activityEntries.length === 0);
 
+    if (!showActivitySkeletons) return null;
+
     return (
-      <Box>
-        <Box twClassName="p-4">
-          <OndoPortfolio
-            portfolio={portfolio}
-            isLoading={isPortfolioLoading}
-            hasError={hasPortfolioError}
-            hasFetched={portfolioHasFetched}
-            refetch={refetchPortfolio}
-            campaignId={campaignId}
-            onOpenAccountPicker={setPendingPicker}
-          />
-        </Box>
-
-        <Box twClassName="border-b border-border-muted" />
-
-        <Box twClassName="px-4 pt-4 pb-2">
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.ondo_campaign_activity.title')}
-          </Text>
-        </Box>
-
-        {showActivitySkeletons && (
-          <Box twClassName="px-4 pb-2 gap-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} style={tw.style('h-12 rounded-lg')} />
-            ))}
-          </Box>
-        )}
+      <Box twClassName="px-4 pb-2 gap-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} style={tw.style('h-12 rounded-lg')} />
+        ))}
       </Box>
     );
-  }, [
-    portfolio,
-    isPortfolioLoading,
-    hasPortfolioError,
-    portfolioHasFetched,
-    refetchPortfolio,
-    campaignId,
-    setPendingPicker,
-    isActivityLoading,
-    activityEntries,
-    tw,
-  ]);
+  }, [isActivityLoading, activityEntries, tw]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignPortfolioView">
@@ -198,14 +183,25 @@ const OndoCampaignPortfolioView: React.FC = () => {
         testID={CAMPAIGN_PORTFOLIO_TEST_IDS.CONTAINER}
       >
         <HeaderCompactStandard
-          title={strings('rewards.ondo_campaign_portfolio.positions_title')}
+          title={strings('rewards.ondo_campaign_portfolio.activity_title')}
+          titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'campaign-portfolio-back-button' }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Question,
+              onPress: () =>
+                navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                  campaignId,
+                }),
+              testID: 'campaign-portfolio-mechanics-button',
+            },
+          ]}
           includesTopInset
         />
 
-        <FlatList
-          data={activityEntries ?? []}
+        <FlatList<ActivityListItem>
+          data={groupedItems}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           onEndReached={onEndReached}
@@ -216,19 +212,11 @@ const OndoCampaignPortfolioView: React.FC = () => {
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
-              onRefresh={handleRefresh}
+              onRefresh={refreshActivity}
             />
           }
           showsVerticalScrollIndicator={false}
         />
-        {pendingPicker && (
-          <OndoAccountPickerSheet
-            pendingPicker={pendingPicker}
-            sheetRef={sheetRef}
-            onClose={() => setPendingPicker(null)}
-            onGroupSelect={handleGroupSelect}
-          />
-        )}
       </SafeAreaView>
     </ErrorBoundary>
   );

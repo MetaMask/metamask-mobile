@@ -1,4 +1,5 @@
 import { type AppThemeKey } from '../../util/theme/models';
+import { type ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import {
   type LockAppAction,
   type CheckForDeeplinkAction,
@@ -24,6 +25,7 @@ import {
   type SetMultichainAccountsIntroModalSeenAction,
   type SetMusdConversionEducationSeenAction,
   type SetMusdConversionAssetDetailCtaSeenAction,
+  type SetTokenOverviewChartTypeAction,
   UserActionType,
 } from './types';
 
@@ -211,5 +213,17 @@ export function setMusdConversionAssetDetailCtaSeen(
   return {
     type: UserActionType.SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN,
     payload: { key },
+  };
+}
+
+/**
+ * Action to set token overview chart type preference
+ */
+export function setTokenOverviewChartType(
+  chartType: ChartType,
+): SetTokenOverviewChartTypeAction {
+  return {
+    type: UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE,
+    payload: { chartType },
   };
 }

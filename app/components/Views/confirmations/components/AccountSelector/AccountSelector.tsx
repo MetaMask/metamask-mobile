@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { Modal, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
@@ -9,12 +10,16 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
+import {
+  Skeleton,
+  Text,
+  TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
@@ -35,11 +40,14 @@ export const ACCOUNT_SELECTOR_TEST_IDS = {
 export interface AccountSelectorProps {
   selectedAddress?: string;
   onAccountSelected: (address: string) => void;
+  /** Label shown on the left side of the row. Defaults to the "To" i18n string. */
+  label?: string;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   selectedAddress,
   onAccountSelected,
+  label = strings('confirm.label.to'),
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -115,43 +123,44 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     <View style={styles.container}>
       <TouchableOpacity
         onPress={openModal}
-        style={styles.selector}
+        style={styles.row}
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
       >
-        {selectedAddress && accountName ? (
-          <>
-            <Avatar
-              variant={AvatarVariant.Account}
-              type={accountAvatarType}
-              accountAddress={selectedAddress}
-              size={AvatarSize.Sm}
-            />
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        <View style={styles.valueContainer}>
+          {selectedAddress && accountName ? (
+            <>
+              <Avatar
+                variant={AvatarVariant.Account}
+                type={accountAvatarType}
+                accountAddress={selectedAddress}
+                size={AvatarSize.Sm}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                numberOfLines={1}
+                ellipsizeMode="middle"
+                twClassName="shrink"
+              >
+                {accountName}
+              </Text>
+            </>
+          ) : (
             <Text
-              variant={TextVariant.BodyMD}
-              numberOfLines={1}
-              ellipsizeMode="middle"
-              style={styles.accountText}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
             >
-              {accountName}
-            </Text>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={theme.colors.icon.alternative}
-            />
-          </>
-        ) : (
-          <>
-            <Text variant={TextVariant.BodyMD} style={styles.placeholderText}>
               {strings('transaction.recipient_address')}
             </Text>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={theme.colors.icon.alternative}
-            />
-          </>
-        )}
+          )}
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        </View>
       </TouchableOpacity>
       <Modal
         visible={isModalVisible}
@@ -162,7 +171,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text variant={TextVariant.HeadingMD}>
+            <Text variant={TextVariant.HeadingMd}>
               {strings('bridge.select_recipient')}
             </Text>
             <TouchableOpacity onPress={closeModal}>
@@ -187,5 +196,21 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     </View>
   );
 };
+
+export function AccountSelectorSkeleton() {
+  const { styles } = useStyles(stylesheet, {});
+
+  return (
+    <View style={styles.container} testID="account-selector-skeleton">
+      <View style={styles.row}>
+        <Skeleton height={18} width={60} />
+        <View style={styles.valueContainer}>
+          <Skeleton height={32} width={32} twClassName="rounded-full" />
+          <Skeleton height={18} width={120} />
+        </View>
+      </View>
+    </View>
+  );
+}
 
 export default AccountSelector;

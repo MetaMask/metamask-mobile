@@ -696,14 +696,11 @@ describe('Navbar', () => {
     });
   });
 
-  describe('getBridgeNavbar with getParent', () => {
-    it('calls navigation.getParent().pop() when close button is pressed', () => {
-      const mockParentPop = jest.fn();
+  describe('getBridgeNavbar back button behavior', () => {
+    it('calls navigation.goBack() when back button is pressed', () => {
       const navigationWithParent = {
         ...mockNavigation,
-        getParent: jest.fn(() => ({
-          pop: mockParentPop,
-        })),
+        getParent: jest.fn(),
       };
       const options = getBridgeNavbar(
         navigationWithParent,
@@ -715,8 +712,8 @@ describe('Navbar', () => {
       const Header = options.header;
       const { getByTestId } = render(<Header />);
       fireEvent.press(getByTestId('button-icon'));
-      expect(navigationWithParent.getParent).toHaveBeenCalled();
-      expect(mockParentPop).toHaveBeenCalled();
+      expect(navigationWithParent.goBack).toHaveBeenCalled();
+      expect(navigationWithParent.getParent).not.toHaveBeenCalled();
     });
   });
 

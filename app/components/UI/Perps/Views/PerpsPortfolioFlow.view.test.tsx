@@ -82,13 +82,13 @@ describe('Portfolio & Account Flow', () => {
     expect(
       screen.getByTestId(PerpsTabViewSelectorsIDs.BALANCE_BUTTON),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
-    ).toBeOnTheScreen();
+    // SCROLL_VIEW testID is not rendered when isScrollEnabled=false (ConditionalScrollView renders a Fragment)
 
     // ── PHASE 2: "See all perps" navigates to market list ────────────────
     cleanup();
-    renderPerpsTabView({ extraRoutes: [{ name: MARKET_LIST_ROUTE }] });
+    renderPerpsTabView({
+      extraRoutes: [{ name: MARKET_LIST_ROUTE, mount: 'perps-root' }],
+    });
     const seeAllPerps = await screen.findByText(
       SEE_ALL_PERPS,
       {},

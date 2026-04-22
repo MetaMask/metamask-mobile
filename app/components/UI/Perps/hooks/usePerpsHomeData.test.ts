@@ -302,6 +302,9 @@ describe('usePerpsHomeData', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn().mockResolvedValue(undefined),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     // Mock sortMarkets to return markets as-is by default
@@ -453,6 +456,27 @@ describe('usePerpsHomeData', () => {
 
       expect(result.current.isLoading.positions).toBe(false);
       expect(result.current.isLoading.markets).toBe(false);
+    });
+
+    it('keeps recent activity loading while reconnecting', () => {
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: true,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsHomeData());
+
+      expect(result.current.isLoading.activity).toBe(true);
+      expect(result.current.recentActivity).toEqual([]);
     });
   });
 
@@ -876,6 +900,9 @@ describe('usePerpsHomeData', () => {
         isLoading: false,
         error: null,
         refetch: jest.fn().mockResolvedValue(undefined),
+        loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+        hasFundingMore: true,
+        isFetchingMoreFunding: false,
       });
 
       const { result } = renderHook(() => usePerpsHomeData());
@@ -974,6 +1001,56 @@ describe('usePerpsHomeData', () => {
       expect(mockGetOrderFills).toHaveBeenCalledWith({
         aggregateByTime: false,
       });
+    });
+
+    it('clears stale REST fills when the connection starts reconnecting', async () => {
+      const restFill = createMockOrderFill({
+        orderId: 'rest-fill-stale',
+        symbol: 'BTC',
+        timestamp: 1234567800,
+      });
+      const mockGetOrderFills = jest.fn().mockResolvedValue([restFill]);
+      (
+        Engine.context.PerpsController.getActiveProviderOrNull as jest.Mock
+      ).mockReturnValue({
+        getOrderFills: mockGetOrderFills,
+      });
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      let connectionState = {
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      };
+      mockUsePerpsConnection.mockImplementation(() => connectionState as never);
+
+      const { result, rerender } = renderHook(() => usePerpsHomeData());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(result.current.recentActivity).toHaveLength(1);
+
+      connectionState = {
+        ...connectionState,
+        isConnecting: true,
+      };
+
+      await act(async () => {
+        rerender();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(result.current.isLoading.activity).toBe(true);
+      expect(result.current.recentActivity).toEqual([]);
     });
 
     it('preserves multi-fill trades with same orderId and timestamp but different size/price', async () => {

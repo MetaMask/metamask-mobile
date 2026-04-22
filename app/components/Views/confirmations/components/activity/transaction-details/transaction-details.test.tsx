@@ -290,6 +290,16 @@ describe('TransactionDetails', () => {
       expect(navOptions.headerLeft()).not.toBeNull();
       expect(navOptions.headerRight()).toBeNull();
     });
+
+    it('overrides headerTintColor to text.default instead of primary', () => {
+      render();
+
+      const navOptions = mockSetOptions.mock.calls[0][0];
+      expect(navOptions.headerTintColor).not.toEqual(
+        expect.stringContaining('primary'),
+      );
+      expect(navOptions.headerTintColor).toBeDefined();
+    });
   });
 
   describe('SUMMARY_SECTION_TYPES', () => {

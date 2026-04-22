@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   MoneyAccountController,
   MoneyAccountControllerMessenger,
@@ -13,7 +13,7 @@ import {
  * @param request.persistedState - The persisted state to restore.
  * @returns The initialized controller.
  */
-export const moneyAccountControllerInit: ControllerInitFunction<
+export const moneyAccountControllerInit: MessengerClientInitFunction<
   MoneyAccountController,
   MoneyAccountControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

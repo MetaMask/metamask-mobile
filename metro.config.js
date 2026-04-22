@@ -107,6 +107,17 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // Bare package only: subpaths (e.g. jest/mock) must resolve to node_modules.
+          // Jest does not remap this package — mapping breaks jest/mock's requireActual().
+          if (moduleName === 'react-native-safe-area-context') {
+            return {
+              type: 'sourceFile',
+              filePath: path.resolve(
+                __dirname,
+                'app/shims/react-native-safe-area-context.tsx',
+              ),
+            };
+          }
           // @ecies/ciphers uses package.json "exports" subpaths that Metro
           // can't resolve without unstable_enablePackageExports. Map them to
           // the react-native condition targets manually.

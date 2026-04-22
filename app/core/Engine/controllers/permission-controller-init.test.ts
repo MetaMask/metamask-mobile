@@ -1,11 +1,11 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getPermissionControllerMessenger,
   getPermissionControllerInitMessenger,
   PermissionControllerInitMessenger,
 } from '../messengers/permission-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { permissionControllerInit } from './permission-controller-init';
 import {
   PermissionController,
@@ -16,7 +16,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/permission-controller');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     PermissionControllerMessenger,
     PermissionControllerInitMessenger
   >
@@ -26,27 +26,29 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getPermissionControllerMessenger(baseMessenger),
     initMessenger: getPermissionControllerInitMessenger(baseMessenger),
   };
 
-  // @ts-expect-error: Partial implementation.
-  requestMock.getController.mockImplementation((controllerName: string) => {
-    if (controllerName === 'ApprovalController') {
-      return {
-        addAndShowApprovalRequest: jest.fn(),
-      };
-    }
+  requestMock.getMessengerClient.mockImplementation(
+    // @ts-expect-error: Partial implementation.
+    (controllerName: string) => {
+      if (controllerName === 'ApprovalController') {
+        return {
+          addAndShowApprovalRequest: jest.fn(),
+        };
+      }
 
-    if (controllerName === 'KeyringController') {
-      return {
-        addNewKeyring: jest.fn(),
-      };
-    }
+      if (controllerName === 'KeyringController') {
+        return {
+          addNewKeyring: jest.fn(),
+        };
+      }
 
-    throw new Error(`Controller "${controllerName}" not found.`);
-  });
+      throw new Error(`Controller "${controllerName}" not found.`);
+    },
+  );
 
   return requestMock;
 }

@@ -584,6 +584,7 @@ export function compareRpcUrls(rpcOne, rpcTwo) {
  */
 const BLOCK_EXPLORER_NAME_OVERRIDES = {
   'megaeth.blockscout.com': 'MegaETH Explorer',
+  'explore.tempo.xyz': 'Tempo Explorer',
 };
 
 /**

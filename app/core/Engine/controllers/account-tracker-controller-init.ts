@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   AccountTrackerController,
   AccountTrackerControllerMessenger,
@@ -14,11 +14,13 @@ import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagC
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const accountTrackerControllerInit: ControllerInitFunction<
+export const accountTrackerControllerInit: MessengerClientInitFunction<
   AccountTrackerController,
   AccountTrackerControllerMessenger
-> = ({ controllerMessenger, persistedState, getController, getState }) => {
-  const assetsContractController = getController('AssetsContractController');
+> = ({ controllerMessenger, persistedState, getMessengerClient, getState }) => {
+  const assetsContractController = getMessengerClient(
+    'AssetsContractController',
+  );
 
   const controller = new AccountTrackerController({
     messenger: controllerMessenger,

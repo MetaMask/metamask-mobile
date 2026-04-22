@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import {
   RampsService,
   RampsServiceMessenger,
@@ -48,7 +48,7 @@ export function getRampsContext(): string {
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const rampsServiceInit: ControllerInitFunction<
+export const rampsServiceInit: MessengerClientInitFunction<
   RampsService,
   RampsServiceMessenger
 > = ({ controllerMessenger }) => {

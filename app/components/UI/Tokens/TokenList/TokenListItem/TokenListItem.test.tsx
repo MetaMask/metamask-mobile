@@ -174,23 +174,6 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
 
-const mockClaimRewards = jest.fn();
-const mockUseMerklBonusClaim = jest.fn(
-  (_asset?: unknown, _location?: unknown, _isVisible?: unknown) => ({
-    claimableReward: null as string | null,
-    hasPendingClaim: false,
-    isClaiming: false,
-    claimRewards: mockClaimRewards,
-  }),
-);
-jest.mock(
-  '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim',
-  () => ({
-    useMerklBonusClaim: (...args: [unknown, unknown, unknown]) =>
-      mockUseMerklBonusClaim(...args),
-  }),
-);
-
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
@@ -341,8 +324,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isStockToken?: boolean;
     isStablecoinLendingEnabled?: boolean;
     earnToken?: Record<string, unknown> | null;
-    claimableReward?: string | null;
-    isClaiming?: boolean;
     tokenMarketData?: Record<string, Record<string, { price: number }>>;
     currencyRatesData?: Record<string, { conversionRate: number }>;
     nativeCurrency?: string;
@@ -361,8 +342,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isStockToken = false,
     isStablecoinLendingEnabled = false,
     earnToken,
-    claimableReward = null,
-    isClaiming = false,
     tokenMarketData,
     currencyRatesData,
     nativeCurrency,
@@ -376,13 +355,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     mockSelectStablecoinLendingEnabledFlag.mockReturnValue(
       isStablecoinLendingEnabled ?? false,
     );
-    mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward,
-      hasPendingClaim: false,
-      isClaiming,
-      claimRewards: mockClaimRewards,
-    });
-
     // Stock token mocks
     mockIsStockToken.mockReturnValue(isStockToken);
     mockIsTokenTradingOpen.mockResolvedValue(true);
@@ -1235,7 +1207,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
   });
 
-  describe('Merkl Claim Bonus', () => {
+  describe('mUSD Bonus Row', () => {
     const claimableAsset = {
       ...defaultAsset,
       address: MUSD_TOKEN_ADDRESS,
@@ -1248,11 +1220,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows "Claim bonus" replacing percentage when claimableReward exists', () => {
+    it('shows green "3% bonus" on mUSD rows when conversion is enabled', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
-        claimableReward: '1000000000000000000',
+        isMusdConversionEnabled: true,
       });
 
       const { getByText, queryByText } = renderWithProvider(
@@ -1265,122 +1237,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
-      expect(queryByText('+5.00%')).toBeNull();
-    });
-
-    it('tracks mUSD Claim Bonus Button Clicked event when claim bonus is pressed', async () => {
-      prepareMocks({
-        asset: claimableAsset,
-        pricePercentChange1d: 5.0,
-        claimableReward: '1000000000000000000',
-      });
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-        />,
-      );
-
-      await waitFor(
-        () => {
-          expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
-        },
-        { timeout: 3000 },
-      );
-
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
-      mockBuild.mockClear();
-
-      await act(async () => {
-        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
-      });
-
-      await waitFor(
-        () => {
-          expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-        },
-        { timeout: 3000 },
-      );
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location: 'token_list_item',
-        action_type: 'claim_bonus',
-        button_text: strings('earn.claim_bonus'),
-        network_chain_id: claimableAsset.chainId,
-        network_name: 'Ethereum Mainnet',
-        asset_symbol: claimableAsset.symbol,
-      });
-
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
-    }, 10000);
-
-    it('calls claimRewards when claim bonus is pressed', async () => {
-      prepareMocks({
-        asset: claimableAsset,
-        pricePercentChange1d: 5.0,
-        claimableReward: '1000000000000000000',
-      });
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-        />,
-      );
-
-      await waitFor(
-        () => {
-          expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
-        },
-        { timeout: 3000 },
-      );
-
-      mockClaimRewards.mockClear();
-
-      await act(async () => {
-        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
-      });
-
-      expect(mockClaimRewards).toHaveBeenCalledTimes(1);
-    });
-
-    it('shows green "3% bonus" when mUSD and claimableReward is null', () => {
-      prepareMocks({
-        asset: claimableAsset,
-        pricePercentChange1d: 1.5,
-        claimableReward: null,
-        isMusdConversionEnabled: true,
-      });
-
-      const { queryByText, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-        />,
-      );
-
-      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
       expect(
         getByText(
           strings('earn.musd_conversion.percentage_bonus', {
@@ -1388,13 +1244,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           }),
         ),
       ).toBeOnTheScreen();
+      expect(queryByText('+5.00%')).toBeNull();
+      // Price rail must stay hidden on mUSD bonus rows per Figma.
+      expect(queryByText(/\u2022/)).toBeNull();
     });
 
     it('shows normal percentage when mUSD but conversion flow is disabled', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 1.5,
-        claimableReward: null,
         isMusdConversionEnabled: false,
       });
 
@@ -1422,7 +1280,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 1.5,
-        claimableReward: null,
         isMusdConversionEnabled: true,
         isGeoEligible: false,
       });
@@ -1445,53 +1302,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         ),
       ).toBeNull();
       expect(getByText('+1.50%')).toBeOnTheScreen();
-    });
-
-    it('shows Spinner instead of text when isClaiming is true', () => {
-      prepareMocks({
-        asset: claimableAsset,
-        claimableReward: '1000000000000000000',
-        isClaiming: true,
-      });
-
-      const { queryByText, UNSAFE_getByType } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-        />,
-      );
-
-      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
-
-      const { Spinner } = jest.requireActual(
-        '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs',
-      );
-      expect(UNSAFE_getByType(Spinner)).toBeTruthy();
-    });
-
-    it('passes asset to useMerklBonusClaim hook', () => {
-      prepareMocks({
-        asset: claimableAsset,
-      });
-
-      renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-        />,
-      );
-
-      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
-        claimableAsset,
-        'token_list_item',
-        true,
-      );
     });
   });
 

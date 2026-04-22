@@ -1,3 +1,9 @@
+// Deep imports used only by app/shims (Metro resolves bare package to shim; src/ needs codegen).
+declare module 'react-native-safe-area-context/src/SafeAreaContext';
+declare module 'react-native-safe-area-context/src/SafeAreaView';
+declare module 'react-native-safe-area-context/src/InitialWindow';
+declare module 'react-native-safe-area-context/src/SafeArea.types';
+
 // This file contains type declarations for asset types.
 // Ex. This makes it so that when you import CloseIcon from './close-icon.svg, CloseIcon, will be detected as a React.FC component.
 declare module '*.mp4';

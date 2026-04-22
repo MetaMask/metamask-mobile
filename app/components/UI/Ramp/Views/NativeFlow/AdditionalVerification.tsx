@@ -10,15 +10,14 @@ import {
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/AdditionalVerification/AdditionalVerification.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import additionalVerificationImage from '../../Deposit/assets/additional-verification.png';
 import { strings } from '../../../../../../locales/i18n';
+import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import type { TransakBuyQuote } from '@metamask/ramps-controller';
-
 interface V2AdditionalVerificationParams {
   quote: TransakBuyQuote;
   kycUrl: string;
@@ -29,32 +28,41 @@ interface V2AdditionalVerificationParams {
 
 const V2AdditionalVerification = () => {
   const navigation = useNavigation();
-  const { kycUrl, amount: userEnteredAmount } =
-    useParams<V2AdditionalVerificationParams>();
+  const {
+    quote,
+    kycUrl,
+    workFlowRunId,
+    amount: userEnteredAmount,
+  } = useParams<V2AdditionalVerificationParams>();
 
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const { navigateToKycWebview } = useTransakRouting({
     screenLocation: 'V2 AdditionalVerification Screen',
   });
 
-  React.useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.additional_verification.title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleContinuePress = useCallback(() => {
-    navigateToKycWebview({ kycUrl, amount: userEnteredAmount });
-  }, [navigateToKycWebview, kycUrl, userEnteredAmount]);
+    navigateToKycWebview({
+      quote,
+      kycUrl,
+      workFlowRunId,
+      amount: userEnteredAmount,
+    });
+  }, [navigateToKycWebview, quote, kycUrl, workFlowRunId, userEnteredAmount]);
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={strings('deposit.additional_verification.title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <Image
             source={additionalVerificationImage}

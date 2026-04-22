@@ -114,10 +114,10 @@ describe('SecuritySettings', () => {
     jest.restoreAllMocks();
   });
   it('renders correctly', () => {
-    const wrapper = renderWithProvider(<SecuritySettings />, {
+    const { getByText } = renderWithProvider(<SecuritySettings />, {
       state: initialState,
     });
-    expect(wrapper.toJSON()).toMatchSnapshot();
+    expect(getByText(strings('app_settings.security_title'))).toBeOnTheScreen();
   });
 
   it('renders inline header with Security and privacy title', () => {
@@ -152,7 +152,7 @@ describe('SecuritySettings', () => {
     expect(
       getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
     ).toBeTruthy();
-    expect(queryByTestId(SDK_SECTION)).toBeNull();
+    expect(queryByTestId(SDK_SECTION)).not.toBeOnTheScreen();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
     expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();

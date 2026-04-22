@@ -1,11 +1,11 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getTokensControllerMessenger,
   getTokensControllerInitMessenger,
   TokensControllerInitMessenger,
 } from '../messengers/tokens-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { tokensControllerInit } from './tokens-controller-init';
 import {
   TokensController,
@@ -16,7 +16,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/assets-controllers');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     TokensControllerMessenger,
     TokensControllerInitMessenger
   >
@@ -26,7 +26,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getTokensControllerMessenger(baseMessenger),
     initMessenger: getTokensControllerInitMessenger(baseMessenger),
   };
@@ -40,7 +40,7 @@ function getInitRequestMock(): jest.Mocked<
   );
 
   // @ts-expect-error: Partial mock.
-  requestMock.getController.mockImplementation((name) => {
+  requestMock.getMessengerClient.mockImplementation((name) => {
     if (name === 'NetworkController') {
       return {
         state: {

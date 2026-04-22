@@ -303,6 +303,11 @@ import {
   MoneyAccountControllerState,
 } from '@metamask/money-account-controller';
 import {
+  MoneyAccountBalanceService,
+  MoneyAccountBalanceServiceActions,
+  MoneyAccountBalanceServiceEvents,
+} from '@metamask/money-account-balance-service';
+import {
   GeolocationController,
   GeolocationControllerState,
   GeolocationControllerActions,
@@ -348,7 +353,7 @@ import { EncryptionKey } from '../Encryptor/types';
 
 import { Hex } from '@metamask/utils';
 
-import { CONTROLLER_MESSENGERS } from './messengers';
+import { MESSENGER_FACTORIES } from './messengers';
 import type { RootState } from '../../reducers';
 import {
   AppMetadataController,
@@ -425,6 +430,21 @@ import {
   AiDigestControllerState,
 } from '@metamask/ai-controllers';
 import {
+  ClientController,
+  ClientControllerActions,
+  ClientControllerEvents,
+  ClientControllerState,
+} from '@metamask/client-controller';
+import {
+  SocialController,
+  SocialService,
+  type SocialControllerActions,
+  type SocialControllerEvents,
+  type SocialControllerState,
+  type SocialServiceActions,
+  type SocialServiceEvents,
+} from '@metamask/social-controllers';
+import {
   ComplianceController,
   ComplianceControllerActions,
   ComplianceControllerEvents,
@@ -439,7 +459,7 @@ import { captureException } from '@sentry/react-native';
  * Controllers that area always instantiated
  */
 type RequiredControllers = Omit<
-  Controllers,
+  MessengerClients,
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
@@ -452,7 +472,7 @@ type RequiredControllers = Omit<
  * Controllers that are sometimes not instantiated
  */
 type OptionalControllers = Pick<
-  Controllers,
+  MessengerClients,
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
@@ -539,11 +559,13 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | MoneyAccountControllerActions
+  | MoneyAccountBalanceServiceActions
   | GeolocationControllerActions
   | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
   | CardControllerActions
+  | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
   | AppMetadataControllerActions
@@ -558,6 +580,8 @@ type GlobalActions =
   | RampsControllerActions
   | RampsServiceActions
   | AiDigestControllerActions
+  | SocialControllerActions
+  | SocialServiceActions
   | ComplianceControllerActions
   | ComplianceServiceActions
   | TransakServiceActions;
@@ -622,10 +646,12 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | MoneyAccountControllerEvents
+  | MoneyAccountBalanceServiceEvents
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
   | CardControllerEvents
+  | ClientControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
@@ -638,6 +664,8 @@ type GlobalEvents =
   | RampsControllerEvents
   | RampsServiceEvents
   | AiDigestControllerEvents
+  | SocialControllerEvents
+  | SocialServiceEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
   | TransakServiceEvents;
@@ -676,7 +704,7 @@ export const getRootMessenger = (): RootMessenger =>
 // Interfaces are incompatible with our controllers and state types by default.
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type Controllers = {
+export type MessengerClients = {
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: SamplePetnamesController;
   ///: END:ONLY_INCLUDE_IF
@@ -748,11 +776,13 @@ export type Controllers = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   MoneyAccountController: MoneyAccountController;
+  MoneyAccountBalanceService: MoneyAccountBalanceService;
   GeolocationController: GeolocationController;
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
   CardController: CardController;
+  ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
@@ -762,6 +792,8 @@ export type Controllers = {
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
   AiDigestController: AiDigestController;
+  SocialController: SocialController;
+  SocialService: SocialService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
   TransakService: TransakService;
@@ -837,6 +869,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -846,20 +879,21 @@ export type EngineState = {
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
   AiDigestController: AiDigestControllerState;
+  SocialController: SocialControllerState;
   ComplianceController: ComplianceControllerState;
 };
 
-/** Controller names */
-export type ControllerName = keyof Controllers;
+/** Messenger client names */
+export type MessengerClientName = keyof MessengerClients;
 
 /**
- * Controller type
+ * Messenger client type
  */
-export type Controller = Controllers[ControllerName];
+export type MessengerClient = MessengerClients[MessengerClientName];
 
-/** Map of controllers by name. */
-export type ControllerByName = {
-  [Name in ControllerName]: Controllers[Name];
+/** Map of messenger clients by name. */
+export type MessengerClientsByName = {
+  [Name in MessengerClientName]: MessengerClients[Name];
 };
 
 /**
@@ -872,9 +906,9 @@ export type ControllerMessenger = Messenger<
 >;
 
 /**
- * Specify controllers to initialize.
+ * Specify messenger clients to initialize.
  */
-export type ControllersToInitialize =
+export type MessengerClientsToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | 'SamplePetnamesController'
   ///: END:ONLY_INCLUDE_IF
@@ -910,6 +944,7 @@ export type ControllersToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
+  | 'MoneyAccountBalanceService'
   | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
@@ -942,6 +977,7 @@ export type ControllersToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'CardController'
+  | 'ClientController'
   | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
@@ -958,6 +994,8 @@ export type ControllersToInitialize =
   | 'ProfileMetricsService'
   | 'AnalyticsController'
   | 'AiDigestController'
+  | 'SocialService'
+  | 'SocialController'
   | 'ComplianceService'
   | 'ComplianceController';
 
@@ -969,27 +1007,27 @@ export type ControllerMessengerCallback = (
 ) => ControllerMessenger;
 
 /**
- * Persisted state for all controllers.
+ * Persisted state for all messenger clients.
  * e.g. `{ TransactionController: { transactions: [] } }`.
  */
-type ControllerPersistedState = Partial<{
+type MessengerClientPersistedState = Partial<{
   [Name in Exclude<
-    ControllerName,
+    MessengerClientName,
     (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
-  >]: Partial<ControllerByName[Name]['state']>;
+  >]: Partial<MessengerClientsByName[Name]['state']>;
 }>;
 
 /**
- * Map of controller messengers by controller name.
+ * Map of messenger client messengers by name.
  */
-export type ControllerMessengerByControllerName = typeof CONTROLLER_MESSENGERS;
+export type MessengerClientMessengersByName = typeof MESSENGER_FACTORIES;
 
 /**
- * Request to initialize and return a controller instance.
- * Includes standard data and methods not coupled to any specific controller.
+ * Request to initialize and return a messenger client instance.
+ * Includes standard data and methods not coupled to any specific messenger client.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type ControllerInitRequest<
+export type MessengerClientInitRequest<
   ControllerMessengerType extends ControllerMessenger,
   InitMessengerType extends void | ControllerMessenger = void,
 > = {
@@ -1006,13 +1044,13 @@ export type ControllerInitRequest<
 
   /**
    * Retrieve a controller instance by name.
-   * Throws an error if the controller is not yet initialized.
+   * Throws an error if the messenger client is not yet initialized.
    *
-   * @param name - The name of the controller to retrieve.
+   * @param name - The name of the messenger client to retrieve.
    */
-  getController<Name extends ControllerName>(
+  getMessengerClient<Name extends MessengerClientName>(
     name: Name,
-  ): ControllerByName[Name];
+  ): MessengerClientsByName[Name];
 
   /**
    * Retrieve the chain ID of the globally selected network.
@@ -1064,37 +1102,39 @@ export type ControllerInitRequest<
    * Includes controller name properties.
    * e.g. `{ TransactionController: { transactions: [] } }`.
    */
-  persistedState: ControllerPersistedState;
+  persistedState: MessengerClientPersistedState;
 };
 
 /**
  * Function to initialize a controller instance and return associated data.
  */
-export type ControllerInitFunction<
-  ControllerType extends Controller,
+export type MessengerClientInitFunction<
+  MessengerClientType extends MessengerClient,
   ControllerMessengerType extends ControllerMessenger,
   InitMessengerType extends void | ControllerMessenger = void,
 > = (
-  request: ControllerInitRequest<ControllerMessengerType, InitMessengerType>,
+  request: MessengerClientInitRequest<
+    ControllerMessengerType,
+    InitMessengerType
+  >,
 ) => {
-  controller: ControllerType;
+  controller: MessengerClientType;
 };
 
 /**
- * Map of controller init functions by controller name.
+ * Map of messenger client init functions by messenger client name.
  */
-export type ControllerInitFunctionByControllerName = {
-  [Name in ControllersToInitialize]: ControllerInitFunction<
-    ControllerByName[Name],
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
+export type MessengerClientInitFunctionsByMessengerClientName = {
+  [Name in MessengerClientsToInitialize]: MessengerClientInitFunction<
+    MessengerClientsByName[Name],
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getInitMessenger']>
   >;
 };
 
-export interface InitModularizedControllersFunctionRequest {
+export interface InitMessengerClientsFunctionRequest {
   baseControllerMessenger: RootExtendedMessenger;
-  controllerInitFunctions: ControllerInitFunctionByControllerName;
-  existingControllersByName?: Partial<ControllerByName>;
+  initFunctions: MessengerClientInitFunctionsByMessengerClientName;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
   analyticsId: string;
@@ -1104,14 +1144,14 @@ export interface InitModularizedControllersFunctionRequest {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: (address: string) => Promise<void>;
   ///: END:ONLY_INCLUDE_IF
-  persistedState: ControllerPersistedState;
+  persistedState: MessengerClientPersistedState;
 }
 
 /**
- * Function to initialize the controllers in the engine.
+ * Function to initialize the messenger clients in the engine.
  */
-export type InitModularizedControllersFunction = (
-  request: InitModularizedControllersFunctionRequest,
+export type InitMessengerClientsFunction = (
+  request: InitMessengerClientsFunctionRequest,
 ) => {
-  controllersByName: ControllerByName;
+  messengerClientsByName: MessengerClientsByName;
 };

@@ -3,7 +3,8 @@ import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { render, cleanup } from '@testing-library/react-native';
+import { render, screen, cleanup, act } from '@testing-library/react-native';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -36,11 +37,16 @@ const mockNavigation = {
 
 // Mock the multichain utils
 jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
   isNonEvmChainId: jest.fn(),
+  getFormattedAddressFromInternalAccount: jest.fn(
+    (account) => account?.address ?? '0x123...456',
+  ),
 }));
 
 // Mock network utils
 jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
   getBlockExplorerAddressUrl: jest.fn(),
   getBlockExplorerName: jest.fn(),
   findBlockExplorerForNonEvmChainId: jest.fn(),
@@ -78,6 +84,18 @@ jest.mock('../../../core/Engine', () => ({
     TransactionController: {
       stopTransaction: jest.fn(),
     },
+    GasFeeController: {
+      startPolling: jest.fn().mockReturnValue('polling-token'),
+      stopPollingByPollingToken: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: jest.fn(),
+    closeToast: jest.fn(),
   },
 }));
 
@@ -93,11 +111,6 @@ jest.mock('../TransactionElement', () => ({
 
 // Mock other connected components
 jest.mock('../TransactionActionModal', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
-jest.mock('./RetryModal', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -124,12 +137,6 @@ jest.mock('../../../component-library/components/Buttons/Button', () => ({
   default: () => null,
   ButtonVariants: { Link: 'link', Primary: 'primary' },
   ButtonSize: { Lg: 'lg', Md: 'md' },
-}));
-
-jest.mock('../../../util/accounts', () => ({
-  getFormattedAddressFromInternalAccount: jest.fn(
-    (account) => account?.address || '0x123...456',
-  ),
 }));
 
 // Mock React Native components and StyleSheet
@@ -166,6 +173,7 @@ jest.mock('../../../util/number', () => ({
 }));
 
 jest.mock('../../../util/conversions', () => ({
+  ...jest.requireActual('../../../util/conversions'),
   decGWEIToHexWEI: jest.fn(() => '0x123'),
 }));
 
@@ -179,6 +187,9 @@ const initialState = {
   },
   settings: {
     primaryCurrency: 'USD',
+  },
+  qrKeyringScanner: {
+    isScanning: false,
   },
 };
 const store = mockStore(initialState);
@@ -259,7 +270,7 @@ describe('Transactions', () => {
   });
 
   it('should render correctly', () => {
-    const wrapper = shallow(
+    render(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -282,10 +293,18 @@ describe('Transactions', () => {
             },
           ]}
           loading={false}
+          navigation={mockNavigation}
+          confirmedTransactions={[]}
+          submittedTransactions={[]}
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   describe('Transaction Component Behavior', () => {
@@ -336,19 +355,10 @@ describe('Transactions', () => {
       const mockState = {
         speedUpIsOpen: false,
         cancelIsOpen: false,
-        retryIsOpen: false,
-        errorMsg: null,
       };
 
       const newState = { ...mockState, speedUpIsOpen: true };
       expect(newState.speedUpIsOpen).toBe(true);
-
-      const errorState = {
-        ...mockState,
-        retryIsOpen: true,
-        errorMsg: 'Test error',
-      };
-      expect(errorState.errorMsg).toBe('Test error');
     });
 
     it('calculates gas prices', () => {
@@ -1595,39 +1605,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(mockOnScrollThroughContent).toHaveBeenCalledWith(100);
   });
 
-  it('should test toggleRetry method directly', () => {
-    instance.setState = jest.fn();
-
-    const errorMsg = 'Test error message';
-    instance.toggleRetry(errorMsg);
-
-    expect(instance.setState).toHaveBeenCalled();
-  });
-
-  it('should test retry method directly', () => {
-    instance.setState = jest.fn();
-    instance.onSpeedUpAction = jest.fn();
-    instance.onCancelAction = jest.fn();
-    instance.speedUpTxId = 'speed-up-tx';
-    instance.existingTx = { id: 'speed-up-tx' };
-
-    instance.retry();
-
-    // The retry method calls setState with a function, not an object
-    expect(instance.setState).toHaveBeenCalled();
-
-    // Test that the state function produces the expected result
-    const setStateCall = instance.setState.mock.calls[0][0];
-    const newState = setStateCall({
-      retryIsOpen: true,
-      errorMsg: 'test error',
-    });
-    expect(newState).toEqual({
-      retryIsOpen: false,
-      errorMsg: undefined,
-    });
-  });
-
   it('should test navigation patterns for coverage', () => {
     // Test non-EVM chain navigation
     const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -1836,7 +1813,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.mounted).toBe(true);
 
     // Fast-forward timers
-    jest.advanceTimersByTime(100);
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
 
     expect(instance.setState).toHaveBeenCalledWith({ ready: true });
     expect(instance.init).toHaveBeenCalled();
@@ -2084,14 +2063,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.state = {
       ready: true,
-      retryIsOpen: false,
-      errorMsg: null,
     };
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
-    instance.toggleRetry = jest.fn();
-    instance.retry = jest.fn();
 
     const result = instance.render();
     expect(result).toBeDefined();
@@ -2298,201 +2273,5 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     await instance.cancelTransaction(transactionObject);
 
     expect(instance.signLedgerTransaction).toHaveBeenCalled();
-  });
-
-  it('should test retry method with different scenarios', () => {
-    instance.setState = jest.fn();
-    instance.onSpeedUpAction = jest.fn();
-    instance.onCancelAction = jest.fn();
-
-    // Test retry with speedUpTxId
-    instance.speedUpTxId = 'speed-up-tx';
-    instance.cancelTxId = null;
-    instance.existingTx = { id: 'speed-up-tx' };
-
-    instance.retry();
-
-    expect(instance.setState).toHaveBeenCalled();
-
-    // Test retry with cancelTxId
-    instance.speedUpTxId = null;
-    instance.cancelTxId = 'cancel-tx';
-
-    instance.retry();
-
-    expect(instance.setState).toHaveBeenCalled();
-
-    // Test retry with neither speedUpTxId nor cancelTxId
-    instance.speedUpTxId = null;
-    instance.cancelTxId = null;
-
-    instance.retry();
-
-    expect(instance.setState).toHaveBeenCalled();
-  });
-
-  describe('asset-chain explorer (tokenChainId / AssetDetails)', () => {
-    beforeEach(() => {
-      mockFindBlockExplorerUrlForChain.mockReset();
-      mockGetHexEvmChainId.mockReset();
-    });
-
-    it('updateBlockExplorer resolves EVM asset chain via findBlockExplorerUrlForChain when tokenChainId is set', () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-      mockFindBlockExplorerUrlForChain.mockReturnValue(
-        'https://polygonscan.com',
-      );
-      instance.setState = jest.fn();
-      instance.props = {
-        ...defaultTestProps,
-        tokenChainId: 'eip155:137',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        networkConfigurations: { '0x89': {} },
-        providerConfig: { type: 'mainnet' },
-      };
-
-      instance.updateBlockExplorer();
-
-      expect(mockFindBlockExplorerUrlForChain).toHaveBeenCalledWith(
-        'eip155:137',
-        instance.props.networkConfigurations,
-      );
-      expect(instance.setState).toHaveBeenCalledWith({
-        rpcBlockExplorer: 'https://polygonscan.com',
-      });
-    });
-
-    it('updateBlockExplorer sets no explorer when AssetDetails has no tokenChainId', () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-      instance.setState = jest.fn();
-      instance.props = {
-        ...defaultTestProps,
-        location: TransactionDetailLocation.AssetDetails,
-        tokenChainId: undefined,
-        chainId: '0x1',
-        providerConfig: { type: 'mainnet' },
-      };
-
-      instance.updateBlockExplorer();
-
-      expect(mockFindBlockExplorerUrlForChain).not.toHaveBeenCalled();
-      expect(instance.setState).toHaveBeenCalledWith({
-        rpcBlockExplorer: undefined,
-      });
-    });
-
-    it('updateBlockExplorer uses tokenChainId for non-EVM when location is AssetDetails', () => {
-      mockIsNonEvmChainId.mockImplementation(
-        (id: string) => id?.startsWith('solana:') ?? false,
-      );
-      mockFindBlockExplorerForNonEvmChainId.mockReturnValue(
-        'https://solscan.io',
-      );
-      instance.setState = jest.fn();
-      instance.props = {
-        ...defaultTestProps,
-        location: TransactionDetailLocation.AssetDetails,
-        tokenChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        chainId: '0x1',
-        providerConfig: { type: 'mainnet' },
-      };
-
-      instance.updateBlockExplorer();
-
-      expect(mockFindBlockExplorerForNonEvmChainId).toHaveBeenCalledWith(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-      expect(mockFindBlockExplorerUrlForChain).not.toHaveBeenCalled();
-    });
-
-    it('viewOnBlockExplore uses asset rpcBlockExplorer when tokenChainId is set', () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-      mockGetBlockExplorerName.mockReturnValue('Polygonscan');
-      instance.props = {
-        ...defaultTestProps,
-        navigation: mockNavigation,
-        tokenChainId: '0x89',
-        chainId: '0x1',
-        providerConfig: { type: 'mainnet' },
-      };
-      instance.state = { rpcBlockExplorer: 'https://polygonscan.com' };
-
-      instance.viewOnBlockExplore();
-
-      expect(mockGetBlockExplorerAddressUrl).not.toHaveBeenCalled();
-      expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://polygonscan.com/address/0x123',
-          title: 'Polygonscan',
-        },
-      });
-    });
-
-    it('viewOnBlockExplore falls back to findBlockExplorerUrlForChain when state explorer is NO_RPC_BLOCK_EXPLORER', () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-      mockGetBlockExplorerName.mockReturnValue('Polygonscan');
-      mockFindBlockExplorerUrlForChain.mockReturnValue(
-        'https://polygonscan.com',
-      );
-      instance.props = {
-        ...defaultTestProps,
-        navigation: mockNavigation,
-        tokenChainId: '0x89',
-        networkConfigurations: {},
-        providerConfig: { type: 'mainnet' },
-      };
-      instance.state = { rpcBlockExplorer: NO_RPC_BLOCK_EXPLORER };
-
-      instance.viewOnBlockExplore();
-
-      expect(mockFindBlockExplorerUrlForChain).toHaveBeenCalledWith('0x89', {});
-      expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://polygonscan.com/address/0x123',
-          title: 'Polygonscan',
-        },
-      });
-    });
-
-    it('viewOnBlockExplore logs when asset chain has no block explorer', () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-      mockFindBlockExplorerUrlForChain.mockReturnValue(undefined);
-      instance.props = {
-        ...defaultTestProps,
-        navigation: mockNavigation,
-        tokenChainId: '0x999',
-        networkConfigurations: {},
-        providerConfig: { type: 'mainnet' },
-      };
-      instance.state = { rpcBlockExplorer: undefined };
-
-      instance.viewOnBlockExplore();
-
-      expect(Logger.error).toHaveBeenCalled();
-      expect(mockNavigation.push).not.toHaveBeenCalled();
-    });
-
-    it('footer passes omitGlobalProviderExplorerFallback and hex chainId from getHexEvmChainId for AssetDetails', () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-      mockGetHexEvmChainId.mockReturnValue('0x89');
-      instance.props = {
-        ...defaultTestProps,
-        location: TransactionDetailLocation.AssetDetails,
-        tokenChainId: 'eip155:137',
-        chainId: '0x1',
-        providerConfig: { type: 'mainnet' },
-      };
-      instance.state = { rpcBlockExplorer: 'https://polygonscan.com' };
-      instance.viewOnBlockExplore = jest.fn();
-
-      const footer = instance.footer;
-
-      expect(mockGetHexEvmChainId).toHaveBeenCalledWith('eip155:137');
-      expect(footer.props.omitGlobalProviderExplorerFallback).toBe(true);
-      expect(footer.props.chainId).toBe('0x89');
-      expect(footer.props.isNonEvmChain).toBe(false);
-    });
   });
 });
