@@ -3800,7 +3800,7 @@ describe('PerpsOrderView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('should use availableToTradeBalance when availableBalance is zero', () => {
+    it('uses availableToTradeBalance when availableBalance is zero', () => {
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
           availableBalance: '0',
