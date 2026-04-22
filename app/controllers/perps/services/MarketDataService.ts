@@ -173,29 +173,34 @@ export class MarketDataService {
         params?.limit !== undefined || params?.endTime !== undefined;
       const fetchOrderFills = (): Promise<OrderFill[]> =>
         provider.getOrderFills(params, { forceRefresh });
-      // Resolve the caller's account so the cache key is account-scoped.
-      // Without this, callers that omit params.accountId (the common hook
-      // path) would collide on a shared "default" bucket — after an account
-      // switch, account B could receive account A's still-fresh payload
-      // until the TTL expired.
+
+      if (isPaginated) {
+        const result = await fetchOrderFills();
+        traceData = { success: true };
+        return result;
+      }
+
+      // Non-paginated: resolve the caller's account so the cache key is
+      // account-scoped. Without this, callers that omit params.accountId
+      // (the common hook path) would collide on a shared "default" bucket —
+      // after an account switch, account B could receive account A's
+      // still-fresh payload until the TTL expired.
       const resolvedAccountId =
         params?.accountId ?? (await provider.getCurrentAccountId());
-      const result = isPaginated
-        ? await fetchOrderFills()
-        : await coalescePerpsRestRequest(
-            [
-              context.tracingContext.provider,
-              context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-              'getOrderFills',
-              resolvedAccountId,
-              params?.aggregateByTime === true ? 'agg' : 'raw',
-              params?.startTime === undefined
-                ? 'unbounded'
-                : `s${Math.floor(params.startTime / 86_400_000)}`,
-            ].join('|'),
-            fetchOrderFills,
-            { forceRefresh },
-          );
+      const result = await coalescePerpsRestRequest(
+        [
+          context.tracingContext.provider,
+          context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          'getOrderFills',
+          resolvedAccountId,
+          params?.aggregateByTime === true ? 'agg' : 'raw',
+          params?.startTime === undefined
+            ? 'unbounded'
+            : `s${Math.floor(params.startTime / 86_400_000)}`,
+        ].join('|'),
+        fetchOrderFills,
+        { forceRefresh },
+      );
 
       traceData = { success: true };
       return result;
@@ -274,22 +279,27 @@ export class MarketDataService {
         params?.endTime !== undefined;
       const fetchOrders = (): Promise<Order[]> =>
         provider.getOrders(params, { forceRefresh });
-      // Resolve the caller's account so the cache key is account-scoped
-      // (see getOrderFills for rationale).
+
+      if (isPaginated) {
+        const result = await fetchOrders();
+        traceData = { success: true };
+        return result;
+      }
+
+      // Non-paginated: resolve the caller's account so the cache key is
+      // account-scoped (see getOrderFills for rationale).
       const resolvedAccountId =
         params?.accountId ?? (await provider.getCurrentAccountId());
-      const result = isPaginated
-        ? await fetchOrders()
-        : await coalescePerpsRestRequest(
-            [
-              context.tracingContext.provider,
-              context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-              'getOrders',
-              resolvedAccountId,
-            ].join('|'),
-            fetchOrders,
-            { forceRefresh },
-          );
+      const result = await coalescePerpsRestRequest(
+        [
+          context.tracingContext.provider,
+          context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          'getOrders',
+          resolvedAccountId,
+        ].join('|'),
+        fetchOrders,
+        { forceRefresh },
+      );
 
       traceData = { success: true };
       return result;
@@ -444,22 +454,27 @@ export class MarketDataService {
         params?.endTime !== undefined;
       const fetchFunding = (): Promise<Funding[]> =>
         provider.getFunding(params, { forceRefresh });
-      // Resolve the caller's account so the cache key is account-scoped
-      // (see getOrderFills for rationale).
+
+      if (isPaginated) {
+        const result = await fetchFunding();
+        traceData = { success: true };
+        return result;
+      }
+
+      // Non-paginated: resolve the caller's account so the cache key is
+      // account-scoped (see getOrderFills for rationale).
       const resolvedAccountId =
         params?.accountId ?? (await provider.getCurrentAccountId());
-      const result = isPaginated
-        ? await fetchFunding()
-        : await coalescePerpsRestRequest(
-            [
-              context.tracingContext.provider,
-              context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-              'getFunding',
-              resolvedAccountId,
-            ].join('|'),
-            fetchFunding,
-            { forceRefresh },
-          );
+      const result = await coalescePerpsRestRequest(
+        [
+          context.tracingContext.provider,
+          context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          'getFunding',
+          resolvedAccountId,
+        ].join('|'),
+        fetchFunding,
+        { forceRefresh },
+      );
 
       traceData = { success: true };
       return result;
