@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { memoizedGetTokenStandardAndDetails } from '../utils/token';
 import { useGetTokenStandardAndDetails } from './useGetTokenStandardAndDetails';
@@ -45,17 +45,17 @@ describe('useGetTokenStandardAndDetails', () => {
         .getTokenStandardAndDetails as jest.Mock
     ).mockResolvedValueOnce(mockDetails);
 
-    const { result } = renderHook(() =>
+    const { result, waitForNextUpdate } = renderHook(() =>
       useGetTokenStandardAndDetails(mockAddress, mockChainId),
     );
 
     expect(result.current.isPending).toBe(true);
 
-    await waitFor(() => {
-      expect(result.current).toEqual({
-        details: { ...mockDetails, decimalsNumber: 18 },
-        isPending: false,
-      });
+    await waitForNextUpdate();
+
+    expect(result.current).toEqual({
+      details: { ...mockDetails, decimalsNumber: 18 },
+      isPending: false,
     });
 
     expect(
@@ -71,17 +71,17 @@ describe('useGetTokenStandardAndDetails', () => {
         .getTokenStandardAndDetails as jest.Mock
     ).mockRejectedValueOnce(mockError);
 
-    const { result } = renderHook(() =>
+    const { result, waitForNextUpdate } = renderHook(() =>
       useGetTokenStandardAndDetails(mockAddress, mockChainId),
     );
 
     expect(result.current.isPending).toBe(true);
 
-    await waitFor(() => {
-      expect(result.current).toEqual({
-        details: { decimalsNumber: undefined },
-        isPending: false,
-      });
+    await waitForNextUpdate();
+
+    expect(result.current).toEqual({
+      details: { decimalsNumber: undefined },
+      isPending: false,
     });
   });
 });

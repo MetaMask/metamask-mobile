@@ -41,109 +41,72 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         onLayout={[Function]}
       >
         <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
           collapsable={false}
-          jestAnimatedProps={
-            {
-              "value": {},
-            }
-          }
-          jestAnimatedStyle={
-            {
-              "value": {
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-              },
-            }
-          }
-          jestInlineStyle={
-            [
-              {
-                "alignItems": "center",
-                "justifyContent": "center",
-              },
-            ]
-          }
-          nativeID="0"
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             [
               {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 32,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 32,
+              },
+              undefined,
+              {
                 "transform": [
                   {
                     "scale": 1,
                   },
                 ],
               },
-              {
-                "alignItems": "center",
-                "justifyContent": "center",
-              },
             ]
           }
+          testID="aes-crypto-form-header-back-button"
         >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          <SvgMock
+            fill="currentColor"
+            name="ArrowLeft"
             style={
               [
                 {
-                  "alignItems": "center",
-                  "backgroundColor": "transparent",
-                  "borderRadius": 8,
-                  "height": 32,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "width": 32,
+                  "color": "#131416",
+                  "height": 24,
+                  "width": 24,
                 },
                 undefined,
               ]
             }
-            testID="aes-crypto-form-header-back-button"
-          >
-            <SvgMock
-              fill="currentColor"
-              name="ArrowLeft"
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "height": 24,
-                    "width": 24,
-                  },
-                  undefined,
-                ]
-              }
-            />
-          </View>
+          />
         </View>
       </View>
     </View>
@@ -177,10 +140,9 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -211,8 +173,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
-            "fontFamily": "Geist-Bold",
+            "color": "#131416",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -226,8 +188,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
-            "fontFamily": "Geist-Bold",
+            "color": "#131416",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -246,8 +208,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -272,7 +234,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Salt bytes count"
             style={
               {
-                "borderColor": "#f3f5f9",
+                "borderColor": "#f3f3f4",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -282,45 +244,22 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="salt-bytes-count-input"
           />
         </View>
-        <View
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -342,7 +281,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Generate
           </Text>
-        </View>
+        </TouchableOpacity>
       </RCTSafeAreaView>
       <RCTSafeAreaView
         style={
@@ -355,8 +294,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -381,7 +320,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Password"
             style={
               {
-                "borderColor": "#f3f5f9",
+                "borderColor": "#f3f3f4",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -406,7 +345,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Salt"
             style={
               {
-                "borderColor": "#f3f5f9",
+                "borderColor": "#f3f3f4",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -416,45 +355,22 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="salt-input-for-encryption-key"
           />
         </View>
-        <View
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -476,7 +392,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Generate
           </Text>
-        </View>
+        </TouchableOpacity>
       </RCTSafeAreaView>
       <RCTSafeAreaView
         style={
@@ -489,8 +405,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -515,7 +431,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Encryption key"
             style={
               {
-                "borderColor": "#f3f5f9",
+                "borderColor": "#f3f3f4",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -540,7 +456,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Data"
             style={
               {
-                "borderColor": "#f3f5f9",
+                "borderColor": "#f3f3f4",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -550,45 +466,22 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="data-input-for-encryption-with-key"
           />
         </View>
-        <View
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -610,7 +503,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Encrypt
           </Text>
-        </View>
+        </TouchableOpacity>
       </RCTSafeAreaView>
       <RCTSafeAreaView
         style={
@@ -623,8 +516,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -649,7 +542,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Encryption Key"
             style={
               {
-                "borderColor": "#f3f5f9",
+                "borderColor": "#f3f3f4",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -659,45 +552,22 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="encryption-key-input-for-decryption-with-key"
           />
         </View>
-        <View
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -719,7 +589,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Decrypt
           </Text>
-        </View>
+        </TouchableOpacity>
       </RCTSafeAreaView>
       <RCTSafeAreaView
         style={
@@ -732,8 +602,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -758,7 +628,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Data"
             style={
               {
-                "borderColor": "#f3f5f9",
+                "borderColor": "#f3f3f4",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -783,7 +653,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Password"
             style={
               {
-                "borderColor": "#f3f5f9",
+                "borderColor": "#f3f3f4",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -793,45 +663,22 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="password-input-for-encryption"
           />
         </View>
-        <View
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -853,7 +700,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Encrypt
           </Text>
-        </View>
+        </TouchableOpacity>
       </RCTSafeAreaView>
       <RCTSafeAreaView
         style={
@@ -866,8 +713,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -892,7 +739,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Password"
             style={
               {
-                "borderColor": "#f3f5f9",
+                "borderColor": "#f3f3f4",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -902,45 +749,22 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="password-input-for-decryption"
           />
         </View>
-        <View
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -962,7 +786,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Decrypt
           </Text>
-        </View>
+        </TouchableOpacity>
       </RCTSafeAreaView>
     </View>
   </RCTScrollView>

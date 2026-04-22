@@ -1,6 +1,7 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import TEST_ADDRESS from '../../../../constants/address';
+import { ContractBoxProps } from './ContractBox.types';
 import ContractBox from './ContractBox';
 import {
   CONTRACT_BOX_TEST_ID,
@@ -10,11 +11,10 @@ import {
   CONTRACT_EXPORT_ADDRESS,
   CONTRACT_ON_PRESS,
 } from './ContractBox.constants';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 describe('ContractBox', () => {
   it('should render ContractBox', () => {
-    renderWithProvider(
+    const wrapper = shallow<ContractBoxProps>(
       <ContractBox
         contractAddress={TEST_ADDRESS}
         contractPetName={CONTRACT_PET_NAME}
@@ -23,18 +23,10 @@ describe('ContractBox', () => {
         onExportAddress={CONTRACT_EXPORT_ADDRESS}
         onContractPress={CONTRACT_ON_PRESS}
       />,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PreferencesController: { isIpfsGatewayEnabled: true },
-            },
-          },
-        },
-      },
     );
-    expect(screen.getAllByTestId(CONTRACT_BOX_TEST_ID).length).toBeGreaterThan(
-      0,
+    const singleSelectComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === CONTRACT_BOX_TEST_ID,
     );
+    expect(singleSelectComponent.exists()).toBe(true);
   });
 });

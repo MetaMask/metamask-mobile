@@ -6,7 +6,7 @@ import type { RampsOrder } from '@metamask/ramps-controller';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
-const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -14,7 +14,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     replace: mockReplace,
-    goBack: mockGoBack,
+    setOptions: mockSetOptions,
     dispatch: mockDispatch,
   }),
   StackActions: {
@@ -32,6 +32,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
     return key;
   },
   I18nEvents: { addListener: jest.fn() },
+}));
+
+jest.mock('../../../Navbar', () => ({
+  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 let mockShouldUpdate = true;
@@ -276,8 +280,14 @@ describe('V2BankDetails', () => {
   it('renders bank details title after order data loads from refresh', async () => {
     mockGetOrderById.mockReturnValue(createMockV2Order());
     mockGetOrder.mockResolvedValue(createMockDepositOrder());
-    const { toJSON } = renderWithTheme(<V2BankDetails />);
-    expect(toJSON()).toMatchSnapshot();
+
+    const { getByText } = renderWithTheme(<V2BankDetails />);
+
+    await waitFor(() => {
+      expect(mockGetOrder).toHaveBeenCalled();
+    });
+
+    expect(getByText('deposit.bank_details.main_title')).toBeOnTheScreen();
   });
 
   it('renders bank detail rows when order has payment details', async () => {
@@ -332,23 +342,6 @@ describe('V2BankDetails', () => {
     expect(
       getByTestId('bank-details-refresh-control-scrollview'),
     ).toBeOnTheScreen();
-  });
-
-  it('calls navigation.goBack when header back is pressed', async () => {
-    mockGetOrderById.mockReturnValue(createMockV2Order());
-    mockGetOrder.mockResolvedValue(createMockDepositOrder());
-
-    const { getByTestId } = renderWithTheme(<V2BankDetails />);
-
-    await waitFor(() => {
-      expect(getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
-    });
-
-    await act(async () => {
-      fireEvent.press(getByTestId('deposit-back-navbar-button'));
-    });
-
-    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('toggles bank info when show/hide button is pressed', async () => {

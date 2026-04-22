@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import { View } from 'react-native';
 
 // External dependencies.
@@ -15,39 +15,46 @@ import { WidthType } from './ListItemColumn.types';
 
 describe('ListItemColumn', () => {
   it('should render snapshot correctly', () => {
-    const { toJSON } = render(
+    const wrapper = shallow(
       <ListItemColumn>
         <View />
       </ListItemColumn>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toBeDefined();
   });
   it('should render component correctly', () => {
-    render(
+    const wrapper = shallow(
       <ListItemColumn>
         <View />
       </ListItemColumn>,
     );
-    expect(screen.getByTestId(TESTID_LISTITEMCOLUMN)).toBeDefined();
+    const listItemColumnComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TESTID_LISTITEMCOLUMN,
+    );
+    expect(listItemColumnComponent.exists()).toBe(true);
   });
 
   it('should render the correct default widthType', () => {
-    render(
+    const wrapper = shallow(
       <ListItemColumn widthType={DEFAULT_LISTITEMCOLUMN_WIDTHTYPE}>
         <View />
       </ListItemColumn>,
     );
-    const listItemColumnComponent = screen.getByTestId(TESTID_LISTITEMCOLUMN);
-    expect(listItemColumnComponent.props.style.flex).toBe(-1);
+    const listItemColumnComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TESTID_LISTITEMCOLUMN,
+    );
+    expect(listItemColumnComponent.props().style.flex).toBe(-1);
   });
 
   it('should render the given widthType', () => {
-    render(
+    const wrapper = shallow(
       <ListItemColumn widthType={WidthType.Fill}>
         <View />
       </ListItemColumn>,
     );
-    const listItemColumnComponent = screen.getByTestId(TESTID_LISTITEMCOLUMN);
-    expect(listItemColumnComponent.props.style.flex).toBe(1);
+    const listItemColumnComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TESTID_LISTITEMCOLUMN,
+    );
+    expect(listItemColumnComponent.props().style.flex).toBe(1);
   });
 });

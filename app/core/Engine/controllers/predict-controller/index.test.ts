@@ -1,5 +1,5 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import {
   PredictController,
@@ -37,10 +37,8 @@ describe('predict controller init', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create messenger client init request mock
-    initRequestMock = buildMessengerClientInitRequestMock(
-      baseControllerMessenger,
-    );
+    // Create controller init request mock
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   it('returns controller instance', () => {

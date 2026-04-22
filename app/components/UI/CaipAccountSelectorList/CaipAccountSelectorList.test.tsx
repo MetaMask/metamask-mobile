@@ -478,7 +478,7 @@ describe('CaipAccountSelectorList', () => {
     // Find all cell elements with the select-with-menu test ID
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Trigger long press on the first cell (since we only have one account in this test)
-    fireEvent(cells[0], 'longPress');
+    cells[0].props.onLongPress();
 
     await waitFor(() => {
       // Verify Alert was shown with correct text
@@ -567,7 +567,7 @@ describe('CaipAccountSelectorList', () => {
     // Find all cell elements with the select-with-menu test ID
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Trigger long press on the first cell that should correspond to MOCK_ADDRESS_1
-    fireEvent(cells[0], 'longPress');
+    cells[0].props.onLongPress();
 
     // Need to wait for the Alert to be called
     await waitFor(() => {
@@ -594,7 +594,7 @@ describe('CaipAccountSelectorList', () => {
     mockAlert.mockRestore();
   });
 
-  it('renders accounts with balance error', () => {
+  it('renders accounts with balance error', async () => {
     // Clear previous mocks
     (useAccounts as jest.Mock).mockClear();
 
@@ -711,7 +711,7 @@ describe('CaipAccountSelectorList', () => {
     });
   });
 
-  it('disables account selection when isSelectionDisabled is true', () => {
+  it('disables account selection when isSelectionDisabled is true', async () => {
     // Clear any previous calls
     onSelectAccount.mockClear();
 
@@ -737,7 +737,7 @@ describe('CaipAccountSelectorList', () => {
 
     // Check that all cells have the disabled prop set to true
     cells.forEach((cell) => {
-      expect(cell).toBeDisabled();
+      expect(cell.props.disabled).toBe(true);
     });
 
     // Since we're mocking React Native components, we can't directly test
@@ -746,7 +746,7 @@ describe('CaipAccountSelectorList', () => {
     // Calling onPress manually here would bypass the disabled check in the real component.
   });
 
-  it('navigates to account actions when menu button is clicked', () => {
+  it('navigates to account actions when menu button is clicked', async () => {
     // Clear mocks
     mockNavigate.mockClear();
 
@@ -759,7 +759,7 @@ describe('CaipAccountSelectorList', () => {
     expect(actionButtons.length).toBe(2);
 
     // Click the first account's action button
-    fireEvent.press(actionButtons[0]);
+    actionButtons[0].props.onPress();
 
     // Verify navigation was triggered
     expect(mockNavigate).toHaveBeenCalled();
@@ -774,7 +774,7 @@ describe('CaipAccountSelectorList', () => {
     );
   });
 
-  it('should not allow account removal when long-pressed for HD Key Tree account type', () => {
+  it('should not allow account removal when long-pressed for HD Key Tree account type', async () => {
     const mockAlert = jest.spyOn(Alert, 'alert');
     mockAlert.mockReset();
 
@@ -806,7 +806,7 @@ describe('CaipAccountSelectorList', () => {
     // Find all cell elements
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Trigger long press on the first cell
-    fireEvent(cells[0], 'longPress');
+    cells[0].props.onLongPress();
 
     // Alert should not be shown for non-removable account types
     expect(mockAlert).not.toHaveBeenCalled();
@@ -819,7 +819,7 @@ describe('CaipAccountSelectorList', () => {
     mockAlert.mockRestore();
   });
 
-  it('should not allow account removal when isRemoveAccountEnabled is false', () => {
+  it('should not allow account removal when isRemoveAccountEnabled is false', async () => {
     const mockAlert = jest.spyOn(Alert, 'alert');
     mockAlert.mockReset();
 
@@ -867,7 +867,7 @@ describe('CaipAccountSelectorList', () => {
     // Find all cell elements
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Trigger long press on the first cell
-    fireEvent(cells[0], 'longPress');
+    cells[0].props.onLongPress();
 
     // Alert should not be shown because removal is disabled
     expect(mockAlert).not.toHaveBeenCalled();
@@ -935,7 +935,7 @@ describe('CaipAccountSelectorList', () => {
   });
 
   // TODO: fix this test
-  it('should not auto-scroll when isAutoScrollEnabled is false', () => {
+  it('should not auto-scroll when isAutoScrollEnabled is false', async () => {
     const mockScrollToOffset = jest.fn();
 
     // Create test component with auto-scroll disabled
@@ -959,7 +959,7 @@ describe('CaipAccountSelectorList', () => {
 
     // Get the FlatList and trigger content size change
     const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
-    fireEvent(flatList, 'contentSizeChange');
+    flatList.props.onContentSizeChange();
 
     // Verify that scrollToOffset was not called
     expect(mockScrollToOffset).not.toHaveBeenCalled();
@@ -1041,7 +1041,7 @@ describe('CaipAccountSelectorList', () => {
     });
   });
 
-  it('selects an account when tapped', () => {
+  it('selects an account when tapped', async () => {
     // Setup with multiple accounts
     const mockMultipleAccounts = [
       {
@@ -1113,7 +1113,7 @@ describe('CaipAccountSelectorList', () => {
     expect(true).toBe(true);
   });
 
-  it('correctly handles auto-scrolling when an account is marked with autoscroll', () => {
+  it('correctly handles auto-scrolling when an account is marked with autoscroll', async () => {
     // Create mock for FlatList's scrollToOffset
     const mockScrollToOffset = jest.fn();
 
@@ -1172,7 +1172,7 @@ describe('CaipAccountSelectorList', () => {
     // Find all cell elements
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Select the second account
-    fireEvent.press(cells[1]);
+    cells[1].props.onPress();
 
     await waitFor(() => {
       // Verify onSelectAccount was called with correct parameters

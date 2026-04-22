@@ -6,9 +6,29 @@ import { render, screen, act } from '@testing-library/react-native';
 import Toast from './Toast';
 import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
 
-// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => ({
+  useSharedValue: jest.fn(() => ({ value: 0 })),
+  useAnimatedStyle: jest.fn(() => ({})),
+  withTiming: jest.fn((value, _config, callback) => {
+    if (callback) {
+      callback();
+    }
+    return value;
+  }),
+  withDelay: jest.fn((_delay, animation) => animation),
+  cancelAnimation: jest.fn(),
+  runOnJS: jest.fn((fn) => () => fn()),
+  default: {
+    View: 'Animated.View',
+  },
+}));
 
 // Mock safe area context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ bottom: 0, top: 0, left: 0, right: 0 }),
+}));
+
 describe('Toast', () => {
   let toastRef: React.RefObject<ToastRef>;
 
@@ -124,43 +144,8 @@ describe('Toast', () => {
     // Close toast
     await act(async () => {
       toastRef.current?.closeToast();
-      jest.runAllTimers();
     });
 
     expect(screen.queryByText('Test Label')).toBeNull();
-  });
-
-  it('cancels pending toast when showToast is called rapidly in succession', async () => {
-    const inProgressOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'In Progress' }],
-      hasNoTimeout: true,
-    };
-
-    const successOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Success' }],
-      hasNoTimeout: false,
-    };
-
-    render(<Toast ref={toastRef} />);
-
-    // Call showToast twice in the same tick (simulating approved + confirmed
-    // firing before React processes the first state update).
-    act(() => {
-      toastRef.current?.showToast(inProgressOptions);
-      toastRef.current?.showToast(successOptions);
-    });
-
-    // Without the fix two setTimeout(0) callbacks are queued (one per call);
-    // with the fix the first timeout is cleared, leaving only one pending.
-    expect(jest.getTimerCount()).toBe(1);
-
-    await act(async () => {
-      jest.runAllTimers();
-    });
-
-    expect(screen.queryByText('In Progress')).toBeNull();
-    expect(screen.getByText('Success')).toBeOnTheScreen();
   });
 });

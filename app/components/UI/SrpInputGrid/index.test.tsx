@@ -5,12 +5,9 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import SrpInputGrid from './index';
 
 // Mock Keyboard
-jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
-  const keyboard = {
-    dismiss: jest.fn(),
-  };
-  return { __esModule: true, default: keyboard, ...keyboard };
-});
+jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
+  dismiss: jest.fn(),
+}));
 
 // Mock BIP39 wordlist with test words
 jest.mock('@metamask/scure-bip39/dist/wordlists/english', () => ({

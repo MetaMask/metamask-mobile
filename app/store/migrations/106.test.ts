@@ -1,23 +1,18 @@
-import { createMMKV } from 'react-native-mmkv';
+import { MMKV } from 'react-native-mmkv';
 import migrate from './106';
 
-const mockMMKVInstance = {
-  getAllKeys: jest.fn(),
-  clearAll: jest.fn(),
-  getString: jest.fn(),
-  set: jest.fn(),
-  getBoolean: jest.fn(),
-  getNumber: jest.fn(),
-  delete: jest.fn(),
-  remove: jest.fn(),
-  contains: jest.fn(),
-};
-
 jest.mock('react-native-mmkv', () => ({
-  createMMKV: jest.fn(() => mockMMKVInstance),
+  MMKV: jest.fn(),
 }));
 
 describe('Migration #106', () => {
+  const mockMMKVInstance = {
+    getAllKeys: jest.fn(),
+    clearAll: jest.fn(),
+  };
+
+  (MMKV as jest.Mock).mockImplementation(() => mockMMKVInstance);
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -37,7 +32,7 @@ describe('Migration #106', () => {
 
     const newState = migrate(oldState);
 
-    expect(createMMKV).toHaveBeenCalledWith({ id: 'PPOMDB' });
+    expect(MMKV).toHaveBeenCalledWith({ id: 'PPOMDB' });
     expect(mockMMKVInstance.getAllKeys).toHaveBeenCalled();
     expect(mockMMKVInstance.clearAll).toHaveBeenCalled();
     expect(newState).toEqual(oldState);
@@ -54,7 +49,7 @@ describe('Migration #106', () => {
 
     const newState = migrate(oldState);
 
-    expect(createMMKV).toHaveBeenCalledWith({ id: 'PPOMDB' });
+    expect(MMKV).toHaveBeenCalledWith({ id: 'PPOMDB' });
     expect(mockMMKVInstance.getAllKeys).toHaveBeenCalled();
     expect(mockMMKVInstance.clearAll).not.toHaveBeenCalled();
     expect(newState).toEqual(oldState);

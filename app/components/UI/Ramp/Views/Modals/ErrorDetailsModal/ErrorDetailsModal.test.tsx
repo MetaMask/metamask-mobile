@@ -24,12 +24,11 @@ jest.mock('react-native-inappbrowser-reborn', () => ({
   open: jest.fn(),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    BottomSheet: ReactActual.forwardRef(
+jest.mock(
+  '../../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    return ReactActual.forwardRef(
       (
         { children }: { children: React.ReactNode },
         ref: React.Ref<{ onCloseBottomSheet: () => void }>,
@@ -39,9 +38,9 @@ jest.mock('@metamask/design-system-react-native', () => {
         }));
         return <>{children}</>;
       },
-    ),
-  };
-});
+    );
+  },
+);
 
 const mockUseParams = jest.fn();
 jest.mock('../../../../../../util/navigation/navUtils', () => ({

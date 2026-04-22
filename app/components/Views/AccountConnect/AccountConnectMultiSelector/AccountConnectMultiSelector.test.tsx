@@ -151,9 +151,9 @@ describe('AccountConnectMultiSelector', () => {
     const updateButton = getByTestId(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
-    // Update button is disabled when isLoading is true, so onSubmit should not be called
     fireEvent.press(updateButton);
-    expect(defaultProps.onSubmit).not.toHaveBeenCalled();
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x1234']);
   });
 
   it('handles the select all button when not loading', () => {

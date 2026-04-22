@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { Provider, useSelector } from 'react-redux';
 import { createStore } from 'redux';
 import { KnownCaipNamespace, CaipChainId } from '@metamask/utils';
@@ -1200,7 +1200,7 @@ describe('NetworkMultiSelector', () => {
       const networkList = getByTestId('mock-network-multi-selector-list');
       const selectAllComponent = networkList.props.selectAllNetworksComponent;
 
-      // Call onPress directly since selectAllComponent is a React element, not a rendered host element
+      // Simulate pressing the select all component
       await selectAllComponent.props.onPress();
 
       expect(mockToggleAll).toHaveBeenCalledWith(mockDismissModal);
@@ -1689,8 +1689,9 @@ describe('NetworkMultiSelector', () => {
         />,
       );
 
-      const networkList = getByTestId('mock-network-multi-selector-list');
-      await networkList.props.selectAllNetworksComponent.props.onPress();
+      await getByTestId(
+        'mock-network-multi-selector-list',
+      ).props.selectAllNetworksComponent.props.onPress();
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -2002,8 +2003,9 @@ describe('NetworkMultiSelector', () => {
         />,
       );
 
-      const networkList = getByTestId('mock-network-multi-selector-list');
-      await networkList.props.selectAllNetworksComponent.props.onPress();
+      await getByTestId(
+        'mock-network-multi-selector-list',
+      ).props.selectAllNetworksComponent.props.onPress();
 
       expect(mockToggleAll).toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
@@ -2031,8 +2033,9 @@ describe('NetworkMultiSelector', () => {
         />,
       );
 
-      const networkList1 = getByTestId1('mock-network-multi-selector-list');
-      await networkList1.props.selectAllNetworksComponent.props.onPress();
+      await getByTestId1(
+        'mock-network-multi-selector-list',
+      ).props.selectAllNetworksComponent.props.onPress();
 
       expect(mockToggleAll).toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
@@ -2049,8 +2052,9 @@ describe('NetworkMultiSelector', () => {
         />,
       );
 
-      const networkList2 = getByTestId2('mock-network-multi-selector-list');
-      await networkList2.props.selectAllNetworksComponent.props.onPress();
+      await getByTestId2(
+        'mock-network-multi-selector-list',
+      ).props.selectAllNetworksComponent.props.onPress();
 
       expect(mockToggleAll).toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();

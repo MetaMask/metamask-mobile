@@ -368,7 +368,7 @@ describe('BuildQuote View', () => {
   //
   // RENDER & SDK TESTS
   //
-  it('renders correctly', () => {
+  it('renders correctly', async () => {
     render(BuildQuote);
     expect(
       screen.getByRole('button', { name: 'Get quotes' }),
@@ -382,7 +382,7 @@ describe('BuildQuote View', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders correctly when sdkError is present', () => {
+  it('renders correctly when sdkError is present', async () => {
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
@@ -404,7 +404,7 @@ describe('BuildQuote View', () => {
     ).toBeOnTheScreen();
   });
 
-  it('navigates to home when clicking sdKError button', () => {
+  it('navigates to home when clicking sdKError button', async () => {
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
@@ -430,7 +430,7 @@ describe('BuildQuote View', () => {
     expect(mockPop).toBeCalledTimes(1);
   });
 
-  it('calls setOptions when rendering', () => {
+  it('calls setOptions when rendering', async () => {
     render(BuildQuote);
     expect(mockSetOptions).toHaveBeenCalled();
 
@@ -442,7 +442,7 @@ describe('BuildQuote View', () => {
     expect(mockSetOptions).toHaveBeenCalled();
   });
 
-  it('calls setIntent when params have intent', () => {
+  it('calls setIntent when params have intent', async () => {
     mockUseParamsValues = {
       assetId: 'eip155:1/er20:0x6b175474e89094c44da98b954eedeac495271d0f',
     };
@@ -452,7 +452,7 @@ describe('BuildQuote View', () => {
     });
   });
 
-  it('navigates and tracks event on back button press', () => {
+  it('navigates and tracks event on back button press', async () => {
     render(BuildQuote);
     fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
@@ -516,7 +516,7 @@ describe('BuildQuote View', () => {
   });
 
   describe('Regions data', () => {
-    it('renders the loading page when regions are loading', () => {
+    it('renders the loading page when regions are loading', async () => {
       mockUseRegionsValues = {
         ...mockUseRegionsInitialValues,
         isFetching: true,
@@ -531,7 +531,7 @@ describe('BuildQuote View', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders an error page when there is a region error', () => {
+    it('renders an error page when there is a region error', async () => {
       mockUseRegionsValues = {
         ...mockUseRegionsInitialValues,
         error: 'Test error',
@@ -542,7 +542,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('queries region data when error CTA is clicked', () => {
+    it('queries region data when error CTA is clicked', async () => {
       mockUseRegionsValues = {
         ...mockUseRegionsInitialValues,
         error: 'Test error',
@@ -569,7 +569,7 @@ describe('BuildQuote View', () => {
   });
 
   describe('Crypto Currency Data', () => {
-    it('renders the loading page when cryptos are loading', () => {
+    it('renders the loading page when cryptos are loading', async () => {
       mockUseCryptoCurrenciesValues = {
         ...mockUseCryptoCurrenciesInitialValues,
         isFetchingCryptoCurrencies: true,
@@ -587,7 +587,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders a special error page if crypto currencies are not available', () => {
+    it('renders a special error page if crypto currencies are not available', async () => {
       mockUseCryptoCurrenciesValues = {
         ...mockUseCryptoCurrenciesInitialValues,
         cryptoCurrencies: [],
@@ -608,7 +608,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders an error page when there is a cryptos error', () => {
+    it('renders an error page when there is a cryptos error', async () => {
       mockUseCryptoCurrenciesValues = {
         ...mockUseCryptoCurrenciesInitialValues,
         errorCryptoCurrencies: 'Test error',
@@ -619,7 +619,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('queries crypto data when error CTA is clicked', () => {
+    it('queries crypto data when error CTA is clicked', async () => {
       mockUseCryptoCurrenciesValues = {
         ...mockUseCryptoCurrenciesInitialValues,
         errorCryptoCurrencies: 'Test error',
@@ -629,7 +629,7 @@ describe('BuildQuote View', () => {
       expect(mockGetCryptoCurrencies).toBeCalledTimes(1);
     });
 
-    it('navigates to token select modal when pressing asset selector', () => {
+    it('navigates to token select modal when pressing asset selector', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -641,7 +641,7 @@ describe('BuildQuote View', () => {
   });
 
   describe('Payment Method Data', () => {
-    it('renders the loading page when payment methods are loading', () => {
+    it('renders the loading page when payment methods are loading', async () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         isFetching: true,
@@ -659,7 +659,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders no icons if there are no payment methods', () => {
+    it('renders no icons if there are no payment methods', async () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         data: null,
@@ -670,7 +670,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders an error page when there is a payment method error', () => {
+    it('renders an error page when there is a payment method error', async () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         error: 'Test error',
@@ -681,7 +681,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('queries for payment methods when error CTA is clicked', () => {
+    it('queries for payment methods when error CTA is clicked', async () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         error: 'Test error',
@@ -691,7 +691,7 @@ describe('BuildQuote View', () => {
       expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
     });
 
-    it('navigates to payment method selector when payment method button is pressed', () => {
+    it('navigates to payment method selector when payment method button is pressed', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton('Change'));
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -708,7 +708,7 @@ describe('BuildQuote View', () => {
   });
 
   describe('Fiat Currency Data', () => {
-    it('renders the loading page when fiats are loading', () => {
+    it('renders the loading page when fiats are loading', async () => {
       mockUseFiatCurrenciesValues = {
         ...mockUseFiatCurrenciesInitialValues,
         isFetchingFiatCurrency: true,
@@ -723,7 +723,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders an error page when there is a fiat error', () => {
+    it('renders an error page when there is a fiat error', async () => {
       mockUseFiatCurrenciesValues = {
         ...mockUseFiatCurrenciesInitialValues,
         errorFiatCurrency: 'Test error',
@@ -734,7 +734,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('queries for fiats when error CTA is clicked', () => {
+    it('queries for fiats when error CTA is clicked', async () => {
       mockUseFiatCurrenciesValues = {
         ...mockUseFiatCurrenciesInitialValues,
         errorFiatCurrency: 'Test error',
@@ -744,7 +744,7 @@ describe('BuildQuote View', () => {
       expect(mockGetFiatCurrencies).toBeCalledTimes(1);
     });
 
-    it('navigates to fiat select modal when pressing fiat selector', () => {
+    it('navigates to fiat select modal when pressing fiat selector', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockFiatCurrenciesData[0].symbol));
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -756,7 +756,7 @@ describe('BuildQuote View', () => {
   });
 
   describe('Amount to buy input', () => {
-    it('updates the amount input', () => {
+    it('updates the amount input', async () => {
       render(BuildQuote);
       const initialAmount = '0';
       const validAmount = VALID_AMOUNT.toString();
@@ -767,7 +767,7 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`${symbol}${validAmount}`)).toBeTruthy();
     });
 
-    it('updates the amount input with quick amount buttons', () => {
+    it('updates the amount input with quick amount buttons', async () => {
       render(BuildQuote);
       const initialAmount = '0';
       const quickAmount =
@@ -855,7 +855,7 @@ describe('BuildQuote View', () => {
       mockUseRampSDKValues.isSell = true;
     });
 
-    it('updates the amount input', () => {
+    it('updates the amount input', async () => {
       render(BuildQuote);
       const initialAmount = '0';
       const validAmount = VALID_AMOUNT.toString();
@@ -929,7 +929,7 @@ describe('BuildQuote View', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('updates the amount input with quick amount buttons', () => {
+    it('updates the amount input with quick amount buttons', async () => {
       render(BuildQuote);
       const initialAmount = '0';
 
@@ -947,7 +947,7 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`1 ${symbol}`)).toBeTruthy();
     });
 
-    it('updates the amount input up to the max considering gas for native asset', () => {
+    it('updates the amount input up to the max considering gas for native asset', async () => {
       render(BuildQuote);
       const initialAmount = '0';
       const quickAmount = 'MAX';
@@ -981,7 +981,7 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`0.73 ${symbol}`)).toBeTruthy();
     });
 
-    it('updates the amount input up to the percentage considering gas', () => {
+    it('updates the amount input up to the percentage considering gas', async () => {
       render(BuildQuote);
       const initialAmount = '0';
       mockUseRampSDKValues = {
@@ -1049,7 +1049,7 @@ describe('BuildQuote View', () => {
 
     const submitBtn = getByRoleButton('Get quotes');
     expect(submitBtn).toBeTruthy();
-    expect(submitBtn).toBeDisabled();
+    expect(submitBtn.props.disabled).toBe(true);
 
     const initialAmount = '0';
     const validAmount = VALID_AMOUNT.toString();
@@ -1058,7 +1058,7 @@ describe('BuildQuote View', () => {
     fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
     fireEvent.press(getByRoleButton(validAmount));
     fireEvent.press(getByRoleButton('Done'));
-    expect(submitBtn).toBeEnabled();
+    expect(submitBtn.props.disabled).toBe(false);
 
     fireEvent.press(submitBtn);
 
@@ -1096,7 +1096,7 @@ describe('BuildQuote View', () => {
 
     const submitBtn = getByRoleButton('Get quotes');
     expect(submitBtn).toBeTruthy();
-    expect(submitBtn).toBeDisabled();
+    expect(submitBtn.props.disabled).toBe(true);
 
     const initialAmount = '0';
     const validAmount = VALID_AMOUNT.toString();
@@ -1104,7 +1104,7 @@ describe('BuildQuote View', () => {
     fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
     fireEvent.press(getByRoleButton(validAmount));
     fireEvent.press(getByRoleButton('Done'));
-    expect(submitBtn).toBeEnabled();
+    expect(submitBtn.props.disabled).toBe(false);
 
     fireEvent.press(submitBtn);
 

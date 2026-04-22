@@ -160,7 +160,7 @@ describe('BrowserBottomBar', () => {
 
       const backButton = getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON);
 
-      expect(backButton).toBeDisabled();
+      expect(backButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('disables forward button when canGoForward is false', () => {
@@ -171,7 +171,7 @@ describe('BrowserBottomBar', () => {
 
       const forwardButton = getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON);
 
-      expect(forwardButton).toBeDisabled();
+      expect(forwardButton.props.accessibilityState.disabled).toBe(true);
     });
   });
 
@@ -599,7 +599,7 @@ describe('BrowserBottomBar', () => {
         BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
       );
 
-      expect(bookmarkButton).toBeDisabled();
+      expect(bookmarkButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('disables bookmark button when activeUrl contains only whitespace', () => {
@@ -612,7 +612,7 @@ describe('BrowserBottomBar', () => {
         BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
       );
 
-      expect(bookmarkButton).toBeDisabled();
+      expect(bookmarkButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('enables bookmark button when activeUrl has valid value', () => {
@@ -625,7 +625,7 @@ describe('BrowserBottomBar', () => {
         BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
       );
 
-      expect(bookmarkButton).toBeEnabled();
+      expect(bookmarkButton.props.accessibilityState.disabled).toBe(false);
     });
 
     it('does not navigate when bookmark button pressed with empty URL', () => {

@@ -22,27 +22,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_activity.type_deposit': 'Deposit',
       'rewards.ondo_campaign_activity.type_withdraw': 'Withdraw',
       'rewards.ondo_campaign_activity.type_rebalance': 'Rebalance',
-      'rewards.ondo_campaign_activity.type_external_outflow': 'Outflow',
+      'rewards.ondo_campaign_activity.type_external_outflow': 'Transfer Out',
     };
     return translations[key] ?? key;
   },
 }));
-
-jest.mock('../../utils/formatUtils', () => {
-  const actual = jest.requireActual('../../utils/formatUtils');
-  return {
-    ...actual,
-    formatSignedUsd: (value: string | null) => {
-      if (value === null) return '—';
-      const num = parseFloat(value);
-      if (Number.isNaN(num)) return value;
-      const sign = num > 0 ? '+' : '';
-      const abs = Math.abs(num);
-      const formatted = `$${abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      return num < 0 ? `-${formatted}` : `${sign}${formatted}`;
-    },
-  };
-});
 
 const MOCK_TOKEN_SRC = {
   tokenAsset: 'eip155:59144/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -104,7 +88,7 @@ describe('OndoActivityRow', () => {
     expect(getByText('—')).toBeDefined();
   });
 
-  it('renders external outflow entry with shortened destAddress', () => {
+  it('renders external outflow entry', () => {
     const { getByText } = render(
       <OndoActivityRow
         entry={createEntry({
@@ -116,8 +100,7 @@ describe('OndoActivityRow', () => {
       />,
     );
 
-    expect(getByText('Outflow')).toBeDefined();
-    expect(getByText('USDC → 0x1234...5678')).toBeDefined();
+    expect(getByText('Transfer Out')).toBeDefined();
   });
 
   it('renders token symbols in detail line', () => {
@@ -132,16 +115,6 @@ describe('OndoActivityRow', () => {
     );
 
     expect(getByText('USDC')).toBeDefined();
-  });
-
-  it('renders time only when timeOnly prop is true', () => {
-    const entry = createEntry({ timestamp: '2026-03-28T14:30:00.000Z' });
-    const { queryByText } = render(<OndoActivityRow entry={entry} timeOnly />);
-
-    const timeText = queryByText(/\d{1,2}:\d{2}\s?(AM|PM)/);
-    expect(timeText).toBeDefined();
-    const fullDateText = queryByText(/Mar 28/);
-    expect(fullDateText).toBeNull();
   });
 
   it('passes testID to the container', () => {

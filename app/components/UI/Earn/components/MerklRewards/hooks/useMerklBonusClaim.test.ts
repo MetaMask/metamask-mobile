@@ -5,13 +5,11 @@ import { TokenI } from '../../../../Tokens/types';
 import { AGLAMERKL_ADDRESS_MAINNET } from '../constants';
 
 const mockClaimRewards = jest.fn().mockResolvedValue(undefined);
-const mockMerklRewardsRefetch = jest.fn();
 
 const mockUseMerklRewards = jest.fn((_opts?: unknown) => ({
   claimableReward: null as string | null,
   hasClaimedBefore: false,
   rewardsFetchVersion: 0,
-  refetch: mockMerklRewardsRefetch,
 }));
 
 jest.mock('./useMerklRewards', () => ({
@@ -144,7 +142,6 @@ describe('useMerklBonusClaim', () => {
       claimableReward: null,
       hasClaimedBefore: false,
       rewardsFetchVersion: 0,
-      refetch: mockMerklRewardsRefetch,
     });
     mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: false });
     mockUseMerklClaimTransaction.mockReturnValue({
@@ -225,7 +222,6 @@ describe('useMerklBonusClaim', () => {
       claimableReward: '1.50',
       hasClaimedBefore: false,
       rewardsFetchVersion: 0,
-      refetch: mockMerklRewardsRefetch,
     });
     mockUseMerklClaimTransaction.mockReturnValue({
       claimRewards: mockSuccessfulClaimRewards,
@@ -255,7 +251,6 @@ describe('useMerklBonusClaim', () => {
       claimableReward: '1.50',
       hasClaimedBefore: false,
       rewardsFetchVersion: 0,
-      refetch: mockMerklRewardsRefetch,
     });
     mockUseMerklClaimTransaction.mockReturnValue({
       claimRewards: mockSuccessfulClaimRewards,
@@ -277,7 +272,6 @@ describe('useMerklBonusClaim', () => {
       claimableReward: '1.50',
       hasClaimedBefore: false,
       rewardsFetchVersion: 1,
-      refetch: mockMerklRewardsRefetch,
     });
     rerender();
 
@@ -304,7 +298,6 @@ describe('useMerklBonusClaim', () => {
       claimableReward: '1.50',
       hasClaimedBefore: false,
       rewardsFetchVersion: mockedRewardsFetchVersion,
-      refetch: mockMerklRewardsRefetch,
     }));
     mockUseMerklClaimTransaction.mockReturnValue({
       claimRewards: mockDelayedClaimRewards,
@@ -335,7 +328,6 @@ describe('useMerklBonusClaim', () => {
       claimableReward: '1.50',
       hasClaimedBefore: false,
       rewardsFetchVersion: 0,
-      refetch: mockMerklRewardsRefetch,
     });
     mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: true });
     mockUseMerklClaimTransaction.mockReturnValue({
@@ -355,40 +347,11 @@ describe('useMerklBonusClaim', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('exposes refetch from useMerklRewards and forwards calls to it', () => {
-    const { result } = renderHook(() =>
-      useMerklBonusClaim(eligibleAsset, 'test_location'),
-    );
-
-    expect(typeof result.current.refetch).toBe('function');
-
-    act(() => {
-      result.current.refetch();
-    });
-
-    expect(mockMerklRewardsRefetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('exposes refetch even when asset is ineligible', () => {
-    const { result } = renderHook(() =>
-      useMerklBonusClaim(ineligibleAsset, 'test_location'),
-    );
-
-    expect(typeof result.current.refetch).toBe('function');
-
-    act(() => {
-      result.current.refetch();
-    });
-
-    expect(mockMerklRewardsRefetch).toHaveBeenCalledTimes(1);
-  });
-
   it('returns claimableReward null when raw value is "< 0.01" (below threshold)', () => {
     mockUseMerklRewards.mockReturnValue({
       claimableReward: '< 0.01',
       hasClaimedBefore: false,
       rewardsFetchVersion: 0,
-      refetch: mockMerklRewardsRefetch,
     });
 
     const { result } = renderHook(() =>
@@ -404,7 +367,6 @@ describe('useMerklBonusClaim', () => {
       claimableReward: '0.005',
       hasClaimedBefore: false,
       rewardsFetchVersion: 0,
-      refetch: mockMerklRewardsRefetch,
     });
 
     const { result } = renderHook(() =>
@@ -421,7 +383,6 @@ describe('useMerklBonusClaim', () => {
         claimableReward: '5.00',
         hasClaimedBefore: false,
         rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
       });
 
       renderHook(() =>
@@ -436,7 +397,6 @@ describe('useMerklBonusClaim', () => {
         claimableReward: '5.00',
         hasClaimedBefore: false,
         rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
       });
 
       renderHook(() =>
@@ -451,7 +411,6 @@ describe('useMerklBonusClaim', () => {
         claimableReward: '5.00',
         hasClaimedBefore: false,
         rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
       });
       mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: true });
 
@@ -467,7 +426,6 @@ describe('useMerklBonusClaim', () => {
         claimableReward: null,
         hasClaimedBefore: false,
         rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
       });
 
       renderHook(() =>
@@ -482,7 +440,6 @@ describe('useMerklBonusClaim', () => {
         claimableReward: '< 0.01',
         hasClaimedBefore: false,
         rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
       });
 
       renderHook(() =>
@@ -497,7 +454,6 @@ describe('useMerklBonusClaim', () => {
         claimableReward: '0.005',
         hasClaimedBefore: false,
         rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
       });
 
       renderHook(() =>
@@ -512,7 +468,6 @@ describe('useMerklBonusClaim', () => {
         claimableReward: '5.00',
         hasClaimedBefore: false,
         rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
       });
 
       const { rerender } = renderHook(() =>
@@ -529,7 +484,6 @@ describe('useMerklBonusClaim', () => {
         claimableReward: '5.00',
         hasClaimedBefore: true,
         rewardsFetchVersion: 0,
-        refetch: mockMerklRewardsRefetch,
       });
 
       renderHook(() =>
@@ -571,7 +525,6 @@ describe('useMerklBonusClaim', () => {
           claimableReward: bonusValue,
           hasClaimedBefore: false,
           rewardsFetchVersion: 0,
-          refetch: mockMerklRewardsRefetch,
         });
 
         renderHook(() =>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor, act, fireEvent } from '@testing-library/react-native';
+import { render, waitFor, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { PerpsConnectionProvider } from './PerpsConnectionProvider';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
@@ -458,7 +458,7 @@ describe('PerpsConnectionProvider', () => {
       // Click retry button
       const retryButton = getByTestId('retry-button');
       act(() => {
-        fireEvent.press(retryButton);
+        retryButton.props.onPress();
       });
 
       // After retry attempt, back button should be shown
@@ -491,7 +491,7 @@ describe('PerpsConnectionProvider', () => {
       // Click retry button
       const retryButton = getByTestId('retry-button');
       act(() => {
-        fireEvent.press(retryButton);
+        retryButton.props.onPress();
       });
 
       await waitFor(() => {
@@ -532,7 +532,7 @@ describe('PerpsConnectionProvider', () => {
       // Click retry button
       const retryButton = getByTestId('retry-button');
       await act(async () => {
-        fireEvent.press(retryButton);
+        retryButton.props.onPress();
       });
 
       // Should now show children instead of error view
@@ -565,7 +565,7 @@ describe('PerpsConnectionProvider', () => {
       // First retry
       const retryButton = getByTestId('retry-button');
       await act(async () => {
-        fireEvent.press(retryButton);
+        retryButton.props.onPress();
       });
 
       await waitFor(() => {
@@ -574,7 +574,7 @@ describe('PerpsConnectionProvider', () => {
 
       // Second retry
       await act(async () => {
-        fireEvent.press(retryButton);
+        retryButton.props.onPress();
       });
 
       await waitFor(() => {
@@ -583,7 +583,7 @@ describe('PerpsConnectionProvider', () => {
 
       // Third retry
       await act(async () => {
-        fireEvent.press(retryButton);
+        retryButton.props.onPress();
       });
 
       await waitFor(() => {
@@ -614,7 +614,7 @@ describe('PerpsConnectionProvider', () => {
       // First retry (fails)
       const retryButton = getByTestId('retry-button');
       await act(async () => {
-        fireEvent.press(retryButton);
+        retryButton.props.onPress();
       });
 
       await waitFor(() => {
@@ -631,7 +631,7 @@ describe('PerpsConnectionProvider', () => {
 
       // Second retry (succeeds)
       await act(async () => {
-        fireEvent.press(retryButton);
+        retryButton.props.onPress();
       });
 
       // Should clear retry attempts and show children
@@ -666,7 +666,7 @@ describe('PerpsConnectionProvider', () => {
       // Click retry button
       const retryButton = getByTestId('retry-button');
       act(() => {
-        fireEvent.press(retryButton);
+        retryButton.props.onPress();
       });
 
       await waitFor(() => {

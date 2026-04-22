@@ -1,8 +1,11 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import mockSafeAreaContext from 'react-native-safe-area-context/jest/mock';
 import { strings } from '../../../../../locales/i18n';
 import { NetworksManagementViewSelectorsIDs } from '../NetworksManagementView.testIds';
 import DeleteNetworkModal from './DeleteNetworkModal';
+
+jest.mock('react-native-safe-area-context', () => mockSafeAreaContext);
 
 describe('DeleteNetworkModal', () => {
   const networkName = 'TestNet';

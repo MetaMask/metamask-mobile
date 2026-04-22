@@ -318,7 +318,7 @@ describe('TurnOffRememberMeModal', () => {
 
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
-      expect(button).toBeDisabled();
+      expect(button.props.disabled).toBe(true);
     });
   });
 
@@ -336,7 +336,7 @@ describe('TurnOffRememberMeModal', () => {
 
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
-      expect(button).toBeEnabled();
+      expect(button.props.disabled).toBe(false);
     });
   });
 
@@ -441,7 +441,7 @@ describe('TurnOffRememberMeModal', () => {
     expect(
       queryByTestId('text-input-turn_off_remember_me.placeholder'),
     ).toBeNull();
-    expect(button).toBeDisabled();
+    expect(button.props.disabled).toBe(true);
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();
@@ -483,7 +483,7 @@ describe('TurnOffRememberMeModal', () => {
     expect(
       queryByTestId('text-input-turn_off_remember_me.placeholder'),
     ).toBeNull();
-    expect(button).toBeDisabled();
+    expect(button.props.disabled).toBe(true);
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();

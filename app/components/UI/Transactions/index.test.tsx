@@ -1,8 +1,10 @@
 import React from 'react';
 import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
+import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { render, cleanup, act } from '@testing-library/react-native';
+import { render, screen, cleanup, act } from '@testing-library/react-native';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -89,14 +91,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../core/ToastService/ToastService', () => ({
-  __esModule: true,
-  default: {
-    showToast: jest.fn(),
-    closeToast: jest.fn(),
-  },
-}));
-
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -109,6 +103,11 @@ jest.mock('../TransactionElement', () => ({
 
 // Mock other connected components
 jest.mock('../TransactionActionModal', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('./RetryModal', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -187,7 +186,7 @@ const initialState = {
     primaryCurrency: 'USD',
   },
   qrKeyringScanner: {
-    pendingScanRequest: undefined,
+    isScanning: false,
   },
 };
 const store = mockStore(initialState);
@@ -268,7 +267,7 @@ describe('Transactions', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = render(
+    render(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -297,7 +296,12 @@ describe('Transactions', () => {
         />
       </Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   describe('Transaction Component Behavior', () => {
@@ -312,7 +316,7 @@ describe('Transactions', () => {
         },
       ];
 
-      const { toJSON } = render(
+      const wrapper = shallow(
         <Provider store={store}>
           <Transactions
             transactions={mockTransactions}
@@ -327,7 +331,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(toJSON()).toBeDefined();
+      expect(wrapper).toBeDefined();
 
       const txData = mockTransactions[0];
       expect(txData.id).toBe('tx-1');
@@ -348,10 +352,19 @@ describe('Transactions', () => {
       const mockState = {
         speedUpIsOpen: false,
         cancelIsOpen: false,
+        retryIsOpen: false,
+        errorMsg: null,
       };
 
       const newState = { ...mockState, speedUpIsOpen: true };
       expect(newState.speedUpIsOpen).toBe(true);
+
+      const errorState = {
+        ...mockState,
+        retryIsOpen: true,
+        errorMsg: 'Test error',
+      };
+      expect(errorState.errorMsg).toBe('Test error');
     });
 
     it('calculates gas prices', () => {
@@ -801,7 +814,7 @@ describe('Transactions', () => {
         },
       ];
 
-      const { toJSON } = render(
+      const wrapper = shallow(
         <Provider store={store}>
           <Transactions
             transactions={mockTransactions}
@@ -835,7 +848,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(toJSON()).toBeDefined();
+      expect(wrapper).toBeDefined();
     });
 
     it('should exercise viewOnBlockExplore method for EVM chains', () => {
@@ -846,7 +859,7 @@ describe('Transactions', () => {
         title: 'Etherscan',
       });
 
-      const { toJSON } = render(
+      const wrapper = shallow(
         <Provider store={store}>
           <Transactions
             transactions={[]}
@@ -861,7 +874,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(toJSON()).toBeDefined();
+      expect(wrapper).toBeDefined();
 
       // Test the mock functions that would be called in viewOnBlockExplore
       const type = 'mainnet';
@@ -945,7 +958,7 @@ describe('Transactions', () => {
       mockGetBlockExplorerName.mockReturnValue('Solscan');
       mockIsHardwareAccount.mockReturnValue(false);
 
-      const { toJSON } = render(
+      const wrapper = shallow(
         <Provider store={store}>
           <Transactions
             transactions={[]}
@@ -963,7 +976,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(toJSON()).toBeDefined();
+      expect(wrapper).toBeDefined();
 
       // Verify the mock functions were available
       expect(mockIsNonEvmChainId).toBeDefined();
@@ -980,7 +993,7 @@ describe('Transactions', () => {
       );
       mockIsHardwareAccount.mockReturnValue(false);
 
-      const { toJSON } = render(
+      const wrapper = shallow(
         <Provider store={store}>
           <Transactions
             transactions={[]}
@@ -995,7 +1008,7 @@ describe('Transactions', () => {
         </Provider>,
       );
 
-      expect(toJSON()).toBeDefined();
+      expect(wrapper).toBeDefined();
 
       // Verify different network scenarios
       expect(mockFindBlockExplorerForRpc).toBeDefined();
@@ -1598,6 +1611,39 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(mockOnScrollThroughContent).toHaveBeenCalledWith(100);
   });
 
+  it('should test toggleRetry method directly', () => {
+    instance.setState = jest.fn();
+
+    const errorMsg = 'Test error message';
+    instance.toggleRetry(errorMsg);
+
+    expect(instance.setState).toHaveBeenCalled();
+  });
+
+  it('should test retry method directly', () => {
+    instance.setState = jest.fn();
+    instance.onSpeedUpAction = jest.fn();
+    instance.onCancelAction = jest.fn();
+    instance.speedUpTxId = 'speed-up-tx';
+    instance.existingTx = { id: 'speed-up-tx' };
+
+    instance.retry();
+
+    // The retry method calls setState with a function, not an object
+    expect(instance.setState).toHaveBeenCalled();
+
+    // Test that the state function produces the expected result
+    const setStateCall = instance.setState.mock.calls[0][0];
+    const newState = setStateCall({
+      retryIsOpen: true,
+      errorMsg: 'test error',
+    });
+    expect(newState).toEqual({
+      retryIsOpen: false,
+      errorMsg: undefined,
+    });
+  });
+
   it('should test navigation patterns for coverage', () => {
     // Test non-EVM chain navigation
     const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -1862,9 +1908,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.setState).toHaveBeenCalledWith({ ready: true });
 
     // Fast-forward the setTimeout for notification handling
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
+    jest.advanceTimersByTime(1000);
 
     expect(instance.toggleDetailsView).toHaveBeenCalledWith(
       'tx-notification',
@@ -1890,9 +1934,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     });
 
     // Fast-forward the timeout
-    act(() => {
-      jest.advanceTimersByTime(300);
-    });
+    jest.advanceTimersByTime(300);
 
     expect(instance.scrolling).toBe(false);
 
@@ -2030,33 +2072,27 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.state.speedUpIsOpen = false;
     instance.state.cancelIsOpen = false;
     let listResult = instance.renderList();
-    let { UNSAFE_getAllByType, unmount } = render(listResult);
-    let modals = UNSAFE_getAllByType(CancelSpeedupModal);
-    expect(modals).toHaveLength(1);
-    expect(modals[0].props.isVisible).toBe(false);
-    unmount();
+    let listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(false);
 
     // When speed up open: one modal, isVisible true, isCancel false
     instance.state.speedUpIsOpen = true;
     instance.state.cancelIsOpen = false;
     listResult = instance.renderList();
-    ({ UNSAFE_getAllByType, unmount } = render(listResult));
-    modals = UNSAFE_getAllByType(CancelSpeedupModal);
-    expect(modals).toHaveLength(1);
-    expect(modals[0].props.isVisible).toBe(true);
-    expect(modals[0].props.isCancel).toBe(false);
-    unmount();
+    listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(false);
 
     // When cancel open: one modal, isVisible true, isCancel true
     instance.state.speedUpIsOpen = false;
     instance.state.cancelIsOpen = true;
     listResult = instance.renderList();
-    ({ UNSAFE_getAllByType, unmount } = render(listResult));
-    modals = UNSAFE_getAllByType(CancelSpeedupModal);
-    expect(modals).toHaveLength(1);
-    expect(modals[0].props.isVisible).toBe(true);
-    expect(modals[0].props.isCancel).toBe(true);
-    unmount();
+    listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(true);
   });
 
   it('should test render method directly', () => {
@@ -2066,10 +2102,14 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.state = {
       ready: true,
+      retryIsOpen: false,
+      errorMsg: null,
     };
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
+    instance.toggleRetry = jest.fn();
+    instance.retry = jest.fn();
 
     const result = instance.render();
     expect(result).toBeDefined();
@@ -2276,5 +2316,201 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     await instance.cancelTransaction(transactionObject);
 
     expect(instance.signLedgerTransaction).toHaveBeenCalled();
+  });
+
+  it('should test retry method with different scenarios', () => {
+    instance.setState = jest.fn();
+    instance.onSpeedUpAction = jest.fn();
+    instance.onCancelAction = jest.fn();
+
+    // Test retry with speedUpTxId
+    instance.speedUpTxId = 'speed-up-tx';
+    instance.cancelTxId = null;
+    instance.existingTx = { id: 'speed-up-tx' };
+
+    instance.retry();
+
+    expect(instance.setState).toHaveBeenCalled();
+
+    // Test retry with cancelTxId
+    instance.speedUpTxId = null;
+    instance.cancelTxId = 'cancel-tx';
+
+    instance.retry();
+
+    expect(instance.setState).toHaveBeenCalled();
+
+    // Test retry with neither speedUpTxId nor cancelTxId
+    instance.speedUpTxId = null;
+    instance.cancelTxId = null;
+
+    instance.retry();
+
+    expect(instance.setState).toHaveBeenCalled();
+  });
+
+  describe('asset-chain explorer (tokenChainId / AssetDetails)', () => {
+    beforeEach(() => {
+      mockFindBlockExplorerUrlForChain.mockReset();
+      mockGetHexEvmChainId.mockReset();
+    });
+
+    it('updateBlockExplorer resolves EVM asset chain via findBlockExplorerUrlForChain when tokenChainId is set', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockFindBlockExplorerUrlForChain.mockReturnValue(
+        'https://polygonscan.com',
+      );
+      instance.setState = jest.fn();
+      instance.props = {
+        ...defaultTestProps,
+        tokenChainId: 'eip155:137',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        networkConfigurations: { '0x89': {} },
+        providerConfig: { type: 'mainnet' },
+      };
+
+      instance.updateBlockExplorer();
+
+      expect(mockFindBlockExplorerUrlForChain).toHaveBeenCalledWith(
+        'eip155:137',
+        instance.props.networkConfigurations,
+      );
+      expect(instance.setState).toHaveBeenCalledWith({
+        rpcBlockExplorer: 'https://polygonscan.com',
+      });
+    });
+
+    it('updateBlockExplorer sets no explorer when AssetDetails has no tokenChainId', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      instance.setState = jest.fn();
+      instance.props = {
+        ...defaultTestProps,
+        location: TransactionDetailLocation.AssetDetails,
+        tokenChainId: undefined,
+        chainId: '0x1',
+        providerConfig: { type: 'mainnet' },
+      };
+
+      instance.updateBlockExplorer();
+
+      expect(mockFindBlockExplorerUrlForChain).not.toHaveBeenCalled();
+      expect(instance.setState).toHaveBeenCalledWith({
+        rpcBlockExplorer: undefined,
+      });
+    });
+
+    it('updateBlockExplorer uses tokenChainId for non-EVM when location is AssetDetails', () => {
+      mockIsNonEvmChainId.mockImplementation(
+        (id: string) => id?.startsWith('solana:') ?? false,
+      );
+      mockFindBlockExplorerForNonEvmChainId.mockReturnValue(
+        'https://solscan.io',
+      );
+      instance.setState = jest.fn();
+      instance.props = {
+        ...defaultTestProps,
+        location: TransactionDetailLocation.AssetDetails,
+        tokenChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        chainId: '0x1',
+        providerConfig: { type: 'mainnet' },
+      };
+
+      instance.updateBlockExplorer();
+
+      expect(mockFindBlockExplorerForNonEvmChainId).toHaveBeenCalledWith(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      expect(mockFindBlockExplorerUrlForChain).not.toHaveBeenCalled();
+    });
+
+    it('viewOnBlockExplore uses asset rpcBlockExplorer when tokenChainId is set', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Polygonscan');
+      instance.props = {
+        ...defaultTestProps,
+        navigation: mockNavigation,
+        tokenChainId: '0x89',
+        chainId: '0x1',
+        providerConfig: { type: 'mainnet' },
+      };
+      instance.state = { rpcBlockExplorer: 'https://polygonscan.com' };
+
+      instance.viewOnBlockExplore();
+
+      expect(mockGetBlockExplorerAddressUrl).not.toHaveBeenCalled();
+      expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://polygonscan.com/address/0x123',
+          title: 'Polygonscan',
+        },
+      });
+    });
+
+    it('viewOnBlockExplore falls back to findBlockExplorerUrlForChain when state explorer is NO_RPC_BLOCK_EXPLORER', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Polygonscan');
+      mockFindBlockExplorerUrlForChain.mockReturnValue(
+        'https://polygonscan.com',
+      );
+      instance.props = {
+        ...defaultTestProps,
+        navigation: mockNavigation,
+        tokenChainId: '0x89',
+        networkConfigurations: {},
+        providerConfig: { type: 'mainnet' },
+      };
+      instance.state = { rpcBlockExplorer: NO_RPC_BLOCK_EXPLORER };
+
+      instance.viewOnBlockExplore();
+
+      expect(mockFindBlockExplorerUrlForChain).toHaveBeenCalledWith('0x89', {});
+      expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://polygonscan.com/address/0x123',
+          title: 'Polygonscan',
+        },
+      });
+    });
+
+    it('viewOnBlockExplore logs when asset chain has no block explorer', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockFindBlockExplorerUrlForChain.mockReturnValue(undefined);
+      instance.props = {
+        ...defaultTestProps,
+        navigation: mockNavigation,
+        tokenChainId: '0x999',
+        networkConfigurations: {},
+        providerConfig: { type: 'mainnet' },
+      };
+      instance.state = { rpcBlockExplorer: undefined };
+
+      instance.viewOnBlockExplore();
+
+      expect(Logger.error).toHaveBeenCalled();
+      expect(mockNavigation.push).not.toHaveBeenCalled();
+    });
+
+    it('footer passes omitGlobalProviderExplorerFallback and hex chainId from getHexEvmChainId for AssetDetails', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockGetHexEvmChainId.mockReturnValue('0x89');
+      instance.props = {
+        ...defaultTestProps,
+        location: TransactionDetailLocation.AssetDetails,
+        tokenChainId: 'eip155:137',
+        chainId: '0x1',
+        providerConfig: { type: 'mainnet' },
+      };
+      instance.state = { rpcBlockExplorer: 'https://polygonscan.com' };
+      instance.viewOnBlockExplore = jest.fn();
+
+      const footer = instance.footer;
+
+      expect(mockGetHexEvmChainId).toHaveBeenCalledWith('eip155:137');
+      expect(footer.props.omitGlobalProviderExplorerFallback).toBe(true);
+      expect(footer.props.chainId).toBe('0x89');
+      expect(footer.props.isNonEvmChain).toBe(false);
+    });
   });
 });

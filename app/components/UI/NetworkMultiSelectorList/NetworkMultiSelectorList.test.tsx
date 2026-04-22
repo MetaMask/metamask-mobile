@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { parseCaipChainId, CaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -49,6 +50,10 @@ jest.mock('@metamask/keyring-api', () => ({
   isEvmAccountType: jest.fn(),
   KeyringAccountType: {},
   EthScope: {},
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: jest.fn(),
 }));
 
 jest.mock('@metamask/controller-utils', () => ({
@@ -298,6 +303,9 @@ describe('NetworkMultiSelectorList', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
+  const mockUseSafeAreaInsets = useSafeAreaInsets as jest.MockedFunction<
+    typeof useSafeAreaInsets
+  >;
   const mockParseCaipChainId = parseCaipChainId as jest.MockedFunction<
     typeof parseCaipChainId
   >;
@@ -365,6 +373,13 @@ describe('NetworkMultiSelectorList', () => {
       return undefined;
     });
 
+    mockUseSafeAreaInsets.mockReturnValue({
+      top: 0,
+      right: 0,
+      bottom: 34,
+      left: 0,
+    });
+
     mockParseCaipChainId.mockImplementation((chainId) => ({
       namespace: 'eip155',
       reference: chainId.split(':')[1],
@@ -390,6 +405,12 @@ describe('NetworkMultiSelectorList', () => {
       );
 
       expect(getByTestId('mock-flash-list')).toBeTruthy();
+    });
+
+    it('calls useSafeAreaInsets', () => {
+      render(<NetworkMultiSelectorList {...defaultProps} />);
+
+      expect(mockUseSafeAreaInsets).toHaveBeenCalled();
     });
 
     it('calls useSelector with selectEvmChainId', () => {
@@ -1051,7 +1072,7 @@ describe('NetworkMultiSelectorList', () => {
   describe('additionalNetworksComponent', () => {
     it('renders additional networks section at the end of the list', () => {
       const AdditionalComponent = () => (
-        <Text testID="additional-networks">{'Add Networks'}</Text>
+        <Text testID="additional-networks">Add Networks</Text>
       );
 
       const { getByTestId } = render(
@@ -1074,7 +1095,7 @@ describe('NetworkMultiSelectorList', () => {
 
     it('exercises key extractor and item type for additional section', () => {
       const AdditionalComponent = () => (
-        <Text testID="additional-networks">{'Add Networks'}</Text>
+        <Text testID="additional-networks">Add Networks</Text>
       );
       const singleNetwork: Network[] = [
         {
@@ -1260,6 +1281,41 @@ describe('NetworkMultiSelectorList', () => {
       render(<NetworkMultiSelectorList {...defaultProps} />);
 
       expect(mockFormatChainIdToCaip).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('auto-scroll behavior', () => {
+    it('does not scroll when isAutoScrollEnabled is false', () => {
+      render(
+        <NetworkMultiSelectorList
+          {...defaultProps}
+          isAutoScrollEnabled={false}
+        />,
+      );
+
+      expect(mockUseSafeAreaInsets).toHaveBeenCalled();
+    });
+
+    it('scrolls to selected network offset on content size change', () => {
+      const networkWithOffset: Network[] = [
+        {
+          id: 'eip155:1',
+          name: 'Ethereum',
+          isSelected: true,
+          yOffset: 200,
+          imageSource: { uri: 'eth.png' },
+          caipChainId: 'eip155:1' as CaipChainId,
+        },
+      ];
+
+      render(
+        <NetworkMultiSelectorList
+          {...defaultProps}
+          networks={networkWithOffset}
+        />,
+      );
+
+      expect(mockUseSafeAreaInsets).toHaveBeenCalled();
     });
   });
 

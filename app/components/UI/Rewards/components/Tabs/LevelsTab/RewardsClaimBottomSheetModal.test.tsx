@@ -473,7 +473,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      expect(claimButton).toBeDisabled();
+      expect(claimButton.props['data-loading']).toBe(true);
 
       mockUseClaimRewardState.isClaimingReward = false;
     });
@@ -503,7 +503,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      expect(claimButton).toBeDisabled();
+      expect(claimButton.props['data-loading']).toBe(true);
 
       mockUseClaimRewardState.isClaimingReward = false;
     });
@@ -518,7 +518,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      expect(claimButton).not.toBeDisabled();
+      expect(claimButton.props['data-loading']).toBeFalsy();
     });
 
     it('should disable button when input is required but empty', () => {

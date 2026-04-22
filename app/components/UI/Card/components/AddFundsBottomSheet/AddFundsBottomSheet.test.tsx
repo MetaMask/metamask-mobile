@@ -8,7 +8,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
-import { CardFundingToken, FundingStatus } from '../../types';
+import { CardTokenAllowance, AllowanceState } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
@@ -120,18 +120,18 @@ describe('AddFundsBottomSheet', () => {
     build: jest.fn().mockReturnValue({ event: 'built' }),
   };
 
-  const mockPriorityToken: CardFundingToken = {
+  const mockPriorityToken: CardTokenAllowance = {
     address: '0x456',
     symbol: 'USDC',
     decimals: 6,
     name: 'USD Coin',
     caipChainId: 'eip155:59144',
-    fundingStatus: FundingStatus.Enabled,
-    spendableBalance: '1000000',
+    allowanceState: AllowanceState.Enabled,
+    allowance: '1000000',
   };
 
   const setupComponent = (
-    priorityToken: CardFundingToken | undefined = mockPriorityToken,
+    priorityToken: CardTokenAllowance | undefined = mockPriorityToken,
   ) => {
     mockUseParams.mockReturnValue({
       priorityToken,

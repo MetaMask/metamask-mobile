@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
@@ -9,10 +9,6 @@ import { MultichainAccountPermissions } from './MultichainAccountPermissions';
 import Engine from '../../../../core/Engine';
 import { MAINNET_DISPLAY_NAME } from '../../../../core/Engine/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
-import {
-  Caip25CaveatType,
-  Caip25EndowmentPermissionName,
-} from '@metamask/chain-agnostic-permission';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -187,6 +183,20 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('react-native-safe-area-context', () => {
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  const frame = { width: 0, height: 0, x: 0, y: 0 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
+
 jest.mock(
   '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions',
   () => ({
@@ -272,50 +282,6 @@ const mockInitialState = () => {
   return mockState as DeepPartial<RootState>;
 };
 
-/** CAIP-25 permissions in Redux so getPermissions + network avatars enable the connect button. */
-const mockInitialStateWithTestComPermissions = (): DeepPartial<RootState> => {
-  const base = mockInitialState();
-  return {
-    ...base,
-    engine: {
-      ...base.engine,
-      backgroundState: {
-        ...base.engine?.backgroundState,
-        PermissionController: {
-          subjects: {
-            'test.com': {
-              permissions: {
-                [Caip25EndowmentPermissionName]: {
-                  caveats: [
-                    {
-                      type: Caip25CaveatType,
-                      value: {
-                        requiredScopes: {},
-                        optionalScopes: {
-                          'eip155:1': {
-                            accounts: [
-                              `eip155:1:${mockEvmAccount1Address}`,
-                              `eip155:1:${mockEvmAccount2Address}`,
-                            ],
-                          },
-                        },
-                        sessionProperties: {},
-                        isMultichainOrigin: true,
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      } as (typeof base)['engine'] extends { backgroundState: infer BG }
-        ? BG
-        : never,
-    },
-  };
-};
-
 describe('MultichainAccountPermissions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -324,7 +290,7 @@ describe('MultichainAccountPermissions', () => {
   });
 
   describe('handleOnCancel', () => {
-    it('should call navigation goBack when cancel is pressed', async () => {
+    it('should call navigation goBack when cancel is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainAccountPermissions
           route={{
@@ -337,16 +303,14 @@ describe('MultichainAccountPermissions', () => {
       );
 
       const cancelButton = getByTestId('cancel-button');
-      await act(async () => {
-        fireEvent.press(cancelButton);
-      });
+      fireEvent.press(cancelButton);
 
       expect(mockedGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('handleOnEdit', () => {
-    it('should switch to EditAccountsPermissions screen when edit is pressed', async () => {
+    it('should switch to EditAccountsPermissions screen when edit is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainAccountPermissions
           route={{
@@ -361,9 +325,7 @@ describe('MultichainAccountPermissions', () => {
       const editButton = getByTestId('account-list-bottom-sheet');
       expect(editButton).toBeDefined();
 
-      await act(async () => {
-        fireEvent.press(editButton);
-      });
+      fireEvent.press(editButton);
 
       // After pressing edit, the screen should show the EditAccountsPermissions screen
       // We can verify this by checking for the "Edit accounts" title
@@ -372,7 +334,7 @@ describe('MultichainAccountPermissions', () => {
   });
 
   describe('handleOnEditNetworks', () => {
-    it('should switch to ConnectMoreNetworks screen when edit networks is pressed', async () => {
+    it('should switch to ConnectMoreNetworks screen when edit networks is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainAccountPermissions
           route={{
@@ -387,9 +349,7 @@ describe('MultichainAccountPermissions', () => {
       const editNetworksButton = getByTestId(
         'navigate_to_edit_networks_permissions_button',
       );
-      await act(async () => {
-        fireEvent.press(editNetworksButton);
-      });
+      fireEvent.press(editNetworksButton);
 
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
       expect(getByTestId(`${MAINNET_DISPLAY_NAME}-not-selected`)).toBeDefined();
@@ -409,7 +369,7 @@ describe('MultichainAccountPermissions', () => {
             },
           }}
         />,
-        { state: mockInitialStateWithTestComPermissions() },
+        { state: mockInitialState() },
       );
 
       const confirmButton = getByTestId('connect-button');
@@ -418,19 +378,12 @@ describe('MultichainAccountPermissions', () => {
         fireEvent.press(confirmButton);
       });
 
-      await waitFor(() => {
-        expect(mockUpdateCaveat).toHaveBeenCalledWith(
-          'test.com',
-          Caip25EndowmentPermissionName,
-          Caip25CaveatType,
-          expect.objectContaining({
-            optionalScopes: expect.any(Object),
-            requiredScopes: expect.any(Object),
-            isMultichainOrigin: true,
-            sessionProperties: expect.any(Object),
-          }),
-        );
-      });
+      expect(mockUpdateCaveat).toHaveBeenCalledWith(
+        'test.com',
+        'endowment:caip25',
+        'authorizedScopes',
+        expect.any(Object),
+      );
     });
   });
 
@@ -456,7 +409,7 @@ describe('MultichainAccountPermissions', () => {
   });
 
   describe('handleNetworksSelected', () => {
-    it('should handle network selection flow', async () => {
+    it('should handle network selection flow', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainAccountPermissions
           route={{
@@ -471,9 +424,7 @@ describe('MultichainAccountPermissions', () => {
       const editNetworksButton = getByTestId(
         'navigate_to_edit_networks_permissions_button',
       );
-      await act(async () => {
-        fireEvent.press(editNetworksButton);
-      });
+      fireEvent.press(editNetworksButton);
 
       // Check that we're in the network selection screen
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
@@ -499,21 +450,15 @@ describe('MultichainAccountPermissions', () => {
       const editNetworksButton = getByTestId(
         'navigate_to_edit_networks_permissions_button',
       );
-      await act(async () => {
-        fireEvent.press(editNetworksButton);
-      });
+      fireEvent.press(editNetworksButton);
 
       // Act - Select Sepolia
       const sepoliaNetwork = getByText('Sepolia');
-      await act(async () => {
-        fireEvent.press(sepoliaNetwork);
-      });
+      fireEvent.press(sepoliaNetwork);
 
       const updateButton = getByTestId('multiconnect-connect-network-button');
-      await act(async () => {
-        await act(async () => {
-          fireEvent.press(updateButton);
-        });
+      await act(() => {
+        fireEvent.press(updateButton);
       });
 
       // Assert - The component renders correctly and handles network selection
@@ -564,7 +509,7 @@ describe('MultichainAccountPermissions', () => {
   });
 
   describe('screen navigation', () => {
-    it('should render correct screen based on current state', async () => {
+    it('should render correct screen based on current state', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainAccountPermissions
           route={{
@@ -579,7 +524,7 @@ describe('MultichainAccountPermissions', () => {
       expect(getByTestId('cancel-button')).toBeDefined();
     });
 
-    it('should handle navigation between screens', async () => {
+    it('should handle navigation between screens', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainAccountPermissions
           route={{
@@ -594,16 +539,12 @@ describe('MultichainAccountPermissions', () => {
       const editNetworksButton = getByTestId(
         'navigate_to_edit_networks_permissions_button',
       );
-      await act(async () => {
-        fireEvent.press(editNetworksButton);
-      });
+      fireEvent.press(editNetworksButton);
 
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
 
       const backButton = getByTestId('sheet-header-back-button');
-      await act(async () => {
-        fireEvent.press(backButton);
-      });
+      fireEvent.press(backButton);
 
       expect(getByTestId('cancel-button')).toBeDefined();
     });

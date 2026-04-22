@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -70,13 +71,8 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
-const mockOpenBuySheet = jest.fn();
 jest.mock('../../contexts', () => ({
   usePredictEntryPoint: () => undefined,
-  usePredictPreviewSheet: () => ({
-    openBuySheet: mockOpenBuySheet,
-    openSellSheet: jest.fn(),
-  }),
 }));
 
 jest.mock('../../hooks/useLiveGameUpdates', () => ({
@@ -93,6 +89,13 @@ jest.mock('../PredictSportTeamLogo/PredictSportTeamLogo', () => {
     <MockView testID={testID ?? 'predict-sport-team-logo'} />
   );
 });
+
+const mockNavigateToBuyPreview = jest.fn();
+jest.mock('../../hooks/usePredictNavigation', () => ({
+  usePredictNavigation: () => ({
+    navigateToBuyPreview: mockNavigateToBuyPreview,
+  }),
+}));
 
 jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
@@ -357,12 +360,13 @@ describe('FeaturedCarouselSportCard', () => {
 
     fireEvent.press(getByText('60%'));
 
-    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+    expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
       expect.objectContaining({
         market,
         outcome: market.outcomes[0],
         outcomeToken: market.outcomes[0].tokens[0],
       }),
+      { throughRoot: true },
     );
   });
 
@@ -408,10 +412,11 @@ describe('FeaturedCarouselSportCard', () => {
 
     fireEvent.press(getByText('40%'));
 
-    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+    expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
       expect.objectContaining({
         outcomeToken: expect.objectContaining({ title: 'Celtics' }),
       }),
+      { throughRoot: true },
     );
   });
 });

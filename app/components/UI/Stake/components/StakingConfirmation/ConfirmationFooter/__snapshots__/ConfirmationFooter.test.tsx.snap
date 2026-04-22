@@ -16,37 +16,11 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
       style={
         {
-          "opacity": 1,
           "padding": 16,
         }
       }
@@ -65,38 +39,12 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
       >
         Terms of service
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
       style={
         {
-          "opacity": 1,
           "padding": 16,
         }
       }
@@ -115,7 +63,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
       >
         Risk disclosure
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -127,40 +75,19 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
       }
     }
   >
-    <View
+    <TouchableOpacity
       accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
       accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -170,7 +97,6 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
           "flexShrink": 0,
           "height": 48,
           "justifyContent": "center",
-          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -191,41 +117,21 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
       >
         Cancel
       </Text>
-    </View>
-    <View
+    </TouchableOpacity>
+    <TouchableOpacity
       accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
       accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+      activeOpacity={1}
+      disabled={false}
+      loading={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#131416",
           "borderRadius": 12,
           "flexBasis": 0,
           "flexDirection": "row",
@@ -233,7 +139,6 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
           "flexShrink": 0,
           "height": 48,
           "justifyContent": "center",
-          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -254,7 +159,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
       >
         Continue
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
 </View>
 `;

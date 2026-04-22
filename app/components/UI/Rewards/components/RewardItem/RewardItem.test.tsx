@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { TouchableOpacity } from 'react-native';
 import RewardItem from './RewardItem';
@@ -653,7 +653,7 @@ describe('RewardItem', () => {
 
       // Call onPress directly with a mock event that has stopPropagation
       const mockEvent = { stopPropagation: jest.fn() };
-      fireEvent.press(claimButton, mockEvent);
+      claimButton.props.onPress(mockEvent);
 
       expect(mockEvent.stopPropagation).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(

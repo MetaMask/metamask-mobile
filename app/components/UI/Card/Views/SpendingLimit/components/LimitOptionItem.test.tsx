@@ -202,7 +202,7 @@ describe('LimitOptionItem', () => {
       });
 
       const input = screen.getByTestId('limit-option-input');
-      expect(input).toHaveProp('placeholder', '0');
+      expect(input.props.placeholder).toBe('0');
     });
   });
 

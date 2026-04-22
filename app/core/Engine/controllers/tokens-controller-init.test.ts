@@ -1,4 +1,4 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getTokensControllerMessenger,
@@ -26,7 +26,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getTokensControllerMessenger(baseMessenger),
     initMessenger: getTokensControllerInitMessenger(baseMessenger),
   };
@@ -40,7 +40,7 @@ function getInitRequestMock(): jest.Mocked<
   );
 
   // @ts-expect-error: Partial mock.
-  requestMock.getMessengerClient.mockImplementation((name) => {
+  requestMock.getController.mockImplementation((name) => {
     if (name === 'NetworkController') {
       return {
         state: {

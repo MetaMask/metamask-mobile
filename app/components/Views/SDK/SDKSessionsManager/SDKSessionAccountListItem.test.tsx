@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,
@@ -29,6 +30,10 @@ const mockInitialState: DeepPartial<RootState> = {
     },
   },
 };
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: jest.fn(),
+}));
 
 jest.mock('../../../../util/theme', () => ({
   useTheme: jest.fn(),
@@ -67,6 +72,7 @@ jest.mock(
 
 describe('SDKSessionAccountListItem', () => {
   const mockDisconnect = jest.fn();
+  const mockUseSafeAreaInsets = useSafeAreaInsets as jest.Mock;
 
   const defaultProps = {
     connection: {
@@ -84,6 +90,13 @@ describe('SDKSessionAccountListItem', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseSafeAreaInsets.mockReturnValue({
+      top: 10,
+      bottom: 10,
+      left: 0,
+      right: 0,
+    });
   });
 
   it('should renders correctly', () => {

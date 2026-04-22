@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import {
   RampsService,
@@ -164,9 +164,7 @@ describe('rampsServiceInit', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    initRequestMock = buildMessengerClientInitRequestMock(
-      baseControllerMessenger,
-    );
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   afterEach(() => {

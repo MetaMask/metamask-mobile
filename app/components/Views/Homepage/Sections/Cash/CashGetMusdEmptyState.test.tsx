@@ -91,7 +91,6 @@ describe('CashGetMusdEmptyState', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
-      refetch: jest.fn(),
     });
   });
 
@@ -148,7 +147,7 @@ describe('CashGetMusdEmptyState', () => {
     expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
   });
 
-  it('tracks MUSD_CONVERSION_CTA_CLICKED with home_section when Get mUSD is pressed on homepage', () => {
+  it('tracks MUSD_CONVERSION_CTA_CLICKED with home_cash_section when Get mUSD is pressed on homepage', () => {
     renderWithProvider(<CashGetMusdEmptyState />);
 
     fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON));
@@ -201,7 +200,7 @@ describe('CashGetMusdEmptyState', () => {
     ).toBeOnTheScreen();
   });
 
-  it('registers Merkl claim hook with home_section on homepage', () => {
+  it('registers Merkl claim hook with home_cash_section on homepage', () => {
     renderWithProvider(<CashGetMusdEmptyState />);
 
     expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
@@ -231,7 +230,6 @@ describe('CashGetMusdEmptyState', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
-      refetch: jest.fn(),
     });
 
     renderWithProvider(<CashGetMusdEmptyState />);
@@ -253,7 +251,6 @@ describe('CashGetMusdEmptyState', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
-      refetch: jest.fn(),
     });
 
     renderWithProvider(<CashGetMusdEmptyState />);
@@ -271,7 +268,6 @@ describe('CashGetMusdEmptyState', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
-      refetch: jest.fn(),
     });
 
     renderWithProvider(<CashGetMusdEmptyState />);

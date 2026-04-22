@@ -8,6 +8,10 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+}));
+
 describe('SnapUILink', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -19,19 +23,22 @@ describe('SnapUILink', () => {
   };
 
   it('renders correctly with valid props', () => {
-    const { getByTestId } = render(<SnapUILink {...validProps} />);
+    const { UNSAFE_getByType, getByTestId } = render(
+      <SnapUILink {...validProps} />,
+    );
 
     const linkText = getByTestId('snaps-ui-link');
+    const spacer = UNSAFE_getByType(View);
+    const icon = UNSAFE_getByType(Icon);
+
     expect(linkText).toBeTruthy();
+    expect(linkText.props.children[0]).toBe('Visit MetaMask');
+    expect(spacer).toBeTruthy();
+    expect(spacer.props.style).toEqual({ width: 4 });
     expect(linkText.props.accessibilityRole).toBe('link');
-
-    // Children array: [text, spacer View, Icon]
-    const children = linkText.props.children[0];
-    expect(children[0]).toBe('Visit MetaMask');
-    expect(children[1].props.style).toEqual({ width: 4 });
-
-    const icon = getByTestId('snaps-ui-link-icon');
-    expect(icon).toBeTruthy();
+    expect(icon.props.name).toBe(IconName.Export);
+    expect(icon.props.color).toBe(IconColor.Primary);
+    expect(icon.props.size).toBe(IconSize.Sm);
   });
 
   it('opens URL when pressed with valid https URL', () => {
@@ -84,9 +91,10 @@ describe('SnapUILink', () => {
     );
 
     const link = getByTestId('snaps-ui-link');
-    const textContent = link.props.children[0].toString();
-    expect(textContent).toContain('Part 1');
-    expect(textContent).toContain('Part 2');
+    const childrenArray = link.props.children;
+    const textContent = childrenArray[0].toString();
+
+    expect(textContent).toBe('Part 1 ,Part 2');
   });
 
   it('renders correctly with complex children', () => {

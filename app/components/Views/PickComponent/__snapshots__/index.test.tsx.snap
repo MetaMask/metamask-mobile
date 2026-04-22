@@ -16,34 +16,9 @@ exports[`PickComponent should render correctly 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -59,7 +34,7 @@ exports[`PickComponent should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#b7bbc8",
+            "borderColor": "#949596",
             "borderRadius": 99,
             "borderWidth": 2,
             "height": 20,
@@ -79,7 +54,7 @@ exports[`PickComponent should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -90,7 +65,7 @@ exports[`PickComponent should render correctly 1`] = `
           Text First
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -99,34 +74,9 @@ exports[`PickComponent should render correctly 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -174,7 +124,7 @@ exports[`PickComponent should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -185,7 +135,7 @@ exports[`PickComponent should render correctly 1`] = `
           Text Second
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   </View>
 </View>
 `;

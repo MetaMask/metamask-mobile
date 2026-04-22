@@ -37,13 +37,7 @@ const config = {
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
-  snapshotSerializers: [],
-  snapshotFormat: {
-    // Prevent pretty-format from recursing infinitely into deeply nested
-    // objects (e.g. Reanimated shared values with circular refs, React fiber
-    // nodes). The default is Infinity which causes RangeError: Invalid string length.
-    maxDepth: 15,
-  },
+  snapshotSerializers: ['enzyme-to-json/serializer'],
   // Disable coverage collection for Reassure runs to avoid OOM
   collectCoverage: !isReassureRun && process.env.NODE_ENV !== 'production',
   collectCoverageFrom: !isReassureRun
@@ -59,7 +53,7 @@ const config = {
     '<rootDir>/app/components/UI/MarketInsights/components/MarketInsightsEntryCard/AnimatedGradientBorder.tsx',
   ],
   testPathIgnorePatterns: [
-    '.*/tests/(smoke|regression|performance)/.*\\.spec\\.(ts|tsx|js)$',
+    '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|js)$',
     '.*/e2e/.*\\.spec\\.(ts|js)$',
     '.*/e2e/pages/',
     '.*/e2e/selectors/',
@@ -91,8 +85,6 @@ const config = {
       '<rootDir>/app/__mocks__/expo-screen-orientation.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
     '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
-    '^@metamask/design-system-react-native/spinner$':
-      '<rootDir>/app/__mocks__/spinnerMock.js',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',

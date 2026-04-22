@@ -5,60 +5,6 @@ import { renderScreen } from '../../../../../../../util/test/renderWithProvider'
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import { createUnsupportedStateModalNavigationDetails } from '../UnsupportedStateModal/UnsupportedStateModal';
 
-// Mock BottomSheet so that:
-// 1. sheetRef.current?.onCloseBottomSheet(callback) immediately invokes the
-//    callback (animations don't run in tests).
-// 2. When shouldNavigateBack is true (the default), calling
-//    onCloseBottomSheet() also calls navigation.goBack(), mirroring the real
-//    BottomSheet behaviour.
-jest.mock(
-  '../../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    const MockBottomSheet = MockReact.forwardRef(
-      (
-        props: { children?: React.ReactNode; shouldNavigateBack?: boolean },
-        ref: React.Ref<unknown>,
-      ) => {
-        // Capture the navigation object at render time using the (already
-        // mocked) useNavigation from @react-navigation/native.
-        const navigationRef = MockReact.useRef<{ goBack: () => void } | null>(
-          null,
-        );
-        try {
-          // eslint-disable-next-line react-hooks/rules-of-hooks
-          navigationRef.current =
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            require('@react-navigation/native').useNavigation();
-        } catch (_) {
-          // navigation context unavailable – ignore
-        }
-
-        MockReact.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => {
-            callback?.();
-            if (props.shouldNavigateBack !== false && navigationRef.current) {
-              navigationRef.current.goBack();
-            }
-          },
-          onOpenBottomSheet: (callback?: () => void) => {
-            callback?.();
-          },
-        }));
-
-        return MockReact.createElement(
-          View,
-          { testID: 'bottom-sheet' },
-          props.children,
-        );
-      },
-    );
-    MockBottomSheet.displayName = 'BottomSheet';
-    return { __esModule: true, default: MockBottomSheet };
-  },
-);
-
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
     component,

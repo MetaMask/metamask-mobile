@@ -243,7 +243,10 @@ describe('OnboardingSuccess', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('fails to add networks to the network controller but renders the component', () => {
+    it('fails to add networks to the network controller but renders the component', async () => {
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+      };
       (
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockRejectedValue(new Error('Failed to add network'));

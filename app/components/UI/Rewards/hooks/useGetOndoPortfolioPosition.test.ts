@@ -65,10 +65,9 @@ const MOCK_PORTFOLIO: OndoGmPortfolioDto = {
   positions: [],
   summary: {
     totalCurrentValue: '0',
-    totalBookValue: '0',
+    totalCostBasis: '0',
     totalUsdDeposited: '0',
     netDeposit: '0',
-    totalCashedOut: '0',
     portfolioPnl: '0',
     portfolioPnlPercent: '0',
   },

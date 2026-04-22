@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import mockSafeAreaContext from 'react-native-safe-area-context/jest/mock';
 import { strings } from '../../../../../locales/i18n';
 import { IconColor } from '../../../../component-library/components/Icons/Icon';
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
@@ -24,6 +25,8 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => false),
 }));
+
+jest.mock('react-native-safe-area-context', () => mockSafeAreaContext);
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -352,7 +355,7 @@ describe('NetworkDetailsView', () => {
       const chainInput = getByTestId(
         NetworkDetailsViewSelectorsIDs.CHAIN_INPUT,
       );
-      expect(chainInput).toHaveProp('editable', false);
+      expect(chainInput.props.editable).toBe(false);
     });
 
     it('shows RPC warning banner when warningRpcUrl is set', () => {
@@ -451,7 +454,7 @@ describe('NetworkDetailsView', () => {
     const saveButton = getByTestId(
       NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
     );
-    expect(saveButton).toBeDisabled();
+    expect(saveButton.props.disabled).toBe(true);
   });
 
   it('disables save button when validation disables network name', () => {

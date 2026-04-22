@@ -10,8 +10,8 @@ import { merge } from 'lodash';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { accountsControllerInit } from '../controllers/accounts-controller';
 import { ApprovalControllerInit } from '../controllers/approval-controller';
-import { createMockMessengerClientInitFunction } from './test-utils';
-import { getMessengerClientOrThrow, initMessengerClients } from './utils';
+import { createMockControllerInitFunction } from './test-utils';
+import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { permissionControllerInit } from '../controllers/permission-controller-init';
 import {
   CaveatSpecificationConstraint,
@@ -27,7 +27,7 @@ jest.mock('../controllers/approval-controller');
 jest.mock('../controllers/permission-controller-init');
 jest.mock('../controllers/delegation/delegation-controller-init');
 
-describe('initMessengerClients', () => {
+describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
   const mockApprovalControllerInit = jest.mocked(ApprovalControllerInit);
   const mockPermissionControllerInit = jest.mocked(permissionControllerInit);
@@ -37,7 +37,8 @@ describe('initMessengerClients', () => {
   ): InitMessengerClientsFunctionRequest {
     const partialRequest = merge(
       {
-        initFunctions: {
+        existingControllersByName: {},
+        controllerInitFunctions: {
           AccountsController: mockAccountsControllerInit,
           ApprovalController: mockApprovalControllerInit,
           PermissionController: mockPermissionControllerInit,
@@ -81,18 +82,16 @@ describe('initMessengerClients', () => {
 
   it('initializes controllers', () => {
     const request = buildModularizedControllerRequest();
-    const controllers = initMessengerClients(request);
+    const controllers = initModularizedControllers(request);
 
-    expect(controllers.messengerClientsByName.AccountsController).toBeDefined();
-    expect(controllers.messengerClientsByName.ApprovalController).toBeDefined();
-    expect(
-      controllers.messengerClientsByName.PermissionController,
-    ).toBeDefined();
+    expect(controllers.controllersByName.AccountsController).toBeDefined();
+    expect(controllers.controllersByName.ApprovalController).toBeDefined();
+    expect(controllers.controllersByName.PermissionController).toBeDefined();
   });
 
   it('initializes function including initMessenger', () => {
     const request = buildModularizedControllerRequest();
-    initMessengerClients(request);
+    initModularizedControllers(request);
 
     const permissionControllerInitMessenger =
       mockPermissionControllerInit.mock.calls[0][0].initMessenger;
@@ -102,24 +101,34 @@ describe('initMessengerClients', () => {
 
   it('throws when controller is not found', async () => {
     const request = buildModularizedControllerRequest({
-      initFunctions: {
-        AccountsController: createMockMessengerClientInitFunction<
+      controllerInitFunctions: {
+        AccountsController: createMockControllerInitFunction<
           AccountsController,
           AccountsControllerMessenger
         >('NetworkController'),
       },
     });
 
-    expect(() => initMessengerClients(request)).toThrow(
-      'Messenger client requested before it was initialized: NetworkController',
+    expect(() => initModularizedControllers(request)).toThrow(
+      'Controller requested before it was initialized: NetworkController',
     );
+  });
+
+  it('not throws when when existing controller is found', async () => {
+    const request = buildModularizedControllerRequest({
+      existingControllersByName: {
+        NetworkController: jest.fn() as unknown as NetworkController,
+      },
+    });
+
+    expect(() => initModularizedControllers(request)).not.toThrow();
   });
 });
 
-describe('getMessengerClientOrThrow', () => {
+describe('getControllerOrThrow', () => {
   it('throws when controller is not found', () => {
     expect(() =>
-      getMessengerClientOrThrow({
+      getControllerOrThrow({
         controller: undefined,
         name: 'AccountsController',
       }),
@@ -128,7 +137,7 @@ describe('getMessengerClientOrThrow', () => {
 
   it('not throws when controller is found', () => {
     expect(() =>
-      getMessengerClientOrThrow({
+      getControllerOrThrow({
         controller: jest.fn() as unknown as AccountsController,
         name: 'AccountsController',
       }),

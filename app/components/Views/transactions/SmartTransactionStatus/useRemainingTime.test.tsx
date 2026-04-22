@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { Hex } from '@metamask/utils';
@@ -117,9 +117,7 @@ describe('useRemainingTime', () => {
     expect(result.current.timeLeftForPendingStxInSec).toBe(40);
 
     // Advance timer by 3 seconds
-    act(() => {
-      jest.advanceTimersByTime(3000);
-    });
+    jest.advanceTimersByTime(3000);
 
     // Should now be 37 seconds (40 - 3)
     expect(result.current.timeLeftForPendingStxInSec).toBe(37);
@@ -172,9 +170,7 @@ describe('useRemainingTime', () => {
     expect(result.current.timeLeftForPendingStxInSec).toBe(5); // 45 - 40
 
     // Advance past the estimated deadline (45 seconds)
-    act(() => {
-      jest.advanceTimersByTime(6000); // 6 more seconds = 46 total
-    });
+    jest.advanceTimersByTime(6000); // 6 more seconds = 46 total
 
     // Should now be past estimated deadline and using max deadline
     expect(result.current.isStxPastEstimatedDeadline).toBe(true);

@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { IAccount, useAccountsBalance } from './hooks';
 
@@ -36,15 +36,17 @@ describe('useAccountsBalance', () => {
   });
 
   it('should update the tracked accounts when untracked accounts are added', async () => {
-    const { result } = renderHook(() => useAccountsBalance(mockAccounts));
+    const { result, waitForNextUpdate } = renderHook(() =>
+      useAccountsBalance(mockAccounts),
+    );
 
     expect(result.current).toEqual({});
 
-    await waitFor(() => {
-      expect(result.current).toEqual({
-        '0x123': { balance: '100' },
-        '0x456': { balance: '200' },
-      });
+    await waitForNextUpdate();
+
+    expect(result.current).toEqual({
+      '0x123': { balance: '100' },
+      '0x456': { balance: '200' },
     });
 
     expect(mockSyncBalanceWithAddresses).toHaveBeenCalledWith([

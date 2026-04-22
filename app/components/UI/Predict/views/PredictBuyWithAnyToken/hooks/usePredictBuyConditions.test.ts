@@ -20,7 +20,7 @@ let mockSelectedPaymentToken: {
   chainId?: string;
 } | null = null;
 let mockIsDepositPending = false;
-
+let mockInsufficientPayTokenBalanceAlert: { message: string } | null = null;
 let mockPredictBalance = 0;
 const mockResetSelectedPaymentToken = jest.fn();
 
@@ -59,6 +59,15 @@ jest.mock('../../../hooks/usePredictDeposit', () => ({
 }));
 
 jest.mock(
+  '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+  () => ({
+    useInsufficientPayTokenBalanceAlert: () => [
+      mockInsufficientPayTokenBalanceAlert,
+    ],
+  }),
+);
+
+jest.mock(
   '../../../../../Views/confirmations/hooks/pay/useTransactionPayData',
   () => ({
     useTransactionPayTotals: () => mockPayTotals,
@@ -82,7 +91,6 @@ const defaultParams = {
   isConfirming: false,
   totalPayForPredictBalance: 0,
   isInputFocused: false,
-  hasBlockingPayAlerts: false,
 };
 
 describe('usePredictBuyConditions', () => {
@@ -99,7 +107,7 @@ describe('usePredictBuyConditions', () => {
     mockIsPredictBalanceSelected = true;
     mockSelectedPaymentToken = null;
     mockIsDepositPending = false;
-
+    mockInsufficientPayTokenBalanceAlert = null;
     mockPredictBalance = 0;
   });
 
@@ -354,12 +362,12 @@ describe('usePredictBuyConditions', () => {
 
     it('returns false when external payment token balance is insufficient', () => {
       mockIsPredictBalanceSelected = false;
+      mockInsufficientPayTokenBalanceAlert = {
+        message: 'Insufficient payment token balance',
+      };
 
       const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          hasBlockingPayAlerts: true,
-        }),
+        usePredictBuyConditions(defaultParams),
       );
 
       expect(result.current.canPlaceBet).toBe(false);

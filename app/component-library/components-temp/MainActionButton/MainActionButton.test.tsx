@@ -45,8 +45,10 @@ describe('MainActionButton', () => {
         testID={MAINACTIONBUTTON_TEST_ID}
       />,
     );
-    const button = getByTestId(MAINACTIONBUTTON_TEST_ID);
-    expect(button).toBeDisabled();
+
+    expect(
+      getByTestId(MAINACTIONBUTTON_TEST_ID).props.accessibilityState.disabled,
+    ).toBe(true);
   });
 
   it('calls onPress when pressed', () => {

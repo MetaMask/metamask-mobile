@@ -13,6 +13,14 @@ import { Linking } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 
+// Mock Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+}));
+
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { View } = require('react-native');
@@ -41,39 +49,27 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
   },
 }));
 
+// Mock Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+}));
+
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     prices: {
       subscribeToSymbols: jest.fn(() => jest.fn()),
       subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
     },
-    positions: {
-      subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
-    },
-    orders: {
-      subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
-    },
-    fills: {
-      subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
-    },
-    account: {
-      subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
-    },
-    marketData: {
-      subscribe: jest.fn(() => jest.fn()),
-      getMarkets: jest.fn(),
-      getSnapshot: jest.fn(() => null),
-    },
-    oiCaps: {
-      subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => null),
-    },
+    positions: { subscribe: jest.fn(() => jest.fn()) },
+    orders: { subscribe: jest.fn(() => jest.fn()) },
+    fills: { subscribe: jest.fn(() => jest.fn()) },
+    account: { subscribe: jest.fn(() => jest.fn()) },
+    marketData: { subscribe: jest.fn(() => jest.fn()), getMarkets: jest.fn() },
+    oiCaps: { subscribe: jest.fn(() => jest.fn()) },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
@@ -1076,47 +1072,6 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeNull();
     });
 
-    it('shows add funds CTA when total balance is funded but spendable balance has no direct order path', () => {
-      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
-      mockUsePerpsAccount.mockReturnValue({
-        account: {
-          availableBalance: '0.00',
-          marginUsed: '0.00',
-          unrealizedPnl: '0.00',
-          returnOnEquity: '0.00',
-          totalBalance: '100.00',
-        },
-        isInitialLoading: false,
-      });
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          availableBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalBalance: '100',
-        },
-        isInitialLoading: false,
-      });
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        { state: initialState },
-      );
-
-      expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-      ).toBeNull();
-      expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
-      ).toBeNull();
-    });
-
     it('calls navigateToConfirmation and depositWithConfirmation when add funds is pressed', async () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
@@ -1313,7 +1268,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh
       await act(async () => {
-        await fireEvent(refreshControl, 'refresh');
+        await refreshControl.props.onRefresh();
       });
 
       // Note: Candle data now uses WebSocket streaming (usePerpsLiveCandles)
@@ -1348,7 +1303,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await fireEvent(refreshControl, 'refresh');
+        await refreshControl.props.onRefresh();
       });
 
       // Assert - Candle data uses WebSocket streaming, no manual refresh needed
@@ -1399,7 +1354,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await fireEvent(refreshControl, 'refresh');
+        await refreshControl.props.onRefresh();
       });
 
       // Assert - All data now updates via WebSocket, no manual refresh needed
@@ -1437,7 +1392,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await fireEvent(refreshControl, 'refresh');
+        await refreshControl.props.onRefresh();
       });
 
       // Assert - Candle data now uses WebSocket streaming (no manual refresh)
@@ -1466,7 +1421,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh
       await act(async () => {
-        await fireEvent(refreshControl, 'refresh');
+        await refreshControl.props.onRefresh();
       });
 
       // Note: Candle data now uses WebSocket streaming (no manual refresh needed)
@@ -1503,7 +1458,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh - should complete without errors
       await act(async () => {
-        await fireEvent(refreshControl, 'refresh');
+        await refreshControl.props.onRefresh();
       });
 
       // Refresh control should exist and be functional

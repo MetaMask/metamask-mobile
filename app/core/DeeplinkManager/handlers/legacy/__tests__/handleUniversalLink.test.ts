@@ -1388,24 +1388,14 @@ describe('handleUniversalLink', () => {
     });
 
     describe('in-app link sources', () => {
-      // Sources that are trusted and skip the interstitial
-      const trustedInAppSources = [
+      const inAppSources = [
         AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
         AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
+        AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+        AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
         AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
         AppConstants.DEEPLINKS.ORIGIN_BRAZE,
       ];
-
-      // All in-app sources except the trusted ones (excluding ORIGIN_DEEPLINK which is external)
-      const untrustedInAppSources = Object.values(
-        AppConstants.DEEPLINKS,
-      ).filter(
-        (source) =>
-          source !== AppConstants.DEEPLINKS.ORIGIN_DEEPLINK &&
-          !trustedInAppSources.includes(
-            source as (typeof trustedInAppSources)[number],
-          ),
-      );
 
       const validSignature = Buffer.from(new Array(64).fill(0)).toString(
         'base64',
@@ -1415,7 +1405,7 @@ describe('handleUniversalLink', () => {
         mockSubtle.verify.mockResolvedValue(true);
       });
 
-      it.each(trustedInAppSources)(
+      it.each(inAppSources)(
         'skips modal when source is "%s" with signed (PRIVATE) link',
         async (testSource) => {
           const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}?sig=${validSignature}`;
@@ -1440,63 +1430,8 @@ describe('handleUniversalLink', () => {
         },
       );
 
-      it.each(trustedInAppSources)(
-        'skips modal when source is "%s" with unsigned (PUBLIC) link',
-        async (testSource) => {
-          const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
-          const testUrlObj = {
-            ...urlObj,
-            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-            href: unsignedUrl,
-            pathname: `/${ACTIONS.SWAP}`,
-          };
-
-          await handleUniversalLink({
-            instance,
-            handled,
-            urlObj: testUrlObj,
-            browserCallBack: mockBrowserCallBack,
-            url: unsignedUrl,
-            source: testSource,
-          });
-
-          expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-          expect(handled).toHaveBeenCalled();
-        },
-      );
-
-      it.each(untrustedInAppSources)(
-        'shows modal when source is "%s" with signed (PRIVATE) link',
-        async (testSource) => {
-          const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}?sig=${validSignature}`;
-          const testUrlObj = {
-            ...urlObj,
-            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-            href: signedUrl,
-            pathname: `/${ACTIONS.SWAP}`,
-          };
-
-          await handleUniversalLink({
-            instance,
-            handled,
-            urlObj: testUrlObj,
-            browserCallBack: mockBrowserCallBack,
-            url: signedUrl,
-            source: testSource,
-          });
-
-          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-            linkType: 'private',
-            onContinue: expect.any(Function),
-            onBack: expect.any(Function),
-            pageTitle: 'Swap',
-          });
-          expect(handled).toHaveBeenCalled();
-        },
-      );
-
-      it.each(untrustedInAppSources)(
-        'shows modal when source is "%s" with unsigned (PUBLIC) link',
+      it.each(inAppSources)(
+        'displays "Proceed with caution" modal when source is "%s" with unsigned (PUBLIC) link',
         async (testSource) => {
           const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
           const testUrlObj = {
@@ -1516,10 +1451,10 @@ describe('handleUniversalLink', () => {
           });
 
           expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-            linkType: 'public',
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Swap',
             onContinue: expect.any(Function),
             onBack: expect.any(Function),
-            pageTitle: 'Swap',
           });
           expect(handled).toHaveBeenCalled();
         },

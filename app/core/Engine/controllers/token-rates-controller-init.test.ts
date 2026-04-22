@@ -1,4 +1,4 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getTokenRatesControllerMessenger } from '../messengers/token-rates-controller-messenger';
 import { MessengerClientInitRequest } from '../types';
@@ -19,7 +19,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getTokenRatesControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

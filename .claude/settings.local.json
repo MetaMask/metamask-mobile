@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git branch:*)",
+      "Bash(git revert:*)",
+      "Bash(git reset:*)",
+      "Read(//tmp/**)",
+      "Bash(git apply:*)",
+      "Bash(gh pr:*)",
+      "Bash(grep -iE \"\\\\.test\\\\.\\(ts|tsx|js|jsx\\)$|\\\\.spec\\\\.\\(ts|tsx|js|jsx\\)$|__snapshots__\")"
+    ]
+  }
+}

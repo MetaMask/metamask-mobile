@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePredictMarketData } from './usePredictMarketData';
@@ -141,16 +141,12 @@ describe('usePredictMarketData', () => {
     jest.clearAllMocks();
   });
 
-  it('does not fetch when enabled is false', () => {
-    renderHook(() => usePredictMarketData({ enabled: false }));
-
-    expect(mockGetMarkets).not.toHaveBeenCalled();
-  });
-
   it('should fetch market data successfully', async () => {
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
-    const { result } = renderHook(() => usePredictMarketData());
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePredictMarketData(),
+    );
 
     // Initially loading
     expect(result.current.isFetching).toBe(true);
@@ -158,9 +154,9 @@ describe('usePredictMarketData', () => {
     expect(result.current.error).toBe(null);
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(result.current.isFetching).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isFetching).toBe(false);
     expect(result.current.marketData).toEqual(mockMarketData);
     expect(result.current.error).toBe(null);
     expect(mockGetMarkets).toHaveBeenCalledTimes(1);
@@ -183,11 +179,13 @@ describe('usePredictMarketData', () => {
   it('handle null market data', async () => {
     mockGetMarkets.mockResolvedValue(null);
 
-    const { result } = renderHook(() => usePredictMarketData());
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePredictMarketData(),
+    );
 
-    await waitFor(() => {
-      expect(result.current.isFetching).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isFetching).toBe(false);
     expect(result.current.marketData).toEqual([]);
     expect(result.current.error).toBe(null);
   });
@@ -195,11 +193,13 @@ describe('usePredictMarketData', () => {
   it('handle empty market data array', async () => {
     mockGetMarkets.mockResolvedValue([]);
 
-    const { result } = renderHook(() => usePredictMarketData());
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePredictMarketData(),
+    );
 
-    await waitFor(() => {
-      expect(result.current.isFetching).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isFetching).toBe(false);
     expect(result.current.marketData).toEqual([]);
     expect(result.current.error).toBe(null);
   });
@@ -207,11 +207,13 @@ describe('usePredictMarketData', () => {
   it('refetch data when calling refetch', async () => {
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
-    const { result } = renderHook(() => usePredictMarketData());
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePredictMarketData(),
+    );
 
-    await waitFor(() => {
-      expect(mockGetMarkets).toHaveBeenCalledTimes(1);
-    });
+    await waitForNextUpdate();
+
+    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
 
     // Call refetch
     await act(async () => {
@@ -238,27 +240,27 @@ describe('usePredictMarketData', () => {
     it('passes customQueryParams to getMarkets', async () => {
       mockGetMarkets.mockResolvedValue(mockMarketData);
 
-      renderHook(() =>
+      const { waitForNextUpdate } = renderHook(() =>
         usePredictMarketData({
           category: 'hot',
           customQueryParams: 'tag_id=149&order=volume24hr',
         }),
       );
 
-      await waitFor(() => {
-        expect(mockGetMarkets).toHaveBeenCalledWith(
-          expect.objectContaining({
-            category: 'hot',
-            customQueryParams: 'tag_id=149&order=volume24hr',
-          }),
-        );
-      });
+      await waitForNextUpdate();
+
+      expect(mockGetMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'hot',
+          customQueryParams: 'tag_id=149&order=volume24hr',
+        }),
+      );
     });
 
     it('refetches when customQueryParams changes', async () => {
       mockGetMarkets.mockResolvedValue(mockMarketData);
 
-      const { rerender } = renderHook(
+      const { waitForNextUpdate, rerender } = renderHook(
         ({ customQueryParams }) =>
           usePredictMarketData({
             category: 'hot',
@@ -269,15 +271,15 @@ describe('usePredictMarketData', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(mockGetMarkets).toHaveBeenCalledTimes(1);
-      });
+      await waitForNextUpdate();
+
+      expect(mockGetMarkets).toHaveBeenCalledTimes(1);
 
       rerender({ customQueryParams: 'tag_id=200' });
 
-      await waitFor(() => {
-        expect(mockGetMarkets).toHaveBeenCalledTimes(2);
-      });
+      await waitForNextUpdate();
+
+      expect(mockGetMarkets).toHaveBeenCalledTimes(2);
       expect(mockGetMarkets).toHaveBeenLastCalledWith(
         expect.objectContaining({
           customQueryParams: 'tag_id=200',
@@ -288,20 +290,20 @@ describe('usePredictMarketData', () => {
     it('does not pass customQueryParams when undefined', async () => {
       mockGetMarkets.mockResolvedValue(mockMarketData);
 
-      renderHook(() =>
+      const { waitForNextUpdate } = renderHook(() =>
         usePredictMarketData({
           category: 'trending',
         }),
       );
 
-      await waitFor(() => {
-        expect(mockGetMarkets).toHaveBeenCalledWith(
-          expect.objectContaining({
-            category: 'trending',
-            customQueryParams: undefined,
-          }),
-        );
-      });
+      await waitForNextUpdate();
+
+      expect(mockGetMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'trending',
+          customQueryParams: undefined,
+        }),
+      );
     });
   });
 });

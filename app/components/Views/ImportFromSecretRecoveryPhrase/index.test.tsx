@@ -30,14 +30,11 @@ import ReduxService from '../../../core/redux/ReduxService';
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
 
-jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
-  const keyboard = {
-    dismiss: jest.fn(),
-    addListener: jest.fn(() => ({ remove: jest.fn() })),
-    removeListener: jest.fn(),
-  };
-  return { __esModule: true, default: keyboard, ...keyboard };
-});
+jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
+  dismiss: jest.fn(),
+  addListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeListener: jest.fn(),
+}));
 
 // Mock for keyboard state visibility
 const mockUseKeyboardState = jest.fn();
@@ -233,7 +230,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       jest.mocked(Clipboard.getString).mockResolvedValue('');
     });
 
-    it('renders show all and Paste button when no seed phrase is entered', () => {
+    it('renders show all and Paste button when no seed phrase is entered', async () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -410,7 +407,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('renders qr code button', () => {
+    it('renders qr code button', async () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -1283,16 +1280,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       // Initially passwords should be hidden
-      expect(passwordInput).toHaveProp('secureTextEntry', true);
-      expect(confirmPasswordInput).toHaveProp('secureTextEntry', true);
+      expect(passwordInput.props.secureTextEntry).toBe(true);
+      expect(confirmPasswordInput.props.secureTextEntry).toBe(true);
 
       // Toggle visibility for new password
       fireEvent.press(newPasswordVisibilityIcon);
-      expect(passwordInput).toHaveProp('secureTextEntry', false);
+      expect(passwordInput.props.secureTextEntry).toBe(false);
 
       // Toggle visibility for confirm password
       fireEvent.press(confirmPasswordVisibilityIcon);
-      expect(confirmPasswordInput).toHaveProp('secureTextEntry', false);
+      expect(confirmPasswordInput.props.secureTextEntry).toBe(false);
     });
 
     it('error message is shown when passwords do not match', async () => {
@@ -1321,7 +1318,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      expect(confirmPasswordInput).toHaveProp('editable', false);
+      expect(confirmPasswordInput.props.editable).toBe(false);
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1329,7 +1326,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
 
       await waitFor(() => {
-        expect(confirmPasswordInput).toHaveProp('editable', true);
+        expect(confirmPasswordInput.props.editable).toBe(true);
       });
     });
 
@@ -1511,7 +1508,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent(passwordInput, 'submitEditing');
 
       // Verify that confirm password field is enabled and ready for input
-      expect(confirmPasswordInput).toHaveProp('editable', true);
+      expect(confirmPasswordInput.props.editable).toBe(true);
       expect(confirmPasswordInput.props.value).toBe('');
     });
 
@@ -1957,7 +1954,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
   });
 
   describe('SRP Word Suggestions Feature', () => {
-    it('renders SRP input grid with word suggestions support', () => {
+    it('renders SRP input grid with word suggestions support', async () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {
@@ -1997,7 +1994,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(srpInput).toBeTruthy();
     });
 
-    it('renders with KeyboardProvider wrapper', () => {
+    it('renders with KeyboardProvider wrapper', async () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {

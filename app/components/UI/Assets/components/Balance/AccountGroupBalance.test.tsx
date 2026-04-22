@@ -16,6 +16,7 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
 
 // Mock homepage feature flags (BalanceEmptyState and AccountGroupBalance use these)
 jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageRedesignV1Enabled: jest.fn(() => true),
   selectHomepageSectionsV1Enabled: jest.fn(() => true),
 }));
 

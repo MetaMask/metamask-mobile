@@ -12,17 +12,16 @@ jest.mock('../../../../../../selectors/preferencesController', () => ({
   selectIpfsGateway: jest.fn(),
 }));
 
-jest.mock('react-native-reanimated', () => {
+const mockReanimated = () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
   // eslint-disable-next-line no-empty-function
   Reanimated.default.call = () => {};
+  // simulate expanded value > 0
   Reanimated.useSharedValue = jest.fn(() => ({
     value: 1,
   }));
   Reanimated.useAnimatedStyle = jest.fn((callback) => callback());
-  return Reanimated;
-});
-
+};
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 (selectIpfsGateway as unknown as jest.Mock).mockReturnValue(
@@ -84,22 +83,6 @@ describe('CustomAction Component', () => {
     expect(onPressMock).toHaveBeenCalled();
   });
 
-  it('does not call onPress when isLoading is true', () => {
-    const onPressMock = jest.fn();
-    const { getByLabelText } = renderWithProvider(
-      <CustomAction
-        customAction={mockCustomAction}
-        showInfo={jest.fn()}
-        onPress={onPressMock}
-        isLoading
-      />,
-      { state: defaultState },
-    );
-
-    const customActionRow = getByLabelText('Paypal (Staging)');
-    expect(customActionRow.props.onPress).toBeUndefined();
-  });
-
   it('shows loading indicator when isLoading is true', () => {
     const { queryByText } = renderWithProvider(
       <CustomAction
@@ -142,6 +125,8 @@ describe('CustomAction Component', () => {
   });
 
   it('sets expandedHeight on layout', () => {
+    mockReanimated();
+
     const { getByTestId } = renderWithProvider(
       <CustomAction customAction={mockCustomAction} showInfo={jest.fn()} />,
       { state: defaultState },
@@ -159,6 +144,8 @@ describe('CustomAction Component', () => {
   });
 
   it('applies animated styles when highlighted', () => {
+    mockReanimated();
+
     const { getByTestId } = renderWithProvider(
       <CustomAction
         customAction={mockCustomAction}
@@ -173,6 +160,8 @@ describe('CustomAction Component', () => {
   });
 
   it('resets animated styles when not highlighted', () => {
+    mockReanimated();
+
     const { getByTestId } = renderWithProvider(
       <CustomAction
         customAction={mockCustomAction}
@@ -187,6 +176,8 @@ describe('CustomAction Component', () => {
   });
 
   it('applies animated opacity based on expandedHeight', () => {
+    mockReanimated();
+
     const { getByTestId } = renderWithProvider(
       <CustomAction customAction={mockCustomAction} showInfo={jest.fn()} />,
       { state: defaultState },

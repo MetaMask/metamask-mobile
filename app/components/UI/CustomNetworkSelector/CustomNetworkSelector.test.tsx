@@ -3,6 +3,7 @@ import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useStyles } from '../../../component-library/hooks/useStyles';
@@ -25,6 +26,10 @@ jest.mock('../../../core/Multichain/utils', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: jest.fn(),
 }));
 
 jest.mock('@metamask/utils', () => ({
@@ -175,6 +180,9 @@ describe('CustomNetworkSelector', () => {
   const mockOpenModal = jest.fn();
   const mockDismissModal = jest.fn();
   const mockOpenRpcModal = jest.fn();
+  const mockUseSafeAreaInsets = useSafeAreaInsets as jest.MockedFunction<
+    typeof useSafeAreaInsets
+  >;
   const mockParseCaipChainId = parseCaipChainId as jest.MockedFunction<
     typeof parseCaipChainId
   >;
@@ -224,6 +232,13 @@ describe('CustomNetworkSelector', () => {
 
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
+    });
+
+    mockUseSafeAreaInsets.mockReturnValue({
+      top: 0,
+      right: 0,
+      bottom: 34,
+      left: 0,
     });
 
     mockParseCaipChainId.mockImplementation((chainId) => ({
@@ -325,6 +340,17 @@ describe('CustomNetworkSelector', () => {
       expect(mockUseNetworkSelection).toHaveBeenCalledWith({
         networks: expectedNetworks,
       });
+    });
+
+    it('calls useSafeAreaInsets', () => {
+      renderWithProvider(
+        <CustomNetworkSelector
+          openModal={mockOpenModal}
+          dismissModal={mockDismissModal}
+        />,
+      );
+
+      expect(mockUseSafeAreaInsets).toHaveBeenCalled();
     });
 
     it('calls useStyles with createStyles', () => {

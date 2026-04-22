@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import PreviousSeasonUnlockedRewards from './PreviousSeasonUnlockedRewards';
 import {
@@ -36,6 +36,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
   selectUnlockedRewards: jest.fn(),
   selectSeasonTiers: jest.fn(),
+  selectSeasonShouldInstallNewVersion: jest.fn(),
   selectUnlockedRewardLoading: jest.fn(),
   selectUnlockedRewardError: jest.fn(),
   selectCurrentTier: jest.fn(),
@@ -532,7 +533,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const retryButton = getByTestId('error-retry-button');
-    fireEvent.press(retryButton);
+    retryButton.props.onPress();
 
     expect(mockFetchUnlockedRewards).toHaveBeenCalledTimes(1);
   });
@@ -819,7 +820,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-metal-card');
-    fireEvent.press(rewardItem);
+    rewardItem.props.onPress();
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockMetalCardUnlockedReward.id,
@@ -846,7 +847,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-1');
-    fireEvent.press(rewardItem);
+    rewardItem.props.onPress();
 
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -903,7 +904,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-nansen-without-url');
-    fireEvent.press(rewardItem);
+    rewardItem.props.onPress();
 
     // NANSEN requires manual claim, so it navigates even without URL
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
@@ -930,7 +931,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-nansen-with-url');
-    fireEvent.press(rewardItem);
+    rewardItem.props.onPress();
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockNansenUnlockedRewardWithUrl.id,
@@ -956,7 +957,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-linea-tokens');
-    fireEvent.press(rewardItem);
+    rewardItem.props.onPress();
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockLineaTokensUnlockedReward.id,
@@ -1002,7 +1003,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-otherside-with-url');
-    fireEvent.press(rewardItem);
+    rewardItem.props.onPress();
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockOthersideUnlockedRewardWithUrl.id,
@@ -1064,7 +1065,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-otherside-without-url');
-    fireEvent.press(rewardItem);
+    rewardItem.props.onPress();
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockOthersideUnlockedRewardWithoutUrl.id,

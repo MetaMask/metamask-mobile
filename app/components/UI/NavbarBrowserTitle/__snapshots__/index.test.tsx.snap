@@ -1,39 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NavbarBrowserTitle should render correctly 1`] = `
-<View
-  accessibilityState={
-    {
-      "busy": undefined,
-      "checked": undefined,
-      "disabled": undefined,
-      "expanded": undefined,
-      "selected": undefined,
-    }
-  }
-  accessibilityValue={
-    {
-      "max": undefined,
-      "min": undefined,
-      "now": undefined,
-      "text": undefined,
-    }
-  }
-  accessible={true}
-  collapsable={false}
-  focusable={true}
-  onClick={[Function]}
-  onResponderGrant={[Function]}
-  onResponderMove={[Function]}
-  onResponderRelease={[Function]}
-  onResponderTerminate={[Function]}
-  onResponderTerminationRequest={[Function]}
-  onStartShouldSetResponder={[Function]}
+<TouchableOpacity
+  onPress={[Function]}
   style={
     {
       "alignItems": "center",
       "flex": 1,
-      "opacity": 1,
     }
   }
 >
@@ -54,7 +27,7 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
       style={
         [
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "textAlign": "center",
@@ -75,7 +48,7 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
             "fontSize": 14,
           },
           {
-            "color": "#121314",
+            "color": "#131416",
             "marginLeft": 10,
             "marginTop": 2,
           },
@@ -119,7 +92,7 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
       numberOfLines={1}
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 11,
           "lineHeight": 11,
@@ -130,5 +103,5 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
       Ethereum Main Network
     </Text>
   </View>
-</View>
+</TouchableOpacity>
 `;

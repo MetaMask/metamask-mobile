@@ -5,6 +5,10 @@ import PerpsAdjustMarginView from './PerpsAdjustMarginView';
 import { type Position } from '@metamask/perps-controller';
 
 // Mock dependencies
+jest.mock('react-native-reanimated', () =>
+  jest.requireActual('react-native-reanimated/mock'),
+);
+
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
   GestureDetector: 'View',
@@ -15,6 +19,20 @@ jest.mock('react-native-gesture-handler', () => ({
     }),
   },
 }));
+
+jest.mock('react-native-safe-area-context', () => {
+  const { View } = jest.requireActual('react-native');
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaView: jest
+      .fn()
+      .mockImplementation(({ children, ...props }) => (
+        <View {...props}>{children}</View>
+      )),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+  };
+});
 
 const mockHandleAddMargin = jest.fn();
 const mockHandleRemoveMargin = jest.fn();

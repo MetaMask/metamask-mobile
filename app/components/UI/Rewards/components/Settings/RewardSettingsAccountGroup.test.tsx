@@ -618,7 +618,7 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton).toBeDisabled();
+      expect(linkButton).toHaveProp('disabled', true);
     });
 
     it('should enable link button when there are opted out accounts', () => {
@@ -633,7 +633,7 @@ describe('RewardSettingsAccountGroup', () => {
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
       // When enabled, disabled should be false or undefined
-      expect(linkButton).toBeEnabled();
+      expect(linkButton.props.disabled).toBeFalsy();
     });
 
     it('should disable link button when bulk link is running', () => {
@@ -650,7 +650,7 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton).toBeDisabled();
+      expect(linkButton.props.disabled).toBe(true);
     });
 
     it('should disable link button when bulk link is running even with opted out accounts', () => {
@@ -667,12 +667,12 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton).toBeDisabled();
+      expect(linkButton.props.disabled).toBe(true);
     });
   });
 
   describe('User Interactions', () => {
-    it('should call linkAccountGroup when link button is pressed', () => {
+    it('should call linkAccountGroup when link button is pressed', async () => {
       const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
@@ -1053,7 +1053,7 @@ describe('RewardSettingsAccountGroup', () => {
       const addressesButton = getByTestId(
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      expect(addressesButton).toBeDisabled();
+      expect(addressesButton).toHaveProp('disabled', true);
     });
 
     it('should show ActivityIndicator instead of link button when loading', () => {

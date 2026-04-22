@@ -80,6 +80,19 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 // Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  const frame = { width: 0, height: 0, x: 0, y: 0 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
+
 // Mock BottomSheetHeader
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
@@ -138,7 +151,7 @@ describe('MultichainAccountActions', () => {
     const accountDetailsButton = getByTestId(
       MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS,
     );
-    fireEvent.press(accountDetailsButton);
+    accountDetailsButton.props.onPress();
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -153,7 +166,7 @@ describe('MultichainAccountActions', () => {
     const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
 
     const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
-    fireEvent.press(addressesButton);
+    addressesButton.props.onPress();
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -178,7 +191,7 @@ describe('MultichainAccountActions', () => {
     const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
 
     const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
-    fireEvent.press(addressesButton);
+    addressesButton.props.onPress();
 
     // Get the onLoad callback from the navigation call
     const navigationCallArgs = mockNavigate.mock.calls[0];
@@ -200,7 +213,7 @@ describe('MultichainAccountActions', () => {
     const renameAccountButton = getByTestId(
       MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
     );
-    fireEvent.press(renameAccountButton);
+    renameAccountButton.props.onPress();
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(

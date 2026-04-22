@@ -28,30 +28,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock(
-  '../../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactMock = require('react');
-    const MockBottomSheet = ReactMock.forwardRef(
-      (
-        { children }: { children: React.ReactNode },
-        ref: React.Ref<unknown>,
-      ) => {
-        ReactMock.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => callback?.(),
-          onOpenBottomSheet: (callback?: () => void) => callback?.(),
-        }));
-        return <>{children}</>;
-      },
-    );
-    MockBottomSheet.displayName = 'MockBottomSheet';
-    return {
-      __esModule: true,
-      default: MockBottomSheet,
-    };
-  },
-);
-
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
@@ -119,9 +95,9 @@ describe('UnsupportedRegionModal', () => {
       },
     });
 
-    const { getByRole } = render(UnsupportedRegionModal);
+    const { getByText } = render(UnsupportedRegionModal);
 
-    const buyCryptoButton = getByRole('button', { name: 'Buy crypto' });
+    const buyCryptoButton = getByText('Buy crypto');
     fireEvent.press(buyCryptoButton);
 
     expect(mockGetParent).toHaveBeenCalled();

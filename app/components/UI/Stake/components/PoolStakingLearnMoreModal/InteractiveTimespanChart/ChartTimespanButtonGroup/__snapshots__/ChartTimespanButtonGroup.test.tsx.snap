@@ -13,42 +13,15 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
     }
   }
 >
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  <TouchableOpacity
+    onPress={[Function]}
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderRadius": 32,
         "height": 36,
         "justifyContent": "center",
-        "opacity": 1,
         "paddingHorizontal": 16,
         "paddingVertical": 7,
       }
@@ -58,7 +31,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -68,35 +41,9 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
     >
       7D
     </Text>
-  </View>
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
     style={
       {
         "alignItems": "center",
@@ -104,7 +51,6 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
         "borderRadius": 32,
         "height": 36,
         "justifyContent": "center",
-        "opacity": 1,
         "paddingHorizontal": 16,
         "paddingVertical": 7,
       }
@@ -114,7 +60,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -124,35 +70,9 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
     >
       1M
     </Text>
-  </View>
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
     style={
       {
         "alignItems": "center",
@@ -160,7 +80,6 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
         "borderRadius": 32,
         "height": 36,
         "justifyContent": "center",
-        "opacity": 1,
         "paddingHorizontal": 16,
         "paddingVertical": 7,
       }
@@ -170,7 +89,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -180,35 +99,9 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
     >
       3M
     </Text>
-  </View>
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
     style={
       {
         "alignItems": "center",
@@ -216,7 +109,6 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
         "borderRadius": 32,
         "height": 36,
         "justifyContent": "center",
-        "opacity": 1,
         "paddingHorizontal": 16,
         "paddingVertical": 7,
       }
@@ -226,7 +118,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -236,6 +128,6 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
     >
       6M
     </Text>
-  </View>
+  </TouchableOpacity>
 </View>
 `;

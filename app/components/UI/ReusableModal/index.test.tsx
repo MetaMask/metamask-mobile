@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 import ReusableModal from './';
 import { useNavigation } from '@react-navigation/native';

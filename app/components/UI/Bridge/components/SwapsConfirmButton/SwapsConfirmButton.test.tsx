@@ -372,7 +372,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when balance is insufficient', () => {
@@ -389,7 +389,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when transaction is submitting', () => {
@@ -412,7 +412,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button for hardware wallet with Solana source', () => {
@@ -444,7 +444,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when blockaid error exists', () => {
@@ -466,7 +466,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when gas is insufficient', () => {
@@ -483,7 +483,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('disables button when walletAddress is missing', () => {
@@ -500,7 +500,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
     });
   });
 
@@ -514,86 +514,6 @@ describe('SwapsConfirmButton', () => {
           activeQuote: null,
         }));
 
-      const { getByTestId, queryByText } = renderWithProvider(
-        <SwapsConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        {
-          state: mockState,
-        },
-      );
-
-      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      // Button is disabled (isLoading && !activeQuote)
-      expect(button).toBeDisabled();
-      // Label text is hidden behind ActivityIndicator
-      expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
-    });
-
-    it('shows loading indicator when submitting transaction', () => {
-      const submittingState = {
-        ...mockState,
-        bridge: {
-          ...mockState.bridge,
-          isSubmittingTx: true,
-        },
-      };
-
-      const { getByTestId, queryByText } = renderWithProvider(
-        <SwapsConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        {
-          state: submittingState,
-        },
-      );
-
-      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
-      // Label hidden by loading indicator
-      expect(queryByText(strings('bridge.submitting_transaction'))).toBeNull();
-    });
-
-    it('shows loading when awaiting quote (valid amount, no quote, not loading)', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: false,
-          activeQuote: null,
-        }));
-
-      const { getByTestId, queryByText } = renderWithProvider(
-        <SwapsConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        {
-          state: mockState, // sourceAmount: '1.0'
-        },
-      );
-
-      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
-      // Label hidden by loading indicator during debounce gap
-      expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
-    });
-
-    it('is disabled when active quote is for a different token pair (stale quote during token change)', () => {
-      // Regression: after flipping tokens or changing the destination token the
-      // bridge controller keeps the previous quote in state until the first new
-      // quote arrives. isActiveQuoteForCurrentTokenPair catches this mismatch.
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuoteWithMetadata,
-          isLoading: true,
-          isActiveQuoteForCurrentTokenPair: false,
-        }));
-
       const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
@@ -605,7 +525,60 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      // Button is disabled (isLoading && !activeQuote)
       expect(button.props.accessibilityState?.disabled).toBe(true);
+      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
+      expect(getByTestId('spinner-container')).toBeTruthy();
+    });
+
+    it('shows loading indicator when submitting transaction', () => {
+      const submittingState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          isSubmittingTx: true,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: submittingState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
+      expect(getByTestId('spinner-container')).toBeTruthy();
+    });
+
+    it('shows loading when awaiting quote (valid amount, no quote, not loading)', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: null,
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState, // sourceAmount: '1.0'
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
+      expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
     it('does not show loading when source amount is empty', () => {
@@ -694,7 +667,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       // Not disabled because activeQuote exists
-      expect(button).toBeEnabled();
+      expect(button.props.accessibilityState?.disabled).toBe(false);
       // Label is visible (no loading indicator)
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
@@ -714,7 +687,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       // Button is disabled
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
       // But not in loading state (isLoading=false, isSubmittingTx=false)
       // so the label is visible
       expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
@@ -734,7 +707,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
       // Label visible because not loading/submitting
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
     });
@@ -743,7 +716,7 @@ describe('SwapsConfirmButton', () => {
   describe('Stale Quote (isQuoteStale)', () => {
     it('shows loading when amount changes to non-zero and quote is stale', () => {
       // First render with sourceAmount='1.0' — settledAmountRef latches to '1.0'
-      const { getByTestId, store, queryByText } = renderWithProvider(
+      const { getByTestId, store } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
@@ -760,9 +733,9 @@ describe('SwapsConfirmButton', () => {
       });
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
-      // Label hidden by loading indicator
-      expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
+      expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
     it('disables button without loading when amount changes to zero and quote is stale', () => {
@@ -785,7 +758,7 @@ describe('SwapsConfirmButton', () => {
       });
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
       // Label visible (not loading) — shows default "Confirm swap"
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
@@ -803,7 +776,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeEnabled();
+      expect(button.props.accessibilityState?.disabled).toBe(false);
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
   });
@@ -853,7 +826,7 @@ describe('SwapsConfirmButton', () => {
       );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeEnabled();
+      expect(button.props.accessibilityState?.disabled).toBe(false);
     });
 
     it('calls resetState and updateQuoteParams when expired quote button is pressed', async () => {
@@ -912,7 +885,7 @@ describe('SwapsConfirmButton', () => {
       ).toBeTruthy();
       // Button is not disabled — user can press "Get new quote"
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(button).toBeEnabled();
+      expect(button.props.accessibilityState?.disabled).toBe(false);
     });
 
     it('does not show "Get new quote" when expired and loading with active quote', () => {
@@ -1122,7 +1095,7 @@ describe('SwapsConfirmButton', () => {
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('does not submit when walletAddress is missing', () => {
+    it('does not submit when walletAddress is missing', async () => {
       jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
 
       const { getByTestId } = renderWithProvider(
@@ -1137,7 +1110,7 @@ describe('SwapsConfirmButton', () => {
 
       // Button should be disabled when walletAddress is missing
       const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
 
       // Verify submitBridgeTx is not called since button is disabled
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();

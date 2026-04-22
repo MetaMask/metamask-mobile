@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
@@ -50,11 +50,11 @@ describe('useSafeChains', () => {
       json: () => Promise.resolve(mockSafeChains),
     });
 
-    const { result } = renderHook(() => useSafeChains());
+    const { result, waitForNextUpdate } = renderHook(() => useSafeChains());
 
-    await waitFor(() => {
-      expect(result.current.safeChains).toEqual(mockSafeChains);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.safeChains).toEqual(mockSafeChains);
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       'SAFE_CHAINS_CACHE',
       JSON.stringify(mockSafeChains),
@@ -66,11 +66,11 @@ describe('useSafeChains', () => {
     const mockError = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(mockError);
 
-    const { result } = renderHook(() => useSafeChains());
+    const { result, waitForNextUpdate } = renderHook(() => useSafeChains());
 
-    await waitFor(() => {
-      expect(result.current.error).toBe(mockError);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.error).toBe(mockError);
   });
 
   it('should handle invalid response format', async () => {
@@ -80,11 +80,11 @@ describe('useSafeChains', () => {
       json: () => Promise.resolve('invalid-data'),
     });
 
-    const { result } = renderHook(() => useSafeChains());
+    const { result, waitForNextUpdate } = renderHook(() => useSafeChains());
 
-    await waitFor(() => {
-      expect(result.current.error).toBeInstanceOf(Error);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.error).toBeInstanceOf(Error);
     expect((result.current.error as Error).message).toBe(
       'Invalid chains data format',
     );
@@ -110,18 +110,22 @@ describe('useSafeChains', () => {
         json: () => Promise.resolve(mockSafeChains),
       });
 
-    const { result: firstResult } = renderHook(() => useSafeChains());
+    const { result: firstResult, waitForNextUpdate: firstWait } = renderHook(
+      () => useSafeChains(),
+    );
 
-    await waitFor(() => {
-      expect(firstResult.current.error).toBe(mockError);
-    });
+    await firstWait();
+
+    expect(firstResult.current.error).toBe(mockError);
     expect(global.fetch).toHaveBeenCalledTimes(1);
 
-    const { result: secondResult } = renderHook(() => useSafeChains());
+    const { result: secondResult, waitForNextUpdate: secondWait } = renderHook(
+      () => useSafeChains(),
+    );
 
-    await waitFor(() => {
-      expect(secondResult.current.safeChains).toEqual(mockSafeChains);
-    });
+    await secondWait();
+
+    expect(secondResult.current.safeChains).toEqual(mockSafeChains);
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 });

@@ -11,6 +11,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+}));
+
 describe('DefaultSettings', () => {
   const mockNavigation = {
     goBack: jest.fn(),

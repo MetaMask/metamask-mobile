@@ -76,12 +76,11 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
 
 let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    BottomSheet: ReactActual.forwardRef(
+jest.mock(
+  '../../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    return ReactActual.forwardRef(
       (
         {
           children,
@@ -98,9 +97,9 @@ jest.mock('@metamask/design-system-react-native', () => {
         }));
         return <>{children}</>;
       },
-    ),
-  };
-});
+    );
+  },
+);
 
 function render(component: React.ComponentType) {
   return renderScreen(

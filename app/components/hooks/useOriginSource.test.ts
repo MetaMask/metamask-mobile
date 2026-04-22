@@ -66,10 +66,7 @@ describe('useOriginSource', () => {
     const { result } = renderHook(() =>
       useOriginSource({ origin: '123e4567-e89b-12d3-a456-426614174000' }),
     );
-    expect(result.current).toEqual({
-      source: SourceType.SDK,
-      requestSource: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
-    });
+    expect(result.current).toBe(SourceType.SDK);
   });
 
   it('should return MM_CONNECT source for UUID origin present in v2Connections', () => {
@@ -89,10 +86,7 @@ describe('useOriginSource', () => {
     );
 
     const { result } = renderHook(() => useOriginSource({ origin: v2Uuid }));
-    expect(result.current).toEqual({
-      source: SourceType.MM_CONNECT,
-      requestSource: AppConstants.REQUEST_SOURCES.MM_CONNECT,
-    });
+    expect(result.current).toBe(SourceType.MM_CONNECT);
   });
 
   it('should prefer MM_CONNECT over SDK when UUID exists in both stores', () => {
@@ -116,10 +110,7 @@ describe('useOriginSource', () => {
     const { result } = renderHook(() =>
       useOriginSource({ origin: sharedUuid }),
     );
-    expect(result.current).toEqual({
-      source: SourceType.MM_CONNECT,
-      requestSource: AppConstants.REQUEST_SOURCES.MM_CONNECT,
-    });
+    expect(result.current).toBe(SourceType.MM_CONNECT);
   });
 
   it('should not return MM_CONNECT for UUID origin not in v2Connections', () => {
@@ -127,10 +118,7 @@ describe('useOriginSource', () => {
     const { result } = renderHook(() =>
       useOriginSource({ origin: unknownUuid }),
     );
-    expect(result.current).toEqual({
-      source: SourceType.IN_APP_BROWSER,
-      requestSource: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-    });
+    expect(result.current).toBe(SourceType.IN_APP_BROWSER);
   });
 
   it('should return SDK source for SDK_REMOTE_ORIGIN', () => {
@@ -139,10 +127,7 @@ describe('useOriginSource', () => {
         origin: `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}some-path`,
       }),
     );
-    expect(result.current).toEqual({
-      source: SourceType.SDK,
-      requestSource: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
-    });
+    expect(result.current).toBe(SourceType.SDK);
   });
 
   it('should return WALLET_CONNECT source when WC metadata is present', () => {
@@ -165,10 +150,7 @@ describe('useOriginSource', () => {
     const { result } = renderHook(() =>
       useOriginSource({ origin: 'some-non-uuid-origin' }),
     );
-    expect(result.current).toEqual({
-      source: SourceType.WALLET_CONNECT,
-      requestSource: AppConstants.REQUEST_SOURCES.WC,
-    });
+    expect(result.current).toBe(SourceType.WALLET_CONNECT);
   });
 
   it('should return IN_APP_BROWSER source as default', () => {
@@ -179,9 +161,6 @@ describe('useOriginSource', () => {
     const { result } = renderHook(() =>
       useOriginSource({ origin: 'https://example.com' }),
     );
-    expect(result.current).toEqual({
-      source: SourceType.IN_APP_BROWSER,
-      requestSource: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-    });
+    expect(result.current).toBe(SourceType.IN_APP_BROWSER);
   });
 });

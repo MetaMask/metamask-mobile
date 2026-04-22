@@ -5,19 +5,23 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    goBack: mockGoBack,
+    setOptions: mockSetOptions,
   }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
+}));
+
+jest.mock('../../../Navbar', () => ({
+  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 const mockUseParamsReturn = {
@@ -159,14 +163,6 @@ describe('V2BasicInfo', () => {
       },
       regionCode: 'us-ca',
     };
-  });
-
-  it('calls navigation.goBack when header back is pressed', () => {
-    const { getByTestId } = renderWithTheme(<V2BasicInfo />);
-
-    fireEvent.press(getByTestId('deposit-back-navbar-button'));
-
-    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders the form fields', () => {

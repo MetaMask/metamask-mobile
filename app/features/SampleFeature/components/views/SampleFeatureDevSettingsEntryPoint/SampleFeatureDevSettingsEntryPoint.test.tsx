@@ -1,7 +1,12 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import SampleFeatureDevSettingsEntryPoint from './SampleFeatureDevSettingsEntryPoint';
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(() => ({
+    remove: jest.fn(),
+  })),
+}));
 
 const mockNavigate = jest.fn();
 
@@ -31,7 +36,7 @@ describe('SampleFeature', () => {
       <SampleFeatureDevSettingsEntryPoint />,
     );
     const navigateButton = getByRole('button');
-    fireEvent.press(navigateButton);
+    navigateButton.props.onPress();
     expect(navigateButton).toBeDefined();
     expect(mockNavigate).toHaveBeenCalledWith('SampleFeature');
   });

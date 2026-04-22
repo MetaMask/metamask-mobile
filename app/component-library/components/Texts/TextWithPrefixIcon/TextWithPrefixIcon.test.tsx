@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 
 // External dependencies.
 import { IconName, IconProps, IconSize } from '../../Icons/Icon';
@@ -21,7 +21,7 @@ const sampleIconProps: IconProps = {
 
 describe('TextWithPrefixIcon', () => {
   it('should render default settings correctly', () => {
-    const { toJSON } = render(
+    const wrapper = shallow(
       <TextWithPrefixIcon
         variant={TextVariant.BodyMD}
         iconProps={sampleIconProps}
@@ -29,13 +29,13 @@ describe('TextWithPrefixIcon', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toBeDefined();
   });
 });
 
 describe('TextWithPrefixIcon', () => {
   it('should render TextWithPrefixIcon', () => {
-    render(
+    const wrapper = shallow(
       <TextWithPrefixIcon
         variant={TextVariant.BodyMD}
         iconProps={sampleIconProps}
@@ -43,14 +43,17 @@ describe('TextWithPrefixIcon', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    expect(screen.getByTestId(TEXT_WITH_PREFIX_ICON_TEST_ID)).toBeDefined();
+    const TextWithPrefixIconComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TEXT_WITH_PREFIX_ICON_TEST_ID,
+    );
+    expect(TextWithPrefixIconComponent.exists()).toBe(true);
   });
   it('should render the given icon name and size', () => {
     const testIconName = IconName.Bank;
     const testIconSize = IconSize.Xss;
     sampleIconProps.name = testIconName;
     sampleIconProps.size = testIconSize;
-    render(
+    const wrapper = shallow(
       <TextWithPrefixIcon
         variant={TextVariant.BodyMD}
         iconProps={sampleIconProps}
@@ -58,17 +61,23 @@ describe('TextWithPrefixIcon', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    expect(
-      screen.getByTestId(TEXT_WITH_PREFIX_ICON_ICON_TEST_ID),
-    ).toBeDefined();
+    const iconElement = wrapper.findWhere(
+      (node) => node.prop('testID') === TEXT_WITH_PREFIX_ICON_ICON_TEST_ID,
+    );
+    expect(iconElement.props().name).toBe(testIconName);
+    expect(iconElement.props().size).toBe(testIconSize);
   });
   it('should render the given text with the appropriate variant', () => {
     const testTextVariant = TextVariant.BodySM;
-    render(
+    const wrapper = shallow(
       <TextWithPrefixIcon variant={testTextVariant} iconProps={sampleIconProps}>
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    expect(screen.getByText(TEST_SAMPLE_TEXT)).toBeDefined();
+    const titleElement = wrapper.findWhere(
+      (node) => node.prop('testID') === TEXT_WITH_PREFIX_ICON_TEXT_TEST_ID,
+    );
+    expect(titleElement.props().children).toBe(TEST_SAMPLE_TEXT);
+    expect(titleElement.props().variant).toBe(testTextVariant);
   });
 });

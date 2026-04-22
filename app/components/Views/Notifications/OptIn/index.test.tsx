@@ -94,7 +94,7 @@ const arrangeMockOptInHooks = () => {
 
 describe('OptIn', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('should render with the expected fields', () => {
@@ -144,7 +144,7 @@ describe('OptIn', () => {
     ).toBeTruthy();
   });
 
-  it('calls enableNotifications when the button is pressed', () => {
+  it('calls enableNotifications when the button is pressed', async () => {
     const mocks = arrangeMockOptInHooks();
     const { getByText } = renderWithProvider(<OptIn />);
 
@@ -155,7 +155,7 @@ describe('OptIn', () => {
     expect(mocks.mockClick).toHaveBeenCalled();
   });
 
-  it('calls navigate when the cancel button is pressed', () => {
+  it('calls navigate when the cancel button is pressed', async () => {
     const mocks = arrangeMockOptInHooks();
     const { getByText } = renderWithProvider(<OptIn />);
 
@@ -166,7 +166,7 @@ describe('OptIn', () => {
     expect(mocks.mockCancel).toHaveBeenCalled();
   });
 
-  it('shows loading modal while enabling notifications', () => {
+  it('shows loading modal while enabling notifications', async () => {
     const mocks = arrangeMockOptInHooks();
     mocks.mockUseEnableNotifications.mockReturnValue({
       ...mocks.mockUseEnableNotificationReturnVal,

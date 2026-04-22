@@ -4,7 +4,7 @@ import {
   MultichainAssetsRatesControllerState,
 } from '@metamask/assets-controllers';
 import type { MessengerClientInitRequest } from '../../types';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { multichainAssetsRatesControllerInit } from './multichain-assets-rates-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -24,10 +24,8 @@ describe('multichain assets rates controller init', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create messenger client init request mock
-    initRequestMock = buildMessengerClientInitRequestMock(
-      baseControllerMessenger,
-    );
+    // Create controller init request mock
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   it('returns controller instance', () => {

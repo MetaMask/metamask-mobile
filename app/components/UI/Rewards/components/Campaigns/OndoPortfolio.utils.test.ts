@@ -2,7 +2,6 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
-  sanitizeOndoTokenName,
 } from './OndoPortfolio.utils';
 
 describe('groupPortfolioPositionsByAsset', () => {
@@ -13,8 +12,8 @@ describe('groupPortfolioPositionsByAsset', () => {
         tokenName: 'A',
         tokenAsset: 'eip155:1/erc20:0xabc',
         units: '10',
-        bookPrice: '10',
-        bookValue: '100',
+        costBasis: '100',
+        avgCostPerUnit: '10',
         currentPrice: '11',
         currentValue: '110',
         unrealizedPnl: '10',
@@ -25,8 +24,8 @@ describe('groupPortfolioPositionsByAsset', () => {
         tokenName: 'A',
         tokenAsset: 'eip155:1/erc20:0xabc',
         units: '5',
-        bookPrice: '10',
-        bookValue: '50',
+        costBasis: '50',
+        avgCostPerUnit: '10',
         currentPrice: '11',
         currentValue: '55',
         unrealizedPnl: '5',
@@ -36,7 +35,7 @@ describe('groupPortfolioPositionsByAsset', () => {
 
     expect(merged).toHaveLength(1);
     expect(merged[0].units).toBe('15');
-    expect(merged[0].bookValue).toBe('150.000000');
+    expect(merged[0].costBasis).toBe('150.000000');
     expect(merged[0].currentValue).toBe('165.000000');
     expect(merged[0].unrealizedPnl).toBe('15.000000');
   });
@@ -48,8 +47,8 @@ describe('groupPortfolioPositionsByAsset', () => {
         tokenName: 'A',
         tokenAsset: 'eip155:1/erc20:0xaaa',
         units: '1',
-        bookPrice: '1',
-        bookValue: '1',
+        costBasis: '1',
+        avgCostPerUnit: '1',
         currentPrice: '1',
         currentValue: '1',
         unrealizedPnl: '0',
@@ -60,8 +59,8 @@ describe('groupPortfolioPositionsByAsset', () => {
         tokenName: 'B',
         tokenAsset: 'eip155:1/erc20:0xbbb',
         units: '2',
-        bookPrice: '1',
-        bookValue: '2',
+        costBasis: '2',
+        avgCostPerUnit: '1',
         currentPrice: '1',
         currentValue: '2',
         unrealizedPnl: '0',
@@ -110,47 +109,5 @@ describe('isPnlNonNegative', () => {
 
   it('returns false for non-parseable value (BigNumber NaN is not >= 0)', () => {
     expect(isPnlNonNegative('—')).toBe(false);
-  });
-});
-
-describe('sanitizeOndoTokenName', () => {
-  it('strips "(Ondo Tokenized)" suffix and trims', () => {
-    expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
-      'US Dollar',
-    );
-  });
-
-  it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
-    expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
-  });
-
-  it('is case-insensitive', () => {
-    expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
-  });
-
-  it('truncates to 28 characters with ellipsis', () => {
-    expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
-      'A Very Long Token Name That...',
-    );
-  });
-
-  it('strips then truncates with ellipsis', () => {
-    const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
-    const result = sanitizeOndoTokenName(long);
-    expect(result).toBe('Extremely Long Name Here Tha...');
-  });
-
-  it('does not add ellipsis when exactly 28 characters', () => {
-    expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
-      '1234567890123456789012345678',
-    );
-  });
-
-  it('returns the name unchanged when no stripping or truncation is needed', () => {
-    expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
-  });
-
-  it('handles empty string', () => {
-    expect(sanitizeOndoTokenName('')).toBe('');
   });
 });

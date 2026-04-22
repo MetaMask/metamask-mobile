@@ -7,7 +7,7 @@ import {
 import { MessengerClientInitRequest } from '../types';
 import { getRemoteFeatureFlagControllerMessenger } from '../messengers/remote-feature-flag-controller-messenger';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import Logger from '../../../util/Logger';
 
@@ -30,7 +30,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getRemoteFeatureFlagControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

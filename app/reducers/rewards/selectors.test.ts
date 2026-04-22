@@ -39,6 +39,7 @@ import {
   selectUnlockedRewardError,
   selectSeasonRewardById,
   selectPointsEvents,
+  selectSeasonShouldInstallNewVersion,
   selectBulkLinkState,
   selectBulkLinkIsRunning,
   selectBulkLinkTotalAccounts,
@@ -50,7 +51,7 @@ import {
   selectCampaignsLoading,
   selectCampaignsError,
   selectCampaignParticipantStatuses,
-  selectCampaignParticipantStatus,
+  selectCampaignParticipantStatusById,
   selectCampaignParticipantCount,
   selectIsRewardsVersionBlocked,
   selectVersionGuardMinimumMobileVersion,
@@ -2511,6 +2512,46 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectSeasonShouldInstallNewVersion', () => {
+    it('returns null when season should install new version is not set', () => {
+      const mockState = { rewards: { seasonShouldInstallNewVersion: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonShouldInstallNewVersion),
+      );
+      expect(result.current).toBeNull();
+    });
+
+    it('returns version string when set', () => {
+      const mockState = {
+        rewards: { seasonShouldInstallNewVersion: '1.2.3' },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonShouldInstallNewVersion),
+      );
+      expect(result.current).toBe('1.2.3');
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns null when season should install new version is null', () => {
+        const state = createMockRootState({
+          seasonShouldInstallNewVersion: null,
+        });
+        expect(selectSeasonShouldInstallNewVersion(state)).toBeNull();
+      });
+
+      it('returns version string when set', () => {
+        const state = createMockRootState({
+          seasonShouldInstallNewVersion: '2.0.0',
+        });
+        expect(selectSeasonShouldInstallNewVersion(state)).toBe('2.0.0');
+      });
+    });
+  });
+
   describe('selectBulkLinkState', () => {
     it('returns bulk link state when set', () => {
       const mockState = {
@@ -3227,112 +3268,71 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectCampaignParticipantStatus', () => {
-    it('returns null when subscriptionId is undefined', () => {
-      const state = createMockRootState({
-        campaignParticipantStatuses: {
-          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
-        },
-      });
-      expect(
-        selectCampaignParticipantStatus(undefined, 'campaign-1')(state),
-      ).toBeNull();
-    });
-
+  describe('selectCampaignParticipantStatusById', () => {
     it('returns null when campaignId is undefined', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {
-          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+          'campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(
-        selectCampaignParticipantStatus('sub-1', undefined)(state),
-      ).toBeNull();
+      expect(selectCampaignParticipantStatusById(undefined)(state)).toBeNull();
     });
 
-    it('returns null when composite key has no status', () => {
+    it('returns null when campaign has no status', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {},
       });
       expect(
-        selectCampaignParticipantStatus('sub-1', 'campaign-1')(state),
+        selectCampaignParticipantStatusById('campaign-1')(state),
       ).toBeNull();
     });
 
-    it('returns status for the correct subscriptionId:campaignId', () => {
+    it('returns status for a specific campaign', () => {
       const status = { optedIn: true, participantCount: 42 };
       const state = createMockRootState({
         campaignParticipantStatuses: {
-          'sub-1:campaign-1': status,
+          'campaign-1': status,
         },
       });
-      expect(
-        selectCampaignParticipantStatus('sub-1', 'campaign-1')(state),
-      ).toEqual(status);
-    });
-
-    it('does not return status for a different subscriptionId', () => {
-      const state = createMockRootState({
-        campaignParticipantStatuses: {
-          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
-        },
-      });
-      expect(
-        selectCampaignParticipantStatus('sub-2', 'campaign-1')(state),
-      ).toBeNull();
+      expect(selectCampaignParticipantStatusById('campaign-1')(state)).toEqual(
+        status,
+      );
     });
   });
 
   describe('selectCampaignParticipantCount', () => {
-    it('returns null when subscriptionId is undefined', () => {
-      const state = createMockRootState({
-        campaignParticipantStatuses: {
-          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
-        },
-      });
-      expect(
-        selectCampaignParticipantCount(undefined, 'campaign-1')(state),
-      ).toBeNull();
-    });
-
     it('returns null when campaignId is undefined', () => {
       const state = createMockRootState({
-        campaignParticipantStatuses: {},
-      });
-      expect(
-        selectCampaignParticipantCount('sub-1', undefined)(state),
-      ).toBeNull();
-    });
-
-    it('returns null when composite key has no status', () => {
-      const state = createMockRootState({
-        campaignParticipantStatuses: {},
-      });
-      expect(
-        selectCampaignParticipantCount('sub-1', 'campaign-1')(state),
-      ).toBeNull();
-    });
-
-    it('returns participantCount for the correct subscriptionId:campaignId', () => {
-      const state = createMockRootState({
         campaignParticipantStatuses: {
-          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+          'campaign-1': { optedIn: true, participantCount: 42 },
         },
       });
-      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(
-        42,
-      );
+      expect(selectCampaignParticipantCount(undefined)(state)).toBeNull();
+    });
+
+    it('returns null when campaign has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBeNull();
+    });
+
+    it('returns participantCount for a specific campaign', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(42);
     });
 
     it('returns 0 when participantCount is zero', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {
-          'sub-1:campaign-1': { optedIn: false, participantCount: 0 },
+          'campaign-1': { optedIn: false, participantCount: 0 },
         },
       });
-      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(
-        0,
-      );
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(0);
     });
   });
 
@@ -3406,33 +3406,13 @@ describe('Rewards selectors', () => {
     tiers: {
       STARTER: {
         entries: [
-          {
-            rank: 1,
-            referralCode: 'ABC123',
-            rateOfReturn: 0.15,
-            qualifiedDays: 10,
-            qualified: true,
-          },
-          {
-            rank: 2,
-            referralCode: 'DEF456',
-            rateOfReturn: 0.1,
-            qualifiedDays: 10,
-            qualified: true,
-          },
+          { rank: 1, referralCode: 'ABC123', rateOfReturn: 0.15 },
+          { rank: 2, referralCode: 'DEF456', rateOfReturn: 0.1 },
         ],
         totalParticipants: 50,
       },
       MID: {
-        entries: [
-          {
-            rank: 1,
-            referralCode: 'GHI789',
-            rateOfReturn: 0.2,
-            qualifiedDays: 10,
-            qualified: true,
-          },
-        ],
+        entries: [{ rank: 1, referralCode: 'GHI789', rateOfReturn: 0.2 }],
         totalParticipants: 30,
       },
     },
@@ -3446,9 +3426,6 @@ describe('Rewards selectors', () => {
     currentUsdValue: 1000,
     totalUsdDeposited: 900,
     netDeposit: 800,
-    qualifiedDays: 10,
-    qualified: true,
-    neighbors: [],
     computedAt: '2024-03-20T12:00:00.000Z',
   };
 
@@ -3458,8 +3435,8 @@ describe('Rewards selectors', () => {
       tokenName: string;
       tokenAsset: string;
       units: string;
-      bookPrice: string;
-      bookValue: string;
+      costBasis: string;
+      avgCostPerUnit: string;
       currentPrice: string;
       currentValue: string;
       unrealizedPnl: string;
@@ -3467,10 +3444,9 @@ describe('Rewards selectors', () => {
     }[],
     summary: {
       totalCurrentValue: '1000',
-      totalBookValue: '900',
+      totalCostBasis: '900',
       totalUsdDeposited: '900',
       netDeposit: '800',
-      totalCashedOut: '0',
       portfolioPnl: '100',
       portfolioPnlPercent: '0.1',
     },

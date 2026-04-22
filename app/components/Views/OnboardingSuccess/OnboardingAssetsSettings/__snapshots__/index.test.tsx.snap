@@ -39,10 +39,10 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -68,14 +68,15 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             style={
               [
                 {
-                  "alignSelf": "flex-start",
+                  "height": 31,
+                  "width": 51,
                 },
                 [
                   {
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b566",
                     "borderRadius": 16,
                   },
                 ],
@@ -83,7 +84,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="token-detection-toggle"
             thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
+            tintColor="#b4b4b566"
             value={true}
           />
         </View>
@@ -92,7 +93,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -123,10 +124,10 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -150,14 +151,15 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             style={
               [
                 {
-                  "alignSelf": "flex-start",
+                  "height": 31,
+                  "width": 51,
                 },
                 [
                   {
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b566",
                     "borderRadius": 16,
                   },
                 ],
@@ -165,7 +167,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="nft-display-media-mode-section"
             thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
+            tintColor="#b4b4b566"
             value={false}
           />
         </View>
@@ -174,7 +176,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -205,10 +207,10 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -232,14 +234,15 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             style={
               [
                 {
-                  "alignSelf": "flex-start",
+                  "height": 31,
+                  "width": 51,
                 },
                 [
                   {
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b566",
                     "borderRadius": 16,
                   },
                 ],
@@ -247,7 +250,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="nft-opensea-autodetect-mode-section"
             thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
+            tintColor="#b4b4b566"
             value={false}
           />
         </View>
@@ -256,7 +259,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -287,10 +290,10 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -314,14 +317,15 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             style={
               [
                 {
-                  "alignSelf": "flex-start",
+                  "height": 31,
+                  "width": 51,
                 },
                 [
                   {
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b566",
                     "borderRadius": 16,
                   },
                 ],
@@ -329,7 +333,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="IPFS_GATEWAY_SECTION"
             thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
+            tintColor="#b4b4b566"
             value={true}
           />
         </View>
@@ -338,7 +342,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -360,7 +364,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -374,7 +378,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         <View
           style={
             {
-              "borderColor": "#b7bbc8",
+              "borderColor": "#949596",
               "borderRadius": 5,
               "borderWidth": 2,
               "marginTop": 16,
@@ -409,10 +413,10 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -436,14 +440,15 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             style={
               [
                 {
-                  "alignSelf": "flex-start",
+                  "height": 31,
+                  "width": 51,
                 },
                 [
                   {
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b566",
                     "borderRadius": 16,
                   },
                 ],
@@ -451,7 +456,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="security-settings-multi-account-balances-switch"
             thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
+            tintColor="#b4b4b566"
             value={true}
           />
         </View>
@@ -460,7 +465,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,

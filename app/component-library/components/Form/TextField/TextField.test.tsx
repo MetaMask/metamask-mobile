@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { render, screen } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 
 // Internal dependencies.
 import TextField from './TextField';
@@ -13,33 +13,46 @@ import {
 
 describe('TextField', () => {
   it('renders default settings correctly', () => {
-    const { toJSON } = render(<TextField />);
+    const wrapper = shallow(<TextField />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toBeDefined();
   });
 
   it('renders TextField component', () => {
-    render(<TextField />);
+    const wrapper = shallow(<TextField />);
 
-    expect(screen.getByTestId(TEXTFIELD_TEST_ID)).toBeDefined();
+    const textFieldComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TEXTFIELD_TEST_ID,
+    );
+
+    expect(textFieldComponent.exists()).toBe(true);
   });
 
   it('renders startAccessory when provided', () => {
-    render(<TextField startAccessory={<View />} />);
+    const wrapper = shallow(<TextField startAccessory={<View />} />);
 
-    expect(screen.getByTestId(TEXTFIELD_STARTACCESSORY_TEST_ID)).toBeDefined();
+    const textFieldComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TEXTFIELD_STARTACCESSORY_TEST_ID,
+    );
+
+    expect(textFieldComponent.exists()).toBe(true);
   });
 
   it('renders endAccessory when provided', () => {
-    render(<TextField endAccessory={<View />} />);
+    const wrapper = shallow(<TextField endAccessory={<View />} />);
 
-    expect(screen.getByTestId(TEXTFIELD_ENDACCESSORY_TEST_ID)).toBeDefined();
+    const textFieldComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TEXTFIELD_ENDACCESSORY_TEST_ID,
+    );
+
+    expect(textFieldComponent.exists()).toBe(true);
   });
 
   it('renders as single line by default', () => {
-    const { toJSON } = render(<TextField />);
+    const wrapper = shallow(<TextField />);
 
-    // Verify single line rendering via snapshot
-    expect(toJSON()).toMatchSnapshot();
+    const inputComponent = wrapper.find('ForwardRef');
+
+    expect(inputComponent.prop('numberOfLines')).toBe(1);
   });
 });

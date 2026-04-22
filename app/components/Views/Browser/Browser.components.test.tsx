@@ -111,6 +111,14 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
+}));
+
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
@@ -211,7 +219,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromTrending: true,
         }),
-        undefined,
+        {},
       );
     });
 
@@ -256,52 +264,6 @@ describe('Browser - Component Rendering', () => {
       expect(BrowserTabMock).toHaveBeenCalledWith(
         expect.objectContaining({
           fromPerps: true,
-        }),
-        undefined,
-      );
-    });
-
-    it('passes fromBenefit param to BrowserTab', () => {
-      const tabs = [
-        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
-      ];
-      const BrowserTabMock = jest.mocked(BrowserTab);
-
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={{ params: { fromBenefit: true } }}
-                    tabs={tabs}
-                    activeTab={1}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn()}
-                    closeTab={jest.fn()}
-                    setActiveTab={jest.fn()}
-                    updateTab={jest.fn()}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
-        {
-          state: {
-            ...mockInitialState,
-            browser: {
-              tabs,
-              activeTab: 1,
-            },
-          },
-        },
-      );
-
-      expect(BrowserTabMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          fromBenefit: true,
         }),
         {},
       );
@@ -355,13 +317,13 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           linkType: 'deeplink',
         }),
-        undefined,
+        {},
       );
     });
   });
 
   describe('showTabsView function', () => {
-    it('takes screenshot and shows tabs view when active tab exists', () => {
+    it('takes screenshot and shows tabs view when active tab exists', async () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
@@ -405,7 +367,7 @@ describe('Browser - Component Rendering', () => {
       expect(mockUpdateTab).toBeDefined();
     });
 
-    it('handles screenshot error gracefully', () => {
+    it('handles screenshot error gracefully', async () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];

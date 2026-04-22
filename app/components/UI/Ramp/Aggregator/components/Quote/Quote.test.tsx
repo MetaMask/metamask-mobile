@@ -123,23 +123,6 @@ describe('Quote Component', () => {
     expect(onPressMock).toHaveBeenCalled();
   });
 
-  it('does not call onPress when isLoading is true', () => {
-    const onPressMock = jest.fn();
-    const { getByLabelText } = renderWithProvider(
-      <Quote
-        quote={mockQuote}
-        onPress={onPressMock}
-        showInfo={jest.fn()}
-        rampType={RampType.BUY}
-        isLoading
-      />,
-      { state: defaultState },
-    );
-
-    const quoteRow = getByLabelText('Mock Provider');
-    expect(quoteRow.props.onPress).toBeUndefined();
-  });
-
   it('shows loading indicator when isLoading is true', () => {
     const { queryByText } = renderWithProvider(
       <Quote

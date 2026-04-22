@@ -150,7 +150,7 @@ describe('BridgeStepList', () => {
         isLastItem: false,
         isEdgeComplete: false,
       }),
-      undefined,
+      expect.any(Object),
     );
 
     // Check last step props
@@ -161,7 +161,7 @@ describe('BridgeStepList', () => {
         isLastItem: true,
         isEdgeComplete: false,
       }),
-      undefined,
+      expect.any(Object),
     );
   });
 });

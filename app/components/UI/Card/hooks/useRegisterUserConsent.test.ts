@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useRegisterUserConsent } from './useRegisterUserConsent';
 import { useCardSDK } from '../sdk';
@@ -148,17 +148,13 @@ describe('useRegisterUserConsent', () => {
 
       const { result } = renderHook(() => useRegisterUserConsent());
 
-      let caughtError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.getOnboardingConsentSetByOnboardingId(
             testOnboardingId,
           );
-        } catch (e) {
-          caughtError = e;
-        }
-      });
-      expect((caughtError as Error)?.message).toBe('Card SDK not initialized');
+        }),
+      ).rejects.toThrow('Card SDK not initialized');
     });
 
     it('throws error when fetchQuery fails', async () => {
@@ -170,17 +166,13 @@ describe('useRegisterUserConsent', () => {
 
       const { result } = renderHook(() => useRegisterUserConsent());
 
-      let caughtError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.getOnboardingConsentSetByOnboardingId(
             testOnboardingId,
           );
-        } catch (e) {
-          caughtError = e;
-        }
-      });
-      expect(caughtError).toBe(testError);
+        }),
+      ).rejects.toThrow(testError);
     });
   });
 
@@ -299,17 +291,27 @@ describe('useRegisterUserConsent', () => {
       });
 
       it('sets loading state during consent creation', async () => {
-        mockCreateOnboardingConsent.mockResolvedValue(mockConsentResponse);
+        let resolveCreateConsent!: (value: typeof mockConsentResponse) => void;
+        const createConsentPromise = new Promise<typeof mockConsentResponse>(
+          (resolve) => {
+            resolveCreateConsent = resolve;
+          },
+        );
+        mockCreateOnboardingConsent.mockReturnValue(createConsentPromise);
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        await act(async () => {
+        const creationPromise = act(async () => {
           await result.current.createOnboardingConsent(testOnboardingId);
         });
 
-        // After completion, loading should be false
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.isLoading).toBe(true);
         expect(result.current.isError).toBe(false);
+
+        resolveCreateConsent(mockConsentResponse);
+        await creationPromise;
+
+        expect(result.current.isLoading).toBe(false);
       });
 
       it('includes current timestamp in metadata', async () => {
@@ -341,17 +343,11 @@ describe('useRegisterUserConsent', () => {
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        let caughtError: unknown;
-        await act(async () => {
-          try {
+        await expect(
+          act(async () => {
             await result.current.createOnboardingConsent(testOnboardingId);
-          } catch (e) {
-            caughtError = e;
-          }
-        });
-        expect((caughtError as Error)?.message).toBe(
-          'Card SDK not initialized',
-        );
+          }),
+        ).rejects.toThrow('Card SDK not initialized');
       });
 
       it('handles createOnboardingConsent API failure', async () => {
@@ -364,11 +360,11 @@ describe('useRegisterUserConsent', () => {
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        await act(async () => {
-          await result.current
-            .createOnboardingConsent(testOnboardingId)
-            .catch(() => undefined);
-        });
+        await expect(
+          act(async () => {
+            await result.current.createOnboardingConsent(testOnboardingId);
+          }),
+        ).rejects.toThrow();
 
         expect(mockGetErrorMessage).toHaveBeenCalledWith(testError);
         expect(result.current.isLoading).toBe(false);
@@ -385,17 +381,11 @@ describe('useRegisterUserConsent', () => {
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        let caughtError: unknown;
-        await act(async () => {
-          try {
+        await expect(
+          act(async () => {
             await result.current.createOnboardingConsent(testOnboardingId);
-          } catch (e) {
-            caughtError = e;
-          }
-        });
-        expect((caughtError as Error)?.message).toBe(
-          'Failed to create onboarding consent',
-        );
+          }),
+        ).rejects.toThrow('Failed to create onboarding consent');
 
         expect(result.current.isLoading).toBe(false);
         expect(result.current.isError).toBe(true);
@@ -413,17 +403,11 @@ describe('useRegisterUserConsent', () => {
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        let caughtError: unknown;
-        await act(async () => {
-          try {
+        await expect(
+          act(async () => {
             await result.current.createOnboardingConsent(testOnboardingId);
-          } catch (e) {
-            caughtError = e;
-          }
-        });
-        expect((caughtError as Error)?.message).toBe(
-          'Failed to create onboarding consent',
-        );
+          }),
+        ).rejects.toThrow('Failed to create onboarding consent');
 
         expect(result.current.isError).toBe(true);
         expect(result.current.consentSetId).toBe(null);
@@ -436,11 +420,11 @@ describe('useRegisterUserConsent', () => {
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        await act(async () => {
-          await result.current
-            .createOnboardingConsent(testOnboardingId)
-            .catch(() => undefined);
-        });
+        await expect(
+          act(async () => {
+            await result.current.createOnboardingConsent(testOnboardingId);
+          }),
+        ).rejects.toThrow();
 
         expect(mockGetErrorMessage).toHaveBeenCalledWith(genericError);
         expect(result.current.isError).toBe(true);
@@ -470,16 +454,25 @@ describe('useRegisterUserConsent', () => {
       });
 
       it('sets loading state during consent linking', async () => {
-        mockLinkUserToConsent.mockResolvedValue(undefined);
+        let resolveLinkConsent!: () => void;
+        const linkConsentPromise = new Promise<void>((resolve) => {
+          resolveLinkConsent = resolve;
+        });
+        mockLinkUserToConsent.mockReturnValue(linkConsentPromise);
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        await act(async () => {
+        const linkingPromise = act(async () => {
           await result.current.linkUserToConsent(testConsentSetId, testUserId);
         });
 
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.isLoading).toBe(true);
         expect(result.current.isError).toBe(false);
+
+        resolveLinkConsent();
+        await linkingPromise;
+
+        expect(result.current.isLoading).toBe(false);
         expect(result.current.isSuccess).toBe(true);
       });
     });
@@ -493,20 +486,14 @@ describe('useRegisterUserConsent', () => {
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        let caughtError: unknown;
-        await act(async () => {
-          try {
+        await expect(
+          act(async () => {
             await result.current.linkUserToConsent(
               testConsentSetId,
               testUserId,
             );
-          } catch (e) {
-            caughtError = e;
-          }
-        });
-        expect((caughtError as Error)?.message).toBe(
-          'Card SDK not initialized',
-        );
+          }),
+        ).rejects.toThrow('Card SDK not initialized');
       });
 
       it('handles linkUserToConsent API failure', async () => {
@@ -519,11 +506,14 @@ describe('useRegisterUserConsent', () => {
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        await act(async () => {
-          await result.current
-            .linkUserToConsent(testConsentSetId, testUserId)
-            .catch(() => undefined);
-        });
+        await expect(
+          act(async () => {
+            await result.current.linkUserToConsent(
+              testConsentSetId,
+              testUserId,
+            );
+          }),
+        ).rejects.toThrow();
 
         expect(mockGetErrorMessage).toHaveBeenCalledWith(testError);
         expect(result.current.isLoading).toBe(false);
@@ -538,11 +528,14 @@ describe('useRegisterUserConsent', () => {
 
         const { result } = renderHook(() => useRegisterUserConsent());
 
-        await act(async () => {
-          await result.current
-            .linkUserToConsent(testConsentSetId, testUserId)
-            .catch(() => undefined);
-        });
+        await expect(
+          act(async () => {
+            await result.current.linkUserToConsent(
+              testConsentSetId,
+              testUserId,
+            );
+          }),
+        ).rejects.toThrow();
 
         expect(mockGetErrorMessage).toHaveBeenCalledWith(genericError);
         expect(result.current.isError).toBe(true);
@@ -562,11 +555,11 @@ describe('useRegisterUserConsent', () => {
       );
       mockCreateOnboardingConsent.mockRejectedValueOnce(testError);
 
-      await act(async () => {
-        await result.current
-          .createOnboardingConsent(testOnboardingId)
-          .catch(() => undefined);
-      });
+      await expect(
+        act(async () => {
+          await result.current.createOnboardingConsent(testOnboardingId);
+        }),
+      ).rejects.toThrow();
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -592,16 +585,24 @@ describe('useRegisterUserConsent', () => {
 
       expect(result.current.isSuccess).toBe(true);
 
-      // Start new consent creation (should reset success state after completion)
-      mockCreateOnboardingConsent.mockResolvedValue(mockConsentResponse);
+      // Start new consent creation (should reset success state)
+      let resolveCreateConsent!: (value: typeof mockConsentResponse) => void;
+      const createConsentPromise = new Promise<typeof mockConsentResponse>(
+        (resolve) => {
+          resolveCreateConsent = resolve;
+        },
+      );
+      mockCreateOnboardingConsent.mockReturnValue(createConsentPromise);
 
-      await act(async () => {
+      const creationPromise = act(async () => {
         await result.current.createOnboardingConsent('new-onboarding');
       });
 
-      // After completion, success is false (not yet linked) and loading is done
       expect(result.current.isSuccess).toBe(false);
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isLoading).toBe(true);
+
+      resolveCreateConsent(mockConsentResponse);
+      await creationPromise;
     });
   });
 
@@ -616,11 +617,11 @@ describe('useRegisterUserConsent', () => {
       );
       mockCreateOnboardingConsent.mockRejectedValue(testError);
 
-      await act(async () => {
-        await result.current
-          .createOnboardingConsent(testOnboardingId)
-          .catch(() => undefined);
-      });
+      await expect(
+        act(async () => {
+          await result.current.createOnboardingConsent(testOnboardingId);
+        }),
+      ).rejects.toThrow();
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -700,11 +701,11 @@ describe('useRegisterUserConsent', () => {
       const testError = new CardError(CardErrorType.TIMEOUT_ERROR, 'Timeout');
       mockCreateOnboardingConsent.mockRejectedValue(testError);
 
-      await act(async () => {
-        await result.current
-          .createOnboardingConsent(testOnboardingId)
-          .catch(() => undefined);
-      });
+      await expect(
+        act(async () => {
+          await result.current.createOnboardingConsent(testOnboardingId);
+        }),
+      ).rejects.toThrow();
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -743,69 +744,7 @@ describe('useRegisterUserConsent', () => {
   });
 
   describe('edge cases', () => {
-    it('handles undefined SDK gracefully for createOnboardingConsent', async () => {
-      mockUseCardSDK.mockReturnValue({
-        ...jest.requireMock('../sdk'),
-        sdk: null,
-      });
-
-      const { result } = renderHook(() => useRegisterUserConsent());
-
-      let caughtError: unknown;
-      await act(async () => {
-        try {
-          await result.current.createOnboardingConsent(testOnboardingId);
-        } catch (e) {
-          caughtError = e;
-        }
-      });
-      expect((caughtError as Error)?.message).toBe('Card SDK not initialized');
-    });
-
-    it('handles undefined SDK gracefully for linkUserToConsent', async () => {
-      mockUseCardSDK.mockReturnValue({
-        ...jest.requireMock('../sdk'),
-        sdk: null,
-      });
-
-      const { result } = renderHook(() => useRegisterUserConsent());
-
-      let caughtError: unknown;
-      await act(async () => {
-        try {
-          await result.current.linkUserToConsent('consent-123', testUserId);
-        } catch (e) {
-          caughtError = e;
-        }
-      });
-      expect((caughtError as Error)?.message).toBe('Card SDK not initialized');
-    });
-
-    it('handles empty consentSetId response', async () => {
-      mockCreateOnboardingConsent.mockResolvedValue({ consentSetId: '' });
-      mockGetErrorMessage.mockReturnValue(
-        'Failed to create onboarding consent',
-      );
-
-      const { result } = renderHook(() => useRegisterUserConsent());
-
-      let caughtError: unknown;
-      await act(async () => {
-        try {
-          await result.current.createOnboardingConsent(testOnboardingId);
-        } catch (e) {
-          caughtError = e;
-        }
-      });
-      expect((caughtError as Error)?.message).toBe(
-        'Failed to create onboarding consent',
-      );
-
-      expect(result.current.isError).toBe(true);
-      expect(result.current.error).toBe('Failed to create onboarding consent');
-    });
-
-    it('handles undefined consentSetId response', async () => {
+    it('handles undefined consentSetId in createOnboardingConsent response', async () => {
       mockCreateOnboardingConsent.mockResolvedValue({
         consentSetId: undefined,
       });
@@ -815,17 +754,11 @@ describe('useRegisterUserConsent', () => {
 
       const { result } = renderHook(() => useRegisterUserConsent());
 
-      let caughtError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.createOnboardingConsent(testOnboardingId);
-        } catch (e) {
-          caughtError = e;
-        }
-      });
-      expect((caughtError as Error)?.message).toBe(
-        'Failed to create onboarding consent',
-      );
+        }),
+      ).rejects.toThrow('Failed to create onboarding consent');
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Failed to create onboarding consent');

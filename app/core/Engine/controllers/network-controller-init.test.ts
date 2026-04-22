@@ -1,4 +1,4 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getNetworkControllerInitMessenger,
@@ -50,7 +50,7 @@ function getInitRequestMock(
   >
 > {
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getNetworkControllerMessenger(baseMessenger),
     initMessenger: getNetworkControllerInitMessenger(baseMessenger),
   };

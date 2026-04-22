@@ -11,40 +11,19 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
     }
   }
 >
-  <View
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": true,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={false}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    disabled={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -54,7 +33,6 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -75,41 +53,21 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
     >
       Cancel
     </Text>
-  </View>
-  <View
+  </TouchableOpacity>
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": true,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={false}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    disabled={true}
+    loading={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#121314",
+        "backgroundColor": "#131416",
         "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -117,7 +75,6 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -128,7 +85,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
       color="#ffffff"
       size="small"
     />
-  </View>
+  </TouchableOpacity>
 </View>
 `;
 
@@ -143,40 +100,19 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
     }
   }
 >
-  <View
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": true,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={false}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    disabled={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -186,7 +122,6 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -207,41 +142,21 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
     >
       Cancel
     </Text>
-  </View>
-  <View
+  </TouchableOpacity>
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": true,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={false}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    disabled={true}
+    loading={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#121314",
+        "backgroundColor": "#131416",
         "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -249,7 +164,6 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -260,7 +174,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
       color="#ffffff"
       size="small"
     />
-  </View>
+  </TouchableOpacity>
 </View>
 `;
 
@@ -275,40 +189,19 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
     }
   }
 >
-  <View
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": false,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    disabled={false}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -318,7 +211,6 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -339,41 +231,21 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
     >
       Cancel
     </Text>
-  </View>
-  <View
+  </TouchableOpacity>
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": false,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    disabled={false}
+    loading={false}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#121314",
+        "backgroundColor": "#131416",
         "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -381,7 +253,6 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -402,7 +273,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
     >
       Continue
     </Text>
-  </View>
+  </TouchableOpacity>
 </View>
 `;
 
@@ -417,40 +288,19 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
     }
   }
 >
-  <View
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": false,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    disabled={false}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -460,7 +310,6 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -481,41 +330,21 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
     >
       Cancel
     </Text>
-  </View>
-  <View
+  </TouchableOpacity>
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": false,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    disabled={false}
+    loading={false}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#121314",
+        "backgroundColor": "#131416",
         "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -523,7 +352,6 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -544,6 +372,6 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
     >
       Continue
     </Text>
-  </View>
+  </TouchableOpacity>
 </View>
 `;

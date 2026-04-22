@@ -5,8 +5,6 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 describe(
   SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),
@@ -18,14 +16,6 @@ describe(
             .withTwoImportedHdKeyringsAndTwoDefaultAccounts()
             .build(),
           restartDevice: true,
-          testSpecificMock: async (mockServer: Mockttp) => {
-            await setupMockRequest(mockServer, {
-              requestMethod: 'GET',
-              url: /^https:\/\/api\.merkl\.xyz\/v4\/users\/[a-zA-Z0-9]+\/rewards(\?|$)/,
-              response: [],
-              responseCode: 200,
-            });
-          },
         },
         async () => {
           await loginToApp();

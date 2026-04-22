@@ -1,5 +1,4 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from './useTransakRouting';
 
 const mockNavigate = jest.fn();
@@ -146,40 +145,14 @@ jest.mock('../Views/Checkout', () => ({
       url,
       providerName,
       onNavigationStateChange,
-      workFlowRunId,
     }: {
       url: string;
       providerName: string;
       onNavigationStateChange?: (nav: { url: string }) => void;
-      workFlowRunId?: string;
     }) => {
       capturedHandleNavigationStateChange = onNavigationStateChange ?? null;
-      return [
-        'Checkout',
-        { url, providerName, onNavigationStateChange, workFlowRunId },
-      ];
+      return ['Checkout', { url, providerName, onNavigationStateChange }];
     },
-  ),
-}));
-
-jest.mock('../Views/NativeFlow/KycWebview', () => ({
-  createKycWebviewNavDetails: jest.fn(
-    ({
-      url,
-      providerName,
-      workFlowRunId,
-      quote,
-      amount,
-    }: {
-      url: string;
-      providerName: string;
-      workFlowRunId: string;
-      quote: unknown;
-      amount?: number;
-    }) => [
-      'RampKycWebview',
-      { url, providerName, workFlowRunId, quote, amount },
-    ],
   ),
 }));
 
@@ -416,6 +389,7 @@ describe('useTransakRouting', () => {
             }),
             expect.objectContaining({
               name: 'RampKycProcessing',
+              params: expect.objectContaining({ quote: mockQuote }),
             }),
           ],
         }),
@@ -919,38 +893,29 @@ describe('useTransakRouting', () => {
   });
 
   describe('navigateToKycWebview', () => {
-    it('resets navigation stack with KycProcessing behind the webview', () => {
+    it('resets navigation stack to the KYC webview with amount preserved', () => {
       const { result } = renderHook(() => useTransakRouting());
-      const mockQuote = { id: 'quote-789' } as unknown as TransakBuyQuote;
 
       act(() => {
         result.current.navigateToKycWebview({
-          quote: mockQuote,
           kycUrl: 'https://kyc.example.com',
-          workFlowRunId: 'wf-456',
           amount: 30,
         });
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          index: 2,
+          index: 1,
           routes: [
             expect.objectContaining({
               name: 'RampAmountInput',
               params: { amount: 30 },
             }),
             expect.objectContaining({
-              name: 'RampKycProcessing',
-            }),
-            expect.objectContaining({
-              name: 'RampKycWebview',
+              name: 'Checkout',
               params: expect.objectContaining({
                 url: 'https://kyc.example.com',
                 providerName: 'Transak',
-                workFlowRunId: 'wf-456',
-                quote: mockQuote,
-                amount: 30,
               }),
             }),
           ],

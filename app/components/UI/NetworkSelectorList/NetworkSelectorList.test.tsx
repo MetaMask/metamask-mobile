@@ -1,3 +1,11 @@
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
+}));
+
 // Third party dependencies.
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';

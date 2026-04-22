@@ -12,6 +12,7 @@ import {
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { AddNewAccountProps } from './AddNewAccount.types';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { RootState } from '../../../reducers';
@@ -23,6 +24,19 @@ import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
 const mockNavigate = jest.fn();
+
+jest.mock('react-native-safe-area-context', () => {
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  const frame = { width: 0, height: 0, x: 0, y: 0 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -148,7 +162,12 @@ const render = (
   state: RootState,
   params: AddNewAccountProps,
 ): ReturnType<typeof renderWithProvider> =>
-  renderWithProvider(<AddNewAccount {...params} />, { state });
+  renderWithProvider(
+    <SafeAreaProvider>
+      <AddNewAccount {...params} />
+    </SafeAreaProvider>,
+    { state },
+  );
 
 describe('AddNewAccount', () => {
   beforeEach(() => {
@@ -168,7 +187,7 @@ describe('AddNewAccount', () => {
     ).toBeDefined();
   });
 
-  it('handles SRP selection', () => {
+  it('handles SRP selection', async () => {
     const { getByText, queryByText } = render(initialState, {});
 
     const srpSelector = getByText(
@@ -188,7 +207,7 @@ describe('AddNewAccount', () => {
     expect(queryByText('Secret Recovery Phrase 1')).toBeNull();
   });
 
-  it('handles account creation', () => {
+  it('handles account creation', async () => {
     const { getByText } = render(initialState, {});
 
     const addButton = getByText(strings('accounts.add'));
@@ -296,7 +315,7 @@ describe('AddNewAccount', () => {
       },
     );
 
-    it('disables buttons while loading', () => {
+    it('disables buttons while loading', async () => {
       const { getByTestId } = render(initialState, {
         scope: MultichainNetwork.Solana,
         clientType: WalletClientType.Solana,
@@ -305,7 +324,7 @@ describe('AddNewAccount', () => {
       const addButton = getByTestId(AddNewAccountIds.CONFIRM);
       fireEvent.press(addButton);
 
-      expect(addButton).toBeDisabled();
+      expect(addButton.props.disabled).toBe(true);
     });
 
     it.each([

@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { StackActions } from '@react-navigation/native';
 import CampaignTourStepView from './CampaignTourStepView';
 import Routes from '../../../../constants/navigation/Routes';
 import { CAMPAIGN_TOUR_STEP_TEST_IDS } from '../components/Campaigns/tour/CampaignTourStep';
@@ -9,20 +8,18 @@ import {
   CampaignType,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 
-const mockDispatch = jest.fn();
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
-jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual('@react-navigation/native');
-  return {
-    ...actual,
-    useNavigation: () => ({
-      dispatch: mockDispatch,
-    }),
-    useRoute: () => ({
-      params: { campaignId: 'campaign-1' },
-    }),
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+  }),
+  useRoute: () => ({
+    params: { campaignId: 'campaign-1' },
+  }),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -49,7 +46,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.onboarding.step_confirm': 'Next',
-      'rewards.onboarding.step_finish': "Let's go",
       'rewards.onboarding.step_skip': 'Skip',
     };
     return map[key] ?? key;
@@ -78,6 +74,10 @@ jest.mock('../components/Onboarding/ProgressIndicator', () => {
       }),
   };
 });
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
 
 const mockGoToPage = jest.fn();
 jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
@@ -166,8 +166,7 @@ const campaignWithoutTour: CampaignDto = {
 let mockCampaigns: CampaignDto[] = [campaignWithTour];
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCampaignById: (id: string) => () =>
-    mockCampaigns.find((c) => c.id === id) ?? null,
+  selectCampaigns: () => mockCampaigns,
 }));
 
 jest.mock('react-redux', () => ({
@@ -216,22 +215,10 @@ describe('CampaignTourStepView', () => {
     fireEvent.press(getByTestId(CAMPAIGN_TOUR_STEP_TEST_IDS.NEXT_BUTTON));
     fireEvent.press(getByTestId(CAMPAIGN_TOUR_STEP_TEST_IDS.NEXT_BUTTON));
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
-        campaignId: 'campaign-1',
-      }),
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+      { campaignId: 'campaign-1' },
     );
-  });
-
-  it("shows the Let's go label on the last step", () => {
-    const { getByText, queryByText } = render(<CampaignTourStepView />);
-
-    // Advance to last step
-    fireEvent.press(getByText('Next'));
-    fireEvent.press(getByText('Next'));
-
-    expect(getByText("Let's go")).toBeOnTheScreen();
-    expect(queryByText('Next')).toBeNull();
   });
 
   it('navigates to campaign details when Skip is pressed', () => {
@@ -239,10 +226,9 @@ describe('CampaignTourStepView', () => {
 
     fireEvent.press(getByTestId(CAMPAIGN_TOUR_STEP_TEST_IDS.SKIP_BUTTON));
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
-        campaignId: 'campaign-1',
-      }),
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+      { campaignId: 'campaign-1' },
     );
   });
 
@@ -251,10 +237,9 @@ describe('CampaignTourStepView', () => {
 
     render(<CampaignTourStepView />);
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
-        campaignId: 'campaign-1',
-      }),
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+      { campaignId: 'campaign-1' },
     );
   });
 

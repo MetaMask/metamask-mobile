@@ -1,19 +1,19 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import GenericButtonIos from './index.ios';
 import GenericButtonAndroid from './index.android';
 
 describe('GenericButton', () => {
   it('should render correctly on iOS', () => {
-    const { toJSON } = render(<GenericButtonIos />);
-    expect(toJSON()).toMatchSnapshot();
+    const wrapper = shallow(<GenericButtonIos />);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render correctly on android', () => {
     jest.doMock('react-native/Libraries/Utilities/Platform', () => ({
       OS: 'android',
     }));
-    const { toJSON } = render(<GenericButtonAndroid />);
-    expect(toJSON()).toMatchSnapshot();
+    const wrapper = shallow(<GenericButtonAndroid />);
+    expect(wrapper).toMatchSnapshot();
   });
 });

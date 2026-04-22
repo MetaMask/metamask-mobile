@@ -31,6 +31,9 @@ jest.mock('../../../../../util/theme', () => {
   };
 });
 jest.mock('@react-navigation/native');
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
+}));
 jest.mock('react-native-view-shot', () => ({ captureRef: jest.fn() }));
 jest.mock('react-native-share', () => ({
   __esModule: true,

@@ -6,7 +6,7 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
   "icon": {
     "color": "text-error-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.lower_allowed_error [0.1]",
 }
@@ -18,7 +18,7 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
   "icon": {
     "color": "text-warning-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.lower_suggested_warning [0.5]",
 }
@@ -32,7 +32,7 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
   "icon": {
     "color": "text-error-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
 }
@@ -44,7 +44,7 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
   "icon": {
     "color": "text-warning-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.upper_suggested_warning [5]",
 }
@@ -56,7 +56,7 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
   "icon": {
     "color": "text-error-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
 }
@@ -68,7 +68,7 @@ exports[`useSlippageStepperDescription lower_allowed_slippage_threshold (ERROR) 
   "icon": {
     "color": "text-error-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.lower_allowed_error [0.1]",
 }
@@ -80,7 +80,7 @@ exports[`useSlippageStepperDescription lower_allowed_slippage_threshold (ERROR) 
   "icon": {
     "color": "text-error-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.lower_allowed_error [0.1]",
 }
@@ -92,7 +92,7 @@ exports[`useSlippageStepperDescription lower_suggested_slippage_threshold (WARNI
   "icon": {
     "color": "text-warning-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.lower_suggested_warning [0.5]",
 }
@@ -104,7 +104,7 @@ exports[`useSlippageStepperDescription upper_allowed_slippage_threshold (ERROR) 
   "icon": {
     "color": "text-error-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
 }
@@ -116,7 +116,7 @@ exports[`useSlippageStepperDescription upper_allowed_slippage_threshold (ERROR) 
   "icon": {
     "color": "text-error-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
 }
@@ -128,7 +128,7 @@ exports[`useSlippageStepperDescription upper_allowed_slippage_threshold (ERROR) 
   "icon": {
     "color": "text-error-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
 }
@@ -140,7 +140,7 @@ exports[`useSlippageStepperDescription upper_suggested_slippage_threshold (WARNI
   "icon": {
     "color": "text-warning-default",
     "name": "Danger",
-    "size": "lg",
+    "size": "24",
   },
   "message": "bridge.upper_suggested_warning [5]",
 }

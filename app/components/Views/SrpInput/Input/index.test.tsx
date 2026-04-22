@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 
 // External dependencies.
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
@@ -12,26 +12,32 @@ import { INPUT_TEST_ID } from '../../../../component-library/components/Form/Tex
 
 describe('SRP -> Input', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<Input />);
-    expect(toJSON()).toMatchSnapshot();
+    const wrapper = shallow(<Input />);
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render Input with the correct TextVariant', () => {
-    render(<Input textVariant={TextVariant.HeadingSM} />);
-    const inputComponent = screen.getByTestId(INPUT_TEST_ID);
-    expect(inputComponent.props.style.fontSize).toBe(
+    const wrapper = shallow(<Input textVariant={TextVariant.HeadingSM} />);
+    const inputComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === INPUT_TEST_ID,
+    );
+    expect(inputComponent.props().style.fontSize).toBe(
       mockTheme.typography.sHeadingSM.fontSize,
     );
   });
   it('should render the correct disabled state when disabled = true', () => {
-    render(<Input isDisabled />);
-    const inputComponent = screen.getByTestId(INPUT_TEST_ID);
-    expect(inputComponent).toHaveProp('editable', false);
-    expect(inputComponent.props.style.opacity).toBe(0.5);
+    const wrapper = shallow(<Input isDisabled />);
+    const inputComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === INPUT_TEST_ID,
+    );
+    expect(inputComponent.props().editable).toBe(false);
+    expect(inputComponent.props().style.opacity).toBe(0.5);
   });
 
   it('should not render state styles when isStateStylesDisabled = true', () => {
-    render(<Input isStateStylesDisabled />);
-    const inputComponent = screen.getByTestId(INPUT_TEST_ID);
-    expect(inputComponent.props.style.opacity).toBe(1);
+    const wrapper = shallow(<Input isStateStylesDisabled />);
+    const inputComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === INPUT_TEST_ID,
+    );
+    expect(inputComponent.props().style.opacity).toBe(1);
   });
 });

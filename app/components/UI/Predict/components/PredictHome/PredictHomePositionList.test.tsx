@@ -1,5 +1,4 @@
 import React, { ComponentType } from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import PredictHomePositionList from './PredictHomePositionList';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -235,7 +234,7 @@ describe('PredictHomePositionList', () => {
     const positions = UNSAFE_getAllByType(asComponentType('PredictPosition'));
 
     // Act
-    fireEvent.press(positions[0]);
+    positions[0].props.onPress();
 
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
@@ -262,7 +261,7 @@ describe('PredictHomePositionList', () => {
     );
 
     // Act
-    fireEvent.press(resolvedPositions[0]);
+    resolvedPositions[0].props.onPress();
 
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {

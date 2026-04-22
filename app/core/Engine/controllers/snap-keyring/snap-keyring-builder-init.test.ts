@@ -1,4 +1,4 @@
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   getSnapKeyringBuilderInitMessenger,
@@ -21,7 +21,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getSnapKeyringBuilderMessenger(baseMessenger),
     initMessenger: getSnapKeyringBuilderInitMessenger(baseMessenger),
   };

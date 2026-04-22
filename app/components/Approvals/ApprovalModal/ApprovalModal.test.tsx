@@ -4,7 +4,7 @@ import ApprovalModal from './ApprovalModal';
 
 describe('ApprovalModal', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('renders', () => {

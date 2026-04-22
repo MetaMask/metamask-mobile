@@ -4,6 +4,7 @@ import TokenOverview from '../../../page-objects/wallet/TokenOverview';
 import MarketInsightsEntryCard from '../../../page-objects/wallet/MarketInsightsEntryCard';
 import MarketInsightsView from '../../../page-objects/wallet/MarketInsightsView';
 import QuoteView from '../../../page-objects/swaps/QuoteView';
+import BuildQuoteView from '../../../page-objects/Ramps/BuildQuoteView';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -11,13 +12,30 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagMarketInsightsEnabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagMarketInsightsEnabled,
+  remoteFeatureFlagRampsUnifiedV2Enabled,
+} from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   marketInsightsWithData,
   marketInsightsNoData,
 } from '../../../api-mocking/mock-responses/market-insights-api-mocks';
 
 const TOKEN = 'Ethereum';
+
+const mockWithDataAndRamps = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagMarketInsightsEnabled(),
+    ...remoteFeatureFlagRampsUnifiedV2Enabled(true),
+  });
+  const { urlEndpoint, response, responseCode } = marketInsightsWithData;
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode,
+  });
+};
 
 const mockWithData = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -77,6 +95,7 @@ describe(
           });
 
           await MarketInsightsView.expectSwapButtonVisible();
+          await MarketInsightsView.expectBuyButtonVisible();
 
           await MarketInsightsView.tapSwapButton();
           await QuoteView.isVisible();
@@ -146,6 +165,28 @@ describe(
               'Asset details screen is visible after tapping Ethereum',
           });
           await MarketInsightsEntryCard.expectEntryCardNotVisible();
+        },
+      );
+    });
+
+    it('navigates to buy screen when tapping Buy button', async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          restartDevice: true,
+          testSpecificMock: mockWithDataAndRamps,
+          languageAndLocale: { language: 'en', locale: 'en_US' },
+        },
+        async () => {
+          await navigateToMarketInsightsView();
+          await MarketInsightsView.tapBuyButton();
+          await Assertions.expectElementToBeVisible(
+            BuildQuoteView.continueButton,
+            {
+              description:
+                'Buy/Ramp BuildQuote screen is visible after tapping Buy',
+            },
+          );
         },
       );
     });

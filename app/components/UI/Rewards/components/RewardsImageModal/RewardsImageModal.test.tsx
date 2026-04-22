@@ -311,7 +311,7 @@ describe('RewardsImageModal', () => {
       // Act
       const { Modal } = jest.requireActual('react-native');
       const modalComponent = UNSAFE_getByType(Modal);
-      fireEvent(modalComponent, 'requestClose');
+      modalComponent.props.onRequestClose();
 
       // Assert
       expect(mockOnClose).toHaveBeenCalledTimes(1);

@@ -53,6 +53,19 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
+// SafeAreaView
+jest.mock('react-native-safe-area-context', () => {
+  const ActualReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    SafeAreaView: ({
+      children,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      ActualReact.createElement(View, props, children),
+  };
+});
+
 // Design system
 jest.mock('@metamask/design-system-react-native', () => {
   const ActualReact = jest.requireActual('react');

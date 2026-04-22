@@ -38,45 +38,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -84,8 +61,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -98,7 +75,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           1
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -113,45 +90,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -159,8 +113,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -173,7 +127,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           2
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -188,45 +142,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -234,8 +165,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -248,7 +179,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           3
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -277,45 +208,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -323,8 +231,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -337,7 +245,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           4
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -352,45 +260,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -398,8 +283,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -412,7 +297,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           5
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -427,45 +312,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -473,8 +335,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -487,7 +349,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           6
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -516,45 +378,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -562,8 +401,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -576,7 +415,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           7
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -591,45 +430,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -637,8 +453,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -651,7 +467,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           8
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -666,45 +482,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -712,8 +505,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -726,7 +519,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           9
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -755,45 +548,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -801,8 +571,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -815,7 +585,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           .
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -830,45 +600,22 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <Text
@@ -876,8 +623,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -890,7 +637,7 @@ exports[`Keypad components components should render correctly and match snapshot
         >
           0
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -905,44 +652,21 @@ exports[`Keypad components components should render correctly and match snapshot
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[MockFunction]}
         style={
-          {
-            "alignItems": "center",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
       >
         <SvgMock
@@ -951,7 +675,7 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "height": 32,
                 "width": 32,
               },
@@ -959,7 +683,7 @@ exports[`Keypad components components should render correctly and match snapshot
             ]
           }
         />
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
 </View>
@@ -1003,54 +727,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-1"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1063,7 +765,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           1
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -1078,54 +780,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-2"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1138,7 +818,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           2
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -1153,54 +833,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-3"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1213,7 +871,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           3
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -1242,54 +900,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-4"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1302,7 +938,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           4
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -1317,54 +953,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-5"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1377,7 +991,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           5
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -1392,54 +1006,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-6"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1452,7 +1044,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           6
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -1481,54 +1073,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-7"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1541,7 +1111,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           7
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -1556,54 +1126,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-8"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1616,7 +1164,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           8
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -1631,54 +1179,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-9"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1691,7 +1217,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           9
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -1720,54 +1246,34 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "transparent",
+            },
+          ]
         }
+        testID="keypad-key-dot"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1780,7 +1286,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           .
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -1795,54 +1301,32 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
+        testID="keypad-key-0"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1855,7 +1339,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         >
           0
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -1870,44 +1354,23 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        delayLongPress={500}
+        onLongPress={[Function]}
+        onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "borderRadius": 12,
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            undefined,
+          ]
         }
         testID="keypad-delete-button"
       >
@@ -1917,7 +1380,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "height": 32,
                 "width": 32,
               },
@@ -1925,7 +1388,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             ]
           }
         />
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
 </View>

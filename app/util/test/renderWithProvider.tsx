@@ -17,7 +17,6 @@ import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
 import { FeatureFlagOverrideProvider } from '../../contexts/FeatureFlagOverrideContext';
-import initialRootState from './initial-root-state';
 
 // DeepPartial is a generic type that recursively makes all properties of a given type T optional
 export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
@@ -42,7 +41,7 @@ export default function renderWithProvider(
   includeNavigationContainer = true,
   includeFeatureFlagOverrideProvider = true,
 ) {
-  const { state = initialRootState, theme = mockTheme } = providerValues ?? {};
+  const { state = {}, theme = mockTheme } = providerValues ?? {};
   const store = configureStore(state);
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
@@ -107,7 +106,7 @@ export function renderHookWithProvider<Result, Props>(
   hook: (props: Props) => Result,
   providerValues?: ProviderValues,
 ) {
-  const { state = initialRootState } = providerValues ?? {};
+  const { state = {} } = providerValues ?? {};
   const store = configureStore(state);
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);

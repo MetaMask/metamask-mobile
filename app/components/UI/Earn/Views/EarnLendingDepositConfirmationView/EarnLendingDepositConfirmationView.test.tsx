@@ -1207,7 +1207,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // The button should be re-enabled after the error
-    expect(approveButton).toBeEnabled();
+    expect(approveButton.props.disabled).toBe(false);
   });
 
   it('handles empty transaction response during approval flow', async () => {
@@ -1244,7 +1244,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // Button should be re-enabled when transaction is undefined
-    expect(approveButton).toBeEnabled();
+    expect(approveButton.props.disabled).toBe(false);
   });
 
   it('handles missing protocol or chainId during approval flow', async () => {
@@ -1293,7 +1293,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(mockExecuteLendingTokenApprove).not.toHaveBeenCalled();
 
     // Button should remain enabled since no loading state was set
-    expect(approveButton).toBeEnabled();
+    expect(approveButton.props.disabled).toBe(false);
   });
 
   it('handles errors during approval flow and logs them', async () => {
@@ -1416,7 +1416,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       '[resetTokenAllowance] Lending deposit failed',
     );
 
-    expect(resetButton).toBeEnabled();
+    expect(resetButton.props.disabled).toBe(false);
 
     loggerSpy.mockRestore();
   });
@@ -1445,7 +1445,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // Button should be re-enabled when transaction is empty
-    expect(depositButton).toBeEnabled();
+    expect(depositButton.props.disabled).toBe(false);
   });
 
   it('enables retries after transaction error during deposit flow', async () => {
@@ -1490,7 +1490,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // The button should be re-enabled after the error
-    expect(depositButton).toBeEnabled();
+    expect(depositButton.props.disabled).toBe(false);
   });
 
   it('displays token information', () => {
@@ -1813,7 +1813,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       errorMocked,
       '[depositTokens] Lending deposit failed',
     );
-    expect(confirmButton).toBeEnabled();
+    expect(confirmButton.props.disabled).toBe(false);
 
     errorSpy.mockRestore();
   });

@@ -158,9 +158,7 @@ describe('ClaimBanner', () => {
 
     const claimButton = getByTestId('claim-banner-claim-eth-button');
 
-    await act(async () => {
-      fireEvent.press(claimButton);
-    });
+    fireEvent.press(claimButton);
 
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
@@ -168,7 +166,6 @@ describe('ClaimBanner', () => {
   });
 
   it('claim button is disabled on subsequent presses', async () => {
-    jest.setTimeout(15000);
     const { getByTestId } = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}
@@ -183,7 +180,7 @@ describe('ClaimBanner', () => {
       fireEvent.press(claimButton);
     });
 
-    expect(claimButton).toBeDisabled();
+    expect(claimButton.props.disabled).toBe(true);
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();

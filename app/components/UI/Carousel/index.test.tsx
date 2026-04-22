@@ -80,6 +80,10 @@ jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => {
   };
 });
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock('./fetchCarouselSlidesFromContentful', () => ({
   ...jest.requireActual('./fetchCarouselSlidesFromContentful'),
   fetchCarouselSlidesFromContentful: jest.fn(),

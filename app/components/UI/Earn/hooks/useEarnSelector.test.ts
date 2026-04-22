@@ -39,7 +39,6 @@ describe('useEarnSelector', () => {
       markets: [],
       positions: [],
     },
-    tron_staking: null,
     lastUpdated: 0,
   };
 

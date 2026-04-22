@@ -8,10 +8,6 @@ import { ChainId } from '@metamask/controller-utils';
 jest.mock('../../Base/TokenIcon', () => jest.fn(() => null));
 
 describe('NetworkAssetLogo Component', () => {
-  beforeEach(() => {
-    (TokenIcon as jest.Mock).mockClear();
-  });
-
   it('matches the snapshot for non-mainnet', () => {
     const { toJSON } = render(
       <NetworkAssetLogo
@@ -40,14 +36,14 @@ describe('NetworkAssetLogo Component', () => {
     render(<NetworkAssetLogo {...props} />);
 
     expect(TokenIcon).toHaveBeenCalledWith(
-      expect.objectContaining({
+      {
         big: props.big,
         biggest: props.biggest,
         symbol: 'ETH',
         style: props.style,
         testID: props.testID,
-      }),
-      undefined,
+      },
+      {},
     );
   });
 
@@ -64,14 +60,14 @@ describe('NetworkAssetLogo Component', () => {
     render(<NetworkAssetLogo {...props} />);
 
     expect(TokenIcon).toHaveBeenCalledWith(
-      expect.objectContaining({
+      {
         big: props.big,
         biggest: props.biggest,
         symbol: props.ticker,
         style: props.style,
         testID: props.testID,
-      }),
-      undefined,
+      },
+      {},
     );
   });
 });

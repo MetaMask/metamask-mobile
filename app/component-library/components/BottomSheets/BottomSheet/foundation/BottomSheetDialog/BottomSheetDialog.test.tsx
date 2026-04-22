@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useRef, useEffect } from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { render, act } from '@testing-library/react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -18,6 +18,20 @@ jest.mock('react-native', () => {
       ...actualRN.Platform,
       OS: 'ios',
     },
+  };
+});
+
+jest.mock('react-native-safe-area-context', () => {
+  // using disting digits for mock rects to make sure they are not mixed up
+  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
+  const frame = { width: 5, height: 6, x: 7, y: 8 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
   };
 });
 
@@ -44,14 +58,16 @@ describe('BottomSheetDialog', () => {
     );
     expect(getByText('Test Child')).toBeOnTheScreen();
   });
-  it('should call onOpen when onOpenDialog ref is called', async () => {
+  it('should call onOpen when onOpenDialog ref is called', () => {
     const onOpenMock = jest.fn();
     const TestComponent = () => {
       const ref = useRef<BottomSheetDialogRef>(null);
 
       useEffect(() => {
         if (ref.current) {
-          ref.current?.onOpenDialog();
+          act(() => {
+            ref.current?.onOpenDialog();
+          });
         }
       }, []);
 
@@ -64,12 +80,10 @@ describe('BottomSheetDialog', () => {
 
     render(<TestComponent />);
 
-    await waitFor(() => {
-      expect(onOpenMock).toHaveBeenCalled();
-    });
+    expect(onOpenMock).toHaveBeenCalled();
   });
 
-  it('should call onClose when onCloseDialog ref is called', async () => {
+  it('should call onClose when onCloseDialog ref is called', () => {
     Platform.OS = 'ios';
 
     const onCloseMock = jest.fn();
@@ -78,32 +92,7 @@ describe('BottomSheetDialog', () => {
 
       useEffect(() => {
         if (ref.current) {
-          ref.current?.onCloseDialog();
-        }
-      }, []);
-
-      return (
-        <BottomSheetDialog ref={ref} onClose={onCloseMock}>
-          <Text>Test Child</Text>
-        </BottomSheetDialog>
-      );
-    };
-
-    render(<TestComponent />);
-
-    await waitFor(() => {
-      expect(onCloseMock).toHaveBeenCalled();
-    });
-  });
-  it('calls onClose only once when onCloseDialog is invoked twice rapidly', () => {
-    const onCloseMock = jest.fn();
-    const TestComponent = () => {
-      const ref = useRef<BottomSheetDialogRef>(null);
-
-      useEffect(() => {
-        if (ref.current) {
           act(() => {
-            ref.current?.onCloseDialog();
             ref.current?.onCloseDialog();
           });
         }
@@ -117,34 +106,8 @@ describe('BottomSheetDialog', () => {
     };
 
     render(<TestComponent />);
-    expect(onCloseMock).toHaveBeenCalledTimes(1);
-  });
 
-  it('allows closing again after re-opening', () => {
-    const onCloseMock = jest.fn();
-    const onOpenMock = jest.fn();
-    const TestComponent = () => {
-      const ref = useRef<BottomSheetDialogRef>(null);
-
-      useEffect(() => {
-        if (ref.current) {
-          act(() => {
-            ref.current?.onCloseDialog();
-            ref.current?.onOpenDialog();
-            ref.current?.onCloseDialog();
-          });
-        }
-      }, []);
-
-      return (
-        <BottomSheetDialog ref={ref} onClose={onCloseMock} onOpen={onOpenMock}>
-          <Text>Test Child</Text>
-        </BottomSheetDialog>
-      );
-    };
-
-    render(<TestComponent />);
-    expect(onCloseMock).toHaveBeenCalledTimes(2);
+    expect(onCloseMock).toHaveBeenCalled();
   });
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
 

@@ -1,7 +1,7 @@
 // eslint-disable-next-line import-x/no-nodejs-modules
 import path from 'path';
 import { Mockttp } from 'mockttp';
-import { SmokeBrowser } from '../../../tags.js';
+import { SmokeWalletPlatform } from '../../../tags.js';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../flows/browser.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -48,7 +48,7 @@ function createPhishingMock(domain: string): TestSpecificMock {
   };
 }
 
-describe(SmokeBrowser('Browser Phishing Detection'), () => {
+describe(SmokeWalletPlatform('Browser Phishing Detection'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

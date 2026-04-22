@@ -1,5 +1,5 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import { CardController, defaultCardControllerState } from './CardController';
 import {
@@ -30,17 +30,7 @@ describe('cardControllerInit', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
 
-    baseControllerMessenger.registerActionHandler(
-      // @ts-expect-error: Action not allowed.
-      'RemoteFeatureFlagController:getState',
-      jest.fn().mockReturnValue({
-        remoteFeatureFlags: {},
-      }),
-    );
-
-    initRequestMock = buildMessengerClientInitRequestMock(
-      baseControllerMessenger,
-    );
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   it('returns a controller instance', () => {
@@ -60,7 +50,6 @@ describe('cardControllerInit', () => {
 
   it('uses persisted state when provided', () => {
     const persistedState: CardControllerState = {
-      ...defaultCardControllerState,
       selectedCountry: 'US',
       activeProviderId: 'baanx',
       isAuthenticated: true,

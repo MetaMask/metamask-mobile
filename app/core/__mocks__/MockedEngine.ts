@@ -3,7 +3,6 @@ import { mockNetworkState } from '../../util/test/network';
 import { NetworkClientId } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
 import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringControllerTestUtils';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../util/test/accountsControllerTestUtils';
 
 export const mockedEngine = {
   init: () => Engine.init(''),
@@ -27,8 +26,6 @@ export const mockedEngine = {
   },
   context: {
     AccountsController: {
-      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-      state: MOCK_ACCOUNTS_CONTROLLER_STATE,
       listAccounts: jest.fn(),
       listMultichainAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),
@@ -68,15 +65,6 @@ export const mockedEngine = {
       setLocked: jest.fn(),
       createNewVaultAndRestore: jest.fn(),
       createNewVaultAndKeychain: jest.fn(),
-      getAccountKeyringType: jest.fn().mockResolvedValue('HD Key Tree'),
-    },
-    PhishingController: {
-      maybeUpdateState: jest.fn(),
-      test: jest.fn(() => ({ result: false })),
-      scanUrl: jest.fn(() => ({ recommendedAction: 'NONE' })),
-    },
-    AssetsContractController: {
-      getERC20BalanceOf: jest.fn().mockResolvedValue('0'),
     },
     MultichainNetworkController: {
       state: {

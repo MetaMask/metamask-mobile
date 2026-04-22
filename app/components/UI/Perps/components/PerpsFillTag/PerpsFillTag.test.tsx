@@ -20,6 +20,10 @@ jest.mock('../../hooks', () => ({
   }),
 }));
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+}));
+
 const createMockTransaction = (
   fillType: FillType,
   overrides?: Partial<PerpsTransaction>,

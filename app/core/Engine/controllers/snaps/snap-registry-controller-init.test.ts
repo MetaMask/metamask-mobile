@@ -5,7 +5,7 @@ import {
 import { MessengerClientInitRequest } from '../../types';
 import { getSnapRegistryControllerMessenger } from '../../messengers/snaps';
 import { snapRegistryControllerInit } from './snap-registry-controller-init';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -23,7 +23,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getSnapRegistryControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

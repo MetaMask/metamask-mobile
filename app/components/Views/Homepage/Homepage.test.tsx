@@ -168,9 +168,12 @@ jest.mock('../../UI/Predict/hooks/usePredictMarketData', () => ({
   }),
 }));
 
-jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
-  selectDeFiPositionsSectionEnabled: jest.fn(() => true),
-}));
+jest.mock(
+  '../../../selectors/featureFlagController/assetsDefiPositions',
+  () => ({
+    selectAssetsDefiPositionsEnabled: jest.fn(() => true),
+  }),
+);
 
 jest.mock('../../../selectors/featureFlagController/whatsHappening', () => ({
   selectWhatsHappeningEnabled: jest.fn(() => false),
@@ -178,16 +181,6 @@ jest.mock('../../../selectors/featureFlagController/whatsHappening', () => ({
 
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
-}));
-
-jest.mock('./Sections/TopTraders/hooks', () => ({
-  useTopTraders: jest.fn(() => ({
-    traders: [],
-    isLoading: false,
-    error: null,
-    refresh: jest.fn().mockResolvedValue(undefined),
-    toggleFollow: jest.fn(),
-  })),
 }));
 
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */
@@ -298,8 +291,10 @@ describe('Homepage', () => {
       .requireMock('../../UI/Predict/selectors/featureFlags')
       .selectPredictEnabledFlag.mockReturnValue(true);
     jest
-      .requireMock('../../../selectors/deFiPositionsSectionEnabled')
-      .selectDeFiPositionsSectionEnabled.mockReturnValue(true);
+      .requireMock(
+        '../../../selectors/featureFlagController/assetsDefiPositions',
+      )
+      .selectAssetsDefiPositionsEnabled.mockReturnValue(true);
     jest
       .requireMock('../../../selectors/featureFlagController/whatsHappening')
       .selectWhatsHappeningEnabled.mockReturnValue(false);
@@ -415,8 +410,10 @@ describe('Homepage', () => {
         .requireMock('../../UI/Predict/selectors/featureFlags')
         .selectPredictEnabledFlag.mockReturnValue(false);
       jest
-        .requireMock('../../../selectors/deFiPositionsSectionEnabled')
-        .selectDeFiPositionsSectionEnabled.mockReturnValue(false);
+        .requireMock(
+          '../../../selectors/featureFlagController/assetsDefiPositions',
+        )
+        .selectAssetsDefiPositionsEnabled.mockReturnValue(false);
     });
 
     it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {

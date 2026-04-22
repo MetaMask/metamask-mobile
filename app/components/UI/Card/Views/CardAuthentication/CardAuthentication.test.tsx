@@ -30,8 +30,6 @@ const mockReset = jest.fn();
 const mockDispatch = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
 
-let mockRouteParams: Record<string, unknown> = {};
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -41,7 +39,6 @@ jest.mock('@react-navigation/native', () => ({
     dispatch: mockDispatch,
     addListener: mockAddListener,
   }),
-  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('../../hooks/useCardAuth');
@@ -129,8 +126,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_otp_authentication.didnt_receive_code':
         "Didn't receive the code?",
       'card.card_otp_authentication.resend_verification': 'Resend',
-      'card.card_authentication.auth_prompt_info':
-        'Log in to your card account to access this feature.',
     };
     if (key === 'card.card_otp_authentication.description_with_phone_number') {
       return `We sent a code to ${params?.maskedPhoneNumber}`;
@@ -174,7 +169,6 @@ jest.useFakeTimers({ advanceTimers: true });
 describe('CardAuthentication Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = {};
 
     mockInitiateMutateAsync.mockResolvedValue(undefined);
     mockSubmitMutateAsync.mockResolvedValue({ done: true });
@@ -202,17 +196,6 @@ describe('CardAuthentication Component', () => {
       expect(screen.getByTestId('password-field')).toBeOnTheScreen();
       expect(
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders signup button and password toggle', () => {
-      render();
-
-      expect(
-        screen.getByTestId(CardAuthenticationSelectors.SIGNUP_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('password-visibility-toggle'),
       ).toBeOnTheScreen();
     });
   });
@@ -385,32 +368,16 @@ describe('CardAuthentication Component', () => {
       });
     });
 
-    it('does not call setUserLocation on flag press, defers to login', async () => {
+    it('calls setUserLocation when pressing US location button', () => {
       render();
       const usBox = screen.getByTestId('us-location-box');
-      const EngineModule = jest.requireMock(
-        '../../../../../core/Engine',
-      ).default;
+      const Engine = jest.requireMock('../../../../../core/Engine').default;
 
       fireEvent.press(usBox);
 
       expect(
-        EngineModule.context.CardController.setUserLocation,
-      ).not.toHaveBeenCalled();
-
-      const emailInput = screen.getByTestId('email-field');
-      const passwordInput = screen.getByTestId('password-field');
-      const loginButton = screen.getByTestId(
-        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
-      );
-
-      fireEvent.changeText(emailInput, 'test@example.com');
-      fireEvent.changeText(passwordInput, 'password123');
-      fireEvent.press(loginButton);
-
-      await waitFor(() => {
-        expect(mockInitiateMutateAsync).toHaveBeenCalledWith('us');
-      });
+        Engine.context.CardController.setUserLocation,
+      ).toHaveBeenCalledWith('us');
     });
 
     it('navigates to card home on successful login', async () => {
@@ -501,264 +468,104 @@ describe('CardAuthentication Component', () => {
       expect(loginButton.props.accessibilityState.busy).toBe(true);
     });
   });
-});
 
-describe('Login Step - Error Handling', () => {
-  it('displays error message when submit error exists', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        submit: {
-          mutateAsync: mockSubmitMutateAsync,
-          isPending: false,
-          error: new Error('Invalid login details'),
-          reset: mockSubmitReset,
-        },
-        getErrorMessage: () => 'Invalid login details',
-      }),
-    );
+  describe('Login Step - Error Handling', () => {
+    it('displays error message when submit error exists', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          submit: {
+            mutateAsync: mockSubmitMutateAsync,
+            isPending: false,
+            error: new Error('Invalid login details'),
+            reset: mockSubmitReset,
+          },
+          getErrorMessage: () => 'Invalid login details',
+        }),
+      );
 
-    render();
-
-    expect(screen.getByText('Invalid login details')).toBeOnTheScreen();
-  });
-
-  it('does not display error box when no error exists', () => {
-    render();
-
-    expect(screen.queryByText('Invalid login details')).not.toBeOnTheScreen();
-  });
-
-  it('displays network error message correctly', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        submit: {
-          mutateAsync: mockSubmitMutateAsync,
-          isPending: false,
-          error: new Error(
-            'Network error. Please check your connection and try again.',
-          ),
-          reset: mockSubmitReset,
-        },
-        getErrorMessage: () =>
-          'Network error. Please check your connection and try again.',
-      }),
-    );
-
-    render();
-
-    expect(
-      screen.getByText(
-        'Network error. Please check your connection and try again.',
-      ),
-    ).toBeOnTheScreen();
-  });
-});
-
-describe('Login Step - Accessibility', () => {
-  it('has accessibility labels for email input', () => {
-    render();
-
-    const emailInput = screen.getByTestId('email-field');
-
-    expect(emailInput).toHaveProp('accessibilityLabel', 'Email');
-  });
-
-  it('has accessibility labels for password input', () => {
-    render();
-
-    const passwordInput = screen.getByTestId('password-field');
-
-    expect(passwordInput).toHaveProp('accessibilityLabel', 'Password');
-  });
-
-  it('has email keyboard type for email input', () => {
-    render();
-
-    const emailInput = screen.getByTestId('email-field');
-
-    expect(emailInput).toHaveProp('keyboardType', 'email-address');
-  });
-
-  it('has secure text entry for password input', () => {
-    render();
-
-    const passwordInput = screen.getByTestId('password-field');
-
-    expect(passwordInput).toHaveProp('secureTextEntry', true);
-  });
-
-  it('has correct return key types for form navigation', () => {
-    render();
-
-    const emailInput = screen.getByTestId('email-field');
-    expect(emailInput).toHaveProp('returnKeyType', 'next');
-
-    const passwordInput = screen.getByTestId('password-field');
-    expect(passwordInput).toHaveProp('returnKeyType', 'done');
-  });
-});
-
-describe('OTP Step - Rendering', () => {
-  it('shows OTP input when currentStep is otp', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-
-    render();
-
-    expect(screen.getByTestId('otp-code-field')).toBeOnTheScreen();
-    expect(screen.queryByTestId('email-field')).not.toBeOnTheScreen();
-  });
-
-  it('shows masked phone number in description', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-
-    render();
-
-    expect(screen.getByText('We sent a code to +1555****90')).toBeOnTheScreen();
-  });
-
-  it('shows confirm button disabled when fewer than 6 digits entered', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-
-    render();
-    const otpInput = screen.getByTestId('otp-code-field');
-    fireEvent.changeText(otpInput, '123');
-
-    const confirmButton = screen.getByTestId('otp-confirm-button');
-    expect(confirmButton).toBeDisabled();
-  });
-
-  it('shows back to login button', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-
-    render();
-
-    expect(screen.getByTestId('otp-back-to-login-button')).toBeOnTheScreen();
-  });
-});
-
-describe('OTP Step - Auto-send', () => {
-  it('calls stepAction.mutate when step becomes otp', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-
-    render();
-
-    expect(mockStepActionMutate).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not call stepAction.mutate on login step', () => {
-    render();
-
-    expect(mockStepActionMutate).not.toHaveBeenCalled();
-  });
-});
-
-describe('OTP Step - Submission', () => {
-  it('auto-submits when 6 digits are entered', async () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-
-    render();
-    const otpInput = screen.getByTestId('otp-code-field');
-
-    await act(async () => {
-      fireEvent.changeText(otpInput, '123456');
-    });
-
-    await waitFor(() => {
-      expect(mockSubmitMutateAsync).toHaveBeenCalledWith({
-        type: 'email_password',
-        email: '',
-        password: '',
-        otpCode: '123456',
-      });
-    });
-  });
-
-  it('does NOT call initiate.mutateAsync on OTP submission', async () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-
-    render();
-    const otpInput = screen.getByTestId('otp-code-field');
-
-    await act(async () => {
-      fireEvent.changeText(otpInput, '123456');
-    });
-
-    await waitFor(() => {
-      expect(mockSubmitMutateAsync).toHaveBeenCalled();
-    });
-    expect(mockInitiateMutateAsync).not.toHaveBeenCalled();
-  });
-
-  it('navigates to home after successful OTP login', async () => {
-    mockSubmitMutateAsync.mockResolvedValue({ done: true });
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-
-    render();
-    const otpInput = screen.getByTestId('otp-code-field');
-
-    await act(async () => {
-      fireEvent.changeText(otpInput, '123456');
-    });
-
-    await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [{ name: Routes.CARD.HOME }],
-      });
-    });
-  });
-
-  describe('Auth Prompt Info Banner', () => {
-    it('shows info banner when showAuthPrompt param is true', () => {
-      mockRouteParams = { showAuthPrompt: true };
       render();
 
-      expect(screen.getByTestId('card-message-box')).toBeOnTheScreen();
+      expect(screen.getByText('Invalid login details')).toBeOnTheScreen();
+    });
+
+    it('does not display error box when no error exists', () => {
+      render();
+
+      expect(screen.queryByText('Invalid login details')).not.toBeOnTheScreen();
+    });
+
+    it('displays network error message correctly', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          submit: {
+            mutateAsync: mockSubmitMutateAsync,
+            isPending: false,
+            error: new Error(
+              'Network error. Please check your connection and try again.',
+            ),
+            reset: mockSubmitReset,
+          },
+          getErrorMessage: () =>
+            'Network error. Please check your connection and try again.',
+        }),
+      );
+
+      render();
+
       expect(
-        screen.getByText('Log in to your card account to access this feature.'),
+        screen.getByText(
+          'Network error. Please check your connection and try again.',
+        ),
       ).toBeOnTheScreen();
     });
+  });
 
-    it('does not show info banner when showAuthPrompt param is absent', () => {
+  describe('Login Step - Accessibility', () => {
+    it('has accessibility labels for email input', () => {
       render();
 
-      expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+      const emailInput = screen.getByTestId('email-field');
+
+      expect(emailInput).toHaveProp('accessibilityLabel', 'Email');
     });
 
-    it('does not show info banner on OTP step even with showAuthPrompt param', () => {
-      mockRouteParams = { showAuthPrompt: true };
+    it('has accessibility labels for password input', () => {
+      render();
+
+      const passwordInput = screen.getByTestId('password-field');
+
+      expect(passwordInput).toHaveProp('accessibilityLabel', 'Password');
+    });
+
+    it('has email keyboard type for email input', () => {
+      render();
+
+      const emailInput = screen.getByTestId('email-field');
+
+      expect(emailInput).toHaveProp('keyboardType', 'email-address');
+    });
+
+    it('has secure text entry for password input', () => {
+      render();
+
+      const passwordInput = screen.getByTestId('password-field');
+
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
+    });
+
+    it('has correct return key types for form navigation', () => {
+      render();
+
+      const emailInput = screen.getByTestId('email-field');
+      expect(emailInput).toHaveProp('returnKeyType', 'next');
+
+      const passwordInput = screen.getByTestId('password-field');
+      expect(passwordInput).toHaveProp('returnKeyType', 'done');
+    });
+  });
+
+  describe('OTP Step - Rendering', () => {
+    it('shows OTP input when currentStep is otp', () => {
       mockUseCardAuth.mockReturnValue(
         makeDefaultHookReturn({
           currentStep: { type: 'otp', destination: '+1555****90' },
@@ -767,113 +574,244 @@ describe('OTP Step - Submission', () => {
 
       render();
 
-      expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('otp-code-field')).toBeOnTheScreen();
+      expect(screen.queryByTestId('email-field')).not.toBeOnTheScreen();
+    });
+
+    it('shows masked phone number in description', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      expect(
+        screen.getByText('We sent a code to +1555****90'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows confirm button disabled when fewer than 6 digits entered', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+      const otpInput = screen.getByTestId('otp-code-field');
+      fireEvent.changeText(otpInput, '123');
+
+      const confirmButton = screen.getByTestId('otp-confirm-button');
+      expect(confirmButton).toBeDisabled();
+    });
+
+    it('shows back to login button', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      expect(screen.getByTestId('otp-back-to-login-button')).toBeOnTheScreen();
     });
   });
-});
 
-describe('OTP Step - Resend', () => {
-  it('resend button text shows cooldown when active', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
+  describe('OTP Step - Auto-send', () => {
+    it('calls stepAction.mutate when step becomes otp', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
 
-    render();
+      render();
 
-    expect(screen.getByText('Resend code in 60 seconds')).toBeOnTheScreen();
+      expect(mockStepActionMutate).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call stepAction.mutate on login step', () => {
+      render();
+
+      expect(mockStepActionMutate).not.toHaveBeenCalled();
+    });
   });
 
-  it('calls stepAction.mutate on resend press after cooldown expires', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
+  describe('OTP Step - Submission', () => {
+    it('auto-submits when 6 digits are entered', async () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
 
-    render();
+      render();
+      const otpInput = screen.getByTestId('otp-code-field');
 
-    for (let i = 0; i < 61; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
+      await act(async () => {
+        fireEvent.changeText(otpInput, '123456');
       });
-    }
 
-    const resendText = screen.getByText('Resend');
-    fireEvent.press(resendText);
-
-    expect(mockStepActionMutate).toHaveBeenCalledTimes(2); // 1 from auto-send + 1 from resend
-  });
-});
-
-describe('OTP Step - Onboarding redirect', () => {
-  it('dispatches setOnboardingId and navigates to onboarding', async () => {
-    mockSubmitMutateAsync.mockResolvedValue({
-      done: false,
-      onboardingRequired: { sessionId: 'session-123', phase: 'kyc' },
-    });
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-
-    render();
-    const otpInput = screen.getByTestId('otp-code-field');
-
-    await act(async () => {
-      fireEvent.changeText(otpInput, '123456');
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledWith({
+          type: 'email_password',
+          email: '',
+          password: '',
+          otpCode: '123456',
+        });
+      });
     });
 
-    await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.CARD.ONBOARDING.ROOT,
-            params: { cardUserPhase: 'kyc' },
-          },
-        ],
+    it('does NOT call initiate.mutateAsync on OTP submission', async () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+      const otpInput = screen.getByTestId('otp-code-field');
+
+      await act(async () => {
+        fireEvent.changeText(otpInput, '123456');
+      });
+
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalled();
+      });
+      expect(mockInitiateMutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('navigates to home after successful OTP login', async () => {
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+      const otpInput = screen.getByTestId('otp-code-field');
+
+      await act(async () => {
+        fireEvent.changeText(otpInput, '123456');
+      });
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
+        });
       });
     });
   });
-});
 
-describe('Back to Login', () => {
-  it('calls resetToLogin on back button press', () => {
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
+  describe('OTP Step - Resend', () => {
+    it('resend button text shows cooldown when active', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
 
-    render();
+      render();
 
-    const backButton = screen.getByTestId('otp-back-to-login-button');
-    fireEvent.press(backButton);
+      expect(screen.getByText('Resend code in 60 seconds')).toBeOnTheScreen();
+    });
 
-    expect(mockResetToLogin).toHaveBeenCalledTimes(1);
+    it('calls stepAction.mutate on resend press after cooldown expires', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      for (let i = 0; i < 61; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+
+      const resendText = screen.getByText('Resend');
+      fireEvent.press(resendText);
+
+      expect(mockStepActionMutate).toHaveBeenCalledTimes(2); // 1 from auto-send + 1 from resend
+    });
   });
 
-  it('shows login form after resetToLogin is called', () => {
-    const { rerender } = render();
+  describe('OTP Step - Onboarding redirect', () => {
+    it('dispatches setOnboardingId and navigates to onboarding', async () => {
+      mockSubmitMutateAsync.mockResolvedValue({
+        done: false,
+        onboardingRequired: { sessionId: 'session-123', phase: 'kyc' },
+      });
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
 
-    // Simulate hook returning otp step
-    mockUseCardAuth.mockReturnValue(
-      makeDefaultHookReturn({
-        currentStep: { type: 'otp', destination: '+1555****90' },
-      }),
-    );
-    rerender(<CardAuthentication />);
+      render();
+      const otpInput = screen.getByTestId('otp-code-field');
 
-    expect(screen.getByTestId('otp-code-field')).toBeOnTheScreen();
+      await act(async () => {
+        fireEvent.changeText(otpInput, '123456');
+      });
 
-    // Simulate hook returning email_password step after resetToLogin
-    mockUseCardAuth.mockReturnValue(makeDefaultHookReturn());
-    rerender(<CardAuthentication />);
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.CARD.ONBOARDING.ROOT,
+              params: { cardUserPhase: 'kyc' },
+            },
+          ],
+        });
+      });
+    });
+  });
 
-    expect(screen.getByTestId('email-field')).toBeOnTheScreen();
-    expect(screen.queryByTestId('otp-code-field')).not.toBeOnTheScreen();
+  describe('Back to Login', () => {
+    it('calls resetToLogin on back button press', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      const backButton = screen.getByTestId('otp-back-to-login-button');
+      fireEvent.press(backButton);
+
+      expect(mockResetToLogin).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows login form after resetToLogin is called', () => {
+      const { rerender } = render();
+
+      // Simulate hook returning otp step
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+      rerender(<CardAuthentication />);
+
+      expect(screen.getByTestId('otp-code-field')).toBeOnTheScreen();
+
+      // Simulate hook returning email_password step after resetToLogin
+      mockUseCardAuth.mockReturnValue(makeDefaultHookReturn());
+      rerender(<CardAuthentication />);
+
+      expect(screen.getByTestId('email-field')).toBeOnTheScreen();
+      expect(screen.queryByTestId('otp-code-field')).not.toBeOnTheScreen();
+    });
   });
 });

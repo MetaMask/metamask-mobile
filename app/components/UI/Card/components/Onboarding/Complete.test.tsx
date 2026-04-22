@@ -317,7 +317,7 @@ describe('Complete Component', () => {
     it('is not disabled', () => {
       const { getByTestId } = render(<Complete />);
       const button = getByTestId('complete-confirm-button');
-      expect(button).toBeEnabled();
+      expect(button.props.disabled).toBeFalsy();
     });
 
     it('dispatches replace action to card home when pressed', async () => {
@@ -533,7 +533,7 @@ describe('Complete Component', () => {
 
       // Verify the component is ready for user interaction
       const button = getByTestId('complete-confirm-button');
-      expect(button).toBeEnabled();
+      expect(button.props.disabled).toBeFalsy();
 
       // Verify successful completion leads to proper navigation
       fireEvent.press(button);

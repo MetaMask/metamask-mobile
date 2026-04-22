@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { useIsSwapEnabledForPriorityToken } from './useIsSwapEnabledForPriorityToken';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
-import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 
 // Solana mainnet chain ID used in cardNetworkInfos
 const SOLANA_CAIP_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -28,10 +27,6 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/accountsController', () => ({
-  getMemoizedInternalAccountByAddress: jest.fn(),
-}));
-
 describe('useIsSwapEnabledForPriorityToken', () => {
   const mockEvmAccount = {
     address: '0x1234567890123456789012345678901234567890',
@@ -46,10 +41,6 @@ describe('useIsSwapEnabledForPriorityToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (
-      getMemoizedInternalAccountByAddress as unknown as jest.Mock
-    ).mockReturnValue(undefined);
-
     // Default setup: user is authenticated
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectIsCardAuthenticated) {
@@ -57,10 +48,6 @@ describe('useIsSwapEnabledForPriorityToken', () => {
       }
       if (selector === selectSelectedInternalAccountByScope) {
         return mockSelectSelectedInternalAccount;
-      }
-      // Anonymous selectors (e.g. getMemoizedInternalAccountByAddress wrapper)
-      if (typeof selector === 'function') {
-        return selector({});
       }
       return undefined;
     });
@@ -82,9 +69,6 @@ describe('useIsSwapEnabledForPriorityToken', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockSelectSelectedInternalAccount;
         }
-        if (typeof selector === 'function') {
-          return selector({});
-        }
         return undefined;
       });
 
@@ -105,9 +89,6 @@ describe('useIsSwapEnabledForPriorityToken', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockSelectSelectedInternalAccount;
         }
-        if (typeof selector === 'function') {
-          return selector({});
-        }
         return undefined;
       });
 
@@ -118,7 +99,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
       expect(result.current).toBe(true);
     });
 
-    it('returns false when user is authenticated and address is not owned by any account', () => {
+    it('returns false when user is authenticated and addresses do not match', () => {
       mockSelectSelectedInternalAccount.mockImplementation((scope) => {
         if (scope === 'eip155:0') {
           return mockEvmAccount;
@@ -132,9 +113,6 @@ describe('useIsSwapEnabledForPriorityToken', () => {
         }
         if (selector === selectSelectedInternalAccountByScope) {
           return mockSelectSelectedInternalAccount;
-        }
-        if (typeof selector === 'function') {
-          return selector({});
         }
         return undefined;
       });
@@ -253,51 +231,6 @@ describe('useIsSwapEnabledForPriorityToken', () => {
 
       const { result } = renderHook(() =>
         useIsSwapEnabledForPriorityToken('solanaaddresshere123456789012345678'),
-      );
-
-      expect(result.current).toBe(false);
-    });
-  });
-
-  describe('Owned but Not Selected Account', () => {
-    it('returns true when address belongs to a non-selected account', () => {
-      const ownedAddress = '0xOwnedButNotSelected00000000000000000000';
-      const mockOwnedAccount = { address: ownedAddress };
-
-      mockSelectSelectedInternalAccount.mockImplementation((scope) => {
-        if (scope === 'eip155:0') {
-          return mockEvmAccount;
-        }
-        return undefined;
-      });
-
-      (
-        getMemoizedInternalAccountByAddress as unknown as jest.Mock
-      ).mockReturnValue(mockOwnedAccount);
-
-      const { result } = renderHook(() =>
-        useIsSwapEnabledForPriorityToken(ownedAddress),
-      );
-
-      expect(result.current).toBe(true);
-    });
-
-    it('returns false when address does not belong to any account', () => {
-      const unknownAddress = '0xUnknownExternalAddress00000000000000000';
-
-      mockSelectSelectedInternalAccount.mockImplementation((scope) => {
-        if (scope === 'eip155:0') {
-          return mockEvmAccount;
-        }
-        return undefined;
-      });
-
-      (
-        getMemoizedInternalAccountByAddress as unknown as jest.Mock
-      ).mockReturnValue(undefined);
-
-      const { result } = renderHook(() =>
-        useIsSwapEnabledForPriorityToken(unknownAddress),
       );
 
       expect(result.current).toBe(false);

@@ -31,6 +31,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "AiDigestController": {
         "marketInsights": {},
+        "marketOverview": null,
       },
       "AnalyticsController": {
         "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
@@ -72,14 +73,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "CardController": {
         "activeProviderId": "baanx",
-        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
-      },
-      "ClientController": {
-        "isUiOpen": false,
       },
       "ComplianceController": {},
       "ConnectivityController": {
@@ -148,7 +145,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "pooled_staking": {
           "isEligible": false,
         },
-        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -691,7 +687,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
         "ondoCampaignActivity": {},
-        "ondoCampaignDeposits": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},
@@ -792,11 +787,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastUpdated": null,
         "signature": null,
       },
-      "SocialController": {
-        "followingAddresses": [],
-        "followingProfileIds": [],
-        "leaderboardEntries": [],
-      },
       "SubjectMetadataController": {
         "subjectMetadata": {},
       },
@@ -867,6 +857,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "AiDigestController": {
         "marketInsights": {},
+        "marketOverview": null,
       },
       "AnalyticsController": {
         "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
@@ -908,14 +899,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "CardController": {
         "activeProviderId": "baanx",
-        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
-      },
-      "ClientController": {
-        "isUiOpen": false,
       },
       "ComplianceController": {},
       "ConnectivityController": {
@@ -984,7 +971,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "pooled_staking": {
           "isEligible": false,
         },
-        "tron_staking": null,
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -1527,7 +1513,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
         "ondoCampaignActivity": {},
-        "ondoCampaignDeposits": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},
@@ -1610,11 +1595,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "databaseUnavailable": false,
         "lastUpdated": null,
         "signature": null,
-      },
-      "SocialController": {
-        "followingAddresses": [],
-        "followingProfileIds": [],
-        "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},

@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import ContractBoxBase from './ContractBoxBase';
 import TEST_ADDRESS from '../../../../constants/address';
 import {
@@ -10,7 +10,6 @@ import {
 } from '../ContractBox/ContractBox.constants';
 import { CONTRACT_BOX_NO_PET_NAME_TEST_ID } from './ContractBoxBase.constants';
 import { ContractBoxBaseProps } from './ContractBoxBase.types';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 describe('Component ContractBoxBase', () => {
   let props: ContractBoxBaseProps;
@@ -25,25 +24,22 @@ describe('Component ContractBoxBase', () => {
     };
   });
 
-  const renderComponent = () =>
-    renderWithProvider(<ContractBoxBase {...props} />, {
-      state: {
-        engine: {
-          backgroundState: {
-            PreferencesController: { isIpfsGatewayEnabled: true },
-          },
-        },
-      },
-    });
+  const renderComponent = () => shallow(<ContractBoxBase {...props} />);
 
-  it('should render correctly', () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
+  it('renders with all props', () => {
+    const component = renderComponent();
+
+    expect(component.exists()).toBe(true);
   });
 
   it('renders the no-pet-name element when contractPetName is undefined', () => {
     props.contractPetName = undefined;
-    renderComponent();
-    expect(screen.getByTestId(CONTRACT_BOX_NO_PET_NAME_TEST_ID)).toBeTruthy();
+
+    const component = renderComponent();
+    const contractPetName = component.findWhere(
+      (node) => node.prop('testID') === CONTRACT_BOX_NO_PET_NAME_TEST_ID,
+    );
+
+    expect(contractPetName.exists()).toBe(true);
   });
 });

@@ -83,7 +83,7 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        undefined,
+        expect.anything(),
       );
     });
 
@@ -183,7 +183,7 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        undefined,
+        expect.anything(),
       );
     });
 
@@ -227,7 +227,7 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK, '0x89'],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        undefined,
+        expect.anything(),
       );
     });
 
@@ -256,7 +256,7 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        undefined,
+        expect.anything(),
       );
     });
 
@@ -287,7 +287,7 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: ['0x89'],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        undefined,
+        expect.anything(),
       );
     });
 
@@ -316,7 +316,7 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        undefined,
+        expect.anything(),
       );
     });
 
@@ -347,7 +347,7 @@ describe('ConfirmationAssetPollingProvider', () => {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK, newCustomChainId],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
-        undefined,
+        expect.anything(),
       );
     });
   });

@@ -150,7 +150,7 @@ describe('Checkout', () => {
     const { getByTestId } = render();
     const closeButton = getByTestId('checkout-close-button');
     act(() => {
-      fireEvent.press(closeButton);
+      closeButton.props.onPress();
     });
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '137',
@@ -166,7 +166,7 @@ describe('Checkout', () => {
     const { getByTestId } = render();
     const closeButton = getByTestId('checkout-close-button');
     act(() => {
-      fireEvent.press(closeButton);
+      closeButton.props.onPress();
     });
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '137',
@@ -190,7 +190,7 @@ describe('Checkout', () => {
     const { getByTestId } = render();
     const closeButton = getByTestId('checkout-close-button');
     act(() => {
-      fireEvent.press(closeButton);
+      closeButton.props.onPress();
     });
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '',

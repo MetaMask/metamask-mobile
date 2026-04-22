@@ -57,12 +57,15 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
 }));
 
 const mockDefaultUnifiedTxActionsReturn = {
+  retryIsOpen: false,
+  retryErrorMsg: '',
   speedUpIsOpen: false,
   cancelIsOpen: false,
   confirmDisabled: false,
   existingTx: null,
   speedUpTxId: null,
   cancelTxId: null,
+  toggleRetry: jest.fn(),
   onSpeedUpAction: jest.fn(),
   onCancelAction: jest.fn(),
   onSpeedUpCancelCompleted: jest.fn(),
@@ -148,6 +151,7 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
   };
 });
 
+jest.mock('../../UI/Transactions/RetryModal', () => 'RetryModal');
 jest.mock(
   '../../UI/Transactions/TransactionsFooter',
   () => 'TransactionsFooter',

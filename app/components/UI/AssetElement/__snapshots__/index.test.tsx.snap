@@ -1,40 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetElement renders correctly 1`] = `
-<View
-  accessibilityState={
-    {
-      "busy": undefined,
-      "checked": undefined,
-      "disabled": false,
-      "expanded": undefined,
-      "selected": undefined,
-    }
-  }
-  accessibilityValue={
-    {
-      "max": undefined,
-      "min": undefined,
-      "now": undefined,
-      "text": undefined,
-    }
-  }
-  accessible={true}
-  collapsable={false}
-  focusable={true}
-  onClick={[Function]}
-  onResponderGrant={[Function]}
-  onResponderMove={[Function]}
-  onResponderRelease={[Function]}
-  onResponderTerminate={[Function]}
-  onResponderTerminationRequest={[Function]}
-  onStartShouldSetResponder={[Function]}
+<TouchableOpacity
+  disabled={false}
+  onLongPress={[Function]}
+  onPress={[Function]}
   style={
     {
       "alignItems": "center",
       "flexDirection": "row",
       "height": 64,
-      "opacity": 1,
     }
   }
   testID="asset-DAI"
@@ -47,5 +22,5 @@ exports[`AssetElement renders correctly 1`] = `
       }
     }
   />
-</View>
+</TouchableOpacity>
 `;

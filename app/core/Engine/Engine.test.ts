@@ -860,7 +860,7 @@ describe('Engine', () => {
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',
-      undefined,
+      expect.anything(),
     );
   });
 
@@ -891,7 +891,7 @@ describe('Engine', () => {
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',
-      undefined,
+      expect.anything(),
     );
   });
 

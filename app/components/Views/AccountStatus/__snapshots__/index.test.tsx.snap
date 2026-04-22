@@ -12,48 +12,74 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
   }
   style={
     {
-      "flex": 1,
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
   testID="account-status-found-container-id"
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-        "paddingTop": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
     }
   >
     <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexGrow": 1,
+        }
+      }
       style={
         {
-          "marginBottom": 0,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
     >
       <View>
         <View
           style={
-            {
-              "alignItems": "flex-start",
-              "flex": 1,
-              "justifyContent": "flex-start",
-              "paddingBottom": 24,
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "flex-start",
+                "paddingBottom": 24,
+              },
+              undefined,
+            ]
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 32,
-                "letterSpacing": 0,
-                "lineHeight": 40,
-              }
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
+                  "fontSize": 32,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                undefined,
+              ]
             }
             testID="account-status-found-title-id"
           >
@@ -66,31 +92,37 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
               {
                 "alignSelf": "center",
                 "height": 302,
-                "marginHorizontal": "auto",
-                "marginVertical": 16,
+                "marginBottom": 16,
+                "marginTop": 16,
                 "width": 343,
               }
             }
           />
           <View
             style={
-              {
-                "flexDirection": "column",
-                "rowGap": 20,
-                "width": "100%",
-              }
+              [
+                {
+                  "display": "flex",
+                  "gap": 20,
+                  "width": "100%",
+                },
+                undefined,
+              ]
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
             >
               A wallet using "test@example.com" already exists. Do you want to try logging in instead?
@@ -101,22 +133,25 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
     </RCTScrollView>
     <View
       style={
-        {
-          "display": "flex",
-          "flexDirection": "column",
-          "marginBottom": 16,
-          "marginTop": "auto",
-          "rowGap": 16,
-        }
+        [
+          {
+            "display": "flex",
+            "gap": 16,
+            "marginBottom": 24,
+            "marginTop": "auto",
+          },
+          undefined,
+        ]
       }
     >
       <View
+        accessibilityLabel="Log in"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -132,7 +167,9 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -140,43 +177,65 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-found-login-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Log in
         </Text>
       </View>
       <View
+        accessibilityLabel="Use a different login method"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -192,7 +251,9 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -200,33 +261,54 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Use a different login method
@@ -249,48 +331,74 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
   }
   style={
     {
-      "flex": 1,
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
   testID="account-status-found-container-id"
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-        "paddingTop": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
     }
   >
     <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexGrow": 1,
+        }
+      }
       style={
         {
-          "marginBottom": 0,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
     >
       <View>
         <View
           style={
-            {
-              "alignItems": "flex-start",
-              "flex": 1,
-              "justifyContent": "flex-start",
-              "paddingBottom": 24,
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "flex-start",
+                "paddingBottom": 24,
+              },
+              undefined,
+            ]
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 32,
-                "letterSpacing": 0,
-                "lineHeight": 40,
-              }
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
+                  "fontSize": 32,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                undefined,
+              ]
             }
             testID="account-status-found-title-id"
           >
@@ -303,31 +411,37 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
               {
                 "alignSelf": "center",
                 "height": 302,
-                "marginHorizontal": "auto",
-                "marginVertical": 16,
+                "marginBottom": 16,
+                "marginTop": 16,
                 "width": 343,
               }
             }
           />
           <View
             style={
-              {
-                "flexDirection": "column",
-                "rowGap": 20,
-                "width": "100%",
-              }
+              [
+                {
+                  "display": "flex",
+                  "gap": 20,
+                  "width": "100%",
+                },
+                undefined,
+              ]
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
             >
               A wallet using "[missing {{accountName}} value]" already exists. Do you want to try logging in instead?
@@ -338,22 +452,25 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
     </RCTScrollView>
     <View
       style={
-        {
-          "display": "flex",
-          "flexDirection": "column",
-          "marginBottom": 16,
-          "marginTop": "auto",
-          "rowGap": 16,
-        }
+        [
+          {
+            "display": "flex",
+            "gap": 16,
+            "marginBottom": 24,
+            "marginTop": "auto",
+          },
+          undefined,
+        ]
       }
     >
       <View
+        accessibilityLabel="Log in"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -369,7 +486,9 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -377,43 +496,65 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-found-login-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Log in
         </Text>
       </View>
       <View
+        accessibilityLabel="Use a different login method"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -429,7 +570,9 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -437,33 +580,54 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Use a different login method
@@ -486,48 +650,74 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
   }
   style={
     {
-      "flex": 1,
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
   testID="account-status-not-found-container-id"
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-        "paddingTop": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
     }
   >
     <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexGrow": 1,
+        }
+      }
       style={
         {
-          "marginBottom": 0,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
     >
       <View>
         <View
           style={
-            {
-              "alignItems": "flex-start",
-              "flex": 1,
-              "justifyContent": "flex-start",
-              "paddingBottom": 24,
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "flex-start",
+                "paddingBottom": 24,
+              },
+              undefined,
+            ]
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 32,
-                "letterSpacing": 0,
-                "lineHeight": 40,
-              }
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
+                  "fontSize": 32,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                undefined,
+              ]
             }
             testID="account-status-not-found-title-id"
           >
@@ -540,31 +730,37 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
               {
                 "alignSelf": "center",
                 "height": 302,
-                "marginHorizontal": "auto",
-                "marginVertical": 16,
+                "marginBottom": 16,
+                "marginTop": 16,
                 "width": 343,
               }
             }
           />
           <View
             style={
-              {
-                "flexDirection": "column",
-                "rowGap": 20,
-                "width": "100%",
-              }
+              [
+                {
+                  "display": "flex",
+                  "gap": 20,
+                  "width": "100%",
+                },
+                undefined,
+              ]
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
             >
               We couldn’t find a wallet for "[missing {{accountName}} value]". Do you want to create a new one with this login?
@@ -575,22 +771,25 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
     </RCTScrollView>
     <View
       style={
-        {
-          "display": "flex",
-          "flexDirection": "column",
-          "marginBottom": 16,
-          "marginTop": "auto",
-          "rowGap": 16,
-        }
+        [
+          {
+            "display": "flex",
+            "gap": 16,
+            "marginBottom": 24,
+            "marginTop": "auto",
+          },
+          undefined,
+        ]
       }
     >
       <View
+        accessibilityLabel="Create a new wallet"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -606,7 +805,9 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -614,43 +815,65 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-not-found-create-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Create a new wallet
         </Text>
       </View>
       <View
+        accessibilityLabel="Use a different login method"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -666,7 +889,9 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -674,33 +899,54 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-not-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Use a different login method
@@ -723,48 +969,74 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
   }
   style={
     {
-      "flex": 1,
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
   testID="account-status-found-container-id"
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-        "paddingTop": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
     }
   >
     <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexGrow": 1,
+        }
+      }
       style={
         {
-          "marginBottom": 0,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
     >
       <View>
         <View
           style={
-            {
-              "alignItems": "flex-start",
-              "flex": 1,
-              "justifyContent": "flex-start",
-              "paddingBottom": 24,
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "flex-start",
+                "paddingBottom": 24,
+              },
+              undefined,
+            ]
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 32,
-                "letterSpacing": 0,
-                "lineHeight": 40,
-              }
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
+                  "fontSize": 32,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                undefined,
+              ]
             }
             testID="account-status-found-title-id"
           >
@@ -777,31 +1049,37 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
               {
                 "alignSelf": "center",
                 "height": 302,
-                "marginHorizontal": "auto",
-                "marginVertical": 16,
+                "marginBottom": 16,
+                "marginTop": 16,
                 "width": 343,
               }
             }
           />
           <View
             style={
-              {
-                "flexDirection": "column",
-                "rowGap": 20,
-                "width": "100%",
-              }
+              [
+                {
+                  "display": "flex",
+                  "gap": 20,
+                  "width": "100%",
+                },
+                undefined,
+              ]
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
             >
               A wallet using "test@example.com" already exists. Do you want to unlock this wallet?
@@ -812,22 +1090,25 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
     </RCTScrollView>
     <View
       style={
-        {
-          "display": "flex",
-          "flexDirection": "column",
-          "marginBottom": 16,
-          "marginTop": "auto",
-          "rowGap": 16,
-        }
+        [
+          {
+            "display": "flex",
+            "gap": 16,
+            "marginBottom": 16,
+            "marginTop": "auto",
+          },
+          undefined,
+        ]
       }
     >
       <View
+        accessibilityLabel="Unlock wallet"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -843,7 +1124,9 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -851,43 +1134,65 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-found-login-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Unlock wallet
         </Text>
       </View>
       <View
+        accessibilityLabel="Use a different login method"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -903,7 +1208,9 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -911,33 +1218,54 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Use a different login method
@@ -960,48 +1288,74 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
   }
   style={
     {
-      "flex": 1,
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
   testID="account-status-found-container-id"
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-        "paddingTop": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
     }
   >
     <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexGrow": 1,
+        }
+      }
       style={
         {
-          "marginBottom": 0,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
     >
       <View>
         <View
           style={
-            {
-              "alignItems": "flex-start",
-              "flex": 1,
-              "justifyContent": "flex-start",
-              "paddingBottom": 24,
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "flex-start",
+                "paddingBottom": 24,
+              },
+              undefined,
+            ]
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 32,
-                "letterSpacing": 0,
-                "lineHeight": 40,
-              }
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
+                  "fontSize": 32,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                undefined,
+              ]
             }
             testID="account-status-found-title-id"
           >
@@ -1014,31 +1368,37 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
               {
                 "alignSelf": "center",
                 "height": 302,
-                "marginHorizontal": "auto",
-                "marginVertical": 16,
+                "marginBottom": 16,
+                "marginTop": 16,
                 "width": 343,
               }
             }
           />
           <View
             style={
-              {
-                "flexDirection": "column",
-                "rowGap": 20,
-                "width": "100%",
-              }
+              [
+                {
+                  "display": "flex",
+                  "gap": 20,
+                  "width": "100%",
+                },
+                undefined,
+              ]
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
             >
               A wallet using "[missing {{accountName}} value]" already exists. Do you want to unlock this wallet?
@@ -1049,22 +1409,25 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
     </RCTScrollView>
     <View
       style={
-        {
-          "display": "flex",
-          "flexDirection": "column",
-          "marginBottom": 16,
-          "marginTop": "auto",
-          "rowGap": 16,
-        }
+        [
+          {
+            "display": "flex",
+            "gap": 16,
+            "marginBottom": 16,
+            "marginTop": "auto",
+          },
+          undefined,
+        ]
       }
     >
       <View
+        accessibilityLabel="Unlock wallet"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -1080,7 +1443,9 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -1088,43 +1453,65 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-found-login-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Unlock wallet
         </Text>
       </View>
       <View
+        accessibilityLabel="Use a different login method"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -1140,7 +1527,9 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -1148,33 +1537,54 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Use a different login method
@@ -1197,48 +1607,74 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
   }
   style={
     {
-      "flex": 1,
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
   testID="account-status-not-found-container-id"
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-        "paddingTop": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
     }
   >
     <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexGrow": 1,
+        }
+      }
       style={
         {
-          "marginBottom": 0,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
     >
       <View>
         <View
           style={
-            {
-              "alignItems": "flex-start",
-              "flex": 1,
-              "justifyContent": "flex-start",
-              "paddingBottom": 24,
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "flex-start",
+                "paddingBottom": 24,
+              },
+              undefined,
+            ]
           }
         >
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 32,
-                "letterSpacing": 0,
-                "lineHeight": 40,
-              }
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
+                  "fontSize": 32,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                undefined,
+              ]
             }
             testID="account-status-not-found-title-id"
           >
@@ -1251,31 +1687,37 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
               {
                 "alignSelf": "center",
                 "height": 302,
-                "marginHorizontal": "auto",
-                "marginVertical": 16,
+                "marginBottom": 16,
+                "marginTop": 16,
                 "width": 343,
               }
             }
           />
           <View
             style={
-              {
-                "flexDirection": "column",
-                "rowGap": 20,
-                "width": "100%",
-              }
+              [
+                {
+                  "display": "flex",
+                  "gap": 20,
+                  "width": "100%",
+                },
+                undefined,
+              ]
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
             >
               We couldn’t find a wallet for "[missing {{accountName}} value]". Do you want to create a new one with this login?
@@ -1286,22 +1728,25 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
     </RCTScrollView>
     <View
       style={
-        {
-          "display": "flex",
-          "flexDirection": "column",
-          "marginBottom": 16,
-          "marginTop": "auto",
-          "rowGap": 16,
-        }
+        [
+          {
+            "display": "flex",
+            "gap": 16,
+            "marginBottom": 16,
+            "marginTop": "auto",
+          },
+          undefined,
+        ]
       }
     >
       <View
+        accessibilityLabel="Create a new wallet"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -1317,7 +1762,9 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -1325,43 +1772,65 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-not-found-create-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Create a new wallet
         </Text>
       </View>
       <View
+        accessibilityLabel="Use a different login method"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -1377,7 +1846,9 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         accessible={true}
         collapsable={false}
         focusable={true}
+        onBlur={[Function]}
         onClick={[Function]}
+        onFocus={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
         onResponderRelease={[Function]}
@@ -1385,33 +1856,54 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="account-status-not-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Use a different login method

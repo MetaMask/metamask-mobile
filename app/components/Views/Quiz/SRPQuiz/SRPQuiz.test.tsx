@@ -13,7 +13,6 @@ import SRPQuiz from './SRPQuiz';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { Linking } from 'react-native';
-import { SRP_DOS_AND_DONTS_URL } from '../../../../constants/urls';
 
 let mockRouteParams: { keyringId?: string } = {};
 
@@ -31,6 +30,10 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({
     params: mockRouteParams,
   }),
+}));
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
 }));
 
 const renderSRPQuiz = (
@@ -120,6 +123,8 @@ describe('SRPQuiz', () => {
     const learnMoreButton = getByText(strings('srp_security_quiz.learn_more'));
     fireEvent.press(learnMoreButton);
 
-    expect(Linking.openURL).toHaveBeenCalledWith(SRP_DOS_AND_DONTS_URL);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/#metamask-secret-recovery-phrase-dos-and-donts',
+    );
   });
 });

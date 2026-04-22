@@ -83,6 +83,16 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    SafeAreaView: ({ children, ...props }: { children?: React.ReactNode }) =>
+      ReactActual.createElement(View, props, children),
+  };
+});
+
 // Mock react-native Image and Dimensions
 jest.mock('react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -330,7 +340,7 @@ describe('KYCPending Component', () => {
 
       const button = getByTestId('kyc-pending-got-it-button');
 
-      expect(button).toBeEnabled();
+      expect(button.props.disabled).toBeFalsy();
     });
   });
 

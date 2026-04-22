@@ -1,4 +1,5 @@
 import Braze from '@braze/react-native-sdk';
+import { Platform } from 'react-native';
 import {
   getBrazeInitialDeeplink,
   subscribeToBrazePushDeeplinks,
@@ -87,7 +88,14 @@ describe('BrazeDeeplinks', () => {
   });
 
   describe('subscribeToBrazePushDeeplinks', () => {
-    it('subscribes to push events and invokes callback with URL', () => {
+    const originalPlatform = Platform.OS;
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', { value: originalPlatform });
+    });
+
+    it('subscribes to push events on Android and invokes callback with URL', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'android' });
       const callback = jest.fn();
 
       subscribeToBrazePushDeeplinks(callback);
@@ -108,7 +116,18 @@ describe('BrazeDeeplinks', () => {
       expect(callback).toHaveBeenCalledWith('https://link.metamask.io/rewards');
     });
 
+    it('returns null on iOS without subscribing', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'ios' });
+      const callback = jest.fn();
+
+      const result = subscribeToBrazePushDeeplinks(callback);
+
+      expect(result).toBeNull();
+      expect(Braze.addListener).not.toHaveBeenCalled();
+    });
+
     it('ignores push_received events (foreground notifications)', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'android' });
       const callback = jest.fn();
 
       subscribeToBrazePushDeeplinks(callback);
@@ -125,6 +144,7 @@ describe('BrazeDeeplinks', () => {
     });
 
     it('ignores silent push notifications', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'android' });
       const callback = jest.fn();
 
       subscribeToBrazePushDeeplinks(callback);
@@ -141,6 +161,7 @@ describe('BrazeDeeplinks', () => {
     });
 
     it('ignores Braze internal push notifications', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'android' });
       const callback = jest.fn();
 
       subscribeToBrazePushDeeplinks(callback);
@@ -157,6 +178,7 @@ describe('BrazeDeeplinks', () => {
     });
 
     it('does not invoke callback when push event has no URL', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'android' });
       const callback = jest.fn();
 
       subscribeToBrazePushDeeplinks(callback);
@@ -172,7 +194,8 @@ describe('BrazeDeeplinks', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    it('returns the EmitterSubscription', () => {
+    it('returns the EmitterSubscription on Android', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'android' });
       const callback = jest.fn();
 
       const result = subscribeToBrazePushDeeplinks(callback);
@@ -181,6 +204,7 @@ describe('BrazeDeeplinks', () => {
     });
 
     it('returns null when addListener throws', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'android' });
       (Braze.addListener as jest.Mock).mockImplementation(() => {
         throw new Error('Listener error');
       });

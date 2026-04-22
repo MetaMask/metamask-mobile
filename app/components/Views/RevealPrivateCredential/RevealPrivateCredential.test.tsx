@@ -204,6 +204,11 @@ jest.mock('../../../util/address', () => ({
   isHardwareAccount: jest.fn().mockReturnValue(false),
 }));
 
+// Mock Linking for URL tests
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock trace utilities
 jest.mock('../../../util/trace', () => ({
   trace: jest.fn(),
@@ -211,86 +216,6 @@ jest.mock('../../../util/trace', () => ({
   TraceName: { RevealSrp: 'RevealSrp' },
   TraceOperation: { RevealPrivateCredential: 'RevealPrivateCredential' },
 }));
-
-// Mock KeyboardAwareScrollView to prevent Animated nativeEventEmitter errors
-// that occur when fireEvent triggers re-renders with native-driven animated
-// scroll components (Animated.forkEvent used internally in the HOC).
-jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const React = require('react');
-  const { View } = require('react-native');
-  return {
-    KeyboardAwareScrollView: ({
-      children,
-      testID,
-      ...rest
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-      [key: string]: unknown;
-    }) => React.createElement(View, { testID, ...rest }, children),
-  };
-});
-
-// Mock ActionView to use plain Pressable buttons instead of TouchableOpacity.
-// TouchableOpacity uses Animated.timing(anim, { useNativeDriver: true }) in
-// componentDidUpdate when the disabled prop changes, which sets anim.__isNative = true.
-// That causes createAnimatedPropsHook's useEffect to call
-// nativeEventEmitter.addListener, which fails in the test environment.
-// Pressable does not use native-driver Animated, so it avoids this issue.
-jest.mock('../../UI/ActionView', () => {
-  const React = require('react');
-  const { View, Pressable, Text } = require('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      children,
-      onCancelPress,
-      onConfirmPress,
-      cancelText,
-      confirmText,
-      showCancelButton,
-      showConfirmButton,
-      confirmDisabled,
-      cancelTestID,
-      confirmTestID,
-      scrollViewTestID,
-    }: {
-      children?: React.ReactNode;
-      onCancelPress?: () => void;
-      onConfirmPress?: () => void;
-      cancelText?: string;
-      confirmText?: string;
-      showCancelButton?: boolean;
-      showConfirmButton?: boolean;
-      confirmDisabled?: boolean;
-      cancelTestID?: string;
-      confirmTestID?: string;
-      scrollViewTestID?: string;
-      [key: string]: unknown;
-    }) =>
-      React.createElement(
-        View,
-        null,
-        React.createElement(View, { testID: scrollViewTestID }, children),
-        showCancelButton &&
-          React.createElement(
-            Pressable,
-            { onPress: onCancelPress, testID: cancelTestID },
-            React.createElement(Text, null, cancelText),
-          ),
-        showConfirmButton &&
-          React.createElement(
-            Pressable,
-            {
-              onPress: !confirmDisabled ? onConfirmPress : undefined,
-              testID: confirmTestID,
-              accessibilityState: { disabled: confirmDisabled },
-            },
-            React.createElement(Text, null, confirmText),
-          ),
-      ),
-  };
-});
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -803,7 +728,7 @@ describe('RevealPrivateCredential', () => {
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
         );
         expect(confirmButton).toBeOnTheScreen();
-        expect(confirmButton).toBeDisabled();
+        expect(confirmButton.props.disabled).toBe(true);
       });
     });
   });

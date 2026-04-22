@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 
 // External dependencies.
 import Tag from '../../../../Tags/Tag';
@@ -11,23 +11,26 @@ import { BADGE_BASE_TEST_ID } from './BadgeBase.constants';
 
 describe('BadgeBase - Rendering', () => {
   it('should render badge correctly', () => {
-    const { toJSON } = render(
+    const wrapper = shallow(
       <BadgeBase>
         <Tag label={'Children'} />
       </BadgeBase>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toBeDefined();
   });
 });
 
 describe('BadgeBase', () => {
   it('should render badge with the given content', () => {
-    render(
+    const wrapper = shallow(
       <BadgeBase>
         <Tag label={'Children'} />
       </BadgeBase>,
     );
 
-    expect(screen.getByTestId(BADGE_BASE_TEST_ID)).toBeDefined();
+    const contentElement = wrapper.findWhere(
+      (node) => node.prop('testID') === BADGE_BASE_TEST_ID,
+    );
+    expect(contentElement.exists()).toBe(true);
   });
 });

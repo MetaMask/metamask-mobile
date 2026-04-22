@@ -348,7 +348,7 @@ describe('ActivityView', () => {
         WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
       );
 
-      expect(filterButton).toBeEnabled();
+      expect(filterButton.props.disabled).toBe(false);
     });
   });
 

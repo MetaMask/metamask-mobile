@@ -9,7 +9,6 @@ let mockCachedUserData: {
   orders: Order[];
   accountState: unknown;
 } | null = null;
-let mockChannelOrdersSnapshot: Order[] | null | undefined;
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -26,7 +25,6 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     orders: {
       subscribe: mockSubscribe,
-      getSnapshot: () => mockChannelOrdersSnapshot,
     },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -51,7 +49,6 @@ describe('usePerpsLiveOrders', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockCachedUserData = null;
-    mockChannelOrdersSnapshot = undefined;
   });
 
   afterEach(() => {
@@ -248,26 +245,6 @@ describe('usePerpsLiveOrders', () => {
   });
 
   describe('initial state from cache', () => {
-    it('seeds orders from the channel snapshot before controller cache', () => {
-      const channelOrders: Order[] = [
-        mockOrder,
-        {
-          ...mockOrder,
-          orderId: 'snapshot-order',
-          symbol: 'SOL-PERP',
-        } as Order,
-      ];
-
-      mockChannelOrdersSnapshot = channelOrders;
-      mockCachedUserData = null;
-      mockSubscribe.mockReturnValue(jest.fn());
-
-      const { result } = renderHook(() => usePerpsLiveOrders());
-
-      expect(result.current.orders).toEqual(channelOrders);
-      expect(result.current.isInitialLoading).toBe(false);
-    });
-
     it('seeds orders from cache when fresh cached data exists', () => {
       const cachedOrders: Order[] = [
         mockOrder,

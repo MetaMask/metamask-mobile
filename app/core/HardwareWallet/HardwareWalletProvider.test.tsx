@@ -480,37 +480,6 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.Disconnected,
         );
       });
-
-      it('clears operationType so retry flow is entered after signing errors', async () => {
-        const { result } = renderWithActions();
-
-        await act(async () => {
-          result.current.actions.showAwaitingConfirmation('message');
-        });
-
-        await act(async () => {
-          result.current.actions.hideAwaitingConfirmation();
-        });
-
-        await act(async () => {
-          result.current.actions.showHardwareWalletError(
-            new Error('Signing failed'),
-          );
-        });
-
-        mockAdapterInstance.resetFlowState.mockClear();
-
-        const internalRetry =
-          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
-        await act(async () => {
-          await internalRetry();
-        });
-
-        expect(mockAdapterInstance.resetFlowState).toHaveBeenCalled();
-        expect(result.current.state.connectionState.status).toBe(
-          ConnectionStatus.Scanning,
-        );
-      });
     });
   });
 
@@ -584,7 +553,7 @@ describe('HardwareWalletProvider', () => {
         expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalled();
       });
 
-      it('enters retry flow instead of closing after a signing error because hideAwaitingConfirmation clears operationType', async () => {
+      it('closes flow instead of retrying after a signing error', async () => {
         const { result } = renderWithActions();
 
         await act(async () => {
@@ -609,7 +578,7 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.ErrorState,
         );
 
-        mockAdapterInstance.resetFlowState.mockClear();
+        mockAdapterInstance.ensureDeviceReady.mockClear();
 
         const internalRetry =
           capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
@@ -617,9 +586,9 @@ describe('HardwareWalletProvider', () => {
           await internalRetry();
         });
 
-        expect(mockAdapterInstance.resetFlowState).toHaveBeenCalled();
+        expect(mockAdapterInstance.ensureDeviceReady).not.toHaveBeenCalled();
         expect(result.current.state.connectionState.status).toBe(
-          ConnectionStatus.Scanning,
+          ConnectionStatus.Disconnected,
         );
       });
     });

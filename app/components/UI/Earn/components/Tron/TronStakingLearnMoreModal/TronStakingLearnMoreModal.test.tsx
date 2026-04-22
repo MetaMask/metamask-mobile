@@ -9,7 +9,6 @@ import {
   createMockEventBuilder,
   createMockUseAnalyticsHook,
 } from '../../../../../../util/test/analyticsMock';
-import { TRON_STAKING_FAQ_URL } from '../../../../../../constants/urls';
 
 const mockNavigate = jest.fn();
 
@@ -186,7 +185,7 @@ describe('TronStakingLearnMoreModal', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: TRON_STAKING_FAQ_URL,
+          url: 'https://support.metamask.io/metamask-portfolio/move-crypto/stake/',
         },
       });
     });

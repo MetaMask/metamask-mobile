@@ -11,20 +11,13 @@ import TabsList from './TabsList';
 import { TabViewProps, TabsListRef } from './TabsList.types';
 
 // Mock InteractionManager
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
-  const interactionManager = {
-    runAfterInteractions: jest.fn((callback) => {
-      // Execute callback immediately for tests
-      callback();
-      return { cancel: jest.fn() };
-    }),
-  };
-  return {
-    __esModule: true,
-    default: interactionManager,
-    ...interactionManager,
-  };
-});
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+  runAfterInteractions: jest.fn((callback) => {
+    // Execute callback immediately for tests
+    callback();
+    return { cancel: jest.fn() };
+  }),
+}));
 
 describe('TabsList', () => {
   beforeEach(() => {

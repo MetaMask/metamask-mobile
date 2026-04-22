@@ -7,7 +7,7 @@ import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
 
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getBridgeStatusControllerMessenger } from '../../messengers/bridge-status-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
 import { bridgeStatusControllerInit } from './bridge-status-controller-init';
@@ -46,7 +46,7 @@ function buildInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
+    ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeStatusControllerMessenger(
       baseControllerMessenger,
     ),
@@ -59,8 +59,8 @@ function buildInitRequestMock(
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getMessengerClient) {
-    requestMock.getMessengerClient = jest
+  if (!initRequestProperties.getController) {
+    requestMock.getController = jest
       .fn()
       .mockReturnValue(buildTransactionControllerMock());
   }
@@ -91,7 +91,7 @@ describe('BridgeStatusController Init', () => {
   it('throws error if TransactionController is not found', () => {
     // Arrange
     const requestMock = buildInitRequestMock({
-      getMessengerClient: jest.fn().mockImplementation(() => {
+      getController: jest.fn().mockImplementation(() => {
         throw new Error('TransactionController not found');
       }),
     });
@@ -200,9 +200,7 @@ describe('BridgeStatusController Init', () => {
         addTransactionBatch: jest.fn().mockResolvedValue(['txId1', 'txId2']),
       });
       const requestMock = buildInitRequestMock({
-        getMessengerClient: jest
-          .fn()
-          .mockReturnValue(mockTransactionController),
+        getController: jest.fn().mockReturnValue(mockTransactionController),
       });
 
       // Act
@@ -248,16 +246,14 @@ describe('BridgeStatusController Init', () => {
       // Arrange
       const mockTransactionController = buildTransactionControllerMock();
       const requestMock = buildInitRequestMock({
-        getMessengerClient: jest
-          .fn()
-          .mockReturnValue(mockTransactionController),
+        getController: jest.fn().mockReturnValue(mockTransactionController),
       });
 
       // Act
       bridgeStatusControllerInit(requestMock);
 
       // Assert
-      expect(requestMock.getMessengerClient).toHaveBeenCalledWith(
+      expect(requestMock.getController).toHaveBeenCalledWith(
         'TransactionController',
       );
     });

@@ -62,7 +62,7 @@ describe('InputStepper', () => {
       const { getByTestId } = render(<InputStepper {...defaultProps} />);
 
       const input = getByTestId('input-stepper-input');
-      expect(input).toHaveProp('placeholder', '0');
+      expect(input.props.placeholder).toBe('0');
     });
 
     it('input should have autofocus', () => {
@@ -118,7 +118,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      expect(input).toHaveProp('placeholder', 'Enter amount');
+      expect(input.props.placeholder).toBe('Enter amount');
     });
 
     it('applies Android text alignment styles to avoid clipping', () => {
@@ -160,7 +160,7 @@ describe('InputStepper', () => {
       );
 
       const minusButton = getByTestId('input-stepper-minus-button');
-      expect(minusButton).toBeDisabled();
+      expect(minusButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('renders correct style of minus button when enabled', () => {
@@ -197,7 +197,7 @@ describe('InputStepper', () => {
       );
 
       const plusButton = getByTestId('input-stepper-plus-button');
-      expect(plusButton).toBeDisabled();
+      expect(plusButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('renders correct style of plus button when enabled', () => {
@@ -306,7 +306,7 @@ describe('InputStepper', () => {
       );
 
       const minusButton = getByTestId('input-stepper-minus-button');
-      expect(minusButton).toBeDisabled();
+      expect(minusButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('plus button disabled at exact maxAmount', () => {
@@ -315,7 +315,7 @@ describe('InputStepper', () => {
       );
 
       const plusButton = getByTestId('input-stepper-plus-button');
-      expect(plusButton).toBeDisabled();
+      expect(plusButton.props.accessibilityState.disabled).toBe(true);
     });
   });
 

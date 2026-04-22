@@ -46,6 +46,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
+}));
+
 jest.mock('../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
 }));
@@ -165,8 +173,7 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
-        .accessibilityState?.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(true);
   });
 
@@ -200,8 +207,7 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
-        .accessibilityState?.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(true);
   });
 
@@ -218,8 +224,7 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
-        .accessibilityState?.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(true);
   });
 
@@ -239,8 +244,7 @@ describe('Footer', () => {
     });
 
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
-        .accessibilityState?.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(true);
   });
 

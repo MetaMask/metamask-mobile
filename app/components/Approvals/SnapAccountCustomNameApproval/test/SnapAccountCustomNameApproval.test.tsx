@@ -203,7 +203,7 @@ describe('SnapAccountCustomNameApproval', () => {
     expect(getByText('This account name already exists')).toBeDefined();
 
     const addButton = getByTestId(SNAP_ACCOUNT_CUSTOM_NAME_ADD_ACCOUNT_BUTTON);
-    expect(addButton).toBeDisabled();
+    expect(addButton.props.disabled).toBe(true);
   });
 
   it('calls onConfirm with account name when "Add Account" button is pressed and name is not taken', () => {

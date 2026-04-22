@@ -1,5 +1,5 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import {
   PerpsController,
@@ -55,10 +55,8 @@ describe('perps controller init', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create messenger client init request mock
-    initRequestMock = buildMessengerClientInitRequestMock(
-      baseControllerMessenger,
-    );
+    // Create controller init request mock
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
 
     // Mock getState to return proper Redux state structure for feature flags
     // Using Partial since we only need RemoteFeatureFlagController for this test

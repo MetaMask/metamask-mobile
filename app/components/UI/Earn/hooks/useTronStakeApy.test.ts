@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { ChainId } from '@metamask/stake-sdk';
 import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
 import { tronStakingApiService } from '../../Stake/sdk/stakeSdkProvider';
@@ -63,11 +63,11 @@ describe('useTronStakeApy', () => {
     it('fetches Consensys witness data on mount by default', async () => {
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse());
 
-      renderHook(() => useTronStakeApy());
+      const { waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(mockGetWitnesses).toHaveBeenCalledTimes(1);
-      });
+      await waitForNextUpdate();
+
+      expect(mockGetWitnesses).toHaveBeenCalledTimes(1);
     });
 
     it('does not fetch on mount when fetchOnMount is false', () => {
@@ -81,11 +81,11 @@ describe('useTronStakeApy', () => {
     it('uses TRON_MAINNET chainId by default', async () => {
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse());
 
-      renderHook(() => useTronStakeApy());
+      const { waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(mockGetWitnesses).toHaveBeenCalledWith(ChainId.TRON_MAINNET);
-      });
+      await waitForNextUpdate();
+
+      expect(mockGetWitnesses).toHaveBeenCalledWith(ChainId.TRON_MAINNET);
     });
 
     it('uses specified chainId when provided', async () => {
@@ -96,11 +96,13 @@ describe('useTronStakeApy', () => {
         createMockWitnessesResponse([nileWitness]),
       );
 
-      renderHook(() => useTronStakeApy({ chainId: ChainId.TRON_NILE }));
+      const { waitForNextUpdate } = renderHook(() =>
+        useTronStakeApy({ chainId: ChainId.TRON_NILE }),
+      );
 
-      await waitFor(() => {
-        expect(mockGetWitnesses).toHaveBeenCalledWith(ChainId.TRON_NILE);
-      });
+      await waitForNextUpdate();
+
+      expect(mockGetWitnesses).toHaveBeenCalledWith(ChainId.TRON_NILE);
     });
   });
 
@@ -111,11 +113,11 @@ describe('useTronStakeApy', () => {
         createMockWitnessesResponse([witness]),
       );
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.apyDecimal).toBe('5.25');
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.apyDecimal).toBe('5.25');
     });
 
     it('sets apyPercent with truncated rate and percent symbol', async () => {
@@ -124,11 +126,11 @@ describe('useTronStakeApy', () => {
         createMockWitnessesResponse([witness]),
       );
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.apyPercent).toBe('4.56%');
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.apyPercent).toBe('4.56%');
     });
 
     it('returns null APY values when Consensys witness not found', async () => {
@@ -139,22 +141,22 @@ describe('useTronStakeApy', () => {
         createMockWitnessesResponse([otherWitness]),
       );
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.apyDecimal).toBeNull();
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.apyDecimal).toBeNull();
       expect(result.current.apyPercent).toBeNull();
     });
 
     it('returns null APY values when witnesses data is empty', async () => {
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse([]));
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.apyDecimal).toBeNull();
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.apyDecimal).toBeNull();
       expect(result.current.apyPercent).toBeNull();
     });
   });
@@ -164,31 +166,31 @@ describe('useTronStakeApy', () => {
       const errorMessage = 'Network request failed';
       mockGetWitnesses.mockRejectedValue(new Error(errorMessage));
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.errorMessage).toBe(errorMessage);
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.errorMessage).toBe(errorMessage);
     });
 
     it('sets errorMessage to default when non-Error is thrown', async () => {
       mockGetWitnesses.mockRejectedValue('string error');
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.errorMessage).toBe('Unknown error occurred');
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.errorMessage).toBe('Unknown error occurred');
     });
 
     it('clears APY values when error occurs', async () => {
       mockGetWitnesses.mockRejectedValue(new Error('API Error'));
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.apyDecimal).toBeNull();
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.apyDecimal).toBeNull();
       expect(result.current.apyPercent).toBeNull();
     });
   });
@@ -217,21 +219,21 @@ describe('useTronStakeApy', () => {
     it('sets isLoading false after successful fetch', async () => {
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse());
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.fetchStatus).toBe(FetchStatus.Fetched);
     });
 
     it('sets isLoading false after failed fetch', async () => {
       mockGetWitnesses.mockRejectedValue(new Error('API Error'));
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.fetchStatus).toBe(FetchStatus.Error);
     });
   });
 
@@ -239,11 +241,11 @@ describe('useTronStakeApy', () => {
     it('clears APY values before refetching', async () => {
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse());
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.apyDecimal).toBe('4.56');
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.apyDecimal).toBe('4.56');
 
       let resolveSecondCall: (
         value: ReturnType<typeof createMockWitnessesResponse>,
@@ -270,11 +272,11 @@ describe('useTronStakeApy', () => {
     it('clears errorMessage before refetching', async () => {
       mockGetWitnesses.mockRejectedValue(new Error('Initial error'));
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(result.current.errorMessage).toBe('Initial error');
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.errorMessage).toBe('Initial error');
 
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse());
 
@@ -288,11 +290,11 @@ describe('useTronStakeApy', () => {
     it('triggers new API call', async () => {
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse());
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
-      await waitFor(() => {
-        expect(mockGetWitnesses).toHaveBeenCalledTimes(1);
-      });
+      await waitForNextUpdate();
+
+      expect(mockGetWitnesses).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         await result.current.refetch();

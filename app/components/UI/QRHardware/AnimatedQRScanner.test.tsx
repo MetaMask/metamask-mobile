@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor, act, fireEvent } from '@testing-library/react-native';
+import { render, waitFor, act } from '@testing-library/react-native';
 import { AppState, AppStateStatus, Linking } from 'react-native';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
@@ -676,7 +676,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       expect(getByTestId('open-settings-button')).toBeOnTheScreen();
 
       await act(async () => {
-        fireEvent.press(getByTestId('open-settings-button'));
+        getByTestId('open-settings-button').props.onPress();
       });
       expect(openSettingsSpy).toHaveBeenCalledTimes(1);
 
@@ -926,7 +926,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       );
     });
 
-    it('does not throw error when pauseQRCode is not provided', () => {
+    it('does not throw error when pauseQRCode is not provided', async () => {
       const propsWithoutPauseHidden = {
         ...defaultProps,
         pauseQRCode: undefined,

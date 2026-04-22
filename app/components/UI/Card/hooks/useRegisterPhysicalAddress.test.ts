@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useCardSDK, ICardSDK } from '../sdk';
 import {
   RegisterPhysicalAddressRequest,
@@ -93,13 +93,13 @@ describe('useRegisterPhysicalAddress', () => {
 
       const { result } = renderHook(() => useRegisterPhysicalAddress());
 
-      await act(async () => {
-        try {
+      try {
+        await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
-        } catch {
-          // Expected to throw
-        }
-      });
+        });
+      } catch (error) {
+        // Expected to throw
+      }
 
       expect(mockRegisterPhysicalAddress).toHaveBeenCalledWith({
         ...mockAddressRequest,
@@ -175,13 +175,13 @@ describe('useRegisterPhysicalAddress', () => {
 
       const { result } = renderHook(() => useRegisterPhysicalAddress());
 
-      await act(async () => {
-        try {
+      try {
+        await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
-        } catch {
-          // Expected to throw
-        }
-      });
+        });
+      } catch (error) {
+        // Expected to throw
+      }
 
       expect(mockRegisterPhysicalAddress).toHaveBeenCalledWith({
         ...mockAddressRequest,
@@ -203,13 +203,13 @@ describe('useRegisterPhysicalAddress', () => {
 
       const { result } = renderHook(() => useRegisterPhysicalAddress());
 
-      await act(async () => {
-        try {
+      try {
+        await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
-        } catch {
-          // Expected to throw
-        }
-      });
+        });
+      } catch (error) {
+        // Expected to throw
+      }
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(networkError);
       expect(result.current.isLoading).toBe(false);
@@ -228,13 +228,13 @@ describe('useRegisterPhysicalAddress', () => {
 
       const { result } = renderHook(() => useRegisterPhysicalAddress());
 
-      await act(async () => {
-        try {
+      try {
+        await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
-        } catch {
-          // Expected to throw
-        }
-      });
+        });
+      } catch (error) {
+        // Expected to throw
+      }
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(genericError);
       expect(result.current.isLoading).toBe(false);
@@ -292,13 +292,13 @@ describe('useRegisterPhysicalAddress', () => {
       const { result } = renderHook(() => useRegisterPhysicalAddress());
 
       // First call should fail
-      await act(async () => {
-        try {
+      try {
+        await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
-        } catch {
-          // Expected to throw
-        }
-      });
+        });
+      } catch (error) {
+        // Expected to throw
+      }
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Invalid address');
@@ -328,13 +328,13 @@ describe('useRegisterPhysicalAddress', () => {
       const { result } = renderHook(() => useRegisterPhysicalAddress());
 
       // Trigger error
-      await act(async () => {
-        try {
+      try {
+        await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
-        } catch {
-          // Expected to throw
-        }
-      });
+        });
+      } catch (err) {
+        // Expected to throw
+      }
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Invalid address');
@@ -400,13 +400,13 @@ describe('useRegisterPhysicalAddress', () => {
       const { result } = renderHook(() => useRegisterPhysicalAddress());
 
       // Trigger error
-      await act(async () => {
-        try {
+      try {
+        await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
-        } catch {
-          // Expected to throw
-        }
-      });
+        });
+      } catch (err) {
+        // Expected to throw
+      }
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Invalid address');

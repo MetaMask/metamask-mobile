@@ -1,64 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
-
-// FlashList v2 jestSetup is broken (RecyclerView not exported from main index).
-// Provide a simple mock that renders items directly.
-jest.mock('@shopify/flash-list', () => {
-  const ReactMock = jest.requireActual('react');
-  const { View, ScrollView } = jest.requireActual('react-native');
-  const actual = jest.requireActual('@shopify/flash-list');
-
-  const MockFlashList = ReactMock.forwardRef(
-    (
-      props: {
-        data: unknown[];
-        renderItem: (info: {
-          item: unknown;
-          index: number;
-        }) => React.ReactElement;
-        keyExtractor: (item: unknown, index: number) => string;
-        ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
-      },
-      ref: React.ForwardedRef<unknown>,
-    ) => {
-      const { data, renderItem, keyExtractor, ListEmptyComponent } = props;
-      ReactMock.useImperativeHandle(ref, () => ({
-        scrollToIndex: jest.fn(),
-        scrollToOffset: jest.fn(),
-      }));
-      if (!data || data.length === 0) {
-        return ListEmptyComponent
-          ? ReactMock.createElement(ListEmptyComponent)
-          : null;
-      }
-      return ReactMock.createElement(
-        View,
-        null,
-        data.map((item: unknown, index: number) => {
-          const key = keyExtractor ? keyExtractor(item, index) : String(index);
-          return ReactMock.createElement(
-            ReactMock.Fragment,
-            { key },
-            renderItem({ item, index }),
-          );
-        }),
-      );
-    },
-  );
-
-  return {
-    ...actual,
-    FlashList: MockFlashList,
-  };
-});
-
-jest.mock('react-native-gesture-handler', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...jest.requireActual('react-native-gesture-handler'),
-    ScrollView: RN.ScrollView,
-  };
-});
+import '@shopify/flash-list/jestSetup';
 import {
   AccountGroupObject,
   AccountWalletObject,
@@ -893,9 +835,7 @@ describe('MultichainAccountSelectorList', () => {
         const externalRowButton = getByTestId(
           'external-account-cell-touchable',
         );
-        await act(async () => {
-          fireEvent.press(externalRowButton);
-        });
+        fireEvent.press(externalRowButton);
         expect(mockOnSelectExternalAccount).toHaveBeenCalledWith(
           testCase.input,
         );
@@ -1015,9 +955,7 @@ describe('MultichainAccountSelectorList', () => {
 
       expect(queryByText('Account 2')).toBeTruthy();
     });
-    // Skipped: MockFlashList renders all items (no virtualization), so visibility assertions are not meaningful
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('renders a far selected account in the initial viewport when provided as initial selection', async () => {
+    it('renders a far selected account in the initial viewport when provided as initial selection', async () => {
       // Create many accounts so the selected one is far enough to require initialScrollIndex
       const total = 60;
       const accounts = Array.from({ length: total }, (_, i) =>
@@ -1337,7 +1275,7 @@ describe('MultichainAccountSelectorList', () => {
       expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
     });
 
-    it('calls onSelectAccount when checkbox is pressed', async () => {
+    it('calls onSelectAccount when checkbox is pressed', () => {
       const account1 = createMockAccountGroup(
         'keyring:wallet1/group1',
         'Account 1',
@@ -1359,9 +1297,7 @@ describe('MultichainAccountSelectorList', () => {
       const checkboxElements = getAllByTestId(
         `account-list-cell-checkbox-${account1.id}`,
       );
-      await act(async () => {
-        fireEvent.press(checkboxElements[0]);
-      });
+      fireEvent.press(checkboxElements[0]);
 
       expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
     });

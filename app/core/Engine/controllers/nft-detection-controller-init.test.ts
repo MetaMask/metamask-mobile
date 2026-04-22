@@ -1,4 +1,4 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getNftDetectionControllerMessenger } from '../messengers/nft-detection-controller-messenger';
 import { MessengerClientInitRequest } from '../types';
@@ -19,13 +19,13 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getNftDetectionControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getMessengerClient.mockImplementation((name: string) => {
+  requestMock.getController.mockImplementation((name: string) => {
     if (name === 'NftController') {
       return {
         addNfts: jest.fn(),

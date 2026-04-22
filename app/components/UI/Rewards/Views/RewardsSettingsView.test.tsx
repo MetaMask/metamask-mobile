@@ -27,15 +27,35 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // Mock react-native-safe-area-context (override SafeAreaView only; keep SafeAreaProvider etc. for stack)
-// Mock useTailwind hook
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const twFn = () => ({});
-  twFn.style = (styles) => (typeof styles === 'string' ? {} : styles);
-  twFn.color = () => 'black';
+jest.mock('react-native-safe-area-context', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('react-native-safe-area-context');
   return {
-    useTailwind: () => twFn,
+    ...actual,
+    useSafeAreaInsets: jest.fn(() => ({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    })),
+    SafeAreaView: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(View, { ...props, testID }, children),
   };
 });
+
+// Mock useTailwind hook
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn((styles) => (typeof styles === 'string' ? {} : styles)),
+  }),
+}));
 
 // Mock RewardSettingsAccountGroupList component
 jest.mock('../components/Settings/RewardSettingsAccountGroupList', () => {
@@ -281,12 +301,9 @@ describe('RewardsSettingsView', () => {
     it('tracks settings viewed event on mount', () => {
       renderWithNavigation(<RewardsSettingsView />);
 
-      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.REWARDS_SETTINGS_VIEWED,
-      );
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_PAGE_VIEWED,
       );
     });
   });

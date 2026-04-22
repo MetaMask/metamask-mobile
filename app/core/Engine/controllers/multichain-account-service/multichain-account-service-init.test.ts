@@ -5,7 +5,7 @@ import {
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
 } from '@metamask/multichain-account-service';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import { multichainAccountServiceInit } from './multichain-account-service-init';
 import {
@@ -55,9 +55,7 @@ function getInitRequestMock({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
-  const baseMock = buildMessengerClientInitRequestMock(
-    extendedControllerMessenger,
-  );
+  const baseMock = buildControllerInitRequestMock(extendedControllerMessenger);
 
   return {
     ...baseMock,

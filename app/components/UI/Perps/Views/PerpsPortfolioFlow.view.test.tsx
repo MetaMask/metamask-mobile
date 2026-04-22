@@ -11,7 +11,7 @@
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
-import { cleanup, act, fireEvent, screen } from '@testing-library/react-native';
+import { cleanup, fireEvent, screen } from '@testing-library/react-native';
 import { PerpsHomeSectionTestIds } from '../components/PerpsHomeSection/PerpsHomeSection.testIds';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -82,13 +82,11 @@ describe('Portfolio & Account Flow', () => {
     expect(
       screen.getByTestId(PerpsTabViewSelectorsIDs.BALANCE_BUTTON),
     ).toBeOnTheScreen();
-    // SCROLL_VIEW testID is not rendered when isScrollEnabled=false (ConditionalScrollView renders a Fragment)
+    expect(
+      screen.getByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
+    ).toBeOnTheScreen();
 
     // ── PHASE 2: "See all perps" navigates to market list ────────────────
-    await act(async () => {
-      cleanup();
-    });
-    renderPerpsTabView({ extraRoutes: [{ name: MARKET_LIST_ROUTE }] });
     cleanup();
     renderPerpsTabView({
       extraRoutes: [{ name: MARKET_LIST_ROUTE, mount: 'perps-root' }],
@@ -102,9 +100,7 @@ describe('Portfolio & Account Flow', () => {
     expect(screen.getByTestId(`route-${MARKET_LIST_ROUTE}`)).toBeOnTheScreen();
 
     // ── PHASE 3: Watchlist section with favourited markets ───────────────
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsTabView({
       overrides: {
         engine: {
@@ -144,9 +140,7 @@ describe('Portfolio & Account Flow', () => {
     expect(screen.getAllByText('ETH').length).toBeGreaterThan(0);
 
     // ── PHASE 4: Geo-restricted user presses "Close all" on tab view ─────
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsTabView({
       overrides: {
         engine: {
@@ -167,9 +161,7 @@ describe('Portfolio & Account Flow', () => {
 
     // ── PHASE 5: Home view — header, positions, and geo-restriction ──────
     // Trader navigates to home: header and back button present
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsHomeView();
     expect(await screen.findByTestId('perps-home')).toBeOnTheScreen();
     expect(
@@ -177,18 +169,14 @@ describe('Portfolio & Account Flow', () => {
     ).toBeOnTheScreen();
 
     // Home with positions: positions section title visible
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsHomeView({
       streamOverrides: { positions: [defaultPositionForViews] },
     });
     expect(await screen.findByText(POSITIONS)).toBeOnTheScreen();
 
     // Geo-restricted user: pressing positions shows geo block tooltip
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsHomeView({
       overrides: {
         engine: {
@@ -206,9 +194,7 @@ describe('Portfolio & Account Flow', () => {
     ).toBeOnTheScreen();
 
     // Eligible user: header and positions section both visible
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsHomeView({
       overrides: {
         engine: {
@@ -222,9 +208,7 @@ describe('Portfolio & Account Flow', () => {
 
     // ── PHASE 6: Positions view — empty vs populated ─────────────────────
     // No positions: back button, account summary, empty state message
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsPositionsView({ streamOverrides: { positions: [] } });
     await screen.findByTestId(
       PerpsPositionsViewSelectorsIDs.BACK_BUTTON,
@@ -241,9 +225,7 @@ describe('Portfolio & Account Flow', () => {
     ).not.toBeOnTheScreen();
 
     // With positions: positions section appears, empty state hidden
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsPositionsView({
       streamOverrides: { positions: [defaultPositionForViews] },
     });
@@ -262,9 +244,7 @@ describe('Portfolio & Account Flow', () => {
     expect(screen.queryByText(EMPTY_TITLE)).not.toBeOnTheScreen();
 
     // ── PHASE 7: First-time empty state — start trading ──────────────────
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     const onAction = jest.fn();
     const EmptyScreen = () => <PerpsEmptyState onAction={onAction} />;
     renderPerpsView(
@@ -281,9 +261,7 @@ describe('Portfolio & Account Flow', () => {
     expect(screen.getByText(FIRST_TIME_DESCRIPTION)).toBeOnTheScreen();
 
     // ── PHASE 8: Adjust margin action selection ──────────────────────────
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsSelectAdjustMarginActionView();
     expect(
       await screen.findByText(strings('perps.adjust_margin.title')),
@@ -300,9 +278,7 @@ describe('Portfolio & Account Flow', () => {
     ).toBeOnTheScreen();
     // Trader presses Add Margin and Remove Margin
     fireEvent.press(screen.getByText(ADD_MARGIN));
-    await act(async () => {
-      cleanup();
-    });
+    cleanup();
     renderPerpsSelectAdjustMarginActionView();
     fireEvent.press(await screen.findByText(REDUCE_MARGIN));
   });

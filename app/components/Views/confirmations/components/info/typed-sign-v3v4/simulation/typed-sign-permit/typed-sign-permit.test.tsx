@@ -19,6 +19,14 @@ jest.mock('../../../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
+}));
+
 describe('PermitSimulation', () => {
   it('renders for Permit', async () => {
     const { getByText } = renderWithProvider(<PermitSimulation />, {

@@ -76,6 +76,6 @@ describe('SelectField', () => {
     );
 
     const touchable = getByTestId('select-field');
-    expect(touchable).toBeDisabled();
+    expect(touchable.props.disabled).toBe(true);
   });
 });

@@ -1,24 +1,38 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getEarnControllerMessenger } from '../messengers/earn-controller-messenger';
+import {
+  getEarnControllerMessenger,
+  EarnControllerInitMessenger,
+  getEarnControllerInitMessenger,
+} from '../messengers/earn-controller-messenger';
+import { MessengerClientInitRequest } from '../types';
 import { earnControllerInit } from './earn-controller-init';
-import { EarnController } from '@metamask/earn-controller';
+import {
+  EarnController,
+  type EarnControllerMessenger,
+} from '@metamask/earn-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/earn-controller');
 
-function getInitRequestMock() {
+function getInitRequestMock(): jest.Mocked<
+  MessengerClientInitRequest<
+    EarnControllerMessenger,
+    EarnControllerInitMessenger
+  >
+> {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getEarnControllerMessenger(baseMessenger),
+    initMessenger: getEarnControllerInitMessenger(baseMessenger),
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getMessengerClient.mockImplementation((name) => {
+  requestMock.getController.mockImplementation((name) => {
     if (name === 'TransactionController') {
       return {
         addTransaction: jest.fn(),
@@ -27,6 +41,11 @@ function getInitRequestMock() {
 
     throw new Error(`Controller "${name}" not found.`);
   });
+
+  // @ts-expect-error: Partial mock.
+  baseMessenger.registerActionHandler('NetworkController:getState', () => ({
+    selectedNetworkClientId: 'mainnet',
+  }));
 
   return requestMock;
 }
@@ -44,11 +63,7 @@ describe('EarnControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       addTransactionFn: expect.any(Function),
+      selectedNetworkClientId: 'mainnet',
     });
-  });
-
-  it('calls init() on the controller after construction', () => {
-    const { controller } = earnControllerInit(getInitRequestMock());
-    expect(controller.init).toHaveBeenCalledTimes(1);
   });
 });

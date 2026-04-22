@@ -1,4 +1,4 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getGeolocationApiServiceMessenger } from '../messengers/geolocation-api-service-messenger';
 import type { MessengerClientInitRequest } from '../types';
@@ -28,7 +28,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   return {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getGeolocationApiServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };

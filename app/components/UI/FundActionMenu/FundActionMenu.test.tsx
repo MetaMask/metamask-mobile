@@ -3,6 +3,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import mockSafeAreaContext from 'react-native-safe-area-context/jest/mock';
 
 // External dependencies.
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -20,6 +21,7 @@ import { trace, TraceName } from '../../../util/trace';
 import FundActionMenu from './FundActionMenu';
 import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
+jest.mock('react-native-safe-area-context', () => mockSafeAreaContext);
 // Mock dependencies
 jest.mock('@react-navigation/native');
 jest.mock('react-redux', () => ({
@@ -228,7 +230,7 @@ describe('FundActionMenu', () => {
         WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
       );
       expect(sellButton).toBeOnTheScreen();
-      expect(sellButton).toBeDisabled();
+      expect(sellButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('renders all buttons when all features are enabled', () => {
@@ -306,7 +308,7 @@ describe('FundActionMenu', () => {
 
       fireEvent.press(sellButton);
 
-      expect(sellButton).toBeDisabled();
+      expect(sellButton.props.accessibilityState.disabled).toBe(true);
     });
 
     it('calls buy action when unified buy button is pressed and useRampsUnifiedV1Enabled is true', async () => {
@@ -669,7 +671,7 @@ describe('FundActionMenu', () => {
       const sellButton = getByTestId(
         WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
       );
-      expect(sellButton).toBeDisabled();
+      expect(sellButton.props.accessibilityState.disabled).toBe(true);
     });
   });
 });

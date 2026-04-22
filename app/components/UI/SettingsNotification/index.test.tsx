@@ -1,23 +1,23 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import SettingsNotification from './';
 
 describe('SettingsNotification', () => {
   it('should render correctly as warning', () => {
-    const { toJSON } = render(
+    const wrapper = shallow(
       <SettingsNotification isWarning>
         {'this is a warning'}
       </SettingsNotification>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render correctly as notification', () => {
-    const { toJSON } = render(
+    const wrapper = shallow(
       <SettingsNotification isWarning isNotification>
         {'this is a notification'}
       </SettingsNotification>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

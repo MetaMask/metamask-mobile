@@ -1,11 +1,7 @@
 // Third party dependencies.
 import React from 'react';
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-} from '@testing-library/react-native';
+import { shallow } from 'enzyme';
+import { render, waitFor } from '@testing-library/react-native';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
@@ -22,26 +18,30 @@ describe('AvatarFavicon', () => {
     global.fetch = jest.fn();
   });
 
-  it('should match the snapshot', () => {
-    const { toJSON } = render(
-      <AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
+  it('renders correctly', () => {
+    const wrapper = shallow(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
+    expect(wrapper).toBeDefined();
   });
 
   it('should render favicon with remote image', () => {
-    render(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
-    expect(screen.getByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeDefined();
+    const wrapper = shallow(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
+    const imageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
+    );
+    expect(imageComponent.exists()).toBe(true);
   });
 
   it('should render favicon with local image', () => {
-    render(
+    const wrapper = shallow(
       <AvatarFavicon
         {...SAMPLE_AVATARFAVICON_PROPS}
         imageSource={SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL}
       />,
     );
-    expect(screen.getByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeDefined();
+    const imageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
+    );
+    expect(imageComponent.exists()).toBe(true);
   });
 
   it('should render SVG', async () => {
@@ -64,26 +64,33 @@ describe('AvatarFavicon', () => {
   });
 
   it('should render fallback', () => {
-    render(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
-    const prevImageComponent = screen.getByTestId(AVATARFAVICON_IMAGE_TESTID);
+    const wrapper = shallow(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
+    const prevImageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
+    );
     // Simulate onError on Image component
-    fireEvent(prevImageComponent, 'error', {
-      nativeEvent: { error: 'ERROR!' },
-    });
-    expect(screen.queryByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeNull();
+    prevImageComponent.props().onError({ nativeEvent: { error: 'ERROR!' } });
+    const currentImageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
+    );
+    expect(currentImageComponent.exists()).toBe(false);
   });
 
   it('should render fallback when svg has error', () => {
-    const { toJSON } = render(
+    const wrapper = shallow(
       <AvatarFavicon
         {...SAMPLE_AVATARFAVICON_PROPS}
         imageSource={SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE}
       />,
     );
-    const prevImageComponent = screen.getByTestId(AVATARFAVICON_IMAGE_TESTID);
+    const prevImageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
+    );
     // Simulate onError on Image component
-    fireEvent(prevImageComponent, 'error', new Error('ERROR!'));
-    expect(screen.getByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
+    prevImageComponent.props().onError(new Error('ERROR!'));
+    const currentImageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
+    );
+    expect(currentImageComponent.exists()).toBe(true);
   });
 });

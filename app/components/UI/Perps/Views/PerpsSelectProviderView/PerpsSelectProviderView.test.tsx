@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, fireEvent } from '@testing-library/react-native';
+import { render, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
@@ -121,7 +121,7 @@ describe('PerpsSelectProviderView', () => {
     const { getByTestId } = render(<PerpsSelectProviderView />);
 
     act(() => {
-      fireEvent.press(getByTestId('btn-close'));
+      getByTestId('btn-close').props.onPress();
     });
 
     expect(mockGoBack).toHaveBeenCalled();
@@ -131,7 +131,7 @@ describe('PerpsSelectProviderView', () => {
     const { getByTestId } = render(<PerpsSelectProviderView />);
 
     await act(async () => {
-      fireEvent.press(getByTestId('btn-select-option'));
+      getByTestId('btn-select-option').props.onPress();
     });
 
     expect(mockSwitchProvider).toHaveBeenCalledWith('myx');
@@ -151,7 +151,7 @@ describe('PerpsSelectProviderView', () => {
     const { getByTestId } = render(<PerpsSelectProviderView />);
 
     await act(async () => {
-      fireEvent.press(getByTestId('btn-select-option'));
+      getByTestId('btn-select-option').props.onPress();
     });
 
     expect(mockSwitchProvider).not.toHaveBeenCalled();
@@ -172,7 +172,7 @@ describe('PerpsSelectProviderView', () => {
     const { getByTestId } = render(<PerpsSelectProviderView />);
 
     await act(async () => {
-      fireEvent.press(getByTestId('btn-select-option'));
+      getByTestId('btn-select-option').props.onPress();
     });
 
     expect(mockSwitchProvider).not.toHaveBeenCalled();
@@ -189,7 +189,7 @@ describe('PerpsSelectProviderView', () => {
     const { getByTestId } = render(<PerpsSelectProviderView />);
 
     await act(async () => {
-      fireEvent.press(getByTestId('btn-select-option'));
+      getByTestId('btn-select-option').props.onPress();
     });
 
     expect(Logger.error).toHaveBeenCalled();
@@ -215,7 +215,7 @@ describe('PerpsSelectProviderView', () => {
     const { getByTestId } = render(<PerpsSelectProviderView />);
 
     await act(async () => {
-      fireEvent.press(getByTestId('btn-select-option'));
+      getByTestId('btn-select-option').props.onPress();
     });
 
     expect(mockToggleTestnet).toHaveBeenCalled();

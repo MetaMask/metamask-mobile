@@ -32,25 +32,7 @@ exports[`image component renders an SVG image 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             style={
               [
@@ -105,7 +87,7 @@ exports[`image component renders an SVG image 1`] = `
               />
             </RNSVGSvgView>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>
@@ -148,25 +130,7 @@ exports[`image component renders an external image 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             source={
               {
@@ -189,7 +153,7 @@ exports[`image component renders an external image 1`] = `
               ]
             }
           />
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>

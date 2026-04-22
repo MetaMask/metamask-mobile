@@ -453,6 +453,21 @@ describe('App', () => {
     };
 
     beforeAll(() => {
+      jest.mock('react-native-safe-area-context', () => {
+        const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+        const frame = { width: 0, height: 0, x: 0, y: 0 };
+        return {
+          SafeAreaProvider: jest
+            .fn()
+            .mockImplementation(({ children }) => children),
+          SafeAreaConsumer: jest
+            .fn()
+            .mockImplementation(({ children }) => children(inset)),
+          useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+          useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+        };
+      });
+
       // Mock the storage item to simulate existing user and bypass onboarding
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
         if (key === EXISTING_USER) {
@@ -511,7 +526,7 @@ describe('App', () => {
       await waitFor(() => {
         expect(
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
-        ).toBeOnTheScreen();
+        ).toBeTruthy();
       });
     });
 
@@ -534,14 +549,12 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Account Group')).toBeOnTheScreen();
-        expect(getByText('Account name')).toBeOnTheScreen();
+        expect(getByText('Account Group')).toBeTruthy();
+        expect(getByText('Account name')).toBeTruthy();
       });
     });
 
     it('renders the multichain account share address screen when navigated to', async () => {
-      jest.useRealTimers();
-
       const routeState = {
         index: 0,
         routes: [
@@ -560,10 +573,8 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Share address')).toBeOnTheScreen();
+        expect(getByText('Share address')).toBeTruthy();
       });
-
-      jest.useFakeTimers();
     });
   });
 

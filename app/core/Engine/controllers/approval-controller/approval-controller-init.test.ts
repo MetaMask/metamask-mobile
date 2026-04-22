@@ -5,7 +5,7 @@ import {
 import { ApprovalType } from '@metamask/controller-utils';
 
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import { ApprovalControllerInit } from './approval-controller-init';
 import { ApprovalTypes } from '../../../RPCMethods/RPCMethodMiddleware';
@@ -21,7 +21,7 @@ function buildInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   });
   return {
-    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
+    ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger:
       baseControllerMessenger as unknown as ApprovalControllerMessenger,
     ...initRequestProperties,

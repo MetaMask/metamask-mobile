@@ -52,7 +52,7 @@ describe('PredictUnavailableModal', () => {
       expect.objectContaining({
         onDismiss: expect.any(Function),
       }),
-      undefined,
+      expect.any(Object),
     );
   });
 
@@ -87,7 +87,7 @@ describe('PredictUnavailableModal', () => {
 
     expect(PredictUnavailable).toHaveBeenCalledWith(
       expect.any(Object),
-      undefined,
+      expect.any(Object),
     );
   });
 

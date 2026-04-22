@@ -20,6 +20,20 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('react-native-safe-area-context', () => {
+  // using disting digits for mock rects to make sure they are not mixed up
+  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
+  const frame = { width: 5, height: 6, x: 7, y: 8 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -125,11 +139,11 @@ describe('KeyringSnapRemovalWarning', () => {
 
     const continueButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CONTINUE);
     expect(continueButton).toBeTruthy();
-    // Button text verified via queryByText
+    expect(continueButton.props.children[1].props.children).toBe('Continue');
 
     const cancelButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CANCEL);
     expect(cancelButton).toBeTruthy();
-    // Button text verified via queryByText
+    expect(cancelButton.props.children[1].props.children).toBe('Cancel');
 
     const warningBannerTitle = queryByText(
       'Be sure you can access any accounts created by this Snap on your own before removing it',
@@ -163,8 +177,8 @@ describe('KeyringSnapRemovalWarning', () => {
     );
     const continueButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CONTINUE);
     expect(continueButton).toBeTruthy();
-    expect(continueButton).toBeDisabled();
-    // Button text verified via queryByText
+    expect(continueButton.props.disabled).toBe(true);
+    expect(continueButton.props.children[1].props.children).toBe('Remove Snap');
 
     const textInput = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT);
     expect(textInput).toBeTruthy();
@@ -182,14 +196,14 @@ describe('KeyringSnapRemovalWarning', () => {
     );
 
     const continueButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CONTINUE);
-    expect(continueButton).toBeDisabled();
+    expect(continueButton.props.disabled).toBe(true);
 
     const textInput = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT);
     expect(textInput).toBeTruthy();
     fireEvent.changeText(textInput, mockSnapName);
 
     await waitFor(() => {
-      expect(continueButton).toBeEnabled();
+      expect(continueButton.props.disabled).toBe(false);
     });
   });
 
@@ -205,18 +219,18 @@ describe('KeyringSnapRemovalWarning', () => {
     );
 
     const continueButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CONTINUE);
-    expect(continueButton).toBeDisabled();
+    expect(continueButton.props.disabled).toBe(true);
 
     const textInput = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT);
     expect(textInput).toBeTruthy();
     fireEvent.changeText(textInput, 'Wrong snap name');
 
     await waitFor(() => {
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.disabled).toBe(true);
     });
   });
 
-  it('calls onSubmit when confirmed and continue is pressed', () => {
+  it('calls onSubmit when confirmed and continue is pressed', async () => {
     const { getByTestId } = renderWithProvider(
       <KeyringSnapRemovalWarning
         snap={mockSnap}
@@ -311,8 +325,8 @@ describe('KeyringSnapRemovalWarning', () => {
     const textInput = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT);
     fireEvent.changeText(textInput, '');
     const continueButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CONTINUE);
-    expect(continueButton).toBeEnabled();
+    expect(continueButton.props.disabled).toBe(false);
     expect(textInput.props.value).toBe('');
-    // Button text verified via queryByText
+    expect(continueButton.props.children[1].props.children).toBe('Remove Snap');
   });
 });

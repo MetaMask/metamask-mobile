@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
@@ -73,10 +73,8 @@ describe('PerpsMarketRowItem', () => {
     it('renders as a touchable component', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      const rowItem = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
-      );
-      expect(rowItem).toBeOnTheScreen();
+      const touchableElements = screen.root.findAllByType(TouchableOpacity);
+      expect(touchableElements).toHaveLength(1);
     });
   });
 
@@ -88,21 +86,19 @@ describe('PerpsMarketRowItem', () => {
         getPerpsMarketRowItemSelector.tokenLogo('BTC'),
       );
       expect(tokenLogo).toBeOnTheScreen();
-      // data-symbol not available on host elements
+      expect(tokenLogo.props['data-symbol']).toBe('BTC');
     });
   });
 
   describe('Interaction Handling', () => {
-    it('calls onPress callback when pressed', async () => {
+    it('calls onPress callback when pressed', () => {
       const mockOnPress = jest.fn();
       render(
         <PerpsMarketRowItem market={mockMarketData} onPress={mockOnPress} />,
       );
 
-      const rowItem = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
-      );
-      fireEvent.press(rowItem);
+      const touchableOpacity = screen.root.findByType(TouchableOpacity);
+      fireEvent.press(touchableOpacity);
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
       expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
@@ -111,10 +107,8 @@ describe('PerpsMarketRowItem', () => {
     it('does not throw error when onPress is undefined', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      const rowItem = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
-      );
-      expect(() => fireEvent.press(rowItem)).not.toThrow();
+      const touchableOpacity = screen.root.findByType(TouchableOpacity);
+      expect(() => fireEvent.press(touchableOpacity)).not.toThrow();
     });
 
     it('does not throw error when onPress is null', () => {
@@ -122,10 +116,8 @@ describe('PerpsMarketRowItem', () => {
         <PerpsMarketRowItem market={mockMarketData} onPress={undefined} />,
       );
 
-      const rowItem = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
-      );
-      expect(() => fireEvent.press(rowItem)).not.toThrow();
+      const touchableOpacity = screen.root.findByType(TouchableOpacity);
+      expect(() => fireEvent.press(touchableOpacity)).not.toThrow();
     });
   });
 
@@ -240,13 +232,11 @@ describe('PerpsMarketRowItem', () => {
 
   describe('Component Structure', () => {
     it('maintains correct component hierarchy', () => {
-      render(<PerpsMarketRowItem market={mockMarketData} />);
+      const { root } = render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // Should have a TouchableOpacity as root with the correct testID
-      const rowItem = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
-      );
-      expect(rowItem).toBeOnTheScreen();
+      // Should have a TouchableOpacity as root
+      const touchableOpacity = root.findByType(TouchableOpacity);
+      expect(touchableOpacity).toBeTruthy();
     });
 
     it('uses correct testID for avatar', () => {
@@ -271,19 +261,17 @@ describe('PerpsMarketRowItem', () => {
   });
 
   describe('Multiple Press Handling', () => {
-    it('handles multiple rapid presses correctly', async () => {
+    it('handles multiple rapid presses correctly', () => {
       const mockOnPress = jest.fn();
       render(
         <PerpsMarketRowItem market={mockMarketData} onPress={mockOnPress} />,
       );
 
-      const rowItem = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
-      );
+      const touchableOpacity = screen.root.findByType(TouchableOpacity);
 
-      fireEvent.press(rowItem);
-      fireEvent.press(rowItem);
-      fireEvent.press(rowItem);
+      fireEvent.press(touchableOpacity);
+      fireEvent.press(touchableOpacity);
+      fireEvent.press(touchableOpacity);
 
       expect(mockOnPress).toHaveBeenCalledTimes(3);
       expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
@@ -459,7 +447,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('$3,200')).toBeOnTheScreen();
     });
 
-    it('passes updated market data to onPress callback', async () => {
+    it('passes updated market data to onPress callback', () => {
       const mockOnPress = jest.fn();
 
       mockUsePerpsLivePrices.mockReturnValue({
@@ -474,10 +462,8 @@ describe('PerpsMarketRowItem', () => {
         <PerpsMarketRowItem market={mockMarketData} onPress={mockOnPress} />,
       );
 
-      const rowItem = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
-      );
-      fireEvent.press(rowItem);
+      const touchableOpacity = screen.root.findByType(TouchableOpacity);
+      fireEvent.press(touchableOpacity);
 
       // Should pass the updated market data with live prices
       expect(mockOnPress).toHaveBeenCalledTimes(1);
@@ -784,7 +770,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('1.2500% Funding')).toBeOnTheScreen();
     });
 
-    it('passes updated funding rate to onPress callback', async () => {
+    it('passes updated funding rate to onPress callback', () => {
       const mockOnPress = jest.fn();
       const marketWithInitialFundingRate: PerpsMarketData = {
         ...mockMarketData,
@@ -807,10 +793,8 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      const rowItem = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
-      );
-      fireEvent.press(rowItem);
+      const touchableOpacity = screen.root.findByType(TouchableOpacity);
+      fireEvent.press(touchableOpacity);
 
       // Should pass the updated market data with live funding rate
       expect(mockOnPress).toHaveBeenCalledTimes(1);

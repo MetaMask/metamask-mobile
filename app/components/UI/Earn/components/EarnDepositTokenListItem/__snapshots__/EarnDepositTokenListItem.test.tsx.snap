@@ -1,40 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
-<View
-  accessibilityState={
-    {
-      "busy": undefined,
-      "checked": undefined,
-      "disabled": undefined,
-      "expanded": undefined,
-      "selected": undefined,
-    }
-  }
-  accessibilityValue={
-    {
-      "max": undefined,
-      "min": undefined,
-      "now": undefined,
-      "text": undefined,
-    }
-  }
-  accessible={true}
-  collapsable={false}
-  focusable={true}
-  onClick={[Function]}
-  onResponderGrant={[Function]}
-  onResponderMove={[Function]}
-  onResponderRelease={[Function]}
-  onResponderTerminate={[Function]}
-  onResponderTerminationRequest={[Function]}
-  onStartShouldSetResponder={[Function]}
+<TouchableOpacity
+  onPress={[Function]}
   style={
     {
       "alignItems": "center",
       "flexDirection": "row",
       "justifyContent": "space-between",
-      "opacity": 1,
     }
   }
   testID="earn-token-list-item"
@@ -168,7 +141,7 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -194,7 +167,7 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
       style={
         {
           "color": "#457a39",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -207,8 +180,8 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
-          "fontFamily": "Geist-Bold",
+          "color": "#66676a",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 14,
           "letterSpacing": 0,
           "lineHeight": 22,
@@ -218,5 +191,5 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
       10,100.00 USDC
     </Text>
   </View>
-</View>
+</TouchableOpacity>
 `;

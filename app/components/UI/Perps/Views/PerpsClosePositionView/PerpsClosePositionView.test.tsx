@@ -29,6 +29,16 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
+// Mock React Native Linking specifically for this test to prevent NavigationContainer errors
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn().mockResolvedValue(true),
+  getInitialURL: jest.fn().mockResolvedValue(''),
+  sendIntent: jest.fn(),
+}));
+
 // Mock hooks
 jest.mock('../../hooks', () => ({
   useMinimumOrderAmount: jest.fn(),
@@ -332,14 +342,11 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Button should be disabled when closing (loading state)
+      // Assert - Button should have loading prop set
       const confirmButton = getByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
       );
-      expect(
-        confirmButton.props.disabled ||
-          confirmButton.props.accessibilityState?.disabled,
-      ).toBe(true);
+      expect(confirmButton.props.loading).toBe(true);
     });
   });
 

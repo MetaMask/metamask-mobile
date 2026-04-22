@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { strings } from '../../../../../../locales/i18n';
@@ -78,7 +78,7 @@ describe('ResetAccountModal', () => {
     (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
   });
 
-  it('calls wipeBridgeStatus, wipeTransactions, and wipeSmartTransactions when reset button is pressed', async () => {
+  it('calls wipeBridgeStatus, wipeTransactions, and wipeSmartTransactions when reset button is pressed', () => {
     const { getByText } = renderWithProvider(
       <ResetAccountModal {...defaultProps} />,
       { state: initialState },
@@ -100,7 +100,7 @@ describe('ResetAccountModal', () => {
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 
-  it('does not call wipeBridgeStatus when selectedAddress is falsy', async () => {
+  it('does not call wipeBridgeStatus when selectedAddress is falsy', () => {
     (
       selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
     ).mockReturnValue(undefined);

@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-hooks';
 
 import Engine from '../../../../core/Engine';
 import { useERC20TokenBalance } from './useERC20TokenBalance';
@@ -38,20 +38,20 @@ describe('useERC20TokenBalance', () => {
     const expectedBalance = '100000000';
     mockGetERC20BalanceOf.mockResolvedValue(expectedBalance);
 
-    const { result } = arrange();
+    const { result, waitForNextUpdate } = arrange();
 
     expect(result.current.loading).toBe(true);
     expect(result.current.tokenBalance).toBe(null);
     expect(result.current.error).toBe(false);
 
-    await waitFor(() => {
-      expect(result.current.tokenBalance).toBe(expectedBalance);
-    });
+    await waitForNextUpdate();
+
     expect(mockGetERC20BalanceOf).toHaveBeenCalledWith(
       MOCK_CONTRACT_ADDRESS,
       MOCK_USER_ADDRESS,
       MOCK_NETWORK_CLIENT_ID,
     );
+    expect(result.current.tokenBalance).toBe(expectedBalance);
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe(false);
   });
@@ -61,23 +61,24 @@ describe('useERC20TokenBalance', () => {
       const error = new Error('Network error');
       mockGetERC20BalanceOf.mockRejectedValue(error);
 
-      const { result } = arrange();
+      const { result, waitForNextUpdate } = arrange();
 
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
+      await waitForNextUpdate();
+
+      expect(mockGetERC20BalanceOf).toHaveBeenCalled();
       expect(result.current.tokenBalance).toBe(null);
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe(true);
     });
 
     it('handles undefined balance response', async () => {
       mockGetERC20BalanceOf.mockResolvedValue(undefined);
 
-      const { result } = arrange();
+      const { result, waitForNextUpdate } = arrange();
 
-      await waitFor(() => {
-        expect(result.current.tokenBalance).toBe(undefined);
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.tokenBalance).toBe(undefined);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe(false);
     });
@@ -87,11 +88,12 @@ describe('useERC20TokenBalance', () => {
     const balance = '0';
     mockGetERC20BalanceOf.mockResolvedValue(balance);
 
-    const { result } = arrange('', '');
+    const { result, waitForNextUpdate } = arrange('', '');
 
-    await waitFor(() => {
-      expect(result.current.tokenBalance).toBe(balance);
-    });
+    await waitForNextUpdate();
+
+    expect(mockGetERC20BalanceOf).toHaveBeenCalledWith('', '', 'mainnet');
+    expect(result.current.tokenBalance).toBe(balance);
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe(false);
   });

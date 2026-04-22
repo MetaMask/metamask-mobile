@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import HintModal from './';
 
 const noop = () => ({});
@@ -7,7 +7,7 @@ const hint = 'hint';
 
 describe('HintModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const wrapper = shallow(
       <HintModal
         onCancel={noop}
         onConfirm={noop}
@@ -17,6 +17,6 @@ describe('HintModal', () => {
         value={hint}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

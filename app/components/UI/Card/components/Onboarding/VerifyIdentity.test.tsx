@@ -337,7 +337,7 @@ describe('VerifyIdentity Component', () => {
       );
 
       const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton).toBeEnabled();
+      expect(continueButton.props.disabled).toBe(false);
     });
 
     it('does not show error messages initially when verification is successful', () => {
@@ -425,7 +425,7 @@ describe('VerifyIdentity Component', () => {
       );
 
       const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.disabled).toBe(true);
     });
   });
 
@@ -464,7 +464,7 @@ describe('VerifyIdentity Component', () => {
       );
 
       const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.disabled).toBe(true);
     });
   });
 

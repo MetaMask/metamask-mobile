@@ -52,7 +52,7 @@ describe('PredictAddFundsModal', () => {
       expect.objectContaining({
         onDismiss: expect.any(Function),
       }),
-      undefined,
+      expect.any(Object),
     );
   });
 
@@ -87,7 +87,7 @@ describe('PredictAddFundsModal', () => {
 
     expect(PredictAddFundsSheet).toHaveBeenCalledWith(
       expect.any(Object),
-      undefined,
+      expect.any(Object),
     );
   });
 
