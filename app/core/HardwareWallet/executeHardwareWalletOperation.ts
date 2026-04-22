@@ -37,6 +37,7 @@ export async function executeHardwareWalletOperation({
   onRejected,
 }: ExecuteHardwareWalletOperationOptions): Promise<boolean> {
   let hasRejected = false;
+  let hasShownConfirmation = false;
 
   const rejectOnce = async () => {
     if (hasRejected) {
@@ -58,6 +59,7 @@ export async function executeHardwareWalletOperation({
       return false;
     }
 
+    hasShownConfirmation = true;
     showAwaitingConfirmation(operationType, () => {
       rejectOnce().catch(() => undefined);
     });
@@ -66,7 +68,9 @@ export async function executeHardwareWalletOperation({
     hideAwaitingConfirmation();
     return true;
   } catch (error) {
-    hideAwaitingConfirmation();
+    if (hasShownConfirmation) {
+      hideAwaitingConfirmation();
+    }
     const hasHandledError = (await onError?.(error)) ?? false;
 
     if (!hasRejected && !hasHandledError && !isUserCancellation(error)) {
