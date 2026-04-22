@@ -689,14 +689,6 @@ export class PolymarketProvider implements PredictProvider {
         marketId,
       });
 
-      let resolvedMarketId = marketId;
-      if (event.parentEventId) {
-        resolvedMarketId = event.parentEventId;
-        event = await getMarketDetailsFromGammaApi({
-          marketId: resolvedMarketId,
-        });
-      }
-
       const supportedLeagues = this.#getSupportedLeagues();
       const liveSportsEnabled = supportedLeagues.length > 0;
       const isSportsEvent =
@@ -707,6 +699,14 @@ export class PolymarketProvider implements PredictProvider {
       if (isSportsEvent) {
         const league = getEventLeague(event);
         if (league && this.#hasExtendedMarketsForLeague(league)) {
+          let resolvedMarketId = marketId;
+          if (event.parentEventId) {
+            resolvedMarketId = event.parentEventId;
+            event = await getMarketDetailsFromGammaApi({
+              marketId: resolvedMarketId,
+            });
+          }
+
           try {
             const allEvents = await fetchChildEventsFromGammaApi({
               parentEventId: resolvedMarketId,
