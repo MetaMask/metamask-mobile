@@ -270,11 +270,8 @@ describe('AccountBackupStep1', () => {
 
     const { wrapper } = setupTest();
 
-    // Verify AndroidBackHandler is rendered
+    // Verify AndroidBackHandler is rendered and customBackPress prop is passed
     const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
-    expect(androidBackHandler).toBeTruthy();
-
-    // Verify customBackPress prop is passed
     expect(androidBackHandler.props.customBackPress).toBeDefined();
   });
 
@@ -422,10 +419,7 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      const image = wrapper.UNSAFE_getByProps({
-        source: SRPDesignDark,
-      });
-      expect(image).toBeOnTheScreen();
+      wrapper.UNSAFE_getByProps({ source: SRPDesignDark });
     });
 
     it('renders light SRP design image for light theme', () => {
@@ -436,10 +430,7 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      const image = wrapper.UNSAFE_getByProps({
-        source: SRPDesignLight,
-      });
-      expect(image).toBeOnTheScreen();
+      wrapper.UNSAFE_getByProps({ source: SRPDesignLight });
     });
   });
 });
