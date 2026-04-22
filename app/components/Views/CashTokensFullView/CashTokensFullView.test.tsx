@@ -475,11 +475,11 @@ describe('CashTokensFullView', () => {
     });
   });
 
-  it('calls initiateMaxConversion on first conversionToken via handleConvertPress', async () => {
+  it('calls initiateCustomConversion with preferredPaymentToken via handleConvertPress', async () => {
     mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
     const token = { address: '0xabc', chainId: '0x1' } as AssetType;
     mockUseMusdConversionTokens.mockReturnValue({ tokens: [token] });
-    mockInitiateMaxConversion.mockResolvedValue(undefined);
+    mockInitiateCustomConversion.mockResolvedValue(undefined);
 
     renderWithProvider(<CashTokensFullView />);
 
@@ -487,7 +487,12 @@ describe('CashTokensFullView', () => {
       fireEvent.press(screen.getByText('Convert to mUSD'));
     });
 
-    expect(mockInitiateMaxConversion).toHaveBeenCalledWith(token);
+    expect(mockInitiateCustomConversion).toHaveBeenCalledWith({
+      preferredPaymentToken: {
+        address: '0xabc',
+        chainId: '0x1',
+      },
+    });
   });
 
   it('logs error when handleConvertPress fails', async () => {
@@ -495,7 +500,7 @@ describe('CashTokensFullView', () => {
     const token = { address: '0xabc', chainId: '0x1' } as AssetType;
     mockUseMusdConversionTokens.mockReturnValue({ tokens: [token] });
     const error = new Error('convert CTA failed');
-    mockInitiateMaxConversion.mockRejectedValue(error);
+    mockInitiateCustomConversion.mockRejectedValue(error);
     const loggerSpy = jest.spyOn(
       jest.requireMock('../../../util/Logger').default,
       'error',
@@ -525,8 +530,8 @@ describe('CashTokensFullView', () => {
     // so we test the early return by having tokens initially then not.
     // Actually, the early return is only hit if conversionTokens[0] is falsy.
     // Since the CTA only renders when hasConversionTokens, we just verify
-    // the convert press calls initiateMaxConversion above.
-    expect(mockInitiateMaxConversion).not.toHaveBeenCalled();
+    // the convert press calls initiateCustomConversion above.
+    expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
   });
 
   it('calls goToSwaps when Swap button is pressed', () => {

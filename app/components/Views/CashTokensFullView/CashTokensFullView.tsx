@@ -237,8 +237,12 @@ const CashTokensFullView = () => {
           .build(),
       );
 
-      await initiateMaxConversion(topToken);
-    } catch (error) {
+                                         await initiateCustomConversion({
+                                                                        preferredPaymentToken: {
+                                                                        address: topToken.address as Hex,
+                                                                        chainId: topToken.chainId as Hex,
+                                                                        },
+                                                                        });    } catch (error) {
       Logger.error(error as Error, {
         message: '[CashTokensFullView] Failed to initiate convert CTA',
       });
