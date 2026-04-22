@@ -11,7 +11,7 @@ Checks changed files for A/B testing implementation compliance.
 
 Rules:
   - Fail: New ab_tests payload additions in checked code diffs
-  - Fail: Malformed literal active_ab_tests objects missing key/value
+  - Fail: Malformed literal active_ab_tests objects missing key/value/key_value_pair
   - Fail: Inline useABTest variants object missing control
   - Warn: Flag key naming mismatch for Abtest keys
   - Warn: Risky A/B integration changes without test-file updates
@@ -246,15 +246,20 @@ for file in "${CHANGED_FILES[@]}"; do
   for ((i=0; i<line_count; i++)); do
     line="${added_lines[$i]}"
 
-    # Rule: validate literal active_ab_tests payloads include both key and value.
+    # Rule: validate literal active_ab_tests payloads include key, value, and key_value_pair.
     if [[ "$line" =~ active_ab_tests[[:space:]]*: ]]; then
       if [[ "$line" =~ active_ab_tests[[:space:]]*:[[:space:]]*(\[|\{) ]]; then
         window="$line"
         for ((j=i+1; j<line_count && j<=i+8; j++)); do
           window+=$'\n'"${added_lines[$j]}"
         done
-        if ! grep -Eq 'key[[:space:]]*:' <<< "$window" || ! grep -Eq 'value[[:space:]]*:' <<< "$window"; then
-          FAILURES+=("$file: malformed literal active_ab_tests object (expected key and value).")
+        if grep -Eq 'createActiveABTestAssignment[[:space:]]*\(' <<< "$window"; then
+          continue
+        fi
+        if grep -Eq 'key[[:space:]]*:|value[[:space:]]*:|key_value_pair[[:space:]]*:' <<< "$window"; then
+          if ! grep -Eq 'key[[:space:]]*:' <<< "$window" || ! grep -Eq 'value[[:space:]]*:' <<< "$window" || ! grep -Eq 'key_value_pair[[:space:]]*:' <<< "$window"; then
+            FAILURES+=("$file: malformed literal active_ab_tests object (expected key, value, and key_value_pair).")
+          fi
         fi
       fi
     fi
@@ -300,6 +305,9 @@ for file in "${CHANGED_FILES[@]}"; do
     while IFS= read -r quoted; do
       [[ -z "$quoted" ]] && continue
       key="${quoted:1:${#quoted}-2}"
+      if [[ "$key" =~ [[:space:]{}=] ]]; then
+        continue
+      fi
       if [[ -n "$use_abtest_literal_key" && "$key" == "$use_abtest_literal_key" ]]; then
         continue
       fi

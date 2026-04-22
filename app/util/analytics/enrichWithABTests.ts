@@ -3,36 +3,15 @@ import { selectRemoteFeatureFlags } from '../../selectors/featureFlagController'
 import type { StateWithPartialEngine } from '../../selectors/featureFlagController/types';
 import { AB_TEST_ANALYTICS_MAPPINGS } from './abTestAnalyticsRegistry';
 import type { ABTestAnalyticsMapping } from './abTestAnalytics.types';
-
-interface ActiveABTestAssignment {
-  key: string;
-  value: string;
-}
+import {
+  createActiveABTestAssignment,
+  normalizeActiveABTestAssignments,
+} from './activeABTestAssignments';
 
 const hasEventName = (
   mapping: ABTestAnalyticsMapping,
   eventName: string,
 ): boolean => mapping.eventNames.includes(eventName);
-
-const isActiveABTestAssignment = (
-  value: unknown,
-): value is ActiveABTestAssignment =>
-  Boolean(
-    value &&
-      typeof value === 'object' &&
-      'key' in value &&
-      typeof value.key === 'string' &&
-      'value' in value &&
-      typeof value.value === 'string',
-  );
-
-const getExistingActiveABTests = (value: unknown): ActiveABTestAssignment[] => {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value.filter(isActiveABTestAssignment);
-};
 
 export const getRemoteFeatureFlagsFromState = (
   state: StateWithPartialEngine | null | undefined,
@@ -68,14 +47,16 @@ export const enrichWithABTests = <
       mapping.validVariants,
     );
 
-    return isActive ? [{ key: mapping.flagKey, value: variantName }] : [];
+    return isActive
+      ? [createActiveABTestAssignment(mapping.flagKey, variantName)]
+      : [];
   });
 
   if (injectedAssignments.length === 0) {
     return event;
   }
 
-  const existingAssignments = getExistingActiveABTests(
+  const existingAssignments = normalizeActiveABTestAssignments(
     event.properties.active_ab_tests,
   );
   const mergedAssignments = [...existingAssignments];

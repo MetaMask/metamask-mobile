@@ -102,11 +102,11 @@ describe('check-ab-testing-compliance.sh', () => {
     expect(result.output).toContain("added 'ab_tests' payload");
   });
 
-  it('fails when literal active_ab_tests object misses key/value fields', () => {
+  it('fails when literal active_ab_tests object misses key_value_pair', () => {
     const repo = createRepo();
     appendFileSync(
       path.join(repo, 'app/sample.ts'),
-      "const payload = { active_ab_tests: [{ key: 'swapsSWAPS9999AbtestFoo' }] };\n",
+      "const payload = { active_ab_tests: [{ key: 'swapsSWAPS9999AbtestFoo', value: 'control' }] };\n",
     );
 
     const result = runChecker(repo, ['--staged']);
@@ -149,7 +149,7 @@ describe('check-ab-testing-compliance.sh', () => {
       [
         'const { variantName, isActive } = useABTest(FLAG_KEY, VARIANTS);',
         'const payload = isActive',
-        '  ? { active_ab_tests: [{ key: FLAG_KEY, value: variantName }] }',
+        '  ? { active_ab_tests: [createActiveABTestAssignment(FLAG_KEY, variantName)] }',
         '  : {};',
         '',
       ].join('\n'),
@@ -160,6 +160,36 @@ describe('check-ab-testing-compliance.sh', () => {
     expect(result.status).toBe(0);
     expect(result.output).not.toContain(
       'inline useABTest variants object is missing control',
+    );
+  });
+
+  it('does not warn on key_value_pair strings when literal payload is complete', () => {
+    const repo = createRepo();
+    appendFileSync(
+      path.join(repo, 'app/sample.ts'),
+      "const payload = { active_ab_tests: [{ key: 'swapsSWAPS9999AbtestFoo', value: 'control', key_value_pair: 'swapsSWAPS9999AbtestFoo=control' }] };\n",
+    );
+
+    const result = runChecker(repo, ['--staged']);
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain(
+      'does not match {team}{TICKET}Abtest{Name}',
+    );
+  });
+
+  it('does not warn on naming-guidance strings that mention Abtest', () => {
+    const repo = createRepo();
+    appendFileSync(
+      path.join(repo, 'app/sample.ts'),
+      "const message = 'does not match {team}{TICKET}Abtest{Name}';\n",
+    );
+
+    const result = runChecker(repo, ['--staged']);
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain(
+      'does not match {team}{TICKET}Abtest{Name}',
     );
   });
 
