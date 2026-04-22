@@ -121,6 +121,57 @@
         "screenshot-withdraw": {
           "action": "screenshot",
           "filename": "tat3016-{{phaseLabel}}-withdraw.png",
+          "next": "nav-market-details"
+        },
+        "nav-market-details": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "BTC",
+              "name": "BTC",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "wait-long-button"
+        },
+        "wait-long-button": {
+          "action": "wait_for",
+          "expression": "(function(){var a=globalThis.__AGENTIC__;var mounted=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-market-details-long-button'));return JSON.stringify({mounted:mounted})})()",
+          "assert": { "operator": "eq", "field": "mounted", "value": true },
+          "timeout_ms": 15000,
+          "next": "press-long"
+        },
+        "press-long": {
+          "action": "press",
+          "test_id": "perps-market-details-long-button",
+          "next": "wait-order-form"
+        },
+        "wait-order-form": {
+          "action": "wait_for",
+          "expression": "(function(){var a=globalThis.__AGENTIC__;var btn=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-order-view-place-order-button'));var payWith=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('pay-with-symbol'));return JSON.stringify({placeOrderMounted:btn,payWithMounted:payWith,ready:btn&&payWith})})()",
+          "assert": { "operator": "eq", "field": "ready", "value": true },
+          "timeout_ms": 15000,
+          "next": "capture-order-form"
+        },
+        "capture-order-form": {
+          "action": "eval_sync",
+          "expression": "(function(){try{var a=globalThis.__AGENTIC__;var paySymbol=a&&a.getTextByTestId('pay-with-symbol')||'';var placeOrderMounted=!!(a&&a.findFiberByTestId('perps-order-view-place-order-button'));var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var expectsPerpsBalance=trade>0;var paysWithPerps=paySymbol.toLowerCase().indexOf('perps')>=0;return JSON.stringify({paySymbol:paySymbol,paysWithPerpsBalance:paysWithPerps,placeOrderButtonMounted:placeOrderMounted,defaultsCorrectly:expectsPerpsBalance?paysWithPerps:true,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "defaultsCorrectly", "value": true },
+              { "operator": "eq", "field": "placeOrderButtonMounted", "value": true }
+            ]
+          },
+          "next": "screenshot-order-form"
+        },
+        "screenshot-order-form": {
+          "action": "screenshot",
+          "filename": "tat3016-{{phaseLabel}}-order-form.png",
           "next": "back-to-wallet"
         },
         "back-to-wallet": {
