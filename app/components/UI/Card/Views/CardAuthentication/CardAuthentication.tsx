@@ -408,7 +408,7 @@ const CardAuthentication = () => {
             <Label>{strings('card.card_authentication.email_label')}</Label>
             <TextField
               autoCapitalize={'none'}
-              autoComplete="email"
+              autoComplete="username"
               onChangeText={handleEmailChange}
               numberOfLines={1}
               value={email}
