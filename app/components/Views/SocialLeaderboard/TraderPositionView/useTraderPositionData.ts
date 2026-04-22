@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
@@ -136,6 +136,8 @@ export function useTraderPositionData(
   const [fetchedMarketCap, setFetchedMarketCap] = useState<number>();
 
   useEffect(() => {
+    setFetchedMarketCap(undefined);
+
     if (cachedMarket?.marketCap != null || !positionParam || !caipChainId)
       return;
     const assetId = toAssetId(positionParam.tokenAddress, caipChainId);
