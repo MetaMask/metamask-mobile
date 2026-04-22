@@ -136,6 +136,7 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHandleFetch.mockResolvedValue({});
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
