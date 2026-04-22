@@ -3,7 +3,8 @@ import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { render, cleanup } from '@testing-library/react-native';
+import { render, screen, cleanup, act } from '@testing-library/react-native';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -13,13 +14,18 @@ import {
   getBlockExplorerName,
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
+  findBlockExplorerUrlForChain,
+  getHexEvmChainId,
 } from '../../../util/networks';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { isHardwareAccount } from '../../../util/address';
 import NotificationManager from '../../../core/NotificationManager';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
+import { mockTheme } from '../../../util/theme';
 
 // Mock the navigation and other dependencies
 const mockNavigationPush = jest.fn();
@@ -31,15 +37,22 @@ const mockNavigation = {
 
 // Mock the multichain utils
 jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
   isNonEvmChainId: jest.fn(),
+  getFormattedAddressFromInternalAccount: jest.fn(
+    (account) => account?.address ?? '0x123...456',
+  ),
 }));
 
 // Mock network utils
 jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
   getBlockExplorerAddressUrl: jest.fn(),
   getBlockExplorerName: jest.fn(),
   findBlockExplorerForNonEvmChainId: jest.fn(),
   findBlockExplorerForRpc: jest.fn(),
+  findBlockExplorerUrlForChain: jest.fn(),
+  getHexEvmChainId: jest.fn(),
   isMainnetByChainId: jest.fn(),
 }));
 
@@ -54,6 +67,12 @@ jest.mock('../../../core/NotificationManager', () => ({
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
   speedUpTransaction: jest.fn(),
+  getPreviousGasFromController: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../util/confirmation/gas', () => ({
+  getGasValuesForReplacement: jest.fn((gasValues) => gasValues),
+  getMediumGasPriceHex: jest.fn(() => '0x123'),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -65,6 +84,18 @@ jest.mock('../../../core/Engine', () => ({
     TransactionController: {
       stopTransaction: jest.fn(),
     },
+    GasFeeController: {
+      startPolling: jest.fn().mockReturnValue('polling-token'),
+      stopPollingByPollingToken: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: jest.fn(),
+    closeToast: jest.fn(),
   },
 }));
 
@@ -80,11 +111,6 @@ jest.mock('../TransactionElement', () => ({
 
 // Mock other connected components
 jest.mock('../TransactionActionModal', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
-jest.mock('./RetryModal', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -111,12 +137,6 @@ jest.mock('../../../component-library/components/Buttons/Button', () => ({
   default: () => null,
   ButtonVariants: { Link: 'link', Primary: 'primary' },
   ButtonSize: { Lg: 'lg', Md: 'md' },
-}));
-
-jest.mock('../../../util/accounts', () => ({
-  getFormattedAddressFromInternalAccount: jest.fn(
-    (account) => account?.address || '0x123...456',
-  ),
 }));
 
 // Mock React Native components and StyleSheet
@@ -153,6 +173,7 @@ jest.mock('../../../util/number', () => ({
 }));
 
 jest.mock('../../../util/conversions', () => ({
+  ...jest.requireActual('../../../util/conversions'),
   decGWEIToHexWEI: jest.fn(() => '0x123'),
 }));
 
@@ -166,6 +187,9 @@ const initialState = {
   },
   settings: {
     primaryCurrency: 'USD',
+  },
+  qrKeyringScanner: {
+    isScanning: false,
   },
 };
 const store = mockStore(initialState);
@@ -188,6 +212,13 @@ const mockFindBlockExplorerForRpc =
   findBlockExplorerForRpc as jest.MockedFunction<
     typeof findBlockExplorerForRpc
   >;
+const mockFindBlockExplorerUrlForChain =
+  findBlockExplorerUrlForChain as jest.MockedFunction<
+    typeof findBlockExplorerUrlForChain
+  >;
+const mockGetHexEvmChainId = getHexEvmChainId as jest.MockedFunction<
+  typeof getHexEvmChainId
+>;
 const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
   typeof isHardwareAccount
 >;
@@ -239,7 +270,7 @@ describe('Transactions', () => {
   });
 
   it('should render correctly', () => {
-    const wrapper = shallow(
+    render(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -262,10 +293,18 @@ describe('Transactions', () => {
             },
           ]}
           loading={false}
+          navigation={mockNavigation}
+          confirmedTransactions={[]}
+          submittedTransactions={[]}
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   describe('Transaction Component Behavior', () => {
@@ -316,19 +355,10 @@ describe('Transactions', () => {
       const mockState = {
         speedUpIsOpen: false,
         cancelIsOpen: false,
-        retryIsOpen: false,
-        errorMsg: null,
       };
 
       const newState = { ...mockState, speedUpIsOpen: true };
       expect(newState.speedUpIsOpen).toBe(true);
-
-      const errorState = {
-        ...mockState,
-        retryIsOpen: true,
-        errorMsg: 'Test error',
-      };
-      expect(errorState.errorMsg).toBe('Test error');
     });
 
     it('calculates gas prices', () => {
@@ -1422,14 +1452,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     const key = instance.keyExtractor({ id: 'tx-123' });
     expect(key).toBe('tx-123');
 
-    // Test getGasPriceEstimate method directly
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: { medium: { suggestedMaxFeePerGas: '20' } },
-    };
-    const estimate = instance.getGasPriceEstimate();
-    expect(estimate).toBeDefined();
-
     // Test getCancelOrSpeedupValues (no arg; derives from existingTx)
     instance.existingTx = { txParams: { gasPrice: '0x0' } };
     const result = instance.getCancelOrSpeedupValues();
@@ -1581,39 +1603,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onScroll(event);
 
     expect(mockOnScrollThroughContent).toHaveBeenCalledWith(100);
-  });
-
-  it('should test toggleRetry method directly', () => {
-    instance.setState = jest.fn();
-
-    const errorMsg = 'Test error message';
-    instance.toggleRetry(errorMsg);
-
-    expect(instance.setState).toHaveBeenCalled();
-  });
-
-  it('should test retry method directly', () => {
-    instance.setState = jest.fn();
-    instance.onSpeedUpAction = jest.fn();
-    instance.onCancelAction = jest.fn();
-    instance.speedUpTxId = 'speed-up-tx';
-    instance.existingTx = { id: 'speed-up-tx' };
-
-    instance.retry();
-
-    // The retry method calls setState with a function, not an object
-    expect(instance.setState).toHaveBeenCalled();
-
-    // Test that the state function produces the expected result
-    const setStateCall = instance.setState.mock.calls[0][0];
-    const newState = setStateCall({
-      retryIsOpen: true,
-      errorMsg: 'test error',
-    });
-    expect(newState).toEqual({
-      retryIsOpen: false,
-      errorMsg: undefined,
-    });
   });
 
   it('should test navigation patterns for coverage', () => {
@@ -1824,7 +1813,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.mounted).toBe(true);
 
     // Fast-forward timers
-    jest.advanceTimersByTime(100);
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
 
     expect(instance.setState).toHaveBeenCalledWith({ ready: true });
     expect(instance.init).toHaveBeenCalled();
@@ -1954,11 +1945,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderLoader method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
 
     const result = instance.renderLoader();
@@ -1967,11 +1955,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderEmpty method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.props = {
       ...defaultTestProps,
@@ -2002,13 +1987,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderList method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-        primary: { default: '#037dd6' },
-        icon: { default: '#24272a' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.flatList = React.createRef();
     instance.state = { refreshing: false };
@@ -2033,13 +2013,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('renders single CancelSpeedupModal with correct props when speed up or cancel is open', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-        primary: { default: '#037dd6' },
-        icon: { default: '#24272a' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.state = {
       refreshing: false,
@@ -2083,22 +2058,15 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test render method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.state = {
       ready: true,
-      retryIsOpen: false,
-      errorMsg: null,
     };
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
-    instance.toggleRetry = jest.fn();
-    instance.retry = jest.fn();
 
     const result = instance.render();
     expect(result).toBeDefined();
@@ -2167,53 +2135,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(result2?.gasPrice).toBeDefined();
   });
 
-  it('should test getGasPriceEstimate with different scenarios', () => {
-    // Test with medium.suggestedMaxFeePerGas
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        medium: { suggestedMaxFeePerGas: '25' },
-      },
-    };
-    let result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with medium value directly
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        medium: '20',
-      },
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with gasPrice fallback
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        gasPrice: '15',
-      },
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with no estimates (fallback to '0')
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {},
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-  });
-
   it('should test renderEmpty with switch network scenarios', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
 
     // Test when tokenChainId is different from chainId
@@ -2348,36 +2273,5 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     await instance.cancelTransaction(transactionObject);
 
     expect(instance.signLedgerTransaction).toHaveBeenCalled();
-  });
-
-  it('should test retry method with different scenarios', () => {
-    instance.setState = jest.fn();
-    instance.onSpeedUpAction = jest.fn();
-    instance.onCancelAction = jest.fn();
-
-    // Test retry with speedUpTxId
-    instance.speedUpTxId = 'speed-up-tx';
-    instance.cancelTxId = null;
-    instance.existingTx = { id: 'speed-up-tx' };
-
-    instance.retry();
-
-    expect(instance.setState).toHaveBeenCalled();
-
-    // Test retry with cancelTxId
-    instance.speedUpTxId = null;
-    instance.cancelTxId = 'cancel-tx';
-
-    instance.retry();
-
-    expect(instance.setState).toHaveBeenCalled();
-
-    // Test retry with neither speedUpTxId nor cancelTxId
-    instance.speedUpTxId = null;
-    instance.cancelTxId = null;
-
-    instance.retry();
-
-    expect(instance.setState).toHaveBeenCalled();
   });
 });

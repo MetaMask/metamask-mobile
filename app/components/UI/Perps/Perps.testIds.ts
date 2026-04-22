@@ -83,6 +83,9 @@ export const PerpsPositionCardSelectorsIDs = {
   AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
   DETAILS_SECTION: 'position-card-details',
   DIRECTION_VALUE: 'position-card-direction-value',
+  ENTRY_VALUE: 'position-card-entry-value',
+  LIQUIDATION_PRICE_VALUE: 'position-card-liquidation-price-value',
+  FUNDING_PAYMENTS_VALUE: 'position-card-funding-payments-value',
 };
 
 // ========================================
@@ -170,6 +173,7 @@ export const getPerpsMarketRowItemSelector = {
 
 export const PerpsOrderHeaderSelectorsIDs = {
   HEADER: 'perps-order-header',
+  BACK_BUTTON: 'perps-order-header-back-button',
   ASSET_TITLE: 'perps-order-header-asset-title',
   ORDER_TYPE_BUTTON: 'perps-order-header-order-type-button',
 };
@@ -193,6 +197,7 @@ export const PerpsAmountDisplaySelectorsIDs = {
   CONTAINER: 'perps-amount-display',
   AMOUNT_LABEL: 'perps-amount-display-amount',
   MAX_LABEL: 'perps-amount-display-max',
+  TOUCHABLE: 'perps-amount-display-touchable',
 };
 
 // ========================================
@@ -260,7 +265,9 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 export const PerpsTPSLViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
-  SET_BUTTON: 'bottomsheetfooter-button',
+  SET_BUTTON: 'perps-tpsl-set-button',
+  TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
+  STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
 } as const;
 
 export const getPerpsTPSLViewSelector = {
@@ -319,6 +326,9 @@ export const PerpsWithdrawViewSelectorsIDs = {
   DEST_TOKEN_AREA: 'dest-token-area',
   CONTINUE_BUTTON: 'continue-button',
   BOTTOM_SHEET_TOOLTIP: 'withdraw-bottom-sheet-tooltip',
+  RECEIVE_VALUE: 'perps-withdraw-receive-value',
+  FEE_VALUE: 'perps-withdraw-fee-value',
+  TIME_VALUE: 'perps-withdraw-time-value',
 };
 
 // ========================================
@@ -337,6 +347,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STATISTICS_OPEN_INTEREST: 'perps-statistics-open-interest',
   STATISTICS_FUNDING_RATE: 'perps-statistics-funding-rate',
   STATISTICS_FUNDING_COUNTDOWN: 'perps-statistics-funding-countdown',
+  STATISTICS_ORACLE_PRICE: 'perps-statistics-oracle-price',
   ADD_FUNDS_BUTTON: 'perps-market-details-add-funds-button',
   LONG_BUTTON: 'perps-market-details-long-button',
   SHORT_BUTTON: 'perps-market-details-short-button',
@@ -374,6 +385,7 @@ export const PerpsMarketHeaderSelectorsIDs = {
   PRICE_TITLE_SECTION: 'perps-market-header-price-title-section',
   PRICE_CHANGE_TITLE_SECTION: 'perps-market-header-price-change-title-section',
   MORE_BUTTON: 'perps-market-header-more-button',
+  FAVORITE_BUTTON: 'perps-market-header-favorite-button',
 };
 
 // ========================================
@@ -412,6 +424,15 @@ export const PerpsTransactionSelectorsIDs = {
   // Transaction Views
   FUNDING_TRANSACTION_VIEW: 'perps-funding-transaction-view',
   ORDER_TRANSACTION_VIEW: 'perps-order-transaction-view',
+
+  // FlashList
+  FLASH_LIST: 'perps-transactions-flash-list',
+
+  // Fill tags
+  FILL_TAG_TAKE_PROFIT: 'perps-fill-tag-take-profit',
+  FILL_TAG_STOP_LOSS: 'perps-fill-tag-stop-loss',
+  FILL_TAG_LIQUIDATED: 'perps-fill-tag-liquidated',
+  FILL_TAG_ADL: 'perps-fill-tag-adl',
 
   // Common buttons
   BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
@@ -515,12 +536,36 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
+  MARGIN_VALUE: 'perps-order-view-margin-value',
+  LIQUIDATION_PRICE_VALUE: 'perps-order-view-liquidation-price-value',
+  FEES_VALUE: 'perps-order-view-fees-value',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
-  TAKE_PROFIT_BUTTON: 'perps-order-view-stop-loss-button',
+  TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
   KEYPAD: 'perps-order-view-keypad',
+  // Keypad action buttons
+  KEYPAD_25_PCT: 'perps-order-view-keypad-25pct',
+  KEYPAD_50_PCT: 'perps-order-view-keypad-50pct',
+  KEYPAD_MAX: 'perps-order-view-keypad-max',
+  KEYPAD_DONE: 'perps-order-view-keypad-done',
+  // Row touchables that open bottom sheets
+  LEVERAGE_ROW: 'perps-order-view-leverage-row',
+  LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
+};
+
+// ========================================
+// PERPS LIMIT PRICE BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsLimitPriceBottomSheetSelectorsIDs = {
+  PRICE_DISPLAY: 'perps-limit-price-display',
+  CONFIRM_BUTTON: 'perps-limit-price-confirm-button',
+  PRESET_MID: 'perps-limit-price-preset-mid',
+  PRESET_BID: 'perps-limit-price-preset-bid',
+  PRESET_ASK: 'perps-limit-price-preset-ask',
+  PRESET_PERCENT: 'perps-limit-price-preset-',
 };
 
 // ========================================
@@ -544,11 +589,32 @@ export const PerpsClosePositionViewSelectorsIDs = {
   FEES_TOOLTIP_BUTTON: 'close-position-fees-tooltip-button',
   POINTS_TOOLTIP_BUTTON: 'close-position-points-tooltip-button',
   YOU_RECEIVE_TOOLTIP_BUTTON: 'close-position-you-receive-tooltip-button',
+  MARGIN_VALUE: 'close-position-margin-value',
+  FEES_VALUE: 'close-position-fees-value',
+  RECEIVE_VALUE: 'close-position-receive-value',
 };
 
 // ========================================
 // PERPS MARKET TABS SELECTORS
 // ========================================
+
+export const PerpsOrderTypeBottomSheetSelectorsIDs = {
+  MARKET_OPTION: 'perps-order-type-market',
+  LIMIT_OPTION: 'perps-order-type-limit',
+} as const;
+
+export const PerpsAdjustMarginActionSheetSelectorsIDs = {
+  ADD_MARGIN_OPTION: 'perps-adjust-margin-add-btn',
+  REDUCE_MARGIN_OPTION: 'perps-adjust-margin-reduce-btn',
+} as const;
+
+export const PerpsAdjustMarginViewSelectorsIDs = {
+  CONFIRM_BUTTON: 'perps-adjust-margin-confirm-button',
+  DONE_BUTTON: 'perps-adjust-margin-done-button',
+  AVAILABLE_VALUE: 'perps-adjust-margin-available-value',
+  LIQUIDATION_PRICE_VALUE: 'perps-adjust-margin-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE: 'perps-adjust-margin-liquidation-distance-value',
+} as const;
 
 export const PerpsMarketTabsSelectorsIDs = {
   // Container
@@ -627,8 +693,8 @@ export const getPerpsHeroCardViewSelector = {
 // ========================================
 
 export const PerpsGeneralSelectorsIDs = {
-  // TPSL bottom sheet primary action button ("Set" / "Updating")
-  BOTTOM_SHEET_FOOTER_BUTTON: 'perps-tpsl-bottomsheet',
+  // TPSL screen primary action ("Set" / "Updating"); same id as PerpsTPSLViewSelectorsIDs.SET_BUTTON
+  BOTTOM_SHEET_FOOTER_BUTTON: 'perps-tpsl-set-button',
   // Order success toast dismiss button on PerpsOrderView
   ORDER_SUCCESS_TOAST_DISMISS_BUTTON:
     'perps-order-success-toast-dismiss-button',
@@ -650,6 +716,7 @@ export const PerpsOrderBookViewSelectorsIDs = {
   LONG_BUTTON: 'perps-order-book-long-button',
   SHORT_BUTTON: 'perps-order-book-short-button',
   MODIFY_BUTTON: 'perps-order-book-modify-button',
+  MODIFY_ACTION_SHEET: 'perps-order-book-modify-action-sheet',
   CLOSE_BUTTON: 'perps-order-book-close-button',
   DEPTH_BAND_BUTTON: 'perps-order-book-depth-band-button',
   DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
@@ -686,4 +753,51 @@ export const PerpsOrderBookDepthChartSelectorsIDs = {
 export const PerpsWebSocketHealthToastSelectorsIDs = {
   TOAST: 'perps-websocket-health-toast',
   RETRY_BUTTON: 'perps-websocket-health-toast-retry-button',
+} as const;
+
+// ========================================
+// PERPS ORDER DETAILS VIEW SELECTORS
+// ========================================
+
+export const PerpsOrderDetailsViewSelectorsIDs = {
+  CANCEL_BUTTON: 'perps-order-details-cancel-button',
+} as const;
+
+// ========================================
+// PERPS COMPACT ORDER ROW SELECTORS
+// ========================================
+
+export const PerpsCompactOrderRowSelectorsIDs = {
+  FIRST_ROW: 'perps-compact-order-row-first',
+} as const;
+
+export const PerpsTransactionsViewSelectorsIDs = {
+  TAB_TRADES: 'perps-transactions-tab-trades',
+  TAB_ORDERS: 'perps-transactions-tab-orders',
+  TAB_FUNDING: 'perps-transactions-tab-funding',
+  TAB_DEPOSITS: 'perps-transactions-tab-deposits',
+  FUNDING_LOAD_MORE_SPINNER: 'perps-transactions-funding-load-more-spinner',
+} as const;
+
+// ========================================
+// PERPS MODIFY ACTION SHEET SELECTORS
+// ========================================
+
+export const PerpsModifyActionSheetSelectorsIDs = {
+  SHEET: 'perps-modify-action-sheet',
+  ADD_TO_POSITION: 'perps-modify-action-sheet-add_to_position',
+  REDUCE_POSITION: 'perps-modify-action-sheet-reduce_position',
+  FLIP_POSITION: 'perps-modify-action-sheet-flip_position',
+} as const;
+
+// ========================================
+// PERPS FLIP POSITION CONFIRM SHEET SELECTORS
+// ========================================
+
+export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
+  SHEET: 'perps-flip-position-confirm-sheet',
+  CANCEL_BUTTON: 'perps-flip-position-cancel-button',
+  FLIP_BUTTON: 'perps-flip-position-flip-button',
+  EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
+  FEES_VALUE: 'perps-flip-position-fees-value',
 } as const;

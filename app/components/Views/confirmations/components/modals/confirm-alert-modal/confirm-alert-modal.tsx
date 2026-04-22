@@ -2,9 +2,14 @@ import React, { useCallback, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../../../../../util/theme';
 import BottomModal from '../../../components/UI/bottom-modal';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
+  ButtonVariant,
+  IconName as DesignSystemIconName,
+} from '@metamask/design-system-react-native';
+import {
+  ButtonSize as ButtonLinkSize,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
@@ -98,7 +103,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             label={strings('alert_system.confirm_modal.review_alerts')}
             startIconName={IconName.SecuritySearch}
             width={ButtonWidthTypes.Auto}
-            size={ButtonSize.Lg}
+            size={ButtonLinkSize.Lg}
             labelTextVariant={TextVariant.BodyMD}
           />
         )}
@@ -119,26 +124,28 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
         <View style={styles.buttonsContainer}>
           <Button
             onPress={handleReject}
-            label={strings('confirm.cancel')}
             style={styles.footerButton}
             size={ButtonSize.Lg}
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Secondary}
+            isFullWidth
             testID="confirm-alert-cancel-button"
-          />
+          >
+            {strings('confirm.cancel')}
+          </Button>
           <View style={styles.buttonDivider} />
           <Button
             onPress={handleConfirm}
-            label={strings('confirm.confirm')}
             style={styles.footerButton}
             size={ButtonSize.Lg}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            isFullWidth
             isDisabled={!confirmCheckbox}
-            startIconName={IconName.Danger}
+            startIconName={DesignSystemIconName.Danger}
             isDanger
             testID="confirm-alert-confirm-button"
-          />
+          >
+            {strings('confirm.confirm')}
+          </Button>
         </View>
       </View>
     </BottomModal>

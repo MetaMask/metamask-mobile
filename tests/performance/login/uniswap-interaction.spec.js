@@ -20,10 +20,12 @@ import AppwrightSelectors from '../../framework/AppwrightSelectors.ts';
 const UNISWAP_URL = 'https://app.uniswap.org';
 const UNISWAP_DAPP_NAME = 'Uniswap';
 
+// TODO(MMQA-1616): Re-enable after migrating this spec to tests/framework/fixture.
+
 test.describe(`${PerformanceLogin}`, () => {
   test.setTimeout(240000);
 
-  test(
+  test.skip(
     'Connect to Uniswap dapp, edit accounts, choose another account, and skip Solana popup',
     { tag: '@metamask-mobile-platform' },
     async ({ device, performanceTracker }, testInfo) => {
@@ -99,7 +101,6 @@ test.describe(`${PerformanceLogin}`, () => {
       connectTimer.stop();
 
       performanceTracker.addTimers(metamaskTimer, connectTimer);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

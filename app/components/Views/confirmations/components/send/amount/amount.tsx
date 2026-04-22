@@ -19,6 +19,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Device from '../../../../../../util/device';
 import { AssetType, TokenStandard } from '../../../types/token';
@@ -50,7 +51,9 @@ export const Amount = () => {
     getFiatValue,
     getFiatDisplayValue,
   } = useCurrencyConversions();
-  const isNFT = asset?.standard === TokenStandard.ERC1155;
+  const isNFT =
+    asset?.standard === TokenStandard.ERC721 ||
+    asset?.standard === TokenStandard.ERC1155;
   const assetSymbol = isNFT
     ? undefined
     : ((asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol);
@@ -61,7 +64,7 @@ export const Amount = () => {
   const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
-  useRouteParams();
+  const { isLoading: isNftLoading } = useRouteParams();
 
   useEffect(() => {
     setFiatMode(primaryCurrency === 'Fiat');
@@ -149,6 +152,13 @@ export const Amount = () => {
             </Text>
           </View>
         )}
+        {isNftLoading && (
+          <View style={styles.nftImageWrapper}>
+            <Skeleton twClassName="h-[100px] w-[100px] rounded-lg mb-2" />
+            <Skeleton twClassName="h-4 w-32 rounded mb-1" />
+            <Skeleton twClassName="h-3 w-20 rounded" />
+          </View>
+        )}
         <View style={styles.inputSection}>
           <View style={styles.inputWrapper}>
             <Text
@@ -183,9 +193,13 @@ export const Amount = () => {
             </TagBase>
           </TouchableOpacity>
         )}
-        <Text style={styles.balanceText} color={TextColor.Alternative}>
-          {balanceDisplayValue}
-        </Text>
+        {isNftLoading ? (
+          <Skeleton twClassName="h-4 w-40 rounded self-center mt-4" />
+        ) : (
+          <Text style={styles.balanceText} color={TextColor.Alternative}>
+            {balanceDisplayValue}
+          </Text>
+        )}
       </View>
       <AmountKeyboard
         amount={amount}

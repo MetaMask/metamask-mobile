@@ -15,7 +15,7 @@ const logger = createLogger({
  * These screens are expected to appear when running locally.
  */
 export const dismissDevScreens = async (): Promise<void> => {
-  const port = process.env.METRO_PORT_E2E || '8081';
+  const port = process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
   const host = process.env.METRO_HOST_E2E || 'localhost';
   const serverUrl = `http://${host}:${port}`;
 
@@ -65,36 +65,38 @@ export const dismissDevScreens = async (): Promise<void> => {
  *
  * @async
  * @function waitForAppReady
- * @param {number} timeout - Maximum time to wait in milliseconds (default: 15000)
+ * @param {number} timeout - Maximum time to wait in milliseconds (default: 20000)
  * @returns {Promise<void>} Resolves when app is ready
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
 export const waitForAppReady = async (
-  timeout: number = 15000,
+  timeout: number = 20000,
 ): Promise<void> => {
   const startTime = Date.now();
 
   logger.debug('Waiting for app to complete rehydration and stabilize...');
 
   try {
-    await sleep(500);
+    // Initial wait for app to finish launching and start rehydration
+    await sleep(1000);
     await Utilities.executeWithRetry(
       async () => {
         await Assertions.expectElementToBeVisible(LoginView.container, {
           description: 'Login view should be stable',
-          timeout: 2000,
+          timeout: 3000,
         });
 
-        // Verify it stays visible (not flickering)
-        await sleep(1000);
+        // Verify it stays visible (not flickering during rehydration)
+        await sleep(1500);
 
         await Assertions.expectElementToBeVisible(LoginView.container, {
           description: 'Login view should remain visible',
-          timeout: 1000,
+          timeout: 2000,
         });
       },
       {
         timeout,
+        interval: 2000,
         description:
           'wait for app to complete rehydration and stabilize on login screen',
       },

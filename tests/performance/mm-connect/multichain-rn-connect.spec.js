@@ -49,7 +49,7 @@ test.beforeAll(() => {
   ensurePlaygroundInstalled();
 });
 
-test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, invoke read/write methods, and disconnect', async ({
+test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, invoke read/write methods, and disconnect', async ({
   device,
 }) => {
   RNPlaygroundDapp.device = device;

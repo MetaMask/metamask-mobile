@@ -93,15 +93,29 @@ platform :ios do
       key_filepath: api_key_key_filepath,
     )
     
-    # Upload to TestFlight with API key from app_store_connect_api_key action
-    upload_to_testflight(
+    # Upload to TestFlight with API key from app_store_connect_api_key action.
+    # When distribute_external is false we skip_submission so the action only
+    # uploads the IPA binary. This avoids TestFlight management API calls that
+    # require an App Manager (or higher) role API key — a Developer role key
+    # can upload builds but cannot manage distribution.
+    testflight_options = {
       api_key: api_key,
       ipa: ipa_path,
+      reject_build_waiting_for_review: true,
       distribute_external: distribute_external,
       groups: groups,
       notify_external_testers: notify_external_testers,
       changelog: changelog_message
-    )
+    }
+
+    if distribute_external
+      testflight_options[:distribute_external] = true
+      testflight_options[:notify_external_testers] = true
+      testflight_options[:groups] = groups
+    else
+      testflight_options[:skip_submission] = true
+    end
+
+    upload_to_testflight(testflight_options)
   end
 end
-

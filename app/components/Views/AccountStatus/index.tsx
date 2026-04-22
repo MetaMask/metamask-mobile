@@ -1,28 +1,19 @@
-import React, { useEffect, useCallback } from 'react';
-import { View, Image, ScrollView, Dimensions, Platform } from 'react-native';
+import React, { useEffect, useCallback, useMemo } from 'react';
+import { Image, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import Text from '../../../component-library/components/Texts/Text';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/Text.types';
 import {
   StackActions,
   useNavigation,
+  useRoute,
   RouteProp,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
-import styles from './index.styles';
 import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
+import Routes from '../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
@@ -43,6 +34,30 @@ import {
 } from '../../../actions/onboarding';
 import AccountStatusImg from '../../../images/account_status.png';
 import type { AccountStatusParams } from './types';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
+const IMAGE_MAX_WIDTH = 343;
+const IMAGE_ASPECT_RATIO = 343 / 302;
+const HORIZONTAL_PADDING = 16;
+
+const ACCOUNT_STATUS_PRIMARY_FLOW = {
+  EXISTING_ACCOUNT_IMPORT: 'import',
+  NEW_ACCOUNT_CREATE: 'create',
+} as const;
+
+type AccountStatusPrimaryFlowMetric =
+  (typeof ACCOUNT_STATUS_PRIMARY_FLOW)[keyof typeof ACCOUNT_STATUS_PRIMARY_FLOW];
 
 interface AccountStatusRouteParams {
   AccountStatus: AccountStatusParams;
@@ -52,15 +67,20 @@ interface AccountStatusRouteParams {
 }
 
 interface AccountStatusProps {
-  route: RouteProp<
-    AccountStatusRouteParams,
-    'AccountStatus' | 'AccountAlreadyExists' | 'AccountNotFound'
-  >;
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
-const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
+const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
+  const tw = useTailwind();
   const navigation = useNavigation();
+  const { width: windowWidth } = useWindowDimensions();
+  const route =
+    useRoute<
+      RouteProp<
+        AccountStatusRouteParams,
+        'AccountStatus' | 'AccountAlreadyExists' | 'AccountNotFound'
+      >
+    >();
 
   const {
     type = 'not_exist',
@@ -70,8 +90,16 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
     provider,
   } = route?.params ?? {};
 
-  // check for small screen size
-  const isSmallScreen = Dimensions.get('window').width < 375;
+  const isSmallScreen = windowWidth < 375;
+
+  const imageLayout = useMemo(() => {
+    const containerWidth = windowWidth - HORIZONTAL_PADDING * 2;
+    const walletImageWidth = Math.min(containerWidth, IMAGE_MAX_WIDTH);
+    return {
+      width: walletImageWidth,
+      height: Math.round(walletImageWidth / IMAGE_ASPECT_RATIO),
+    };
+  }, [windowWidth]);
 
   const track = useCallback(
     (event: IMetaMetricsEvent) => {
@@ -110,7 +138,7 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
   const navigateNextScreen = (
     targetRoute: string,
     previousScreen: string,
-    metricEvent: string,
+    metricFlow: AccountStatusPrimaryFlowMetric,
   ) => {
     const nextScenarioTraceName =
       type === 'found'
@@ -135,7 +163,7 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
       }),
     );
     track(
-      metricEvent === 'import'
+      metricFlow === ACCOUNT_STATUS_PRIMARY_FLOW.EXISTING_ACCOUNT_IMPORT
         ? MetaMetricsEvents.WALLET_IMPORT_STARTED
         : MetaMetricsEvents.WALLET_SETUP_STARTED,
     );
@@ -155,22 +183,32 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
     return 'account_status.log_in';
   }, []);
 
+  const footerBottomClass =
+    Platform.OS === 'ios' ? 'mb-4 mt-auto gap-4' : 'mb-6 mt-auto gap-4';
+
   return (
     <SafeAreaView
-      style={styles.safeArea}
       edges={['top', 'bottom']}
+      style={tw.style('flex-1 bg-default')}
       testID={
         type === 'found'
           ? AccountStatusSelectorIDs.ACCOUNT_FOUND_CONTAINER
           : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CONTAINER
       }
     >
-      <View style={styles.root}>
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.content}>
+      <Box twClassName="flex-1 px-4 pt-4">
+        <ScrollView
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('grow')}
+        >
+          <Box
+            alignItems={BoxAlignItems.Start}
+            justifyContent={BoxJustifyContent.Start}
+            twClassName="flex-1 pb-6"
+          >
             <Text
-              variant={TextVariant.DisplayMD}
-              color={TextColor.Default}
+              variant={TextVariant.DisplayMd}
+              color={TextColor.TextDefault}
               testID={
                 type === 'found'
                   ? AccountStatusSelectorIDs.ACCOUNT_FOUND_TITLE
@@ -184,10 +222,13 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
             <Image
               source={AccountStatusImg}
               resizeMode="contain"
-              style={styles.walletReadyImage}
+              style={tw.style('my-4 self-center', imageLayout)}
             />
-            <View style={styles.descriptionWrapper}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Box twClassName="w-full gap-5">
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings(
                   type === 'found'
                     ? descriptionForFoundTypeAccountStatus()
@@ -197,49 +238,57 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
                   },
                 )}
               </Text>
-            </View>
-          </View>
+            </Box>
+          </Box>
         </ScrollView>
 
-        <View style={styles.buttonContainer}>
+        <Box twClassName={footerBottomClass}>
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={isSmallScreen ? ButtonSize.Md : ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             onPress={() => {
               if (type === 'found') {
-                navigateNextScreen('Rehydrate', 'Onboarding', 'import');
+                navigateNextScreen(
+                  Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+                  Routes.ONBOARDING.ONBOARDING,
+                  ACCOUNT_STATUS_PRIMARY_FLOW.EXISTING_ACCOUNT_IMPORT,
+                );
               } else {
-                navigateNextScreen('ChoosePassword', 'Onboarding', 'create');
+                navigateNextScreen(
+                  Routes.ONBOARDING.CHOOSE_PASSWORD,
+                  Routes.ONBOARDING.ONBOARDING,
+                  ACCOUNT_STATUS_PRIMARY_FLOW.NEW_ACCOUNT_CREATE,
+                );
               }
             }}
-            label={
-              type === 'found'
-                ? strings(buttonLabelForFoundTypeAccountStatus())
-                : strings('account_status.create_new_wallet')
-            }
             testID={
               type === 'found'
                 ? AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON
                 : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CREATE_BUTTON
             }
-          />
+          >
+            {type === 'found'
+              ? strings(buttonLabelForFoundTypeAccountStatus())
+              : strings('account_status.create_new_wallet')}
+          </Button>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={isSmallScreen ? ButtonSize.Md : ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             onPress={() => {
               navigation.goBack();
             }}
-            label={strings('account_status.use_different_login_method')}
             testID={
               type === 'found'
                 ? AccountStatusSelectorIDs.ACCOUNT_FOUND_DIFFERENT_METHOD_BUTTON
                 : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_DIFFERENT_METHOD_BUTTON
             }
-          />
-        </View>
-      </View>
+          >
+            {strings('account_status.use_different_login_method')}
+          </Button>
+        </Box>
+      </Box>
     </SafeAreaView>
   );
 };

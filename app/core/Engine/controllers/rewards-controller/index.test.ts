@@ -1,6 +1,6 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { MessengerClientInitRequest } from '../../types';
 import {
   RewardsController,
   RewardsControllerMessenger,
@@ -41,7 +41,7 @@ describe('rewardsControllerInit', () => {
   const isVersionGatedFeatureFlagMock = jest.mocked(isVersionGatedFeatureFlag);
 
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<RewardsControllerMessenger>
+    MessengerClientInitRequest<RewardsControllerMessenger>
   >;
   let mockControllerInstance: jest.Mocked<RewardsController>;
   let mockControllerMessenger: jest.Mocked<RewardsControllerMessenger>;
@@ -76,9 +76,9 @@ describe('rewardsControllerInit', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
 
-    // Create controller init request mock
+    // Create messenger client init request mock
     initRequestMock = {
-      ...buildControllerInitRequestMock(baseControllerMessenger),
+      ...buildMessengerClientInitRequestMock(baseControllerMessenger),
       controllerMessenger:
         mockControllerMessenger as unknown as RewardsControllerMessenger,
       persistedState: {},

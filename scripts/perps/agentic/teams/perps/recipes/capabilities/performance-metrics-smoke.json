@@ -1,0 +1,83 @@
+{
+  "title": "Capability: Hermes performance metrics snapshot",
+  "description": "Proof recipe for mobile performance metrics capture. Captures global.performance.now() + HermesInternal.getInstrumentedStats() before and after a bounded navigation workload via eval_sync. No new runner primitive required — this validates the existing eval_sync can serve as the mobile analog to extension's 'performance' capability.",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
+      "setup": [
+        {
+          "id": "setup-complete-tutorial",
+          "action": "eval_sync",
+          "expression": "(function(){try{Engine.context.PerpsController.markTutorialCompleted()}catch(e){}return JSON.stringify({done:true})})()",
+          "assert": { "operator": "eq", "field": "done", "value": true }
+        }
+      ],
+      "entry": "ensure-testnet",
+      "nodes": {
+        "ensure-testnet": {
+          "action": "call",
+          "ref": "setup-testnet",
+          "next": "nav-perps"
+        },
+        "nav-perps": {
+          "action": "navigate",
+          "target": "PerpsHomeView",
+          "next": "wait-markets"
+        },
+        "wait-markets": {
+          "action": "wait_for",
+          "test_id": "perps-market-row-item-ETH",
+          "timeout_ms": 20000,
+          "next": "snapshot-before"
+        },
+        "snapshot-before": {
+          "action": "eval_sync",
+          "expression": "(function(){var hasHermes=typeof HermesInternal==='object'&&HermesInternal!==null;var stats=hasHermes&&typeof HermesInternal.getInstrumentedStats==='function'?HermesInternal.getInstrumentedStats():null;var statKeys=stats?Object.keys(stats):[];return JSON.stringify({ts:typeof performance!=='undefined'&&performance.now?performance.now():Date.now(),hasHermes:hasHermes,statCount:statKeys.length,sampleStatKeys:statKeys.slice(0,5),jsNumGCs:stats?stats.js_numGCs||null:null,jsHeapSize:stats?stats.js_allocatedBytes||stats.js_heapSize||null:null})})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "hasHermes", "value": true },
+              { "operator": "gt", "field": "statCount", "value": 0 },
+              { "operator": "gt", "field": "ts", "value": 0 }
+            ]
+          },
+          "next": "nav-market-detail"
+        },
+        "nav-market-detail": {
+          "action": "press",
+          "test_id": "perps-market-row-item-ETH",
+          "next": "wait-detail"
+        },
+        "wait-detail": {
+          "action": "wait_for",
+          "route": "PerpsMarketDetails",
+          "timeout_ms": 15000,
+          "next": "snapshot-after"
+        },
+        "snapshot-after": {
+          "action": "eval_sync",
+          "expression": "(function(){var hasHermes=typeof HermesInternal==='object'&&HermesInternal!==null;var stats=hasHermes&&typeof HermesInternal.getInstrumentedStats==='function'?HermesInternal.getInstrumentedStats():null;var statKeys=stats?Object.keys(stats):[];return JSON.stringify({ts:typeof performance!=='undefined'&&performance.now?performance.now():Date.now(),hasHermes:hasHermes,statCount:statKeys.length,sampleStatKeys:statKeys.slice(0,5),jsNumGCs:stats?stats.js_numGCs||null:null,jsHeapSize:stats?stats.js_allocatedBytes||stats.js_heapSize||null:null})})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "hasHermes", "value": true },
+              { "operator": "gt", "field": "statCount", "value": 0 },
+              { "operator": "gt", "field": "ts", "value": 0 }
+            ]
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass",
+          "message": "Mobile performance metrics snapshot proven via Hermes getInstrumentedStats + performance.now"
+        }
+      },
+      "teardown": [
+        {
+          "id": "teardown-nav-home",
+          "action": "navigate",
+          "target": "PerpsHomeView"
+        }
+      ]
+    }
+  }
+}

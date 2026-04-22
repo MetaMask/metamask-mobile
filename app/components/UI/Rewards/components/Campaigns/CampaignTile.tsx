@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { ImageBackground, Pressable, useColorScheme } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -11,63 +10,102 @@ import {
   Text,
   TextColor,
   TextVariant,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatusInfo } from './CampaignTile.utils';
-import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  getCampaignStatusInfo,
+  isCampaignTypeSupported,
+} from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
 
 interface CampaignTileProps {
   campaign: CampaignDto;
+  /**
+   * Custom press handler. If provided, this is called instead of the default
+   * type-based navigation. Unsupported campaign types are only interactive
+   * when an onPress handler is provided.
+   */
+  onPress?: () => void;
 }
 
 /**
  * CampaignTile displays campaign information with status.
- * Tapping navigates to the campaign details screen.
+ * Tapping behavior is determined by campaign type:
+ * - ONDO_HOLDING: navigates to Ondo campaign details
+ * - SEASON_1: navigates to season one campaign details
+ * - Unsupported types: non-interactive unless onPress is provided
+ * - With onPress: executes custom handler regardless of type
  */
-const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
+const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
-
-  const { status: participantStatus } = useGetCampaignParticipantStatus(
-    campaign.id,
-  );
-
-  const participantCount = useSelector(
-    selectCampaignParticipantCount(campaign.id),
-  );
 
   const {
     status: campaignStatus,
     statusLabel,
     dateLabel,
-    dateLabelIcon,
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
+
+  const { status: participantStatus, isLoading: isParticipantStatusLoading } =
+    useGetCampaignParticipantStatus(
+      campaignStatus === 'active' && campaign.type === CampaignType.ONDO_HOLDING
+        ? campaign.id
+        : undefined,
+    );
+
+  const isInteractive =
+    campaignStatus !== 'upcoming' &&
+    (onPress != null || isCampaignTypeSupported(campaign.type));
 
   const backgroundImageUrl =
     colorScheme === 'dark'
-      ? campaign.details?.image?.darkModeUrl
-      : campaign.details?.image?.lightModeUrl;
+      ? campaign.image?.darkModeUrl
+      : campaign.image?.lightModeUrl;
+
+  const hasTour = (campaign.details?.howItWorks?.tour?.length ?? 0) > 0;
+  const shouldShowTour =
+    hasTour &&
+    !isParticipantStatusLoading &&
+    participantStatus?.optedIn !== true &&
+    campaignStatus === 'active';
 
   const handlePress = () => {
-    navigation.navigate(Routes.CAMPAIGN_DETAILS, { campaignId: campaign.id });
+    if (!isInteractive) return;
+
+    if (onPress) {
+      onPress();
+    } else if (campaign.type === CampaignType.ONDO_HOLDING) {
+      if (shouldShowTour) {
+        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+          campaignId: campaign.id,
+        });
+      } else {
+        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+          campaignId: campaign.id,
+        });
+      }
+    } else if (campaign.type === CampaignType.SEASON_1) {
+      navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: campaign.id,
+      });
+    }
   };
 
   return (
     <Pressable
       onPress={handlePress}
+      disabled={!isInteractive}
       style={({ pressed }) =>
         tw.style(
           'rounded-xl overflow-hidden h-50 bg-muted',
-          pressed && 'opacity-70',
+          pressed && isInteractive && 'opacity-70',
         )
       }
       testID={`campaign-tile-${campaign.id}`}
@@ -80,119 +118,62 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
       >
         <Box
           flexDirection={BoxFlexDirection.Column}
-          justifyContent={BoxJustifyContent.Between}
+          justifyContent={BoxJustifyContent.End}
           twClassName="p-4 flex-1"
         >
-          {/* Date label */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="gap-1"
-            testID="campaign-tile-date-label"
+            testID="campaign-tile-status-label"
           >
-            <Icon
-              name={dateLabelIcon}
-              size={IconSize.Sm}
-              color={IconColor.OverlayInverse}
-            />
+            {participantStatus?.optedIn === true ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.SuccessDefault}
+                fontWeight={FontWeight.Medium}
+                testID="campaign-tile-entered-label"
+              >
+                {strings('rewards.campaign.entered')}
+              </Text>
+            ) : (
+              <Text
+                variant={TextVariant.BodySm}
+                color={
+                  colorScheme === 'dark'
+                    ? TextColor.SuccessDefault
+                    : TextColor.OverlayInverse
+                }
+                fontWeight={FontWeight.Medium}
+              >
+                {statusLabel}
+              </Text>
+            )}
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.OverlayInverse}
               fontWeight={FontWeight.Medium}
             >
+              •
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.OverlayInverse}
+              fontWeight={FontWeight.Medium}
+              testID="campaign-tile-date-info"
+            >
               {dateLabel}
             </Text>
           </Box>
-          <Box>
-            <Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-1"
-                testID="campaign-tile-status-label"
-              >
-                {participantStatus?.optedIn === true ? (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.SuccessDefault}
-                    fontWeight={FontWeight.Medium}
-                    testID="campaign-tile-entered-label"
-                  >
-                    {strings('rewards.campaign.entered')}
-                  </Text>
-                ) : (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={
-                      colorScheme === 'dark'
-                        ? TextColor.SuccessDefault
-                        : TextColor.OverlayInverse
-                    }
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {statusLabel}
-                  </Text>
-                )}
-                {participantCount != null ? (
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="gap-1"
-                    testID="campaign-tile-participant-count"
-                  >
-                    <Icon
-                      name={IconName.TrendUp}
-                      size={IconSize.Sm}
-                      color={IconColor.OverlayInverse}
-                    />
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.OverlayInverse}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {strings('rewards.campaign.participant_count', {
-                        count: participantCount.toLocaleString(),
-                      })}
-                    </Text>
-                  </Box>
-                ) : campaignStatus === 'active' &&
-                  participantStatus?.optedIn !== true ? (
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="gap-1"
-                    testID="campaign-tile-enter-now"
-                  >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.OverlayInverse}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      •
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.OverlayInverse}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {strings('rewards.campaign.enter_now')}
-                    </Text>
-                  </Box>
-                ) : (
-                  <></>
-                )}
-              </Box>
-            </Box>
 
-            <Text
-              variant={TextVariant.HeadingLg}
-              color={TextColor.OverlayInverse}
-              twClassName="font-bold"
-              testID="campaign-tile-name"
-            >
-              {campaign.name}
-            </Text>
-          </Box>
+          <Text
+            variant={TextVariant.HeadingLg}
+            color={TextColor.OverlayInverse}
+            twClassName="font-bold"
+            testID="campaign-tile-name"
+          >
+            {campaign.name}
+          </Text>
         </Box>
       </ImageBackground>
     </Pressable>

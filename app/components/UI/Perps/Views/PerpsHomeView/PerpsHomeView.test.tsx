@@ -100,6 +100,15 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  })),
+}));
+
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
@@ -133,16 +142,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: (className: string) => ({ testID: className }),
-  }),
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: 'SafeAreaView',
-  useSafeAreaInsets: () => ({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
   }),
 }));
 
@@ -212,6 +211,7 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   PERPS_EVENT_PROPERTY: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',

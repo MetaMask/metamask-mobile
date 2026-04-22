@@ -48,7 +48,7 @@ const depositOrderStateToFiatOrderState = (
 export const depositOrderToFiatOrder = (
   depositOrder: DepositOrder,
 ): FiatOrder => ({
-  id: depositOrder.providerOrderId || depositOrder.id,
+  id: depositOrder.id,
   provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
   createdAt: depositOrder.createdAt,
   amount: depositOrder.fiatAmount,
@@ -78,8 +78,7 @@ export async function processDepositOrder(
   try {
     const sdk = options?.sdk || DepositSDKNoAuth;
 
-    const depositData = order.data as DepositOrder;
-    const updatedOrder = await sdk.getOrder(depositData.id, order.account);
+    const updatedOrder = await sdk.getOrder(order.id, order.account);
     if (!updatedOrder) {
       throw new Error('Deposit order not found');
     }
@@ -87,7 +86,6 @@ export async function processDepositOrder(
     const updatedFiatOrder = depositOrderToFiatOrder(updatedOrder);
     return {
       ...updatedFiatOrder,
-      id: order.id || updatedFiatOrder.id,
       account: order.account,
       lastTimeFetched: Date.now(),
       errorCount: 0,

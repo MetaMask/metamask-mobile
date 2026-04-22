@@ -24,13 +24,11 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
@@ -41,13 +39,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { ChooseYourCardSelectors } from './ChooseYourCard.testIds';
-import {
-  CardType,
-  CardStatus,
-  DelegationSettingsResponse,
-  CardExternalWalletDetailsResponse,
-  CardTokenAllowance,
-} from '../../types';
+import { CardType, CardStatus } from '../../types';
 import CardImage from '../../components/CardImage/CardImage';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { ShippingAddress } from '../ReviewOrder';
@@ -57,21 +49,6 @@ export type ChooseYourCardFlow = 'onboarding' | 'upgrade' | 'home';
 export interface ChooseYourCardParams {
   flow?: ChooseYourCardFlow;
   shippingAddress?: ShippingAddress;
-  priorityToken?: CardTokenAllowance | null;
-  allTokens?: CardTokenAllowance[];
-  delegationSettings?: DelegationSettingsResponse | null;
-  externalWalletDetailsData?:
-    | {
-        walletDetails: never[];
-        mappedWalletDetails: never[];
-        priorityWalletDetail: null;
-      }
-    | {
-        walletDetails: CardExternalWalletDetailsResponse;
-        mappedWalletDetails: CardTokenAllowance[];
-        priorityWalletDetail: CardTokenAllowance | undefined;
-      }
-    | null;
 }
 
 interface CardOption {
@@ -95,14 +72,8 @@ const ChooseYourCard = () => {
   const [hasUserSwiped, setHasUserSwiped] = useState(false);
   const arrowAnimValue = useRef(new Animated.Value(0)).current;
 
-  const {
-    flow = 'onboarding',
-    shippingAddress,
-    priorityToken,
-    allTokens,
-    delegationSettings,
-    externalWalletDetailsData,
-  } = useParams<ChooseYourCardParams>();
+  const { flow = 'onboarding', shippingAddress } =
+    useParams<ChooseYourCardParams>();
   const isUpgradeFlow = flow === 'upgrade';
 
   // Arrow bounce animation for swipe indicator
@@ -272,18 +243,9 @@ const ChooseYourCard = () => {
     );
 
     if (selectedCard.id === CardType.VIRTUAL) {
-      navigate(
-        Routes.CARD.SPENDING_LIMIT,
-        flow === 'onboarding'
-          ? { flow: 'onboarding' }
-          : {
-              flow: 'manage',
-              priorityToken,
-              allTokens,
-              delegationSettings,
-              externalWalletDetailsData,
-            },
-      );
+      navigate(Routes.CARD.SPENDING_LIMIT, {
+        flow: flow === 'onboarding' ? 'onboarding' : 'manage',
+      });
     } else {
       navigate(Routes.CARD.REVIEW_ORDER, {
         shippingAddress,
@@ -300,10 +262,6 @@ const ChooseYourCard = () => {
     shippingAddress,
     isUpgradeFlow,
     stopPeekAnimation,
-    priorityToken,
-    allTokens,
-    delegationSettings,
-    externalWalletDetailsData,
   ]);
 
   const handleScrollToMetal = useCallback(() => {
@@ -528,17 +486,16 @@ const ChooseYourCard = () => {
 
         <Box twClassName="px-4 pb-4 gap-2">
           <Button
-            variant={ButtonVariants.Primary}
-            label={
-              selectedCard.id === CardType.METAL
-                ? strings('card.choose_your_card.upgrade_title')
-                : strings('card.choose_your_card.continue_button')
-            }
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handleContinue}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             testID={ChooseYourCardSelectors.CONTINUE_BUTTON}
-          />
+          >
+            {selectedCard.id === CardType.METAL
+              ? strings('card.choose_your_card.upgrade_title')
+              : strings('card.choose_your_card.continue_button')}
+          </Button>
           {activeIndex === 0 && !isUpgradeFlow && (
             <TouchableOpacity
               onPress={handleScrollToMetal}

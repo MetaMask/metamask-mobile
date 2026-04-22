@@ -184,7 +184,6 @@ describe('useSwapBridgeNavigation', () => {
     // Reset setIsDestTokenManuallySet mock
     mockSetIsDestTokenManuallySet.mockClear();
     mockSetDestToken.mockClear();
-
     // Setup default mocks for token utilities
     (getDefaultDestToken as jest.Mock).mockReturnValue({
       address: '0x6B175474E89094C44Da98b954EesdfDcD0E0e6F',
@@ -1270,6 +1269,77 @@ describe('useSwapBridgeNavigation', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('passes transactionActiveAbTests in bridge route params when caller provides them', () => {
+      const abTests = [
+        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+      ];
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            transactionActiveAbTests: abTests,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          transactionActiveAbTests: abTests,
+        }),
+      });
+    });
+
+    it('omits transactionActiveAbTests from bridge params when caller does not provide them', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.not.objectContaining({
+          transactionActiveAbTests: expect.anything(),
+        }),
+      });
+    });
+  });
+
+  it('includes scrollToTopOnNav in bridge params when requested', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: SwapBridgeNavigationLocation.TokenView,
+          sourcePage: mockSourcePage,
+          sourceToken: mockSourceToken,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps(undefined, undefined, undefined, true);
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: expect.objectContaining({
+        sourceToken: mockSourceToken,
+        sourcePage: mockSourcePage,
+        location: 'Token View',
+        scrollToTopOnNav: true,
+      }),
     });
   });
 });

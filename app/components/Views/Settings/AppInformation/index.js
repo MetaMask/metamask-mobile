@@ -31,8 +31,9 @@ import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
-import { isQa } from '../../../../util/test/utils';
+import { isProduction } from '../../../../util/environment';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -154,7 +155,7 @@ class AppInformation extends PureComponent {
   };
 
   onSupportCenter = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
@@ -164,7 +165,7 @@ class AppInformation extends PureComponent {
   };
 
   onContactUs = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
@@ -227,9 +228,9 @@ class AppInformation extends PureComponent {
               />
             </TouchableOpacity>
             <Text style={styles.versionInfo}>{this.getVersionDisplay()}</Text>
-            {isQa ? (
+            {!isProduction() ? (
               <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
+                {`${process.env.METAMASK_ENVIRONMENT?.toUpperCase() ?? 'DEV'} | Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
 

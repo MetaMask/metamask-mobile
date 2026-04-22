@@ -10,6 +10,7 @@ import { RefreshControl, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { RPC } from '../../../constants/network';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
@@ -48,7 +49,6 @@ import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridge
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import TransactionElement from '../../UI/TransactionElement';
-import RetryModal from '../../UI/Transactions/RetryModal';
 import { filterDuplicateOutgoingTransactions } from '../../UI/Transactions/utils';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
@@ -423,7 +423,7 @@ const UnifiedTransactionsView = ({
     let title;
     if (configBlockExplorerUrl) {
       const result = getBlockExplorerAddressUrl(
-        providerType,
+        RPC,
         selectedAccountGroupEvmAddress,
         blockExplorerUrl,
       );
@@ -449,7 +449,6 @@ const UnifiedTransactionsView = ({
     });
   }, [
     navigation,
-    providerType,
     blockExplorerUrl,
     selectedAccountGroupEvmAddress,
     popularListBlockExplorer,
@@ -545,15 +544,10 @@ const UnifiedTransactionsView = ({
 
   const [refreshing, setRefreshing] = useState(false);
   const {
-    retryIsOpen,
-    retryErrorMsg,
     speedUpIsOpen,
     cancelIsOpen,
     confirmDisabled,
     existingTx,
-    speedUpTxId,
-    cancelTxId,
-    toggleRetry,
     onSpeedUpAction,
     onCancelAction,
     onSpeedUpCancelCompleted,
@@ -700,16 +694,6 @@ const UnifiedTransactionsView = ({
           onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
           onClose={onSpeedUpCancelCompleted}
           confirmDisabled={confirmDisabled}
-        />
-        <RetryModal
-          onCancelPress={() => toggleRetry(undefined)}
-          onConfirmPress={() => {
-            toggleRetry(undefined);
-            if (speedUpTxId) onSpeedUpAction(true, existingTx ?? undefined);
-            if (cancelTxId) onCancelAction(true, existingTx ?? undefined);
-          }}
-          retryIsOpen={retryIsOpen}
-          errorMsg={retryErrorMsg}
         />
       </View>
     </PriceChartProvider>

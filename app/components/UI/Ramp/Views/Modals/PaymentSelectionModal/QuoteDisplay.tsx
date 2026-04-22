@@ -6,13 +6,12 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-} from '@metamask/design-system-react-native';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+} from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../../locales/i18n';
 
 const SKELETON_TOKEN_WIDTH = 80;
@@ -68,7 +67,7 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
         <Icon
           name={IconName.Warning}
           size={IconSize.Sm}
-          color={IconColor.Warning}
+          color={IconColor.WarningDefault}
         />
       </Box>
     );

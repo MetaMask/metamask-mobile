@@ -11,7 +11,6 @@ import {
   PanResponder,
   StyleSheet,
   Animated,
-  SafeAreaView,
   Easing,
   Image,
   View,
@@ -19,6 +18,7 @@ import {
   TouchableNativeFeedback,
   TouchableHighlight,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import { baseStyles, colors as importedColors } from '../../../styles/common';

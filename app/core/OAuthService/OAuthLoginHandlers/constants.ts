@@ -1,8 +1,14 @@
 import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
+import Device from '../../../util/device';
+import ReduxService from '../../redux';
 import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
 import { OAUTH_CONFIG } from './config';
+import {
+  DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED,
+  selectLegacyIosGoogleConfigEnabled,
+} from '../../../selectors/featureFlagController/legacyIosGoogleConfig';
 
 export const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
@@ -50,18 +56,58 @@ const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
 export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
+
+/** UAT QA mock token URL — optional ping when `E2E_MOCK_OAUTH` + `E2E_BYOA_AUTH_SECRET` (BrowserStack perf). */
+export const E2E_QA_MOCK_OAUTH_TOKEN_URL =
+  'https://auth-service.uat-api.cx.metamask.io/api/v1/qa/mock/oauth/token';
+
 export const AUTH_SERVER_MARKETING_OPT_IN_PATH =
   '/api/v1/oauth/marketing_opt_in_status';
 
 export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
 export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
-export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
+export const GoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
 // Use universal link for OAuth redirect
-export const AndroidGoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
+export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
+
+export const shouldUseLegacyIosGoogleConfig = () => {
+  if (!Device.isIos()) {
+    return false;
+  }
+
+  try {
+    return selectLegacyIosGoogleConfigEnabled(ReduxService.store.getState());
+  } catch {
+    return DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED;
+  }
+};
+
+export const getIosGoogleConfig = () => {
+  if (
+    shouldUseLegacyIosGoogleConfig() ||
+    (Device.isIos() && Device.comparePlatformVersionTo('17.4') < 0)
+  ) {
+    if (!IosGoogleRedirectUri || !IosGID) {
+      throw new Error('IosGoogleConfig is not set');
+    }
+    return {
+      clientId: IosGID,
+      redirectUri: IosGoogleRedirectUri,
+    };
+  }
+
+  if (!GoogleWebGID) {
+    throw new Error('GoogleWebGID is not set');
+  }
+  return {
+    clientId: GoogleWebGID,
+    redirectUri: GoogleRedirectUri,
+  };
+};
 
 export enum SupportedPlatforms {
   Android = 'android',

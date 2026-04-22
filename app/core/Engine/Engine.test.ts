@@ -162,6 +162,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
     expect(engine.context).toHaveProperty('AiDigestController');
+    expect(engine.context).toHaveProperty('MoneyAccountController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {

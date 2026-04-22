@@ -8,20 +8,38 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { flushPromises } from '../../../../../util/test/utils';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
-import { GasImpactModalProps } from './GasImpactModal.types';
+import { GasImpactModalRouteParams } from './GasImpactModal.types';
 import GasImpactModal from './index';
 
 const MOCK_SELECTED_INTERNAL_ACCOUNT = {
   address: '0x123',
 } as InternalAccount;
 
+const mockRouteParams: GasImpactModalRouteParams = {
+  amountWei: '3210000000000000',
+  amountFiat: '7.46',
+  annualRewardRate: '2.5%',
+  annualRewardsETH: '2.5 ETH',
+  annualRewardsFiat: '$5000',
+  estimatedGasFee: '0.009171428571428572',
+  estimatedGasFeePercentage: '35%',
+  chainId: '1',
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
     useNavigation: jest.fn(),
+    useRoute: () => ({
+      key: '1',
+      name: 'params',
+      params: mockRouteParams,
+    }),
   };
 });
 
@@ -43,43 +61,7 @@ jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    }),
-  }),
-  MetaMetricsEvents: {
-    STAKE_TRANSACTION_APPROVED: 'STAKE_TRANSACTION_APPROVED',
-    STAKE_TRANSACTION_REJECTED: 'STAKE_TRANSACTION_REJECTED',
-    STAKE_TRANSACTION_CONFIRMED: 'STAKE_TRANSACTION_CONFIRMED',
-    STAKE_TRANSACTION_FAILED: 'STAKE_TRANSACTION_FAILED',
-    STAKE_TRANSACTION_SUBMITTED: 'STAKE_TRANSACTION_SUBMITTED',
-    STAKE_GAS_COST_IMPACT_CANCEL_CLICKED:
-      'STAKE_GAS_COST_IMPACT_CANCEL_CLICKED',
-    STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED:
-      'STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED',
-  },
-}));
-
-const props: GasImpactModalProps = {
-  route: {
-    key: '1',
-    params: {
-      amountWei: '3210000000000000',
-      amountFiat: '7.46',
-      annualRewardRate: '2.5%',
-      annualRewardsETH: '2.5 ETH',
-      annualRewardsFiat: '$5000',
-      estimatedGasFee: '0.009171428571428572',
-      estimatedGasFeePercentage: '35%',
-      chainId: '1',
-    },
-    name: 'params',
-  },
-};
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 const initialMetrics: Metrics = {
   frame: { x: 0, y: 0, width: 320, height: 640 },
@@ -89,7 +71,7 @@ const initialMetrics: Metrics = {
 const renderGasImpactModal = () =>
   renderWithProvider(
     <SafeAreaProvider initialMetrics={initialMetrics}>
-      <GasImpactModal {...props} />,
+      <GasImpactModal />,
     </SafeAreaProvider>,
     undefined,
     true,
@@ -104,6 +86,8 @@ describe('GasImpactModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
 
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
@@ -177,7 +161,7 @@ describe('GasImpactModal', () => {
 
       expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);
       expect(attemptDepositTransactionMock).toHaveBeenCalledWith(
-        props.route.params.amountWei,
+        mockRouteParams.amountWei,
         MOCK_SELECTED_INTERNAL_ACCOUNT.address,
       );
     });

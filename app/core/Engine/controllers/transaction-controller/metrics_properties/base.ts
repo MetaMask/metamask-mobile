@@ -66,6 +66,10 @@ export function getTransactionTypeValue(
     return 'predict_withdraw';
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    return 'perps_withdraw';
+  }
+
   if (hasTransactionType(transactionMeta, [TransactionType.predictClaim])) {
     return 'predict_claim';
   }
@@ -76,6 +80,26 @@ export function getTransactionTypeValue(
 
   if (hasTransactionType(transactionMeta, [TransactionType.musdClaim])) {
     return 'musd_claim';
+  }
+
+  if (transactionMeta?.type === TransactionType.batch) {
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.perpsRelayDeposit])
+    ) {
+      return 'perps_deposit_batch';
+    }
+
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.predictRelayDeposit])
+    ) {
+      return 'predict_deposit_batch';
+    }
+
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.musdRelayDeposit])
+    ) {
+      return 'musd_conversion_batch';
+    }
   }
 
   switch (transactionType) {
@@ -91,6 +115,8 @@ export function getTransactionTypeValue(
       return 'perps_deposit';
     case TransactionType.perpsDepositAndOrder:
       return 'perps_deposit_and_order';
+    case TransactionType.musdRelayDeposit:
+      return 'musd_relay_deposit';
     case TransactionType.perpsRelayDeposit:
       return 'perps_relay_deposit';
     case TransactionType.predictRelayDeposit:

@@ -30,6 +30,8 @@ export interface TrendingTokenNetworkBottomSheetProps {
   selectedNetwork?: CaipChainId[] | null;
   /** Networks to display in the bottom sheet */
   networks: ProcessedNetwork[];
+  /** When true, the "All networks" option is hidden */
+  hideAllNetworks?: boolean;
 }
 
 const TrendingTokenNetworkBottomSheet: React.FC<
@@ -40,6 +42,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   onNetworkSelect,
   selectedNetwork: initialSelectedNetwork,
   networks,
+  hideAllNetworks = false,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -118,21 +121,23 @@ const TrendingTokenNetworkBottomSheet: React.FC<
         closeButtonProps={{ testID: 'close-button' }}
       />
       <ScrollView style={optionStyles.optionsList}>
-        <Cell
-          variant={CellVariant.Select}
-          title={strings('trending.all_networks')}
-          isSelected={isAllNetworksSelected}
-          onPress={() => onNetworkOptionPress(NetworkOption.AllNetworks)}
-          avatarProps={{
-            variant: AvatarVariant.Icon,
-            name: IconName.Global,
-            size: AvatarSize.Sm,
-          }}
-        >
-          {isAllNetworksSelected && (
-            <Icon name={IconName.Check} size={IconSize.Md} />
-          )}
-        </Cell>
+        {!hideAllNetworks && (
+          <Cell
+            variant={CellVariant.Select}
+            title={strings('trending.all_networks')}
+            isSelected={isAllNetworksSelected}
+            onPress={() => onNetworkOptionPress(NetworkOption.AllNetworks)}
+            avatarProps={{
+              variant: AvatarVariant.Icon,
+              name: IconName.Global,
+              size: AvatarSize.Sm,
+            }}
+          >
+            {isAllNetworksSelected && (
+              <Icon name={IconName.Check} size={IconSize.Md} />
+            )}
+          </Cell>
+        )}
         {networks.map((network) => {
           const isSelected = isNetworkSelected(network);
           return (

@@ -2,6 +2,8 @@ export enum MarketInsightsSelectorsIDs {
   ENTRY_CARD = 'market-insights-entry-card',
   ENTRY_CARD_HEADLINE = 'market-insights-entry-card-headline',
   VIEW_CONTAINER = 'market-insights-view-container',
+  ENTRY_CARD_SKELETON = 'market-insights-entry-card-skeleton',
+  VIEW_SCROLL = 'market-insights-view-scroll',
   VIEW_SKELETON = 'market-insights-view-skeleton',
   VIEW_HEADER = 'market-insights-view-header',
   TREND_ITEM = 'market-insights-trend-item',

@@ -80,7 +80,7 @@ export const SCROLL_TRACKER_SCRIPT = `
   (function() {
     let lastScrollY = -1; // Start at -1 to ensure first position is always sent
     let rafPending = false;
-    
+
     const sendScrollPosition = () => {
       const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop || 0);
       if (currentScrollY !== lastScrollY) {
@@ -91,7 +91,7 @@ export const SCROLL_TRACKER_SCRIPT = `
         }));
       }
     };
-    
+
     // Debounced scroll handler using requestAnimationFrame for better Android performance
     const onScroll = () => {
       if (!rafPending) {
@@ -102,18 +102,18 @@ export const SCROLL_TRACKER_SCRIPT = `
         });
       }
     };
-    
+
     // Listen to multiple events for better reliability on Android
     window.addEventListener('scroll', onScroll, { passive: true });
     document.addEventListener('touchend', sendScrollPosition, { passive: true });
-    
+
     // Send initial position after DOM is ready
     if (document.readyState === 'complete') {
       sendScrollPosition();
     } else {
       window.addEventListener('load', sendScrollPosition);
     }
-    
+
     // Also send on page visibility change (tab switch back)
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
@@ -131,11 +131,9 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (
     // Only send message if origins match
     if (window.location.origin === ${JSON.stringify(origin)}) {
       window.postMessage(${JSON.stringify(message)}, ${JSON.stringify(origin)});
-    } else {
-      console.warn('MetaMask: Origin mismatch, blocking message');
     }
   } catch (e) {
-    console.error('MetaMask postMessage error:', e);
+    // Nothing to do here
   }
 })();`;
 

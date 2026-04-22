@@ -84,6 +84,13 @@ function isTextNode(
   );
 }
 
+// Returns a fresh RegExp each call so stateful `lastIndex` never leaks between uses.
+// Constructed via new RegExp() to avoid the no-control-regex lint rule firing on
+// intentional control-character matching (U+0000–U+001F, U+007F, etc.).
+const UNWANTED_CHARS_PATTERN =
+  '[\u0000-\u001F\u007F\u0080-\u009F\u200B-\u200F\u2028\u2029\uFEFF\uFFFC-\uFFFD]+';
+const UNWANTED_CHARS_RE = () => new RegExp(UNWANTED_CHARS_PATTERN, 'g');
+
 /**
  * Renders a Contentful rich text Document as React Native components
  * using the MetaMask design system primitives.
@@ -117,6 +124,9 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
     return null;
   }
 
+  const sanitizeText = (s: string): string =>
+    s.replace(UNWANTED_CHARS_RE(), '').replace(/\s{2,}/g, ' ');
+
   const renderMarkedText = (
     text: string,
     marks: RichTextMark[],
@@ -133,7 +143,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
         twClassName={`${bodyClassName}${isItalic ? ' italic' : ''}${isUnderline ? ' underline' : ''}`}
         fontWeight={isBold ? FontWeight.Bold : undefined}
       >
-        {text}
+        {sanitizeText(text)}
       </Text>
     );
   };
@@ -147,13 +157,15 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
 
       if (isTextNode(child)) {
         if (child.marks.length === 0) {
-          return <Fragment key={childKey}>{child.value}</Fragment>;
+          return (
+            <Fragment key={childKey}>{sanitizeText(child.value)}</Fragment>
+          );
         }
         return renderMarkedText(child.value, child.marks, childKey);
       }
 
       if (child.nodeType === 'text' && typeof child.value === 'string') {
-        return <Fragment key={childKey}>{child.value}</Fragment>;
+        return <Fragment key={childKey}>{sanitizeText(child.value)}</Fragment>;
       }
 
       if (child.nodeType === INLINE_TYPES.HYPERLINK) {
@@ -251,5 +263,44 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
   );
 };
 
-export { isDocument };
+/**
+ * Recursively extracts plain text from a Contentful rich text document or node.
+ * If the value is already a string, it is returned as-is.
+ * Returns an empty string for null/undefined/non-object values.
+ */
+function documentToPlainText(value: unknown): string {
+  if (typeof value === 'string')
+    return value
+      .replace(UNWANTED_CHARS_RE(), '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  if (value === null || value === undefined || typeof value !== 'object')
+    return '';
+
+  const node = value as {
+    nodeType?: unknown;
+    value?: unknown;
+    content?: unknown[];
+  };
+
+  if (node.nodeType === 'text' && typeof node.value === 'string') {
+    return node.value
+      .replace(UNWANTED_CHARS_RE(), '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  if (Array.isArray(node.content)) {
+    return node.content
+      .map(documentToPlainText)
+      .join(' ')
+      .replace(/[\n\r\u2028\u2029]+/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  return '';
+}
+
+export { isDocument, documentToPlainText };
 export default ContentfulRichText;

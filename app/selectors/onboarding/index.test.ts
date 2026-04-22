@@ -1,4 +1,8 @@
-import { selectCompletedOnboarding, selectOnboardingAccountType } from '.';
+import {
+  selectCompletedOnboarding,
+  selectOnboardingAccountType,
+  selectPendingSocialLoginMarketingConsentBackfill,
+} from '.';
 import { RootState } from '../../reducers';
 import { AccountType } from '../../constants/onboarding';
 
@@ -31,5 +35,26 @@ describe('Onboarding selectors', () => {
     expect(
       selectOnboardingAccountType(stateWithoutAccountType),
     ).toBeUndefined();
+  });
+
+  it('returns null for selectPendingSocialLoginMarketingConsentBackfill when not set', () => {
+    const state = {
+      onboarding: {
+        completedOnboarding: false,
+      },
+    } as RootState;
+    expect(selectPendingSocialLoginMarketingConsentBackfill(state)).toBeNull();
+  });
+
+  it('returns the pending auth connection for selectPendingSocialLoginMarketingConsentBackfill', () => {
+    const state = {
+      onboarding: {
+        completedOnboarding: true,
+        pendingSocialLoginMarketingConsentBackfill: 'google',
+      },
+    } as RootState;
+    expect(selectPendingSocialLoginMarketingConsentBackfill(state)).toBe(
+      'google',
+    );
   });
 });

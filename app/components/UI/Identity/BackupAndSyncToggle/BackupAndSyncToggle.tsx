@@ -21,7 +21,8 @@ import {
 // import Routes from '../../../../constants/navigation/Routes';
 import SwitchLoadingModal from '../../Notification/SwitchLoadingModal';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
@@ -42,7 +43,7 @@ const BackupAndSyncToggle = ({
 }: Readonly<Props>) => {
   const theme = useTheme();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { colors } = theme;
 

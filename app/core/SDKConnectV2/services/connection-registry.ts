@@ -18,6 +18,43 @@ import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
+import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+
+/**
+ * Fire-and-forget analytics helper. Never throws — a broken analytics
+ * call must never abort connection establishment or error handling.
+ */
+function trackMwpEvent(
+  event: IMetaMetricsEvent,
+  properties: Record<string, unknown>,
+): void {
+  try {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+    );
+  } catch {
+    // Intentionally swallowed: analytics must not block MWP flows.
+  }
+}
+
+/**
+ * Hard cap on the number of simultaneous active connections.
+ *
+ * Without a cap every deeplink adds a connection that persists for the full
+ * DEFAULT_SESSION_TTL (30 days). Over that window connections accumulate
+ * freely, amplifying startup reconnection bursts, chain-change fan-out, and
+ * stale BackgroundBridge listeners.
+ *
+ * When the limit is reached the oldest connection (earliest `expiresAt`) is
+ * evicted before the new one is created.
+ */
+export const MAX_CONNECTIONS = 20;
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -51,13 +88,18 @@ export class ConnectionRegistry {
 
   /**
    * One-time initialization to resume all persisted connections on app cold start.
+   *
+   * Connections are resumed sequentially so a user with N persisted sessions
+   * does not trigger N concurrent relay handshakes at cold start. A single
+   * failure is logged and does not stop subsequent connections from being
+   * processed.
    */
   private async initialize(): Promise<void> {
     await whenStoreReady();
 
     const persisted = await this.store.list().catch(() => []);
 
-    const promises = persisted.map(async (connInfo) => {
+    for (const connInfo of persisted) {
       try {
         const conn = await Connection.create(
           connInfo,
@@ -71,11 +113,34 @@ export class ConnectionRegistry {
       } catch (error) {
         logger.error('Failed to resume connection', connInfo.id, error);
       }
-    });
+    }
 
-    await Promise.allSettled(promises);
+    await this.trimToCapacity();
 
     this.hostapp.syncConnectionList(Array.from(this.connections.values()));
+  }
+
+  /**
+   * Trims connections down to {@link MAX_CONNECTIONS} after a cold-start
+   * resume. Oldest connections (earliest `expiresAt`) are evicted first.
+   */
+  private async trimToCapacity(): Promise<void> {
+    if (this.connections.size <= MAX_CONNECTIONS) return;
+
+    const sorted = Array.from(this.connections.values()).sort(
+      (a, b) => a.info.expiresAt - b.info.expiresAt,
+    );
+
+    const excess = sorted.slice(0, sorted.length - MAX_CONNECTIONS);
+
+    for (const conn of excess) {
+      try {
+        logger.debug('Trimming excess connection on startup:', conn.id);
+        await this.disconnect(conn.id);
+      } catch (error) {
+        logger.error('Failed to trim excess connection:', conn.id, error);
+      }
+    }
   }
 
   /**
@@ -113,8 +178,21 @@ export class ConnectionRegistry {
     const conn = await this.store.get(id);
 
     if (conn) {
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+        remote_session_id: conn.metadata?.analytics?.remote_session_id ?? id,
+        transport_type: TransportType.MWP,
+        sdk_version: conn.metadata?.sdk?.version,
+        sdk_platform: conn.metadata?.sdk?.platform,
+        found_in_store: true,
+      });
       return;
     }
+
+    trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+      remote_session_id: id,
+      transport_type: TransportType.MWP,
+      found_in_store: false,
+    });
 
     logger.error(
       'Failed to find connection in store for simple deeplink with id:',
@@ -168,9 +246,19 @@ export class ConnectionRegistry {
 
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
+    let connReq: ConnectionRequest | undefined;
 
     try {
-      const connReq = this.parseConnectionRequest(url);
+      connReq = this.parseConnectionRequest(url);
+
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+        remote_session_id:
+          connReq.metadata.analytics?.remote_session_id ??
+          connReq.sessionRequest.id,
+        transport_type: TransportType.MWP,
+        sdk_version: connReq.metadata.sdk.version,
+        sdk_platform: connReq.metadata.sdk.platform,
+      });
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
       // matches a known internal origin. This check is currently redundant
@@ -187,8 +275,9 @@ export class ConnectionRegistry {
           message: 'External transactions cannot use internal origins',
         });
       }
-      connInfo = this.toConnectionInfo(connReq);
+      await this.evictIfAtCapacity();
 
+      connInfo = this.toConnectionInfo(connReq);
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,
@@ -200,13 +289,54 @@ export class ConnectionRegistry {
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
+
       logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
+
+      // Track the failure before cleanup so the event fires even if
+      // disconnect() throws.
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
+        remote_session_id:
+          connReq?.metadata?.analytics?.remote_session_id ??
+          connReq?.sessionRequest?.id ??
+          'unknown',
+        transport_type: TransportType.MWP,
+        sdk_version: connReq?.metadata?.sdk?.version,
+        sdk_platform: connReq?.metadata?.sdk?.platform,
+        failure_reason: error instanceof Error ? error.message : String(error),
+      });
+
       if (conn) await this.disconnect(conn.id);
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
+    }
+  }
+
+  /**
+   * If the number of active connections has reached {@link MAX_CONNECTIONS},
+   * evict the oldest connection (earliest `expiresAt`) to make room.
+   *
+   * Because every connection is created with the same TTL, the smallest
+   * `expiresAt` reliably identifies the connection that was established
+   * first.
+   */
+  private async evictIfAtCapacity(): Promise<void> {
+    if (this.connections.size < MAX_CONNECTIONS) return;
+
+    const oldest = Array.from(this.connections.values()).reduce((a, b) =>
+      a.info.expiresAt <= b.info.expiresAt ? a : b,
+    );
+
+    try {
+      logger.debug(
+        'Connection cap reached, evicting oldest connection:',
+        oldest.id,
+      );
+      await this.disconnect(oldest.id);
+    } catch (error) {
+      logger.error('Failed to evict oldest connection:', oldest.id, error);
     }
   }
 
@@ -297,19 +427,22 @@ export class ConnectionRegistry {
   /**
    * Proactively refreshes all active connections. This is the primary mechanism
    * for preventing stale/zombie connections after the app was put in the background.
+   *
+   * Reconnections are processed sequentially so a user with N active sessions
+   * does not trigger N concurrent relay handshakes on every foreground event.
+   * A single failure is logged and does not stop subsequent connections from
+   * being processed.
    */
   private async reconnectAll(): Promise<void> {
     const connections = Array.from(this.connections.values());
 
-    const promises = connections.map((conn) =>
-      conn.client
-        .reconnect()
-        .then(() => logger.debug('Connection reconnected:', conn.id))
-        .catch((err: Error) =>
-          logger.error('Failed to reconnect connection:', err, conn.id),
-        ),
-    );
-
-    await Promise.allSettled(promises);
+    for (const conn of connections) {
+      try {
+        await conn.client.reconnect();
+        logger.debug('Connection reconnected:', conn.id);
+      } catch (err) {
+        logger.error('Failed to reconnect connection:', err, conn.id);
+      }
+    }
   }
 }

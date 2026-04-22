@@ -23,20 +23,19 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  selectOptinAllowedForGeo,
-  selectOptinAllowedForGeoLoading,
-} from '../../../../../reducers/rewards/selectors';
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+} from '../../../../../selectors/geolocationController';
 import {
-  selectCardIsLoaded,
+  selectIsCardAuthenticated,
   selectIsCardholder,
-  selectIsAuthenticatedCard,
-  selectIsUserInSupportedCardCountry,
-} from '../../../../../core/redux/slices/card';
+} from '../../../../../selectors/cardController';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
 import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
 
 const AVATAR_SIZE = 78;
+const UK_COUNTRY_CODE = 'GB';
 
 const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
@@ -92,51 +91,43 @@ const EarnCard: React.FC<EarnCardProps> = ({
 /**
  * EarnRewardsPreview shows the "Earn rewards" section on the dashboard.
  *
- * - mUSD calculator card: only shown when geo allows opt-in (not UK)
- * - MetaMask Card card: shown when card geo is loaded and country is supported
- * - While geo is loading: skeletons shown in place of cards; title always visible
+ * - mUSD calculator card: shown when geoLocation has settled AND is not UK.
+ * 'UNKNOWN' is treated as non-UK so mUSD is shown. Hidden only when undefined (loading)
+ * or 'GB' to prevent flash for UK users.
+ * - MetaMask Card card: shown when card geo is loaded (no country restriction).
+ * - While geo is loading (status 'idle' or 'loading'): skeletons shown; title always visible
  */
 const EarnRewardsPreview: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  // mUSD geo check
-  const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
-  const isGeoLoading = useSelector(selectOptinAllowedForGeoLoading);
-  const showMusdCard = optinAllowedForGeo !== false;
+  // mUSD geo check - hide for UK users, require positive geo confirmation to avoid flash
+  const geoLocation = useSelector(selectGeolocationLocation);
+  const geoStatus = useSelector(selectGeolocationStatus);
+  const isMusdGeoLoading = geoStatus === 'loading' || geoStatus === 'idle';
+  const showMusdCard =
+    geoLocation !== undefined && geoLocation !== UK_COUNTRY_CODE;
 
-  // Card geo check — isCardGeoLoaded flips true when loadCardholderAccounts settles
-  const isCardGeoLoaded = useSelector(selectCardIsLoaded);
-  const isUserInSupportedCardCountry = useSelector(
-    selectIsUserInSupportedCardCountry,
-  );
+  // Card check — isCardGeoLoaded flips true when loadCardholderAccounts settles
   const isCardholder = useSelector(selectIsCardholder);
-  const isAuthenticatedCard = useSelector(selectIsAuthenticatedCard);
-  const isCardGeoLoading = !isCardGeoLoaded;
-  const showCardCard = isCardGeoLoaded && isUserInSupportedCardCountry;
+  const isAuthenticatedCard = useSelector(selectIsCardAuthenticated);
   const cardSubtitle =
     isCardholder || isAuthenticatedCard
       ? strings('rewards.earn_rewards.card_subtitle_cardholder')
       : strings('rewards.earn_rewards.card_subtitle');
 
-  const isAnyGeoLoading = isGeoLoading || isCardGeoLoading;
-
   const handleMusdPress = useCallback(() => {
-    navigation.navigate(Routes.MUSD_CALCULATOR_VIEW);
+    navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
   }, [navigation]);
 
   const handleCardPress = useCallback(() => {
     handleDeeplink({ uri: 'metamask://card-onboarding' });
   }, []);
 
-  if (!isAnyGeoLoading && !showMusdCard && !showCardCard) {
-    return null;
-  }
-
   return (
     <Box
-      twClassName="gap-3 p-4 -mt-2"
+      twClassName="gap-3 px-4 pb-3"
       testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW}
     >
       <Box
@@ -144,7 +135,7 @@ const EarnRewardsPreview: React.FC = () => {
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2"
       >
-        {isAnyGeoLoading && (
+        {isMusdGeoLoading && (
           <ActivityIndicator size="small" color={colors.primary.default} />
         )}
         <Text variant={TextVariant.HeadingMd}>
@@ -152,33 +143,26 @@ const EarnRewardsPreview: React.FC = () => {
         </Text>
       </Box>
 
-      {isAnyGeoLoading ? (
-        <>
-          <Skeleton style={tw.style('h-28 rounded-xl')} />
-          <Skeleton style={tw.style('h-28 rounded-xl')} />
-        </>
+      {isMusdGeoLoading && !showMusdCard ? (
+        <Skeleton style={tw.style('h-28 rounded-xl')} />
       ) : (
-        <>
-          {showMusdCard && (
-            <EarnCard
-              testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
-              image={musdImage}
-              title={strings('rewards.earn_rewards.musd_title')}
-              subtitle={strings('rewards.earn_rewards.musd_subtitle')}
-              onPress={handleMusdPress}
-            />
-          )}
-          {showCardCard && (
-            <EarnCard
-              testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
-              image={cardImage}
-              title={strings('rewards.earn_rewards.card_title')}
-              subtitle={cardSubtitle}
-              onPress={handleCardPress}
-            />
-          )}
-        </>
+        showMusdCard && (
+          <EarnCard
+            testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
+            image={musdImage}
+            title={strings('rewards.earn_rewards.musd_title')}
+            subtitle={strings('rewards.earn_rewards.musd_subtitle')}
+            onPress={handleMusdPress}
+          />
+        )
       )}
+      <EarnCard
+        testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
+        image={cardImage}
+        title={strings('rewards.earn_rewards.card_title')}
+        subtitle={cardSubtitle}
+        onPress={handleCardPress}
+      />
     </Box>
   );
 };

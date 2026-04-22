@@ -1,6 +1,7 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import AdditionalVerification from './AdditionalVerification';
+import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
@@ -52,9 +53,14 @@ describe('AdditionalVerification Component', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
+  it('renders the title and continue button', () => {
     render(AdditionalVerification);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getAllByText(strings('deposit.additional_verification.title'))[0],
+    ).toBeOnTheScreen();
+    expect(
+      screen.getAllByText(strings('deposit.additional_verification.button'))[0],
+    ).toBeOnTheScreen();
   });
 
   it('calls setOptions when the component mounts', () => {

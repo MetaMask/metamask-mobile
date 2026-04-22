@@ -2,7 +2,7 @@ import {
   DeFiPositionsController,
   DeFiPositionsControllerMessenger,
 } from '@metamask/assets-controllers';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-positions-controller-messenger/defi-positions-controller-messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
@@ -18,7 +18,7 @@ import {
  * @param request - The request object.
  * @returns The DeFiPositionsController.
  */
-export const defiPositionsControllerInit: ControllerInitFunction<
+export const defiPositionsControllerInit: MessengerClientInitFunction<
   DeFiPositionsController,
   DeFiPositionsControllerMessenger,
   DeFiPositionsControllerInitMessenger

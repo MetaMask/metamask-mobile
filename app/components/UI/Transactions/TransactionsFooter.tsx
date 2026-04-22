@@ -63,6 +63,11 @@ interface TransactionsFooterProps {
    */
   isNonEvmChain?: boolean;
   /**
+   * When true, do not use the globally selected network's provider type to show
+   * a generic "Etherscan" fallback (e.g. token details must match the asset chain only).
+   */
+  omitGlobalProviderExplorerFallback?: boolean;
+  /**
    * Handler for view block explorer button press
    */
   onViewBlockExplorer: () => void;
@@ -77,6 +82,7 @@ const TransactionsFooter = ({
   providerType,
   rpcBlockExplorer,
   isNonEvmChain = false,
+  omitGlobalProviderExplorerFallback = false,
   onViewBlockExplorer,
   showDisclaimer = true,
 }: TransactionsFooterProps) => {
@@ -93,14 +99,25 @@ const TransactionsFooter = ({
       return null;
     }
 
-    if (isMainnetByChainId(chainId) || (providerType && providerType !== RPC)) {
-      return strings('transactions.view_full_history_on_etherscan');
+    // Prefer deriving the label from the explorer URL when present. Unified
+    // activity can pass chainId for one enabled network while providerType
+    // reflects the globally selected network — the URL matches the list we show.
+    if (rpcBlockExplorer && rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER) {
+      const explorerName = getBlockExplorerName(rpcBlockExplorer);
+      if (explorerName) {
+        return `${strings(
+          'transactions.view_full_history_on',
+        )} ${explorerName}`;
+      }
     }
 
-    if (rpcBlockExplorer && rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER) {
-      return `${strings(
-        'transactions.view_full_history_on',
-      )} ${getBlockExplorerName(rpcBlockExplorer)}`;
+    const allowProviderFallback =
+      !omitGlobalProviderExplorerFallback &&
+      providerType &&
+      providerType !== RPC;
+
+    if (isMainnetByChainId(chainId) || allowProviderFallback) {
+      return strings('transactions.view_full_history_on_etherscan');
     }
 
     return null;

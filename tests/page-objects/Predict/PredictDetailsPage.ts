@@ -14,6 +14,7 @@ import {
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
 } from '../../../app/components/UI/Predict/Predict.testIds';
+
 class PredictDetailsPage {
   get container(): EncapsulatedElementType {
     return encapsulated({
@@ -34,8 +35,9 @@ class PredictDetailsPage {
           PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
+        PlaywrightMatchers.getElementById(
+          PredictMarketDetailsSelectorsIDs.POSITIONS_TAB,
+          { exact: true },
         ),
     });
   }
@@ -47,8 +49,9 @@ class PredictDetailsPage {
           PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
+        PlaywrightMatchers.getElementById(
+          PredictMarketDetailsSelectorsIDs.ABOUT_TAB,
+          { exact: true },
         ),
     });
   }
@@ -60,12 +63,14 @@ class PredictDetailsPage {
           PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
+        PlaywrightMatchers.getElementById(
+          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB,
+          { exact: true },
         ),
     });
   }
-
+  //TODO: Add the correct TESTID on the component for the about tab content
+  // This was migrated from the old screen-objects/PredictDetailsScreen.js file
   get aboutTabContent(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -80,6 +85,8 @@ class PredictDetailsPage {
     });
   }
 
+  //TODO: Add the correct TESTID on the component for the outcomes tab content
+  // This was migrated from the old screen-objects/PredictDetailsScreen.js file
   get outcomesTabContent(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>

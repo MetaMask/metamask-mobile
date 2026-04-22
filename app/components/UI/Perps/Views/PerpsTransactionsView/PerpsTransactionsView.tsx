@@ -1,7 +1,18 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -39,6 +50,7 @@ import {
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
+import { PerpsTransactionsViewSelectorsIDs } from '../../Perps.testIds';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
@@ -76,6 +88,9 @@ const PerpsTransactionsView: React.FC = () => {
     transactions: allTransactions,
     isLoading: transactionsLoading,
     refetch: refreshTransactions,
+    loadMoreFunding,
+    hasFundingMore,
+    isFetchingMoreFunding,
   } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
     accountId,
@@ -193,6 +208,28 @@ const PerpsTransactionsView: React.FC = () => {
     }
   }, [isConnected, refreshTransactions]);
 
+  // Auto-advance funding cursor when the Funding tab is empty but more data
+  // exists. FlashList does not reliably call onEndReached on empty lists, so
+  // we trigger loadMoreFunding directly when the tab shows no results.
+  useEffect(() => {
+    if (
+      activeFilter === 'Funding' &&
+      !transactionsLoading &&
+      !isFetchingMoreFunding &&
+      hasFundingMore &&
+      fundingTransactions.length === 0
+    ) {
+      loadMoreFunding();
+    }
+  }, [
+    activeFilter,
+    transactionsLoading,
+    isFetchingMoreFunding,
+    hasFundingMore,
+    fundingTransactions,
+    loadMoreFunding,
+  ]);
+
   useFocusEffect(
     useCallback(() => {
       if (!isConnected) {
@@ -230,6 +267,12 @@ const PerpsTransactionsView: React.FC = () => {
       // Convert tab to i18n key
       const i18nKeys = ['trades', 'orders', 'funding', 'deposits'];
       const i18nKey = i18nKeys[index];
+      const tabTestIDs = [
+        PerpsTransactionsViewSelectorsIDs.TAB_TRADES,
+        PerpsTransactionsViewSelectorsIDs.TAB_ORDERS,
+        PerpsTransactionsViewSelectorsIDs.TAB_FUNDING,
+        PerpsTransactionsViewSelectorsIDs.TAB_DEPOSITS,
+      ];
 
       const handleTabPress = () => {
         // Immediately scroll to top and switch tabs
@@ -256,6 +299,7 @@ const PerpsTransactionsView: React.FC = () => {
           size={ButtonSize.Md}
           onPress={handleTabPress}
           accessibilityRole="button"
+          testID={tabTestIDs[index]}
         >
           {strings(`perps.transactions.tabs.${i18nKey}`)}
         </ButtonFilter>
@@ -473,6 +517,7 @@ const PerpsTransactionsView: React.FC = () => {
       )}
 
       <FlashList
+        testID="perps-transactions-flash-list"
         ref={flashListRef}
         data={flatListData}
         renderItem={renderListItem}
@@ -481,9 +526,26 @@ const PerpsTransactionsView: React.FC = () => {
           item.type === 'header' ? 'header' : 'transaction'
         }
         ListEmptyComponent={shouldShowEmptyState ? renderEmptyState : null}
+        ListFooterComponent={
+          activeFilter === 'Funding' && isFetchingMoreFunding ? (
+            <View style={styles.loadMoreContainer}>
+              <ActivityIndicator
+                testID={
+                  PerpsTransactionsViewSelectorsIDs.FUNDING_LOAD_MORE_SPINNER
+                }
+              />
+            </View>
+          ) : null
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        onEndReached={
+          activeFilter === 'Funding' && hasFundingMore
+            ? loadMoreFunding
+            : undefined
+        }
+        onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
         drawDistance={
           PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FLASH_LIST_DRAW_DISTANCE

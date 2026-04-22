@@ -4,14 +4,14 @@ import {
   normalizeSymbol,
   getCaipChainId,
   shouldProcessNetwork,
-  buildTokenListFromSettings,
+  buildDelegationTokenList,
   buildQuickSelectTokens,
   QUICK_SELECT_TOKENS,
   LINEA_CAIP_CHAIN_ID,
 } from './buildTokenList';
 import {
-  AllowanceState,
-  CardTokenAllowance,
+  FundingStatus,
+  CardFundingToken,
   DelegationSettingsResponse,
 } from '../types';
 
@@ -108,7 +108,7 @@ describe('buildTokenList utilities', () => {
     it('returns false for unsupported networks', () => {
       const network = createNetwork('ethereum');
 
-      const result = shouldProcessNetwork(network, false);
+      const result = shouldProcessNetwork(network);
 
       expect(result).toBe(false);
     });
@@ -116,23 +116,15 @@ describe('buildTokenList utilities', () => {
     it('returns false for networks with no network name', () => {
       const network = createNetwork('');
 
-      const result = shouldProcessNetwork(network, false);
+      const result = shouldProcessNetwork(network);
 
       expect(result).toBe(false);
     });
 
-    it('returns false for solana when hideSolana is true', () => {
+    it('returns true for solana network', () => {
       const network = createNetwork('solana');
 
-      const result = shouldProcessNetwork(network, true);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true for solana when hideSolana is false', () => {
-      const network = createNetwork('solana');
-
-      const result = shouldProcessNetwork(network, false);
+      const result = shouldProcessNetwork(network);
 
       expect(result).toBe(true);
     });
@@ -140,7 +132,7 @@ describe('buildTokenList utilities', () => {
     it('returns true for linea when user is international', () => {
       const network = createNetwork('linea');
 
-      const result = shouldProcessNetwork(network, false);
+      const result = shouldProcessNetwork(network);
 
       expect(result).toBe(true);
     });
@@ -148,13 +140,13 @@ describe('buildTokenList utilities', () => {
     it('returns true for base network', () => {
       const network = createNetwork('base');
 
-      const result = shouldProcessNetwork(network, false);
+      const result = shouldProcessNetwork(network);
 
       expect(result).toBe(true);
     });
   });
 
-  describe('buildTokenListFromSettings', () => {
+  describe('buildDelegationTokenList', () => {
     const createDelegationSettings = (
       networks: DelegationSettingsResponse['networks'],
     ): DelegationSettingsResponse => ({
@@ -164,7 +156,7 @@ describe('buildTokenList utilities', () => {
     });
 
     it('returns empty array when delegationSettings is null', () => {
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings: null,
       });
 
@@ -172,7 +164,7 @@ describe('buildTokenList utilities', () => {
     });
 
     it('returns empty array when networks is undefined', () => {
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings: {
           networks: undefined,
           count: 0,
@@ -196,7 +188,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
       });
 
@@ -207,8 +199,8 @@ describe('buildTokenList utilities', () => {
           symbol: 'USDC',
           decimals: 6,
           caipChainId: 'eip155:59144',
-          allowanceState: AllowanceState.NotEnabled,
-          allowance: '0',
+          fundingStatus: FundingStatus.NotEnabled,
+          spendableBalance: '0',
           delegationContract: '0xDelegation',
         }),
       );
@@ -227,7 +219,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
       });
 
@@ -247,7 +239,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
       });
 
@@ -268,7 +260,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
       });
 
@@ -294,7 +286,7 @@ describe('buildTokenList utilities', () => {
           { symbol: 'USDC', address: '0xProductionUSDC', name: 'USD Coin' },
         ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
         getSupportedTokensByChainId: mockGetSupportedTokens,
       });
@@ -316,7 +308,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
       });
 
@@ -336,14 +328,14 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
       });
 
       expect(result[0].stagingTokenAddress).toBeUndefined();
     });
 
-    it('filters out Solana when hideSolana is true', () => {
+    it('includes Solana tokens', () => {
       const delegationSettings = createDelegationSettings([
         {
           network: 'solana',
@@ -365,35 +357,16 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
-        hideSolana: true,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].symbol).toBe('USDC');
-    });
-
-    it('includes Solana when hideSolana is false', () => {
-      const delegationSettings = createDelegationSettings([
-        {
-          network: 'solana',
-          chainId: '1',
-          environment: 'production',
-          delegationContract: '0xDelegation',
-          tokens: {
-            sol: { symbol: 'SOL', decimals: 9, address: 'SolAddress' },
-          },
-        },
-      ]);
-
-      const result = buildTokenListFromSettings({
-        delegationSettings,
-        hideSolana: false,
-      });
-
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
       expect(result[0].symbol).toBe('SOL');
+      expect(result[0].caipChainId).toBe(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      expect(result[1].symbol).toBe('USDC');
     });
   });
 
@@ -401,15 +374,15 @@ describe('buildTokenList utilities', () => {
     const createMockToken = (
       symbol: string,
       caipChainId: CaipChainId = LINEA_CAIP_CHAIN_ID,
-    ): CardTokenAllowance => ({
+    ): CardFundingToken => ({
       address: `0x${symbol}`,
       symbol,
       name: symbol,
       decimals: 18,
       caipChainId,
       walletAddress: undefined,
-      allowanceState: AllowanceState.NotEnabled,
-      allowance: '0',
+      fundingStatus: FundingStatus.NotEnabled,
+      spendableBalance: '0',
       delegationContract: '0xDelegation',
     });
 
@@ -433,7 +406,7 @@ describe('buildTokenList utilities', () => {
     });
 
     it('returns null for missing tokens', () => {
-      const allTokens: CardTokenAllowance[] = [];
+      const allTokens: CardFundingToken[] = [];
 
       const result = buildQuickSelectTokens(allTokens, null);
 

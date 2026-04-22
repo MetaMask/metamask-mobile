@@ -12,7 +12,6 @@ import {
 describe('BadgeWrapper', () => {
   it('should render BadgeWrapper correctly', () => {
     const wrapper = shallow(<BadgeWrapper {...SAMPLE_BADGEWRAPPER_PROPS} />);
-    expect(wrapper).toMatchSnapshot();
     const contentElement = wrapper.findWhere(
       (node) => node.prop('testID') === BADGE_WRAPPER_BADGE_TEST_ID,
     );

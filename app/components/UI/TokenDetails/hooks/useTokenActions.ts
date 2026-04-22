@@ -46,8 +46,8 @@ import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
-import { useTokenDetailsABTest } from './useTokenDetailsABTest';
 import { TokenDetailsSource } from '../constants/constants';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -94,19 +94,22 @@ export interface UseTokenActionsResult {
   onBuy: () => void;
   onSend: () => Promise<void>;
   onReceive: () => void;
-  goToSwaps: () => void;
-  /** Sticky bar Buy handler - smart source selection, current asset as destination */
-  handleBuyPress: () => void;
-  /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
-  handleSellPress: () => void;
+  /** Sticky token-details Swap handler with balance-aware defaults */
+  handleStickySwapPress: () => void;
   /** Whether the user has any tokens with positive balance that can be used as a swap source */
   hasEligibleSwapTokens: boolean;
   networkModal: React.ReactNode;
 }
 
 export interface UseTokenActionsParams {
-  token: TokenI;
+  token: TokenI & {
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  };
   networkName?: string;
+  /** Optional up-to-date token balance from Token Details balance hook */
+  currentTokenBalance?: string;
+  /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
+  sourcePage?: string;
 }
 
 /**
@@ -116,6 +119,8 @@ export interface UseTokenActionsParams {
 export const useTokenActions = ({
   token,
   networkName,
+  currentTokenBalance,
+  sourcePage = 'MainView',
 }: UseTokenActionsParams): UseTokenActionsResult => {
   const navigation = useNavigation();
 
@@ -142,9 +147,6 @@ export const useTokenActions = ({
   const rampsButtonClickData = useRampsButtonClickData();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
-  // A/B test context
-  const { isTestActive, variantName } = useTokenDetailsABTest();
-
   // Swap/Bridge navigation
   const { sourceToken, destToken } = getSwapTokens(token);
   // When Token Details was opened from the bridge asset picker, skip updating
@@ -154,14 +156,11 @@ export const useTokenActions = ({
     'source' in token && token.source === TokenDetailsSource.Swap;
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenView,
-    sourcePage: 'MainView',
+    sourcePage,
     sourceToken,
     destToken,
-    abTestContext: {
-      ...(isTestActive && {
-        assetsASSETS2493AbtestTokenDetailsLayout: variantName,
-      }),
-    },
+    abTestContext: {},
+    transactionActiveAbTests: token.transactionActiveAbTests,
     skipLocationUpdate: isFromBridgeAssetPicker,
   });
 
@@ -229,9 +228,6 @@ export const useTokenActions = ({
       action_position: ActionPosition.THIRD_POSITION,
       button_label: strings('asset_overview.send_button'),
       location: ActionLocation.ASSET_DETAILS,
-      ...(isTestActive && {
-        ab_tests: { assetsASSETS2493AbtestTokenDetailsLayout: variantName },
-      }),
     };
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
@@ -282,8 +278,6 @@ export const useTokenActions = ({
     token,
     selectedChainId,
     navigateToSendPage,
-    isTestActive,
-    variantName,
   ]);
 
   const onBuy = useCallback(() => {
@@ -321,6 +315,7 @@ export const useTokenActions = ({
           is_authenticated: rampsButtonClickData.is_authenticated,
           preferred_provider: rampsButtonClickData.preferred_provider,
           order_count: rampsButtonClickData.order_count,
+          asset_symbol: token.symbol,
         })
         .build(),
     );
@@ -335,6 +330,7 @@ export const useTokenActions = ({
     rampGeodetectedRegion,
     rampsButtonClickData,
     goToBuy,
+    token.symbol,
   ]);
 
   // Convert current token to BridgeToken format (used as dest for Buy, source for Sell)
@@ -390,10 +386,9 @@ export const useTokenActions = ({
       };
     }
 
-    // Priority 2: Find highest USD value token on any chain (with positive balance)
-    // Only exclude if BOTH address AND chainId match (same exact token)
+    // Eligible cross-chain assets: exclude exact same token (address + chain match)
     // This allows cross-chain bridging of native tokens that share the zero address
-    const allAssets = userAssets
+    const crossChainAssets = userAssets
       .filter(
         (a) =>
           !(
@@ -403,8 +398,25 @@ export const useTokenActions = ({
       )
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
-    if (allAssets.length > 0) {
-      const asset = allAssets[0];
+    // Priority 2: Prefer native tokens (ETH, POL, etc.) with highest fiat balance
+    const nativeAsset = crossChainAssets.find((a) => a.isNative);
+    if (nativeAsset) {
+      return {
+        address: nativeAsset.assetId,
+        chainId: nativeAsset.chainId as Hex | CaipChainId,
+        decimals: nativeAsset.decimals,
+        symbol: nativeAsset.symbol,
+        name: nativeAsset.name,
+        image: nativeAsset.image,
+      };
+    }
+
+    // Priority 3 – Last swapped token (needs selector/data source)
+    // Priority 4 – Most used token (needs selector/data source)
+
+    // Fallback: highest USD value token on any chain
+    if (crossChainAssets.length > 0) {
+      const asset = crossChainAssets[0];
       return {
         address: asset.assetId,
         chainId: asset.chainId as Hex | CaipChainId,
@@ -418,58 +430,50 @@ export const useTokenActions = ({
     return null;
   }, [userAssetsMap, token.chainId, token.address]);
 
-  const handleBuyPress = useCallback(() => {
-    // If user has no eligible tokens to swap with, route to on-ramp
-    if (!buySourceToken) {
-      let assetId: string | undefined;
+  const currentTokenHasBalance = useMemo(() => {
+    const balanceToCheck = currentTokenBalance ?? token.balance;
 
-      try {
-        if (isCaipAssetType(token.address)) {
-          assetId = token.address;
-        } else if (token.chainId) {
-          assetId =
-            formatAddressToAssetId(token.address, token.chainId) ?? undefined;
-        }
-      } catch {
-        assetId = undefined;
-      }
+    if (typeof balanceToCheck === 'number') {
+      return balanceToCheck > 0;
+    }
 
-      goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
+    if (typeof balanceToCheck === 'string') {
+      const parsedBalance = Number(balanceToCheck.replace(/,/gu, '').trim());
+      return Number.isFinite(parsedBalance) && parsedBalance > 0;
+    }
+
+    return false;
+  }, [currentTokenBalance, token.balance]);
+
+  // Sticky Token Details swap button only:
+  // - If current token has balance, keep current token as source
+  // - If current token has no balance, prefill source with best available token and current as destination
+  const handleStickySwapPress = useCallback(() => {
+    if (!goToSwaps) return;
+
+    if (currentTokenHasBalance) {
+      goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
       return;
     }
 
-    if (!goToSwaps) return;
-    goToSwaps(
-      buySourceToken,
-      currentTokenAsBridgeToken,
-      strings('asset_overview.buy_button'),
-    );
+    if (buySourceToken) {
+      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined, true);
+      return;
+    }
+
+    goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
   }, [
     goToSwaps,
-    goToBuy,
-    buySourceToken,
+    currentTokenHasBalance,
     currentTokenAsBridgeToken,
-    token.address,
-    token.chainId,
+    buySourceToken,
   ]);
-
-  // Sell: current token as source, let swap UI compute default dest
-  const handleSellPress = useCallback(() => {
-    if (!goToSwaps) return;
-    goToSwaps(
-      currentTokenAsBridgeToken,
-      undefined,
-      strings('asset_overview.sell_button'),
-    );
-  }, [goToSwaps, currentTokenAsBridgeToken]);
 
   return {
     onBuy,
     onSend,
     onReceive,
-    goToSwaps,
-    handleBuyPress,
-    handleSellPress,
+    handleStickySwapPress,
     hasEligibleSwapTokens: buySourceToken !== null,
     networkModal,
   };

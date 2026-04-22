@@ -11,12 +11,10 @@ import {
   Label,
   Text,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import Button, {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,8 +26,8 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   resetOnboardingState,
   selectContactVerificationId,
-  selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { useDispatch, useSelector } from 'react-redux';
 import { CardError, Region } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -50,7 +48,7 @@ const SetPhoneNumber = () => {
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { signUpRegions, userCountry, getRegionByCode } = useRegions();
-  const userCardLocation = useSelector(selectUserCardLocation);
+  const userCardLocation = useSelector(selectCardUserLocation);
   const { countryKey } = useParams<{ countryKey?: string }>();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
@@ -297,15 +295,16 @@ const SetPhoneNumber = () => {
   const renderActions = () => (
     <Box twClassName="flex flex-col items-center justify-center gap-2">
       <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         isDisabled={isDisabled}
-        loading={phoneVerificationIsLoading}
+        isLoading={phoneVerificationIsLoading}
         testID="set-phone-number-continue-button"
-      />
+      >
+        {strings('card.card_onboarding.continue_button')}
+      </Button>
       <Text
         variant={TextVariant.BodySm}
         testID="set-phone-number-legal-terms"

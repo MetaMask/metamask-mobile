@@ -254,6 +254,23 @@ describe('TransactionDetails', () => {
       );
     });
 
+    it('returns perps_withdraw title for perpsWithdraw type', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          nestedTransactions: [{ type: TransactionType.perpsWithdraw }],
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('transaction_details.title.perps_withdraw'),
+        }),
+      );
+    });
+
     it('returns default title for other transaction types', () => {
       render();
 
@@ -272,6 +289,16 @@ describe('TransactionDetails', () => {
       const navOptions = mockSetOptions.mock.calls[0][0];
       expect(navOptions.headerLeft()).not.toBeNull();
       expect(navOptions.headerRight()).toBeNull();
+    });
+
+    it('overrides headerTintColor to text.default instead of primary', () => {
+      render();
+
+      const navOptions = mockSetOptions.mock.calls[0][0];
+      expect(navOptions.headerTintColor).not.toEqual(
+        expect.stringContaining('primary'),
+      );
+      expect(navOptions.headerTintColor).toBeDefined();
     });
   });
 

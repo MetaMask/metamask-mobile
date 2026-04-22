@@ -1,11 +1,19 @@
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
+import { AuthConnection } from '../../core/OAuthService/OAuthInterface';
 
 export const SAVE_EVENT = 'SAVE_EVENT';
 export const CLEAR_EVENTS = 'CLEAR_EVENTS';
 export const SET_COMPLETED_ONBOARDING = 'SET_COMPLETED_ONBOARDING';
 export const SET_ACCOUNT_TYPE = 'SET_ACCOUNT_TYPE';
 export const CLEAR_ACCOUNT_TYPE = 'CLEAR_ACCOUNT_TYPE';
+export const SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL =
+  'SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL';
+export const SET_SEEDLESS_ONBOARDING = 'SET_SEEDLESS_ONBOARDING';
+export const CLEAR_SEEDLESS_ONBOARDING = 'CLEAR_SEEDLESS_ONBOARDING';
+export const SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT =
+  'SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT';
+export const CLEAR_ONBOARDING = 'CLEAR_ONBOARDING';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -31,12 +39,41 @@ interface ClearAccountTypeAction {
   type: typeof CLEAR_ACCOUNT_TYPE;
 }
 
+export interface SetPendingSocialLoginMarketingConsentBackfillAction {
+  type: typeof SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL;
+  authConnection: string | null;
+}
+
+export interface SetSeedlessOnboardingAction {
+  type: typeof SET_SEEDLESS_ONBOARDING;
+  clientId: string;
+  authConnection: AuthConnection;
+}
+
+export interface ClearSeedlessOnboardingAction {
+  type: typeof CLEAR_SEEDLESS_ONBOARDING;
+}
+
+export interface SetIosGoogleWarningSheetLastDismissedAtAction {
+  type: typeof SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT;
+  iosGoogleWarningSheetLastDismissedAt: number;
+}
+
+export interface ClearOnboardingAction {
+  type: typeof CLEAR_ONBOARDING;
+}
+
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
   | SetCompletedOnboardingAction
   | SetAccountTypeAction
-  | ClearAccountTypeAction;
+  | ClearAccountTypeAction
+  | SetPendingSocialLoginMarketingConsentBackfillAction
+  | SetSeedlessOnboardingAction
+  | ClearSeedlessOnboardingAction
+  | SetIosGoogleWarningSheetLastDismissedAtAction
+  | ClearOnboardingAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -76,5 +113,46 @@ export function setAccountType(params: {
 export function clearAccountType(): ClearAccountTypeAction {
   return {
     type: CLEAR_ACCOUNT_TYPE,
+  };
+}
+
+export function setPendingSocialLoginMarketingConsentBackfill(
+  authConnection: string | null,
+): SetPendingSocialLoginMarketingConsentBackfillAction {
+  return {
+    type: SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
+    authConnection,
+  };
+}
+
+export function setSeedlessOnboarding(params: {
+  clientId: string;
+  authConnection: AuthConnection;
+}): SetSeedlessOnboardingAction {
+  return {
+    type: SET_SEEDLESS_ONBOARDING,
+    clientId: params.clientId,
+    authConnection: params.authConnection,
+  };
+}
+
+export function clearSeedlessOnboarding(): ClearSeedlessOnboardingAction {
+  return {
+    type: CLEAR_SEEDLESS_ONBOARDING,
+  };
+}
+
+export function setIosGoogleWarningSheetLastDismissedAt(
+  iosGoogleWarningSheetLastDismissedAt: number,
+): SetIosGoogleWarningSheetLastDismissedAtAction {
+  return {
+    type: SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT,
+    iosGoogleWarningSheetLastDismissedAt,
+  };
+}
+
+export function clearOnboarding(): ClearOnboardingAction {
+  return {
+    type: CLEAR_ONBOARDING,
   };
 }

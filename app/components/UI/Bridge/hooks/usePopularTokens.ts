@@ -1,8 +1,30 @@
 import { useState, useEffect } from 'react';
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
+import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { TokenRwaData } from '@metamask/assets-controllers';
 import Engine from '../../../../core/Engine';
+import { getBaseSemVerVersion } from '../../../../util/version';
+
+export enum SecurityDataType {
+  Info = 'Info',
+  Benign = 'Benign',
+  Verified = 'Verified',
+  Warning = 'Warning',
+  Spam = 'Spam',
+  Malicious = 'Malicious',
+}
+
+export interface SecurityFeature {
+  featureId: string;
+  type: SecurityDataType;
+  description: string;
+}
+
+export interface SecurityData {
+  type: SecurityDataType;
+  metadata?: { features: SecurityFeature[] };
+}
 
 export interface PopularToken {
   assetId: CaipAssetType;
@@ -10,10 +32,12 @@ export interface PopularToken {
   iconUrl: string;
   name: string;
   symbol: string;
+  isVerified?: boolean;
   noFee?: {
     isSource: boolean;
     isDestination: boolean;
   };
+  securityData?: SecurityData;
 }
 
 export interface IncludeAsset {
@@ -156,7 +180,11 @@ export const usePopularTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${bearerToken ?? ''}`,
+              ...getClientHeaders({
+                clientId: BridgeClientId.MOBILE,
+                clientVersion: getBaseSemVerVersion(),
+                jwt: bearerToken ?? '',
+              }),
             },
             body: JSON.stringify({
               chainIds,
@@ -165,13 +193,26 @@ export const usePopularTokens = ({
             signal: abortController.signal,
           },
         );
-        const popularAssets: PopularToken[] = await response.json();
+        if (response.ok === false) {
+          throw new Error(
+            `Failed to fetch popular tokens with status ${response.status}`,
+          );
+        }
 
-        // Store in cache with current timestamp
-        popularTokensCache.set(cacheKey, {
-          data: popularAssets,
-          timestamp: Date.now(),
-        });
+        const popularAssetsResponse: unknown = await response.json();
+        const isValidTopLevelPayload = Array.isArray(popularAssetsResponse);
+        const popularAssets: PopularToken[] = isValidTopLevelPayload
+          ? popularAssetsResponse
+          : [];
+
+        if (isValidTopLevelPayload) {
+          // Cache only valid top-level API payloads so malformed responses do
+          // not suppress retries for the full cache TTL.
+          popularTokensCache.set(cacheKey, {
+            data: popularAssets,
+            timestamp: Date.now(),
+          });
+        }
 
         if (!isCancelled) {
           setPopularTokens(popularAssets);

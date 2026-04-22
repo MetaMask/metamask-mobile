@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-import { SafeAreaView, ScrollView, Linking } from 'react-native';
+import { ScrollView, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { captureException } from '@sentry/react-native';
@@ -9,6 +10,9 @@ import { Dispatch } from 'redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextVariant,
   TextColor,
@@ -27,10 +31,9 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import Button, {
+import OldButton, {
   ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
+  ButtonSize as OldButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { IconName as CLibIconName } from '../../../component-library/components/Icons/Icon';
 
@@ -38,15 +41,21 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { Authentication } from '../../../core';
+import {
+  AccountType,
+  WalletCreationErrorCtaType,
+} from '../../../constants/onboarding';
 
 interface SRPErrorScreenProps {
   error: Error;
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
+  accountType?: AccountType;
 }
 
 const SRPErrorScreen = ({
   error,
   saveOnboardingEvent,
+  accountType = AccountType.Metamask,
 }: SRPErrorScreenProps) => {
   const navigation = useNavigation();
   const tw = useTailwind();
@@ -68,24 +77,25 @@ const SRPErrorScreen = ({
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED,
       )
         .addProperties({
-          flow_type: 'srp',
-          error_name: error?.name || 'Unknown',
+          account_type: accountType,
+          error_type: error?.name || 'Unknown',
           error_message: error?.message || 'No message',
         })
         .build(),
       saveOnboardingEvent,
     );
-  }, [error, saveOnboardingEvent]);
+  }, [error, saveOnboardingEvent, accountType]);
 
   const errorReport = `View: ChoosePassword\nError: ${error?.name || 'Unknown'}\n${error?.message || 'No message'}`;
 
   const handleTryAgain = useCallback(async () => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_CREATION_ERROR_RETRY_CLICKED,
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
-          flow_type: 'srp',
+          cta_type: WalletCreationErrorCtaType.Retry,
+          account_type: accountType,
         })
         .build(),
       saveOnboardingEvent,
@@ -95,15 +105,16 @@ const SRPErrorScreen = ({
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
     });
-  }, [navigation, saveOnboardingEvent]);
+  }, [navigation, saveOnboardingEvent, accountType]);
 
   const handleSendErrorReport = useCallback(() => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_CREATION_ERROR_REPORT_SENT,
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
-          flow_type: 'srp',
+          cta_type: WalletCreationErrorCtaType.SendErrorReport,
+          account_type: accountType,
         })
         .build(),
       saveOnboardingEvent,
@@ -130,7 +141,7 @@ const SRPErrorScreen = ({
         },
       ],
     });
-  }, [navigation, error, saveOnboardingEvent]);
+  }, [navigation, error, saveOnboardingEvent, accountType]);
 
   const handleCopyError = useCallback(() => {
     Clipboard.setString(errorReport);
@@ -142,8 +153,19 @@ const SRPErrorScreen = ({
   }, [errorReport]);
 
   const handleContactSupport = useCallback(() => {
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+      )
+        .addProperties({
+          cta_type: WalletCreationErrorCtaType.ContactSupport,
+          account_type: accountType,
+        })
+        .build(),
+      saveOnboardingEvent,
+    );
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, []);
+  }, [saveOnboardingEvent, accountType]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
@@ -192,9 +214,9 @@ const SRPErrorScreen = ({
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('wallet_creation_error.error_report')}
               </Text>
-              <Button
+              <OldButton
                 variant={ButtonVariants.Link}
-                size={ButtonSize.Sm}
+                size={OldButtonSize.Sm}
                 label={
                   copied
                     ? strings('wallet_creation_error.copied')
@@ -218,21 +240,23 @@ const SRPErrorScreen = ({
 
         <Box twClassName="w-full pt-4 pb-6">
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('wallet_creation_error.send_error_report')}
+            isFullWidth
             onPress={handleSendErrorReport}
             style={tw.style('mb-4')}
-          />
+          >
+            {strings('wallet_creation_error.send_error_report')}
+          </Button>
 
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('wallet_creation_error.try_again')}
+            isFullWidth
             onPress={handleTryAgain}
-          />
+          >
+            {strings('wallet_creation_error.try_again')}
+          </Button>
         </Box>
       </ScrollView>
     </SafeAreaView>

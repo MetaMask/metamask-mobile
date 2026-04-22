@@ -30,34 +30,40 @@ const createMockStreamManager = (): PerpsStreamManager => {
       prewarm: jest.fn(() => jest.fn()),
       cleanupPrewarm: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
       prewarm: jest.fn(() => jest.fn()),
       cleanupPrewarm: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     positions: {
       subscribe: jest.fn(() => jest.fn()),
       prewarm: jest.fn(() => jest.fn()),
       cleanupPrewarm: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     fills: {
       subscribe: jest.fn(() => jest.fn()),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     account: {
       subscribe: jest.fn(() => jest.fn()),
       prewarm: jest.fn(() => jest.fn()),
       cleanupPrewarm: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     marketData: {
       subscribe: jest.fn(() => jest.fn()),
       prewarm: jest.fn(() => jest.fn()),
       refresh: jest.fn(),
       clearCache: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
   } as unknown as PerpsStreamManager;
 
@@ -435,9 +441,9 @@ describe('usePerpsOrderForm', () => {
       });
 
       // Assert
-      // With $2 balance and 3x leverage = $6 max amount, which is less than $10 default
-      // Should use the max possible amount ($6) instead of the default ($10)
-      expect(result.current.orderForm.amount).toBe('6');
+      // With $2 balance and 3x leverage, max is floor(6 * (1 - 0.5% buffer)) = 5 (less than $10 default)
+      // Should use the max possible amount (5) instead of the default ($10)
+      expect(result.current.orderForm.amount).toBe('5');
     });
 
     it('should use default amount when available balance times leverage is greater than default amount', () => {
@@ -468,14 +474,14 @@ describe('usePerpsOrderForm', () => {
 
   describe('useMemo and useEffect behavior', () => {
     it('should not overwrite user input when dependencies change', async () => {
-      // Arrange - Start with balance high enough that max >= 999 (e.g. 334 * 3x = 1002)
+      // Arrange - Start with balance high enough that max >= 999 after 0.5% buffer (e.g. 335 * 3x → floor(1005*0.995) = 999)
       const mockAccount = {
         account: {
-          availableBalance: '334',
+          availableBalance: '335',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '334',
+          totalBalance: '335',
         },
         isInitialLoading: false,
       };
@@ -490,7 +496,7 @@ describe('usePerpsOrderForm', () => {
         TRADING_DEFAULTS.amount.mainnet.toString(),
       );
 
-      // Act - User changes the amount (within current max)
+      // Act - User changes the amount (within current max; 335*3*0.995 >= 999)
       act(() => {
         result.current.setAmount('999');
       });
@@ -515,7 +521,7 @@ describe('usePerpsOrderForm', () => {
       // Test 1: Low balance scenario
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '2', // $2 balance = $6 max with 3x leverage (less than $10 default)
+          availableBalance: '2', // $2 balance, 3x leverage: max = floor(6 * 0.995) = 5 (less than $10 default)
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -528,7 +534,7 @@ describe('usePerpsOrderForm', () => {
         wrapper: createWrapper(),
       });
 
-      expect(result1.current.orderForm.amount).toBe('6'); // Should use maxPossibleAmount
+      expect(result1.current.orderForm.amount).toBe('5'); // Should use maxPossibleAmount (with margin buffer)
 
       // Test 2: High balance scenario
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -690,7 +696,8 @@ describe('usePerpsOrderForm', () => {
         result.current.handleMaxAmount();
       });
 
-      expect(result.current.orderForm.amount).toBe('3000'); // 1000 * 3x leverage
+      // 1000 * 3x leverage with 0.5% margin buffer = floor(3000 * 0.995) = 2985
+      expect(result.current.orderForm.amount).toBe('2985');
     });
 
     it('should handle min amount for mainnet', () => {
@@ -720,6 +727,27 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe(
         TRADING_DEFAULTS.amount.testnet.toString(),
       );
+    });
+
+    it('should clamp near-100% amounts to maxPossibleAmount', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.handlePercentageAmount(0.999);
+      });
+
+      const at999 = Number(result.current.orderForm.amount);
+
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+
+      const at100 = Number(result.current.orderForm.amount);
+
+      expect(at999).toBeLessThanOrEqual(at100);
+      expect(at100).toBe(result.current.maxPossibleAmount);
     });
 
     it('should not update amount when balance is 0', () => {

@@ -50,8 +50,7 @@ export const useTransportMonitoring = ({
       if (errorCode === null) {
         return null;
       }
-      const targetType =
-        walletType ?? adapter?.walletType ?? HardwareWalletType.Ledger;
+      const targetType = walletType ?? adapter?.walletType;
       return createHardwareWalletError(errorCode, targetType);
       // Stable ref (adapterRef) — not needed as a dep
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,8 +58,12 @@ export const useTransportMonitoring = ({
 
   const checkTransportEnabledOrShowError = useCallback(
     async (adapter: HardwareWalletAdapter): Promise<boolean> => {
-      const isReady = await adapter.isTransportAvailable();
       const error = createTransportDisabledError();
+      if (!error) {
+        return false;
+      }
+
+      const isReady = await adapter.isTransportAvailable();
       if (!isReady && error) {
         updateConnectionState({
           status: ConnectionStatus.ErrorState,

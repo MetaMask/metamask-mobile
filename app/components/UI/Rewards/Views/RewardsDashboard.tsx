@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Box, IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,30 +13,24 @@ import {
   selectActiveTab,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
-  selectSeasonId,
-  selectOptinAllowedForGeo,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
-import MusdCalculatorTab from '../components/Tabs/MusdCalculatorTab/MusdCalculatorTab';
-import { TabsList } from '../../../../component-library/components-temp/Tabs';
-import {
-  TabsListRef,
-  TabViewProps,
-} from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
-import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
+import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
+import { ScrollView } from 'react-native';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -50,14 +38,13 @@ const RewardsDashboard: React.FC = () => {
   const toastRef = useRef<ToastRef>(null);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const activeTab = useSelector(selectActiveTab);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
+
+  useTrackRewardsPageView({ page_type: 'home' });
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );
-  const seasonId = useSelector(selectSeasonId);
-  const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
-  const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -72,11 +59,6 @@ const RewardsDashboard: React.FC = () => {
     }
     return false;
   }, [selectedAccountGroup?.id, hideCurrentAccountNotOptedInBannerMap]);
-
-  const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
-    boolean | null
-  >(null);
-  const tabsListRef = useRef<TabsListRef>(null);
 
   // Use the reward dashboard modals hook
   const {
@@ -127,26 +109,11 @@ const RewardsDashboard: React.FC = () => {
     }, [wasInterrupted, isRunning, resumeBulkLink]),
   );
 
-  // Evaluate showPreviousSeasonSummary when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      const shouldShow = Boolean(seasonId && !isCampaignsEnabled);
-      setShowPreviousSeasonSummary(shouldShow);
-    }, [seasonId, isCampaignsEnabled]),
-  );
-
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
   // This effect runs whenever key dependencies change and determines which informational
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
   useFocusEffect(
     useCallback(() => {
-      if (
-        !seasonId ||
-        showPreviousSeasonSummary === null ||
-        showPreviousSeasonSummary
-      )
-        return;
-
       if (
         (totalOptedInAccountsSelectedGroup === 0 ||
           currentAccountGroupPartiallySupported === false) &&
@@ -182,8 +149,6 @@ const RewardsDashboard: React.FC = () => {
         }
       }
     }, [
-      seasonId,
-      showPreviousSeasonSummary,
       totalOptedInAccountsSelectedGroup,
       currentAccountGroupPartiallySupported,
       hideCurrentAccountNotOptedInBanner,
@@ -232,52 +197,23 @@ const RewardsDashboard: React.FC = () => {
               disabled: !subscriptionId,
               testID: REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
             },
-            ...(showPreviousSeasonSummary === false
-              ? [
-                  {
-                    iconName: IconName.UserCircleAdd,
-                    onPress: () =>
-                      navigation.navigate(Routes.REFERRAL_REWARDS_VIEW),
-                    disabled: !subscriptionId,
-                    testID: REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
-                  },
-                ]
-              : []),
+            {
+              iconName: IconName.UserCircleAdd,
+              onPress: () => navigation.navigate(Routes.REFERRAL_REWARDS_VIEW),
+              testID: REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
+            },
           ]}
         />
-        <Box twClassName="flex-1 gap-4">
-          {isCampaignsEnabled && <CampaignsPreview />}
-          {isCampaignsEnabled && <EarnRewardsPreview />}
-          {showPreviousSeasonSummary &&
-            (optinAllowedForGeo ? (
-              <TabsList
-                ref={tabsListRef}
-                initialActiveIndex={0}
-                testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
-                tabsBarProps={{ twClassName: 'px-4' }}
-                tabsListContentTwClassName="px-0"
-              >
-                <Box
-                  key="musd"
-                  {...({ tabLabel: 'mUSD' } as TabViewProps)}
-                  twClassName="flex-1"
-                >
-                  <MusdCalculatorTab />
-                </Box>
-                <Box
-                  key="previous-season"
-                  {...({
-                    tabLabel: strings('rewards.season_1'),
-                  } as TabViewProps)}
-                  twClassName="flex-1"
-                >
-                  <PreviousSeasonSummary />
-                </Box>
-              </TabsList>
-            ) : (
-              <PreviousSeasonSummary />
-            ))}
-        </Box>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={tw.style('flex-1')}
+        >
+          <Box twClassName="gap-3">
+            <CampaignsPreview />
+            <EarnRewardsPreview />
+            <BenefitsPreview />
+          </Box>
+        </ScrollView>
       </SafeAreaView>
       <Toast ref={toastRef} />
     </ErrorBoundary>

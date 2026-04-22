@@ -1,6 +1,10 @@
-import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
+import {
+  LoginViewSelectors,
+  LoginViewSelectorText,
+} from '../../../app/components/Views/Login/LoginView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { PlaywrightAssertions } from '../../framework';
 import {
   encapsulated,
   EncapsulatedElementType,
@@ -9,11 +13,16 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
-import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 
 class LoginView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(LoginViewSelectors.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(LoginViewSelectors.CONTAINER, {
+          exact: true,
+        }),
+    });
   }
 
   get passwordInput(): EncapsulatedElementType {
@@ -25,13 +34,13 @@ class LoginView {
         Matchers.getElementByLabel(LoginViewSelectors.PASSWORD_INPUT),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementById(LoginViewSelectors.PASSWORD_INPUT, {
-            exact: true,
-          }),
-        ios: () =>
           PlaywrightMatchers.getElementByAccessibilityId(
             LoginViewSelectors.PASSWORD_INPUT,
           ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(LoginViewSelectors.PASSWORD_INPUT, {
+            exact: true,
+          }),
       },
     });
   }
@@ -49,7 +58,7 @@ class LoginView {
       detox: () => Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID),
       appium: () =>
         PlaywrightMatchers.getElementByText(
-          OnboardingSelectorText.UNLOCK_BUTTON,
+          LoginViewSelectorText.UNLOCK_BUTTON,
         ),
     });
   }
@@ -58,7 +67,9 @@ class LoginView {
     return encapsulated({
       detox: () => Matchers.getElementByID(LoginViewSelectors.TITLE_ID),
       appium: () =>
-        PlaywrightMatchers.getElementById(LoginViewSelectors.TITLE_ID),
+        PlaywrightMatchers.getElementById(LoginViewSelectors.TITLE_ID, {
+          exact: true,
+        }),
     });
   }
 
@@ -89,8 +100,13 @@ class LoginView {
   async waitForScreenToDisplay(): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const titleEl = await asPlaywrightElement(this.title);
-        await titleEl.waitForDisplayed({ timeout: 15000 });
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(this.title),
+          {
+            timeout: 15000,
+            description: 'Login title should be visible',
+          },
+        );
       },
     });
   }

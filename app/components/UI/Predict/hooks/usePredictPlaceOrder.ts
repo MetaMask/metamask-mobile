@@ -1,28 +1,31 @@
-import { useCallback, useContext, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useContext, useState } from 'react';
+import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
 import {
-  trace,
   endTrace,
+  trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { PlaceOrderParams, Side, type Result } from '../types';
-import { usePredictTrading } from './usePredictTrading';
-import { strings } from '../../../../../locales/i18n';
-import { formatPrice } from '../utils/format';
-import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
-import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
-import { usePredictBalance } from './usePredictBalance';
-import { predictQueries } from '../queries';
-import { usePredictDeposit } from './usePredictDeposit';
+import { PREDICT_CONSTANTS } from '../constants/errors';
 import { PredictEventValues } from '../constants/eventNames';
+import { predictQueries } from '../queries';
+import { PlaceOrderParams, Side, type Result } from '../types';
+import { formatPrice } from '../utils/format';
+import { checkPlaceOrderError } from '../utils/predictErrorHandler';
+import { usePredictBalance } from './usePredictBalance';
+import { usePredictDeposit } from './usePredictDeposit';
+import { usePredictTrading } from './usePredictTrading';
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -33,6 +36,7 @@ interface UsePredictPlaceOrderOptions {
    * Callback when an error occurs
    */
   onError?: (error: string) => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 interface UsePredictPlaceOrderReturn {
@@ -42,6 +46,8 @@ interface UsePredictPlaceOrderReturn {
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
+  showOrderPlacedToast: () => void;
+  invalidateOrderQueries: () => void;
 }
 
 export type PlaceOrderOutcome =
@@ -71,7 +77,7 @@ export type PlaceOrderOutcome =
 export function usePredictPlaceOrder(
   options: UsePredictPlaceOrderOptions = {},
 ): UsePredictPlaceOrderReturn {
-  const { onError, onComplete } = options;
+  const { onError, onComplete, transactionActiveAbTests } = options;
   const { placeOrder: controllerPlaceOrder } = usePredictTrading();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -151,6 +157,21 @@ export function usePredictPlaceOrder(
     });
   }, [toastRef]);
 
+  const invalidateOrderQueries = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.balance.keys.all(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.positions.keys.all(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.activity.keys.all(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.unrealizedPnL.keys.all(),
+    });
+  }, [queryClient]);
+
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
@@ -196,14 +217,18 @@ export function usePredictPlaceOrder(
           return { status: 'deposit_in_progress' };
         }
 
-        await deposit({
-          amountUsd: totalAmount,
-          analyticsProperties: {
-            ...orderParams.analyticsProperties,
-            marketId: orderParams.preview.marketId,
-            entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
-          },
-        });
+        await withPendingTransactionActiveAbTests(
+          transactionActiveAbTests,
+          () =>
+            deposit({
+              amountUsd: totalAmount,
+              analyticsProperties: {
+                ...orderParams.analyticsProperties,
+                marketId: orderParams.preview.marketId,
+                entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
+              },
+            }),
+        );
         return { status: 'deposit_required' };
       }
 
@@ -211,28 +236,16 @@ export function usePredictPlaceOrder(
         setIsLoading(true);
         setError(undefined);
 
-        // Place order using Predict controller
-        const orderResult = await controllerPlaceOrder(orderParams);
+        const orderResult = await withPendingTransactionActiveAbTests(
+          transactionActiveAbTests,
+          () => controllerPlaceOrder(orderParams),
+        );
 
         onComplete?.(orderResult);
 
         setResult(orderResult);
 
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.balance.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.positions.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.activity.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.unrealizedPnL.keys.all(),
-        });
+        invalidateOrderQueries();
 
         if (side === Side.BUY) {
           showOrderPlacedToast();
@@ -245,47 +258,15 @@ export function usePredictPlaceOrder(
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
         return { status: 'success', result: orderResult };
       } catch (err) {
-        const parsedErrorMessage = parseErrorMessage({
-          error: err,
-          defaultCode: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
-        });
-        DevLogger.log('usePredictPlaceOrder: Error placing order', {
-          error: parsedErrorMessage,
-          orderParams,
-        });
-
-        // Log error with order context (no sensitive data like amounts)
-        Logger.error(ensureError(err), {
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            component: 'usePredictPlaceOrder',
-          },
-          context: {
-            name: 'usePredictPlaceOrder',
-            data: {
-              method: 'placeOrder',
-              action: 'order_placement',
-              operation: 'order_management',
-              side: orderParams.preview?.side,
-              marketId: orderParams.analyticsProperties?.marketId,
-              transactionType: orderParams.analyticsProperties?.transactionType,
-            },
-          },
-        });
-
-        const rawMessage = err instanceof Error ? err.message : String(err);
-        const isNotFilled =
-          rawMessage === PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED ||
-          rawMessage === PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED;
-
-        if (isNotFilled) {
+        const errorResult = checkPlaceOrderError({ error: err, orderParams });
+        if (errorResult.status === 'order_not_filled') {
           setIsOrderNotFilled(true);
-          return { status: 'order_not_filled' };
+        } else if (errorResult.status === 'error') {
+          setError(errorResult.error);
+          onError?.(errorResult.error);
         }
 
-        setError(parsedErrorMessage);
-        onError?.(parsedErrorMessage);
-        return { status: 'error', error: parsedErrorMessage };
+        return errorResult;
       } finally {
         setIsLoading(false);
       }
@@ -298,10 +279,11 @@ export function usePredictPlaceOrder(
       toastRef,
       controllerPlaceOrder,
       onComplete,
-      queryClient,
+      invalidateOrderQueries,
       showOrderPlacedToast,
       showCashedOutToast,
       onError,
+      transactionActiveAbTests,
     ],
   );
 
@@ -317,5 +299,7 @@ export function usePredictPlaceOrder(
     placeOrder,
     isOrderNotFilled,
     resetOrderNotFilled,
+    showOrderPlacedToast,
+    invalidateOrderQueries,
   };
 }
