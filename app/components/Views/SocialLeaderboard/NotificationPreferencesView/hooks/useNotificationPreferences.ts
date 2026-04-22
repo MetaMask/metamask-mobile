@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   NotificationPreferences as StoredNotificationPreferences,
@@ -31,34 +31,14 @@ const DEFAULT_SOCIAL_AI: SocialAIPreference = {
 };
 
 /**
- * Client-facing view of the social AI notification preferences.
- *
- * Intentionally 1:1 with `NotificationPreferences.socialAI` from
- * `@metamask/authenticated-user-storage`:
- *
- * ```ts
- * socialAI: {
- *   enabled: boolean;
- *   txAmountLimit?: number;
- *   // Opt-out list: notifications are muted for traders in this array.
- *   mutedTraderProfileIds: string[];
- * }
- * ```
+ * Re-export of the storage-layer type so consumers import the UI state type
+ * from here and don't need to know about the underlying package. The shape is
+ * intentionally identical — there's no value in duplicating it today.
  */
-export interface NotificationPreferences {
-  /** Whether trading notifications are globally enabled. */
-  enabled: boolean;
-  /** Dollar threshold for trade notifications. */
-  txAmountLimit: number | undefined;
-  /**
-   * Profile IDs muted by the user. Traders NOT in this list receive
-   * notifications (opt-out semantics).
-   */
-  mutedTraderProfileIds: string[];
-}
+export type { SocialAIPreference } from '@metamask/authenticated-user-storage';
 
 export interface UseNotificationPreferencesResult {
-  preferences: NotificationPreferences;
+  preferences: SocialAIPreference;
   isLoading: boolean;
   error: string | null;
   setEnabled: (value: boolean) => Promise<void>;
@@ -69,30 +49,38 @@ export interface UseNotificationPreferencesResult {
 }
 
 /**
- * Structural equality check for two `SocialAIPreference` values. Used to
- * decide when the remote query has caught up with an outstanding optimistic
- * overlay so the overlay can be safely dropped.
+ * Convert an unknown thrown value into a user-facing error string.
  */
-const isSocialAIEqual = (
-  a: SocialAIPreference,
-  b: SocialAIPreference,
-): boolean => {
-  if (a === b) return true;
-  if (a.enabled !== b.enabled) return false;
-  if (a.txAmountLimit !== b.txAmountLimit) return false;
-  if (a.mutedTraderProfileIds.length !== b.mutedTraderProfileIds.length) {
-    return false;
-  }
-  // Use a Set so the comparison is order-independent: the server may return
-  // the same IDs in a different order and the overlay should still be dropped.
-  const bSet = new Set(b.mutedTraderProfileIds);
-  return a.mutedTraderProfileIds.every((id) => bSet.has(id));
+const toErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  return String(err ?? 'Unknown error');
 };
 
 /**
- * Build a full `NotificationPreferences` payload suitable for PUT, merging
- * the supplied `socialAI` slice onto the remote value (or sensible defaults
- * if nothing was stored yet).
+ * True once the remote query reflects the optimistic overlay, signalling that
+ * the overlay can be dropped. Order-independent comparison on the muted list:
+ * the server may return the same IDs in a different order.
+ */
+const hasRemoteCaughtUp = (
+  overlay: SocialAIPreference,
+  remote: SocialAIPreference,
+): boolean => {
+  if (overlay === remote) return true;
+  if (overlay.enabled !== remote.enabled) return false;
+  if (overlay.txAmountLimit !== remote.txAmountLimit) return false;
+  if (
+    overlay.mutedTraderProfileIds.length !== remote.mutedTraderProfileIds.length
+  ) {
+    return false;
+  }
+  const remoteSet = new Set(remote.mutedTraderProfileIds);
+  return overlay.mutedTraderProfileIds.every((id) => remoteSet.has(id));
+};
+
+/**
+ * Build a full storage payload suitable for PUT, merging the supplied
+ * `socialAI` slice on top of the remote value (or sensible defaults if
+ * nothing was stored yet).
  */
 const mergeForPut = (
   remote: StoredNotificationPreferences | null,
@@ -108,24 +96,39 @@ const mergeForPut = (
 };
 
 /**
- * Manages notification-preferences state for the Top Traders feature, backed
- * by `AuthenticatedUserStorageService`.
+ * Manages notification preferences for the Top Traders feature, backed by
+ * `AuthenticatedUserStorageService`.
  *
- * Read path: `useQuery` on the
- * `AuthenticatedUserStorageService:getNotificationPreferences` messenger
- * action, seeded with sensible defaults on cold start / 404.
+ * ## Mental model
  *
- * Write path: every mutation runs a read-merge-write cycle:
+ * Three layers of state collapse into the value the UI renders:
  *
- * 1. Optimistically overlay the mutation on local state so the UI is immediately responsive.
- * 2. Fetch the current `NotificationPreferences` (so we don't stomp on concurrent changes to other slices).
- * 3. PUT `{ ...remote, socialAI: nextSocialAI }`.
+ * ```
+ * 1. REMOTE           data?.socialAI       (source of truth, from useQuery)
+ * 2. OPTIMISTIC       overlay              (local; shown while PUT is in flight)
+ * 3. DISPLAYED        overlay ?? remote    (what the UI sees)
+ * ```
  *
- * Writes are serialized through an in-flight promise chain so that rapid
- * successive toggles are applied in order — each save awaits the previous
- * GET+PUT pair, guaranteeing the PUT always sees the freshest remote baseline.
- * If any save fails, the optimistic overlay is rolled back and the error
- * surfaces via the `error` field.
+ * ### Why the optimistic overlay?
+ *
+ * React Native `<Switch>` and radio components are controlled: their visible
+ * state is driven entirely by their `value` prop. Without an overlay we'd
+ * have to wait for `PUT → refetch` (~0.5–2s round trip, worse on flaky
+ * networks) before the toggle visually moves. Users read that as "my tap
+ * didn't register" and tap again, which cascades into duplicate mutations.
+ * The overlay flips the UI immediately on tap; the network work happens in
+ * the background. The rollback machinery below is the price of this bet.
+ *
+ * ### Mutation pipeline
+ *
+ * 1. Overlay the new value synchronously so the UI responds instantly.
+ * 2. Enqueue a persist onto a serial promise chain.
+ * 3. The persist does a read-merge-write cycle: GET latest, merge only the
+ *    `socialAI` slice (so concurrent changes to `walletActivity`/`marketing`/
+ *    `perps` from other clients are preserved), PUT the full payload.
+ * 4. On success → `refetch()`. The overlay auto-drops once remote catches up.
+ * 5. On failure → roll back the overlay, unless a newer mutation has already
+ *    taken ownership of it.
  */
 export const useNotificationPreferences =
   (): UseNotificationPreferencesResult => {
@@ -135,18 +138,16 @@ export const useNotificationPreferences =
       error: queryError,
       refetch,
     } = useQuery<StoredNotificationPreferences | null>({
-      // The query key intentionally omits a user/profile identifier.
-      // On mobile, the bearer token is always the active account's, and an
-      // account switch triggers a full session reset that unmounts this hook
-      // and clears the query cache. Adding a profile ID would require wiring
-      // a selector here and would add no safety for the single-user mobile
-      // context.
+      // The query key intentionally omits a user/profile identifier: on
+      // mobile the bearer token is always the active account's, and an
+      // account switch triggers a full session reset that unmounts this
+      // hook and clears the query cache.
       queryKey: [GET_ACTION],
     });
 
     // Optimistic overlay on top of the remote socialAI slice. `undefined`
-    // means "defer to the remote value". We never reach into other slices
-    // from the UI; the overlay exists purely for responsiveness.
+    // means "defer to remote". We never touch other slices from the UI;
+    // the overlay exists purely for responsiveness.
     const [overlay, setOverlay] = useState<SocialAIPreference | undefined>(
       undefined,
     );
@@ -156,77 +157,74 @@ export const useNotificationPreferences =
       data?.socialAI ?? DEFAULT_SOCIAL_AI;
     const socialAI: SocialAIPreference = overlay ?? remoteSocialAI;
 
-    // Serialize writes. Each persist awaits the previous one so rapid
+    // --- Refs used across async boundaries ---------------------------------
+    // These are mirrored synchronously during render (see below). Writing
+    // refs during render is safe as long as the write is idempotent for the
+    // same input, which it is here — React 18 strict-mode double-renders
+    // simply assign the same value twice.
+
+    // Serializes writes: each persist awaits the previous one so rapid
     // back-to-back toggles can't interleave GETs and PUTs.
     const writeChainRef = useRef<Promise<unknown>>(Promise.resolve());
 
-    // Tracks the latest *intended* socialAI so rapid successive calls chain
-    // mutations correctly. Updated synchronously in applyChange before any
-    // async work so the next call sees the updated base even before React
-    // has re-rendered with the new overlay.
-    const pendingSocialAIRef = useRef<SocialAIPreference>(socialAI);
-    pendingSocialAIRef.current = socialAI;
+    // The latest *intended* socialAI. Updated synchronously in `applyChange`
+    // before any async work so that the next rapid call's updater starts
+    // from the freshest value — even before React has re-rendered with the
+    // new overlay.
+    const currentSocialAIRef = useRef<SocialAIPreference>(socialAI);
+    currentSocialAIRef.current = socialAI;
 
     // Mirrors `remoteSocialAI` so the async rollback path always reads the
     // latest server-side value without capturing a stale closure.
     const remoteRef = useRef<SocialAIPreference>(remoteSocialAI);
     remoteRef.current = remoteSocialAI;
 
-    // Monotonically increasing counter. Each applyChange call captures its
-    // own generation; a failing call only rolls back if no newer mutation has
+    // Monotonically increasing counter. Each `applyChange` captures its own
+    // generation; a failing call only rolls back if no newer mutation has
     // since taken ownership of the overlay.
     const generationRef = useRef(0);
 
     /**
-     * Executes a single read-merge-write cycle for the `socialAI` slice:
-     * 1. GET the full preferences from the server so we have the freshest baseline (prevents stomping concurrent changes to other slices).
-     * 2. Merge `nextSocialAI` on top of the remote baseline.
+     * Appends a read-merge-write cycle to the serial write chain:
+     *
+     * 1. GET the current preferences from the server (freshest baseline so
+     * we don't stomp concurrent changes to other slices).
+     * 2. Merge `nextSocialAI` on top of that baseline.
      * 3. PUT the merged payload.
+     *
+     * Errors on the chain are swallowed internally to avoid a single failure
+     * jamming subsequent saves; the returned promise still rejects so the
+     * caller can roll back per-call.
      */
-    const saveSocialAIPreferences = useCallback(
-      async (nextSocialAI: SocialAIPreference) => {
+    const enqueuePersist = useCallback((nextSocialAI: SocialAIPreference) => {
+      const next = writeChainRef.current.then(async () => {
+        // `as CallableFunction` bypasses the messenger's strict overload
+        // typing: these actions are registered by
+        // AuthenticatedUserStorageService and aren't in the default
+        // messenger's action map here.
         const latest = (await (
           Engine.controllerMessenger.call as CallableFunction
         )(GET_ACTION)) as StoredNotificationPreferences | null;
 
-        const payload = mergeForPut(latest, nextSocialAI);
-
         await (Engine.controllerMessenger.call as CallableFunction)(
           PUT_ACTION,
-          payload,
+          mergeForPut(latest, nextSocialAI),
           CLIENT_TYPE,
         );
-      },
-      [],
-    );
-
-    /**
-     * Appends a save to an in-flight promise chain so that rapid consecutive
-     * mutations are executed strictly in order — each GET+PUT pair completes
-     * before the next one begins. Errors on the chain are swallowed to avoid
-     * a single failure jamming subsequent saves; the returned promise still
-     * rejects so the caller can handle rollback per-call.
-     */
-    const enqueuePersist = useCallback(
-      (nextSocialAI: SocialAIPreference) => {
-        const next = writeChainRef.current.then(() =>
-          saveSocialAIPreferences(nextSocialAI),
-        );
-        writeChainRef.current = next.catch(() => undefined);
-        return next;
-      },
-      [saveSocialAIPreferences],
-    );
+      });
+      writeChainRef.current = next.catch(() => undefined);
+      return next;
+    }, []);
 
     const applyChange = useCallback(
       async (updater: (prev: SocialAIPreference) => SocialAIPreference) => {
         generationRef.current += 1;
         const myGeneration = generationRef.current;
 
-        const nextSocialAI = updater(pendingSocialAIRef.current);
-        // Update the ref synchronously so the next rapid call chains on
-        // top of this mutation's output, not the stale render-time value.
-        pendingSocialAIRef.current = nextSocialAI;
+        const nextSocialAI = updater(currentSocialAIRef.current);
+        // Update the ref synchronously so the next rapid call chains on top
+        // of this mutation's output, not the stale render-time value.
+        currentSocialAIRef.current = nextSocialAI;
         setOverlay(nextSocialAI);
         setPersistError(null);
 
@@ -237,30 +235,23 @@ export const useNotificationPreferences =
             err as Error,
             'useNotificationPreferences: persist failed',
           );
+          // Only roll back if we still own the overlay. If a newer mutation
+          // has started, it owns the overlay now and rolling back here would
+          // corrupt its optimistic state.
           if (generationRef.current === myGeneration) {
-            // No newer mutation has taken over — safe to roll back.
-            // Revert to the server truth (not a captured local snapshot)
-            // so any prior successful mutations are correctly preserved.
-            pendingSocialAIRef.current = remoteRef.current;
+            // Revert to server truth (not a captured snapshot) so any prior
+            // successful mutations are correctly preserved.
+            currentSocialAIRef.current = remoteRef.current;
             setOverlay(undefined);
-            setPersistError(
-              err instanceof Error
-                ? err.message
-                : String(err ?? 'Unknown error'),
-            );
+            setPersistError(toErrorMessage(err));
           }
-          // If a newer mutation is in flight, skip the rollback entirely.
-          // It already owns the overlay; rolling back here would corrupt
-          // its optimistic state.
           return;
         }
 
-        // The data is on the server. Refresh the query cache so subsequent
-        // renders read the new server-of-record value. The overlay stays in
-        // place until a `useEffect` below detects the remote has caught up
-        // and drops it, so the UI never flashes stale data in between.
-        // A cache-refresh failure is non-critical — the save already succeeded
-        // — so we log and leave the overlay in place rather than rolling back.
+        // Persist succeeded. Refresh the query cache so the overlay auto-
+        // drops via the `useEffect` below once remote reflects the new
+        // value. A refetch failure is non-critical — the save already
+        // succeeded — so we log and keep the overlay in place.
         try {
           await refetch();
         } catch (err) {
@@ -273,11 +264,9 @@ export const useNotificationPreferences =
       [enqueuePersist, refetch],
     );
 
-    // Drop the optimistic overlay once the remote query reflects it. Comparing
-    // by value (not reference) because `remoteSocialAI` is reconstructed on
-    // every render.
+    // Drop the optimistic overlay once the remote query has caught up.
     useEffect(() => {
-      if (overlay && isSocialAIEqual(overlay, remoteSocialAI)) {
+      if (overlay && hasRemoteCaughtUp(overlay, remoteSocialAI)) {
         setOverlay(undefined);
       }
     }, [overlay, remoteSocialAI]);
@@ -309,15 +298,6 @@ export const useNotificationPreferences =
       [socialAI.mutedTraderProfileIds],
     );
 
-    const preferences = useMemo<NotificationPreferences>(
-      () => ({
-        enabled: socialAI.enabled,
-        txAmountLimit: socialAI.txAmountLimit,
-        mutedTraderProfileIds: socialAI.mutedTraderProfileIds,
-      }),
-      [socialAI],
-    );
-
     useEffect(() => {
       if (queryError) {
         Logger.error(
@@ -328,15 +308,12 @@ export const useNotificationPreferences =
     }, [queryError]);
 
     const error =
-      persistError ??
-      (queryError instanceof Error
-        ? queryError.message
-        : queryError
-          ? String(queryError)
-          : null);
+      persistError ?? (queryError ? toErrorMessage(queryError) : null);
 
     return {
-      preferences,
+      // `socialAI` is already `SocialAIPreference`-shaped and has stable
+      // identity when neither overlay nor remote has changed.
+      preferences: socialAI,
       isLoading,
       error,
       setEnabled,

@@ -13,7 +13,7 @@ import type {
 } from './hooks/useFollowedTraders';
 import type {
   UseNotificationPreferencesResult,
-  NotificationPreferences,
+  SocialAIPreference,
 } from './hooks/useNotificationPreferences';
 
 // ---------------------------------------------------------------------------
@@ -98,8 +98,8 @@ const makeUseFollowedTradersResult = (
 });
 
 const makePreferences = (
-  overrides: Partial<NotificationPreferences> = {},
-): NotificationPreferences => ({
+  overrides: Partial<SocialAIPreference> = {},
+): SocialAIPreference => ({
   enabled: true,
   txAmountLimit: 500,
   mutedTraderProfileIds: [],
