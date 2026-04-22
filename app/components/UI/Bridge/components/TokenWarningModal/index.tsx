@@ -26,6 +26,7 @@ import {
   parsePriceImpact,
 } from '../../utils/getPriceImpactViewData';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
+import { NEGATIVE_FEATURE_LABELS } from '../../../SecurityTrust/utils/securityUtils';
 import {
   SecurityDataType,
   SecurityFeature,
@@ -81,7 +82,7 @@ export const getTokenWarningContent = (
       : strings('bridge.token_warning_modal_suspicious_description', {
           symbol: destTokenSymbol,
         }),
-    featureRowTitle: isMalicious
+    fallbackFeatureRowTitle: isMalicious
       ? strings('bridge.token_warning_modal_malicious_feature_title')
       : strings('bridge.token_warning_modal_suspicious_feature_title'),
   };
@@ -161,7 +162,7 @@ export const TokenWarningModal = () => {
     featureIconColor,
     title,
     description,
-    featureRowTitle,
+    fallbackFeatureRowTitle,
   } = getTokenWarningContent(warningType, destToken?.symbol ?? '');
 
   return (
@@ -237,7 +238,10 @@ export const TokenWarningModal = () => {
                     color={featureIconColor}
                   />
                   <Box twClassName="flex-1">
-                    <Text variant={TextVariant.BodyMd}>{featureRowTitle}</Text>
+                    <Text variant={TextVariant.BodyMd}>
+                      {NEGATIVE_FEATURE_LABELS[feature.featureId]?.label ??
+                        fallbackFeatureRowTitle}
+                    </Text>
                     <Text
                       variant={TextVariant.BodyMd}
                       color={TextColor.TextAlternative}

@@ -146,7 +146,7 @@ const POSITIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
 };
 
 /** Negative-signal features (Malicious / Spam / Warning / risk-bearing Info) */
-const NEGATIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
+export const NEGATIVE_FEATURE_LABELS: Record<string, FeatureDefinition> = {
   // Malicious
   KNOWN_MALICIOUS: { label: 'Known malicious', type: 'Malicious' },
   METADATA: { label: 'Suspicious metadata', type: 'Malicious' },

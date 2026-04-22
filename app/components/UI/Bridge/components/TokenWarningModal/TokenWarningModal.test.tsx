@@ -185,6 +185,33 @@ describe('TokenWarningModal', () => {
       expect(getByText('Honeypot risk description')).toBeOnTheScreen();
     });
 
+    it('uses the specific feature label when featureId is recognized', () => {
+      mockUseParams.mockReturnValue({
+        ...defaultWarningParams,
+        features: [
+          {
+            featureId: 'INSUFFICIENT_LOCKED_LIQUIDITY',
+            type: SecurityDataType.Warning,
+            description: 'Low locked liquidity description',
+          },
+          {
+            featureId: 'HONEYPOT',
+            type: SecurityDataType.Warning,
+            description: 'Honeypot risk description',
+          },
+        ],
+      });
+      const { getByText, queryByText } = renderModal();
+      expect(getByText('Low locked liquidity')).toBeOnTheScreen();
+      expect(getByText('Honeypot risk')).toBeOnTheScreen();
+      // Generic fallback should not be used
+      expect(
+        queryByText(
+          strings('bridge.token_warning_modal_suspicious_feature_title'),
+        ),
+      ).toBeNull();
+    });
+
     it('does not render any feature rows when features is empty', () => {
       mockUseParams.mockReturnValue({
         ...defaultWarningParams,
