@@ -19,17 +19,17 @@ import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
 import { MUSD_TOKEN_ADDRESS } from '../Earn/constants/musd';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as MusdConversionAssetListCtaModule from '../Earn/components/Musd/MusdConversionAssetListCta';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as TokenListControlBarModule from './TokenListControlBar/TokenListControlBar';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AssetsListSelectorsModule from '../../../selectors/assets/assets-list';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as RefreshTokensModule from './util/refreshTokens';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
 const mockUseMusdConversionEligibility = jest.fn(() => ({
   isEligible: true,
@@ -394,24 +394,21 @@ describe('Tokens', () => {
   });
 
   describe('showOnlyMusd (Cash view)', () => {
-    it('passes showAddToken false and hideSort true to TokenListControlBar', async () => {
+    it('does not render TokenListControlBar when showOnlyMusd', async () => {
       const { mockSelectSortedAssetsBySelectedAccountGroup } =
         arrangeMockSelectors();
       mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
 
-      renderComponent(initialState, true, true);
+      const { queryByTestId } = renderComponent(initialState, true, true);
 
       await waitFor(() => {
-        expect(
-          TokenListControlBarModule.TokenListControlBar,
-        ).toHaveBeenCalledWith(
-          expect.objectContaining({
-            showAddToken: false,
-            hideSort: true,
-          }),
-          expect.anything(),
-        );
+        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
       });
+
+      expect(queryByTestId('token-list-control-bar')).toBeNull();
+      expect(
+        TokenListControlBarModule.TokenListControlBar,
+      ).not.toHaveBeenCalled();
     });
 
     it('does not render add token button when showOnlyMusd', async () => {

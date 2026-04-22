@@ -21,7 +21,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket,
   PredictOutcomeToken,
@@ -39,6 +38,8 @@ import {
 } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictPreviewSheet } from '../../contexts';
+
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
@@ -64,6 +65,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
   });
+  const { openBuySheet } = usePredictPreviewSheet();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -94,7 +96,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+        openBuySheet({
           market,
           outcome,
           outcomeToken: token,

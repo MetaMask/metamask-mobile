@@ -135,17 +135,20 @@ describe('useBridgeQuoteData', () => {
         estimatedTime: '5 seconds',
         rate: '1 ETH = 0.0000000000000000571 USDC',
         priceImpact: '-0.20%',
+        priceImpactFiat: undefined,
         slippage: '0.5%',
       },
       isLoading: false,
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
+      needsNewQuote: false,
       shouldShowPriceImpactWarning: false,
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: true,
     });
   });
 
@@ -277,6 +280,7 @@ describe('useBridgeQuoteData', () => {
       quotesLoadingStatus: RequestStatus.FETCHED,
       quotesLastFetched: 123,
       quoteFetchError: null,
+      quoteStreamComplete: { hasQuotes: false, quoteCount: 0 },
     };
 
     const testState = createBridgeTestState({
@@ -296,12 +300,60 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: true,
       isExpired: false,
+      needsNewQuote: false,
       willRefresh: false,
       blockaidError: null,
       shouldShowPriceImpactWarning: false,
       quotesLoadingStatus: RequestStatus.FETCHED,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
+  });
+
+  it('isNoQuotesAvailable is false when quoteStreamComplete is null', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: null,
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: [],
+        quotesLoadingStatus: RequestStatus.LOADING,
+        quotesLastFetched: null,
+        quoteFetchError: null,
+        quoteStreamComplete: null,
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.isNoQuotesAvailable).toBe(false);
+  });
+
+  it('isNoQuotesAvailable is false when quoteStreamComplete.hasQuotes is true', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: null,
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: [],
+        quotesLoadingStatus: RequestStatus.FETCHED,
+        quotesLastFetched: 123,
+        quoteFetchError: null,
+        quoteStreamComplete: { hasQuotes: true, quoteCount: 3 },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.isNoQuotesAvailable).toBe(false);
   });
 
   it('returns undefined destTokenAmount when quote destAsset does not match selected destToken', () => {
@@ -343,6 +395,70 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.destTokenAmount).toBeUndefined();
   });
 
+  it('isActiveQuoteForCurrentTokenPair is false when stale quote dest does not match selected destToken', () => {
+    // Regression guard: after changing the destination token, the bridge controller
+    // keeps the old quote in state until the first new quote arrives. The confirm
+    // button must stay disabled during this window.
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata, // quote is for Solana USDC
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: RequestStatus.LOADING,
+        quoteFetchError: null,
+      },
+      bridgeReducerOverrides: {
+        destToken: {
+          symbol: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(false);
+  });
+
+  it('isActiveQuoteForCurrentTokenPair is true when active quote matches both selected tokens', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata,
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      },
+      bridgeReducerOverrides: {
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(true);
+  });
+
   it('handles expired quotes correctly', () => {
     // Set up mock for this specific test
     (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
@@ -366,20 +482,32 @@ describe('useBridgeQuoteData', () => {
       state: testState,
     });
 
+    // When expired but not loading, the hook serves the last known Redux quotes
+    // as a cache so the UI can keep displaying them until the user requests a
+    // fresh fetch via "Get new quote".
     expect(result.current).toEqual({
-      activeQuote: undefined,
+      activeQuote: mockQuoteWithMetadata,
       bestQuote: mockQuoteWithMetadata,
       destTokenAmount: undefined,
-      formattedQuoteData: undefined,
+      formattedQuoteData: {
+        estimatedTime: '5 seconds',
+        networkFee: '-',
+        priceImpact: '-0.20%',
+        priceImpactFiat: undefined,
+        rate: '--',
+        slippage: '0.5%',
+      },
       isLoading: false,
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       shouldShowPriceImpactWarning: false,
       isExpired: true,
+      needsNewQuote: true,
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -411,11 +539,13 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
+      needsNewQuote: false,
       shouldShowPriceImpactWarning: false,
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: RequestStatus.LOADING,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -449,10 +579,12 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: error,
       isNoQuotesAvailable: false,
       isExpired: false,
+      needsNewQuote: false,
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -1462,7 +1594,7 @@ describe('useBridgeQuoteData', () => {
       });
     });
 
-    it('does not override activeQuote with manually selected when expired and not refreshing', () => {
+    it('keeps showing manually selected quote as activeQuote when expired and not refreshing', () => {
       const manuallySelectedQuote = {
         ...mockQuoteWithMetadata,
         quote: {
@@ -1501,8 +1633,9 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      // When expired and not refreshing and not submitting, activeQuote should be undefined
-      expect(result.current.activeQuote).toBeUndefined();
+      // When expired but not loading, the last known Redux quotes are served as
+      // a cache. The manually-selected quote is still shown (not cleared).
+      expect(result.current.activeQuote).toEqual(manuallySelectedQuote);
       expect(result.current.isExpired).toBe(true);
     });
 

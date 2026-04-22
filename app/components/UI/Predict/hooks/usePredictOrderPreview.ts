@@ -19,8 +19,11 @@ interface OrderPreviewResult {
  * isLoading/isCalculating flags are used by all 3 consumers for skeleton/inline states.
  */
 export function usePredictOrderPreview(
-  params: PreviewOrderParams & { autoRefreshTimeout?: number },
+  params: PreviewOrderParams & {
+    autoRefreshTimeout?: number;
+  },
 ): OrderPreviewResult {
+  // Destructure params for stable dependencies
   const {
     marketId,
     outcomeId,
@@ -64,18 +67,33 @@ export function usePredictOrderPreview(
       hasValidSize && autoRefreshTimeout ? autoRefreshTimeout : false,
   });
 
+  const [stickyError, setStickyError] = useState<string | null>(null);
+
   const preview = hasValidSize ? (query.data ?? null) : null;
-  const error = query.error
+  const parsedError = query.error
     ? parseErrorMessage({
         error: query.error,
         defaultCode: PREDICT_ERROR_CODES.PREVIEW_FAILED,
       })
     : null;
-  const isLoading = preview === null && !error;
+  const isLoading = preview === null && !parsedError && !stickyError;
   const isCalculating = query.isFetching;
 
   useEffect(() => {
+    if (parsedError) {
+      setStickyError(parsedError);
+    } else if (query.isSuccess) {
+      setStickyError(null);
+    }
+  }, [parsedError, query.isSuccess]);
+
+  useEffect(() => {
+    setStickyError(null);
+  }, [debouncedParams.size]);
+
+  useEffect(() => {
     if (!query.error) return;
+
     Logger.error(ensureError(query.error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
@@ -104,6 +122,6 @@ export function usePredictOrderPreview(
     preview,
     isLoading,
     isCalculating,
-    error,
+    error: stickyError,
   };
 }

@@ -56,6 +56,20 @@ jest.mock('@metamask/design-system-react-native', () => {
     Lg: 'lg',
   };
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
+  const ButtonVariant = {
+    Primary: 'Primary',
+    Secondary: 'Secondary',
+    Link: 'Link',
+  };
+
+  const ButtonSize = {
+    Sm: 'Sm',
+    Md: 'Md',
+    Lg: 'Lg',
+  };
+
   return {
     Box: ({
       children,
@@ -83,9 +97,32 @@ jest.mock('@metamask/design-system-react-native', () => {
       children: React.ReactNode;
       testID?: string;
     }) => React.createElement(Text, { testID, ...props }, children),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      label?: string;
+      isDisabled?: boolean;
+      disabled?: boolean;
+    }) =>
+      React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(Text, {}, children || label),
+      ),
     TextVariant,
     IconName,
     IconSize,
+    ButtonVariant,
+    ButtonSize,
   };
 });
 
@@ -229,7 +266,7 @@ jest.mock('../../hooks/useRegisterPersonalDetails', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../hooks/useRegistrationSettings', () => ({
+jest.mock('../../hooks/useRegions', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -252,6 +289,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.onboarding.personal_details.continue': 'Continue',
       'card.onboarding.personal_details.ssn_error': 'Invalid SSN',
       'card.onboarding.personal_details.age_error': 'Must be 18 or older',
+      'card.card_onboarding.personal_details.name_mismatch_error':
+        'First and last name must match your verified identity',
     };
     return mockStrings[key] || key;
   }),
@@ -295,7 +334,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import PersonalDetails from './PersonalDetails';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
-import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
 import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardError, CardErrorType } from '../../types';
@@ -321,22 +360,25 @@ const mockCreateEventBuilder = jest.fn(() => ({
 
 (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
 
-(useSelector as jest.Mock).mockImplementation((selector) => {
-  const mockState = {
-    card: {
-      onboarding: {
-        onboardingId: 'test-onboarding-id',
-        selectedCountry: {
-          key: 'US',
-          name: 'United States',
-          emoji: '🇺🇸',
-          areaCode: '1',
-        },
-      },
+const mockAllRegions = [
+  { key: 'US', name: 'United States', emoji: '🇺🇸', areaCode: '1' },
+  { key: 'CA', name: 'Canada', emoji: '🇨🇦', areaCode: '1' },
+];
+const mockUserCountryUS = mockAllRegions[0];
+const mockGetRegionByCode = (code: string) =>
+  mockAllRegions.find((r) => r.key === code) ?? null;
+
+const defaultCardState = {
+  card: {
+    onboarding: {
+      onboardingId: 'test-onboarding-id',
     },
-  };
-  return selector(mockState);
-});
+  },
+};
+
+(useSelector as jest.Mock).mockImplementation((selector) =>
+  selector(defaultCardState),
+);
 
 (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
   registerPersonalDetails: mockRegisterPersonalDetails,
@@ -346,13 +388,10 @@ const mockCreateEventBuilder = jest.fn(() => ({
   reset: jest.fn(),
 });
 
-(useRegistrationSettings as jest.Mock).mockReturnValue({
-  data: {
-    countries: [
-      { iso3166alpha2: 'US', name: 'United States', callingCode: '1' },
-      { iso3166alpha2: 'CA', name: 'Canada', callingCode: '1' },
-    ],
-  },
+(useRegions as jest.Mock).mockReturnValue({
+  allRegions: mockAllRegions,
+  userCountry: mockUserCountryUS,
+  getRegionByCode: mockGetRegionByCode,
 });
 
 (useCardSDK as jest.Mock).mockReturnValue({
@@ -372,6 +411,9 @@ const mockCreateEventBuilder = jest.fn(() => ({
 describe('PersonalDetails Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useSelector as jest.Mock).mockImplementation(
+      (selector: (state: unknown) => unknown) => selector(defaultCardState),
+    );
   });
 
   describe('Initial Render', () => {
@@ -394,8 +436,8 @@ describe('PersonalDetails Component', () => {
     it('does not show error messages initially', () => {
       const { queryByTestId } = render(<PersonalDetails />);
 
-      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
-      expect(queryByTestId('personal-details-error')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
+      expect(queryByTestId('personal-details-error')).not.toBeOnTheScreen();
     });
 
     it('calls fetchUserData on mount', () => {
@@ -407,21 +449,10 @@ describe('PersonalDetails Component', () => {
 
   describe('Conditional SSN Field Rendering', () => {
     it('shows SSN field when selected country is US', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        const mockState = {
-          card: {
-            onboarding: {
-              onboardingId: 'test-onboarding-id',
-              selectedCountry: {
-                key: 'US',
-                name: 'United States',
-                emoji: '🇺🇸',
-                areaCode: '1',
-              },
-            },
-          },
-        };
-        return selector(mockState);
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockUserCountryUS,
+        getRegionByCode: mockGetRegionByCode,
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -430,26 +461,15 @@ describe('PersonalDetails Component', () => {
     });
 
     it('does not show SSN field when selected country is not US', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        const mockState = {
-          card: {
-            onboarding: {
-              onboardingId: 'test-onboarding-id',
-              selectedCountry: {
-                key: 'CA',
-                name: 'Canada',
-                emoji: '🇨🇦',
-                areaCode: '1',
-              },
-            },
-          },
-        };
-        return selector(mockState);
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockAllRegions[1],
+        getRegionByCode: mockGetRegionByCode,
       });
 
       const { queryByTestId } = render(<PersonalDetails />);
 
-      expect(queryByTestId('personal-details-ssn-input')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-input')).not.toBeOnTheScreen();
     });
   });
 
@@ -489,21 +509,10 @@ describe('PersonalDetails Component', () => {
 
   describe('SSN Validation', () => {
     beforeEach(() => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        const mockState = {
-          card: {
-            onboarding: {
-              onboardingId: 'test-onboarding-id',
-              selectedCountry: {
-                key: 'US',
-                name: 'United States',
-                emoji: '🇺🇸',
-                areaCode: '1',
-              },
-            },
-          },
-        };
-        return selector(mockState);
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockUserCountryUS,
+        getRegionByCode: mockGetRegionByCode,
       });
     });
 
@@ -530,7 +539,7 @@ describe('PersonalDetails Component', () => {
       fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
 
       // Error should not be shown while typing
-      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
     });
 
     it('shows SSN error after blur when SSN is invalid', () => {
@@ -552,7 +561,7 @@ describe('PersonalDetails Component', () => {
       fireEvent(ssnInput, 'onBlur');
 
       // Error should not be shown for valid SSN
-      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
     });
 
     it('clears SSN error when user starts typing again', () => {
@@ -567,7 +576,7 @@ describe('PersonalDetails Component', () => {
 
       // Type again - error should be cleared
       fireEvent.changeText(ssnInput, '1234');
-      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
     });
   });
 
@@ -770,21 +779,10 @@ describe('PersonalDetails Component', () => {
         countryOfNationality: 'US',
         ssn: '123456789',
       };
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        const mockState = {
-          card: {
-            onboarding: {
-              onboardingId: 'test-onboarding-id',
-              selectedCountry: {
-                key: 'US',
-                name: 'United States',
-                emoji: '🇺🇸',
-                areaCode: '1',
-              },
-            },
-          },
-        };
-        return selector(mockState);
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockUserCountryUS,
+        getRegionByCode: mockGetRegionByCode,
       });
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
@@ -802,21 +800,10 @@ describe('PersonalDetails Component', () => {
 
   describe('Nationality Population from userData', () => {
     beforeEach(() => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        const mockState = {
-          card: {
-            onboarding: {
-              onboardingId: 'test-onboarding-id',
-              selectedCountry: {
-                key: 'US',
-                name: 'United States',
-                emoji: '🇺🇸',
-                areaCode: '1',
-              },
-            },
-          },
-        };
-        return selector(mockState);
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockUserCountryUS,
+        getRegionByCode: mockGetRegionByCode,
       });
     });
 
@@ -840,27 +827,16 @@ describe('PersonalDetails Component', () => {
 
       // The nationality should show Canada (from countryOfNationality)
       expect(getByText('Canada')).toBeTruthy();
-      expect(queryByText('United States')).toBeNull();
+      expect(queryByText('United States')).not.toBeOnTheScreen();
     });
   });
 
   describe('registerPersonalDetails Function Call', () => {
     beforeEach(() => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        const mockState = {
-          card: {
-            onboarding: {
-              onboardingId: 'test-onboarding-id',
-              selectedCountry: {
-                key: 'US',
-                name: 'United States',
-                emoji: '🇺🇸',
-                areaCode: '1',
-              },
-            },
-          },
-        };
-        return selector(mockState);
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockUserCountryUS,
+        getRegionByCode: mockGetRegionByCode,
       });
     });
 
@@ -960,16 +936,15 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: null,
-              selectedCountry: {
-                key: 'US',
-                name: 'United States',
-                emoji: '🇺🇸',
-                areaCode: '1',
-              },
             },
           },
         };
         return selector(mockState);
+      });
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockUserCountryUS,
+        getRegionByCode: mockGetRegionByCode,
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -1007,19 +982,10 @@ describe('PersonalDetails Component', () => {
     });
 
     it('handles onboarding ID not found error by resetting state', async () => {
-      // Setup: Pre-fill all required fields via userData
-      const mockUserData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: '1990-01-01T00:00:00.000Z',
-        countryOfNationality: 'US',
-        ssn: '123456789',
-      };
-      (useCardSDK as jest.Mock).mockReturnValue({
-        user: mockUserData,
-        setUser: mockSetUser,
-        fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockUserCountryUS,
+        getRegionByCode: mockGetRegionByCode,
       });
 
       mockRegisterPersonalDetails.mockRejectedValue(
@@ -1028,16 +994,36 @@ describe('PersonalDetails Component', () => {
 
       const { getByTestId } = render(<PersonalDetails />);
 
-      const continueButton = getByTestId('personal-details-continue-button');
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      const lastNameInput = getByTestId('personal-details-last-name-input');
+      const dateOfBirthInput = getByTestId(
+        'personal-details-date-of-birth-input',
+      );
+      const nationalitySelect = getByTestId(
+        'personal-details-nationality-select',
+      );
+      const ssnInput = getByTestId('personal-details-ssn-input');
 
+      await act(async () => {
+        fireEvent.changeText(firstNameInput, 'John');
+        fireEvent.changeText(lastNameInput, 'Doe');
+        fireEvent.changeText(dateOfBirthInput, '631152000000');
+        fireEvent.press(nationalitySelect);
+        fireEvent.changeText(ssnInput, '123456789');
+      });
+
+      const continueButton = getByTestId('personal-details-continue-button');
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalled();
-      });
+      await waitFor(
+        () => {
+          expect(mockDispatch).toHaveBeenCalled();
+          expect(mockNavigate).toHaveBeenCalled();
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('disables continue button when SSN is invalid', () => {
@@ -1056,6 +1042,11 @@ describe('PersonalDetails Component', () => {
     });
 
     it('includes dateOfBirth in registration payload when provided', async () => {
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockUserCountryUS,
+        getRegionByCode: mockGetRegionByCode,
+      });
       mockRegisterPersonalDetails.mockResolvedValue({
         user: { id: 'user-123' },
       });
@@ -1072,14 +1063,15 @@ describe('PersonalDetails Component', () => {
       );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
-      fireEvent.changeText(firstNameInput, 'John');
-      fireEvent.changeText(lastNameInput, 'Doe');
-      fireEvent.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
-      fireEvent.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
-      fireEvent.changeText(ssnInput, '123456789');
+      await act(async () => {
+        fireEvent.changeText(firstNameInput, 'John');
+        fireEvent.changeText(lastNameInput, 'Doe');
+        fireEvent.changeText(dateOfBirthInput, '631152000000'); // 1990-01-01
+        fireEvent.press(nationalitySelect);
+        fireEvent.changeText(ssnInput, '123456789');
+      });
 
       const continueButton = getByTestId('personal-details-continue-button');
-
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1095,21 +1087,10 @@ describe('PersonalDetails Component', () => {
     });
 
     it('does not require SSN when country is not US', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        const mockState = {
-          card: {
-            onboarding: {
-              onboardingId: 'test-onboarding-id',
-              selectedCountry: {
-                key: 'CA',
-                name: 'Canada',
-                emoji: '🇨🇦',
-                areaCode: '1',
-              },
-            },
-          },
-        };
-        return selector(mockState);
+      (useRegions as jest.Mock).mockReturnValue({
+        allRegions: mockAllRegions,
+        userCountry: mockAllRegions[1],
+        getRegionByCode: mockGetRegionByCode,
       });
 
       const { getByTestId, queryByTestId } = render(<PersonalDetails />);
@@ -1120,7 +1101,204 @@ describe('PersonalDetails Component', () => {
       fireEvent.changeText(firstNameInput, 'John');
       fireEvent.changeText(lastNameInput, 'Doe');
 
-      expect(queryByTestId('personal-details-ssn-input')).toBeNull();
+      expect(queryByTestId('personal-details-ssn-input')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Error Reset on Name Change', () => {
+    it('clears registration error when first name is edited', () => {
+      const mockResetRegister = jest.fn();
+      (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
+        registerPersonalDetails: mockRegisterPersonalDetails,
+        isLoading: false,
+        isError: true,
+        error: 'Registration failed',
+        reset: mockResetRegister,
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Jane',
+      );
+
+      expect(mockResetRegister).toHaveBeenCalled();
+    });
+
+    it('clears registration error when last name is edited', () => {
+      const mockResetRegister = jest.fn();
+      (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
+        registerPersonalDetails: mockRegisterPersonalDetails,
+        isLoading: false,
+        isError: true,
+        error: 'Registration failed',
+        reset: mockResetRegister,
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-last-name-input'),
+        'Smith',
+      );
+
+      expect(mockResetRegister).toHaveBeenCalled();
+    });
+  });
+
+  describe('Name Validation', () => {
+    const setupWithUserData = (userData: Record<string, unknown> | null) => {
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: userData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+    };
+
+    it('does not show name error when pre-filled names match Veriff data', () => {
+      setupWithUserData({
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { queryByTestId } = render(<PersonalDetails />);
+
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show name error when no userData is provided', () => {
+      setupWithUserData(null);
+
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'John',
+      );
+      fireEvent.changeText(
+        getByTestId('personal-details-last-name-input'),
+        'Doe',
+      );
+
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows name error when firstName is edited to drop middle name', () => {
+      setupWithUserData({
+        firstName: 'Maria Elena',
+        lastName: 'Garcia',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria',
+      );
+
+      expect(getByTestId('personal-details-name-error')).toBeOnTheScreen();
+    });
+
+    it('shows name error when lastName is edited to drop second surname', () => {
+      setupWithUserData({
+        firstName: 'John',
+        lastName: 'Garcia Lopez',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-last-name-input'),
+        'Garcia',
+      );
+
+      expect(getByTestId('personal-details-name-error')).toBeOnTheScreen();
+    });
+
+    it('clears name error when names are corrected back to match', () => {
+      setupWithUserData({
+        firstName: 'Maria Elena',
+        lastName: 'Garcia',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria',
+      );
+      expect(getByTestId('personal-details-name-error')).toBeOnTheScreen();
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria Elena',
+      );
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('allows different name splits as long as full name matches', () => {
+      setupWithUserData({
+        firstName: 'Maria Elena',
+        lastName: 'Garcia',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria',
+      );
+      fireEvent.changeText(
+        getByTestId('personal-details-last-name-input'),
+        'Elena Garcia',
+      );
+
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('disables continue button when name mismatch exists', () => {
+      setupWithUserData({
+        firstName: 'Maria Elena',
+        lastName: 'Garcia Lopez',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'US',
+        ssn: '123456789',
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      fireEvent.changeText(
+        getByTestId('personal-details-first-name-input'),
+        'Maria',
+      );
+
+      const continueButton = getByTestId('personal-details-continue-button');
+      expect(continueButton.props.disabled).toBe(true);
     });
   });
 });

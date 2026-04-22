@@ -16,6 +16,7 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(SmokeTrade('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
@@ -60,6 +61,11 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
         ],
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
+            homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
+          });
+
           // Mock Accounts API V4 (flat array) so the app reports correct ETH balance.
           // Without this, the default mock returns 0 balance and the Earn button
           // is hidden (StakeButton returns null when balanceFiatNumber < 0.01).
@@ -131,21 +137,34 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
       },
       async () => {
         await loginToApp();
+        // Earn and stake flows keep recurring native timers; with sync on, Detox waits for
+        // idle indefinitely after opening stake. Keep sync off through confirm, then re-enable
+        // for Activity (FlashList row text is unreliable with sync disabled on iOS).
         await device.disableSynchronization();
-        await Assertions.expectElementToBeVisible(WalletView.earnButton, {
-          timeout: 30000,
-        });
-        await WalletView.tapOnEarnButton();
-        await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
-        await StakeView.enterAmount(AMOUNT_TO_STAKE);
-        await StakeView.tapReviewWithRetry(30000);
-        await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
-          timeout: 30000,
-        });
-        await StakeView.tapConfirm(30000);
+        try {
+          await Assertions.expectElementToBeVisible(WalletView.earnButton, {
+            timeout: 45000,
+            description:
+              'Earn button should be visible after balance loads from mocked API',
+          });
+          await WalletView.tapOnEarnButton();
+          await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
+          await StakeView.enterAmount(AMOUNT_TO_STAKE);
+          await StakeView.tapReviewWithRetry(30000);
+          await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
+            timeout: 30000,
+          });
+          await StakeView.tapConfirm(30000);
+        } finally {
+          await device.enableSynchronization();
+        }
 
         await Assertions.expectElementToBeVisible(
           ActivitiesView.stakeDepositedLabel,
+          {
+            description: 'Staking deposit activity row title',
+            timeout: 120000,
+          },
         );
         await Assertions.expectElementToHaveText(
           ActivitiesView.transactionStatus(FIRST_ROW),

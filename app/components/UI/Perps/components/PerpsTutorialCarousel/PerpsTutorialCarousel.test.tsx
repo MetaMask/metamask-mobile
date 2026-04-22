@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsTutorialCarousel, {
   PERPS_RIVE_ARTBOARD_NAMES,
@@ -57,15 +56,18 @@ jest.mock('rive-react-native', () => {
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(),
+  StackActions: {
+    replace: (name: string, params?: object) => ({
+      type: 'REPLACE',
+      payload: { name, params },
+    }),
+  },
 }));
 
 // Mock NavigationService
 const mockNavigationServiceMethods = {
   navigate: jest.fn(),
+  dispatch: jest.fn(),
   setParams: jest.fn(),
 };
 
@@ -176,7 +178,6 @@ describe('PerpsTutorialCarousel', () => {
     mockNavigationServiceMethods.setParams.mockClear();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useRoute as jest.Mock).mockReturnValue({ params: {} });
-    (useSafeAreaInsets as jest.Mock).mockReturnValue({ top: 0, bottom: 0 });
 
     // Default to eligible user
     const { useSelector } = jest.requireMock('react-redux');
@@ -236,14 +237,15 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(continueButton);
       });
 
-      // Should mark tutorial as completed and navigate to perps home screen
+      // Should mark tutorial as completed and replace tutorial with perps home
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.ROOT,
-        {
-          screen: Routes.PERPS.PERPS_HOME,
+      expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+        type: 'REPLACE',
+        payload: {
+          name: Routes.PERPS.ROOT,
+          params: { screen: Routes.PERPS.PERPS_HOME },
         },
-      );
+      });
     });
 
     it('should navigate to markets list when pressing Skip on first screen', () => {
@@ -253,12 +255,13 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
       });
 
-      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.ROOT,
-        {
-          screen: Routes.PERPS.PERPS_HOME,
+      expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+        type: 'REPLACE',
+        payload: {
+          name: Routes.PERPS.ROOT,
+          params: { screen: Routes.PERPS.PERPS_HOME },
         },
-      );
+      });
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
     });
 
@@ -315,13 +318,120 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByTestId('perps-tutorial-continue-button'));
       });
 
-      // Should navigate to perps home screen
-      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.ROOT,
-        {
-          screen: Routes.PERPS.PERPS_HOME,
+      // Should replace tutorial with perps home screen
+      expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+        type: 'REPLACE',
+        payload: {
+          name: Routes.PERPS.ROOT,
+          params: { screen: Routes.PERPS.PERPS_HOME },
         },
-      );
+      });
+    });
+  });
+
+  describe('Post-tutorial redirect', () => {
+    it('redirects to specified screen with params after completing tutorial', async () => {
+      const redirectParams = {
+        market: { symbol: 'BTC' },
+        source: 'home_section',
+      };
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          source: 'home_section',
+          redirectScreen: Routes.PERPS.MARKET_DETAILS,
+          redirectParams,
+        },
+      });
+
+      render(<PerpsTutorialCarousel />);
+      await navigateToScreen(5);
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('perps-tutorial-continue-button'));
+      });
+
+      expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+        type: 'REPLACE',
+        payload: {
+          name: Routes.PERPS.ROOT,
+          params: {
+            screen: Routes.PERPS.MARKET_DETAILS,
+            params: redirectParams,
+          },
+        },
+      });
+    });
+
+    it('redirects to specified screen on skip', () => {
+      const redirectParams = { source: 'home_section' };
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          source: 'home_section',
+          redirectScreen: Routes.PERPS.MARKET_LIST,
+          redirectParams,
+        },
+      });
+
+      render(<PerpsTutorialCarousel />);
+
+      act(() => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
+      });
+
+      expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+        type: 'REPLACE',
+        payload: {
+          name: Routes.PERPS.ROOT,
+          params: {
+            screen: Routes.PERPS.MARKET_LIST,
+            params: redirectParams,
+          },
+        },
+      });
+    });
+
+    it('redirects to screen without params key when only redirectScreen is provided', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          source: 'home_section',
+          redirectScreen: Routes.PERPS.MARKET_LIST,
+        },
+      });
+
+      render(<PerpsTutorialCarousel />);
+      await navigateToScreen(5);
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('perps-tutorial-continue-button'));
+      });
+
+      const dispatchCall =
+        mockNavigationServiceMethods.dispatch.mock.calls[0][0];
+      expect(dispatchCall.type).toBe('REPLACE');
+      expect(dispatchCall.payload.name).toBe(Routes.PERPS.ROOT);
+      expect(dispatchCall.payload.params).toEqual({
+        screen: Routes.PERPS.MARKET_LIST,
+      });
+      expect(dispatchCall.payload.params).not.toHaveProperty('params');
+    });
+
+    it('falls back to perps home when no redirect params provided', async () => {
+      (useRoute as jest.Mock).mockReturnValue({ params: {} });
+
+      render(<PerpsTutorialCarousel />);
+      await navigateToScreen(5);
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('perps-tutorial-continue-button'));
+      });
+
+      expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+        type: 'REPLACE',
+        payload: {
+          name: Routes.PERPS.ROOT,
+          params: { screen: Routes.PERPS.PERPS_HOME },
+        },
+      });
     });
   });
 
@@ -418,14 +528,15 @@ describe('PerpsTutorialCarousel', () => {
           fireEvent.press(screen.getByTestId('perps-tutorial-continue-button'));
         });
 
-        // Should mark tutorial as completed and navigate to perps home
+        // Should mark tutorial as completed and replace tutorial with perps home
         expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-        expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-          Routes.PERPS.ROOT,
-          {
-            screen: Routes.PERPS.PERPS_HOME,
+        expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+          type: 'REPLACE',
+          payload: {
+            name: Routes.PERPS.ROOT,
+            params: { screen: Routes.PERPS.PERPS_HOME },
           },
-        );
+        });
       });
 
       it('shows skip button for eligible users on non-last screens', () => {
@@ -444,14 +555,15 @@ describe('PerpsTutorialCarousel', () => {
           fireEvent.press(screen.getByTestId('perps-tutorial-skip-button'));
         });
 
-        // Should mark tutorial as completed and navigate to markets list
+        // Should mark tutorial as completed and replace tutorial with perps home
         expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-        expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-          Routes.PERPS.ROOT,
-          {
-            screen: Routes.PERPS.PERPS_HOME,
+        expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+          type: 'REPLACE',
+          payload: {
+            name: Routes.PERPS.ROOT,
+            params: { screen: Routes.PERPS.PERPS_HOME },
           },
-        );
+        });
       });
     });
 
@@ -559,14 +671,15 @@ describe('PerpsTutorialCarousel', () => {
           fireEvent.press(screen.getByTestId('perps-tutorial-continue-button'));
         });
 
-        // Should mark tutorial as completed and navigate to markets list
+        // Should mark tutorial as completed and replace tutorial with perps home
         expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-        expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-          Routes.PERPS.ROOT,
-          {
-            screen: Routes.PERPS.PERPS_HOME,
+        expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+          type: 'REPLACE',
+          payload: {
+            name: Routes.PERPS.ROOT,
+            params: { screen: Routes.PERPS.PERPS_HOME },
           },
-        );
+        });
         // Should NOT navigate using the mocked navigation (uses NavigationService instead)
         expect(mockNavigation.navigate).not.toHaveBeenCalled();
       });

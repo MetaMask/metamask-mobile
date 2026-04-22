@@ -28,6 +28,12 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    activeOrder: null,
+  }),
+}));
+
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
 jest.mock('../../hooks/usePredictClaim');
@@ -52,8 +58,13 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
+const mockOpenBuySheet = jest.fn();
 jest.mock('../../contexts', () => ({
   usePredictEntryPoint: () => undefined,
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: jest.fn(),
+  }),
 }));
 
 jest.mock('../PredictActionButtons', () => {
@@ -518,7 +529,7 @@ describe('PredictSportCardFooter', () => {
       });
     });
 
-    it('calls navigate with correct params when guarded action succeeds', async () => {
+    it('calls openBuySheet with correct params when guarded action succeeds', async () => {
       const market = createMockMarket();
       setupPositionsMock();
       mockExecuteGuardedAction.mockImplementation((callback) => callback());
@@ -527,15 +538,12 @@ describe('PredictSportCardFooter', () => {
       fireEvent.press(screen.getByTestId('footer-action-buttons-bet-yes'));
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.PREDICT.MODALS.BUY_PREVIEW,
-          {
-            market,
-            outcome: market.outcomes[0],
-            outcomeToken: market.outcomes[0].tokens[0],
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-          },
-        );
+        expect(mockOpenBuySheet).toHaveBeenCalledWith({
+          market,
+          outcome: market.outcomes[0],
+          outcomeToken: market.outcomes[0].tokens[0],
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        });
       });
     });
 
@@ -554,8 +562,7 @@ describe('PredictSportCardFooter', () => {
       fireEvent.press(screen.getByTestId('footer-action-buttons-bet-yes'));
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.PREDICT.MODALS.BUY_PREVIEW,
+        expect(mockOpenBuySheet).toHaveBeenCalledWith(
           expect.objectContaining({
             entryPoint: PredictEventValues.ENTRY_POINT.TRENDING,
           }),
@@ -578,8 +585,7 @@ describe('PredictSportCardFooter', () => {
       fireEvent.press(screen.getByTestId('footer-action-buttons-bet-yes'));
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.PREDICT.MODALS.BUY_PREVIEW,
+        expect(mockOpenBuySheet).toHaveBeenCalledWith(
           expect.objectContaining({
             entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
           }),
@@ -587,7 +593,7 @@ describe('PredictSportCardFooter', () => {
       });
     });
 
-    it('navigates through PREDICT.ROOT when entry point is CAROUSEL', async () => {
+    it('opens buy sheet with CAROUSEL entry point', async () => {
       mockIsFromTrending.mockReturnValue(false);
       const market = createMockMarket();
       setupPositionsMock();
@@ -603,14 +609,11 @@ describe('PredictSportCardFooter', () => {
       fireEvent.press(screen.getByTestId('footer-action-buttons-bet-yes'));
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome: market.outcomes[0],
-            outcomeToken: market.outcomes[0].tokens[0],
-            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
-          },
+        expect(mockOpenBuySheet).toHaveBeenCalledWith({
+          market,
+          outcome: market.outcomes[0],
+          outcomeToken: market.outcomes[0].tokens[0],
+          entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
         });
       });
     });

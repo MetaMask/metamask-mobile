@@ -1,5 +1,9 @@
-import { Hex, isHexString } from '@metamask/utils';
+import { hasProperty, Hex, isHexString } from '@metamask/utils';
 
+import {
+  countSignificantFigures,
+  roundToSignificantFigures,
+} from './significantFigures';
 import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import type {
@@ -11,10 +15,6 @@ import type {
   RawLedgerUpdate,
   UserHistoryItem,
 } from '../types';
-import {
-  countSignificantFigures,
-  roundToSignificantFigures,
-} from './significantFigures';
 import type {
   AssetPosition,
   FrontendOrder,
@@ -438,10 +438,13 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
       let amount = '0';
       let asset = 'USDC';
 
-      if ('usdc' in update.delta && update.delta.usdc) {
+      if (hasProperty(update.delta, 'usdc') && update.delta.usdc) {
         amount = Math.abs(parseFloat(update.delta.usdc)).toString();
       }
-      if ('coin' in update.delta && typeof update.delta.coin === 'string') {
+      if (
+        hasProperty(update.delta, 'coin') &&
+        typeof update.delta.coin === 'string'
+      ) {
         asset = update.delta.coin;
       }
 

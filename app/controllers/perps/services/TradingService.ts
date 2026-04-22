@@ -1,4 +1,3 @@
-import { addBreadcrumb } from '@sentry/react-native';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { RewardsIntegrationService } from './RewardsIntegrationService';
@@ -7,7 +6,6 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
-import { ESTIMATED_FEE_RATE } from '../constants/hyperLiquidConfig';
 import { isTPSLOrder } from '../constants/orderTypes';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -180,6 +178,15 @@ export class TradingService {
     } else if (params.trackingData !== undefined) {
       properties[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
         PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
+    }
+
+    // Calculate order value in USD (size * price)
+    const orderSize = parseFloat(result?.filledSize ?? params.size);
+    const assetPrice = result?.averagePrice
+      ? parseFloat(result.averagePrice)
+      : params.trackingData?.marketPrice;
+    if (assetPrice && orderSize) {
+      properties[PERPS_EVENT_PROPERTY.ORDER_VALUE] = orderSize * assetPrice;
     }
 
     // Add success-specific properties
@@ -370,7 +377,7 @@ export class TradingService {
         : 'perps_balance';
 
     try {
-      addBreadcrumb({
+      this.#deps.tracer.addBreadcrumb({
         category: 'perps',
         message: 'Order execution started',
         level: 'info',
@@ -675,13 +682,28 @@ export class TradingService {
         [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]:
           params.trackingData.receivedAmount,
       }),
+      ...(params.trackingData?.source && {
+        [PERPS_EVENT_PROPERTY.SOURCE]: params.trackingData.source,
+      }),
     };
+
+    // Calculate and add order value in USD (size * price)
+    const closeAssetPrice = result?.averagePrice
+      ? parseFloat(result.averagePrice)
+      : params.trackingData?.marketPrice;
+    const orderValue =
+      closeAssetPrice && metrics.requestedSize
+        ? metrics.requestedSize * closeAssetPrice
+        : undefined;
 
     // Add success-specific properties
     if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
       return {
         ...baseProperties,
         [PERPS_EVENT_PROPERTY.CLOSE_TYPE]: metrics.closeType,
+        ...(orderValue !== undefined && {
+          [PERPS_EVENT_PROPERTY.ORDER_VALUE]: orderValue,
+        }),
       };
     }
 
@@ -689,6 +711,9 @@ export class TradingService {
     return {
       ...baseProperties,
       ...(error && { [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: error }),
+      ...(orderValue !== undefined && {
+        [PERPS_EVENT_PROPERTY.ORDER_VALUE]: orderValue,
+      }),
     };
   }
 
@@ -1490,7 +1515,6 @@ export class TradingService {
 
       this.#deps.debugLogger.log('[closePositions] Batch method check', {
         providerType: provider.protocolId,
-        hasBatchMethod: 'closePositions' in provider,
         providerKeys: Object.keys(provider).filter((key) =>
           key.includes('close'),
         ),
@@ -1711,6 +1735,16 @@ export class TradingService {
       const hasTakeProfit = Boolean(params.takeProfitPrice);
       const hasStopLoss = Boolean(params.stopLossPrice);
 
+      // Determine TP/SL action type
+      let tpslAction: string | undefined;
+      if (hasTakeProfit && hasStopLoss) {
+        tpslAction = PERPS_EVENT_VALUE.ACTION.TPSL;
+      } else if (hasTakeProfit) {
+        tpslAction = PERPS_EVENT_VALUE.ACTION.TP;
+      } else if (hasStopLoss) {
+        tpslAction = PERPS_EVENT_VALUE.ACTION.SL;
+      }
+
       // Build comprehensive event properties
       const eventProperties = {
         [PERPS_EVENT_PROPERTY.STATUS]: result?.success
@@ -1722,6 +1756,9 @@ export class TradingService {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: screenType,
         [PERPS_EVENT_PROPERTY.HAS_TAKE_PROFIT]: hasTakeProfit,
         [PERPS_EVENT_PROPERTY.HAS_STOP_LOSS]: hasStopLoss,
+        ...(tpslAction && {
+          [PERPS_EVENT_PROPERTY.ACTION]: tpslAction,
+        }),
         ...(direction && {
           [PERPS_EVENT_PROPERTY.DIRECTION]:
             direction === 'long'
@@ -1904,42 +1941,28 @@ export class TradingService {
       const isCurrentlyLong = parseFloat(position.size) > 0;
       const oppositeDirection = !isCurrentlyLong;
 
-      // Validate available balance for fees
-      const accountState = await provider.getAccountState?.();
-      if (!accountState) {
-        throw new Error('Failed to get account state');
-      }
-
-      const availableBalance = parseFloat(accountState.availableBalance);
-
-      // Estimate fees (close + open, approximately 0.09% of notional)
-      // Flip requires 2x position size (1x to close, 1x to open opposite)
-      const entryPrice = parseFloat(position.entryPrice);
       const flipSize = positionSize * 2;
-      const notionalValue = flipSize * entryPrice;
-      const estimatedFees = notionalValue * ESTIMATED_FEE_RATE;
-
-      if (estimatedFees > availableBalance) {
-        throw new Error(
-          `Insufficient balance for flip fees. Need $${estimatedFees.toFixed(2)}, have $${availableBalance.toFixed(2)}`,
-        );
-      }
 
       // Create order params for flip
-      // Use 2x position size: 1x to close current position + 1x to open opposite position
+      // Use 2x position size: 1x to close current position + 1x to open opposite position.
+      // Do not pass the position entry price as currentPrice: the provider must fetch
+      // live market data for validation and IOC pricing.
       const orderParams: OrderParams = {
         symbol: position.symbol,
         isBuy: oppositeDirection,
         size: flipSize.toString(),
         orderType: 'market',
         leverage: position.leverage?.value,
-        currentPrice: entryPrice,
       };
 
       // Place flip order (HyperLiquid handles margin transfer automatically)
       const result = await provider.placeOrder(orderParams);
 
       const completionDuration = this.#deps.performance.now() - startTime;
+
+      const executedPrice = parseFloat(
+        result.averagePrice ?? position.entryPrice,
+      );
 
       if (result.success) {
         // Update state on success
@@ -1949,7 +1972,11 @@ export class TradingService {
           });
         }
 
-        // Track success analytics
+        // Track success analytics with direction-specific flip action
+        const flipAction = isCurrentlyLong
+          ? PERPS_EVENT_VALUE.ACTION.FLIP_LONG_TO_SHORT
+          : PERPS_EVENT_VALUE.ACTION.FLIP_SHORT_TO_LONG;
+
         this.#deps.metrics.trackPerpsEvent(
           PerpsAnalyticsEvent.TradeTransaction,
           {
@@ -1962,7 +1989,8 @@ export class TradingService {
             [PERPS_EVENT_PROPERTY.LEVERAGE]: position.leverage?.value || 1,
             [PERPS_EVENT_PROPERTY.ORDER_SIZE]: positionSize,
             [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
-            [PERPS_EVENT_PROPERTY.ACTION]: 'flip_position',
+            [PERPS_EVENT_PROPERTY.ACTION]: flipAction,
+            [PERPS_EVENT_PROPERTY.ORDER_VALUE]: positionSize * executedPrice,
           },
         );
 
@@ -1988,11 +2016,16 @@ export class TradingService {
         this.#getErrorContext('flipPosition', { symbol: position.symbol }),
       );
 
-      // Track failure analytics
+      // Track failure analytics with direction-specific flip action
+      const wasLong = parseFloat(position.size) > 0;
+      const failFlipAction = wasLong
+        ? PERPS_EVENT_VALUE.ACTION.FLIP_LONG_TO_SHORT
+        : PERPS_EVENT_VALUE.ACTION.FLIP_SHORT_TO_LONG;
+
       this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
         [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
         [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
-        [PERPS_EVENT_PROPERTY.ACTION]: 'flip_position',
+        [PERPS_EVENT_PROPERTY.ACTION]: failFlipAction,
         [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
         [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
       });

@@ -36,7 +36,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
   selectUnlockedRewards: jest.fn(),
   selectSeasonTiers: jest.fn(),
-  selectSeasonShouldInstallNewVersion: jest.fn(),
   selectUnlockedRewardLoading: jest.fn(),
   selectUnlockedRewardError: jest.fn(),
   selectCurrentTier: jest.fn(),
@@ -182,7 +181,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock Skeleton
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {

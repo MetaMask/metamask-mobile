@@ -1,3 +1,9 @@
+# typescript incremental build cache
+*.tsbuildinfo
+
+# claude code worktrees (agent-local, not shipped)
+.claude/worktrees/
+
 # osx
 .DS_Store
 # don't save asdf tools-version config as nvm is prioritized.
@@ -38,6 +44,7 @@ android/app/.project
 android/app/bin/
 android/app/gradle*
 android/app/_build*
+android/libs
 .cxx/
 
 # if we ever want to add google services
@@ -169,12 +176,14 @@ expo-env.d.ts
 # CICD
 github-tools/
 
-
 # AI coding agents development files
 *.local.md
 temp/
 /temp/
 .agent/
+.omc/
+.omx/
+.task/
 
 # Reassure performance testing
 .reassure/
@@ -182,3 +191,8 @@ temp/
 tests/coverage-systems/
 
 runway-artifacts/
+
+# E2E AI Analyzer output files
+release-test-plan.json
+release-delta.json
+release-signoffs.json

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PermissionsSummary should render correctly 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -232,7 +232,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1053,7 +1053,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1113,7 +1113,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1132,11 +1132,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</View>
 `;
 
 exports[`PermissionsSummary should render correctly for network switch 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -1367,7 +1367,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1773,7 +1773,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1833,7 +1833,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1852,11 +1852,11 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</View>
 `;
 
 exports[`PermissionsSummary should render only the account permissions card when showAccountsOnly is true 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -2087,7 +2087,7 @@ exports[`PermissionsSummary should render only the account permissions card when
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -2437,7 +2437,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -2497,7 +2497,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -2516,11 +2516,11 @@ exports[`PermissionsSummary should render only the account permissions card when
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</View>
 `;
 
 exports[`PermissionsSummary should render only the network permissions card when showPermissionsOnly is true 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -2654,7 +2654,7 @@ exports[`PermissionsSummary should render only the network permissions card when
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -3013,7 +3013,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -3073,7 +3073,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -3092,11 +3092,11 @@ exports[`PermissionsSummary should render only the network permissions card when
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</View>
 `;
 
 exports[`PermissionsSummary should render the tab view when both showAccountsOnly and showPermissionsOnly are false 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -3327,7 +3327,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -4148,7 +4148,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -4208,7 +4208,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -4227,11 +4227,11 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</View>
 `;
 
 exports[`PermissionsSummary should render with the correct initial tab based on tabIndex prop 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -4462,7 +4462,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -5283,7 +5283,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -5343,7 +5343,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -5362,5 +5362,5 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</View>
 `;

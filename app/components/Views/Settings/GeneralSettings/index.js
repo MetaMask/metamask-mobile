@@ -31,7 +31,8 @@ import AvatarAccount, {
 } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { withAnalyticsAwareness } from '../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
@@ -40,6 +41,8 @@ import Text, {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { colors as staticColors } from '../../../../styles/common';
+import { enablePushNotifications } from '../../../../actions/notification/helpers';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 
 const diameter = 40;
 const spacing = 8;
@@ -58,13 +61,12 @@ const infuraCurrencyOptions = sortedCurrencies.map(
   }),
 );
 
-export const updateUserTraitsWithCurrentCurrency = (currency, analytics) => {
+export const updateUserTraitsWithCurrentCurrency = (currency) => {
   // track event and add selected currency to user profile for analytics
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
-  analytics.addTraitsToUser(traits);
+  analytics.identify(traits);
   analytics.trackEvent(
-    analytics
-      .createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
       .addProperties({
         ...traits,
         location: 'app_settings',
@@ -73,13 +75,10 @@ export const updateUserTraitsWithCurrentCurrency = (currency, analytics) => {
   );
 };
 
-export const updateUserTraitsWithCurrencyType = (
-  primaryCurrency,
-  analytics,
-) => {
+export const updateUserTraitsWithCurrencyType = (primaryCurrency) => {
   // track event and add primary currency preference (fiat/crypto) to user profile for analytics
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
-  analytics.addTraitsToUser(traits);
+  analytics.identify(traits);
 };
 
 const createStyles = (colors) =>
@@ -211,9 +210,9 @@ class Settings extends PureComponent {
      */
     // appTheme: PropTypes.string,
     /**
-     * Analytics injected by withAnalyticsAwareness HOC
+     * Whether push notifications are currently enabled
      */
-    analytics: PropTypes.object,
+    isPushNotificationsEnabled: PropTypes.bool,
   };
 
   state = {
@@ -224,13 +223,20 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
-    updateUserTraitsWithCurrentCurrency(currency, this.props.analytics);
+    updateUserTraitsWithCurrentCurrency(currency);
   };
 
   selectLanguage = (language) => {
     if (language === this.state.currentLanguage) return;
     setLocale(language);
     this.setState({ currentLanguage: language });
+
+    if (this.props.isPushNotificationsEnabled) {
+      enablePushNotifications().catch(() => {
+        // Best-effort: token will be refreshed on next app launch
+      });
+    }
+
     setTimeout(() => this.props.navigation.navigate('Home'), 100);
   };
 
@@ -241,7 +247,7 @@ class Settings extends PureComponent {
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
 
-    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.analytics);
+    updateUserTraitsWithCurrencyType(primaryCurrency);
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
@@ -259,6 +265,7 @@ class Settings extends PureComponent {
     this.searchEngineOptions = [
       { value: 'Google', label: 'Google', key: 'Google' },
       { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
+      { value: 'Brave', label: 'Brave', key: 'Brave' },
     ];
     this.primaryCurrencyOptions = [
       {
@@ -553,6 +560,7 @@ const mapStateToProps = (state) => ({
   avatarAccountType: state.settings.avatarAccountType,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+  isPushNotificationsEnabled: selectIsMetaMaskPushNotificationsEnabled(state),
   // appTheme: state.user.appTheme,
 });
 
@@ -566,7 +574,4 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withAnalyticsAwareness(Settings));
+export default connect(mapStateToProps, mapDispatchToProps)(Settings);

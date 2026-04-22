@@ -9,6 +9,7 @@ let mockCachedUserData: {
   orders: Order[];
   accountState: unknown;
 } | null = null;
+let mockChannelOrdersSnapshot: Order[] | null | undefined;
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -25,6 +26,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     orders: {
       subscribe: mockSubscribe,
+      getSnapshot: () => mockChannelOrdersSnapshot,
     },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -49,6 +51,7 @@ describe('usePerpsLiveOrders', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockCachedUserData = null;
+    mockChannelOrdersSnapshot = undefined;
   });
 
   afterEach(() => {
@@ -202,7 +205,69 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
+  it('resets to loading when null received after having loaded orders (account switch)', async () => {
+    let capturedCallback: (orders: Order[] | null) => void = jest.fn();
+    mockSubscribe.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() => usePerpsLiveOrders());
+
+    // First: receive real orders (simulate loaded state)
+    act(() => {
+      capturedCallback([mockOrder]);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isInitialLoading).toBe(false);
+      expect(result.current.orders).toEqual([mockOrder]);
+    });
+
+    // Account switch: receive null (clearCache)
+    act(() => {
+      capturedCallback(null);
+    });
+
+    expect(result.current.isInitialLoading).toBe(true);
+    expect(result.current.orders).toEqual([]);
+
+    // New account data arrives
+    const newAccountOrders: Order[] = [
+      { ...mockOrder, orderId: 'new-order', symbol: 'ETH-PERP' } as Order,
+    ];
+
+    act(() => {
+      capturedCallback(newAccountOrders);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isInitialLoading).toBe(false);
+      expect(result.current.orders).toEqual(newAccountOrders);
+    });
+  });
+
   describe('initial state from cache', () => {
+    it('seeds orders from the channel snapshot before controller cache', () => {
+      const channelOrders: Order[] = [
+        mockOrder,
+        {
+          ...mockOrder,
+          orderId: 'snapshot-order',
+          symbol: 'SOL-PERP',
+        } as Order,
+      ];
+
+      mockChannelOrdersSnapshot = channelOrders;
+      mockCachedUserData = null;
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLiveOrders());
+
+      expect(result.current.orders).toEqual(channelOrders);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
     it('seeds orders from cache when fresh cached data exists', () => {
       const cachedOrders: Order[] = [
         mockOrder,

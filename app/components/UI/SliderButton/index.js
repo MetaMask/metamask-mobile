@@ -18,10 +18,10 @@ import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 const SliderBgImg = require('./assets/slider_button_gradient.png');
 const SliderShineImg = require('./assets/slider_button_shine.png');
-/* eslint-enable import/no-commonjs */
+/* eslint-enable import-x/no-commonjs */
 
 const DIAMETER = 60;
 const MARGIN = DIAMETER * 0.16;

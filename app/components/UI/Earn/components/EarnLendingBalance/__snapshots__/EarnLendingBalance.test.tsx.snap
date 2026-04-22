@@ -12,59 +12,101 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
           "paddingTop": 14,
         },
         {
-          "backgroundColor": "#f3f3f4",
           "borderRadius": 12,
-          "marginTop": 16,
-          "padding": 16,
         },
       ]
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
-      accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
+      accessibilityState={
         {
-          "alignItems": "center",
-          "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
-          "borderColor": "transparent",
-          "borderRadius": 12,
-          "borderWidth": 1,
-          "flex": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "justifyContent": "center",
-          "overflow": "hidden",
-          "paddingHorizontal": 16,
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
         }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "flex": 1,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
       }
       testID="withdraw-button"
     >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
+      <View
+        style={{}}
       >
-        Withdraw
-      </Text>
-    </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Withdraw
+        </Text>
+      </View>
+    </View>
   </View>
   <View
     style={
       {
-        "paddingHorizontal": 16,
         "paddingTop": 16,
       }
     }
@@ -82,7 +124,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -398,10 +440,11 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
     <View
       style={
         {
-          "alignSelf": "center",
+          "alignContent": "flex-start",
+          "alignItems": "flex-start",
           "flex": 1,
-          "justifyContent": "center",
-          "marginLeft": 16,
+          "flexDirection": "column",
+          "paddingLeft": 16,
         }
       }
     >
@@ -420,22 +463,21 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
       >
         ADAI
       </Text>
-      <View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#457a39",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 14,
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#66676a",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
           }
-        >
-          +5.20%
-        </Text>
-      </View>
+        }
+      >
+        32.05 ADAI
+      </Text>
     </View>
     <View
       style={
@@ -460,28 +502,22 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
       >
         $76.00
       </Text>
-      <TouchableOpacity
-        disabled={true}
-        onPress={[Function]}
-        testID="secondary-balance-button-test-id"
-      >
+      <View>
         <Text
           accessibilityRole="text"
           style={
             {
-              "color": "#66676a",
+              "color": "#457a39",
               "fontFamily": "Geist-Medium",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
-              "paddingHorizontal": 0,
             }
           }
-          testID="secondary-balance-test-id"
         >
-          32.05 ADAI
+          +5.20%
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </TouchableOpacity>
   <View
@@ -494,94 +530,183 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
           "paddingTop": 14,
         },
         {
-          "backgroundColor": "#f3f3f4",
           "borderRadius": 12,
-          "marginTop": 16,
-          "padding": 16,
         },
       ]
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
-      accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
+      accessibilityState={
         {
-          "alignItems": "center",
-          "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
-          "borderColor": "transparent",
-          "borderRadius": 12,
-          "borderWidth": 1,
-          "flex": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "justifyContent": "center",
-          "overflow": "hidden",
-          "paddingHorizontal": 16,
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
         }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "flex": 1,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
       }
       testID="withdraw-button"
     >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
+      <View
+        style={{}}
       >
-        Withdraw
-      </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Withdraw
+        </Text>
+      </View>
+    </View>
+    <View
       accessibilityRole="button"
-      accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
+      accessibilityState={
         {
-          "alignItems": "center",
-          "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
-          "borderColor": "transparent",
-          "borderRadius": 12,
-          "borderWidth": 1,
-          "flex": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "justifyContent": "center",
-          "overflow": "hidden",
-          "paddingHorizontal": 16,
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
         }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "flex": 1,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
       }
       testID="deposit-button"
     >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
+      <View
+        style={{}}
       >
-        Deposit more
-      </Text>
-    </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Deposit more
+        </Text>
+      </View>
+    </View>
   </View>
 </View>
 `;

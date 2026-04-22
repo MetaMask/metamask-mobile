@@ -161,6 +161,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
     expect(engine.context).toHaveProperty('AiDigestController');
+    expect(engine.context).toHaveProperty('MoneyAccountController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -262,15 +263,10 @@ describe('Engine', () => {
       .spyOn(engine.context.AccountsController, 'setSelectedAccount')
       .mockImplementation();
 
-    const setSelectedAddressSpy = jest
-      .spyOn(engine.context.PreferencesController, 'setSelectedAddress')
-      .mockImplementation();
-
     engine.setSelectedAccount(validAddress);
 
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
     expect(setSelectedAccountSpy).toHaveBeenCalledWith(mockAccount.id);
-    expect(setSelectedAddressSpy).toHaveBeenCalledWith(validAddress);
   });
 
   it('setAccountLabel successfully updates account label when address exists', () => {
@@ -285,15 +281,10 @@ describe('Engine', () => {
       .spyOn(engine.context.AccountsController, 'setAccountName')
       .mockImplementation();
 
-    const setAccountLabelSpy = jest
-      .spyOn(engine.context.PreferencesController, 'setAccountLabel')
-      .mockImplementation();
-
     engine.setAccountLabel(validAddress, label);
 
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
     expect(setAccountNameSpy).toHaveBeenCalledWith(mockAccount.id, label);
-    expect(setAccountLabelSpy).toHaveBeenCalledWith(validAddress, label);
   });
 
   it('setAccountLabel throws an error if no account exists for the given address', () => {
@@ -1222,6 +1213,114 @@ describe('Engine', () => {
     });
   });
 
+  describe('BridgeStatusController:destinationTransactionCompleted', () => {
+    const EVM_CAIP_ASSET = 'eip155:10/slip44:60';
+    const NON_EVM_CAIP_ASSET =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const getBridgeStatusMessenger = (engine: any) =>
+      engine.context.BridgeStatusController.messenger;
+
+    it('refreshes tokens, balances, account tracker, and incoming transactions for EVM destination chain', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const mockNetworkClientId = 'optimism-network-client';
+
+      const detectTokensSpy = jest
+        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
+        .mockImplementation(() => Promise.resolve());
+      const updateBalancesSpy = jest
+        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
+        .mockImplementation(() => Promise.resolve());
+      const findNetworkClientIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValue(mockNetworkClientId);
+      const refreshSpy = jest
+        .spyOn(engine.context.AccountTrackerController, 'refresh')
+        .mockImplementation(() => Promise.resolve());
+      const updateIncomingSpy = jest
+        .spyOn(
+          engine.context.TransactionController,
+          'updateIncomingTransactions',
+        )
+        .mockImplementation(() => Promise.resolve());
+
+      getBridgeStatusMessenger(engine).publish(
+        'BridgeStatusController:destinationTransactionCompleted',
+        EVM_CAIP_ASSET,
+      );
+
+      expect(detectTokensSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
+      expect(updateBalancesSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
+      expect(findNetworkClientIdSpy).toHaveBeenCalledWith('0xa');
+      expect(refreshSpy).toHaveBeenCalledWith([mockNetworkClientId]);
+      expect(updateIncomingSpy).toHaveBeenCalled();
+    });
+
+    it('does not refresh anything for non-EVM destination chains', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+
+      const detectTokensSpy = jest
+        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
+        .mockImplementation(() => Promise.resolve());
+      const updateBalancesSpy = jest
+        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
+        .mockImplementation(() => Promise.resolve());
+      const refreshSpy = jest
+        .spyOn(engine.context.AccountTrackerController, 'refresh')
+        .mockImplementation(() => Promise.resolve());
+      const updateIncomingSpy = jest
+        .spyOn(
+          engine.context.TransactionController,
+          'updateIncomingTransactions',
+        )
+        .mockImplementation(() => Promise.resolve());
+
+      getBridgeStatusMessenger(engine).publish(
+        'BridgeStatusController:destinationTransactionCompleted',
+        NON_EVM_CAIP_ASSET,
+      );
+
+      expect(detectTokensSpy).not.toHaveBeenCalled();
+      expect(updateBalancesSpy).not.toHaveBeenCalled();
+      expect(refreshSpy).not.toHaveBeenCalled();
+      expect(updateIncomingSpy).not.toHaveBeenCalled();
+    });
+
+    it('still updates incoming transactions when findNetworkClientIdByChainId throws', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+
+      jest
+        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
+        .mockImplementation(() => Promise.resolve());
+      jest
+        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
+        .mockImplementation(() => Promise.resolve());
+      jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockImplementation(() => {
+          throw new Error('Unknown chain');
+        });
+      const refreshSpy = jest
+        .spyOn(engine.context.AccountTrackerController, 'refresh')
+        .mockImplementation(() => Promise.resolve());
+      const updateIncomingSpy = jest
+        .spyOn(
+          engine.context.TransactionController,
+          'updateIncomingTransactions',
+        )
+        .mockImplementation(() => Promise.resolve());
+
+      getBridgeStatusMessenger(engine).publish(
+        'BridgeStatusController:destinationTransactionCompleted',
+        EVM_CAIP_ASSET,
+      );
+
+      expect(refreshSpy).not.toHaveBeenCalled();
+      expect(updateIncomingSpy).toHaveBeenCalled();
+    });
+  });
+
   describe('Engine.state', () => {
     it('throws error when accessing state before Engine exists', () => {
       expect(() => Engine.state).toThrow('Engine does not exist');
@@ -1231,10 +1330,11 @@ describe('Engine', () => {
       Engine.init(TEST_ANALYTICS_ID, {});
       const controllersWithState = Object.entries(Engine.context)
         .filter(
-          ([_, controller]) =>
+          ([controllerName, controller]) =>
             'state' in controller &&
             Boolean(controller.state) &&
-            !isEmpty(controller.state),
+            (!isEmpty(controller.state) ||
+              controllerName === 'ComplianceController'),
         )
         .map(([controllerName]) => controllerName);
 

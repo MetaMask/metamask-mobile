@@ -1,8 +1,12 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -15,9 +19,9 @@ import { useStyles } from '../../../hooks/useStyles';
 import { RootState } from '../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import Routes from '../../../../constants/navigation/Routes';
-import { isMainnetByChainId } from '../../../../util/networks';
-import useBlockExplorer from '../../../hooks/useBlockExplorer';
+import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { useTokenPrice } from '../hooks/useTokenPrice';
@@ -25,30 +29,14 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
+import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import { TraceName, endTrace } from '../../../../util/trace';
-import {
-  isNetworkRampNativeTokenSupported,
-  isNetworkRampSupported,
-} from '../../Ramp/Aggregator/utils';
-import { getRampNetworks } from '../../../../reducers/fiatOrders';
-import AppConstants from '../../../../core/AppConstants';
-import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../locales/i18n';
-import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
-import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-import { BridgeToken } from '../../Bridge/types';
-import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
+import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -64,12 +52,72 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    bottomSheetFooter: {
-      backgroundColor: colors.background.default,
-      paddingHorizontal: 16,
-      paddingTop: 16,
-    },
   });
+};
+
+/**
+ * Fires TOKEN_DETAILS_OPENED for the Token Details view.
+ */
+const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const lastTrackedTokenKeyRef = useRef<string | null>(null);
+
+  return useCallback(
+    ({
+      isMarketInsightsDisplayed,
+      severity,
+      hasPerpsMarket,
+      stickyButtonsShown,
+    }: {
+      isMarketInsightsDisplayed: boolean;
+      severity: string | undefined;
+      hasPerpsMarket: boolean;
+      stickyButtonsShown: 'both' | 'buy' | 'swap' | undefined;
+    }) => {
+      const source = params.source ?? TokenDetailsSource.Unknown;
+      const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
+
+      if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
+        return;
+      }
+
+      const hasBalance =
+        params.balance !== undefined &&
+        params.balance !== null &&
+        params.balance !== '0' &&
+        params.balance !== '';
+
+      const eventProperties = {
+        source,
+        chain_id: params.chainId,
+        token_symbol: params.symbol,
+        token_address: params.address,
+        token_name: params.name,
+        has_balance: hasBalance,
+        market_insights_displayed: isMarketInsightsDisplayed,
+        severity,
+        has_perps_market: hasPerpsMarket,
+        ...(stickyButtonsShown !== undefined && {
+          sticky_buttons_shown: stickyButtonsShown,
+        }),
+      };
+      const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+        .addProperties(eventProperties)
+        .build();
+      trackEvent(event);
+      lastTrackedTokenKeyRef.current = tokenTrackingKey;
+    },
+    [
+      createEventBuilder,
+      params.address,
+      params.balance,
+      params.chainId,
+      params.name,
+      params.source,
+      params.symbol,
+      trackEvent,
+    ],
+  );
 };
 
 /**
@@ -78,15 +126,38 @@ const styleSheet = (params: { theme: Theme }) => {
  */
 const TokenDetails: React.FC<{
   token: TokenDetailsRouteParams;
-  onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
-}> = ({ token, onMarketInsightsDisplayResolved }) => {
+  onMarketInsightsDisplayResolved?: (params: {
+    isDisplayed: boolean;
+    severity: string | undefined;
+  }) => void;
+  onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
+}> = ({ token, onMarketInsightsDisplayResolved, onStickyButtonsResolved }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
+  const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
+    useState(false);
 
-  // A/B test hook for layout selection
-  const { useNewLayout } = useTokenDetailsABTest();
-  const { isTokenTradingOpen } = useRWAToken();
+  const caip19AssetId = useMemo((): CaipAssetType | null => {
+    try {
+      if (isCaipAssetType(token.address)) {
+        return token.address as CaipAssetType;
+      }
+      if (!token.chainId) return null;
+      return (formatAddressToAssetId(token.address, token.chainId) ??
+        null) as CaipAssetType | null;
+    } catch {
+      return null;
+    }
+  }, [token.address, token.chainId]);
+
+  const {
+    securityData,
+    isLoading: isSecurityDataLoading,
+    error: securityDataError,
+  } = useTokenSecurityData({
+    assetId: caip19AssetId,
+    prefetchedData: token.securityData,
+  });
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -97,27 +168,6 @@ const TokenDetails: React.FC<{
   );
   const networkName = networkConfigurationByChainId?.name;
 
-  const isNativeToken = token.isNative ?? token.isETH;
-  const isMainnet = isMainnetByChainId(token.chainId);
-  const { getBlockExplorerUrl } = useBlockExplorer(token.chainId);
-
-  const shouldShowMoreOptionsInNavBar =
-    isMainnet ||
-    !isNativeToken ||
-    (isNativeToken && getBlockExplorerUrl(token.address, token.chainId));
-
-  const openAssetOptions = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: 'AssetOptions',
-      params: {
-        isNativeCurrency: isNativeToken,
-        address: token.address,
-        chainId: token.chainId,
-        asset: token,
-      },
-    });
-  };
-
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   const {
@@ -126,37 +176,29 @@ const TokenDetails: React.FC<{
     comparePrice,
     prices,
     isLoading,
+    currentCurrency,
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
-    currentCurrency,
   } = useTokenPrice({ token });
 
   const {
     balance,
     fiatBalance,
+    balanceFiatUsd,
     tokenFormattedBalance,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    isTronNative,
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
     ///: END:ONLY_INCLUDE_IF
-  } = useTokenBalance(token);
+  } = useTokenBalance(token, { calculateUsdBalance: true });
 
-  const {
-    onBuy,
-    onSend,
-    onReceive,
-    goToSwaps,
-    hasEligibleSwapTokens,
-    networkModal,
-  } = useTokenActions({
+  const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
+    currentTokenBalance: balance,
   });
-
-  const { isBuyable } = useTokenBuyability(token);
 
   const {
     transactions,
@@ -170,25 +212,10 @@ const TokenDetails: React.FC<{
     isNonEvmAsset: txIsNonEvmAsset,
   } = useTokenTransactions(token);
 
-  const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
-    asset: {
-      isETH: token.isETH ?? false,
-      isNative: token.isNative ?? false,
-      address: token.address ?? '',
-      chainId: token.chainId ?? '',
-    },
-  });
-  const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
-
-  const showSwapButton = hasEligibleSwapTokens;
-  const showBuyButton = isBuyable || !hasEligibleSwapTokens;
-
-  const rampNetworks = useSelector(getRampNetworks);
-
-  const chainIdForRamp = token.chainId ?? '';
-  const isRampAvailable = isNativeToken
-    ? isNetworkRampNativeTokenSupported(chainIdForRamp, rampNetworks)
-    : isNetworkRampSupported(chainIdForRamp, rampNetworks);
+  const hasTransactions =
+    transactions.length > 0 ||
+    submittedTxs.length > 0 ||
+    confirmedTxs.length > 0;
 
   const renderHeader = () => (
     <>
@@ -206,27 +233,31 @@ const TokenDetails: React.FC<{
         setTimePeriod={setTimePeriod}
         chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
-        displayBuyButton={isRampAvailable}
-        displaySwapsButton={displaySwapsButton}
         currentCurrency={currentCurrency}
         onBuy={onBuy}
         onSend={onSend}
         onReceive={onReceive}
-        goToSwaps={goToSwaps}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        onMarketInsightsDisclaimerPress={() =>
+          setIsInsightsDisclaimerVisible(true)
+        }
+        securityData={securityData}
+        isSecurityDataLoading={isSecurityDataLoading}
+        hasSecurityDataError={Boolean(securityDataError)}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTronNative={isTronNative}
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}
         ///: END:ONLY_INCLUDE_IF
       />
-      <ActivityHeader
-        asset={{
-          ...token,
-          hasBalanceError: token.hasBalanceError ?? false,
-        }}
-      />
+      {(txLoading || hasTransactions) && (
+        <ActivityHeader
+          asset={{
+            ...token,
+            hasBalanceError: token.hasBalanceError ?? false,
+          }}
+        />
+      )}
     </>
   );
 
@@ -237,16 +268,8 @@ const TokenDetails: React.FC<{
   );
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader
-        title={token.symbol}
-        networkName={networkName ?? ''}
-        onBackPress={() => navigation.goBack()}
-        onOptionsPress={
-          shouldShowMoreOptionsInNavBar && !useNewLayout
-            ? openAssetOptions
-            : undefined
-        }
-      />
+      <TokenDetailsInlineHeader onBackPress={() => navigation.goBack()} />
+
       {txLoading ? (
         renderLoader()
       ) : txIsNonEvmAsset ? (
@@ -276,118 +299,27 @@ const TokenDetails: React.FC<{
           headerHeight={280}
           tokenChainId={token.chainId}
           skipScrollOnClick
+          hideEmptyState
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {networkModal}
-      {useNewLayout &&
-        !txLoading &&
-        isTokenTradingOpen(token as BridgeToken) && (
-          <BottomSheetFooter
-            style={{
-              ...styles.bottomSheetFooter,
-              paddingBottom: insets.bottom + 6,
-            }}
-            buttonPropsArray={[
-              ...(showSwapButton
-                ? [
-                    {
-                      variant: ButtonVariants.Primary,
-                      label: strings('asset_overview.swap'),
-                      size: ButtonSize.Lg,
-                      onPress: () => goToSwaps(),
-                    },
-                  ]
-                : []),
-              ...(showBuyButton
-                ? [
-                    {
-                      variant: ButtonVariants.Primary,
-                      label: strings('asset_overview.buy_button'),
-                      size: ButtonSize.Lg,
-                      onPress: onBuy,
-                    },
-                  ]
-                : []),
-            ]}
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-          />
-        )}
+      {!txLoading && (
+        <TokenDetailsStickyFooter
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+        />
+      )}
+      {isInsightsDisclaimerVisible && (
+        <MarketInsightsDisclaimerBottomSheet
+          onClose={() => setIsInsightsDisclaimerVisible(false)}
+        />
+      )}
     </View>
-  );
-};
-
-/**
- * Fires TOKEN_DETAILS_OPENED for both V2 and legacy Asset view.
- * Includes ab_tests property when navigating from the token list and the
- * token list layout A/B test is active.
- */
-const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
-  const { trackEvent, createEventBuilder } = useAnalytics();
-  const { variantName, isTestActive } = useTokenDetailsABTest();
-  const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
-  const lastTrackedTokenKeyRef = useRef<string | null>(null);
-
-  return useCallback(
-    ({ isMarketInsightsDisplayed }: { isMarketInsightsDisplayed: boolean }) => {
-      const source = params.source ?? TokenDetailsSource.Unknown;
-      const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
-
-      if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
-        return;
-      }
-
-      const hasBalance =
-        params.balance !== undefined &&
-        params.balance !== null &&
-        params.balance !== '0' &&
-        params.balance !== '';
-
-      const isFromTokenList =
-        source === TokenDetailsSource.MobileTokenList ||
-        source === TokenDetailsSource.MobileTokenListPage;
-
-      const eventProperties = {
-        source,
-        chain_id: params.chainId,
-        token_symbol: params.symbol,
-        token_address: params.address,
-        token_name: params.name,
-        has_balance: hasBalance,
-        market_insights_displayed: isMarketInsightsDisplayed,
-        // A/B test attribution — each experiment is independent
-        ...((isTestActive || isFromTokenList) && {
-          ab_tests: {
-            ...(isTestActive && {
-              assetsASSETS2493AbtestTokenDetailsLayout: variantName,
-            }),
-            ...(isFromTokenList && {
-              assetsASSETS2621AbtestTokenListLayout: isTokenListV2
-                ? 'v2'
-                : 'v1',
-            }),
-          },
-        }),
-      };
-      const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-        .addProperties(eventProperties)
-        .build();
-      trackEvent(event);
-      lastTrackedTokenKeyRef.current = tokenTrackingKey;
-    },
-    [
-      createEventBuilder,
-      isTestActive,
-      isTokenListV2,
-      params.address,
-      params.balance,
-      params.chainId,
-      params.name,
-      params.source,
-      params.symbol,
-      trackEvent,
-      variantName,
-    ],
   );
 };
 
@@ -399,21 +331,80 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
 
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const { hasPerpsMarket, isLoading: isPerpsMarketLoading } =
+    usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
+
+  // undefined = not yet resolved; null = footer won't render; string = resolved value
+  const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
+    'both' | 'buy' | 'swap' | null | undefined
+  >(undefined);
+
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
+  /**
+   * Defer TOKEN_DETAILS_OPENED until both market insights and perps market
+   * data have settled. Using plain state instead of ref+nonce keeps
+   * `handleMarketInsightsDisplayResolved` stable (setState identity is
+   * guaranteed by React) so the child effect in AssetOverviewContent
+   * doesn't re-trigger.
+   */
+  const [pendingInsights, setPendingInsights] = useState<{
+    tokenKey: string;
+    isDisplayed: boolean;
+    severity: string | undefined;
+  } | null>(null);
+
+  const tokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
+
   const handleMarketInsightsDisplayResolved = useCallback(
-    (isDisplayed: boolean) => {
-      trackTokenDetailsOpened({
-        isMarketInsightsDisplayed: isDisplayed,
+    (payload: { isDisplayed: boolean; severity: string | undefined }) => {
+      setPendingInsights({
+        tokenKey,
+        ...payload,
       });
     },
-    [trackTokenDetailsOpened],
+    [tokenKey],
   );
+
+  useEffect(() => {
+    if (!pendingInsights) {
+      return;
+    }
+    if (pendingInsights.tokenKey !== tokenKey) {
+      // Ignore stale payloads from a previously viewed token.
+      setPendingInsights(null);
+      return;
+    }
+    if (isPerpsEnabled && isPerpsMarketLoading) {
+      return;
+    }
+    if (resolvedStickyButtons === undefined) {
+      // Wait until sticky buttons have settled before firing the event.
+      return;
+    }
+    trackTokenDetailsOpened({
+      isMarketInsightsDisplayed: pendingInsights.isDisplayed,
+      severity: pendingInsights.severity,
+      hasPerpsMarket: isPerpsEnabled ? hasPerpsMarket : false,
+      stickyButtonsShown: resolvedStickyButtons ?? undefined,
+    });
+    setPendingInsights(null);
+  }, [
+    pendingInsights,
+    hasPerpsMarket,
+    isPerpsEnabled,
+    isPerpsMarketLoading,
+    resolvedStickyButtons,
+    tokenKey,
+    trackTokenDetailsOpened,
+  ]);
 
   return (
     <TokenDetails
       token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
+      onStickyButtonsResolved={setResolvedStickyButtons}
     />
   );
 };

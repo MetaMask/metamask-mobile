@@ -1,8 +1,12 @@
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
+import Logger from '../../../../util/Logger';
 import type { PerpsAnalyticsEvent } from '@metamask/perps-controller';
-import { createMobileInfrastructure } from './mobileInfrastructure';
+import {
+  createMobileInfrastructure,
+  createMobileClientConfig,
+} from './mobileInfrastructure';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/analytics/analytics', () => ({
@@ -28,7 +32,10 @@ jest.mock('../../../../core/Analytics', () => ({
 }));
 
 jest.mock('../../../../util/Logger', () => ({
-  error: jest.fn(),
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -51,6 +58,16 @@ jest.mock('react-native-performance', () => ({
 
 jest.mock('../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: jest.fn(),
+}));
+
+jest.mock('../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn().mockResolvedValue('cached-value'),
+    getItemSync: jest.fn().mockReturnValue('cached-sync-value'),
+    setItem: jest.fn().mockResolvedValue(undefined),
+    removeItem: jest.fn().mockResolvedValue(undefined),
+  },
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -161,6 +178,37 @@ describe('createMobileInfrastructure', () => {
     });
   });
 
+  describe('logger', () => {
+    it('preserves logger options and injects the perps feature tag', () => {
+      const infra = createMobileInfrastructure();
+      const error = new Error('boom');
+
+      infra.logger.error(error, {
+        tags: { component: 'test_component' },
+        context: {
+          name: 'test_context',
+          data: { foo: 'bar' },
+        },
+        extras: { traceId: '123' },
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: expect.any(String),
+            component: 'test_component',
+          }),
+          context: {
+            name: 'test_context',
+            data: { foo: 'bar' },
+          },
+          extras: { traceId: '123' },
+        }),
+      );
+    });
+  });
+
   describe('rewards', () => {
     it('delegates getPerpsDiscountForAccount to RewardsController', async () => {
       const infra = createMobileInfrastructure();
@@ -175,5 +223,116 @@ describe('createMobileInfrastructure', () => {
       ).toHaveBeenCalledWith(caipAccountId);
       expect(result).toBe(5);
     });
+  });
+
+  describe('diskCache', () => {
+    it('delegates getItem to StorageWrapper.getItem', async () => {
+      const StorageWrapper = jest.requireMock(
+        '../../../../store/storage-wrapper',
+      ).default;
+      const infra = createMobileInfrastructure();
+
+      const value = await infra.diskCache.getItem('test-key');
+
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith('test-key');
+      expect(value).toBe('cached-value');
+    });
+
+    it('delegates getItemSync to StorageWrapper.getItemSync', () => {
+      const StorageWrapper = jest.requireMock(
+        '../../../../store/storage-wrapper',
+      ).default;
+      const infra = createMobileInfrastructure();
+
+      const value = infra.diskCache.getItemSync?.('test-key');
+
+      expect(StorageWrapper.getItemSync).toHaveBeenCalledWith('test-key');
+      expect(value).toBe('cached-sync-value');
+    });
+
+    it('delegates setItem to StorageWrapper.setItem', async () => {
+      const StorageWrapper = jest.requireMock(
+        '../../../../store/storage-wrapper',
+      ).default;
+      const infra = createMobileInfrastructure();
+
+      await infra.diskCache.setItem('test-key', 'test-value');
+
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        'test-key',
+        'test-value',
+      );
+    });
+
+    it('delegates removeItem to StorageWrapper.removeItem', async () => {
+      const StorageWrapper = jest.requireMock(
+        '../../../../store/storage-wrapper',
+      ).default;
+      const infra = createMobileInfrastructure();
+
+      const result = await infra.diskCache.removeItem('test-key');
+
+      expect(StorageWrapper.removeItem).toHaveBeenCalledWith('test-key');
+      expect(result).toBeUndefined();
+    });
+  });
+});
+
+describe('createMobileClientConfig', () => {
+  it('returns default config with empty strings and arrays when no env vars are set', () => {
+    // Arrange — ensure relevant env vars are absent
+    const envVars = [
+      'MM_PERPS_BLOCKED_REGIONS',
+      'MM_PERPS_HIP3_ENABLED',
+      'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
+      'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
+      'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
+      'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
+      'MM_PERPS_MYX_PROVIDER_ENABLED',
+      'MM_PERPS_MYX_APP_ID_TESTNET',
+      'MM_PERPS_MYX_API_SECRET_TESTNET',
+      'MM_PERPS_MYX_BROKER_ADDRESS_TESTNET',
+      'MM_PERPS_MYX_APP_ID_MAINNET',
+      'MM_PERPS_MYX_API_SECRET_MAINNET',
+      'MM_PERPS_MYX_BROKER_ADDRESS_MAINNET',
+    ];
+    const saved: Record<string, string | undefined> = {};
+    for (const key of envVars) {
+      saved[key] = process.env[key];
+      delete process.env[key];
+    }
+
+    // Act
+    const config = createMobileClientConfig();
+
+    // Assert
+    expect(config).toEqual({
+      fallbackBlockedRegions: [],
+      fallbackHip3Enabled: false,
+      fallbackHip3AllowlistMarkets: [],
+      fallbackHip3BlocklistMarkets: [],
+      providerCredentials: {
+        hyperliquid: {
+          builderAddressTestnet: '',
+          builderAddressMainnet: '',
+        },
+        myx: {
+          enabled: false,
+          appIdTestnet: '',
+          apiSecretTestnet: '',
+          brokerAddressTestnet: '',
+          appIdMainnet: '',
+          apiSecretMainnet: '',
+          brokerAddressMainnet: '',
+        },
+      },
+    });
+
+    // Restore
+    for (const key of envVars) {
+      if (saved[key] !== undefined) {
+        process.env[key] = saved[key];
+      }
+    }
   });
 });

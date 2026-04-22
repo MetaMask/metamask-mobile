@@ -15,13 +15,27 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
+// eslint-disable-next-line import-x/no-namespace
+import * as TokenDetailsActionsModule from './TokenDetailsActions';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      state: {
+        selectedNetworkClientId: 'mainnet',
+      },
+    },
+  },
+}));
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockAddProperties = jest.fn();
-const mockBuild = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockCreateEventBuilder = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn(() => true);
@@ -29,6 +43,7 @@ const mockUsePerpsPositionForAsset = jest.fn();
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
+  MarketInsightsEntryCardSkeleton: () => null,
   MarketInsightsEntryCard: ({
     onPress,
     testID,
@@ -55,10 +70,13 @@ jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+  useAnalytics: jest.fn(() => ({
     trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
+    createEventBuilder: mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    }),
+  })),
 }));
 
 // Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
@@ -69,9 +87,12 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
 }));
 
-jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
-  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
-}));
+jest.mock(
+  '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart',
+  () => ({
+    selectTokenOverviewAdvancedChartEnabled: jest.fn(() => false),
+  }),
+);
 
 jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
   usePerpsPositionForAsset: (...args: unknown[]) =>
@@ -90,6 +111,14 @@ jest.mock('../../Perps/components/PerpsDiscoveryBanner', () => ({
 
 jest.mock('../../AssetOverview/TokenDetails', () => () => null);
 
+jest.mock(
+  '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard',
+  () => ({
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
+  }),
+);
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -101,6 +130,15 @@ jest.mock('@react-navigation/native', () => {
     useFocusEffect: jest.fn((cb: () => void) => cb()),
   };
 });
+
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: (action: () => Promise<unknown>) => action(),
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
 
 function createState(isEligible: boolean) {
   return {
@@ -149,19 +187,47 @@ const defaultProps: AssetOverviewContentProps = {
   isLoading: false,
   timePeriod: '1d',
   setTimePeriod: jest.fn(),
-  chartNavigationButtons: ['1d', '1w', '1m'],
+  chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
   isPerpsEnabled: true,
-  displayBuyButton: false,
-  displaySwapsButton: false,
   currentCurrency: 'USD',
   onBuy: jest.fn(),
   onSend: jest.fn().mockResolvedValue(undefined),
   onReceive: jest.fn(),
-  goToSwaps: jest.fn(),
 };
+
+const createMockSecurityData = (
+  resultType: TokenSecurityData['resultType'],
+): TokenSecurityData => ({
+  resultType,
+  maliciousScore: '0',
+  fees: {
+    transfer: 0,
+    transferFeeMaxAmount: null,
+    buy: 0,
+    sell: 0,
+  },
+  features: [],
+  financialStats: {
+    supply: 1000000,
+    topHolders: [],
+    holdersCount: 100,
+    tradeVolume24h: null,
+    lockedLiquidityPct: null,
+    markets: [],
+  },
+  metadata: {
+    externalLinks: {
+      homepage: null,
+      twitterPage: null,
+      telegramChannelId: null,
+    },
+  },
+  created: '2023-01-01T00:00:00Z',
+});
 
 const defaultMarketInsightsResult = {
   report: {
+    digestId: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
     asset: 'eth',
     generatedAt: '2026-02-17T11:55:00.000Z',
     headline: 'ETH outlook stays positive',
@@ -303,8 +369,10 @@ describe('AssetOverviewContent', () => {
         Routes.MARKET_INSIGHTS.VIEW,
         expect.objectContaining({
           assetSymbol: 'ETH',
-          tokenAddress: '0x123',
-          tokenChainId: '0x1',
+          token: expect.objectContaining({
+            address: '0x123',
+            chainId: '0x1',
+          }),
         }),
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -312,6 +380,8 @@ describe('AssetOverviewContent', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         caip19: 'eip155:1/erc20:0x123',
+        asset_symbol: 'eth',
+        digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({
         category: 'market-insights-opened',
@@ -330,7 +400,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: false,
+        severity: undefined,
+      });
     });
 
     it('does not resolve market insights display while market insights is loading', () => {
@@ -363,7 +436,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(true);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: true,
+        severity: undefined,
+      });
     });
 
     it('resolves market insights display as false when report is unavailable after loading', () => {
@@ -382,7 +458,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: false,
+        severity: undefined,
+      });
     });
   });
 
@@ -480,5 +559,315 @@ describe('AssetOverviewContent', () => {
         queryByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
       ).toBeNull();
     });
+  });
+
+  describe('Security Badge', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'test-event' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+    });
+
+    it('renders verified badge when securityData resultType is Verified', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Verified')}
+        />,
+        { state: createState(true) },
+      );
+
+      const badge = getByTestId('security-badge-verified');
+      expect(badge).toBeOnTheScreen();
+    });
+
+    it('does not render badge when securityData resultType is Benign', () => {
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Benign')}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(queryByTestId('security-badge-verified')).toBeNull();
+      expect(queryByTestId('security-badge-warning')).toBeNull();
+      expect(queryByTestId('security-badge-malicious')).toBeNull();
+    });
+
+    it('renders warning badge when securityData resultType is Warning', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Warning')}
+        />,
+        { state: createState(true) },
+      );
+
+      const badge = getByTestId('security-badge-warning');
+      expect(badge).toBeOnTheScreen();
+    });
+
+    it('renders warning badge when securityData resultType is Spam', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Spam')}
+        />,
+        { state: createState(true) },
+      );
+
+      const badge = getByTestId('security-badge-warning');
+      expect(badge).toBeOnTheScreen();
+    });
+
+    it('renders malicious badge when securityData resultType is Malicious', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Malicious')}
+        />,
+        { state: createState(true) },
+      );
+
+      const badge = getByTestId('security-badge-malicious');
+      expect(badge).toBeOnTheScreen();
+    });
+
+    it('navigates to security badge bottom sheet when verified badge is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Verified')}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId('security-badge-verified'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          source: 'badge',
+          severity: 'Verified',
+          tokenAddress: '0x123',
+          tokenSymbol: 'ETH',
+          chainId: '0x1',
+        }),
+      });
+    });
+
+    it('navigates to security badge bottom sheet when warning badge is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Warning')}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId('security-badge-warning'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          source: 'badge',
+          severity: 'Warning',
+          tokenAddress: '0x123',
+          tokenSymbol: 'ETH',
+          chainId: '0x1',
+        }),
+      });
+    });
+
+    it('navigates to security badge bottom sheet when spam badge is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Spam')}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId('security-badge-warning'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          source: 'badge',
+          severity: 'Spam',
+          tokenAddress: '0x123',
+          tokenSymbol: 'ETH',
+          chainId: '0x1',
+        }),
+      });
+    });
+
+    it('navigates to security badge bottom sheet when malicious badge is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Malicious')}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId('security-badge-malicious'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          source: 'badge',
+          severity: 'Malicious',
+          tokenAddress: '0x123',
+          tokenSymbol: 'ETH',
+          chainId: '0x1',
+        }),
+      });
+    });
+
+    it('does not navigate when benign badge is pressed', () => {
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Benign')}
+        />,
+        { state: createState(true) },
+      );
+
+      // Benign should not render any badge, so there's nothing to press
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not render badge when securityData is null', () => {
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} securityData={null} />,
+        { state: createState(true) },
+      );
+
+      expect(queryByTestId('security-badge-verified')).toBeNull();
+      expect(queryByTestId('security-badge-warning')).toBeNull();
+      expect(queryByTestId('security-badge-malicious')).toBeNull();
+    });
+
+    it('does not render badge when securityData is undefined', () => {
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} securityData={undefined} />,
+        { state: createState(true) },
+      );
+
+      expect(queryByTestId('security-badge-verified')).toBeNull();
+      expect(queryByTestId('security-badge-warning')).toBeNull();
+      expect(queryByTestId('security-badge-malicious')).toBeNull();
+    });
+
+    it('renders malicious warning banner when resultType is Malicious', () => {
+      const { getByText } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Malicious')}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(
+        getByText(strings('security_trust.malicious_token_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('security_trust.malicious_token_description', {
+            symbol: 'ETH',
+          }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render malicious warning banner when resultType is not Malicious', () => {
+      const { queryByText } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          securityData={createMockSecurityData('Verified')}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(
+        queryByText(strings('security_trust.malicious_token_title')),
+      ).toBeNull();
+    });
+  });
+
+  describe('TokenDetailsActions hasBalance prop', () => {
+    let tokenDetailsActionsSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'test-event' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: null,
+        hasFundsInPerps: false,
+        accountState: null,
+        isLoading: false,
+      });
+      tokenDetailsActionsSpy = jest.spyOn(
+        TokenDetailsActionsModule,
+        'TokenDetailsActions',
+      );
+    });
+
+    afterEach(() => {
+      tokenDetailsActionsSpy.mockRestore();
+    });
+
+    it.each([
+      [false, undefined],
+      [false, ''],
+      [false, '0'],
+      [true, '1,000.50'],
+      [true, '1.000,50'],
+    ])(
+      'passes hasBalance %s when balance is %s',
+      (expectedHasBalance, balance) => {
+        renderWithProvider(
+          <AssetOverviewContent {...defaultProps} balance={balance} />,
+          { state: createState(true) },
+        );
+
+        expect(tokenDetailsActionsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ hasBalance: expectedHasBalance }),
+          expect.anything(),
+        );
+      },
+    );
   });
 });

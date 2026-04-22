@@ -5,7 +5,11 @@ import {
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { CandlePeriod } from '../constants/chartConfig';
-import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
+import {
+  BUILDER_FEE_CONFIG,
+  REFERRAL_CONFIG,
+} from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
@@ -14,6 +18,7 @@ import { TradingReadinessCache } from '../services/TradingReadinessCache';
 import type {
   ClosePositionParams,
   DepositParams,
+  Order,
   PerpsPlatformDependencies,
   LiveDataConfig,
   OrderParams,
@@ -261,6 +266,10 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
     ],
     universe: [],
   }),
+  historicalOrders: jest.fn().mockResolvedValue([]),
+  userFills: jest.fn().mockResolvedValue([]),
+  userFillsByTime: jest.fn().mockResolvedValue([]),
+  userFunding: jest.fn().mockResolvedValue([]),
   ...overrides,
 });
 
@@ -411,6 +420,7 @@ describe('HyperLiquidProvider', () => {
         const prices: Record<string, string> = { BTC: '50000', ETH: '3000' };
         return prices[symbol];
       }),
+      getLastAllMidsSnapshot: jest.fn().mockReturnValue(null),
       // Orders cache used by updatePositionTPSL and getOpenOrders
       isOrdersCacheInitialized: jest.fn().mockReturnValue(false),
       getCachedOrders: jest.fn().mockReturnValue([]),
@@ -1265,6 +1275,105 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.closePosition(closeParams);
 
       expect(result.success).toBe(true);
+    });
+
+    it('repairs missing HIP-3 asset IDs during closePosition after degraded discovery', async () => {
+      const hip3Provider = createTestProvider({
+        hip3Enabled: true,
+        allowlistMarkets: ['xyz:*'],
+        useDexAbstraction: true,
+      });
+      const mockOrder = jest.fn().mockResolvedValue({
+        status: 'ok',
+        response: { data: { statuses: [{ resting: { oid: 123 } }] } },
+      });
+      const mockInfoClient = createMockInfoClient({
+        perpDexs: jest
+          .fn()
+          .mockResolvedValue([null, { name: 'xyz', url: 'https://xyz.com' }]),
+        metaAndAssetCtxs: jest
+          .fn()
+          .mockImplementation((params?: { dex?: string }) => {
+            if (params?.dex === 'xyz') {
+              return Promise.reject(
+                new Error('Transient xyz discovery failure'),
+              );
+            }
+
+            return Promise.resolve([
+              { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+              [
+                {
+                  funding: '0.0001',
+                  openInterest: '1000',
+                  prevDayPx: '49000',
+                  dayNtlVlm: '1000000',
+                  markPx: '50000',
+                  midPx: '50000',
+                  oraclePx: '50000',
+                },
+              ],
+            ]);
+          }),
+        meta: jest.fn().mockImplementation((params?: { dex?: string }) => {
+          if (params?.dex === 'xyz') {
+            return Promise.resolve({
+              universe: [
+                { name: 'xyz:STOCK1', szDecimals: 2, maxLeverage: 20 },
+              ],
+            });
+          }
+
+          return Promise.resolve({
+            universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+          });
+        }),
+        allMids: jest.fn().mockImplementation((params?: { dex?: string }) => {
+          if (params?.dex === 'xyz') {
+            return Promise.resolve({ 'xyz:STOCK1': '100' });
+          }
+
+          return Promise.resolve({ BTC: '50000' });
+        }),
+      });
+
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClient);
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(createMockExchangeClient({ order: mockOrder }));
+
+      const result = await hip3Provider.closePosition({
+        symbol: 'xyz:STOCK1',
+        orderType: 'market',
+        position: {
+          symbol: 'xyz:STOCK1',
+          size: '10',
+          entryPrice: '95',
+          positionValue: '1000',
+          unrealizedPnl: '50',
+          marginUsed: '100',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '70',
+          maxLeverage: 20,
+          returnOnEquity: '10',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [expect.objectContaining({ a: 110000, r: true })],
+        }),
+      );
     });
   });
 
@@ -3464,6 +3573,138 @@ describe('HyperLiquidProvider', () => {
           ],
         });
       });
+
+      it('cache path: only cancels positionTpsl orders, not normalTpsl children of limit orders', async () => {
+        provider = createTestProvider({
+          initialAssetMapping: [['BTC', 0]],
+        });
+
+        // Simulate WS cache with mixed orders: normalTpsl children (isPositionTpsl: false)
+        // from a pending limit order AND positionTpsl orders (isPositionTpsl: true)
+        const cachedOrders: Order[] = [
+          {
+            orderId: '500',
+            symbol: 'BTC',
+            side: 'buy',
+            orderType: 'limit',
+            size: '0.01',
+            originalSize: '0.01',
+            price: '50000',
+            filledSize: '0',
+            remainingSize: '0.01',
+            status: 'open',
+            timestamp: 1000,
+            isTrigger: false,
+            reduceOnly: false,
+            isPositionTpsl: false,
+          },
+          {
+            orderId: '501',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'limit',
+            size: '0.01',
+            originalSize: '0.01',
+            price: '60000',
+            filledSize: '0',
+            remainingSize: '0.01',
+            status: 'open',
+            timestamp: 1001,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: false,
+            detailedOrderType: 'Take Profit Limit',
+          },
+          {
+            orderId: '502',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'market',
+            size: '0.01',
+            originalSize: '0.01',
+            price: '40000',
+            filledSize: '0',
+            remainingSize: '0.01',
+            status: 'open',
+            timestamp: 1002,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: false,
+            detailedOrderType: 'Stop Market',
+          },
+          {
+            orderId: '503',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'limit',
+            size: '0',
+            originalSize: '0',
+            price: '58000',
+            filledSize: '0',
+            remainingSize: '0',
+            status: 'open',
+            timestamp: 1003,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: true,
+            detailedOrderType: 'Take Profit Limit',
+          },
+          {
+            orderId: '504',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'market',
+            size: '0',
+            originalSize: '0',
+            price: '42000',
+            filledSize: '0',
+            remainingSize: '0',
+            status: 'open',
+            timestamp: 1004,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: true,
+            detailedOrderType: 'Stop Market',
+          },
+        ];
+
+        mockSubscriptionService.getOrdersCacheIfInitialized = jest
+          .fn()
+          .mockReturnValue(cachedOrders);
+
+        const mockCancel = jest.fn().mockResolvedValue({
+          status: 'ok',
+          response: { data: { statuses: ['success', 'success'] } },
+        });
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+          createMockExchangeClient({
+            cancel: mockCancel,
+            order: jest.fn().mockResolvedValue({
+              status: 'ok',
+              response: {
+                data: { statuses: [{ resting: { oid: '999' } }] },
+              },
+            }),
+          }),
+        );
+
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+        const result = await provider.updatePositionTPSL({
+          symbol: 'BTC',
+          takeProfitPrice: '60000',
+          stopLossPrice: '40000',
+        });
+
+        expect(result.success).toBe(true);
+        // Must cancel positionTpsl orders (503, 504) only — not normalTpsl children (501, 502)
+        expect(mockCancel).toHaveBeenCalledWith({
+          cancels: [
+            { a: 0, o: 503 },
+            { a: 0, o: 504 },
+          ],
+        });
+      });
     });
 
     describe('getAccountState error handling', () => {
@@ -3482,8 +3723,57 @@ describe('HyperLiquidProvider', () => {
         mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
 
         await expect(provider.getAccountState()).rejects.toThrow(
-          'Account state fetch failed',
+          'Failed to fetch account state (failedDexs=[main], spotError=none)',
         );
+      });
+
+      it('returns partial account state when one HIP-3 DEX fails', async () => {
+        const hip3Provider = createTestProvider({
+          hip3Enabled: true,
+          allowlistMarkets: ['xyz:*'],
+        });
+        const mockInfoClient = createMockInfoClient({
+          perpDexs: jest
+            .fn()
+            .mockResolvedValue([null, { name: 'xyz', url: 'https://xyz.com' }]),
+          clearinghouseState: jest
+            .fn()
+            .mockImplementation((params?: { dex?: string }) => {
+              if (params?.dex === 'xyz') {
+                return Promise.reject(new Error('xyz DEX unavailable'));
+              }
+
+              return Promise.resolve({
+                marginSummary: {
+                  totalMarginUsed: '500',
+                  accountValue: '10500',
+                },
+                withdrawable: '9500',
+                assetPositions: [],
+                crossMarginSummary: {
+                  accountValue: '10500',
+                  totalMarginUsed: '500',
+                },
+              });
+            }),
+          spotClearinghouseState: jest.fn().mockResolvedValue({
+            balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+          }),
+        });
+
+        mockClientService.getInfoClient = jest
+          .fn()
+          .mockReturnValue(mockInfoClient);
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+        const accountState = await hip3Provider.getAccountState();
+
+        expect(parseFloat(accountState.totalBalance)).toBe(20500);
+        expect(parseFloat(accountState.marginUsed)).toBe(500);
+        expect(mockInfoClient.clearinghouseState).toHaveBeenCalledWith({
+          user: '0x123',
+          dex: 'xyz',
+        });
       });
     });
 
@@ -3534,6 +3824,39 @@ describe('HyperLiquidProvider', () => {
         expect(mockClientService.getInfoClient).toHaveBeenCalledWith({
           useHttp: true,
         });
+      });
+
+      it('prefers the last WebSocket allMids snapshot over REST when available', async () => {
+        const mockInfoClient = createMockInfoClient({
+          metaAndAssetCtxs: jest.fn().mockResolvedValue([
+            { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+            [
+              {
+                funding: '0.0001',
+                openInterest: '1000',
+                prevDayPx: '49000',
+                dayNtlVlm: '1000000',
+                markPx: '50000',
+                midPx: '50000',
+                oraclePx: '50000',
+              },
+            ],
+          ]),
+          allMids: jest.fn().mockResolvedValue({ BTC: '49999' }),
+        });
+
+        mockClientService.getInfoClient = jest
+          .fn()
+          .mockReturnValue(mockInfoClient);
+        mockSubscriptionService.getLastAllMidsSnapshot.mockReturnValue({
+          BTC: '51000',
+        });
+
+        const freshProvider = createTestProvider();
+        const result = await freshProvider.getMarketDataWithPrices();
+
+        expect(result[0].price).toBe('$51000.00');
+        expect(mockInfoClient.allMids).not.toHaveBeenCalled();
       });
 
       it('includes diagnostic context in error when all DEX fetches fail', async () => {
@@ -3625,6 +3948,203 @@ describe('HyperLiquidProvider', () => {
         expect(result[0]).toHaveProperty('name');
         expect(result[0]).toHaveProperty('price');
         expect(result[0]).toHaveProperty('fundingRate');
+      });
+
+      it('returns stale cached market data after retry failure', async () => {
+        jest.useFakeTimers();
+
+        try {
+          mockClientService.getInfoClient = jest.fn().mockReturnValue(
+            createMockInfoClient({
+              meta: jest.fn().mockResolvedValue({
+                universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+              }),
+              allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+              metaAndAssetCtxs: jest.fn().mockResolvedValue([
+                { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+                [
+                  {
+                    funding: '0.001',
+                    openInterest: '1000000',
+                    prevDayPx: '49000',
+                    dayNtlVlm: '1000000',
+                    markPx: '50000',
+                    midPx: '50000',
+                    oraclePx: '50000',
+                  },
+                ],
+              ]),
+            }),
+          );
+
+          const freshProvider = createTestProvider();
+          const freshMarketData = await freshProvider.getMarketDataWithPrices();
+
+          expect(freshMarketData[0].isStale).toBe(false);
+
+          await freshProvider.disconnect();
+
+          mockClientService.getInfoClient = jest.fn().mockReturnValue(
+            createMockInfoClient({
+              metaAndAssetCtxs: jest
+                .fn()
+                .mockRejectedValue(new Error('market data unavailable')),
+              allMids: jest
+                .fn()
+                .mockRejectedValue(new Error('market data unavailable')),
+            }),
+          );
+
+          const staleMarketDataPromise =
+            freshProvider.getMarketDataWithPrices();
+          await jest.advanceTimersByTimeAsync(2000);
+          const staleMarketData = await staleMarketDataPromise;
+
+          expect(staleMarketData[0].symbol).toBe(freshMarketData[0].symbol);
+          expect(staleMarketData[0].isStale).toBe(true);
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      it('recovers on retry when cached meta refresh initially returns mismatched asset contexts', async () => {
+        jest.useFakeTimers();
+
+        try {
+          const mainMeta = {
+            universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+          };
+          const mainAssetCtx = {
+            funding: '0.001',
+            openInterest: '1000000',
+            prevDayPx: '49000',
+            dayNtlVlm: '1000000',
+            markPx: '50000',
+            midPx: '50000',
+            oraclePx: '50000',
+          };
+          let metaAndAssetCtxsCallCount = 0;
+
+          const mockInfoClient = createMockInfoClient({
+            metaAndAssetCtxs: jest.fn().mockImplementation(() => {
+              metaAndAssetCtxsCallCount += 1;
+
+              if (metaAndAssetCtxsCallCount === 1) {
+                return Promise.resolve([mainMeta, [mainAssetCtx]]);
+              }
+
+              if (metaAndAssetCtxsCallCount === 2) {
+                return Promise.resolve([mainMeta, []]);
+              }
+
+              return Promise.resolve([mainMeta, [mainAssetCtx]]);
+            }),
+            allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+          });
+
+          mockClientService.getInfoClient = jest
+            .fn()
+            .mockReturnValue(mockInfoClient);
+          mockSubscriptionService.getDexAssetCtxsCache.mockReturnValue([]);
+
+          const freshProvider = createTestProvider();
+          const resultPromise = freshProvider.getMarketDataWithPrices();
+
+          await jest.advanceTimersByTimeAsync(2000);
+
+          const result = await resultPromise;
+
+          expect(result).toEqual([
+            expect.objectContaining({
+              symbol: 'BTC',
+              price: '$50000.00',
+              isStale: false,
+            }),
+          ]);
+          expect(metaAndAssetCtxsCallCount).toBe(3);
+          expect(mockInfoClient.allMids).toHaveBeenCalledTimes(1);
+          expect(mockPlatformDependencies.debugLogger.log).toHaveBeenCalledWith(
+            '[getMarketDataWithPrices] Retry succeeded',
+            expect.objectContaining({
+              marketCount: 1,
+            }),
+          );
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      it('excludes a cached-meta DEX when assetCtx refresh fails and no aligned ctx cache exists', async () => {
+        const xyzMeta = {
+          universe: [{ name: 'xyz:XYZ100', szDecimals: 2, maxLeverage: 20 }],
+        };
+        const xyzAssetCtx = {
+          funding: '0.0002',
+          openInterest: '250',
+          prevDayPx: '40',
+          dayNtlVlm: '20000',
+          markPx: '42',
+          midPx: '42',
+          oraclePx: '42',
+        };
+        const mainMeta = {
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        };
+        const mainAssetCtx = {
+          funding: '0.001',
+          openInterest: '1000000',
+          prevDayPx: '49000',
+          dayNtlVlm: '1000000',
+          markPx: '50000',
+          midPx: '50000',
+          oraclePx: '50000',
+        };
+
+        const xyzMetaFetches = { count: 0 };
+        const mockInfoClient = createMockInfoClient({
+          perpDexs: jest
+            .fn()
+            .mockResolvedValue([null, { name: 'xyz', url: 'https://xyz.com' }]),
+          metaAndAssetCtxs: jest
+            .fn()
+            .mockImplementation((params?: { dex?: string }) => {
+              if (params?.dex === 'xyz') {
+                xyzMetaFetches.count += 1;
+                if (xyzMetaFetches.count === 1) {
+                  return Promise.resolve([xyzMeta, [xyzAssetCtx]]);
+                }
+
+                return Promise.reject(
+                  new Error('xyz assetCtxs refresh unavailable'),
+                );
+              }
+
+              return Promise.resolve([mainMeta, [mainAssetCtx]]);
+            }),
+          allMids: jest.fn().mockImplementation((params?: { dex?: string }) => {
+            if (params?.dex === 'xyz') {
+              return Promise.resolve({ 'xyz:XYZ100': '42' });
+            }
+
+            return Promise.resolve({ BTC: '50000' });
+          }),
+        });
+
+        mockClientService.getInfoClient = jest
+          .fn()
+          .mockReturnValue(mockInfoClient);
+
+        const hip3Provider = createTestProvider({
+          hip3Enabled: true,
+          allowlistMarkets: ['xyz:*'],
+        });
+
+        const result = await hip3Provider.getMarketDataWithPrices();
+
+        expect(result.map((market) => market.symbol)).toEqual(['BTC']);
+        expect(mockInfoClient.metaAndAssetCtxs).toHaveBeenCalledWith({
+          dex: 'xyz',
+        });
       });
     });
 
@@ -5278,6 +5798,39 @@ describe('HyperLiquidProvider', () => {
         mockClientService.getExchangeClient().setReferrer,
       ).not.toHaveBeenCalled();
     });
+
+    it('uses testnet builder address when in testnet mode', async () => {
+      // Arrange — flip to testnet mode
+      mockClientService.isTestnetMode.mockReturnValue(true);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(1), // Already approved
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      // Act
+      const result = await provider.placeOrder(orderParams);
+
+      // Assert — order placed with the testnet builder address
+      expect(result.success).toBe(true);
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder: {
+            b: BUILDER_FEE_CONFIG.TestnetBuilder,
+            f: expect.any(Number),
+          },
+        }),
+      );
+    });
   });
 
   // TODO: Refactor to test through public API — ES # private fields prevent direct access
@@ -5952,6 +6505,148 @@ describe('HyperLiquidProvider', () => {
       expect(result).toEqual([]);
     });
 
+    it('fetches funding across multiple page windows to include latest records', async () => {
+      const NOW = 1735689600000; // fixed timestamp for determinism
+      const DAY_MS = 24 * 60 * 60 * 1000;
+
+      const oldRecord = {
+        time: NOW - 40 * DAY_MS,
+        hash: '0x' + 'a'.repeat(64),
+        delta: {
+          type: 'funding',
+          coin: 'BTC',
+          usdc: '-1.0',
+          szi: '0.1',
+          fundingRate: '0.0001',
+          nSamples: null,
+        },
+      };
+      const recentRecord = {
+        time: NOW - 5 * DAY_MS,
+        hash: '0x' + 'b'.repeat(64),
+        delta: {
+          type: 'funding',
+          coin: 'BTC',
+          usdc: '-2.0',
+          szi: '0.1',
+          fundingRate: '0.0001',
+          nSamples: null,
+        },
+      };
+
+      const userFundingMock = jest
+        .fn()
+        .mockImplementation(
+          (params: { startTime: number; endTime: number }) => {
+            const records = [oldRecord, recentRecord].filter(
+              (r) => r.time >= params.startTime && r.time <= params.endTime,
+            );
+            return Promise.resolve(records);
+          },
+        );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: userFundingMock,
+      });
+
+      // Time range spans 60 days → 2 page windows of 30 days each
+      const result = await provider.getFunding({
+        startTime: NOW - 60 * DAY_MS,
+        endTime: NOW,
+      });
+
+      expect(userFundingMock).toHaveBeenCalledTimes(2);
+      expect(result).toHaveLength(2);
+      // Results sorted ascending: older first, recent last
+      expect(result[0].amountUsd).toBe('-1.0');
+      expect(result[1].amountUsd).toBe('-2.0');
+      // Most recent record is present — this would fail with the old single-call approach
+      // when total records exceeded the 500-record API cap
+      expect(result[1].timestamp).toBe(recentRecord.time);
+    });
+
+    it('includes records from the most recent page window when history is long', async () => {
+      const NOW = 1735689600000;
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const recentTs = NOW - 2 * DAY_MS;
+
+      const userFundingMock = jest
+        .fn()
+        .mockImplementation(
+          (params: { startTime: number; endTime: number }) => {
+            if (params.endTime >= recentTs && params.startTime <= recentTs) {
+              return Promise.resolve([
+                {
+                  time: recentTs,
+                  hash: '0x' + 'f'.repeat(64),
+                  delta: {
+                    type: 'funding',
+                    coin: 'ETH',
+                    usdc: '-0.5',
+                    szi: '1.0',
+                    fundingRate: '0.00005',
+                    nSamples: null,
+                  },
+                },
+              ]);
+            }
+            return Promise.resolve([]);
+          },
+        );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: userFundingMock,
+      });
+
+      // Pass explicit 365-day range to trigger multi-page behavior.
+      // The default is now 30 days (1 call); callers must pass startTime to paginate further.
+      const result = await provider.getFunding({
+        startTime: NOW - 365 * DAY_MS,
+        endTime: NOW,
+      });
+
+      // Multiple page windows must be created for a 365-day explicit range
+      expect(userFundingMock.mock.calls.length).toBeGreaterThan(1);
+      // The most recent record is present — proves pagination reaches the latest window
+      expect(result.some((r) => r.timestamp === recentTs)).toBe(true);
+    });
+
+    it('handles null response from one page window without losing other pages', async () => {
+      const NOW = 1735689600000;
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const validRecord = {
+        time: NOW - 10 * DAY_MS,
+        hash: '0x' + 'c'.repeat(64),
+        delta: {
+          type: 'funding',
+          coin: 'BTC',
+          usdc: '-3.0',
+          szi: '0.2',
+          fundingRate: '0.0002',
+          nSamples: null,
+        },
+      };
+
+      let callCount = 0;
+      const userFundingMock = jest.fn().mockImplementation(() => {
+        callCount += 1;
+        // First call returns null, subsequent calls return data
+        return Promise.resolve(callCount === 1 ? null : [validRecord]);
+      });
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: userFundingMock,
+      });
+
+      const result = await provider.getFunding({
+        startTime: NOW - 60 * DAY_MS,
+        endTime: NOW,
+      });
+
+      // Null page is gracefully skipped; valid records from other pages survive
+      expect(result.some((r) => r.amountUsd === '-3.0')).toBe(true);
+    });
+
     it('handles validateWithdrawal returning true', async () => {
       const params = {
         amount: '100',
@@ -6130,6 +6825,115 @@ describe('HyperLiquidProvider', () => {
         endTime,
         aggregateByTime: true,
       });
+    });
+  });
+
+  describe('getOrderFills enrichment with detailedOrderType', () => {
+    it('enriches fills with detailedOrderType from historical orders', async () => {
+      const mockUserFills = jest.fn().mockResolvedValue([
+        {
+          oid: 100,
+          coin: 'BTC',
+          side: 'A',
+          sz: '0.5',
+          px: '50000',
+          fee: '5',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '-200',
+          dir: 'Close Long',
+          startPosition: '0.5',
+        },
+        {
+          oid: 101,
+          coin: 'ETH',
+          side: 'B',
+          sz: '1.0',
+          px: '3000',
+          fee: '3',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '100',
+          dir: 'Close Short',
+          startPosition: '-1.0',
+        },
+      ]);
+
+      const mockHistoricalOrders = jest.fn().mockResolvedValue([
+        {
+          order: {
+            oid: 100,
+            coin: 'BTC',
+            side: 'A',
+            sz: '0',
+            origSz: '0.5',
+            limitPx: '50000',
+            orderType: 'Stop Market',
+            reduceOnly: true,
+            isTrigger: true,
+          },
+          status: 'filled',
+          statusTimestamp: Date.now(),
+        },
+        {
+          order: {
+            oid: 101,
+            coin: 'ETH',
+            side: 'B',
+            sz: '0',
+            origSz: '1.0',
+            limitPx: '3000',
+            orderType: 'Take Profit Limit',
+            reduceOnly: true,
+            isTrigger: true,
+          },
+          status: 'filled',
+          statusTimestamp: Date.now(),
+        },
+      ]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFills: mockUserFills,
+          historicalOrders: mockHistoricalOrders,
+        }),
+      );
+
+      const fills = await provider.getOrderFills();
+
+      expect(fills).toHaveLength(2);
+      expect(fills[0].detailedOrderType).toBe('Stop Market');
+      expect(fills[1].detailedOrderType).toBe('Take Profit Limit');
+    });
+
+    it('gracefully handles historicalOrders failure', async () => {
+      const mockUserFills = jest.fn().mockResolvedValue([
+        {
+          oid: 200,
+          coin: 'BTC',
+          side: 'B',
+          sz: '0.1',
+          px: '60000',
+          fee: '6',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '0',
+          dir: 'Open Long',
+          startPosition: '0',
+        },
+      ]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFills: mockUserFills,
+          historicalOrders: jest.fn().mockRejectedValue(new Error('API error')),
+        }),
+      );
+
+      const fills = await provider.getOrderFills();
+
+      expect(fills).toHaveLength(1);
+      expect(fills[0].detailedOrderType).toBeUndefined();
     });
   });
 
@@ -6655,13 +7459,7 @@ describe('HyperLiquidProvider', () => {
       // Create a provider instance with equity enabled for this specific test
       const testProvider = createTestProvider({ hip3Enabled: true });
 
-      // Override the private cachedValidatedDexs to simulate already validated state
-      // This avoids the complex initialization flow
-      Object.defineProperty(testProvider, 'cachedValidatedDexs', {
-        value: null, // Force re-evaluation
-        writable: true,
-        configurable: true,
-      });
+      // DEX discovery cache starts with null state on a fresh provider — no reset needed
 
       // Act
       const result = await testProvider.getAvailableHip3Dexs();
@@ -6974,7 +7772,14 @@ describe('HyperLiquidProvider', () => {
     describe('getAllAvailableDexs', () => {
       interface ProviderWithDexMethods {
         getAllAvailableDexs(): Promise<(string | null)[]>;
-        cachedAllPerpDexs: ({ name: string; url: string } | null)[] | null;
+        dexDiscoveryCache: {
+          state: {
+            raw: ({ name: string; url: string } | null)[];
+            validated: (string | null)[];
+            timestamp: number;
+          } | null;
+          reset(): void;
+        };
       }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -6982,17 +7787,21 @@ describe('HyperLiquidProvider', () => {
 
       beforeEach(() => {
         testableProvider = provider as unknown as ProviderWithDexMethods;
-        // Reset cache
-        testableProvider.cachedAllPerpDexs = null;
+        // Reset unified state
+        testableProvider.dexDiscoveryCache.reset();
       });
 
       it('returns cached DEX list when cache is populated', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [
-          null,
-          { name: 'dex1', url: 'https://dex1.example' },
-          { name: 'dex2', url: 'https://dex2.example' },
-        ];
+        testableProvider.dexDiscoveryCache.state = {
+          raw: [
+            null,
+            { name: 'dex1', url: 'https://dex1.example' },
+            { name: 'dex2', url: 'https://dex2.example' },
+          ],
+          validated: [null, 'dex1', 'dex2'],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -7020,7 +7829,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null, 'dex1', 'dex2']);
-        expect(testableProvider.cachedAllPerpDexs).toEqual(mockDexs);
+        expect(testableProvider.dexDiscoveryCache.state?.raw).toEqual(mockDexs);
         expect(mockClientService.getInfoClient).toHaveBeenCalledTimes(1);
       });
 
@@ -7037,7 +7846,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
       });
 
       it('returns fallback when API returns non-array', async () => {
@@ -7053,7 +7862,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
       });
 
       it('returns fallback and logs error when API throws', async () => {
@@ -7071,7 +7880,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
         expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
@@ -7087,12 +7896,16 @@ describe('HyperLiquidProvider', () => {
 
       it('filters out null entries from cached DEX list', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [
-          null,
-          { name: 'dex1', url: 'https://dex1.example' },
-          null,
-          { name: 'dex2', url: 'https://dex2.example' },
-        ];
+        testableProvider.dexDiscoveryCache.state = {
+          raw: [
+            null,
+            { name: 'dex1', url: 'https://dex1.example' },
+            null,
+            { name: 'dex2', url: 'https://dex2.example' },
+          ],
+          validated: [null, 'dex1', 'dex2'],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -7103,7 +7916,11 @@ describe('HyperLiquidProvider', () => {
 
       it('returns only main DEX when cached list contains only null', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [null];
+        testableProvider.dexDiscoveryCache.state = {
+          raw: [null],
+          validated: [null],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -8733,6 +9550,61 @@ describe('HyperLiquidProvider', () => {
         // clearinghouseState should be called for both main + xyz DEX (from cache)
         expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
       });
+
+      it('filters DEXs via testnet config when in testnet mode', async () => {
+        // Arrange: testnet mode with TESTNET_HIP3_CONFIG.EnabledDexs = ['xyz']
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
+        const testnetProvider = createTestProvider({
+          hip3Enabled: true,
+          isTestnet: true,
+        });
+
+        // perpDexs returns main + xyz + other DEX
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null,
+          { name: 'xyz' },
+          { name: 'otherdex' },
+        ]);
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act
+        await testnetProvider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: clearinghouseState called for main + xyz only (otherdex filtered out)
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledTimes(2);
+        // Restore
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(false);
+      });
+
+      it('updates unified state atomically when standalone perpDexs succeeds', async () => {
+        // Arrange
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: first standalone call populates dexDiscoveryCache
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: second call reuses cached state — perpDexs NOT called again
+        mockStandaloneInfoClient.perpDexs.mockClear();
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(mockStandaloneInfoClient.perpDexs).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -8789,6 +9661,123 @@ describe('HyperLiquidProvider', () => {
         interval: options.interval,
         candles: [],
       });
+    });
+  });
+
+  describe('getFunding', () => {
+    const makeFundingRecord = (time: number, coin = 'BTC') => ({
+      delta: { coin, usdc: '0.001', fundingRate: '0.0001' },
+      hash: `0x${time.toString(16)}`,
+      time,
+    });
+
+    it('returns funding records for the default 30-day window with a single API call', async () => {
+      // Arrange
+      const records = [
+        makeFundingRecord(Date.now() - 2000, 'ETH'),
+        makeFundingRecord(Date.now() - 1000, 'BTC'),
+      ];
+      const mockUserFunding = jest.fn().mockResolvedValue(records);
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(
+          createMockInfoClient({ userFunding: mockUserFunding }),
+        );
+
+      // Act
+      const result = await provider.getFunding();
+
+      // Assert — exactly one API call for the default 30-day window
+      expect(mockUserFunding).toHaveBeenCalledTimes(1);
+      expect(result).toHaveLength(2);
+      expect(result[0].symbol).toBe('ETH');
+      expect(result[1].symbol).toBe('BTC');
+    });
+
+    it('auto-splits window when API returns the record cap and recovers all records from sub-windows', async () => {
+      // Arrange — first call hits the cap (500 records); the function discards
+      // those and refetches the two halves. Each half is under the cap.
+      const apiLimit =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_API_LIMIT;
+      const capRecords = Array.from({ length: apiLimit }, (_, i) =>
+        makeFundingRecord(1_700_000_000_000 + i * 1000),
+      );
+      const leftHalfRecords = [makeFundingRecord(1_700_000_001_000)];
+      const rightHalfRecords = [
+        makeFundingRecord(1_700_000_002_000),
+        makeFundingRecord(1_700_000_003_000),
+      ];
+
+      const mockUserFunding = jest
+        .fn()
+        .mockResolvedValueOnce(capRecords)
+        .mockResolvedValueOnce(leftHalfRecords)
+        .mockResolvedValueOnce(rightHalfRecords);
+
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(
+          createMockInfoClient({ userFunding: mockUserFunding }),
+        );
+
+      // Act — 2-day explicit window (> 1 h minimum) so splitting is allowed
+      const endTime = 1_700_000_100_000;
+      const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+      const result = await provider.getFunding({
+        startTime: endTime - twoDaysMs,
+        endTime,
+      });
+
+      // Assert — 3 calls total: original window + left half + right half
+      expect(mockUserFunding).toHaveBeenCalledTimes(3);
+      // Combined result comes from the sub-windows (not the capped initial call)
+      expect(result).toHaveLength(
+        leftHalfRecords.length + rightHalfRecords.length,
+      );
+    });
+
+    it('does not split when window is at or below the minimum split size', async () => {
+      // Arrange — even with a full 500-record response the 1-hour window must
+      // not recurse (prevents infinite recursion at the minimum boundary)
+      const apiLimit =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_API_LIMIT;
+      const capRecords = Array.from({ length: apiLimit }, (_, i) =>
+        makeFundingRecord(Date.now() - i * 1000),
+      );
+      const mockUserFunding = jest.fn().mockResolvedValue(capRecords);
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(
+          createMockInfoClient({ userFunding: mockUserFunding }),
+        );
+
+      // Act — 1-hour window equals minSplitWindowMs; no split should occur
+      const oneHourMs = 60 * 60 * 1000;
+      const endTime = Date.now();
+      await provider.getFunding({ startTime: endTime - oneHourMs, endTime });
+
+      // Assert — exactly one call, no recursive splitting
+      expect(mockUserFunding).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes explicit startTime and endTime directly to the API', async () => {
+      // Arrange
+      const mockUserFunding = jest.fn().mockResolvedValue([]);
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(
+          createMockInfoClient({ userFunding: mockUserFunding }),
+        );
+
+      // Act
+      const startTime = 1_700_000_000_000;
+      const endTime = 1_702_592_000_000; // startTime + 30 days
+      await provider.getFunding({ startTime, endTime });
+
+      // Assert — explicit bounds forwarded verbatim to the API
+      expect(mockUserFunding).toHaveBeenCalledWith(
+        expect.objectContaining({ startTime, endTime }),
+      );
     });
   });
 

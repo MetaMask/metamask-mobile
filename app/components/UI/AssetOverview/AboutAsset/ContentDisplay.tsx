@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TextStyle, View } from 'react-native';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import { TextButton } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../component-library/hooks';
 import Text, {
   TextColor,
@@ -48,14 +48,13 @@ const ContentDisplay = ({
           {disclaimer}
         </Text>
       )}
-      <ButtonLink
-        onPress={toggleContent}
-        label={strings(
+      <TextButton onPress={toggleContent}>
+        {strings(
           isExpanded
             ? 'asset_overview.about_content_display.show_less'
             : 'asset_overview.about_content_display.show_more',
         )}
-      />
+      </TextButton>
     </View>
   );
 };

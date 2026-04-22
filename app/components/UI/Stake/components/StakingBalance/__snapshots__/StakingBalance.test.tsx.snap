@@ -49,10 +49,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
                 false,
                 false,
                 {
-                  "borderRadius": 16,
-                  "height": 32,
+                  "borderRadius": 20,
+                  "height": 40,
                   "overflow": "hidden",
-                  "width": 32,
+                  "width": 40,
                 },
               ]
             }
@@ -75,10 +75,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
               style={
                 [
                   {
-                    "borderRadius": 16,
-                    "height": 32,
+                    "borderRadius": 20,
+                    "height": 40,
                     "overflow": "hidden",
-                    "width": 32,
+                    "width": 40,
                   },
                   {
                     "backgroundColor": "#eee",
@@ -172,10 +172,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
     <View
       style={
         {
-          "alignSelf": "center",
+          "alignContent": "flex-start",
+          "alignItems": "flex-start",
           "flex": 1,
-          "justifyContent": "center",
-          "marginLeft": 16,
+          "flexDirection": "column",
+          "paddingLeft": 16,
         }
       }
     >
@@ -198,31 +199,15 @@ exports[`StakingBalance render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
-            "fontSize": 16,
+            "fontSize": 14,
+            "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
-      >
-        <View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ca3542",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 14,
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            +0.00%
-          </Text>
-        </View>
-      </Text>
+      />
     </View>
     <View
       style={
@@ -231,15 +216,30 @@ exports[`StakingBalance render matches snapshot 1`] = `
           "flexShrink": 0,
         }
       }
-    />
+    >
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ca3542",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          +0.00%
+        </Text>
+      </View>
+    </View>
   </TouchableOpacity>
   <View
     style={
       {
-        "backgroundColor": "#f3f3f4",
         "borderRadius": 12,
         "marginTop": 16,
-        "padding": 16,
       }
     }
   >
@@ -414,92 +414,183 @@ exports[`StakingBalance render matches snapshot 1`] = `
         ]
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flex": 1,
-            "flexDirection": "row",
-            "height": 40,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "flex": 1,
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="unstake-button"
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#131416",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
+        <View
+          style={{}}
         >
-          Unstake
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+          <Text
+            accessibilityRole="text"
+            style={
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                },
+                undefined,
+              ]
+            }
+          >
+            Unstake
+          </Text>
+        </View>
+      </View>
+      <View
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flex": 1,
-            "flexDirection": "row",
-            "height": 40,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "flex": 1,
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="stake-more-button"
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#131416",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
+        <View
+          style={{}}
         >
-          Stake more
-        </Text>
-      </TouchableOpacity>
+          <Text
+            accessibilityRole="text"
+            style={
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                },
+                undefined,
+              ]
+            }
+          >
+            Stake more
+          </Text>
+        </View>
+      </View>
     </View>
   </View>
   <View
     style={
       {
-        "paddingHorizontal": 16,
         "paddingTop": 16,
       }
     }
@@ -516,7 +607,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         style={
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -526,7 +617,13 @@ exports[`StakingBalance render matches snapshot 1`] = `
       >
         Your earnings
       </Text>
-      <View>
+      <View
+        style={
+          {
+            "paddingBottom": 24,
+          }
+        }
+      >
         <View
           style={
             {
@@ -842,10 +939,10 @@ exports[`StakingBalance should match the snapshot 1`] = `
                 false,
                 false,
                 {
-                  "borderRadius": 16,
-                  "height": 32,
+                  "borderRadius": 20,
+                  "height": 40,
                   "overflow": "hidden",
-                  "width": 32,
+                  "width": 40,
                 },
               ]
             }
@@ -868,10 +965,10 @@ exports[`StakingBalance should match the snapshot 1`] = `
               style={
                 [
                   {
-                    "borderRadius": 16,
-                    "height": 32,
+                    "borderRadius": 20,
+                    "height": 40,
                     "overflow": "hidden",
-                    "width": 32,
+                    "width": 40,
                   },
                   {
                     "backgroundColor": "#eee",
@@ -965,10 +1062,11 @@ exports[`StakingBalance should match the snapshot 1`] = `
     <View
       style={
         {
-          "alignSelf": "center",
+          "alignContent": "flex-start",
+          "alignItems": "flex-start",
           "flex": 1,
-          "justifyContent": "center",
-          "marginLeft": 16,
+          "flexDirection": "column",
+          "paddingLeft": 16,
         }
       }
     >
@@ -991,31 +1089,15 @@ exports[`StakingBalance should match the snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
-            "fontSize": 16,
+            "fontSize": 14,
+            "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
-      >
-        <View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ca3542",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 14,
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            +0.00%
-          </Text>
-        </View>
-      </Text>
+      />
     </View>
     <View
       style={
@@ -1024,15 +1106,30 @@ exports[`StakingBalance should match the snapshot 1`] = `
           "flexShrink": 0,
         }
       }
-    />
+    >
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ca3542",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          +0.00%
+        </Text>
+      </View>
+    </View>
   </TouchableOpacity>
   <View
     style={
       {
-        "backgroundColor": "#f3f3f4",
         "borderRadius": 12,
         "marginTop": 16,
-        "padding": 16,
       }
     }
   >
@@ -1207,92 +1304,183 @@ exports[`StakingBalance should match the snapshot 1`] = `
         ]
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flex": 1,
-            "flexDirection": "row",
-            "height": 40,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "flex": 1,
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="unstake-button"
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#131416",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
+        <View
+          style={{}}
         >
-          Unstake
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+          <Text
+            accessibilityRole="text"
+            style={
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                },
+                undefined,
+              ]
+            }
+          >
+            Unstake
+          </Text>
+        </View>
+      </View>
+      <View
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flex": 1,
-            "flexDirection": "row",
-            "height": 40,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "flex": 1,
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="stake-more-button"
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#131416",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
+        <View
+          style={{}}
         >
-          Stake more
-        </Text>
-      </TouchableOpacity>
+          <Text
+            accessibilityRole="text"
+            style={
+              [
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                },
+                undefined,
+              ]
+            }
+          >
+            Stake more
+          </Text>
+        </View>
+      </View>
     </View>
   </View>
   <View
     style={
       {
-        "paddingHorizontal": 16,
         "paddingTop": 16,
       }
     }
@@ -1309,7 +1497,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
         style={
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1319,7 +1507,13 @@ exports[`StakingBalance should match the snapshot 1`] = `
       >
         Your earnings
       </Text>
-      <View>
+      <View
+        style={
+          {
+            "paddingBottom": 24,
+          }
+        }
+      >
         <View
           style={
             {

@@ -134,15 +134,19 @@ describe('EnterAddress Component', () => {
     mockTrackEvent.mockClear();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = render(EnterAddress);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders initial state with address form fields', () => {
+    render(EnterAddress);
+    expect(screen.getByTestId('address-line-1-input')).toBeOnTheScreen();
+
+    expect(screen.getByTestId('city-input')).toBeOnTheScreen();
+    expect(screen.getByTestId('postal-code-input')).toBeOnTheScreen();
   });
 
   it('displays form validation errors when continue is pressed with empty fields', () => {
     render(EnterAddress);
     fireEvent.press(screen.getByTestId('address-continue-button'));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Address line 1 is required')).toBeOnTheScreen();
+    expect(screen.getByText('City is required')).toBeOnTheScreen();
     expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
@@ -201,8 +205,9 @@ describe('EnterAddress Component', () => {
       selectedRegion: { isoCode: 'FR', name: 'France', flag: '🇫🇷' },
     };
 
-    const { toJSON } = render(EnterAddress);
-    expect(toJSON()).toMatchSnapshot();
+    render(EnterAddress);
+    expect(screen.getByTestId('state-input')).toBeOnTheScreen();
+    expect(screen.queryByText('Select state')).not.toBeOnTheScreen();
   });
 
   it('validates address line 2 when provided', () => {
@@ -308,6 +313,10 @@ describe('EnterAddress Component', () => {
 
     render(EnterAddress);
 
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByTestId('address-line-1-input').props.value).toBe(
+      '456 Oak Street',
+    );
+    expect(screen.getByTestId('city-input').props.value).toBe('New York');
+    expect(screen.getByTestId('postal-code-input').props.value).toBe('10002');
   });
 });

@@ -87,18 +87,12 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-    typography: {},
-    shadows: {},
-    brandColors: {},
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
@@ -186,7 +180,6 @@ describe('EarnMusdConversionEducationView', () => {
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
 
     mockUseDispatch.mockReturnValue(mockDispatch);
-    // @ts-expect-error - partial mock of navigation is sufficient for testing
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUseFocusEffect.mockImplementation((callback) => {
       callback();
@@ -659,9 +652,24 @@ describe('EarnMusdConversionEducationView', () => {
         { state: {} },
       );
 
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
       fireEvent.press(
         getByText(strings('earn.musd_conversion.education.terms_apply')),
       );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+        url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
 
       expect(openUrlSpy).toHaveBeenCalledTimes(1);
       expect(openUrlSpy).toHaveBeenCalledWith(
@@ -772,6 +780,65 @@ describe('EarnMusdConversionEducationView', () => {
           '[mUSD Conversion Education] Cannot proceed without preferredPaymentToken',
         );
         expect(mockInitiateConversion).not.toHaveBeenCalled();
+      });
+    });
+
+    it('navigates to returnTo.screen when returnTo is provided, without initiating conversion', async () => {
+      mockUseParams.mockReturnValue({
+        returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+          undefined,
+        );
+      });
+      expect(mockInitiateConversion).not.toHaveBeenCalled();
+    });
+
+    it("forwards caller's navigationOverride (CUSTOM) to initiateCustomConversion instead of hardcoding QUICK_CONVERT", async () => {
+      mockUseParams.mockReturnValue({
+        preferredPaymentToken: {
+          address: '0xabc' as Hex,
+          chainId: '0x1' as Hex,
+        },
+        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith(
+          expect.objectContaining({
+            navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
+            skipEducationCheck: true,
+          }),
+        );
       });
     });
   });

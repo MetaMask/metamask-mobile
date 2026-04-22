@@ -86,9 +86,9 @@ const createMockState = (): DeepPartial<RootState> => ({
     backgroundState: {
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: MOCK_GROUP_ID_1,
           wallets: {},
         },
+        selectedAccountGroup: MOCK_GROUP_ID_1,
       },
       AccountsController: {
         internalAccounts: {
@@ -306,7 +306,7 @@ describe('MultichainAccountConnectMultiSelector', () => {
       const updateButton = getByTestId(
         ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
       );
-      expect(updateButton.props.disabled).toBe(true);
+      expect(updateButton).toBeDisabled();
     });
   });
 

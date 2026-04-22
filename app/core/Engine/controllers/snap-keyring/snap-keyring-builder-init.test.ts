@@ -1,17 +1,17 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   getSnapKeyringBuilderInitMessenger,
   getSnapKeyringBuilderMessenger,
   SnapKeyringBuilderInitMessenger,
 } from '../../messengers/snap-keyring-builder-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { snapKeyringBuilderInit } from './snap-keyring-builder-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { SnapKeyringBuilderMessenger } from '../../../SnapKeyring/types';
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     SnapKeyringBuilderMessenger,
     SnapKeyringBuilderInitMessenger
   >
@@ -21,7 +21,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getSnapKeyringBuilderMessenger(baseMessenger),
     initMessenger: getSnapKeyringBuilderInitMessenger(baseMessenger),
   };

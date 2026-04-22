@@ -42,25 +42,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock useAnalytics
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
-}));
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
-// Mock MetaMetricsEvents (still imported from useMetrics)
-jest.mock('../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    REWARDS_REWARD_VIEWED: 'REWARDS_REWARD_VIEWED',
-    REWARDS_REWARD_CLAIMED: 'REWARDS_REWARD_CLAIMED',
-  },
-}));
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // Mock useRewardsToast
 const mockShowToast = jest.fn();
@@ -283,28 +274,33 @@ jest.mock(
   },
 );
 
-// Mock BottomSheetHeader
+// Mock HeaderCompactStandard
 jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: ({
-        children,
+        title,
         onClose,
+        closeButtonProps,
       }: {
-        children?: React.ReactNode;
+        title?: React.ReactNode;
         onClose?: () => void;
+        closeButtonProps?: { testID?: string };
       }) =>
         ReactActual.createElement(
           View,
           { testID: 'bottom-sheet-header' },
-          ReactActual.createElement(Text, {}, children),
+          ReactActual.createElement(Text, {}, title),
           ReactActual.createElement(
             TouchableOpacity,
-            { onPress: onClose, testID: 'close-button' },
+            {
+              onPress: onClose,
+              testID: closeButtonProps?.testID ?? 'close-button',
+            },
             ReactActual.createElement(Text, {}, 'Close'),
           ),
         ),
@@ -450,6 +446,12 @@ describe('EndOfSeasonClaimBottomSheet', () => {
 
     // Default selector mock
     mockUseSelector.mockImplementation(() => undefined);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   describe('rendering', () => {
@@ -459,19 +461,16 @@ describe('EndOfSeasonClaimBottomSheet', () => {
       );
 
       expect(getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL)).toBeOnTheScreen();
-      expect(getByText('Reward Details')).toBeOnTheScreen();
+      expect(getByText('Test Reward')).toBeOnTheScreen();
     });
 
     it('renders title for non-LINEA_TOKENS reward', () => {
-      const { getByTestId, getByText } = render(
+      const { getByText } = render(
         <EndOfSeasonClaimBottomSheet
           route={createRoute({ title: 'My Reward Title' })}
         />,
       );
 
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TITLE),
-      ).toBeOnTheScreen();
       expect(getByText('My Reward Title')).toBeOnTheScreen();
     });
 
@@ -1023,7 +1022,7 @@ describe('EndOfSeasonClaimBottomSheet', () => {
       );
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'REWARDS_REWARD_VIEWED',
+        MetaMetricsEvents.REWARDS_REWARD_VIEWED,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
@@ -1049,7 +1048,7 @@ describe('EndOfSeasonClaimBottomSheet', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'REWARDS_REWARD_CLAIMED',
+        MetaMetricsEvents.REWARDS_REWARD_CLAIMED,
       );
     });
   });

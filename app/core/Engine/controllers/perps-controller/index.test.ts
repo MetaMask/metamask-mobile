@@ -1,6 +1,6 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { MessengerClientInitRequest } from '../../types';
 import {
   PerpsController,
   PerpsControllerMessenger,
@@ -17,6 +17,7 @@ jest.mock(
   '../../../../components/UI/Perps/adapters/mobileInfrastructure',
   () => ({
     createMobileInfrastructure: jest.fn(() => ({})),
+    createMobileClientConfig: jest.fn(() => ({})),
   }),
 );
 jest.mock('../../../../components/UI/Perps/utils/e2eBridgePerps', () => ({
@@ -46,7 +47,7 @@ jest.mock('@metamask/perps-controller', () => {
 describe('perps controller init', () => {
   const perpsControllerClassMock = jest.mocked(PerpsController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<PerpsControllerMessenger>
+    MessengerClientInitRequest<PerpsControllerMessenger>
   >;
 
   beforeEach(() => {
@@ -54,8 +55,10 @@ describe('perps controller init', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    // Create messenger client init request mock
+    initRequestMock = buildMessengerClientInitRequestMock(
+      baseControllerMessenger,
+    );
 
     // Mock getState to return proper Redux state structure for feature flags
     // Using Partial since we only need RemoteFeatureFlagController for this test
@@ -129,6 +132,8 @@ describe('perps controller init', () => {
       hip3ConfigVersion: 0,
       withdrawInProgress: false,
       lastWithdrawResult: null,
+      lastCompletedWithdrawalTimestamp: null,
+      lastCompletedWithdrawalTxHashes: [],
       withdrawalRequests: [],
       withdrawalProgress: {
         progress: 0,

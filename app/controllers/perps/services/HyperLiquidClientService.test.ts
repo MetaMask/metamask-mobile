@@ -521,7 +521,7 @@ describe('HyperLiquidClientService', () => {
         { t: 1700003600000, o: 50500, h: 51500, l: 50000, c: 51000, v: 150 },
       ];
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockResolvedValue(mockResponse);
 
@@ -555,19 +555,46 @@ describe('HyperLiquidClientService', () => {
           },
         ],
       });
-      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith({
-        coin: 'BTC', // SDK uses 'coin' terminology
-        interval: '1h',
-        startTime: expect.any(Number),
-        endTime: expect.any(Number),
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'BTC', // SDK uses 'coin' terminology
+          interval: '1h',
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        },
+        undefined,
+      );
+    });
+
+    it('uses the default limit and forwards an explicit abort signal', async () => {
+      const abortController = new AbortController();
+      mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      await service.fetchHistoricalCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        signal: abortController.signal,
       });
+
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'BTC',
+          interval: '1h',
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        },
+        abortController.signal,
+      );
+
+      const request = mockInfoClientHttp.candleSnapshot.mock.calls[0][0];
+      expect(request.endTime - request.startTime).toBe(100 * 60 * 60 * 1000);
     });
 
     it('handles empty candles response', async () => {
       // Arrange
       const mockResponse: any[] = [];
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockResolvedValue(mockResponse);
 
@@ -589,7 +616,7 @@ describe('HyperLiquidClientService', () => {
     it('handles API errors gracefully', async () => {
       // Arrange
       const errorMessage = 'API request failed';
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockRejectedValue(new Error(errorMessage));
 
@@ -611,7 +638,7 @@ describe('HyperLiquidClientService', () => {
         candles: [],
       };
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockResolvedValue(mockResponse);
 
@@ -623,15 +650,18 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Assert
-      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith({
-        coin: 'ETH', // SDK uses 'coin' terminology
-        interval: '5m',
-        startTime: expect.any(Number),
-        endTime: expect.any(Number),
-      });
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'ETH', // SDK uses 'coin' terminology
+          interval: '5m',
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        },
+        undefined,
+      );
 
       // Verify time range calculation
-      const callArgs = mockInfoClientWs.candleSnapshot.mock.calls[0][0];
+      const callArgs = mockInfoClientHttp.candleSnapshot.mock.calls[0][0];
       const timeDiff = callArgs.endTime - callArgs.startTime;
       const expectedTimeDiff = 50 * 5 * 60 * 1000; // 50 intervals * 5 minutes * 60 seconds * 1000ms
       expect(timeDiff).toBe(expectedTimeDiff);
@@ -650,7 +680,7 @@ describe('HyperLiquidClientService', () => {
 
         // Reset mock before each iteration
         jest.clearAllMocks();
-        mockInfoClientWs.candleSnapshot = jest
+        mockInfoClientHttp.candleSnapshot = jest
           .fn()
           .mockResolvedValue(mockResponse);
 
@@ -662,7 +692,7 @@ describe('HyperLiquidClientService', () => {
         });
 
         // Assert
-        const callArgs = mockInfoClientWs.candleSnapshot.mock.calls[0][0];
+        const callArgs = mockInfoClientHttp.candleSnapshot.mock.calls[0][0];
         const timeDiff = callArgs.endTime - callArgs.startTime;
         expect(timeDiff).toBe(10 * expected);
       }
@@ -677,7 +707,7 @@ describe('HyperLiquidClientService', () => {
 
       const mockResponse: any[] = [];
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockResolvedValue(mockResponse);
 
@@ -689,7 +719,7 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Assert
-      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalled();
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalled();
       // The testnet configuration is handled in the service initialization
     });
 
@@ -705,6 +735,32 @@ describe('HyperLiquidClientService', () => {
           limit: 100,
         }),
       ).rejects.toThrow('CLIENT_NOT_INITIALIZED');
+    });
+
+    it('uses HTTP transport instead of WebSocket for historical fetches (TAT-2954)', async () => {
+      // Arrange
+      const mockResponse = [
+        { t: 1700000000000, o: 50000, h: 51000, l: 49000, c: 50500, v: 100 },
+      ];
+      mockInfoClientHttp.candleSnapshot = jest
+        .fn()
+        .mockResolvedValue(mockResponse);
+
+      // Spy on getInfoClient to verify useHttp option
+      const getInfoClientSpy = jest.spyOn(service, 'getInfoClient');
+
+      // Act
+      await service.fetchHistoricalCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        limit: 100,
+      });
+
+      // Assert — HTTP transport used, not WebSocket
+      expect(getInfoClientSpy).toHaveBeenCalledWith({ useHttp: true });
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalled();
+
+      getInfoClientSpy.mockRestore();
     });
   });
 
@@ -768,7 +824,7 @@ describe('HyperLiquidClientService', () => {
         },
       ];
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockResolvedValue(mockHistoricalData);
 
@@ -793,11 +849,12 @@ describe('HyperLiquidClientService', () => {
       await jest.advanceTimersByTimeAsync(100);
 
       // Assert - should have fetched historical data (SDK uses 'coin' terminology)
-      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith(
         expect.objectContaining({
           coin: 'BTC',
           interval: '1h',
         }),
+        expect.any(AbortSignal),
       );
 
       // Assert - callback invoked with historical data
@@ -838,7 +895,7 @@ describe('HyperLiquidClientService', () => {
         },
       ];
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockResolvedValue(mockHistoricalData);
 
@@ -887,7 +944,7 @@ describe('HyperLiquidClientService', () => {
         },
       ];
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockResolvedValue(mockHistoricalData);
 
@@ -955,7 +1012,7 @@ describe('HyperLiquidClientService', () => {
         },
       ];
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockResolvedValue(mockHistoricalData);
 
@@ -1031,7 +1088,7 @@ describe('HyperLiquidClientService', () => {
         },
       ];
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockResolvedValue(mockHistoricalData);
 
@@ -1074,7 +1131,7 @@ describe('HyperLiquidClientService', () => {
 
     it('handles empty historical data', async () => {
       // Arrange
-      mockInfoClientWs.candleSnapshot = jest.fn().mockResolvedValue([]);
+      mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
 
       (mockSubscriptionClient as any).candle = jest
         .fn()
@@ -1101,7 +1158,7 @@ describe('HyperLiquidClientService', () => {
 
     it('invokes unsubscribe when cleanup function called', async () => {
       // Arrange
-      mockInfoClientWs.candleSnapshot = jest.fn().mockResolvedValue([]);
+      mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
 
       const mockWsUnsubscribe = jest.fn();
       (mockSubscriptionClient as any).candle = jest
@@ -1136,7 +1193,7 @@ describe('HyperLiquidClientService', () => {
         resolveSnapshot = resolve;
       });
 
-      mockInfoClientWs.candleSnapshot = jest
+      mockInfoClientHttp.candleSnapshot = jest
         .fn()
         .mockReturnValue(delayedPromise);
 
@@ -1167,9 +1224,38 @@ describe('HyperLiquidClientService', () => {
       expect(callback).not.toHaveBeenCalled(); // Callback should not be invoked after unsubscribe
     });
 
+    it('suppresses error when cleanup aborts in-flight REST call', async () => {
+      // Arrange - make snapshot reject with abort error
+      const abortError = new Error('AbortError');
+      abortError.name = 'AbortError';
+      mockInfoClientHttp.candleSnapshot = jest
+        .fn()
+        .mockRejectedValue(abortError);
+
+      const onError = jest.fn();
+      const callback = jest.fn();
+
+      // Act - subscribe then immediately unsubscribe (triggers abort)
+      const unsubscribe = service.subscribeToCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+        onError,
+      });
+
+      unsubscribe();
+
+      // Wait for async rejection to propagate
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Assert - error suppressed (abort is intentional), callback not invoked
+      expect(onError).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
+    });
+
     it('cleans up WebSocket when unsubscribed during subscription establishment', async () => {
       // Arrange - fast snapshot, slow WebSocket subscription
-      mockInfoClientWs.candleSnapshot = jest.fn().mockResolvedValue([]);
+      mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
 
       let resolveWsSubscription: (value: any) => void = () => {
         /* noop */

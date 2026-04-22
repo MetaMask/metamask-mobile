@@ -173,6 +173,62 @@ testID={`token-item-${token.symbol}`}
 testID={`network-option-${network.chainId}`}
 ```
 
+## Snapshot Testing Policy - MANDATORY
+
+### The Rule
+
+- ❌ **`toMatchSnapshot()` is BANNED** — Do not use it. Do not add it. Do not approve it.
+- ✅ **`toMatchInlineSnapshot()` is ALLOWED** — Use sparingly, only when the serialized output is the meaningful assertion.
+
+### Why `toMatchSnapshot()` Is Banned
+
+External snapshot files (`.snap`) have three critical problems:
+
+1. **Invisible in review** — The diff lives in a separate `.snap` file that reviewers routinely rubber-stamp. Regressions hide there.
+2. **No code ownership** — `CODEOWNERS` explicitly assigns `**/*.snap` to *nobody*, meaning no team is accountable for snapshot correctness.
+3. **Brittle by design** — Any style tweak, whitespace change, or unrelated refactor regenerates the snapshot and silently passes CI.
+
+### Why `toMatchInlineSnapshot()` Is Allowed
+
+The snapshot string lives directly in the test file, so:
+- It appears in the PR diff alongside the code that produces it
+- The file's code owner is responsible for reviewing it
+- Reviewers can see exactly what changed and why
+
+### When to Use `toMatchInlineSnapshot()`
+
+Only use it when the serialized shape of the output **is** the assertion — for example, verifying a complex object structure, a formatted string, or a serialized data payload. Do **not** use it as a lazy substitute for explicit `expect` calls.
+
+```ts
+// ❌ BANNED — writes to an external .snap file
+expect(tree).toMatchSnapshot();
+expect(component).toMatchSnapshot();
+expect(result).toMatchSnapshot();
+
+// ✅ ALLOWED — snapshot is inline and visible in review
+expect(result).toMatchInlineSnapshot(`
+  {
+    "chainId": "0x1",
+    "name": "Ethereum Mainnet",
+  }
+`);
+
+// ✅ PREFERRED — explicit assertions are always better than snapshots
+expect(result.chainId).toBe('0x1');
+expect(result.name).toBe('Ethereum Mainnet');
+```
+
+### Migrating Existing `toMatchSnapshot()` Calls
+
+When you encounter an existing `toMatchSnapshot()` call:
+1. **Prefer replacing it** with explicit `expect` assertions targeting the specific values that matter.
+2. If the full serialized output is genuinely meaningful, convert to `toMatchInlineSnapshot()`.
+3. Delete the corresponding `.snap` file entry once migrated.
+
+Do **not** leave `toMatchSnapshot()` in place when modifying a test file — migrate it as part of your change.
+
+---
+
 ## Assertions - PREFER toBeOnTheScreen
 
 - **ALWAYS use `toBeOnTheScreen()`** to assert element presence - NOT `toBeTruthy()` or `toBeDefined()`
@@ -233,6 +289,66 @@ See [PR #25548](https://github.com/MetaMask/metamask-mobile/pull/25548) for refa
 - **NO** use of `any` type - use proper TypeScript types
 - **Mock all external dependencies** including APIs, services, hooks
 - **Use realistic mock data** that reflects real usage
+
+### Theme Mocking Rules
+
+- **Prefer shared `mockTheme` from `app/util/theme`** instead of hard-coded color literals in tests.
+- **Never hardcode design token hex values** in assertions or theme mocks (enforced by `@metamask/design-tokens/color-no-hex`).
+- **Avoid local hex color objects** for `useTheme`, `useStyles`, or tailwind mock color functions.
+- **If a test only needs a specific theme field**, derive it from `mockTheme` (or spread `mockTheme` and override minimally).
+
+```ts
+// ✅ CORRECT: use shared mockTheme for useTheme mocks
+import { mockTheme } from '../../util/theme';
+
+jest.mock('../../util/theme', () => ({
+  useTheme: () => mockTheme,
+}));
+```
+
+```ts
+// ✅ CORRECT: return { styles, theme } for useStyles mocks
+import { mockTheme } from '../../util/theme';
+
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: jest.fn((styleFn, vars) => ({
+    styles: styleFn({ theme: mockTheme, vars }),
+    theme: mockTheme,
+  })),
+}));
+```
+
+```ts
+// ✅ CORRECT: mock useTailwind with the right shape
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    // Most components only need tw.style(...)
+    style: jest.fn(() => ({})),
+  }),
+}));
+```
+
+```ts
+// ✅ ALSO CORRECT: match real useTailwind() return type (callable function + helpers)
+import { mockTheme } from '../../util/theme';
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
+  },
+}));
+```
+
+```ts
+// ❌ AVOID: local hex color mocks
+const mockColors = {
+  text: { default: '#000000' },
+  background: { default: '#FFFFFF' },
+  border: { muted: '#E5E7EB' },
+};
+```
 
 ```ts
 // ✅ CORRECT
@@ -338,7 +454,7 @@ it.each(['small', 'medium', 'large'] as const)('renders %s size', (size) => {
 ## Test Determinism
 
 - **EVERYTHING** not under test must be mocked - no exceptions.
-- Avoid brittle tests: do not test internal state or UI snapshots for logic.
+- Avoid brittle tests: do not test internal state or UI snapshots for logic. **`toMatchSnapshot()` is banned** — see Snapshot Testing Policy above.
 - Only test public behavior, not implementation details.
 - Mock time, randomness, and external systems to ensure consistent results.
 
@@ -454,7 +570,7 @@ expect(result).toBe(false);
 ```
 
 - Ensure tests use proper matchers (`toBeOnTheScreen` vs `toBeDefined`).
-- Do not approve PRs without reviewing snapshot diffs, it can reveal errors.
+- **Reject any new `.snap` files or new `toMatchSnapshot()` calls** — these are banned; require the author to use explicit assertions or `toMatchInlineSnapshot()` instead.
 - Reject tests with complex names combining multiple logical conditions (AND/OR).
 
 # Refactoring Support
@@ -467,6 +583,7 @@ expect(result).toBe(false);
 
 Before submitting any test file, verify:
 
+- [ ] **No `toMatchSnapshot()` calls** — BANNED; use explicit assertions or `toMatchInlineSnapshot()` instead
 - [ ] **No mocking to inject testIDs** - Use component's built-in testID support
 - [ ] **testIDs via child prop objects** - Use `closeButtonProps={{ testID }}` not mocks
 - [ ] **No "should" in any test name**
@@ -485,6 +602,7 @@ Before submitting any test file, verify:
 
 # Common Mistakes to AVOID - CRITICAL
 
+- ❌ **Using `toMatchSnapshot()`** — BANNED; it writes opaque `.snap` files with no code owner; use explicit assertions or `toMatchInlineSnapshot()` instead
 - ❌ **Mocking to inject testIDs** - Components already support testID (see guidelines above)
 - ❌ **Using "should" in test names** - This is the #1 mistake, use action-oriented descriptions
 - ❌ **Testing multiple behaviors in one test** - One test, one behavior
@@ -528,8 +646,9 @@ yarn test:unit:coverage
 ## Workflow Requirements
 
 - Confirm all tests are passing before commit.
-- When a snapshot update is detected, confirm the changes are expected.
-- Do not blindly update snapshots without understanding the differences.
+- **Do not add new `toMatchSnapshot()` calls** — this is banned. See Snapshot Testing Policy.
+- When modifying a test file that contains `toMatchSnapshot()`, opportunistically migrate those calls to explicit assertions or `toMatchInlineSnapshot()` — do not block a PR solely to force migration, but do not add new ones.
+- `toMatchInlineSnapshot()` updates are acceptable but must be reviewed — confirm the new inline snapshot reflects an intentional, expected change.
 
 # Reference Code Examples
 
@@ -546,12 +665,14 @@ it('indicates expired milk when past due date', () => {
 });
 ```
 
-## ❌ Brittle Snapshot
+## ❌ Banned: `toMatchSnapshot()`
 
 ```ts
+// ❌ BANNED — toMatchSnapshot() writes to an external .snap file.
+// It has no code owner, hides regressions, and breaks on trivial changes.
 it('renders the button', () => {
   const { container } = render(<MyButton />);
-  expect(container).toMatchSnapshot(); // 🚫 fails on minor style changes
+  expect(container).toMatchSnapshot(); // 🚫 BANNED — do not use
 });
 ```
 
@@ -580,7 +701,7 @@ it('hides selector when disabled', () => {
 
 ## Reviewer Responsibilities
 
-Validate tests fail when code breaks • Ensure proper matchers • Review snapshot diffs • Reject complex names with AND/OR
+Validate tests fail when code breaks • Ensure proper matchers • **Reject new `toMatchSnapshot()` calls and new `.snap` files** • Reject complex names with AND/OR
 
 ```ts
 // OK
@@ -592,6 +713,6 @@ it('renders and disables button when input is empty or missing required field');
 
 ## Workflow
 
-Always run tests after changes • Confirm all pass before commit • Review snapshot changes • Don't blindly update snapshots
+Always run tests after changes • Confirm all pass before commit • **Do not add new `toMatchSnapshot()` calls** — migrate existing ones to explicit assertions or `toMatchInlineSnapshot()` when touching a test file
 
 **Resources**: [Contributor docs](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md) • [Jest Matchers](https://jestjs.io/docs/using-matchers) • [React Native Testing Library](https://testing-library.com/docs/react-native-testing-library/intro/)

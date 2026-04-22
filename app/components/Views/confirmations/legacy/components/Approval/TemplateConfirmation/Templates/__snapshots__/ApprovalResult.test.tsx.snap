@@ -94,7 +94,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         style={
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -299,7 +299,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,

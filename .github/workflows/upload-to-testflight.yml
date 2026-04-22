@@ -1,0 +1,166 @@
+name: Upload to TestFlight
+
+# Upload a pre-built iOS IPA (artifact from build.yml) to TestFlight.
+# Summary table uses workflow inputs only (no checkout / repo parsing in the summary job).
+#
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Build environment / track (exp, beta, rc)'
+        required: true
+        type: string
+      testflight_group:
+        description: 'TestFlight external testing group'
+        required: false
+        type: string
+        default: 'MetaMask BETA & Release Candidates'
+      source_branch:
+        description: 'Original branch the user asked to build (e.g. main); from caller'
+        required: true
+        type: string
+      build_branch:
+        description: 'Branch that was built'
+        required: true
+        type: string
+      build_name:
+        description: 'Must match build.yml build_name (artifact ios-ipa-{build_name})'
+        required: true
+        type: string
+      build_commit_sha:
+        description: 'Built commit SHA; from build.yml built_commit_sha output'
+        required: true
+        type: string
+      build_version:
+        description: 'Semantic version at built commit; from build.yml semantic_version output (eg. 7.77.0)'
+        required: true
+        type: string
+      build_number:
+        description: 'The build number of the app (eg. 4134)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  testflight-upload-summary:
+    name: TestFlight upload summary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display TestFlight upload summary
+        run: |
+          {
+            echo "### 📲 TestFlight Upload"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Source branch** | \`${{ inputs.source_branch }}\` |"
+            echo "| **Build branch** | \`${{ inputs.build_branch }}\` |"
+            echo "| **Build name** | \`${{ inputs.build_name }}\` |"
+            echo "| **Build commit SHA** | \`${{ inputs.build_commit_sha }}\` |"
+            echo "| **Build version** | \`${{ inputs.build_version }}\` |"
+            echo "| **Build number** | \`${{ inputs.build_number }}\` |"
+            echo "| **TestFlight group** | ${{ inputs.testflight_group }} |"
+            echo "| **Workflow branch ref** | \`${{ github.ref_name }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  upload-ios-testflight:
+    name: Upload iOS to TestFlight
+    needs: [testflight-upload-summary]
+    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe-xl
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Ruby (iOS)
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Download iOS IPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-ipa-${{ inputs.build_name }}
+
+      - name: Find IPA path
+        id: ipa
+        run: |
+          IPA=$(find . -name '*.ipa' -type f | head -1)
+          if [ -z "$IPA" ]; then
+            echo "::error::No .ipa file found in artifact"
+            exit 1
+          fi
+          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
+          echo "path=$ABS" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_APPLE_TESTFLIGHT }}
+          aws-region: 'us-east-2'
+
+      - name: Fetch Apple API keys from AWS Secrets Manager
+        run: |
+          echo "🔐 Fetching App Store Connect API keys from Secrets Manager..."
+          secret_id="metamask-mobile-main-apple-api-keys"
+          secret_json=$(aws secretsmanager get-secret-value \
+            --region 'us-east-2' \
+            --secret-id "$secret_id" \
+            --query SecretString \
+            --output text)
+
+          for key in APP_STORE_CONNECT_API_KEY_ISSUER_ID APP_STORE_CONNECT_API_KEY_KEY_ID; do
+            value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k] // empty')
+            if [ -z "$value" ]; then
+              echo "::error::Missing key in secret: $key"
+              exit 1
+            fi
+            echo "::add-mask::$value"
+            echo "${key}=${value}" >> "$GITHUB_ENV"
+          done
+
+          key=APP_STORE_CONNECT_API_KEY_KEY_CONTENT
+          value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k] // empty')
+          if [ -z "$value" ]; then
+            echo "::error::Missing key in secret: $key"
+            exit 1
+          fi
+          while IFS= read -r line || [ -n "$line" ]; do
+            [ -n "$line" ] && echo "::add-mask::$line"
+          done <<< "$(printf '%s\n' "$value")"
+
+          delim="APPLEP8$(openssl rand -hex 16)"
+          {
+            printf '%s<<%s\n' "$key" "$delim"
+            printf '%s\n' "$value"
+            printf '%s\n' "$delim"
+          } >> "$GITHUB_ENV"
+
+          echo "✅ Apple API keys loaded from AWS"
+
+      - name: Setup App Store Connect API Key
+        run: |
+          bash scripts/setup-app-store-connect-api-key.sh \
+            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
+
+      - name: Upload to TestFlight
+        run: |
+          bash scripts/upload-to-testflight.sh \
+            "github_actions_main-${{ inputs.environment }}" \
+            "${{ inputs.source_branch }}" \
+            "${{ steps.ipa.outputs.path }}" \
+            "${{ inputs.testflight_group }}"
+
+      - name: Cleanup API Key
+        if: always()
+        run: |
+          rm -f ios/AuthKey.p8
+          echo "🧹 Cleaned up API key file"

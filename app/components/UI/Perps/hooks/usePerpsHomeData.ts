@@ -16,7 +16,10 @@ import {
   type SortField,
 } from '@metamask/perps-controller';
 import type { PerpsTransaction } from '../types/transactionHistory';
-import { transformFillsToTransactions } from '../utils/transactionTransforms';
+import {
+  transformFillsToTransactions,
+  mergeOrderFills,
+} from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
@@ -94,8 +97,10 @@ export const usePerpsHomeData = ({
   // Note: We don't track loading state - WebSocket data displays immediately,
   // REST fills merge silently in the background via mergedFills
   useEffect(() => {
-    // Guard: Skip REST fetch until connection is ready
-    if (!isConnected || !isInitialized) {
+    // Clear REST history whenever the perps context is reconnecting so we
+    // never blend the previous account/provider's fills into the new context.
+    if (!isConnected || !isInitialized || isConnecting) {
+      setRestFills([]);
       return;
     }
 
@@ -121,31 +126,12 @@ export const usePerpsHomeData = ({
     return () => {
       isMounted = false;
     };
-  }, [isConnected, isInitialized]);
+  }, [isConnected, isInitialized, isConnecting]);
 
-  // Merge REST + WebSocket fills with deduplication
-  // Live fills take precedence over REST fills (more up-to-date)
-  const mergedFills = useMemo(() => {
-    // Use Map for efficient deduplication
-    const fillsMap = new Map<string, OrderFill>();
-
-    // Add REST fills first
-    for (const fill of restFills) {
-      const key = `${fill.orderId}-${fill.timestamp}`;
-      fillsMap.set(key, fill);
-    }
-
-    // Add live fills (overwrites duplicates from REST - live data is fresher)
-    for (const fill of liveFills) {
-      const key = `${fill.orderId}-${fill.timestamp}`;
-      fillsMap.set(key, fill);
-    }
-
-    // Convert back to array and sort by timestamp descending (newest first)
-    return Array.from(fillsMap.values()).sort(
-      (a, b) => b.timestamp - a.timestamp,
-    );
-  }, [restFills, liveFills]);
+  const mergedFills = useMemo(
+    () => mergeOrderFills(restFills, liveFills),
+    [restFills, liveFills],
+  );
 
   // Transform merged fills to PerpsTransaction format for activity display
   const tradesOnly = useMemo(
@@ -182,7 +168,7 @@ export const usePerpsHomeData = ({
   const perpsMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => !m.marketType), // Crypto markets have no marketType
+        markets: allMarkets.filter((m) => !m.marketType && !m.isHip3),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -321,7 +307,7 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return perpsMarkets;
     }
-    return filteredData.markets.filter((m) => !m.marketType);
+    return filteredData.markets.filter((m) => !m.marketType && !m.isHip3);
   }, [searchQuery, perpsMarkets, filteredData.markets]);
 
   const searchedStocksMarkets = useMemo(() => {
@@ -365,14 +351,15 @@ export const usePerpsHomeData = ({
     forexMarkets: searchedForexMarkets,
     recentActivity: limitedActivity,
     sortBy,
+    // Hooks handle reconnection internally: clearCache() sends null →
+    // callback sets isInitialLoading=true. No need to override with
+    // isConnecting, which would defeat disk-cache instant display on
+    // cold start (isConnecting is true while WS connects, but cached
+    // data is already available).
     isLoading: {
-      // During reconnection, treat WebSocket-backed data as loading so the UI
-      // shows skeletons instead of briefly flashing "no positions" → positions.
-      positions: isPositionsLoading || isConnecting,
-      orders: isOrdersLoading || isConnecting,
+      positions: isPositionsLoading,
+      orders: isOrdersLoading,
       markets: isMarketsLoading,
-      // Only wait for WebSocket fills (fast ~100ms), not REST fills (slow 3s+)
-      // REST fills merge in background via mergedFills without blocking initial render
       activity: isFillsLoading || isConnecting,
     },
     refresh,

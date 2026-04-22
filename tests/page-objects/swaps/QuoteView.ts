@@ -1,13 +1,35 @@
 import { waitFor } from 'detox';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
+import {
+  Assertions,
+  Gestures,
+  Matchers,
+  PlaywrightAssertions,
+  PlaywrightMatchers,
+  UnifiedGestures,
+  encapsulated,
+  encapsulatedAction,
+  asDetoxElement,
+  asPlaywrightElement,
+  type EncapsulatedElementType,
+  PlaywrightGestures,
+  PlatformDetector,
+  PlaywrightElement,
+} from '../../framework';
+import { getAssetTestId } from '../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
+  getChainIdForNetwork,
 } from '../../selectors/Bridge/QuoteView.selectors';
 
-const TOKEN_LIST_MATCHER = by.id(QuoteViewSelectorIDs.TOKEN_LIST);
+const TIMEOUT = {
+  SWAP_SCREEN_VISIBLE: 10000,
+  TOKEN_EXISTS_BEFORE_SCROLL: 15000,
+  QUOTE_DISPLAYED: 30000,
+  NETWORK_SELECT: 10000,
+  TOKEN_SELECT: 30000,
+  KEYPAD_DIGIT: 10000,
+} as const;
 
 class QuoteView {
   get selectAmountLabel(): DetoxElement {
@@ -26,12 +48,28 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
   }
 
-  get amountInput(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
+  get amountInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT,
+          { exact: true },
+        ),
+    });
   }
 
-  get destinationTokenArea(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA);
+  get destinationTokenArea(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA,
+          { exact: true },
+        ),
+    });
   }
 
   get searchToken(): Promise<Detox.IndexableNativeElement> {
@@ -52,8 +90,27 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  get bridgeViewScroll(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
+  get bridgeViewScroll(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL,
+          { exact: true },
+        ),
+    });
+  }
+
+  /** Fee disclaimer (e.g. "Includes 0.875% MetaMask fee") - used for isQuoteDisplayed. */
+  get feeDisclaimerLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(QuoteViewSelectorIDs.FEE_DISCLAIMER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(QuoteViewSelectorIDs.FEE_DISCLAIMER, {
+          exact: true,
+        }),
+    });
   }
 
   get keypadDeleteButton(): DetoxElement {
@@ -72,9 +129,13 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.RATE);
   }
 
+  /** Token selector testID - matches TokenSelectorItem's getAssetTestId(chainId-symbol). */
+  getTokenElementId(chainId: string, symbol: string): string {
+    return getAssetTestId(`${chainId}-${symbol}`);
+  }
+
   token(chainId: string, symbol: string): Detox.NativeElement {
-    const elementId = `asset-${chainId}-${symbol}`;
-    return element(by.id(elementId)).atIndex(0);
+    return element(by.id(this.getTokenElementId(chainId, symbol))).atIndex(0);
   }
 
   async enterAmount(amount: string): Promise<void> {
@@ -93,26 +154,52 @@ class QuoteView {
   }
 
   async tapToken(chainId: string, symbol: string): Promise<void> {
-    const tokenElement = this.token(chainId, symbol);
-    // Wait for the token element to exist first (network change may still be in progress)
-    await waitFor(tokenElement).toExist().withTimeout(15000);
-    // Scroll to the token element since it may be below the visible viewport
-    await Gestures.scrollToElement(
-      tokenElement as unknown as DetoxElement,
-      Promise.resolve(TOKEN_LIST_MATCHER),
-      {
-        direction: 'down',
-        scrollAmount: 350,
-        elemDescription: `Scroll to token symbol ${symbol}`,
+    await encapsulatedAction({
+      detox: async () => {
+        const tokenElement = this.token(chainId, symbol);
+        await waitFor(tokenElement)
+          .toExist()
+          .withTimeout(TIMEOUT.TOKEN_EXISTS_BEFORE_SCROLL);
+        await Gestures.scrollToElement(
+          tokenElement as unknown as DetoxElement,
+          Matchers.getIdentifier(QuoteViewSelectorIDs.TOKEN_LIST),
+          {
+            direction: 'down',
+            scrollAmount: 350,
+            elemDescription: `Scroll to token symbol ${symbol}`,
+          },
+        );
+        await Gestures.waitAndTap(tokenElement as unknown as DetoxElement, {
+          delay: 1000,
+          elemDescription: `Select token symbol ${symbol}`,
+        });
       },
-    );
-    await Gestures.waitAndTap(tokenElement as unknown as DetoxElement, {
-      delay: 1000,
-      elemDescription: `Select token symbol ${symbol}`,
+      appium: async () => {
+        let tokenElement: PlaywrightElement;
+        if (await PlatformDetector.isAndroid()) {
+          tokenElement = await PlaywrightMatchers.getElementById(
+            this.getTokenElementId(chainId, symbol),
+            { exact: false },
+          );
+        } else {
+          tokenElement = await PlaywrightMatchers.getElementByNameiOS(
+            this.getTokenElementId(chainId, symbol),
+          );
+        }
+        await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
+          timeout: TIMEOUT.TOKEN_SELECT,
+          description: `Token ${symbol} should be visible`,
+        });
+        await PlaywrightGestures.waitAndTap(tokenElement, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          delay: 1000,
+        });
+      },
     });
   }
 
-  async typeSearchToken(symbol: string) {
+  async typeSearchToken(symbol: string): Promise<void> {
     await Gestures.typeText(this.searchToken, symbol, {
       elemDescription: `Search Token with symbol ${symbol}`,
     });
@@ -136,8 +223,22 @@ class QuoteView {
    * Use before enterAmount() when the keypad may be closed (e.g. after returning from token/network selection).
    */
   async tapSourceAmountInput(): Promise<void> {
-    await Gestures.waitAndTap(this.amountInput, {
-      elemDescription: 'Tap source amount input to open keypad',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.amountInput, {
+          elemDescription: 'Tap source amount input to open keypad',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.amountInput),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1500,
+          },
+        );
+      },
     });
   }
 
@@ -148,8 +249,8 @@ class QuoteView {
   }
 
   async tapDestinationToken(): Promise<void> {
-    await Gestures.waitAndTap(this.destinationTokenArea, {
-      elemDescription: 'Tap destination asset picker',
+    await UnifiedGestures.waitAndTap(this.destinationTokenArea, {
+      description: 'Tap destination asset picker',
     });
   }
 
@@ -165,10 +266,27 @@ class QuoteView {
   }
 
   async selectNetwork(network: string): Promise<void> {
-    const networkElement = Matchers.getElementByText(network);
-    await Gestures.waitAndTap(networkElement, {
-      delay: 1000,
-      elemDescription: `Select network ${network}`,
+    await encapsulatedAction({
+      detox: async () => {
+        const networkElement = Matchers.getElementByText(network);
+        await Gestures.waitAndTap(networkElement, {
+          delay: 1000,
+          elemDescription: `Select network ${network}`,
+        });
+      },
+      appium: async () => {
+        const networkElement =
+          await PlaywrightMatchers.getElementByCatchAll(network);
+        await PlaywrightAssertions.expectElementToBeVisible(networkElement, {
+          timeout: TIMEOUT.NETWORK_SELECT,
+          description: `Network ${network} should be visible`,
+        });
+        await PlaywrightGestures.waitAndTap(networkElement, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          delay: 1000,
+        });
+      },
     });
   }
 
@@ -185,7 +303,7 @@ class QuoteView {
     });
   }
 
-  async tapOnBackButton() {
+  async tapOnBackButton(): Promise<void> {
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back button on Quote View',
     });
@@ -198,8 +316,109 @@ class QuoteView {
   }
 
   /**
+   * Asserts the swap/bridge view is visible (BridgeScreen.isVisible equivalent).
+   * Used by performance tests.
+   */
+  async isVisible(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          asDetoxElement(this.amountInput),
+          {
+            timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
+            description: 'Swap screen source token input should be visible',
+          },
+        );
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(this.amountInput),
+          {
+            timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
+            description: 'Swap screen source token input should be visible',
+          },
+        );
+      },
+    });
+  }
+
+  /**
+   * Asserts the quote is displayed (fee disclaimer visible).
+   * BridgeScreen.isQuoteDisplayed equivalent.
+   */
+  async isQuoteDisplayed(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          asDetoxElement(this.feeDisclaimerLabel),
+          {
+            timeout: TIMEOUT.QUOTE_DISPLAYED,
+            description: 'Fee disclaimer (quote) should be visible',
+          },
+        );
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(this.feeDisclaimerLabel),
+          {
+            timeout: TIMEOUT.QUOTE_DISPLAYED,
+            description: 'Fee disclaimer (quote) should be visible',
+          },
+        );
+      },
+    });
+  }
+
+  /**
+   * Selects destination network and token (BridgeScreen.selectNetworkAndTokenTo equivalent).
+   * Orchestrates tapDestinationToken, selectNetwork, tapToken. Supports Ethereum, Polygon, Solana.
+   */
+  async selectNetworkAndTokenTo(network: string, token: string): Promise<void> {
+    await this.tapDestinationToken();
+    if (network !== 'Ethereum') {
+      await this.selectNetwork(network);
+    }
+    const chainId = getChainIdForNetwork(network);
+    await this.tapToken(chainId, token);
+  }
+
+  /**
+   * Enters source token amount via keypad (BridgeScreen.enterSourceTokenAmount equivalent).
+   */
+  async enterSourceTokenAmount(amount: string): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await this.tapSourceAmountInput();
+        await this.enterAmount(amount);
+      },
+      appium: async () => {
+        await this.tapSourceAmountInput();
+        let digitEl: PlaywrightElement;
+        for (const digit of amount) {
+          if (await PlatformDetector.isAndroid()) {
+            digitEl = await PlaywrightMatchers.getElementByText(digit);
+          } else {
+            digitEl = await PlaywrightMatchers.getElementByXPath(
+              `//*[contains(@name,'keypad-key-${digit}')]`,
+            );
+          }
+          await PlaywrightAssertions.expectElementToBeVisible(digitEl, {
+            timeout: TIMEOUT.KEYPAD_DIGIT,
+            description: `Keypad digit ${digit} should be visible`,
+          });
+          await PlaywrightGestures.waitAndTap(digitEl, {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1000,
+          });
+        }
+      },
+    });
+  }
+
+  /**
    * Gets the slippage display text element (e.g., "2.5%")
-   * @param value - The slippage value to match (e.g., "2.5" for "2.5%")
+   * @param value - The slippage value to match (e.g., "2.5" for 2.5%)
    */
   slippageDisplayText(value: string): DetoxElement {
     return Matchers.getElementByText(`${value}%`);
@@ -211,7 +430,7 @@ class QuoteView {
    */
   async verifySlippageDisplayed(value: string): Promise<void> {
     await Assertions.expectElementToBeVisible(this.slippageDisplayText(value), {
-      timeout: 10000,
+      timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
       description: `Slippage should display ${value}%`,
     });
   }

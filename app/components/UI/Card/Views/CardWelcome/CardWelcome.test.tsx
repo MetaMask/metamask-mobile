@@ -59,10 +59,20 @@ jest.mock('../../../../../util/theme', () => {
   };
 });
 
-const createTestStore = (initialState = {}) =>
+const createTestStore = (
+  initialState: { cardholderAccounts?: string[] } = {},
+) =>
   configureStore({
     reducer: {
-      card: (state = { cardholderAccounts: [], ...initialState }) => state,
+      engine: (
+        state = {
+          backgroundState: {
+            CardController: {
+              cardholderAccounts: initialState.cardholderAccounts ?? [],
+            },
+          },
+        },
+      ) => state,
     },
   });
 

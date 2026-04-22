@@ -8,6 +8,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -21,13 +22,22 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      dispatch: mockDispatch,
     }),
+    StackActions: {
+      replace: jest.fn((routeName, params) => ({
+        type: 'REPLACE',
+        payload: { name: routeName, params },
+      })),
+    },
   };
 });
 
+let mockFromUpgrade = false;
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({
-    fromUpgrade: false,
+    fromUpgrade: mockFromUpgrade,
   }),
 }));
 
@@ -46,23 +56,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.order_completed.description':
         'Set up your virtual card and add it to your digital wallet to start earning cashback.',
       'card.order_completed.set_up_card_button': 'Set up card',
+      'card.order_completed.back_to_card_button': 'Back to card',
     };
     return map[key] || key;
   },
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-  };
-});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -80,6 +78,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
   return {
     Box: ({
       children,
@@ -91,6 +91,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(RNText, props, children),
+    Button: ({
+      children,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(
+        TouchableOpacity,
+        { onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(RNText, {}, children || label),
+      ),
     TextVariant: {
       HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
@@ -98,12 +111,23 @@ jest.mock('@metamask/design-system-react-native', () => {
     FontWeight: {
       Regular: 'Regular',
     },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
   };
 });
 
 describe('OrderCompleted', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFromUpgrade = false;
   });
 
   describe('Render', () => {
@@ -165,12 +189,31 @@ describe('OrderCompleted', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to Card Home when set up card button is pressed', () => {
+    it('navigates to SpendingLimit via StackActions.replace during onboarding flow', () => {
+      mockFromUpgrade = false;
+      const { StackActions } = jest.requireMock('@react-navigation/native');
+      const { getByTestId } = render(<OrderCompleted />);
+
+      fireEvent.press(getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON));
+
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.CARD.SPENDING_LIMIT,
+        { flow: 'onboarding' },
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'REPLACE' }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to Card Home when fromUpgrade is true', () => {
+      mockFromUpgrade = true;
       const { getByTestId } = render(<OrderCompleted />);
 
       fireEvent.press(getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 });

@@ -88,7 +88,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               "borderTopLeftRadius": 24,
               "borderTopRightRadius": 24,
               "borderWidth": 1,
-              "maxHeight": 640,
+              "maxHeight": 0,
               "overflow": "hidden",
               "paddingBottom": 0,
               "shadowColor": "#0000001a",
@@ -102,7 +102,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
             {
               "transform": [
                 {
-                  "translateY": 640,
+                  "translateY": 0,
                 },
               ],
             },
@@ -162,9 +162,8 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-Bold",
+                      "fontFamily": "Geist-SemiBold",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -382,7 +381,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 24,
                     "letterSpacing": 0,
                     "lineHeight": 32,
@@ -573,7 +572,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -628,7 +627,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,

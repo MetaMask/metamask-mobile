@@ -4,8 +4,11 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
 <RCTScrollView
   style={
     {
-      "flex": 1,
-      "paddingHorizontal": 16,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+      "paddingLeft": 16,
+      "paddingRight": 16,
       "paddingTop": 16,
     }
   }
@@ -98,7 +101,7 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,

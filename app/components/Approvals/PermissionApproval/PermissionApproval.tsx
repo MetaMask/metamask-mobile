@@ -5,7 +5,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
   Caip25EndowmentPermissionName,
@@ -14,6 +14,7 @@ import {
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 import { selectPendingApprovals } from '../../../selectors/approvalController';
 import { isEqual } from 'lodash';
+import { useSDKV2Connection } from '../../hooks/useSDKV2Connection';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -22,7 +23,7 @@ export interface PermissionApprovalProps {
 }
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
@@ -30,9 +31,12 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   // Prevents re-navigation for the same approval when pendingApprovals changes.
   const lastNavigatedApprovalIdRef = useRef<string | null>(null);
 
-  const eventSource = useOriginSource({
-    origin: approvalRequest?.requestData?.metadata?.origin,
-  });
+  const origin = approvalRequest?.requestData?.metadata?.origin;
+
+  const eventSource = useOriginSource({ origin });
+
+  const sdkV2Connection = useSDKV2Connection(origin);
+  const anonId = sdkV2Connection?.originatorInfo?.anonId;
 
   useEffect(() => {
     if (
@@ -74,6 +78,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
           source: eventSource,
           chain_id_list: chainIds,
           ...getApiAnalyticsProperties(isMultichainRequest),
+          ...(anonId ? { remote_session_id: anonId } : {}),
         })
         .build(),
     );
@@ -91,6 +96,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     trackEvent,
     createEventBuilder,
     eventSource,
+    anonId,
     // Re-run when the queue changes so new approvals are picked up.
     // The ref guard above prevents re-navigation for the same approval.
     pendingApprovals,

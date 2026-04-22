@@ -13,7 +13,10 @@ import type {
   SubscribePositionsParams,
   SubscribePricesParams,
 } from '../types';
-import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
+import {
+  adaptAccountStateFromSDK,
+  parseAssetName,
+} from '../utils/hyperLiquidAdapter';
 
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService';
@@ -56,6 +59,10 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
     detailedOrderType: order.orderType || 'Limit',
     isTrigger: order.isTrigger ?? false,
     reduceOnly: order.reduceOnly ?? false,
+    triggerPrice: order.triggerPx,
+    ...(typeof order.isPositionTpsl === 'boolean'
+      ? { isPositionTpsl: order.isPositionTpsl }
+      : {}),
   })),
   adaptAccountStateFromSDK: jest.fn(() => ({
     availableBalance: '1000.00',
@@ -106,6 +113,10 @@ describe('HyperLiquidSubscriptionService', () => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     mockDeps = createMockInfrastructure();
+    jest.mocked(parseAssetName).mockImplementation((symbol: string) => ({
+      symbol,
+      dex: null,
+    }));
 
     // Mock subscription client
     const mockSubscription: MockSubscription = {
@@ -113,7 +124,11 @@ describe('HyperLiquidSubscriptionService', () => {
     };
 
     mockSubscriptionClient = {
-      allMids: jest.fn((callback: any) => {
+      allMids: jest.fn((paramsOrCallback: any, maybeCallback?: any) => {
+        const callback =
+          typeof paramsOrCallback === 'function'
+            ? paramsOrCallback
+            : maybeCallback;
         // Simulate allMids data
         setTimeout(() => {
           callback({
@@ -365,6 +380,7 @@ describe('HyperLiquidSubscriptionService', () => {
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
       isTestnetMode: jest.fn(() => false),
       ensureTransportReady: jest.fn().mockResolvedValue(undefined),
+      getConnectionState: jest.fn(() => 'connected'),
     } as any;
 
     // Mock wallet service
@@ -734,6 +750,62 @@ describe('HyperLiquidSubscriptionService', () => {
           }),
         ],
         undefined, // isSnapshot is undefined for mock data without it
+      );
+
+      unsubscribe();
+    });
+
+    it('enriches WS fills with detailedOrderType from cached orders', async () => {
+      // Arrange — subscribe to orders first so #cachedOrders gets populated
+      const orderCallback = jest.fn();
+      service.subscribeToOrders({ callback: orderCallback });
+      await jest.runAllTimersAsync();
+
+      // Now subscribe to fills — the callback should enrich with cached order types
+      const fillCallback = jest.fn();
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              fills: [
+                {
+                  oid: BigInt(12345),
+                  coin: 'BTC',
+                  side: 'B',
+                  sz: '0.1',
+                  px: '50000',
+                  fee: '5',
+                  time: Date.now(),
+                  closedPnl: '0',
+                  dir: 'Open Long',
+                  feeToken: 'USDC',
+                  startPosition: '0',
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      // Act
+      const unsubscribe = service.subscribeToOrderFills({
+        callback: fillCallback,
+      });
+      await jest.runAllTimersAsync();
+
+      // Assert — fill received with orderId mapped and detailedOrderType enriched
+      expect(fillCallback).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            orderId: '12345',
+            symbol: 'BTC',
+            detailedOrderType: 'Limit',
+          }),
+        ],
+        undefined,
       );
 
       unsubscribe();
@@ -3122,6 +3194,61 @@ describe('HyperLiquidSubscriptionService', () => {
         : 0;
       expect(finalCallCount).toBe(initialCallCount);
     });
+
+    it('cleans up failed assetCtxs subscriptions so later HIP-3 resubscribes reconnect cleanly', async () => {
+      const mockCallback = jest.fn();
+      jest.mocked(parseAssetName).mockImplementation((symbol: string) => ({
+        symbol,
+        dex: symbol === 'BTC:UNISWAP' ? 'UNISWAP' : null,
+      }));
+
+      mockClientService.getInfoClient = jest.fn(
+        () =>
+          ({
+            meta: jest.fn().mockResolvedValue({
+              universe: [{ name: 'BTC:UNISWAP' }],
+            }),
+          }) as any,
+      );
+
+      mockSubscriptionClient.assetCtxs = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Subscription failed'))
+        .mockResolvedValueOnce({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        })
+        .mockResolvedValueOnce({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        });
+
+      const failedUnsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+      failedUnsubscribe();
+      await jest.runAllTimersAsync();
+
+      const recoveredUnsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+      recoveredUnsubscribe();
+      await jest.runAllTimersAsync();
+
+      const finalUnsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      expect(mockSubscriptionClient.assetCtxs).toHaveBeenCalledTimes(3);
+      finalUnsubscribe();
+    });
   });
 
   describe('Market Data Cache Initialization', () => {
@@ -3208,8 +3335,8 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await jest.runAllTimersAsync();
 
-      // Should not call meta/metaAndAssetCtxs when market data not requested
-      expect(mockInfoClient.meta).not.toHaveBeenCalled();
+      // assetCtxs subscription is always established (lightweight, 1 per DEX)
+      // so meta may be called for the assetCtxs mapping, but metaAndAssetCtxs should not
       expect(mockInfoClient.metaAndAssetCtxs).not.toHaveBeenCalled();
 
       unsubscribe();
@@ -3407,6 +3534,39 @@ describe('HyperLiquidSubscriptionService', () => {
       const result = service.getCachedFills();
 
       expect(result).toBeNull();
+    });
+
+    it('getLastAllMidsSnapshot returns a defensive copy and null for unknown dexes', async () => {
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+      });
+
+      await jest.runAllTimersAsync();
+
+      const snapshot = service.getLastAllMidsSnapshot();
+      expect(snapshot).toEqual(
+        expect.objectContaining({
+          BTC: 50000,
+          ETH: 3000,
+        }),
+      );
+
+      if (!snapshot) {
+        throw new Error('Expected allMids snapshot to be populated');
+      }
+
+      delete snapshot.BTC;
+
+      expect(service.getLastAllMidsSnapshot()).toEqual(
+        expect.objectContaining({
+          BTC: 50000,
+          ETH: 3000,
+        }),
+      );
+      expect(service.getLastAllMidsSnapshot('missing-dex')).toBeNull();
+
+      unsubscribe();
     });
 
     it('getFillsCacheIfInitialized returns null when cache not initialized', () => {
@@ -3986,43 +4146,30 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe();
     });
 
-    // TODO: Refactor to test through public disconnect/reconnect API
-    it.skip('handles errors during assetCtxs subscription restoration', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const { parseAssetName } = require('../utils/hyperLiquidAdapter');
-      jest.mocked(parseAssetName).mockImplementation((symbol: string) => {
-        if (symbol === 'BTC:UNISWAP') {
-          return { symbol, dex: 'UNISWAP' };
-        }
-        return { symbol, dex: null };
-      });
+    it('schedules retry when assetCtxs restoration fails', async () => {
+      jest.mocked(parseAssetName).mockImplementation((symbol: string) => ({
+        symbol,
+        dex: symbol === 'BTC:UNISWAP' ? 'UNISWAP' : null,
+      }));
 
-      const mockUnsubscribe = jest.fn();
-      const mockSubscription = { unsubscribe: mockUnsubscribe };
-
-      mockSubscriptionClient.activeAssetCtx.mockImplementation(
-        (params: any, callback: any) => {
-          setTimeout(() => {
-            callback({
-              coin: params.coin,
-              ctx: {
-                prevDayPx: '49000',
-                funding: '0.01',
-                openInterest: '1000000',
-                dayNtlVlm: '50000000',
-                oraclePx: '50100',
-                midPx: '50000',
-              },
-            });
-          }, 10);
-          return Promise.resolve(mockSubscription);
-        },
+      mockClientService.getInfoClient = jest.fn(
+        () =>
+          ({
+            meta: jest.fn().mockResolvedValue({
+              universe: [{ name: 'BTC:UNISWAP' }],
+            }),
+          }) as any,
       );
 
-      // Make assetCtxs fail
-      mockSubscriptionClient.assetCtxs.mockRejectedValueOnce(
-        new Error('Subscription failed'),
-      );
+      mockSubscriptionClient.assetCtxs = jest
+        .fn()
+        .mockResolvedValueOnce({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        })
+        .mockRejectedValueOnce(new Error('Subscription failed'))
+        .mockResolvedValueOnce({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        });
 
       const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC:UNISWAP'],
@@ -4032,12 +4179,13 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await jest.runAllTimersAsync();
 
-      // Clear subscriptions to simulate reconnection
-      (service as any).assetCtxsSubscriptions.clear();
-      (service as any).assetCtxsSubscriptionPromises.clear();
-
-      // Restore subscriptions should not throw
       await expect(service.restoreSubscriptions()).resolves.not.toThrow();
+      expect(mockSubscriptionClient.assetCtxs).toHaveBeenCalledTimes(2);
+
+      await jest.advanceTimersByTimeAsync(1000);
+
+      expect(mockSubscriptionClient.assetCtxs).toHaveBeenCalledTimes(3);
+      expect(mockDeps.logger.error).toHaveBeenCalled();
 
       unsubscribe();
     });
@@ -4523,6 +4671,177 @@ describe('HyperLiquidSubscriptionService', () => {
       // Should only have 3 levels on each side
       expect(orderBookData.bids.length).toBe(3);
       expect(orderBookData.asks.length).toBe(3);
+    });
+  });
+
+  describe('Subscription Race Guards (#28141)', () => {
+    it('unsubscribes stale assetCtxs when a newer pending promise exists', async () => {
+      jest.mocked(parseAssetName).mockImplementation((symbol: string) => ({
+        symbol,
+        dex: symbol === 'BTC:UNISWAP' ? 'UNISWAP' : null,
+      }));
+      service.setDexMetaCache('UNISWAP', {
+        universe: [{ name: 'BTC:UNISWAP' }],
+      } as any);
+
+      let resolveFirst: (sub: MockSubscription) => void = () => undefined;
+      const firstMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      const secondMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      mockSubscriptionClient.allMids.mockResolvedValue({
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      });
+
+      let callCount = 0;
+      mockSubscriptionClient.assetCtxs.mockImplementation(() => {
+        callCount += 1;
+        if (callCount === 1) {
+          return new Promise<MockSubscription>((resolve) => {
+            resolveFirst = resolve;
+          });
+        }
+        return Promise.resolve(secondMockSub);
+      });
+
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      unsubscribe();
+
+      await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      resolveFirst(firstMockSub);
+      await jest.runAllTimersAsync();
+
+      expect(firstMockSub.unsubscribe).toHaveBeenCalled();
+      expect(secondMockSub.unsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes stale BBO when a newer pending promise exists', async () => {
+      let resolveFirst: (sub: MockSubscription) => void = () => undefined;
+      const firstMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      const secondMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      let callCount = 0;
+      mockSubscriptionClient.bbo.mockImplementation(() => {
+        callCount += 1;
+        if (callCount === 1) {
+          return new Promise<MockSubscription>((resolve) => {
+            resolveFirst = resolve;
+          });
+        }
+
+        return Promise.resolve(secondMockSub);
+      });
+
+      const unsubscribe1 = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeOrderBook: true,
+      });
+      await jest.runAllTimersAsync();
+
+      unsubscribe1();
+
+      await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeOrderBook: true,
+      });
+      await jest.runAllTimersAsync();
+
+      resolveFirst(firstMockSub);
+      await jest.runAllTimersAsync();
+
+      expect(firstMockSub.unsubscribe).toHaveBeenCalled();
+      expect(secondMockSub.unsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes stale activeAssetCtx when a newer pending promise exists', async () => {
+      // Arrange: make first activeAssetCtx return a deferred promise
+      let resolveFirst: (sub: MockSubscription) => void = () => undefined;
+      const firstMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      const secondMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      let callCount = 0;
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(() => {
+        callCount += 1;
+        if (callCount === 1) {
+          // First call: deferred promise (simulates slow network)
+          return new Promise<MockSubscription>((resolve) => {
+            resolveFirst = resolve;
+          });
+        }
+        // Second call: resolves immediately
+        return Promise.resolve(secondMockSub);
+      });
+
+      // Act: first subscription
+      const unsubscribe1 = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      // Cleanup first subscription (decrements count, clears pending)
+      unsubscribe1();
+
+      // Second subscription for same symbol (creates new pending promise)
+      await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      // Now resolve the first (stale) promise
+      resolveFirst(firstMockSub);
+      await jest.runAllTimersAsync();
+
+      // Assert: stale subscription was unsubscribed
+      expect(firstMockSub.unsubscribe).toHaveBeenCalled();
+      // Fresh subscription was NOT unsubscribed
+      expect(secondMockSub.unsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('handles activeAssetCtx subscription error gracefully', async () => {
+      // Arrange: make activeAssetCtx reject
+      mockSubscriptionClient.activeAssetCtx.mockRejectedValue(
+        new Error('WebSocket connection failed'),
+      );
+
+      // Act: subscribe with market data — should not throw
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      // Assert: error was logged, service still functional
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+      expect(typeof unsubscribe).toBe('function');
     });
   });
 });

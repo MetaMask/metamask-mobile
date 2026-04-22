@@ -1,45 +1,15 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
 import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../../../UI/Earn/constants/musd';
-import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
-import { PayWithRow } from '../../rows/pay-with-row';
 import { CustomAmountInfo } from '../custom-amount-info';
-import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
 import { useMusdConversionQuoteTrace } from '../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace';
 import { endTrace, TraceName } from '../../../../../../util/trace';
 import { Hex } from '@metamask/utils';
-
-interface MusdOverrideContentProps {
-  amountHuman: string;
-}
-
-const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
-  amountHuman,
-}) => {
-  const { shouldShowOutputAmountTag, outputAmount, outputSymbol } =
-    useCustomAmount({ amountHuman });
-
-  const { hasTokens } = useTransactionPayAvailableTokens();
-
-  return (
-    <>
-      {shouldShowOutputAmountTag && outputAmount !== null && (
-        <OutputAmountTag
-          amount={outputAmount}
-          symbol={outputSymbol ?? undefined}
-          showBackground={false}
-        />
-      )}
-      {hasTokens && <PayWithRow />}
-    </>
-  );
-};
 
 interface MusdConversionConfirmationParams {
   preferredPaymentToken: {
@@ -89,15 +59,10 @@ export const MusdConversionInfo = () => {
     tokenAddress: tokenToAddAddress,
   });
 
-  const renderOverrideContent = useCallback(
-    (amountHuman: string) => <MusdOverrideContent amountHuman={amountHuman} />,
-    [],
-  );
-
   return (
     <CustomAmountInfo
       preferredToken={preferredPaymentToken}
-      overrideContent={renderOverrideContent}
+      hidePayTokenAmount
       hasMax
       onAmountSubmit={startQuoteTrace}
     />

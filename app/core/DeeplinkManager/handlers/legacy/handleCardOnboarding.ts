@@ -5,16 +5,9 @@ import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../Engine';
 import {
+  selectIsCardAuthenticated,
   selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-  selectCardGeoLocation,
-  setAlwaysShowCardButton,
-} from '../../../redux/slices/card';
-import {
-  selectCardExperimentalSwitch,
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
-} from '../../../../selectors/featureFlagController/card';
+} from '../../../../selectors/cardController';
 
 /**
  * Card onboarding deeplink handler
@@ -43,29 +36,8 @@ export const handleCardOnboarding = () => {
   try {
     const state = ReduxService.store.getState();
     const cardholderAccounts = selectCardholderAccounts(state);
-    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const isAuthenticated = selectIsCardAuthenticated(state);
     const hasCardLinkedAccount = cardholderAccounts.length > 0;
-    const cardGeoLocation = selectCardGeoLocation(state);
-    const isCardExperimentalSwitchEnabled = selectCardExperimentalSwitch(state);
-    const displayCardButtonFeatureFlag =
-      selectDisplayCardButtonFeatureFlag(state);
-    const cardSupportedCountries = selectCardSupportedCountries(
-      state,
-    ) as Record<string, boolean>;
-    const shouldOnboardingBeEnabled =
-      isCardExperimentalSwitchEnabled ||
-      (cardSupportedCountries?.[cardGeoLocation as string] === true &&
-        displayCardButtonFeatureFlag);
-
-    if (!shouldOnboardingBeEnabled) {
-      DevLogger.log(
-        '[handleCardOnboarding] Card onboarding is not enabled, skipping',
-      );
-      return;
-    }
-
-    ReduxService.store.dispatch(setAlwaysShowCardButton(true));
-    DevLogger.log('[handleCardOnboarding] Successfully enabled card button');
 
     // If user is logged in OR has a card-linked account
     if (isAuthenticated || hasCardLinkedAccount) {

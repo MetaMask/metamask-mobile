@@ -7,6 +7,7 @@ export interface PolymarketPosition {
   icon: string;
   title: string;
   slug: string;
+  eventSlug?: string;
   size: number;
   outcome: string;
   outcomeIndex: number;
@@ -149,6 +150,9 @@ export interface PolymarketApiMarket {
 }
 
 export interface PolymarketApiSeries {
+  id: string;
+  slug: string;
+  title: string;
   recurrence: string;
 }
 

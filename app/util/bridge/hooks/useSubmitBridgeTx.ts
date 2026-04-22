@@ -1,16 +1,65 @@
-import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import { BridgeQuoteResponse } from '../../../components/UI/Bridge/types';
+import type {
+  MetaMetricsSwapsEventSource,
+  QuoteMetadata,
+  QuoteResponse,
+} from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { selectAbTestContext } from '../../../core/redux/slices/bridge';
-import { handleIntentTransaction } from '../../../lib/transaction/intent';
+import { useABTest } from '../../../hooks';
+import {
+  NUMPAD_QUICK_ACTIONS_AB_KEY,
+  NUMPAD_QUICK_ACTIONS_VARIANTS,
+} from '../../../components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+} from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
+import {
+  STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
+} from '../../../components/UI/TokenDetails/components/abTestConfig';
+import { useMemo } from 'react';
+
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../transactions/transaction-active-ab-test-attribution-registry';
+
+function mergeTransactionActiveAbTests(
+  ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
+): TransactionActiveAbTestEntry[] | undefined {
+  const merged: TransactionActiveAbTestEntry[] = [];
+  for (const group of groups) {
+    if (group?.length) {
+      merged.push(...group);
+    }
+  }
+  return merged.length > 0 ? merged : undefined;
+}
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const abTestContext = useSelector(selectAbTestContext);
+  const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
+    useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
+  const {
+    variantName: tokenSelectorVariantName,
+    isActive: isTokenSelectorAbActive,
+  } = useABTest(
+    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  );
+  const {
+    variantName: stickyFooterVariantName,
+    isActive: isStickyFooterAbActive,
+  } = useABTest(
+    STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+    STICKY_FOOTER_SWAP_LABEL_VARIANTS,
+  );
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -18,32 +67,85 @@ export default function useSubmitBridgeTx() {
           abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
       }
     : undefined;
+  const activeAbTests = useMemo(() => {
+    const tests: { key: string; value: string }[] = [];
+
+    if (isNumpadAbActive) {
+      tests.push({
+        key: NUMPAD_QUICK_ACTIONS_AB_KEY,
+        value: numpadVariantName,
+      });
+    }
+
+    if (isTokenSelectorAbActive) {
+      tests.push({
+        key: TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+        value: tokenSelectorVariantName,
+      });
+    }
+
+    if (isStickyFooterAbActive) {
+      tests.push({
+        key: STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+        value: stickyFooterVariantName,
+      });
+    }
+
+    return tests.length > 0 ? tests : undefined;
+  }, [
+    isNumpadAbActive,
+    numpadVariantName,
+    isTokenSelectorAbActive,
+    tokenSelectorVariantName,
+    isStickyFooterAbActive,
+    stickyFooterVariantName,
+  ]);
 
   const submitBridgeTx = async ({
     quoteResponse,
     location,
+    transactionActiveAbTests: transactionActiveAbTestsFromRoute,
   }: {
-    quoteResponse: BridgeQuoteResponse;
+    quoteResponse: QuoteResponse & QuoteMetadata;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
+    /** Route-carried tests (e.g. homepage trending sections) merged at submit time */
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   }) => {
-    // check whether quoteResponse is an intent transaction
-    if (quoteResponse.quote.intent) {
-      return handleIntentTransaction(quoteResponse, walletAddress, abTests);
-    }
     if (!walletAddress) {
       throw new Error('Wallet address is not set');
     }
-    return Engine.context.BridgeStatusController.submitTx(
-      walletAddress,
-      {
-        ...quoteResponse,
-        approval: quoteResponse.approval ?? undefined,
+
+    const mergedActiveAbTests = mergeTransactionActiveAbTests(
+      activeAbTests,
+      transactionActiveAbTestsFromRoute,
+    );
+    return await withPendingTransactionActiveAbTests(
+      mergedActiveAbTests,
+      async () => {
+        // check whether quoteResponse is an intent transaction
+        if (quoteResponse.quote.intent) {
+          return await Engine.context.BridgeStatusController.submitIntent({
+            quoteResponse,
+            accountAddress: walletAddress,
+            location,
+            abTests,
+            activeAbTests: mergedActiveAbTests,
+          });
+        }
+        return await Engine.context.BridgeStatusController.submitTx(
+          walletAddress,
+          {
+            ...quoteResponse,
+            approval: quoteResponse.approval ?? undefined,
+          },
+          stxEnabled,
+          undefined, // quotesReceivedContext
+          location,
+          abTests,
+          mergedActiveAbTests,
+        );
       },
-      stxEnabled,
-      undefined, // quotesReceivedContext
-      location,
-      abTests,
     );
   };
 

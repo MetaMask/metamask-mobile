@@ -27,7 +27,6 @@ interface MockComponentProps {
 const mockNavigate = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn();
-const mockEnsureArbitrumNetworkExists = jest.fn();
 const mockStartPulseAnimation = jest.fn();
 const mockGetAnimatedStyle = jest.fn(() => ({}));
 const mockStopAnimation = jest.fn();
@@ -97,8 +96,26 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsWithdrawConfirmation', () => ({
+  usePerpsWithdrawConfirmation: jest.fn(() => ({
+    withdrawWithConfirmation: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
+}));
+
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
 }));
 
 jest.mock('../../hooks/usePerpsDepositProgress', () => ({
@@ -259,7 +276,7 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const { View } = jest.requireActual('react-native');
   return {
     Skeleton: jest.fn(({ testID, width, height }) => (
@@ -328,6 +345,9 @@ describe('PerpsMarketBalanceActions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
 
     mockUsePerpsLiveAccount.mockReturnValue({
       account: defaultPerpsAccount,
@@ -350,16 +370,13 @@ describe('PerpsMarketBalanceActions', () => {
       depositWithConfirmation: mockDepositWithConfirmation,
     });
 
-    mockUsePerpsNetworkManagement.mockReturnValue({
-      ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
-    });
+    mockUsePerpsNetworkManagement.mockReturnValue({});
 
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
     });
 
     mockDepositWithConfirmation.mockResolvedValue({});
-    mockEnsureArbitrumNetworkExists.mockResolvedValue({});
   });
 
   describe('Rendering', () => {

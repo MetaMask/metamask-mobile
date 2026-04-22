@@ -4,6 +4,9 @@
  * Portable: no mobile-specific imports.
  * Formatters are injected via MarketDataFormatters interface.
  */
+import { hasProperty } from '@metamask/utils';
+
+import { parseAssetName } from './hyperLiquidAdapter';
 import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type {
@@ -11,7 +14,6 @@ import type {
   MarketType,
   MarketDataFormatters,
 } from '../types';
-import { parseAssetName } from './hyperLiquidAdapter';
 import type {
   AllMidsResponse,
   PerpsUniverse,
@@ -221,7 +223,7 @@ export function transformMarketData(
     // Get current funding rate from assetCtx - this is the actual current funding rate
     let fundingRate: number | undefined;
 
-    if (assetCtx && 'funding' in assetCtx) {
+    if (assetCtx && hasProperty(assetCtx, 'funding')) {
       fundingRate = parseFloat(assetCtx.funding);
     }
 

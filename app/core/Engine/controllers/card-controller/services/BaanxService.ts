@@ -25,6 +25,7 @@ interface RequestOptions {
   tokenSet?: CardAuthTokens;
   timeout?: number;
   headers?: Record<string, string>;
+  location?: CardLocation;
 }
 
 export class BaanxService {
@@ -57,8 +58,17 @@ export class BaanxService {
   }
 
   async request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+    // Prefer explicit location override, then token-embedded location (set at
+    // login time), then the service-level currentLocation (set during initiateAuth
+    // for unauthenticated flows). Without this, cold-start requests use the
+    // 'international' default because initiateAuth is not called for already-
+    // authenticated users, causing x-us-env:false for US accounts.
+    const effectiveLocation =
+      opts.location ??
+      (opts.tokenSet?.location as CardLocation | undefined) ??
+      this.currentLocation;
     const headers: Record<string, string> = {
-      'x-us-env': String(this.currentLocation === 'us'),
+      'x-us-env': String(effectiveLocation === 'us'),
       ...opts.headers,
     };
 
@@ -108,23 +118,29 @@ export class BaanxService {
     }
   }
 
-  async get<T>(path: string, tokenSet?: CardAuthTokens): Promise<T> {
-    return this.request<T>(path, { tokenSet });
+  async get<T>(
+    path: string,
+    tokenSet?: CardAuthTokens,
+    location?: CardLocation,
+  ): Promise<T> {
+    return this.request<T>(path, { tokenSet, location });
   }
 
   async post<T>(
     path: string,
     body: unknown,
     tokenSet?: CardAuthTokens,
+    location?: CardLocation,
   ): Promise<T> {
-    return this.request<T>(path, { method: 'POST', body, tokenSet });
+    return this.request<T>(path, { method: 'POST', body, tokenSet, location });
   }
 
   async put<T>(
     path: string,
     body: unknown,
     tokenSet?: CardAuthTokens,
+    location?: CardLocation,
   ): Promise<T> {
-    return this.request<T>(path, { method: 'PUT', body, tokenSet });
+    return this.request<T>(path, { method: 'PUT', body, tokenSet, location });
   }
 }

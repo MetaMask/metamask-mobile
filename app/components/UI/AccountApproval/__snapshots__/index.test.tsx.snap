@@ -127,7 +127,7 @@ exports[`AccountApproval renders correctly 1`] = `
         style={
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 14,
             "textAlign": "center",
           }
@@ -178,9 +178,9 @@ exports[`AccountApproval renders correctly 1`] = `
     style={
       {
         "color": "#131416",
-        "fontFamily": "Geist-Bold",
+        "fontFamily": "Geist-SemiBold",
         "fontSize": 20,
-        "fontWeight": "700",
+        "fontWeight": "600",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 8,
@@ -275,7 +275,7 @@ exports[`AccountApproval renders correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -336,7 +336,7 @@ exports[`AccountApproval renders correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 14,
                 "textAlign": "center",
               },

@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Text as RNText } from 'react-native';
 import { TokenSelectorItem } from './TokenSelectorItem';
 import { ethers } from 'ethers';
+import { useABTest } from '../../../../hooks';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
 import {
   TOKEN_BALANCE_LOADING,
@@ -11,6 +13,10 @@ import {
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => []),
+}));
+
+jest.mock('../../../../hooks', () => ({
+  useABTest: jest.fn(),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -35,6 +41,10 @@ jest.mock('../../../../component-library/hooks', () => ({
       badgeWrapper: {},
       noFeeBadge: {},
       selectedItemWrapperReset: {},
+      tokenSymbolRow: {},
+      tokenSymbol: {},
+      verifiedIcon: {},
+      childrenWrapper: {},
     },
   }),
 }));
@@ -68,6 +78,29 @@ jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Md: 'Md' },
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  const Icon = jest.fn(({ testID, name }: { testID?: string; name: string }) =>
+    createElement(Text, { testID }, name),
+  );
+  return {
+    __esModule: true,
+    default: Icon,
+    Icon,
+    __mockIcon: Icon,
+    IconColor: { InfoDefault: 'InfoDefault' },
+    IconName: { VerifiedFilled: 'VerifiedFilled' },
+    IconSize: { Sm: 'Sm' },
+  };
+});
+
+const { __mockIcon: mockDSIcon } = jest.requireMock(
+  '@metamask/design-system-react-native',
+) as {
+  __mockIcon: jest.Mock;
+};
+
 jest.mock('../../../../component-library/base-components/TagBase', () => {
   const { createElement } = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -91,9 +124,18 @@ jest.mock('../../../../component-library/components/Tags/Tag', () => {
 
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
+  const mockUseABTest = jest.mocked(useABTest);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseABTest.mockReturnValue({
+      variant: {
+        showTokenBalanceFirst: false,
+        removeTickerFromTokenBalance: false,
+      },
+      variantName: 'control',
+      isActive: false,
+    });
   });
 
   describe('rendering', () => {
@@ -164,6 +206,56 @@ describe('TokenSelectorItem', () => {
         <TokenSelectorItem token={token} onPress={mockOnPress} isNoFeeAsset />,
       );
 
+      expect(getByText('No MM Fee')).toBeTruthy();
+    });
+
+    it('renders verified icon when token is verified', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        isVerified: true,
+      });
+
+      const { getByTestId } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(getByTestId('token-verified-icon-ETH')).toBeTruthy();
+      expect(mockDSIcon).toHaveBeenCalled();
+      expect(mockDSIcon.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          testID: 'token-verified-icon-ETH',
+          name: 'VerifiedFilled',
+          size: 'Sm',
+          color: 'InfoDefault',
+        }),
+      );
+    });
+
+    it('does not render verified icon when token is not verified', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        isVerified: false,
+      });
+
+      const { queryByTestId } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(queryByTestId('token-verified-icon-ETH')).toBeNull();
+      expect(mockDSIcon).not.toHaveBeenCalled();
+    });
+
+    it('renders verified icon alongside no fee badge', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        isVerified: true,
+      });
+
+      const { getByTestId, getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} isNoFeeAsset />,
+      );
+
+      expect(getByTestId('token-verified-icon-ETH')).toBeTruthy();
       expect(getByText('No MM Fee')).toBeTruthy();
     });
 
@@ -380,6 +472,58 @@ describe('TokenSelectorItem', () => {
       const fiatBalanceElement = getByText('$1,234.56');
 
       expect(fiatBalanceElement.props.numberOfLines).toBe(1);
+    });
+  });
+
+  describe('A/B variants', () => {
+    it('keeps fiat above token balance in the control layout', () => {
+      const token = createMockTokenWithBalance({
+        balance: '50.0',
+        balanceFiat: '$500',
+        symbol: 'USDC',
+      });
+
+      const controlRender = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+      expect(controlRender.getByText('50 USDC')).toBeOnTheScreen();
+
+      const controlTextOrder = controlRender
+        .UNSAFE_getAllByType(RNText)
+        .map((textNode) => String(textNode.props.children));
+      expect(controlTextOrder.indexOf('$500')).toBeLessThan(
+        controlTextOrder.indexOf('50 USDC'),
+      );
+    });
+
+    it('shows token balance first without the ticker in the treatment layout', () => {
+      mockUseABTest.mockReturnValue({
+        variant: {
+          showTokenBalanceFirst: true,
+          removeTickerFromTokenBalance: true,
+        },
+        variantName: 'treatment',
+        isActive: true,
+      });
+
+      const token = createMockTokenWithBalance({
+        balance: '50.0',
+        balanceFiat: '$500',
+        symbol: 'USDC',
+      });
+
+      const treatmentRender = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+      expect(treatmentRender.getByText('50')).toBeOnTheScreen();
+      expect(treatmentRender.queryByText('50 USDC')).not.toBeOnTheScreen();
+
+      const treatmentTextOrder = treatmentRender
+        .UNSAFE_getAllByType(RNText)
+        .map((textNode) => String(textNode.props.children));
+      expect(treatmentTextOrder.indexOf('50')).toBeLessThan(
+        treatmentTextOrder.indexOf('$500'),
+      );
     });
   });
 });
