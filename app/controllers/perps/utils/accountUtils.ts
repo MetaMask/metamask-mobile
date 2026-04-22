@@ -115,6 +115,15 @@ export function getSpotBalance(
   );
 }
 
+// `total - hold` gives the free-to-trade portion of supported spot collateral
+// (currently USDC only). Under HL's unified account mode — the default, where
+// most users are — `hold` captures perps margin reserved against spot USDC in
+// addition to classic open-spot-order reservations. This matches the "source
+// of truth for trading account balance across spot and perps" pattern HL
+// documents for unified accounts. For the current market surface (USDC
+// validator-operated perps, no HIP-3 markets, no portfolio margin) this is
+// the correct "reserved, not free to trade" signal. Revisit if USDH markets
+// or portfolio margin land.
 export function getAvailableToTradeSpotBalance(
   spotState?: SpotClearinghouseStateResponse | null,
 ): number {
