@@ -1322,6 +1322,11 @@ const Wallet = ({
             }
           />
         ) : null}
+        <BannerAlert
+          severity={BannerAlertSeverity.Info}
+          title="this is an OTA update test"
+          testID="OTA banner test"
+        />
         <NetworkConnectionBanner />
       </View>
       <>
