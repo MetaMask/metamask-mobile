@@ -1,0 +1,50 @@
+diff --git a/android/src/main/java/io/branch/rnbranch/RNBranchModule.java b/android/src/main/java/io/branch/rnbranch/RNBranchModule.java
+index cc1bd4d45b5a214e075f85502dc23d1f35be6271..3f768c161e445e603f6cb70efb7e299e9465e396 100644
+--- a/android/src/main/java/io/branch/rnbranch/RNBranchModule.java
++++ b/android/src/main/java/io/branch/rnbranch/RNBranchModule.java
+@@ -377,9 +377,43 @@ public class RNBranchModule extends ReactContextBaseJavaModule {
+     @Override
+     public void onCatalystInstanceDestroy() {
+         Log.d(REACT_CLASS,"onCatalystInstanceDestroy ");
++        unregisterInitSessionReceivers();
++    }
+ 
+-        LocalBroadcastManager.getInstance(getReactApplicationContext()).unregisterReceiver(mInitSessionFinishedEventReceiver);
+-        LocalBroadcastManager.getInstance(getReactApplicationContext()).unregisterReceiver(mInitSessionStartedEventReceiver);
++    /**
++     * React Native 0.74+ replaced {@link #onCatalystInstanceDestroy()} with {@link #invalidate()}.
++     * The deprecated method is no longer invoked on RN 0.76+, which causes the broadcast
++     * receivers registered in {@link #listenForInitSessionEventsToReactNative} to leak every
++     * time a new RNBranchModule instance is created (e.g. on dev reloads, or when the New
++     * Architecture instantiates the module more than once). Each leaked receiver listens for
++     * the same LocalBroadcast and calls {@link #sendRNEvent}, causing {@code branch.subscribe}
++     * to fire multiple times per deeplink. Overriding {@link #invalidate()} restores the
++     * cleanup path on modern React Native versions.
++     */
++    @Override
++    public void invalidate() {
++        Log.d(REACT_CLASS,"invalidate");
++        unregisterInitSessionReceivers();
++        super.invalidate();
++    }
++
++    private void unregisterInitSessionReceivers() {
++        try {
++            if (mInitSessionFinishedEventReceiver != null) {
++                LocalBroadcastManager.getInstance(getReactApplicationContext()).unregisterReceiver(mInitSessionFinishedEventReceiver);
++                mInitSessionFinishedEventReceiver = null;
++            }
++        } catch (IllegalArgumentException e) {
++            // receiver already unregistered
++        }
++        try {
++            if (mInitSessionStartedEventReceiver != null) {
++                LocalBroadcastManager.getInstance(getReactApplicationContext()).unregisterReceiver(mInitSessionStartedEventReceiver);
++                mInitSessionStartedEventReceiver = null;
++            }
++        } catch (IllegalArgumentException e) {
++            // receiver already unregistered
++        }
+     }
+ 
+     @Override

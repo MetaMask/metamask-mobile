@@ -454,7 +454,7 @@
     "react-native-background-timer": "2.1.1",
     "react-native-ble-plx": "3.4.0",
     "react-native-blob-util": "^0.19.9",
-    "react-native-branch": "^6.9.0",
+    "react-native-branch": "patch:react-native-branch@npm%3A6.9.0#~/.yarn/patches/react-native-branch-npm-6.9.0-01e1a29b1e.patch",
     "react-native-browser-polyfill": "0.1.2",
     "react-native-confetti": "^0.1.0",
     "react-native-confetti-cannon": "^1.5.0",
