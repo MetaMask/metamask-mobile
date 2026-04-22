@@ -6,7 +6,29 @@ import type { ABTestAnalyticsMapping } from './abTestAnalytics.types';
 import {
   createActiveABTestAssignment,
   normalizeActiveABTestAssignments,
+  type ActiveABTestAssignment,
 } from './activeABTestAssignments';
+
+const cloneEventWithAssignments = <
+  T extends {
+    properties: Record<string, unknown>;
+  },
+>(
+  event: T,
+  assignments: ActiveABTestAssignment[],
+): T => {
+  const clonedEvent = Object.create(
+    Object.getPrototypeOf(event),
+    Object.getOwnPropertyDescriptors(event),
+  ) as T;
+
+  clonedEvent.properties = {
+    ...event.properties,
+    active_ab_tests: assignments,
+  };
+
+  return clonedEvent;
+};
 
 const hasEventName = (
   mapping: ABTestAnalyticsMapping,
@@ -44,17 +66,7 @@ export const enrichWithABTests = <
       return event;
     }
 
-    const normalizedEvent = Object.create(
-      Object.getPrototypeOf(event),
-      Object.getOwnPropertyDescriptors(event),
-    ) as T;
-
-    normalizedEvent.properties = {
-      ...event.properties,
-      active_ab_tests: existingAssignments,
-    };
-
-    return normalizedEvent;
+    return cloneEventWithAssignments(event, existingAssignments);
   }
 
   const injectedAssignments = relevantMappings.flatMap((mapping) => {
@@ -74,17 +86,7 @@ export const enrichWithABTests = <
       return event;
     }
 
-    const normalizedEvent = Object.create(
-      Object.getPrototypeOf(event),
-      Object.getOwnPropertyDescriptors(event),
-    ) as T;
-
-    normalizedEvent.properties = {
-      ...event.properties,
-      active_ab_tests: existingAssignments,
-    };
-
-    return normalizedEvent;
+    return cloneEventWithAssignments(event, existingAssignments);
   }
   const mergedAssignments = [...existingAssignments];
   const existingKeys = new Set(existingAssignments.map(({ key }) => key));
@@ -98,15 +100,5 @@ export const enrichWithABTests = <
     mergedAssignments.push(assignment);
   }
 
-  const enrichedEvent = Object.create(
-    Object.getPrototypeOf(event),
-    Object.getOwnPropertyDescriptors(event),
-  ) as T;
-
-  enrichedEvent.properties = {
-    ...event.properties,
-    active_ab_tests: mergedAssignments,
-  };
-
-  return enrichedEvent;
+  return cloneEventWithAssignments(event, mergedAssignments);
 };
