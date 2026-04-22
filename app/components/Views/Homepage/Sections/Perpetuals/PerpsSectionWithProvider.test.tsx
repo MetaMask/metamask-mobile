@@ -30,12 +30,9 @@ jest.mock('../../../../UI/Perps/providers/PerpsStreamManager', () => ({
 jest.mock('./PerpsSection', () => {
   const RN = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
-  const MockPerpsSection = () =>
-    ReactActual.createElement(RN.Text, null, 'PerpsSection');
   return {
     __esModule: true,
-    PerpsSection: MockPerpsSection,
-    default: MockPerpsSection,
+    default: () => ReactActual.createElement(RN.Text, null, 'PerpsSection'),
   };
 });
 

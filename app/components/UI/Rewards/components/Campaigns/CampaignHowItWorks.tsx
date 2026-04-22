@@ -3,25 +3,22 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
-  BoxBackgroundColor,
   Text,
   TextVariant,
-  TextColor,
+  Icon,
+  IconColor,
+  IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import type { OndoCampaignHowItWorks } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
-import ContentfulRichText, {
-  isDocument,
-  documentToPlainText,
-} from '../ContentfulRichText/ContentfulRichText';
+import { getIconName } from '../../utils/formatUtils';
 
 export const CAMPAIGN_HOW_IT_WORKS_TEST_IDS = {
   CONTAINER: 'campaign-how-it-works-container',
   TITLE: 'campaign-how-it-works-title',
   STEP: 'campaign-how-it-works-step',
-  STEP_INDEX: 'campaign-how-it-works-step-index',
+  STEP_ICON: 'campaign-how-it-works-step-icon',
   STEP_TITLE: 'campaign-how-it-works-step-title',
   STEP_DESCRIPTION: 'campaign-how-it-works-step-description',
 } as const;
@@ -50,20 +47,13 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
         twClassName="gap-3"
         testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP}-${stepIndex}`}
       >
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          backgroundColor={BoxBackgroundColor.PrimaryMuted}
-          twClassName="w-6 h-6 rounded-full"
-          testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_INDEX}-${stepIndex}`}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {stepIndex + 1}
-          </Text>
+        <Box twClassName="w-6 h-6 items-center justify-center">
+          <Icon
+            name={getIconName(step.iconName)}
+            size={IconSize.Lg}
+            color={IconColor.IconDefault}
+            testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_ICON}-${stepIndex}`}
+          />
         </Box>
         <Box twClassName="flex-1">
           <Text
@@ -71,14 +61,15 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
             fontWeight={FontWeight.Medium}
             testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-${stepIndex}`}
           >
-            {documentToPlainText(step.title)}
+            {step.title}
           </Text>
-          {isDocument(step.description) && (
-            <ContentfulRichText
-              document={step.description}
-              testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-${stepIndex}`}
-            />
-          )}
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-alternative"
+            testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-${stepIndex}`}
+          >
+            {step.description}
+          </Text>
         </Box>
       </Box>
     ))}

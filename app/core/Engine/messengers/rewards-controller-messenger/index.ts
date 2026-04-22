@@ -56,15 +56,10 @@ import {
   RewardsDataServiceGetCampaignsAction,
   RewardsDataServiceOptInToCampaignAction,
   RewardsDataServiceGetCampaignParticipantStatusAction,
-  RewardsDataServiceGetBenefitsAction,
-  RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
   RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
   RewardsDataServiceGetOndoCampaignPortfolioPositionAction,
-  RewardsDataServiceGetOndoCampaignActivityAction,
-  RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction,
-  RewardsDataServiceGetOndoCampaignDepositsAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -104,8 +99,6 @@ type AllowedActions =
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetBenefitsAction
-  | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
@@ -113,10 +106,7 @@ type AllowedActions =
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
-  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
-  | RewardsDataServiceGetOndoCampaignActivityAction
-  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
-  | RewardsDataServiceGetOndoCampaignDepositsAction;
+  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -181,15 +171,10 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',
       'RewardsDataService:getDefaultRewardsEnvUrl',
-      'RewardsDataService:getBenefits',
-      'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
       'RewardsDataService:getOndoCampaignLeaderboard',
       'RewardsDataService:getOndoCampaignLeaderboardPosition',
       'RewardsDataService:getOndoCampaignPortfolioPosition',
-      'RewardsDataService:getOndoCampaignActivity',
-      'RewardsDataService:getOndoCampaignActivityLastUpdated',
-      'RewardsDataService:getOndoCampaignDeposits',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

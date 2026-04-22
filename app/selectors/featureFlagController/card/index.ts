@@ -119,6 +119,66 @@ const defaultCardFeatureFlag: CardFeatureFlag = {
   },
 };
 
+const defaultCardSupportedCountries: CardSupportedCountries = {
+  GG: true,
+  DE: true,
+  NO: true,
+  'CA-QC': true,
+  GI: true,
+  AD: true,
+  BE: true,
+  FI: true,
+  'CA-NB': true,
+  SV: true,
+  IM: true,
+  'CA-MB': true,
+  'CA-PE': true,
+  PT: true,
+  UY: true,
+  BG: true,
+  CH: true,
+  DK: true,
+  MT: true,
+  'CA-SK': true,
+  LU: true,
+  HR: true,
+  IS: true,
+  'CA-YT': true,
+  GR: true,
+  IT: true,
+  MX: true,
+  CO: true,
+  FR: true,
+  GT: true,
+  HU: true,
+  'CA-NL': true,
+  ES: true,
+  'CA-ON': true,
+  'CA-BC': true,
+  BR: true,
+  'CA-AB': true,
+  AR: true,
+  PA: true,
+  SE: true,
+  AT: true,
+  'CA-NS': true,
+  'CA-NT': true,
+  CY: true,
+  'CA-NU': true,
+  SI: true,
+  UK: true,
+  SK: true,
+  GB: true,
+  JE: true,
+  IE: true,
+  PL: true,
+  LI: true,
+  RO: true,
+  NL: true,
+};
+
+export type CardSupportedCountries = Record<string, boolean>;
+
 export interface GateVersionedFeatureFlag {
   enabled: boolean;
   minimumVersion: string;
@@ -146,6 +206,33 @@ export interface SupportedToken {
   name?: string | null;
   symbol?: string | null;
 }
+
+export const selectCardSupportedCountries = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    remoteFeatureFlags?.cardSupportedCountries ??
+    (defaultCardSupportedCountries as CardSupportedCountries),
+);
+
+export const selectDisplayCardButtonFeatureFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.displayCardButton as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectCardExperimentalSwitch = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.cardExperimentalSwitch2 as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
 
 export const selectCardFeatureFlag = createSelector(
   selectRemoteFeatureFlags,

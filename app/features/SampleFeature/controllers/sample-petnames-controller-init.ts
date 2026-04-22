@@ -1,4 +1,4 @@
-import type { MessengerClientInitFunction } from '../../../core/Engine/types';
+import type { ControllerInitFunction } from '../../../core/Engine/types';
 import {
   SamplePetnamesController,
   SamplePetnamesControllerMessenger,
@@ -7,7 +7,7 @@ import { createProjectLogger } from '@metamask/utils';
 
 const log = createProjectLogger('sample-petnames-controller');
 
-export const samplePetnamesControllerInit: MessengerClientInitFunction<
+export const samplePetnamesControllerInit: ControllerInitFunction<
   SamplePetnamesController,
   SamplePetnamesControllerMessenger
 > = (request) => {

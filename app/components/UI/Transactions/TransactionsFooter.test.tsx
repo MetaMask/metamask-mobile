@@ -158,41 +158,6 @@ describe('TransactionsFooter', () => {
       expect(getByText('View full history on Gnosisscan')).toBeTruthy();
     });
 
-    it('uses explorer hostname for label when omitGlobalProviderExplorerFallback is set', () => {
-      mockIsMainnetByChainId.mockReturnValue(false);
-      mockGetBlockExplorerName.mockReturnValue('Lineascan');
-
-      const { queryByText, getByText } = render(
-        <TransactionsFooter
-          chainId="0xe708"
-          providerType="mainnet"
-          rpcBlockExplorer="https://lineascan.build"
-          omitGlobalProviderExplorerFallback
-          onViewBlockExplorer={mockOnViewBlockExplorer}
-        />,
-      );
-
-      expect(
-        queryByText('View full history on Etherscan'),
-      ).not.toBeOnTheScreen();
-      expect(getByText('View full history on Lineascan')).toBeTruthy();
-    });
-
-    it('does not show generic Etherscan fallback without explorer URL when omitGlobalProviderExplorerFallback', () => {
-      mockIsMainnetByChainId.mockReturnValue(false);
-
-      const { queryByText } = render(
-        <TransactionsFooter
-          chainId="0xe708"
-          providerType="mainnet"
-          omitGlobalProviderExplorerFallback
-          onViewBlockExplorer={mockOnViewBlockExplorer}
-        />,
-      );
-
-      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
-    });
-
     it('hides button for RPC networks without block explorer', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
@@ -205,7 +170,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
+      expect(queryByText(/View full history/)).toBeNull();
     });
 
     it('hides button for RPC networks with undefined block explorer', () => {
@@ -219,7 +184,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
+      expect(queryByText(/View full history/)).toBeNull();
     });
 
     it('calls onViewBlockExplorer when button is pressed', () => {
@@ -265,7 +230,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
+      expect(queryByText(/View full history/)).toBeNull();
     });
 
     it('hides button for non-EVM chains with NO_RPC_BLOCK_EXPLORER', () => {
@@ -278,7 +243,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
+      expect(queryByText(/View full history/)).toBeNull();
     });
 
     it('calls onViewBlockExplorer for non-EVM chains', () => {
@@ -326,7 +291,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText('This is a disclaimer text')).not.toBeOnTheScreen();
+      expect(queryByText('This is a disclaimer text')).toBeNull();
     });
   });
 
@@ -388,7 +353,7 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
+      expect(queryByText(/View full history/)).toBeNull();
       expect(getByText('This is a disclaimer text')).toBeTruthy();
     });
   });
@@ -479,8 +444,8 @@ describe('TransactionsFooter', () => {
         />,
       );
 
-      expect(queryByText(/View full history/)).not.toBeOnTheScreen();
-      expect(queryByText('This is a disclaimer text')).not.toBeOnTheScreen();
+      expect(queryByText(/View full history/)).toBeNull();
+      expect(queryByText('This is a disclaimer text')).toBeNull();
     });
   });
 });

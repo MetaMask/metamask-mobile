@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   getDefaultNetworkControllerState,
   NetworkController,
@@ -114,7 +114,7 @@ export function getInitialNetworkControllerState(persistedState: {
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const networkControllerInit: MessengerClientInitFunction<
+export const networkControllerInit: ControllerInitFunction<
   NetworkController,
   NetworkControllerMessenger,
   NetworkControllerInitMessenger

@@ -91,7 +91,6 @@ export const PredictEventValues = {
     TRENDING_SEARCH: 'trending_search',
     TRENDING: 'trending',
     BUY_PREVIEW: 'buy_preview',
-    HOME_SECTION: 'home_section',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',

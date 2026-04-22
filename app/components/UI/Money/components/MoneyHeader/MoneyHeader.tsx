@@ -1,5 +1,13 @@
 import React from 'react';
-import { HeaderStandard, IconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
 interface MoneyHeaderProps {
@@ -14,22 +22,28 @@ interface MoneyHeaderProps {
 }
 
 const MoneyHeader = ({ onBackPress, onMenuPress }: MoneyHeaderProps) => (
-  <HeaderStandard
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    justifyContent={BoxJustifyContent.Between}
+    twClassName="px-1 pt-2 pb-5"
     testID={MoneyHeaderTestIds.CONTAINER}
-    onBack={onBackPress}
-    backButtonProps={{
-      accessibilityLabel: 'Back',
-      testID: MoneyHeaderTestIds.BACK_BUTTON,
-    }}
-    endButtonIconProps={[
-      {
-        iconName: IconName.MoreVertical,
-        onPress: onMenuPress,
-        accessibilityLabel: 'Menu',
-        testID: MoneyHeaderTestIds.MENU_BUTTON,
-      },
-    ]}
-  />
+  >
+    <ButtonIcon
+      iconName={IconName.ArrowLeft}
+      size={ButtonIconSize.Md}
+      onPress={onBackPress}
+      accessibilityLabel="Back"
+      testID={MoneyHeaderTestIds.BACK_BUTTON}
+    />
+    <ButtonIcon
+      iconName={IconName.MoreVertical}
+      size={ButtonIconSize.Md}
+      onPress={onMenuPress}
+      accessibilityLabel="Menu"
+      testID={MoneyHeaderTestIds.MENU_BUTTON}
+    />
+  </Box>
 );
 
 export default MoneyHeader;

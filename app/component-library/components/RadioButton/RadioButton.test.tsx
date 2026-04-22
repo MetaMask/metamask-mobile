@@ -15,7 +15,7 @@ import {
 describe('RadioButton', () => {
   it('should render correctly', () => {
     const wrapper = render(<RadioButton />);
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render the correct icon when isChecked is true', () => {

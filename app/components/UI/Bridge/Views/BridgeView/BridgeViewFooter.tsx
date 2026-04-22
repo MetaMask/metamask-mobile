@@ -31,19 +31,13 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds.ts';
-import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   location: MetaMetricsSwapsEventSource;
-  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-export const BridgeViewFooter = ({
-  latestSourceBalance,
-  location,
-  transactionActiveAbTests,
-}: Props) => {
+export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
   const { styles } = useStyles(createStyles);
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -76,7 +70,6 @@ export const BridgeViewFooter = ({
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
-          transactionActiveAbTests={transactionActiveAbTests}
         />
       </Box>
     );
@@ -121,7 +114,6 @@ export const BridgeViewFooter = ({
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
-          transactionActiveAbTests={transactionActiveAbTests}
         />
         <Box
           flexDirection={FlexDirection.Row}

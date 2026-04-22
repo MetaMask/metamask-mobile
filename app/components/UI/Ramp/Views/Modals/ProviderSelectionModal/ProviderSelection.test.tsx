@@ -185,12 +185,12 @@ describe('ProviderSelection', () => {
     });
   });
 
-  it('renders provider list when no quotes are available', () => {
-    const { getByText } = renderWithProvider();
-    expect(getByText('Transak')).toBeOnTheScreen();
+  it('matches snapshot when no quotes are available', () => {
+    const { toJSON } = renderWithProvider();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders loading state when quotes are loading', () => {
+  it('matches snapshot when quotes are loading', () => {
     jest.mocked(useRampsController).mockReturnValue({
       ...defaultMockController,
       userRegion: mockUserRegion,
@@ -198,14 +198,10 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { queryByText } = renderWithProvider(
-      mockProviders,
-      mockProviders[0],
-      {
-        quotesLoading: true,
-      },
-    );
-    expect(queryByText('Transak')).not.toBeOnTheScreen();
+    const { toJSON } = renderWithProvider(mockProviders, mockProviders[0], {
+      quotesLoading: true,
+    });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders skeleton loading state when quotes are loading', () => {
@@ -223,10 +219,10 @@ describe('ProviderSelection', () => {
         quotesLoading: true,
       },
     );
-    expect(queryByText('Transak')).not.toBeOnTheScreen();
+    expect(queryByText('Transak')).toBeNull();
   });
 
-  it('shows error message when quotes fail to load', async () => {
+  it('matches snapshot when quotes fail to load', async () => {
     jest.mocked(useRampsController).mockReturnValue({
       ...defaultMockController,
       userRegion: mockUserRegion,
@@ -234,13 +230,16 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
-      quotesError: 'Failed to load quotes',
-    });
+    const { toJSON, getByText } = renderWithProvider(
+      mockProviders,
+      mockProviders[0],
+      { quotesError: 'Failed to load quotes' },
+    );
 
     await waitFor(() => {
       expect(getByText('Failed to load quotes')).toBeOnTheScreen();
     });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onBack when back button is pressed', () => {
@@ -257,19 +256,24 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
-      showQuotes: true,
-      quotes: {
-        success: [],
-        sorted: [],
-        error: [],
-        customActions: [],
+    const { toJSON, getByText } = renderWithProvider(
+      mockProviders,
+      mockProviders[0],
+      {
+        showQuotes: true,
+        quotes: {
+          success: [],
+          sorted: [],
+          error: [],
+          customActions: [],
+        },
       },
-    });
+    );
 
     await waitFor(() => {
       expect(getByText('Transak')).toBeOnTheScreen();
     });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('filters out custom-action quotes when displaying provider quote', async () => {
@@ -287,18 +291,23 @@ describe('ProviderSelection', () => {
       selectedProvider: mockProviders[0],
     });
 
-    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
-      quotes: {
-        success: [customActionQuote, transakQuote],
-        sorted: [],
-        error: [],
-        customActions: [],
+    const { getByText, toJSON } = renderWithProvider(
+      mockProviders,
+      mockProviders[0],
+      {
+        quotes: {
+          success: [customActionQuote, transakQuote],
+          sorted: [],
+          error: [],
+          customActions: [],
+        },
       },
-    });
+    );
 
     await waitFor(() => {
-      expect(getByText('Transak')).toBeOnTheScreen();
+      expect(getByText('Transak')).toBeTruthy();
     });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('filters out quotes for providers not in the providers array', async () => {
@@ -329,7 +338,7 @@ describe('ProviderSelection', () => {
     await waitFor(() => {
       expect(getByText('Transak')).toBeTruthy();
     });
-    expect(queryByText('Stripe')).not.toBeOnTheScreen();
+    expect(queryByText('Stripe')).toBeNull();
   });
 
   it('renders empty state when there are no providers', () => {

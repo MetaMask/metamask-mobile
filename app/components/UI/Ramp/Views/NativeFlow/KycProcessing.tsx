@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import styleSheet from '../../Deposit/Views/KycProcessing/KycProcessing.styles';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { getDepositNavbarOptions } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Text,
@@ -25,20 +26,24 @@ import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
-import type { TransakUserDetails } from '@metamask/ramps-controller';
+import type {
+  TransakBuyQuote,
+  TransakUserDetails,
+} from '@metamask/ramps-controller';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { KYC_PROCESSING_TEST_IDS } from './KycProcessing.testIds';
+
+interface V2KycProcessingParams {
+  quote: TransakBuyQuote;
+}
 
 const V2KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const { quote } = useParams<V2KycProcessingParams>();
   const trackEvent = useAnalytics();
 
-  const {
-    getAdditionalRequirements,
-    getUserDetails,
-    buyQuote: quote,
-  } = useTransakController();
+  const { getAdditionalRequirements, getUserDetails } = useTransakController();
   const { routeAfterAuthentication } = useTransakRouting({
     screenLocation: 'V2 KycProcessing Screen',
   });
@@ -51,39 +56,34 @@ const V2KycProcessing = () => {
     null,
   );
   const [userDetailsError, setUserDetailsError] = useState<string | null>(null);
-  const [isContinueLoading, setIsContinueLoading] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleHeaderBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  useEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(
+        navigation,
+        { title: strings('deposit.kyc_processing.navbar_title') },
+        theme,
+      ),
+    );
+  }, [navigation, theme]);
 
-  const quoteId = quote?.quoteId;
-
-  // Fetch KYC forms when the screen gains focus.
-  // When behind the Checkout webview (via navigateToKycWebviewCallback), this
-  // fires once the webview is dismissed. When navigated to directly (e.g.
-  // SUBMITTED status), it fires immediately on mount.
-  useFocusEffect(
-    useCallback(() => {
-      if (!quoteId) return;
-      setKycFormsError(null);
-      const fetchKycForms = async () => {
-        try {
-          const result = await getAdditionalRequirements(quoteId);
-          setKycForms(result);
-        } catch (err) {
-          setKycFormsError(
-            parseUserFacingError(
-              err,
-              strings('deposit.kyc_processing.error_description'),
-            ),
-          );
-        }
-      };
-      fetchKycForms();
-    }, [getAdditionalRequirements, quoteId]),
-  );
+  useEffect(() => {
+    const fetchKycForms = async () => {
+      try {
+        const result = await getAdditionalRequirements(quote.quoteId);
+        setKycForms(result);
+      } catch (err) {
+        setKycFormsError(
+          parseUserFacingError(
+            err,
+            strings('deposit.kyc_processing.error_description'),
+          ),
+        );
+      }
+    };
+    fetchKycForms();
+  }, [getAdditionalRequirements, quote.quoteId]);
 
   const fetchUserDetailsCallback = useCallback(async () => {
     try {
@@ -136,8 +136,6 @@ const V2KycProcessing = () => {
   }, [kycStatus, stopPolling]);
 
   const handleContinue = useCallback(async () => {
-    if (!quote) return;
-    setIsContinueLoading(true);
     try {
       await routeAfterAuthentication(quote);
     } catch (routeError) {
@@ -145,8 +143,6 @@ const V2KycProcessing = () => {
         message: 'V2KycProcessing::handleContinue error',
         quote,
       });
-    } finally {
-      setIsContinueLoading(false);
     }
   }, [routeAfterAuthentication, quote]);
 
@@ -171,12 +167,6 @@ const V2KycProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
-            title={strings('deposit.kyc_processing.navbar_title')}
-            onBack={handleHeaderBack}
-            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-            includesTopInset
-          />
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
@@ -201,7 +191,6 @@ const V2KycProcessing = () => {
               onPress={handleContinue}
               variant={ButtonVariant.Primary}
               isFullWidth
-              isLoading={isContinueLoading}
             >
               {strings('deposit.kyc_processing.error_button')}
             </Button>
@@ -216,12 +205,6 @@ const V2KycProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
-            title={strings('deposit.kyc_processing.navbar_title')}
-            onBack={handleHeaderBack}
-            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-            includesTopInset
-          />
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
@@ -252,7 +235,6 @@ const V2KycProcessing = () => {
               onPress={handleContinue}
               variant={ButtonVariant.Primary}
               isFullWidth
-              isLoading={isContinueLoading}
             >
               {strings('deposit.kyc_processing.success_button')}
             </Button>
@@ -266,12 +248,6 @@ const V2KycProcessing = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
-          title={strings('deposit.kyc_processing.navbar_title')}
-          onBack={handleHeaderBack}
-          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-          includesTopInset
-        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={3} />
           <View style={styles.container}>

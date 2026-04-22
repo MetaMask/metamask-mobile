@@ -21,8 +21,6 @@ import { getHashMetricsProperties } from '../metrics_properties/hash';
 import { getBatchMetricsProperties } from '../metrics_properties/batch';
 import { getGasMetricsProperties } from '../metrics_properties/gas';
 import { getSecurityAlertResponseProperties } from '../metrics_properties/security-alert-response';
-import { getSwapTransactionActiveAbTestProperties } from '../metrics_properties/swap-transaction-ab-tests';
-import { registerPendingTransactionActiveAbTestsForTransactionIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const log = createProjectLogger('transaction-metrics');
 
@@ -36,28 +34,15 @@ const METRICS_BUILDERS: TransactionMetricsBuilder[] = [
   getRPCMetricsProperties,
   getStxMetricsProperties,
   getHashMetricsProperties,
-  getSwapTransactionActiveAbTestProperties,
 ];
 
-interface CreateTransactionEventHandlerOptions {
-  /**
-   * Runs synchronously before async metric builders so pending side effects
-   * (e.g. A/B attribution registration) cannot lose ordering vs. builders.
-   */
-  syncBeforeMetrics?: (transactionMeta: TransactionMeta) => void;
-}
-
 const createTransactionEventHandler =
-  (
-    eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS],
-    options?: CreateTransactionEventHandlerOptions,
-  ) =>
+  (eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS]) =>
   async (
     transactionMeta: TransactionMeta,
     transactionEventHandlerRequest: TransactionEventHandlerRequest,
   ) => {
     try {
-      options?.syncBeforeMetrics?.(transactionMeta);
       const metrics = await getBuilderMetrics({
         builders: METRICS_BUILDERS,
         eventType,
@@ -91,15 +76,7 @@ const createTransactionEventHandler =
   };
 
 export const handleTransactionAddedEventForMetrics =
-  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED, {
-    syncBeforeMetrics: (transactionMeta) => {
-      if (transactionMeta.id) {
-        registerPendingTransactionActiveAbTestsForTransactionIds([
-          transactionMeta.id,
-        ]);
-      }
-    },
-  });
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED);
 
 export const handleTransactionApprovedEventForMetrics =
   createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_APPROVED);

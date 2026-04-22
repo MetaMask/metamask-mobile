@@ -88,7 +88,7 @@ const CustomAction: React.FC<Props> = ({
       testID={CUSTOM_ACTION_TEST_IDS.ANIMATED_VIEW_OPACITY}
     >
       <Box
-        onPress={highlighted || isLoading ? undefined : onPress}
+        onPress={highlighted ? undefined : onPress}
         highlighted={highlighted}
         activeOpacity={0.8}
         accessible={!highlighted}
@@ -109,8 +109,8 @@ const CustomAction: React.FC<Props> = ({
                 </View>
               )}
               <TouchableOpacity
-                onPress={highlighted && !isLoading ? showInfo : undefined}
-                disabled={!highlighted || isLoading}
+                onPress={highlighted ? showInfo : undefined}
+                disabled={!highlighted}
                 accessibilityLabel={`${provider?.name} logo`}
                 accessibilityHint="Shows provider details"
               >

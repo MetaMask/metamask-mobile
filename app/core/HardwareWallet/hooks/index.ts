@@ -8,4 +8,3 @@ export { useAdapterLifecycle } from './useAdapterLifecycle';
 export { useTransportMonitoring } from './useTransportMonitoring';
 export { useDeviceDiscovery } from './useDeviceDiscovery';
 export { useDeviceConnectionFlow } from './useDeviceConnectionFlow';
-export { useQRSigningState } from './useQRSigningState';

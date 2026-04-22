@@ -6,13 +6,8 @@ import { RPCBridgeAdapter } from './rpc-bridge-adapter';
 import { whenEngineReady } from '../utils/when-engine-ready';
 import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
 import { whenStoreReady } from '../utils/when-store-ready';
-import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 
 jest.mock('../../BackgroundBridge/BackgroundBridge');
-jest.mock('../../RPCMethods/RPCMethodMiddleware', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
 jest.mock('../utils/when-engine-ready', () => ({
   whenEngineReady: jest.fn(),
 }));
@@ -35,7 +30,6 @@ jest.mock('../../Engine', () => ({
 }));
 
 const MockedBackgroundBridge = BackgroundBridge as any;
-const mockedGetRpcMethodMiddleware = getRpcMethodMiddleware as jest.Mock;
 const mockedWhenEngineReady = whenEngineReady as jest.Mock;
 const mockedWhenOnboardingComplete = whenOnboardingComplete as jest.Mock;
 const mockedWhenStoreReady = whenStoreReady as jest.Mock;
@@ -48,9 +42,6 @@ describe('RPCBridgeAdapter', () => {
   let onUnlockCallback: () => void;
   let backgroundBridgeInstance: any;
   let sendMessageCallback: (response: unknown) => void;
-  let getRpcMethodMiddlewareCallback: (args: {
-    getProviderState: () => void;
-  }) => void;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -81,7 +72,6 @@ describe('RPCBridgeAdapter', () => {
     // Capture the instance and sendMessage callback from the mock constructor
     MockedBackgroundBridge.mockImplementation((args: any) => {
       sendMessageCallback = args.sendMessage;
-      getRpcMethodMiddlewareCallback = args.getRpcMethodMiddleware;
       backgroundBridgeInstance = {
         onMessage: jest.fn(),
         onDisconnect: jest.fn(),
@@ -213,48 +203,6 @@ describe('RPCBridgeAdapter', () => {
       sendMessageCallback(mockResponse); // Simulate response from BackgroundBridge
 
       expect(responseSpy).toHaveBeenCalledWith(mockResponse);
-    });
-  });
-
-  describe('analytics.remote_session_id', () => {
-    const initAndInvokeMiddleware = async (connInfo: ConnectionInfo) => {
-      adapter = new RPCBridgeAdapter(connInfo);
-      mockedEngine.context.KeyringController.isUnlocked.mockReturnValue(true);
-      adapter.send({ method: 'init' });
-      await new Promise(process.nextTick);
-      getRpcMethodMiddlewareCallback({ getProviderState: jest.fn() });
-    };
-
-    it('passes metadata.analytics.remote_session_id when present', async () => {
-      const connInfo: ConnectionInfo = {
-        ...mockConnection,
-        metadata: {
-          ...mockConnection.metadata,
-          analytics: { remote_session_id: 'remote-session-xyz' },
-        },
-      };
-
-      await initAndInvokeMiddleware(connInfo);
-
-      expect(mockedGetRpcMethodMiddleware).toHaveBeenCalledWith(
-        expect.objectContaining({
-          analytics: expect.objectContaining({
-            remote_session_id: 'remote-session-xyz',
-          }),
-        }),
-      );
-    });
-
-    it('falls back to empty string when metadata.analytics is missing', async () => {
-      await initAndInvokeMiddleware(mockConnection);
-
-      expect(mockedGetRpcMethodMiddleware).toHaveBeenCalledWith(
-        expect.objectContaining({
-          analytics: expect.objectContaining({
-            remote_session_id: '',
-          }),
-        }),
-      );
     });
   });
 

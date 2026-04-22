@@ -32,11 +32,9 @@ export function BridgeTimeRow() {
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
 
-  const isSameChain = payToken?.chainId != null && payToken.chainId === chainId;
-
   const showEstimate =
     !hasTransactionType(transactionMetadata, HIDE_TYPES) &&
-    (isLoading || Boolean(quotes?.length) || isSameChain) &&
+    (isLoading || Boolean(quotes?.length)) &&
     !selectedFiatPaymentMethod;
 
   if (!showEstimate) {
@@ -46,6 +44,8 @@ export function BridgeTimeRow() {
   if (isLoading) {
     return <InfoRowSkeleton testId="bridge-time-row-skeleton" />;
   }
+
+  const isSameChain = payToken?.chainId === chainId;
   const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
 
   return (

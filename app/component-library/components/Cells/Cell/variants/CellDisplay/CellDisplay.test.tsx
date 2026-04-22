@@ -12,7 +12,7 @@ import { SAMPLE_CELLDISPLAY_PROPS } from './CellDisplay.constants';
 describe('CellDisplay', () => {
   it('should render default settings correctly', () => {
     const wrapper = render(<CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />);
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render CellDisplay', () => {
     const { queryByTestId } = render(

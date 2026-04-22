@@ -285,16 +285,6 @@ describe('PopularTokenRow', () => {
 
       expect(mockTrackBuyButtonClicked).toHaveBeenCalledTimes(1);
     });
-
-    it('passes the token symbol to the analytics event when Buy is pressed', () => {
-      const token = createMockToken({ symbol: 'USDC' });
-
-      renderWithProvider(<PopularTokenRow token={token} />);
-
-      fireEvent.press(screen.getByText('Buy'));
-
-      expect(mockTrackBuyButtonClicked).toHaveBeenCalledWith('USDC');
-    });
   });
 
   describe('edge cases', () => {

@@ -1,10 +1,11 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useFetchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { getValidNotificationAccounts } from '../../../../selectors/notifications';
 import { toFormattedAddress } from '../../../../util/address';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { AccountWalletType } from '@metamask/account-api';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 
@@ -14,8 +15,7 @@ export function useNotificationAccountListProps() {
   const { update, initialLoading, accountsBeingUpdated, data } =
     useFetchAccountNotifications(accountAddresses);
 
-  // Only disable switches during initial data loading, not when individual accounts are updating
-  const shouldDisableSwitches = initialLoading;
+  const isAnyAccountLoading = initialLoading || accountsBeingUpdated.length > 0;
 
   const refetchAccountSettings = useCallback(async () => {
     await update(accountAddresses);
@@ -74,7 +74,7 @@ export function useNotificationAccountListProps() {
   );
 
   return {
-    shouldDisableSwitches,
+    isAnyAccountLoading,
     refetchAccountSettings,
     isAccountLoading,
     isAccountEnabled,
@@ -82,41 +82,20 @@ export function useNotificationAccountListProps() {
   };
 }
 
-export function useNotificationWalletAccountGroups() {
+export function useFirstHDWalletAccounts() {
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
-  const accountsMap = useSelector(selectInternalAccountsById);
-
-  const isEvmAccountId = useCallback(
-    (accountId: string) =>
-      Boolean(accountsMap?.[accountId]?.address) &&
-      isEvmAccountType(accountsMap[accountId].type),
-    [accountsMap],
+  const firstHDWalletGroup = accountGroupsByWallet.find(
+    (w) => w.wallet.type === AccountWalletType.Entropy,
   );
-
-  const hasNotificationEligibleAccount = useCallback(
-    (accountGroup: { accounts: string[] }) =>
-      accountGroup.accounts.some(isEvmAccountId),
-    [isEvmAccountId],
-  );
-
-  return useMemo(
-    () =>
-      accountGroupsByWallet
-        .map((walletGroup) => ({
-          ...walletGroup,
-          data: walletGroup.data.filter(hasNotificationEligibleAccount),
-        }))
-        .filter((walletGroup) => walletGroup.data.length > 0),
-    [accountGroupsByWallet, hasNotificationEligibleAccount],
-  );
+  return firstHDWalletGroup;
 }
 
 export function useAccountProps() {
-  const accountWalletGroups = useNotificationWalletAccountGroups();
+  const firstHDWalletGroups = useFirstHDWalletAccounts();
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   return {
-    accountWalletGroups,
+    firstHDWalletGroups,
     accountAvatarType,
   };
 }

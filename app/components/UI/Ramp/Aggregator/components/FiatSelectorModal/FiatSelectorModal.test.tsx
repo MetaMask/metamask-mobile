@@ -1,5 +1,4 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import FiatSelectorModal from './FiatSelectorModal';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -99,32 +98,28 @@ describe('FiatSelectorModal', () => {
   });
 
   it('renders the modal with currency list', () => {
-    const { getByText } = render(FiatSelectorModal);
-    expect(getByText('USD')).toBeOnTheScreen();
-    expect(getByText('EUR')).toBeOnTheScreen();
-    expect(getByText('GBP')).toBeOnTheScreen();
+    const { toJSON } = render(FiatSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('search', () => {
     it('displays filtered currencies when search string matches results', () => {
-      const { getByTestId, getByText, queryByText } = render(FiatSelectorModal);
-      fireEvent.changeText(getByTestId('textfieldsearch'), 'USD');
-      expect(getByText('USD')).toBeOnTheScreen();
-      expect(queryByText('EUR')).not.toBeOnTheScreen();
+      const { getByTestId, toJSON } = render(FiatSelectorModal);
+      const searchInput = getByTestId('textfieldsearch');
+      searchInput.props.onChangeText('USD');
+      expect(toJSON()).toMatchSnapshot();
     });
     it('displays filtered currencies when search string does not match results', () => {
-      const { getByTestId, queryByText } = render(FiatSelectorModal);
-      fireEvent.changeText(
-        getByTestId('textfieldsearch'),
-        'Nonexistent Currency',
-      );
-      expect(queryByText('USD')).not.toBeOnTheScreen();
-      expect(queryByText('EUR')).not.toBeOnTheScreen();
+      const { getByTestId, toJSON } = render(FiatSelectorModal);
+      const searchInput = getByTestId('textfieldsearch');
+      searchInput.props.onChangeText('Nonexistent Currency');
+      expect(toJSON()).toMatchSnapshot();
     });
     it('displays max 20 results', () => {
-      const { getByTestId, getByText } = render(FiatSelectorModal);
-      fireEvent.changeText(getByTestId('textfieldsearch'), 'u');
-      expect(getByText('USD')).toBeOnTheScreen();
+      const { getByTestId, toJSON } = render(FiatSelectorModal);
+      const searchInput = getByTestId('textfieldsearch');
+      searchInput.props.onChangeText('u');
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

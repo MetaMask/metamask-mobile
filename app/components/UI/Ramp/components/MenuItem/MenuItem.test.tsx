@@ -1,5 +1,8 @@
+// Third party dependencies.
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
+
+// Internal dependencies.
 import MenuItem from './MenuItem';
 import { IconName } from '@metamask/design-system-react-native';
 
@@ -16,51 +19,67 @@ describe('MenuItem', () => {
     jest.clearAllMocks();
   });
 
-  it('renders with all props', () => {
+  it('renders snapshot correctly', () => {
     const props = createTestProps();
-    render(<MenuItem {...props} />);
+    const wrapper = render(<MenuItem {...props} />);
+    expect(wrapper).toMatchSnapshot();
+  });
 
-    expect(screen.getByText('Test Menu Item')).toBeOnTheScreen();
-    expect(screen.getByText('Test description')).toBeOnTheScreen();
+  it('renders with title only', () => {
+    const props = createTestProps({ description: undefined });
+    const wrapper = render(<MenuItem {...props} />);
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('renders with different icon', () => {
+    const props = createTestProps({ iconName: IconName.Bank });
+    const wrapper = render(<MenuItem {...props} />);
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('renders with empty description', () => {
+    const props = createTestProps({ description: '' });
+    const wrapper = render(<MenuItem {...props} />);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('displays the correct title', () => {
     const customTitle = 'Custom Menu Title';
     const props = createTestProps({ title: customTitle });
-    render(<MenuItem {...props} />);
+    const { getByText } = render(<MenuItem {...props} />);
 
-    expect(screen.getByText(customTitle)).toBeOnTheScreen();
+    expect(getByText(customTitle)).toBeTruthy();
   });
 
   it('displays the correct description when provided', () => {
     const customDescription = 'Custom description text';
     const props = createTestProps({ description: customDescription });
-    render(<MenuItem {...props} />);
+    const { getByText } = render(<MenuItem {...props} />);
 
-    expect(screen.getByText(customDescription)).toBeOnTheScreen();
+    expect(getByText(customDescription)).toBeTruthy();
   });
 
   it('hides description when not provided', () => {
     const props = createTestProps({ description: undefined });
-    render(<MenuItem {...props} />);
+    const { queryByText } = render(<MenuItem {...props} />);
 
-    expect(screen.queryByText('Test description')).not.toBeOnTheScreen();
+    expect(queryByText('Test description')).toBeNull();
   });
 
   it('calls onPress when pressed', () => {
     const mockOnPress = jest.fn();
     const props = createTestProps({ onPress: mockOnPress });
-    render(<MenuItem {...props} />);
+    const { getByText } = render(<MenuItem {...props} />);
 
-    fireEvent.press(screen.getByText('Test Menu Item'));
+    fireEvent.press(getByText('Test Menu Item'));
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders empty string title', () => {
     const props = createTestProps({ title: '' });
-    render(<MenuItem {...props} />);
+    const { getByText } = render(<MenuItem {...props} />);
 
-    expect(screen.getByText('')).toBeOnTheScreen();
+    expect(getByText('')).toBeTruthy();
   });
 });

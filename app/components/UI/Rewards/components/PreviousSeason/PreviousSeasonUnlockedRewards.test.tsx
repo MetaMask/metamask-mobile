@@ -36,6 +36,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
   selectUnlockedRewards: jest.fn(),
   selectSeasonTiers: jest.fn(),
+  selectSeasonShouldInstallNewVersion: jest.fn(),
   selectUnlockedRewardLoading: jest.fn(),
   selectUnlockedRewardError: jest.fn(),
   selectCurrentTier: jest.fn(),

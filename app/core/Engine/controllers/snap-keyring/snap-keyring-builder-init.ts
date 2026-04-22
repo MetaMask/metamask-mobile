@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../../types';
+import { ControllerInitFunction } from '../../types';
 import { SnapKeyringBuilderInitMessenger } from '../../messengers/snap-keyring-builder-messenger';
 import {
   snapKeyringBuilder,
@@ -13,7 +13,7 @@ import { SnapKeyringBuilderMessenger } from '../../../SnapKeyring/types';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const snapKeyringBuilderInit: MessengerClientInitFunction<
+export const snapKeyringBuilderInit: ControllerInitFunction<
   SnapKeyringBuilder,
   SnapKeyringBuilderMessenger,
   SnapKeyringBuilderInitMessenger

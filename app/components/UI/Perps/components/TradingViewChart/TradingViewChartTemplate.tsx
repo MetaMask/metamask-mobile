@@ -1,13 +1,5 @@
 import { Theme } from '../../../../../util/theme/models';
 
-const hexToRgba = (hex: string, alpha: number): string => {
-  const clean = hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
-  const r = parseInt(clean.slice(1, 3), 16);
-  const g = parseInt(clean.slice(3, 5), 16);
-  const b = parseInt(clean.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
 export const createTradingViewChartTemplate = (
   theme: Theme,
   lightweightChartsLib: string,
@@ -816,7 +808,7 @@ export const createTradingViewChartTemplate = (
                 // Use the old API: chart.addSeries(SeriesType, options, paneIndex)
                 // Pane index 1 creates a NEW separate pane below the default pane 0
                 window.volumeSeries = window.chart.addSeries(window.LightweightCharts.HistogramSeries, {
-                    color: '${hexToRgba(theme.colors.success.default, 0.3)}',
+                    color: '${theme.colors.success.default}',
                     priceFormat: {
                         type: 'custom',
                         formatter: window.formatVolumeEmpty, // Use empty formatter to hide Y-axis labels
@@ -1013,8 +1005,8 @@ export const createTradingViewChartTemplate = (
                                     time: candle.time,
                                     value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
                                     color: window.coloredVolume
-                                        ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
-                                        : '${hexToRgba(theme.colors.border.muted, 0.3)}'
+                                        ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                        : '${theme.colors.border.muted}'
                                 }));
                                 window.volumeSeries.setData(volumeData);
 
@@ -1388,8 +1380,8 @@ export const createTradingViewChartTemplate = (
                                                 time: candle.time,
                                                 value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
                                                 color: window.coloredVolume
-                                                    ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
-                                                    : '${hexToRgba(theme.colors.border.muted, 0.3)}'
+                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                                    : '${theme.colors.border.muted}'
                                             }));
 
                                             window.volumeSeries.setData(volumeData);
@@ -1542,8 +1534,8 @@ export const createTradingViewChartTemplate = (
                                                 time: candle.time,
                                                 value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
                                                 color: window.coloredVolume
-                                                    ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
-                                                    : '${hexToRgba(theme.colors.border.muted, 0.3)}'
+                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                                    : '${theme.colors.border.muted}'
                                             }));
                                             window.volumeSeries.setData(volumeData);
                                         }

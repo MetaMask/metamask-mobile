@@ -19,7 +19,7 @@ const sampleIconProps: IconProps = {
   name: IconName.Add,
 };
 
-describe('TextWithPrefixIcon', () => {
+describe('TextWithPrefixIcon - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <TextWithPrefixIcon
@@ -29,7 +29,7 @@ describe('TextWithPrefixIcon', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 });
 

@@ -328,19 +328,6 @@ jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
 }));
 
-const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
-  action(),
-);
-
-jest.mock('../../../Compliance', () => ({
-  useComplianceGate: () => ({
-    gate: mockComplianceGate,
-    isBlocked: false,
-    isComplianceEnabled: false,
-    checkCompliance: jest.fn(),
-  }),
-}));
-
 describe('PerpsOrderBookView', () => {
   const initialState = {
     engine: {
@@ -350,9 +337,6 @@ describe('PerpsOrderBookView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
-      action(),
-    );
     mockUsePerpsLiveOrderBook.mockReturnValue({
       orderBook: mockOrderBook,
       isLoading: false,
@@ -693,30 +677,6 @@ describe('PerpsOrderBookView', () => {
         source: 'order_book_short_button',
       });
       expect(mockTrack).toHaveBeenCalled();
-    });
-
-    it('does not navigate when compliance gate blocks long press', () => {
-      mockComplianceGate.mockResolvedValue(undefined);
-
-      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
-        state: initialState,
-      });
-
-      fireEvent.press(getByTestId(PerpsOrderBookViewSelectorsIDs.LONG_BUTTON));
-
-      expect(mockNavigateToOrder).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate when compliance gate blocks short press', () => {
-      mockComplianceGate.mockResolvedValue(undefined);
-
-      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
-        state: initialState,
-      });
-
-      fireEvent.press(getByTestId(PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON));
-
-      expect(mockNavigateToOrder).not.toHaveBeenCalled();
     });
   });
 

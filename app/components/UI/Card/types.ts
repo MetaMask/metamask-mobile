@@ -1,10 +1,9 @@
 import { CaipChainId } from '@metamask/utils';
-import type { TokenI } from '../Tokens/types';
 
 /**
- * Funding status for card tokens
+ * Enum for asset delegation status
  */
-export enum FundingStatus {
+export enum AllowanceState {
   Enabled = 'enabled',
   Limited = 'limited',
   NotEnabled = 'not_enabled',
@@ -37,7 +36,6 @@ export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
   CardProvisioning = 'card_provisioning',
-  AuthPrompt = 'auth_prompt',
 }
 
 export type CardUserPhase =
@@ -73,28 +71,21 @@ export interface CardTokenData {
   location: CardLocation;
 }
 
-export interface AuthenticatedCardFundingTokenData {
+export interface AuthenticatedCardTokenAllowanceData {
+  availableBalance?: string;
   walletAddress?: string;
   priority?: number; // Lower number = higher priority (1 is highest)
   delegationContract?: string | null;
   stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
-export type CardFundingToken = {
+export type CardTokenAllowance = {
   caipChainId: CaipChainId;
-  fundingStatus: FundingStatus;
-  spendableBalance: string;
-  spendingCap?: string;
+  allowanceState: AllowanceState;
+  allowance: string;
+  totalAllowance?: string;
 } & CardToken &
-  AuthenticatedCardFundingTokenData;
-
-export type CardFundingTokenWithBalance = CardFundingToken & {
-  balanceFiat: string | undefined;
-  balanceFormatted: string | undefined;
-  rawFiatNumber: number | undefined;
-  rawTokenBalance: number | undefined;
-  asset?: TokenI;
-};
+  AuthenticatedCardTokenAllowanceData;
 
 export interface CardLoginInitiateResponse {
   token: string;

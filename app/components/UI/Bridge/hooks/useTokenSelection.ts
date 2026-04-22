@@ -22,10 +22,6 @@ import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { PopularList } from '../../../../util/networks/customNetworks';
-import {
-  clearSuppressedNetworkAddedToast,
-  suppressNextNetworkAddedToast,
-} from '../../../../util/networks/networkToastSuppression';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -73,7 +69,6 @@ export const useTokenSelection = (type: TokenSelectorType) => {
           try {
             const hexChainId = toHex(popularNetwork.chainId) as Hex;
             const { blockExplorerUrl } = popularNetwork.rpcPrefs;
-            suppressNextNetworkAddedToast(popularNetwork.chainId);
             await Engine.context.NetworkController.addNetwork({
               chainId: hexChainId,
               blockExplorerUrls: blockExplorerUrl ? [blockExplorerUrl] : [],
@@ -91,7 +86,6 @@ export const useTokenSelection = (type: TokenSelectorType) => {
               ],
             });
           } catch {
-            clearSuppressedNetworkAddedToast(popularNetwork.chainId);
             if (isSourcePicker) {
               // Source requires a configured network to sign transactions.
               // Abort selection if the network couldn't be added.

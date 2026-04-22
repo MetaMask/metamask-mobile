@@ -13,7 +13,6 @@ import * as SendUtils from '../../utils/send';
 import { usePercentageAmount } from './usePercentageAmount';
 import { useBalance } from './useBalance';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useIsNetworkGasSponsored } from '../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
 
 jest.mock('@metamask/assets-controllers', () => ({
   getNativeTokenAddress: () => '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
@@ -37,10 +36,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-jest.mock('../../../../UI/Bridge/hooks/useIsNetworkGasSponsored', () => ({
-  useIsNetworkGasSponsored: jest.fn(),
-}));
-
 const mockState = {
   state: evmSendStateMock,
 };
@@ -53,16 +48,10 @@ const mockUseBalance = useBalance as jest.MockedFunction<typeof useBalance>;
 
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 
-const mockUseIsNetworkGasSponsored =
-  useIsNetworkGasSponsored as jest.MockedFunction<
-    typeof useIsNetworkGasSponsored
-  >;
-
 describe('usePercentageAmount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue(undefined);
-    mockUseIsNetworkGasSponsored.mockReturnValue(false);
   });
 
   it('return required fields', () => {
@@ -145,30 +134,6 @@ describe('usePercentageAmount', () => {
     );
     expect(result.current.isMaxAmountSupported).toBeTruthy();
     expect(result.current.getPercentageAmount(100)).toEqual('9685000000000');
-  });
-
-  it('return absolute max value for native asset if gas sponsored', () => {
-    mockUseIsNetworkGasSponsored.mockReturnValue(true);
-    mockUseSendContext.mockReturnValue({
-      asset: {
-        chainId: '0x531',
-        address: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
-        decimals: 2,
-        isNative: true,
-      },
-    } as unknown as ReturnType<typeof useSendContext>);
-    mockUseBalance.mockReturnValue({
-      balance: '1000000000000000',
-      decimals: 2,
-      rawBalanceBN: new BN('1000000000000000'),
-    });
-
-    const { result } = renderHookWithProvider(
-      () => usePercentageAmount(),
-      mockState,
-    );
-    expect(result.current.isMaxAmountSupported).toBeTruthy();
-    expect(result.current.getPercentageAmount(100)).toEqual('10000000000000');
   });
 
   it('return zero if amount of asset available is less than gas', () => {

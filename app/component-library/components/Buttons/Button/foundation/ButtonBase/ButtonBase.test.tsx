@@ -20,7 +20,7 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders when disabled', () => {
@@ -32,7 +32,7 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('calls onPress when button is pressed', () => {
@@ -112,7 +112,7 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders with end icon', () => {
@@ -124,7 +124,7 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders with both start and end icons', () => {
@@ -137,7 +137,7 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders with custom label component', () => {
@@ -149,7 +149,7 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('handles different sizes', () => {
@@ -159,7 +159,7 @@ describe('ButtonBase', () => {
       const wrapper = shallow(
         <ButtonBase label="Click me!" onPress={() => null} size={size} />,
       );
-      expect(wrapper).toBeDefined();
+      expect(wrapper).toMatchSnapshot(`ButtonBase with size ${size}`);
     });
   });
 
@@ -172,7 +172,7 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('handles custom label color', () => {
@@ -184,7 +184,7 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('handles custom label text variant', () => {
@@ -196,6 +196,6 @@ describe('ButtonBase', () => {
         size={ButtonSize.Md}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 });

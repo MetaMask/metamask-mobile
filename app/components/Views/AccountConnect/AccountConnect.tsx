@@ -106,7 +106,6 @@ import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/g
 import { isSnapId } from '@metamask/snaps-utils';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
-import { useSDKV2Connection } from '../../hooks/useSDKV2Connection';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -161,9 +160,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
   const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
-
-  const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
-  const anonId = sdkV2Connection?.originatorInfo?.anonId;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -290,15 +286,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
 
-  // Should be the self reported dapp url if SDK or WC connection, empty/null if no self reported dapp url.
-  // If not SDK or WC connection, i.e. a regular external connection, it should be the hostname.
-  let referrer = channelIdOrHostname;
-  if (isOriginMMSDKRemoteConn) {
-    referrer = dappUrl;
-  } else if (isOriginWalletConnect) {
-    referrer = wc2Metadata?.url;
-  }
-
   // If it is undefined, it will enter the regular eth account creation flow.
   const [multichainAccountOptions, setMultichainAccountOptions] = useState<
     | {
@@ -417,7 +404,6 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
-            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );
@@ -425,7 +411,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     [
       accountsLength,
       channelIdOrHostname,
-      anonId,
       trackEvent,
       createEventBuilder,
       eventSource,
@@ -522,12 +507,12 @@ const AccountConnect = (props: AccountConnectProps) => {
           .addProperties({
             number_of_accounts: accountsLength,
             number_of_accounts_connected: connectedAccountLength,
+            // TODO: Fix this. Not accurate
             account_type: getAddressAccountType(activeAddress),
             source: eventSource,
             chain_id_list: selectedChainIds,
-            referrer,
+            referrer: request.metadata.origin,
             ...getApiAnalyticsProperties(isMultichainRequest),
-            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );
@@ -551,7 +536,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
-    anonId,
     eventSource,
     selectedAddresses,
     hostInfo,
@@ -564,7 +548,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     createEventBuilder,
     selectedChainIds,
     requestedCaip25CaveatValue,
-    referrer,
   ]);
 
   // This only handles EVM

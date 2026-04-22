@@ -117,10 +117,7 @@ describe('logs :: generateStateLogs', () => {
     };
     const logs = generateStateLogs(mockStateInput);
 
-    const parsedLogs = JSON.parse(logs);
-    delete parsedLogs.engine?.backgroundState?.RewardsController
-      ?.subscriptionBenefits;
-    expect(parsedLogs).toMatchSnapshot();
+    expect(JSON.parse(logs)).toMatchSnapshot();
   });
 
   it('excludes deleted controller states from logs', () => {
@@ -516,10 +513,7 @@ describe('logs :: generateStateLogs', () => {
       expect(refreshToken).toBe(true);
       expect(revokeToken).toBe(true);
 
-      const parsedLogs = JSON.parse(logs);
-      delete parsedLogs.engine?.backgroundState?.RewardsController
-        ?.subscriptionBenefits;
-      expect(parsedLogs).toMatchSnapshot();
+      expect(JSON.parse(logs)).toMatchSnapshot();
     });
 
     it('includes authConnection fields in sanitized state', () => {

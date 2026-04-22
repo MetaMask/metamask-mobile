@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   PermissionController,
   type PermissionSpecificationConstraint,
@@ -23,21 +23,16 @@ import { CaipChainId } from '@metamask/utils';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const permissionControllerInit: MessengerClientInitFunction<
+export const permissionControllerInit: ControllerInitFunction<
   PermissionController<
     PermissionSpecificationConstraint,
     CaveatSpecificationConstraint
   >,
   PermissionControllerMessenger,
   PermissionControllerInitMessenger
-> = ({
-  controllerMessenger,
-  initMessenger,
-  persistedState,
-  getMessengerClient,
-}) => {
+> = ({ controllerMessenger, initMessenger, persistedState, getController }) => {
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  const keyringController = getMessengerClient('KeyringController');
+  const keyringController = getController('KeyringController');
   ///: END:ONLY_INCLUDE_IF
 
   const controller = new PermissionController({

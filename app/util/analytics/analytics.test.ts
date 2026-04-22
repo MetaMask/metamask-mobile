@@ -1,7 +1,4 @@
-import {
-  AnalyticsEventBuilder,
-  type AnalyticsTrackingEvent,
-} from './AnalyticsEventBuilder';
+import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
 import type {
   AnalyticsEventProperties,
   AnalyticsUserTraits,
@@ -67,7 +64,6 @@ jest.mock('../Logger');
 import { analytics } from './analytics';
 import { getAnalyticsId as getAnalyticsIdFromStorage } from './analyticsId';
 import { store } from '../../store';
-import initialRootState from '../test/initial-root-state';
 import {
   selectAnalyticsEnabled,
   selectAnalyticsOptedIn,
@@ -107,9 +103,18 @@ describe('analytics', () => {
 
   describe('trackEvent', () => {
     it('queues trackEvent operation', () => {
-      const event = AnalyticsEventBuilder.createEventBuilder('test_event')
-        .addProperties({ prop1: 'value1' })
-        .build();
+      const event: AnalyticsTrackingEvent = {
+        name: 'test_event',
+        properties: { prop1: 'value1' },
+        sensitiveProperties: {},
+        saveDataRecording: false,
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return true;
+        },
+      };
 
       analytics.trackEvent(event);
 
@@ -119,55 +124,21 @@ describe('analytics', () => {
       );
     });
 
-    it('enriches allowlisted events before queueing them', () => {
-      mockedStore.getState.mockReturnValue({
-        ...initialRootState,
-        engine: {
-          ...initialRootState.engine,
-          backgroundState: {
-            ...initialRootState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              ...initialRootState.engine.backgroundState
-                .RemoteFeatureFlagController,
-              remoteFeatureFlags: {
-                cardCARD338AbtestAttentionBadge: 'withBadge',
-              },
-              localOverrides: {},
-            },
-          },
-        },
-      } as ReturnType<typeof store.getState>);
-
-      const event = AnalyticsEventBuilder.createEventBuilder(
-        'Card Button Viewed',
-      )
-        .addProperties({ source: 'wallet' })
-        .build();
-
-      analytics.trackEvent(event);
-
-      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
-        'trackEvent',
-        expect.objectContaining({
-          name: 'Card Button Viewed',
-          properties: {
-            source: 'wallet',
-            active_ab_tests: [
-              {
-                key: 'cardCARD338AbtestAttentionBadge',
-                value: 'withBadge',
-              },
-            ],
-          },
-        }),
-      );
-    });
-
     it('logs error when queueOperation rejects', async () => {
       const error = new Error('Queue operation failed');
       mockQueueManagerFromFactory.queueOperation.mockRejectedValue(error);
-      const event =
-        AnalyticsEventBuilder.createEventBuilder('test_event').build();
+      const event: AnalyticsTrackingEvent = {
+        name: 'test_event',
+        properties: {},
+        sensitiveProperties: {},
+        saveDataRecording: false,
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return false;
+        },
+      };
 
       analytics.trackEvent(event);
 

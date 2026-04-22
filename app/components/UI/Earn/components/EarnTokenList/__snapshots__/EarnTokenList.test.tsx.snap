@@ -182,8 +182,9 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-SemiBold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -520,7 +521,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-SemiBold",
+                        "fontFamily": "Geist-Bold",
                         "fontSize": 20,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -534,7 +535,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#457a39",
-                        "fontFamily": "Geist-SemiBold",
+                        "fontFamily": "Geist-Bold",
                         "fontSize": 32,
                         "letterSpacing": 0,
                         "lineHeight": 40,

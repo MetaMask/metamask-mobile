@@ -23,7 +23,6 @@ import {
   getMockUpdatePushNotificationLinksResponse,
   getMockCreateFCMRegistrationTokenResponse,
   getMockDeleteFCMRegistrationTokenResponse,
-  getMockDeletePushNotificationLinksResponse,
 } from '@metamask/notification-services-controller/push-services/mocks';
 import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
@@ -105,7 +104,6 @@ export async function mockNotificationServices(server: Mockttp) {
 
   // Push Notifications
   await mockAPICall(server, getMockUpdatePushNotificationLinksResponse());
-  await mockAPICall(server, getMockDeletePushNotificationLinksResponse());
   await mockAPICall(server, getMockCreateFCMRegistrationTokenResponse());
   await mockAPICall(server, getMockDeleteFCMRegistrationTokenResponse());
 }

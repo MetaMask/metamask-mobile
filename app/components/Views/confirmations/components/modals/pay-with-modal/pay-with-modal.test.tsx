@@ -438,23 +438,7 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {
-      const callOrder: string[] = [];
-
-      mockAddTokens.mockImplementation(
-        () =>
-          new Promise<void>((resolve) => {
-            setTimeout(() => {
-              callOrder.push('addTokens');
-              resolve();
-            }, 0);
-          }),
-      );
-
-      setPayTokenMock.mockImplementation(() => {
-        callOrder.push('setPayToken');
-      });
-
+    it('adds zero-balance token to TokensController on withdraw selection', async () => {
       const zeroBalanceToken = {
         accountType: EthAccountType.Eoa,
         address: '0xZeroBalanceToken',
@@ -475,53 +459,10 @@ describe('PayWithModal', () => {
 
       await waitFor(() => {
         fireEvent.press(getByText('Zero Token'));
-      });
-
-      await waitFor(() => {
-        expect(setPayTokenMock).toHaveBeenCalled();
       });
 
       expect(mockAddTokens).toHaveBeenCalled();
-      expect(callOrder).toStrictEqual(['addTokens', 'setPayToken']);
-    });
-
-    it('passes image to addTokens when available on zero-balance token', async () => {
-      mockFindNetworkClientIdByChainId.mockReturnValue('network-client-1');
-
-      const zeroBalanceToken = {
-        accountType: EthAccountType.Eoa,
-        address: '0xZeroBalanceToken',
-        balance: '0',
-        balanceInSelectedCurrency: '$0.00',
-        chainId: CHAIN_ID_1_MOCK,
-        decimals: 6,
-        image: 'https://example.com/token.png',
-        name: 'Zero Token',
-        standard: TokenStandard.ERC20,
-        symbol: 'ZERO',
-      } as AssetType;
-
-      useWithdrawTokenFilterMock.mockReturnValue(
-        jest.fn(() => [zeroBalanceToken]),
-      );
-
-      const { getByText } = render();
-
-      await waitFor(() => {
-        fireEvent.press(getByText('Zero Token'));
-      });
-
-      expect(mockAddTokens).toHaveBeenCalledWith(
-        [
-          expect.objectContaining({
-            address: '0xZeroBalanceToken',
-            symbol: 'ZERO',
-            decimals: 6,
-            image: 'https://example.com/token.png',
-          }),
-        ],
-        'network-client-1',
-      );
+      expect(setPayTokenMock).toHaveBeenCalled();
     });
   });
 

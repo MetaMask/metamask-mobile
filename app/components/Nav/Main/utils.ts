@@ -1,7 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
 import { ToastVariants } from '../../../component-library/components/Toast';
 import { strings } from '../../../../locales/i18n';
-import { consumeSuppressedNetworkAddedToast } from '../../../util/networks/networkToastSuppression';
 
 export const handleShowNetworkActiveToast = (
   isOnBridgeRoute: boolean,
@@ -23,18 +22,4 @@ export const handleShowNetworkActiveToast = (
       networkImageSource: networkImage,
     });
   }
-};
-
-export const shouldShowNetworkListToast = ({
-  newNetworkChainId,
-  hasDeletedNetwork,
-}: {
-  newNetworkChainId?: string;
-  hasDeletedNetwork: boolean;
-}) => {
-  const shouldShowNetworkAddedToast =
-    Boolean(newNetworkChainId) &&
-    !consumeSuppressedNetworkAddedToast(newNetworkChainId);
-
-  return shouldShowNetworkAddedToast || hasDeletedNetwork;
 };

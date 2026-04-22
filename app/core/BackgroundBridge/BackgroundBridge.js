@@ -102,7 +102,6 @@ import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddlewa
 import createDupeReqFilterStream from './createDupeReqFilterStream';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
 import { createWalletSnapPermissionMiddleware } from '@metamask/snaps-rpc-methods';
-import { getAddTransactionSendCallExtraOptions } from '../../util/tempo/tempo-tx-utils';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -876,26 +875,14 @@ export class BackgroundBridge extends EventEmitter {
       processSendCalls: processSendCalls.bind(
         null,
         {
-          addTransaction: async (txParams, options) =>
-            Engine.context.TransactionController.addTransaction(txParams, {
-              ...options,
-              ...(await getAddTransactionSendCallExtraOptions({
-                keyringController: Engine.context.KeyringController,
-                networkController: Engine.context.NetworkController,
-                networkClientId: options.networkClientId,
-                from: txParams.from,
-              })),
-            }),
-          addTransactionBatch: async (request) =>
-            Engine.context.TransactionController.addTransactionBatch({
-              ...request,
-              ...(await getAddTransactionSendCallExtraOptions({
-                keyringController: Engine.context.KeyringController,
-                networkController: Engine.context.NetworkController,
-                networkClientId: request.networkClientId,
-                from: request.from,
-              })),
-            }),
+          addTransaction:
+            Engine.context.TransactionController.addTransaction.bind(
+              Engine.context.TransactionController,
+            ),
+          addTransactionBatch:
+            Engine.context.TransactionController.addTransactionBatch.bind(
+              Engine.context.TransactionController,
+            ),
           getDismissSmartAccountSuggestionEnabled: () =>
             Engine.context.PreferencesController.state
               .dismissSmartAccountSuggestionEnabled,

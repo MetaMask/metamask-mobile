@@ -150,9 +150,6 @@ export interface PolymarketApiMarket {
 }
 
 export interface PolymarketApiSeries {
-  id: string;
-  slug: string;
-  title: string;
   recurrence: string;
 }
 

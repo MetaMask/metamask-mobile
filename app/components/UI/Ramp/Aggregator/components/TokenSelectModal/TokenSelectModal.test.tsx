@@ -171,8 +171,7 @@ describe('TokenSelectModal', () => {
   });
 
   it('renders the modal with token list', () => {
-    const { getByText } = render(TokenSelectModal);
-    expect(getByText('Ethereum')).toBeOnTheScreen();
-    expect(getByText('Polygon Token')).toBeOnTheScreen();
+    const { toJSON } = render(TokenSelectModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

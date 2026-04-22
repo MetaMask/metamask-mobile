@@ -246,23 +246,19 @@ describe('OrdersList', () => {
 
   it('renders correctly', () => {
     render(<OrdersList />);
-    expect(screen.getByRole('button', { name: 'All' })).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Purchased' })).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Sold' })).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders buy only correctly when pressing buy filter', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    expect(
-      screen.queryByRole('button', { name: /Sold ETH/ }),
-    ).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders sell only correctly when pressing sell filter', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    expect(screen.getByRole('button', { name: /Sold ETH/ })).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders empty sell message', () => {
@@ -271,9 +267,7 @@ describe('OrdersList', () => {
       [testOrders[0]], // a buy order,
     );
     fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    expect(
-      screen.queryByRole('button', { name: /Sold ETH/ }),
-    ).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders empty buy message', () => {
@@ -282,21 +276,15 @@ describe('OrdersList', () => {
       [testOrders[1]], // a sell order,
     );
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    expect(
-      screen.queryByRole('button', { name: /Purchased ETH/ }),
-    ).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('resets filter to all after other filter was set', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    expect(
-      screen.getAllByRole('button', { name: /Sold ETH/ }).length,
-    ).toBeGreaterThan(0);
+    expect(screen.toJSON()).toMatchSnapshot();
     fireEvent.press(screen.getByRole('button', { name: 'All' }));
-    expect(
-      screen.getAllByRole('button', { name: /Purchased ETH/ }).length,
-    ).toBeGreaterThan(0);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates when pressing item', () => {

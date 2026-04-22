@@ -6,7 +6,7 @@ import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
 import {
   Box,
@@ -33,22 +33,22 @@ export interface OnboardingSheetParams {
   createWallet?: boolean;
 }
 
-type OnboardingSheetRouteProp = RouteProp<
-  { OnboardingSheet: OnboardingSheetParams },
-  'OnboardingSheet'
->;
+export interface OnboardingSheetProps {
+  route: {
+    params: OnboardingSheetParams;
+  };
+}
 
-const OnboardingSheet = () => {
+const OnboardingSheet = (props: OnboardingSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const { params } = useRoute<OnboardingSheetRouteProp>();
   const {
     onPressCreate,
     onPressImport,
     onPressContinueWithGoogle,
     onPressContinueWithApple,
     createWallet = false,
-  } = params ?? {};
+  } = props.route.params ?? {};
   const { colors } = useTheme();
   const tw = useTailwind();
 

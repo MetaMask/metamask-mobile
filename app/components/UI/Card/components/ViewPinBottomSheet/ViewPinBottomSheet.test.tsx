@@ -61,10 +61,10 @@ describe('ViewPinBottomSheet', () => {
     });
   });
 
-  it('renders correctly', () => {
-    const { getByText } = renderWithProvider(() => <ViewPinBottomSheet />);
+  it('renders correctly and matches snapshot', () => {
+    const { toJSON } = renderWithProvider(() => <ViewPinBottomSheet />);
 
-    expect(getByText('Your Card PIN')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays the title', () => {
@@ -102,7 +102,7 @@ describe('ViewPinBottomSheet', () => {
     await waitFor(() => {
       expect(
         queryByTestId(ViewPinBottomSheetSelectors.PIN_IMAGE_SKELETON),
-      ).not.toBeOnTheScreen();
+      ).toBeNull();
     });
   });
 
@@ -118,7 +118,7 @@ describe('ViewPinBottomSheet', () => {
     await waitFor(() => {
       expect(
         queryByTestId(ViewPinBottomSheetSelectors.PIN_IMAGE_SKELETON),
-      ).not.toBeOnTheScreen();
+      ).toBeNull();
     });
   });
 

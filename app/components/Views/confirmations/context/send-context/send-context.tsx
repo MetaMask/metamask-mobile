@@ -9,7 +9,6 @@ import React, {
 import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { toHex } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
 
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -18,7 +17,7 @@ import { AssetProtocol, PROTOCOL_CONFIG } from '../../constants/protocol';
 
 export interface SendContextType {
   asset?: AssetType | Nft;
-  chainId?: Hex | `${string}:${string}`;
+  chainId?: string;
   fromAccount?: InternalAccount;
   from?: string;
   maxValueMode: boolean;
@@ -102,13 +101,13 @@ export const SendContextProvider: React.FC<{
   const chainId =
     asset && isEvmAddress(asset.address) && asset.chainId
       ? toHex(asset.chainId)
-      : (asset?.chainId as `${string}:${string}`); // CAIP format for non-EVM
+      : asset?.chainId;
 
   return (
     <SendContext.Provider
       value={{
         asset,
-        chainId,
+        chainId: chainId as string | undefined,
         fromAccount,
         from: fromAccount?.address as string,
         maxValueMode,

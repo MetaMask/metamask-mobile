@@ -331,6 +331,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               "flexWrap": "wrap",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
+              "fontWeight": 400,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -678,6 +679,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               "flexWrap": "wrap",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
+              "fontWeight": 400,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -1024,6 +1026,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               "flexWrap": "wrap",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
+              "fontWeight": 400,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -1140,8 +1143,9 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             [
               {
                 "color": "#66676a",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
+                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginRight": -4,
@@ -1283,8 +1287,9 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             [
               {
                 "color": "#66676a",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
+                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginRight": -4,
@@ -1426,8 +1431,9 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             [
               {
                 "color": "#66676a",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
+                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginRight": -4,
@@ -1697,6 +1703,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               "flexWrap": "wrap",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
+              "fontWeight": 400,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",

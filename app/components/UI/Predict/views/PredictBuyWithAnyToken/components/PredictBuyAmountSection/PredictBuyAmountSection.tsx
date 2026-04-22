@@ -26,7 +26,6 @@ interface PredictBuyAmountSectionProps {
   toWin: number;
   isShowingToWinSkeleton: boolean;
   isPlacingOrder: boolean;
-  hideAvailableBalance?: boolean;
 }
 
 const PredictBuyAmountSection = ({
@@ -39,7 +38,6 @@ const PredictBuyAmountSection = ({
   toWin,
   isShowingToWinSkeleton,
   isPlacingOrder,
-  hideAvailableBalance = false,
 }: PredictBuyAmountSectionProps) => {
   const tw = useTailwind();
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -79,24 +77,22 @@ const PredictBuyAmountSection = ({
           hasError={false}
         />
       </Box>
-      {!hideAvailableBalance && (
-        <Box twClassName="text-center mt-2">
-          {isBalanceLoading ? (
-            <Skeleton width={120} height={20} />
-          ) : (
-            <Animated.View style={{ opacity: pulseAnim }}>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                twClassName="text-center"
-              >
-                {`${strings('predict.order.available')}: `}
-                {availableBalanceDisplay}
-              </Text>
-            </Animated.View>
-          )}
-        </Box>
-      )}
+      <Box twClassName="text-center mt-2">
+        {isBalanceLoading ? (
+          <Skeleton width={120} height={20} />
+        ) : (
+          <Animated.View style={{ opacity: pulseAnim }}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {`${strings('predict.order.available')}: `}
+              {availableBalanceDisplay}
+            </Text>
+          </Animated.View>
+        )}
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

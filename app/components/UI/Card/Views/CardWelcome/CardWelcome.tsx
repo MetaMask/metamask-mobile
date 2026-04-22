@@ -22,7 +22,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { selectHasCardholderAccounts } from '../../../../../selectors/cardController';
+import { selectHasCardholderAccounts } from '../../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 
 const CardWelcome = () => {

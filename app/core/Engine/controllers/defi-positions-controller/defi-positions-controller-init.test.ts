@@ -1,5 +1,5 @@
-import { MessengerClientInitRequest } from '../../types';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { ControllerInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   DeFiPositionsControllerInitMessenger,
@@ -27,7 +27,7 @@ function getInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): jest.Mocked<
-  MessengerClientInitRequest<
+  ControllerInitRequest<
     DeFiPositionsControllerMessenger,
     DeFiPositionsControllerInitMessenger
   >
@@ -37,7 +37,7 @@ function getInitRequestMock(
   } as unknown as DeFiPositionsControllerInitMessenger;
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getDeFiPositionsControllerMessenger(baseMessenger),
     initMessenger: mockInitMessenger,
   };

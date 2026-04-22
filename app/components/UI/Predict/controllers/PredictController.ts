@@ -38,9 +38,15 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
-
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
+import {
+  validatedVersionGatedFeatureFlag,
+  VersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
 import {
   endTrace,
   trace,
@@ -50,10 +56,19 @@ import {
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
-import { PredictTradeStatus } from '../constants/eventNames';
-
+import {
+  PredictEventProperties,
+  PredictShareStatusValue,
+  PredictTradeStatus,
+  PredictTradeStatusValue,
+} from '../constants/eventNames';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_LIVE_SPORTS_FLAG,
+  DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+} from '../constants/flags';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
-
+import { filterSupportedLeagues } from '../constants/sports';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
@@ -61,23 +76,20 @@ import {
   POLYMARKET_PROVIDER_ID,
 } from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
-
+import { parse, PredictFeeCollectionSchema } from '../schemas';
 import {
   AccountState,
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
-  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
-  GetCryptoTargetPriceParams,
   GetMarketsParams,
   GetPositionsParams,
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
-  GetSeriesParams,
   OrderPreview,
   PlaceOrderParams,
   PredictAccountMeta,
@@ -86,6 +98,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
+  PredictOrderType,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -99,14 +112,14 @@ import {
   Side,
   UnrealizedPnL,
 } from '../types';
-import { PredictFeatureFlags } from '../types/flags';
-
+import {
+  PredictFeatureFlags,
+  PredictLiveSportsFlag,
+  PredictMarketHighlightsFlag,
+} from '../types/flags';
+import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { ensureError } from '../utils/predictErrorHandler';
-import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import { validateDepositTransactions } from '../utils/validateTransactions';
-import { PredictAnalytics } from './PredictAnalytics';
-import type { PredictControllerMethodActions } from './PredictController-method-action-types';
-import { withTrace, type TraceableController } from './utils/withTrace';
 
 /**
  * State shape for PredictController
@@ -286,19 +299,18 @@ export type PredictControllerEvents =
   | PredictControllerTransactionStatusChangedEvent;
 
 /**
- * The action which can be used to retrieve the state of the PredictController.
- */
-export type PredictControllerGetStateAction = ControllerGetStateAction<
-  'PredictController',
-  PredictControllerState
->;
-
-/**
  * PredictController actions
  */
 export type PredictControllerActions =
-  | PredictControllerGetStateAction
-  | PredictControllerMethodActions;
+  | ControllerGetStateAction<'PredictController', PredictControllerState>
+  | {
+      type: 'PredictController:refreshEligibility';
+      handler: PredictController['refreshEligibility'];
+    }
+  | {
+      type: 'PredictController:placeOrder';
+      handler: PredictController['placeOrder'];
+    };
 
 /**
  * External actions the PredictController can call
@@ -342,48 +354,6 @@ export interface PredictControllerOptions {
   state?: Partial<PredictControllerState>;
 }
 
-const MESSENGER_EXPOSED_METHODS = [
-  'beforeSign',
-  'claimWithConfirmation',
-  'clearActiveOrder',
-  'clearActiveOrderTransactionId',
-  'clearOrderError',
-  'clearPendingDeposit',
-  'clearWithdrawTransaction',
-  'confirmClaim',
-  'depositWithConfirmation',
-  'getAccountState',
-  'getActivity',
-  'getBalance',
-  'getConnectionStatus',
-  'getCryptoTargetPrice',
-  'getMarket',
-  'getMarketSeries',
-  'getMarkets',
-  'getPositions',
-  'getPriceHistory',
-  'getPrices',
-  'getUnrealizedPnL',
-  'initPayWithAnyToken',
-  'onPlaceOrderSuccess',
-  'placeOrder',
-  'prepareWithdraw',
-  'previewOrder',
-  'refreshEligibility',
-  'selectPaymentToken',
-  'setSelectedPaymentToken',
-  'subscribeToCryptoPrices',
-  'subscribeToGameUpdates',
-  'subscribeToMarketPrices',
-  'trackActivityViewed',
-  'trackFeedViewed',
-  'trackGeoBlockTriggered',
-  'trackMarketDetailsOpened',
-  'trackPositionViewed',
-  'trackPredictOrderEvent',
-  'trackShareAction',
-] as const;
-
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
  *
@@ -407,13 +377,6 @@ export class PredictController extends BaseController<
     };
   } = {};
 
-  private readonly traceable: TraceableController = {
-    update: (updater) => this.update(updater),
-    getErrorContext: (method, extra) => this.getErrorContext(method, extra),
-  };
-
-  public readonly analytics: PredictAnalytics;
-
   constructor({ messenger, state = {} }: PredictControllerOptions) {
     super({
       name: 'PredictController',
@@ -422,17 +385,8 @@ export class PredictController extends BaseController<
       state: { ...getDefaultPredictControllerState(), ...state },
     });
 
-    this.messenger.registerMethodActionHandlers(
-      this,
-      MESSENGER_EXPOSED_METHODS,
-    );
-
     this.provider = new PolymarketProvider({
       getFeatureFlags: () => this.resolveFeatureFlags(),
-    });
-
-    this.analytics = new PredictAnalytics({
-      getEligibility: () => this.state.eligibility ?? { eligible: false },
     });
 
     this.messenger.subscribe(
@@ -520,7 +474,59 @@ export class PredictController extends BaseController<
     const remoteFeatureFlagState = this.messenger.call(
       'RemoteFeatureFlagController:getState',
     );
-    return resolvePredictFeatureFlags(remoteFeatureFlagState);
+    const flags = {
+      ...(remoteFeatureFlagState.remoteFeatureFlags ?? {}),
+      ...(remoteFeatureFlagState.localOverrides ?? {}),
+    };
+
+    const liveSportsFlag =
+      unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(flags.predictLiveSports) ??
+      DEFAULT_LIVE_SPORTS_FLAG;
+    const liveSportsLeagues = liveSportsFlag.enabled
+      ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
+      : [];
+
+    const rawMarketHighlightsFlag =
+      unwrapRemoteFeatureFlag<PredictMarketHighlightsFlag>(
+        flags.predictMarketHighlights,
+      );
+    const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
+      rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
+    );
+    const marketHighlightsFlag =
+      isHighlightsFlagValid && rawMarketHighlightsFlag
+        ? rawMarketHighlightsFlag
+        : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+
+    const feeCollection = parse(
+      unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
+        flags.predictFeeCollection,
+      ),
+      PredictFeeCollectionSchema,
+      DEFAULT_FEE_COLLECTION_FLAG,
+    );
+
+    const fakOrdersEnabled =
+      validatedVersionGatedFeatureFlag(
+        unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+          flags.predictFakOrders,
+        ),
+      ) ?? false;
+
+    const predictWithAnyTokenEnabled =
+      validatedVersionGatedFeatureFlag(
+        unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+          flags.predictWithAnyToken,
+        ),
+      ) ?? false;
+
+    return {
+      feeCollection,
+      liveSportsLeagues,
+      marketHighlightsFlag,
+      fakOrdersEnabled,
+      predictWithAnyTokenEnabled,
+    };
   }
 
   private getEvmAccountAddress(): string {
@@ -558,93 +564,107 @@ export class PredictController extends BaseController<
     }
   }
 
+  /**
+   * Get available markets with optional filtering
+   */
   async getMarkets(params: GetMarketsParams): Promise<PredictMarket[]> {
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getMarkets',
-        trace: {
-          name: TraceName.PredictGetMarkets,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-            ...(params.category && { category: params.category }),
-          },
-        },
-        errorContext: {
+    // Start Sentry trace for get markets operation
+    const traceId = `get-markets-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; marketCount?: number }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetMarkets,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: POLYMARKET_PROVIDER_ID,
+        ...(params.category && { category: params.category }),
+      },
+    });
+
+    try {
+      const featureFlags = this.resolveFeatureFlags();
+
+      const allMarkets = await this.provider.getMarkets(params);
+
+      let markets = allMarkets.filter(
+        (market): market is PredictMarket => market !== undefined,
+      );
+
+      const isFirstPage = !params.offset || params.offset === 0;
+      const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
+      const shouldFetchHighlights =
+        highlights.length > 0 && isFirstPage && params.category && !params.q;
+
+      if (shouldFetchHighlights) {
+        const highlightedMarketIds =
+          highlights.find((h) => h.category === params.category)?.markets ?? [];
+
+        if (highlightedMarketIds.length > 0) {
+          const provider = this.provider;
+
+          const fetchedHighlightedMarkets =
+            (await provider.getMarketsByIds?.(highlightedMarketIds)) ?? [];
+
+          const highlightedMarkets = fetchedHighlightedMarkets.filter(
+            (market) => market.status === 'open',
+          );
+
+          const highlightedIdSet = new Set(highlightedMarkets.map((m) => m.id));
+          markets = markets.filter(
+            (market) => !highlightedIdSet.has(market.id),
+          );
+
+          markets = [...highlightedMarkets, ...markets];
+        }
+      }
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: true, marketCount: markets.length };
+      return markets;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.MARKETS_FAILED;
+
+      // Update error state
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: false, error: errorMessage };
+
+      // Log to Sentry with market query context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getMarkets', {
           providerId: POLYMARKET_PROVIDER_ID,
           category: params.category,
           sortBy: params.sortBy,
           sortDirection: params.sortDirection,
           status: params.status,
           hasSearchQuery: !!params.q,
-        },
-        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
-        traceData: (markets) => ({ marketCount: markets.length }),
-      },
-      async () => {
-        const featureFlags = this.resolveFeatureFlags();
-        const allMarkets = await this.provider.getMarkets(params);
+        }),
+      );
 
-        let markets = allMarkets.filter(
-          (market): market is PredictMarket => market !== undefined,
-        );
-
-        const isFirstPage = !params.offset || params.offset === 0;
-        const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
-        const shouldFetchHighlights =
-          highlights.length > 0 && isFirstPage && params.category && !params.q;
-
-        if (shouldFetchHighlights) {
-          const highlightedMarketIds =
-            highlights.find((h) => h.category === params.category)?.markets ??
-            [];
-
-          if (highlightedMarketIds.length > 0) {
-            const fetchedHighlightedMarkets =
-              (await this.provider.getMarketsByIds?.(highlightedMarketIds)) ??
-              [];
-
-            const highlightedMarkets = fetchedHighlightedMarkets.filter(
-              (market) => market.status === 'open',
-            );
-
-            const highlightedIdSet = new Set(
-              highlightedMarkets.map((m) => m.id),
-            );
-            markets = markets.filter(
-              (market) => !highlightedIdSet.has(market.id),
-            );
-
-            markets = [...highlightedMarkets, ...markets];
-          }
-        }
-
-        return markets;
-      },
-    );
-  }
-
-  async getCarouselMarkets(): Promise<PredictMarket[]> {
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getCarouselMarkets',
-        trace: {
-          name: TraceName.PredictGetMarkets,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-          },
-        },
-        errorContext: { providerId: POLYMARKET_PROVIDER_ID },
-        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
-        traceData: (markets) => ({ marketCount: markets.length }),
-      },
-      async () => (await this.provider.getCarouselMarkets?.()) ?? [],
-    );
+      // Re-throw the error so components can handle it appropriately
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetMarkets,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
@@ -661,264 +681,428 @@ export class PredictController extends BaseController<
       throw new Error('marketId is required');
     }
 
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getMarket',
-        trace: {
-          name: TraceName.PredictGetMarket,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-          },
-        },
-        errorContext: {
+    // Start Sentry trace for get market operation
+    const traceId = `get-market-${Date.now()}`;
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    trace({
+      name: TraceName.PredictGetMarket,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: POLYMARKET_PROVIDER_ID,
+      },
+    });
+
+    try {
+      const provider = this.provider;
+      const market = await provider.getMarketDetails({
+        marketId: resolvedMarketId,
+      });
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: true };
+      return market;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.MARKET_DETAILS_FAILED;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: false, error: errorMessage };
+
+      // Log to Sentry with market details context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getMarket', {
           marketId: resolvedMarketId,
           providerId: POLYMARKET_PROVIDER_ID,
-        },
-        fallbackErrorCode: PREDICT_ERROR_CODES.MARKET_DETAILS_FAILED,
-      },
-      async () => {
-        try {
-          return await this.provider.getMarketDetails({
-            marketId: resolvedMarketId,
-          });
-        } catch (error) {
-          if (error instanceof Error) throw error;
-          throw new Error(PREDICT_ERROR_CODES.MARKET_DETAILS_FAILED);
-        }
-      },
-    );
+        }),
+      );
+
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      throw new Error(PREDICT_ERROR_CODES.MARKET_DETAILS_FAILED);
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetMarket,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
-  async getMarketSeries(params: GetSeriesParams): Promise<PredictMarket[]> {
-    return this.provider.getMarketSeries(params);
-  }
-
-  async getCryptoTargetPrice(
-    params: GetCryptoTargetPriceParams & { eventId: string },
-  ): Promise<number | null> {
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getCryptoTargetPrice',
-        trace: {
-          name: TraceName.PredictGetCryptoTargetPrice,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-            symbol: params.symbol,
-          },
-        },
-        errorContext: {
-          providerId: POLYMARKET_PROVIDER_ID,
-          eventId: params.eventId,
-          symbol: params.symbol,
-        },
-        fallbackErrorCode: PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        updateErrorState: false,
-      },
-      async () => {
-        let price: number | null = null;
-        try {
-          price = (await this.provider.getCryptoTargetPrice?.(params)) ?? null;
-        } catch {
-          // Provider threw — fall through to groupItemThreshold fallback.
-        }
-
-        if (price !== null) {
-          return price;
-        }
-
-        Logger.log(
-          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${params.eventId}, falling back to groupItemThreshold`,
-        );
-
-        try {
-          const market = await this.provider.getMarketDetails({
-            marketId: params.eventId,
-          });
-          if (!market?.outcomes?.length) {
-            return null;
-          }
-          return market.outcomes[0].groupItemThreshold ?? null;
-        } catch {
-          return null;
-        }
-      },
-    );
-  }
-
+  /**
+   * Get market price history
+   */
   async getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]> {
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getPriceHistory',
-        trace: {
-          name: TraceName.PredictGetPriceHistory,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-            ...(params.interval && { interval: params.interval }),
-          },
-        },
-        errorContext: {
+    // Start Sentry trace for get price history operation
+    const traceId = `get-price-history-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; pointCount?: number }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetPriceHistory,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: POLYMARKET_PROVIDER_ID,
+        ...(params.interval && { interval: params.interval }),
+      },
+    });
+
+    try {
+      const history = await this.provider.getPriceHistory(params);
+
+      const priceHistory = history ?? [];
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: true, pointCount: priceHistory.length };
+      return priceHistory;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.PRICE_HISTORY_FAILED;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: false, error: errorMessage };
+
+      // Log to Sentry with price history context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getPriceHistory', {
           providerId: POLYMARKET_PROVIDER_ID,
           marketId: params.marketId,
           fidelity: params.fidelity,
           interval: params.interval,
-        },
-        fallbackErrorCode: PREDICT_ERROR_CODES.PRICE_HISTORY_FAILED,
-        traceData: (history) => ({ pointCount: history.length }),
-      },
-      async () => {
-        const history = await this.provider.getPriceHistory(params);
-        return history ?? [];
-      },
-    );
+        }),
+      );
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetPriceHistory,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
+  /**
+   * Get current prices for multiple tokens
+   *
+   * Fetches BUY (best ask) and SELL (best bid) prices from the provider.
+   * BUY = what you'd pay to buy
+   * SELL = what you'd receive to sell
+   */
   async getPrices(params: GetPriceParams): Promise<GetPriceResponse> {
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getPrices',
-        trace: {
-          name: TraceName.PredictGetPrices,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-          },
-          data: {
-            queryCount: params.queries?.length ?? 0,
-          },
-        },
-        errorContext: {
+    // Start Sentry trace for get prices operation
+    const traceId = `get-prices-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; priceCount?: number }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetPrices,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: POLYMARKET_PROVIDER_ID,
+      },
+      data: {
+        queryCount: params.queries?.length,
+      },
+    });
+
+    try {
+      const provider = this.provider;
+
+      const response = await provider.getPrices({ queries: params.queries });
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: true, priceCount: response.results?.length ?? 0 };
+      return response;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.UNKNOWN_ERROR;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: false, error: errorMessage };
+
+      // Log to Sentry with prices context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getPrices', {
           providerId: POLYMARKET_PROVIDER_ID,
           queriesCount: params.queries?.length,
-        },
-        fallbackErrorCode: PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        traceData: (response) => ({
-          priceCount: response.results?.length ?? 0,
         }),
-      },
-      async () => this.provider.getPrices({ queries: params.queries }),
-    );
+      );
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetPrices,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
+  /**
+   * Get user positions
+   */
   async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
-    const selectedAddress = params.address ?? this.getSigner().address;
+    // Start Sentry trace for get positions operation
+    const traceId = `get-positions-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; positionCount?: number }
+      | undefined;
 
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getPositions',
-        trace: {
-          name: TraceName.PredictGetPositions,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-            claimable: params.claimable ?? false,
-          },
-        },
-        errorContext: {
+    trace({
+      name: TraceName.PredictGetPositions,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: POLYMARKET_PROVIDER_ID,
+        claimable: params.claimable ?? false,
+      },
+    });
+
+    try {
+      const { address } = params;
+
+      const selectedAddress = address ?? this.getSigner().address;
+
+      const provider = this.provider;
+
+      const positions = await provider.getPositions({
+        ...params,
+        address: selectedAddress,
+      });
+
+      // Only update state if the provider call succeeded
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null; // Clear any previous errors
+        if (params.claimable === true) {
+          state.claimablePositions[selectedAddress] = [...positions];
+        } else if (params.claimable === undefined) {
+          state.claimablePositions[selectedAddress] = positions.filter(
+            (p) => p.claimable,
+          );
+        }
+      });
+
+      traceData = { success: true, positionCount: positions.length };
+      return positions;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.POSITIONS_FAILED;
+
+      // Update error state but don't modify positions (keep existing data)
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: false, error: errorMessage };
+
+      // Log to Sentry with positions query context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getPositions', {
           providerId: POLYMARKET_PROVIDER_ID,
           claimable: params.claimable,
           marketId: params.marketId,
-        },
-        fallbackErrorCode: PREDICT_ERROR_CODES.POSITIONS_FAILED,
-        traceData: (positions) => ({ positionCount: positions.length }),
-        updateErrorState: false,
-        onSuccess: (positions) => {
-          this.update((state) => {
-            state.lastError = null;
-            state.lastUpdateTimestamp = Date.now();
-            if (params.claimable === true) {
-              state.claimablePositions[selectedAddress] = [...positions];
-            } else if (params.claimable === undefined) {
-              state.claimablePositions[selectedAddress] = positions.filter(
-                (p) => p.claimable,
-              );
-            }
-          });
-        },
-      },
-      async () => {
-        try {
-          return await this.provider.getPositions({
-            ...params,
-            address: selectedAddress,
-          });
-        } catch (error) {
-          this.update((state) => {
-            state.lastError =
-              error instanceof Error
-                ? error.message
-                : PREDICT_ERROR_CODES.POSITIONS_FAILED;
-            state.lastUpdateTimestamp = Date.now();
-          });
-          throw error;
-        }
-      },
-    );
+        }),
+      );
+
+      // Re-throw the error so components can handle it appropriately
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetPositions,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
+  /**
+   * Get user activity
+   */
   async getActivity(params: { address?: string }): Promise<PredictActivity[]> {
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getActivity',
-        trace: {
-          name: TraceName.PredictGetActivity,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-          },
-        },
-        errorContext: { providerId: POLYMARKET_PROVIDER_ID },
-        fallbackErrorCode: PREDICT_ERROR_CODES.ACTIVITY_NOT_AVAILABLE,
-        traceData: (activity) => ({ activityCount: activity.length }),
+    // Start Sentry trace for get activity operation
+    const traceId = `get-activity-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; activityCount?: number }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetActivity,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: POLYMARKET_PROVIDER_ID,
       },
-      async () => {
-        const selectedAddress = params.address ?? this.getSigner().address;
-        return this.provider.getActivity({ address: selectedAddress });
-      },
-    );
+    });
+
+    try {
+      const { address } = params;
+      const selectedAddress = address ?? this.getSigner().address;
+
+      const activity = await this.provider.getActivity({
+        address: selectedAddress,
+      });
+
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      });
+
+      traceData = { success: true, activityCount: activity.length };
+      return activity;
+    } catch (error) {
+      this.update((state) => {
+        state.lastError =
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.ACTIVITY_NOT_AVAILABLE;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
+      // Log to Sentry with activity query context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getActivity', {
+          providerId: POLYMARKET_PROVIDER_ID,
+        }),
+      );
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetActivity,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
+  /**
+   * Get unrealized P&L for a user
+   */
   async getUnrealizedPnL({
     address,
   }: {
     address?: string;
   }): Promise<UnrealizedPnL> {
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getUnrealizedPnL',
-        trace: {
-          name: TraceName.PredictGetUnrealizedPnL,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-          },
-        },
-        errorContext: { providerId: POLYMARKET_PROVIDER_ID },
-        fallbackErrorCode: 'Failed to fetch unrealized P&L',
+    // Start Sentry trace for get unrealized PnL operation
+    const traceId = `get-unrealized-pnl-${Date.now()}`;
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    trace({
+      name: TraceName.PredictGetUnrealizedPnL,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: POLYMARKET_PROVIDER_ID,
       },
-      async () => {
-        const selectedAddress = address ?? this.getSigner().address;
-        return this.provider.getUnrealizedPnL({ address: selectedAddress });
-      },
-    );
+    });
+
+    try {
+      const selectedAddress = address ?? this.getSigner().address;
+
+      const provider = this.provider;
+
+      const unrealizedPnL = await provider.getUnrealizedPnL({
+        address: selectedAddress,
+      });
+
+      // Update state on successful call
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      });
+
+      traceData = { success: true };
+      return unrealizedPnL;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch unrealized P&L';
+
+      // Update error state
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: false, error: errorMessage };
+
+      // Log to Sentry with unrealized PnL context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getUnrealizedPnL', {
+          providerId: POLYMARKET_PROVIDER_ID,
+        }),
+      );
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetUnrealizedPnL,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
@@ -926,46 +1110,346 @@ export class PredictController extends BaseController<
    * Uses a single consolidated event with status discriminator
    * @public
    */
-  public async trackPredictOrderEvent(
-    args: Parameters<PredictAnalytics['trackPredictOrderEvent']>[0],
-  ): Promise<void> {
-    return this.analytics.trackPredictOrderEvent(args);
+  public async trackPredictOrderEvent({
+    status,
+    amountUsd,
+    analyticsProperties,
+    completionDuration,
+    failureReason,
+    sharePrice,
+    pnl,
+    orderType,
+    paymentTokenAddress,
+  }: {
+    status: PredictTradeStatusValue;
+    amountUsd?: number;
+    analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+    completionDuration?: number;
+    failureReason?: string;
+    sharePrice?: number;
+    pnl?: number;
+    orderType?: PredictOrderType;
+    paymentTokenAddress?: string;
+  }): Promise<void> {
+    if (!analyticsProperties) {
+      return;
+    }
+
+    // Build regular properties (common to all statuses)
+    const regularProperties = {
+      [PredictEventProperties.STATUS]: status,
+      [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+      [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
+      [PredictEventProperties.MARKET_CATEGORY]:
+        analyticsProperties.marketCategory,
+      [PredictEventProperties.MARKET_TAGS]: analyticsProperties.marketTags,
+      [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      [PredictEventProperties.TRANSACTION_TYPE]:
+        analyticsProperties.transactionType,
+      [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
+      [PredictEventProperties.VOLUME]: analyticsProperties.volume,
+      [PredictEventProperties.SHARE_PRICE]: sharePrice,
+      ...(analyticsProperties.marketType && {
+        [PredictEventProperties.MARKET_TYPE]: analyticsProperties.marketType,
+      }),
+      ...(analyticsProperties.outcome && {
+        [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
+      }),
+      ...(completionDuration !== undefined && {
+        [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
+      }),
+      ...(failureReason && {
+        [PredictEventProperties.FAILURE_REASON]: failureReason,
+      }),
+      ...(analyticsProperties.marketSlug && {
+        [PredictEventProperties.MARKET_SLUG]: analyticsProperties.marketSlug,
+      }),
+      ...(analyticsProperties.gameId && {
+        [PredictEventProperties.GAME_ID]: analyticsProperties.gameId,
+      }),
+      ...(analyticsProperties.gameStartTime && {
+        [PredictEventProperties.GAME_START_TIME]:
+          analyticsProperties.gameStartTime,
+      }),
+      ...(analyticsProperties.gameLeague && {
+        [PredictEventProperties.GAME_LEAGUE]: analyticsProperties.gameLeague,
+      }),
+      ...(analyticsProperties.gameStatus && {
+        [PredictEventProperties.GAME_STATUS]: analyticsProperties.gameStatus,
+      }),
+      ...(analyticsProperties.gamePeriod && {
+        [PredictEventProperties.GAME_PERIOD]: analyticsProperties.gamePeriod,
+      }),
+      ...(analyticsProperties.gameClock && {
+        [PredictEventProperties.GAME_CLOCK]: analyticsProperties.gameClock,
+      }),
+      ...(orderType && {
+        [PredictEventProperties.ORDER_TYPE]: orderType,
+      }),
+      ...(paymentTokenAddress && {
+        [PredictEventProperties.PREDICT_TOKEN_ADDRESS]: paymentTokenAddress,
+      }),
+    };
+
+    // Build sensitive properties
+    const sensitiveProperties = {
+      ...(amountUsd !== undefined && {
+        [PredictEventProperties.AMOUNT_USD]: amountUsd,
+      }),
+      // Add PNL for sell orders only
+      ...(pnl !== undefined && {
+        [PredictEventProperties.PNL]: pnl,
+      }),
+    };
+
+    DevLogger.log(`📊 [Analytics] PREDICT_TRADE_TRANSACTION [${status}]`, {
+      providerId: POLYMARKET_PROVIDER_ID,
+      regularProperties,
+      sensitiveProperties,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION,
+      )
+        .addProperties(regularProperties)
+        .addSensitiveProperties(sensitiveProperties)
+        .build(),
+    );
   }
 
-  public trackMarketDetailsOpened(
-    args: Parameters<PredictAnalytics['trackMarketDetailsOpened']>[0],
-  ): void {
-    this.analytics.trackMarketDetailsOpened(args);
+  /**
+   * Track Predict market details opened analytics event
+   * @public
+   */
+  public trackMarketDetailsOpened({
+    marketId,
+    marketTitle,
+    marketCategory,
+    marketTags,
+    entryPoint,
+    marketDetailsViewed,
+    marketSlug,
+    gameId,
+    gameStartTime,
+    gameLeague,
+    gameStatus,
+    gamePeriod,
+    gameClock,
+  }: {
+    marketId: string;
+    marketTitle: string;
+    marketCategory?: string;
+    marketTags?: string[];
+    entryPoint: string;
+    marketDetailsViewed: string;
+    marketSlug?: string;
+    gameId?: string;
+    gameStartTime?: string;
+    gameLeague?: string;
+    gameStatus?: string;
+    gamePeriod?: string | null;
+    gameClock?: string | null;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.MARKET_ID]: marketId,
+      [PredictEventProperties.MARKET_TITLE]: marketTitle,
+      [PredictEventProperties.MARKET_CATEGORY]: marketCategory,
+      [PredictEventProperties.MARKET_TAGS]: marketTags,
+      [PredictEventProperties.ENTRY_POINT]: entryPoint,
+      [PredictEventProperties.MARKET_DETAILS_VIEWED]: marketDetailsViewed,
+      ...(marketSlug && {
+        [PredictEventProperties.MARKET_SLUG]: marketSlug,
+      }),
+      ...(gameId && {
+        [PredictEventProperties.GAME_ID]: gameId,
+      }),
+      ...(gameStartTime && {
+        [PredictEventProperties.GAME_START_TIME]: gameStartTime,
+      }),
+      ...(gameLeague && {
+        [PredictEventProperties.GAME_LEAGUE]: gameLeague,
+      }),
+      ...(gameStatus && {
+        [PredictEventProperties.GAME_STATUS]: gameStatus,
+      }),
+      ...(gamePeriod && {
+        [PredictEventProperties.GAME_PERIOD]: gamePeriod,
+      }),
+      ...(gameClock && {
+        [PredictEventProperties.GAME_CLOCK]: gameClock,
+      }),
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_MARKET_DETAILS_OPENED', {
+      analyticsProperties,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_MARKET_DETAILS_OPENED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
   }
 
-  public trackPositionViewed(
-    args: Parameters<PredictAnalytics['trackPositionViewed']>[0],
-  ): void {
-    this.analytics.trackPositionViewed(args);
+  /**
+   * Track Predict position viewed analytics event
+   * @public
+   */
+  public trackPositionViewed({
+    openPositionsCount,
+  }: {
+    openPositionsCount: number;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_POSITION_VIEWED', {
+      analyticsProperties,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
   }
 
-  public trackActivityViewed(
-    args: Parameters<PredictAnalytics['trackActivityViewed']>[0],
-  ): void {
-    this.analytics.trackActivityViewed(args);
+  /**
+   * Track Predict Activity Viewed event
+   * @public
+   */
+  public trackActivityViewed({ activityType }: { activityType: string }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.ACTIVITY_TYPE]: activityType,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_ACTIVITY_VIEWED', {
+      analyticsProperties,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
   }
 
-  public trackGeoBlockTriggered(
-    args: Parameters<PredictAnalytics['trackGeoBlockTriggered']>[0],
-  ): void {
-    this.analytics.trackGeoBlockTriggered(args);
+  /**
+   * Track geo-blocking event when user attempts an action but is blocked
+   */
+  public trackGeoBlockTriggered({
+    attemptedAction,
+  }: {
+    attemptedAction: string;
+  }): void {
+    const eligibilityData = this.state.eligibility;
+    const analyticsProperties = {
+      [PredictEventProperties.COUNTRY]: eligibilityData?.country,
+      [PredictEventProperties.ATTEMPTED_ACTION]: attemptedAction,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_GEO_BLOCKED_TRIGGERED', {
+      analyticsProperties,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_GEO_BLOCKED_TRIGGERED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
   }
 
-  public trackFeedViewed(
-    args: Parameters<PredictAnalytics['trackFeedViewed']>[0],
-  ): void {
-    this.analytics.trackFeedViewed(args);
+  /**
+   * Track when user views the predict feed
+   * Tracks session-based feed interactions with unique session IDs
+   * @param sessionId - Unique session identifier
+   * @param feedTab - Current active feed tab
+   * @param numPagesViewed - Number of pages viewed in session
+   * @param sessionTime - Time spent in feed (seconds)
+   * @param entryPoint - How user entered the feed
+   * @param isSessionEnd - Whether this is the final event for the session
+   * @public
+   */
+  public trackFeedViewed({
+    sessionId,
+    feedTab,
+    numPagesViewed,
+    sessionTime,
+    entryPoint,
+    isSessionEnd = false,
+  }: {
+    sessionId: string;
+    feedTab: string;
+    numPagesViewed: number;
+    sessionTime: number;
+    entryPoint?: string;
+    isSessionEnd?: boolean;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.SESSION_ID]: sessionId,
+      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+      [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
+      [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
+      [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
+      ...(entryPoint && { [PredictEventProperties.ENTRY_POINT]: entryPoint }),
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_FEED_VIEWED', {
+      analyticsProperties,
+      isSessionEnd,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_FEED_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
   }
 
-  public trackShareAction(
-    args: Parameters<PredictAnalytics['trackShareAction']>[0],
-  ): void {
-    this.analytics.trackShareAction(args);
+  /**
+   * Track Share Action analytics event for Predict markets
+   * @public
+   */
+  public trackShareAction({
+    status,
+    marketId,
+    marketSlug,
+  }: {
+    status: PredictShareStatusValue;
+    marketId?: string;
+    marketSlug?: string;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.STATUS]: status,
+      ...(marketId && {
+        [PredictEventProperties.MARKET_ID]: marketId,
+      }),
+      ...(marketSlug && {
+        [PredictEventProperties.MARKET_SLUG]: marketSlug,
+      }),
+    };
+
+    DevLogger.log('📊 [Analytics] SHARE_ACTION', {
+      analyticsProperties,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.SHARE_ACTION)
+        .addProperties(analyticsProperties)
+        .build(),
+    );
   }
 
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
@@ -1607,36 +2091,14 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Subscribes to real-time crypto price updates via RTDS WebSocket.
-   *
-   * @param symbols - Array of crypto symbols to subscribe to (e.g., ['btcusdt'])
-   * @param callback - Function invoked when a crypto price update is received
-   * @returns Unsubscribe function to clean up the subscription
-   */
-  public subscribeToCryptoPrices(
-    symbols: string[],
-    callback: CryptoPriceUpdateCallback,
-  ): () => void {
-    const provider = this.provider;
-    if (!provider?.subscribeToCryptoPrices) {
-      return () => undefined;
-    }
-    return provider.subscribeToCryptoPrices(symbols, callback);
-  }
-
-  /**
    * Gets the current WebSocket connection status for live data feeds.
    *
-   * @returns Connection status for sports, market, and RTDS data WebSocket channels
+   * @returns Connection status for sports and market data WebSocket channels
    */
   public getConnectionStatus(): ConnectionStatus {
     const provider = this.provider;
     if (!provider?.getConnectionStatus) {
-      return {
-        sportsConnected: false,
-        marketConnected: false,
-        rtdsConnected: false,
-      };
+      return { sportsConnected: false, marketConnected: false };
     }
     return provider.getConnectionStatus();
   }
@@ -2350,75 +2812,123 @@ export class PredictController extends BaseController<
   public async getAccountState(
     params: GetAccountStateParams = {},
   ): Promise<AccountState> {
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getAccountState',
-        trace: {
-          name: TraceName.PredictGetAccountState,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-          },
-        },
-        errorContext: { providerId: POLYMARKET_PROVIDER_ID },
-        updateErrorState: false,
+    // Start Sentry trace for get account state operation
+    const traceId = `get-account-state-${Date.now()}`;
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    trace({
+      name: TraceName.PredictGetAccountState,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: POLYMARKET_PROVIDER_ID,
       },
-      async () => {
-        const selectedAddress = this.getSigner().address;
-        return this.provider.getAccountState({
-          ...params,
-          ownerAddress: selectedAddress,
-        });
-      },
-    );
+    });
+
+    try {
+      const provider = this.provider;
+      const selectedAddress = this.getSigner().address;
+
+      const accountState = await provider.getAccountState({
+        ...params,
+        ownerAddress: selectedAddress,
+      });
+
+      traceData = { success: true };
+      return accountState;
+    } catch (error) {
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
+      // Log to Sentry with account state context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getAccountState', {
+          providerId: POLYMARKET_PROVIDER_ID,
+        }),
+      );
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetAccountState,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   public async getBalance(params: GetBalanceParams): Promise<number> {
-    const selectedAddress = this.getSigner().address;
-    const address = params.address ?? selectedAddress;
-    let wasCached = false;
+    // Start Sentry trace for get balance operation
+    const traceId = `get-balance-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; cached?: boolean }
+      | undefined;
 
-    return withTrace(
-      this.traceable,
-      {
-        method: 'getBalance',
-        trace: {
-          name: TraceName.PredictGetBalance,
-          op: TraceOperation.PredictDataFetch,
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            providerId: POLYMARKET_PROVIDER_ID,
-          },
-        },
-        errorContext: { providerId: POLYMARKET_PROVIDER_ID },
-        updateErrorState: false,
-        traceData: () => ({ cached: wasCached }),
-        onSuccess: (balance) => {
-          if (wasCached) {
-            return;
-          }
-
-          this.update((state) => {
-            state.balances[address] = {
-              balance,
-              validUntil: Date.now() + 1000,
-            };
-          });
-        },
+    trace({
+      name: TraceName.PredictGetBalance,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: POLYMARKET_PROVIDER_ID,
       },
-      async () => {
-        const cachedBalance = this.state.balances[address];
-        if (cachedBalance && cachedBalance.validUntil > Date.now()) {
-          wasCached = true;
-          return cachedBalance.balance;
-        }
+    });
 
-        await this.invalidateQueryCache(this.provider.chainId);
-        return this.provider.getBalance({ ...params, address });
-      },
-    );
+    try {
+      const provider = this.provider;
+      const selectedAddress = this.getSigner().address;
+      const address = params.address ?? selectedAddress;
+
+      const cachedBalance = this.state.balances[address];
+      if (cachedBalance && cachedBalance.validUntil > Date.now()) {
+        traceData = { success: true, cached: true };
+        return cachedBalance.balance;
+      }
+
+      // Invalidate query cache
+      await this.invalidateQueryCache(provider.chainId);
+
+      const balance = await provider.getBalance({
+        ...params,
+        address,
+      });
+
+      this.update((state) => {
+        state.balances[address] = {
+          balance,
+          // valid for 1 second
+          validUntil: Date.now() + 1000,
+        };
+      });
+
+      traceData = { success: true, cached: false };
+      return balance;
+    } catch (error) {
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
+      // Log to Sentry with balance query context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getBalance', {
+          providerId: POLYMARKET_PROVIDER_ID,
+        }),
+      );
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetBalance,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   public async prepareWithdraw(
@@ -2620,42 +3130,3 @@ export class PredictController extends BaseController<
     });
   }
 }
-
-export type {
-  PredictControllerBeforeSignAction,
-  PredictControllerClaimWithConfirmationAction,
-  PredictControllerClearActiveOrderAction,
-  PredictControllerClearActiveOrderTransactionIdAction,
-  PredictControllerClearOrderErrorAction,
-  PredictControllerClearPendingDepositAction,
-  PredictControllerClearWithdrawTransactionAction,
-  PredictControllerConfirmClaimAction,
-  PredictControllerDepositWithConfirmationAction,
-  PredictControllerGetAccountStateAction,
-  PredictControllerGetActivityAction,
-  PredictControllerGetBalanceAction,
-  PredictControllerGetConnectionStatusAction,
-  PredictControllerGetMarketAction,
-  PredictControllerGetMarketsAction,
-  PredictControllerGetPositionsAction,
-  PredictControllerGetPriceHistoryAction,
-  PredictControllerGetPricesAction,
-  PredictControllerGetUnrealizedPnLAction,
-  PredictControllerInitPayWithAnyTokenAction,
-  PredictControllerOnPlaceOrderSuccessAction,
-  PredictControllerPlaceOrderAction,
-  PredictControllerPrepareWithdrawAction,
-  PredictControllerPreviewOrderAction,
-  PredictControllerRefreshEligibilityAction,
-  PredictControllerSelectPaymentTokenAction,
-  PredictControllerSetSelectedPaymentTokenAction,
-  PredictControllerSubscribeToGameUpdatesAction,
-  PredictControllerSubscribeToMarketPricesAction,
-  PredictControllerTrackActivityViewedAction,
-  PredictControllerTrackFeedViewedAction,
-  PredictControllerTrackGeoBlockTriggeredAction,
-  PredictControllerTrackMarketDetailsOpenedAction,
-  PredictControllerTrackPositionViewedAction,
-  PredictControllerTrackPredictOrderEventAction,
-  PredictControllerTrackShareActionAction,
-} from './PredictController-method-action-types';

@@ -55,6 +55,11 @@ describe('AddActivationKey', () => {
     mockUseParamsValue = { onSubmit: mockOnSubmit };
   });
 
+  it('renders correctly', () => {
+    render(ActivationKeyForm);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
   it('renders inline header with title Add activation key', () => {
     render(ActivationKeyForm);
     const header = screen.getByTestId(ACTIVATION_KEY_FORM_HEADER_TEST_ID);

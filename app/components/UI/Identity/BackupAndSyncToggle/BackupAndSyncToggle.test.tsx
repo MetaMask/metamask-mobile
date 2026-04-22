@@ -3,7 +3,6 @@ import React from 'react';
 import BackupAndSyncToggle from './BackupAndSyncToggle';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
-import { BACKUP_AND_SYNC_TOGGLE_TEST_IDS } from './BackupAndSyncToggle.testIds';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
@@ -93,8 +92,8 @@ describe('BackupAndSyncToggle', () => {
     );
   });
 
-  it('renders the toggle switch', () => {
-    const { getByTestId } = renderWithProvider(
+  it('renders correctly', () => {
+    const { toJSON } = renderWithProvider(
       <BackupAndSyncToggle
         trackBackupAndSyncToggleEventOverride={mockTrackEventOverride}
       />,
@@ -102,10 +101,7 @@ describe('BackupAndSyncToggle', () => {
         state: MOCK_STORE_STATE,
       },
     );
-
-    expect(
-      getByTestId(BACKUP_AND_SYNC_TOGGLE_TEST_IDS.TOGGLE),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks the event when the toggle is changed', async () => {

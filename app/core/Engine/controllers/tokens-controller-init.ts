@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   TokensController,
   type TokensControllerMessenger,
@@ -14,17 +14,12 @@ import { assert } from '@metamask/utils';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokensControllerInit: MessengerClientInitFunction<
+export const tokensControllerInit: ControllerInitFunction<
   TokensController,
   TokensControllerMessenger,
   TokensControllerInitMessenger
-> = ({
-  controllerMessenger,
-  initMessenger,
-  persistedState,
-  getMessengerClient,
-}) => {
-  const networkController = getMessengerClient('NetworkController');
+> = ({ controllerMessenger, initMessenger, persistedState, getController }) => {
+  const networkController = getController('NetworkController');
   const { provider } =
     initMessenger.call('NetworkController:getSelectedNetworkClient') ?? {};
 

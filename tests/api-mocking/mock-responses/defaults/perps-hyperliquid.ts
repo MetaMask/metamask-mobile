@@ -14,13 +14,7 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       urlEndpoint: hyperliquidInfoEndpoint,
       requestBody: { type: 'meta' },
       responseCode: 200,
-      response: {
-        universe: [
-          { name: 'BTC', szDecimals: 3, maxLeverage: 50, marginTableId: 0 },
-          { name: 'ETH', szDecimals: 4, maxLeverage: 50, marginTableId: 0 },
-          { name: 'SOL', szDecimals: 2, maxLeverage: 50, marginTableId: 0 },
-        ],
-      },
+      response: {},
     },
     {
       urlEndpoint: hyperliquidInfoEndpoint,

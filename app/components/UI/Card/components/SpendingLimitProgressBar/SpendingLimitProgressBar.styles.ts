@@ -21,9 +21,6 @@ const createStyles = (theme: Theme) =>
     skeletonRounded: {
       borderRadius: 12,
     },
-    skeletonContainer: {
-      marginTop: 16,
-    },
   });
 
 export default createStyles;

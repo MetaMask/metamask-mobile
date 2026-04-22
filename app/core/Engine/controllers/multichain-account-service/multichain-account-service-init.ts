@@ -5,7 +5,7 @@ import {
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
 } from '@metamask/multichain-account-service';
-import { MessengerClientInitFunction } from '../../types';
+import { ControllerInitFunction } from '../../types';
 import Engine from '../../Engine';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
@@ -17,7 +17,7 @@ import { MultichainAccountServiceInitMessenger } from '../../messengers/multicha
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const multichainAccountServiceInit: MessengerClientInitFunction<
+export const multichainAccountServiceInit: ControllerInitFunction<
   MultichainAccountService,
   MultichainAccountServiceMessenger,
   MultichainAccountServiceInitMessenger
@@ -42,18 +42,10 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   };
 
-  const solanaSnapAccountProviderConfig = {
-    ...snapAccountProviderConfig,
-    createAccounts: {
-      ...snapAccountProviderConfig.createAccounts,
-      batched: true,
-    },
-  };
-
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
     providerConfigs: {
-      [SOL_ACCOUNT_PROVIDER_NAME]: solanaSnapAccountProviderConfig,
+      [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// END:ONLY_INCLUDE_IF

@@ -7,13 +7,13 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './UnstakeTimeCard.styles';
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../../../hooks/useMetrics';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
 
 const UnstakingTimeCard = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { trackEvent } = useAnalytics();
+  const { trackEvent } = useMetrics();
 
   return (
     <Card style={styles.card} disabled>

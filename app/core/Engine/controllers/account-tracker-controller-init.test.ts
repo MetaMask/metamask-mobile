@@ -1,8 +1,8 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getAccountTrackerControllerMessenger } from '../messengers/account-tracker-controller-messenger';
 
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { accountTrackerControllerInit } from './account-tracker-controller-init';
 import {
   AccountTrackerController,
@@ -28,20 +28,20 @@ jest.mock('../../../selectors/settings', () => ({
 }));
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<AccountTrackerControllerMessenger>
+  ControllerInitRequest<AccountTrackerControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getAccountTrackerControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getMessengerClient.mockImplementation((name: string) => {
+  requestMock.getController.mockImplementation((name: string) => {
     if (name === 'AssetsContractController') {
       return {
         getStakedBalanceForChain: jest.fn(),

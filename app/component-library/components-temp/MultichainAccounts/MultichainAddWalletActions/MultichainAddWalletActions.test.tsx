@@ -49,6 +49,19 @@ describe('MultichainAddWalletActions', () => {
     jest.clearAllMocks();
   });
 
+  it('renders correctly', () => {
+    const wrapper = renderScreen(
+      () => <MultichainAddWalletActions {...mockProps} />,
+      {
+        name: 'MultichainAddWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(wrapper.toJSON()).toMatchSnapshot();
+  });
+
   it('shows all wallet creation options', () => {
     renderScreen(
       () => <MultichainAddWalletActions {...mockProps} />,

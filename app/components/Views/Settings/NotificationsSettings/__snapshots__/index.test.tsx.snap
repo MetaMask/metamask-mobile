@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationsSettings render matches snapshot 1`] = `
+<RCTScrollView
+  style={
+    {
+      "paddingBottom": 48,
+      "paddingLeft": 16,
+      "paddingRight": 16,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "marginTop": 16,
+        }
+      }
+      testID="main-notification-toggle"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#131416",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 20,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Allow notifications
+      </Text>
+      <RCTSwitch
+        accessibilityRole="switch"
+        onChange={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onTintColor="#4459ff"
+        style={
+          [
+            {
+              "height": 31,
+              "width": 51,
+            },
+            [
+              {
+                "alignSelf": "flex-end",
+              },
+              {
+                "backgroundColor": "#b4b4b566",
+                "borderRadius": 16,
+              },
+            ],
+          ]
+        }
+        testID="notification-settings-notifications-toggle"
+        thumbTintColor="#ffffff"
+        tintColor="#b4b4b566"
+        value={false}
+      />
+    </View>
+    <View
+      style={
+        {
+          "marginTop": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#66676a",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.
+         
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+          testID="main-notification-toggle--learn-more-button"
+        >
+          Learn how we protect your privacy while using this feature.
+        </Text>
+      </Text>
+    </View>
+    <View />
+  </View>
+</RCTScrollView>
+`;

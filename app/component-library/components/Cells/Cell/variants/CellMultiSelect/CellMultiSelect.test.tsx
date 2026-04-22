@@ -12,7 +12,7 @@ describe('CellMultiSelect', () => {
     const wrapper = render(
       <CellMultiSelect {...SAMPLE_CELLMULTISELECT_PROPS} />,
     );
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render CellMultiSelect', () => {
     const { queryByTestId } = render(

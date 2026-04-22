@@ -25,6 +25,7 @@ import {
   CARD_BUTTON_BADGE_AB_KEY,
   CARD_BUTTON_BADGE_VARIANTS,
 } from './abTestConfig';
+import Logger from '../../../../../util/Logger';
 
 interface CardButtonProps {
   onPress: () => void;
@@ -45,7 +46,7 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
       (state.engine.backgroundState.RemoteFeatureFlagController
         ?.cacheTimestamp ?? 0) > 0,
   );
-  const { variant } = useABTest(
+  const { variant, variantName, isActive } = useABTest(
     CARD_BUTTON_BADGE_AB_KEY,
     CARD_BUTTON_BADGE_VARIANTS,
   );
@@ -55,11 +56,22 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   useEffect(() => {
     if (hasTrackedViewedEvent.current || !flagsResolved) return;
     hasTrackedViewedEvent.current = true;
+    Logger.log({
+      active_ab_tests: [{ key: CARD_BUTTON_BADGE_AB_KEY, value: variantName }],
+    });
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED).build(),
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED)
+        .addProperties({
+          ...(isActive && {
+            active_ab_tests: [
+              { key: CARD_BUTTON_BADGE_AB_KEY, value: variantName },
+            ],
+          }),
+        })
+        .build(),
     );
-  }, [trackEvent, createEventBuilder, flagsResolved]);
+  }, [trackEvent, createEventBuilder, isActive, variantName, flagsResolved]);
 
   const onPressHandler = () => {
     if (!hasViewedCardButton) {

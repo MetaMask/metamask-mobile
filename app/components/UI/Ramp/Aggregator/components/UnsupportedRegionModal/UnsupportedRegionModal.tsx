@@ -27,7 +27,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { Region } from '../../types';
 import { useRampSDK } from '../../sdk';
 import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
-import { UNSUPPORTED_BUY_REGION_SUPPORT_URL } from '../../../../../../constants/urls';
 
 interface UnsupportedRegionModalParams {
   region: Region;
@@ -57,7 +56,9 @@ function UnsupportedRegionModal() {
   }, [navigation, regions]);
 
   const handleSupportLinkPress = useCallback(() => {
-    Linking.openURL(UNSUPPORTED_BUY_REGION_SUPPORT_URL);
+    const SUPPORT_URL =
+      'https://support.metamask.io/metamask-portfolio/buy/my-country-region-isnt-supported-for-buying-crypto/';
+    Linking.openURL(SUPPORT_URL);
   }, []);
 
   return (

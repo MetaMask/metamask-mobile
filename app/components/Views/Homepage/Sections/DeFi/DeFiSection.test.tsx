@@ -8,23 +8,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockNavigate = jest.fn();
 const mockExecutePoll = jest.fn().mockResolvedValue(undefined);
 
-jest.mock('@react-navigation/native', () => {
-  const ReactActual = jest.requireActual<typeof import('react')>('react');
-  return {
-    ...jest.requireActual('@react-navigation/native'),
-    useNavigation: () => ({
-      navigate: mockNavigate,
-    }),
-    useFocusEffect: (callback: () => void | (() => void)) => {
-      ReactActual.useEffect(() => {
-        const cleanup = callback();
-        return typeof cleanup === 'function' ? cleanup : undefined;
-        // Intentionally run once on mount to mirror initial screen focus in tests.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, []);
-    },
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -34,9 +23,12 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../selectors/deFiPositionsSectionEnabled', () => ({
-  selectDeFiPositionsSectionEnabled: jest.fn(() => true),
-}));
+jest.mock(
+  '../../../../../selectors/featureFlagController/assetsDefiPositions',
+  () => ({
+    selectAssetsDefiPositionsEnabled: jest.fn(() => true),
+  }),
+);
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
@@ -98,8 +90,10 @@ describe('DeFiSection', () => {
     jest.clearAllMocks();
     // Reset mock return values to defaults
     jest
-      .requireMock('../../../../../selectors/deFiPositionsSectionEnabled')
-      .selectDeFiPositionsSectionEnabled.mockReturnValue(true);
+      .requireMock(
+        '../../../../../selectors/featureFlagController/assetsDefiPositions',
+      )
+      .selectAssetsDefiPositionsEnabled.mockReturnValue(true);
 
     mockUseDeFiPositionsForHomepage.mockReturnValue({
       positions: [],
@@ -126,8 +120,10 @@ describe('DeFiSection', () => {
 
   it('returns null when DeFi is disabled', () => {
     jest
-      .requireMock('../../../../../selectors/deFiPositionsSectionEnabled')
-      .selectDeFiPositionsSectionEnabled.mockReturnValue(false);
+      .requireMock(
+        '../../../../../selectors/featureFlagController/assetsDefiPositions',
+      )
+      .selectAssetsDefiPositionsEnabled.mockReturnValue(false);
 
     const { toJSON } = renderWithProvider(
       <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,

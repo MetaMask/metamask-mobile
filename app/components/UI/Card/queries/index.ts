@@ -1,4 +1,4 @@
-import { pinKeys } from './pin';
+import { pinKeys, pinTokenMutationFn } from './pin';
 import {
   cashbackKeys,
   cashbackWalletOptions,
@@ -16,6 +16,7 @@ export const cardQueries = {
   },
   pin: {
     keys: pinKeys,
+    tokenMutationFn: pinTokenMutationFn,
   },
   cashback: {
     keys: cashbackKeys,

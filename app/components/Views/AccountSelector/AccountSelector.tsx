@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
   useWindowDimensions,
 } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -28,6 +28,7 @@ import Animated, {
 
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -80,7 +81,6 @@ import {
   JustifyContent,
 } from '../../UI/Box/box.types';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
-import Routes from '../../../constants/navigation/Routes';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -130,32 +130,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const { accounts } = useAccounts(accountsParams);
-  const shouldRedirectToAddWallet =
-    navigateToAddAccountActions ===
-    AccountSelectorScreens.MultichainAddWalletActions;
 
-  const getInitialScreen = (): AccountSelectorScreens => {
-    if (shouldRedirectToAddWallet) {
-      return AccountSelectorScreens.MultichainAddWalletActions;
-    }
-    if (
-      navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
-    ) {
-      return AccountSelectorScreens.AddAccountActions;
-    }
-    return AccountSelectorScreens.AccountSelector;
-  };
-
-  const [screen, setScreen] =
-    useState<AccountSelectorScreens>(getInitialScreen());
+  const [screen, setScreen] = useState<AccountSelectorScreens>(
+    () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
+  );
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
-
-  useLayoutEffect(() => {
-    if (shouldRedirectToAddWallet) {
-      navigation.dispatch(StackActions.replace(Routes.SHEET.ADD_WALLET));
-    }
-  }, [navigation, shouldRedirectToAddWallet]);
 
   // Tracing for the account list rendering:
   const isAccountSelector = useMemo(
@@ -237,8 +217,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const handleAddAccount = useCallback(() => {
-    navigation.navigate(Routes.SHEET.ADD_WALLET);
-  }, [navigation]);
+    setScreen(AccountSelectorScreens.MultichainAddWalletActions);
+  }, []);
 
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
@@ -324,16 +304,28 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [handleBackToSelector],
   );
 
+  const renderMultichainAddWalletActions = useCallback(
+    () => <MultichainAddWalletActions onBack={handleBackToSelector} />,
+    [handleBackToSelector],
+  );
+
   const renderAccountScreens = useCallback(() => {
     switch (screen) {
       case AccountSelectorScreens.AccountSelector:
         return renderAccountSelector();
       case AccountSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
+      case AccountSelectorScreens.MultichainAddWalletActions:
+        return renderMultichainAddWalletActions();
       default:
         return renderAccountSelector();
     }
-  }, [screen, renderAccountSelector, renderAddAccountActions]);
+  }, [
+    screen,
+    renderAccountSelector,
+    renderAddAccountActions,
+    renderMultichainAddWalletActions,
+  ]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -342,10 +334,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: backdropOpacity.value,
   }));
-
-  if (shouldRedirectToAddWallet) {
-    return null;
-  }
 
   if (isFullPageAccountList) {
     return (
@@ -375,15 +363,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         </KeyboardAvoidingView>
 
         {/* Add Wallet bottom sheet overlay */}
-        {screen === AccountSelectorScreens.AddAccountActions && (
+        {(screen === AccountSelectorScreens.AddAccountActions ||
+          screen === AccountSelectorScreens.MultichainAddWalletActions) && (
           <BottomSheet
             onClose={handleBackToSelector}
             shouldNavigateBack={false}
           >
             <BottomSheetHeader onBack={handleBackToSelector}>
-              {strings('account_actions.add_account')}
+              {screen === AccountSelectorScreens.AddAccountActions
+                ? strings('account_actions.add_account')
+                : strings('multichain_accounts.add_wallet')}
             </BottomSheetHeader>
-            {renderAddAccountActions()}
+            {screen === AccountSelectorScreens.AddAccountActions
+              ? renderAddAccountActions()
+              : renderMultichainAddWalletActions()}
           </BottomSheet>
         )}
       </>
@@ -401,7 +394,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         title={
           screen === AccountSelectorScreens.AddAccountActions
             ? strings('account_actions.add_account')
-            : strings('accounts.accounts_title')
+            : screen === AccountSelectorScreens.MultichainAddWalletActions
+              ? strings('multichain_accounts.add_wallet')
+              : strings('accounts.accounts_title')
         }
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

@@ -365,7 +365,7 @@ describe('SendTransaction View', () => {
 
   it('renders correctly', async () => {
     render(SendTransaction);
-    expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls analytics when rendering', async () => {
@@ -390,14 +390,13 @@ describe('SendTransaction View', () => {
   it('renders correctly for token', async () => {
     mockUseParamsValues = { orderId: 'test-id-2' };
     render(SendTransaction);
-    expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen();
-    expect(screen.getByText('USDC')).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly for custom action payment method', async () => {
     mockUseParamsValues = { orderId: 'test-id-3' };
     render(SendTransaction);
-    expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls addTransaction for native coin when clicking on send button', async () => {

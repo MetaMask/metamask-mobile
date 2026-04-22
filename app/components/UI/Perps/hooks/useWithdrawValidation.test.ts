@@ -104,37 +104,6 @@ describe('useWithdrawValidation', () => {
     expect(result.current.hasInsufficientBalance).toBe(true);
   });
 
-  it('should truncate available balance to 2 decimal places for validation', () => {
-    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
-      account: {
-        availableBalance: '$16.069',
-      },
-      isInitialLoading: false,
-    });
-
-    const { result } = renderHook(() =>
-      useWithdrawValidation({ withdrawAmount: '16.06' }),
-    );
-
-    expect(result.current.availableBalance).toBe('16.06');
-    expect(result.current.hasInsufficientBalance).toBe(false);
-  });
-
-  it('should show insufficient balance when typing more than truncated balance', () => {
-    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
-      account: {
-        availableBalance: '$16.069',
-      },
-      isInitialLoading: false,
-    });
-
-    const { result } = renderHook(() =>
-      useWithdrawValidation({ withdrawAmount: '16.07' }),
-    );
-
-    expect(result.current.hasInsufficientBalance).toBe(true);
-  });
-
   it('should detect amount below minimum', () => {
     const { result } = renderHook(() =>
       useWithdrawValidation({ withdrawAmount: '1.5' }),

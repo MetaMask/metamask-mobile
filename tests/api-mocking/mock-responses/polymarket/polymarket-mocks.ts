@@ -1485,7 +1485,7 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
         // Only check consistent fields - allow variable values for dynamic fields (salt, tokenId, amounts, signature, owner)
         return (
           order &&
-          (body.orderType === 'FOK' || body.orderType === 'FAK') &&
+          body.orderType === 'FOK' &&
           order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase() &&
           order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase() &&
           order.taker === '0x0000000000000000000000000000000000000000' &&
@@ -1603,11 +1603,8 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
           return false;
         }
 
-        if (
-          body.orderType !== undefined &&
-          body.orderType !== 'FOK' &&
-          body.orderType !== 'FAK'
-        ) {
+        // Validate orderType if present (should be FOK for open positions)
+        if (body.orderType !== undefined && body.orderType !== 'FOK') {
           return false;
         }
 

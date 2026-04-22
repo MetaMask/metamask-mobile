@@ -14,9 +14,9 @@ import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
-  selectIsCardAuthenticated,
+  selectIsAuthenticatedCard,
   selectIsCardholder,
-} from '../../../../selectors/cardController';
+} from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
@@ -29,7 +29,6 @@ import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
-import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import {
@@ -136,7 +135,7 @@ export const cardChooseYourCardNavigationOptions = ({
 };
 
 const MainRoutes = () => {
-  const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isCardholder = useSelector(selectIsCardholder);
 
   const initialRouteName = useMemo(
@@ -235,10 +234,6 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.SPENDING_LIMIT_OPTIONS}
       component={SpendingLimitOptionsSheet}
-    />
-    <ModalsStack.Screen
-      name={Routes.CARD.MODALS.WAITLIST_FORM}
-      component={WaitlistFormModal}
     />
   </ModalsStack.Navigator>
 );

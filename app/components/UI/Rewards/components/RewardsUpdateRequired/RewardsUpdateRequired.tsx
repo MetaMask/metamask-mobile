@@ -18,14 +18,14 @@ import {
   MM_APP_STORE_LINK,
   MM_PLAY_STORE_LINK,
 } from '../../../../../constants/urls';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import foxLogo from '../../../../../images/branding/fox.png';
 
 const RewardsUpdateRequired: React.FC = () => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   useEffect(() => {
     trackEvent(

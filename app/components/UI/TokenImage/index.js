@@ -4,7 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import isUrl from 'is-url';
-import { useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
+import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesController';
 import { isIPFSUri } from '../../../util/general';
 
@@ -19,11 +20,15 @@ const styles = StyleSheet.create({
   },
 });
 
-const TokenImage = ({ asset, containerStyle, iconStyle }) => {
+const TokenImage = ({ asset, containerStyle, iconStyle, tokenList }) => {
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
   const assetImage = isUrl(asset?.image) ? asset.image : null;
-  const iconUrl = assetImage || '';
+  const iconUrl =
+    assetImage ||
+    tokenList[asset?.address]?.iconUrl ||
+    tokenList[asset?.address?.toLowerCase()]?.iconUrl ||
+    '';
 
   const isIpfsDisabledAndUriIsIpfs =
     !isIpfsGatewayEnabled && isIPFSUri(iconUrl);
@@ -47,6 +52,11 @@ TokenImage.propTypes = {
   asset: PropTypes.object,
   containerStyle: PropTypes.object,
   iconStyle: PropTypes.object,
+  tokenList: PropTypes.object,
 };
 
-export default TokenImage;
+const mapStateToProps = (state) => ({
+  tokenList: selectTokenList(state),
+});
+
+export default connect(mapStateToProps)(TokenImage);

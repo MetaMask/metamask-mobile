@@ -1,4 +1,4 @@
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 import {
   PerpsController,
   PerpsControllerMessenger,
@@ -16,7 +16,7 @@ import {
  * @param request - The request object.
  * @returns The PerpsController.
  */
-export const perpsControllerInit: MessengerClientInitFunction<
+export const perpsControllerInit: ControllerInitFunction<
   PerpsController,
   PerpsControllerMessenger
 > = (request) => {

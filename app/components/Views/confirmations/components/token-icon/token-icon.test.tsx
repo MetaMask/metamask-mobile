@@ -6,18 +6,11 @@ import {
   otherControllersMock,
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
-import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
-import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 
 const ADDRESS_MOCK = tokenAddress1Mock;
 const CHAIN_ID_MOCK = '0x1';
 
-const STATE_MOCK = merge(
-  {},
-  otherControllersMock,
-  simpleSendTransactionControllerMock,
-  transactionApprovalControllerMock,
-);
+const STATE_MOCK = merge({}, otherControllersMock);
 
 function render(props: TokenIconProps) {
   return renderWithProvider(<TokenIcon {...props} />, {

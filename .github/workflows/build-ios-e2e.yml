@@ -25,7 +25,7 @@ permissions:
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
-    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe-xl
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
@@ -99,7 +99,7 @@ jobs:
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
         timeout-minutes: 15
-        uses: ./.github/actions/setup-e2e-env
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.7.0
         with:
           platform: ios
           setup-simulator: false

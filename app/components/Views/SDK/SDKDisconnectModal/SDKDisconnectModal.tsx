@@ -3,7 +3,7 @@ import React, { useMemo, useRef } from 'react';
 
 // External dependencies
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -40,18 +40,21 @@ const createStyles = (
     },
   });
 
-interface SDKDisconnectModalRouteParams {
-  channelId?: string;
-  account?: string;
-  accountName?: string;
-  dapp?: string;
-  accountsLength?: number;
-  isV2?: boolean;
+interface SDKDisconnectModalProps {
+  route: {
+    params: {
+      channelId?: string;
+      account?: string;
+      accountName?: string;
+      dapp?: string;
+      accountsLength?: number;
+      isV2?: boolean;
+    };
+  };
 }
 
-const SDKDisconnectModal = () => {
-  const { params } =
-    useRoute<RouteProp<{ params: SDKDisconnectModalRouteParams }, 'params'>>();
+const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
+  const { params } = route;
   const { channelId, account, accountsLength, accountName, dapp, isV2 } =
     params ?? {};
 

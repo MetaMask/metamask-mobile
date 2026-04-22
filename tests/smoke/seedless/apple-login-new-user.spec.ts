@@ -5,10 +5,10 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeSeedlessOnboarding } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import { completeAppleNewUserOnboarding } from './utils';
 
-describe(SmokeSeedlessOnboarding('Apple Login - New User'), () => {
+describe(SmokeWalletPlatform('Apple Login - New User'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
   });

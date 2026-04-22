@@ -36,7 +36,6 @@ import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
-import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 
 /**
  * Creates a channel to listen to app state changes.
@@ -349,7 +348,6 @@ export function* rootSaga() {
   // persisted state has been rehydrated and app services are available.
   yield fork(backfillSocialLoginMarketingConsentSaga);
 
-  yield fork(promptIosGoogleWarningSheetSaga);
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF

@@ -16,11 +16,6 @@ import {
   DEFAULT_BADGESTATUS_STATE,
 } from './BadgeStatus.constants';
 
-/**
- * @deprecated Please update your code to use `BadgeStatus` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BadgeStatus/README.md}
- */
 const BadgeStatus = ({
   style,
   state = DEFAULT_BADGESTATUS_STATE,

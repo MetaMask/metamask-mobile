@@ -10,12 +10,12 @@ import { BUTTON_TEST_ID } from './ListItemMultiSelectWithMenuButton.constants';
 
 describe('ListItemMultiSelectWithMenuButton', () => {
   it('should render correctly with default props', () => {
-    const { getByRole } = render(
+    const wrapper = render(
       <ListItemMultiSelectWithMenuButton>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    expect(getByRole('button')).toBeOnTheScreen();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should not render checkbox icon when isSelected is false', () => {

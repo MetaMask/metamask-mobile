@@ -24,7 +24,6 @@ const { discoverTarget } = require('./lib/target-discovery');
 const { createWSClient } = require('./lib/ws-client');
 const { cdpEval, cdpEvalAsync } = require('./lib/cdp-eval');
 const { checkAssert } = require('./lib/assert');
-const { buildArmSnippet, buildCollectSnippet } = require('./lib/recipe-issues');
 
 async function evalSpec(client, entry, params) {
   const expr = typeof entry.expression === 'function' ? entry.expression(params) : entry.expression;
@@ -559,68 +558,6 @@ const COMMANDS = {
     return { ok: true };
   },
 
-  async 'profiler-start'(client) {
-    // Hermes CDP exposes the sampling profiler via the Profiler domain.
-    // Output of Profiler.stop is a Chrome-compatible .cpuprofile object.
-    // Note: Hermes does NOT implement Profiler.enable (returns -32601 Unsupported);
-    // Profiler.start/stop work without it.
-    await client.send('Profiler.start');
-    return { ok: true, started: true };
-  },
-
-  async 'profiler-stop'(client, args) {
-    let outPath = '';
-    let label = 'trace';
-    for (let i = 0; i < args.length; i++) {
-      if (args[i] === '--out' && i + 1 < args.length) {
-        outPath = args[++i];
-      } else if (args[i] === '--label' && i + 1 < args.length) {
-        label = args[++i];
-      }
-    }
-    const res = await client.send('Profiler.stop', {}, 60000);
-    const profile = res?.profile;
-    if (!profile) {
-      return { ok: false, error: 'Profiler.stop returned no profile' };
-    }
-    const serialized = JSON.stringify(profile);
-    if (!outPath) {
-      const tracesDir = path.resolve(process.env.APP_ROOT || process.cwd(), 'temp/agentic/recipes/test-artifacts/traces');
-      fs.mkdirSync(tracesDir, { recursive: true });
-      outPath = path.join(tracesDir, `trace-${label}.cpuprofile`);
-    } else {
-      fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    }
-    fs.writeFileSync(outPath, serialized);
-    const nodesCount = Array.isArray(profile.nodes) ? profile.nodes.length : 0;
-    const samplesCount = Array.isArray(profile.samples) ? profile.samples.length : 0;
-    return {
-      ok: true,
-      path: outPath,
-      label,
-      sizeBytes: Buffer.byteLength(serialized, 'utf8'),
-      nodesCount,
-      samplesCount,
-      startTime: profile.startTime ?? null,
-      endTime: profile.endTime ?? null,
-    };
-  },
-
-  async 'issues-arm'(client) {
-    // Installs console.warn/error and global error/unhandledrejection hooks
-    // that push into globalThis.__AGENTIC_ISSUES__ (capped at 500 entries).
-    // Idempotent — subsequent calls return { installed: true, reason: 'already-installed' }.
-    const result = await cdpEval(client, buildArmSnippet());
-    return result || { installed: false };
-  },
-
-  async 'issues-collect'(client) {
-    // Snapshots and clears globalThis.__AGENTIC_ISSUES__.
-    // Returns { count, entries } where entries are { t, level, text }.
-    const result = await cdpEval(client, buildCollectSnippet());
-    return result || { count: 0, entries: [] };
-  },
-
   async 'eval-ref'(client, args) {
     const arg = args[0];
     if (!arg || arg === '--help') {
@@ -742,14 +679,6 @@ Commands:
   unlock <password>                      Unlock wallet (inject password + press login button via fiber tree)
   eval-ref <team/name>                 Run an eval ref (e.g. perps/positions)
   eval-ref --list                      List all available eval refs
-  profiler-start                       Start Hermes sampling profiler
-  profiler-stop [--out <path>] [--label <name>]
-                                       Stop profiler, dump Chrome-compatible
-                                       .cpuprofile to <path> (default:
-                                       temp/agentic/recipes/test-artifacts/traces/trace-<label>.cpuprofile)
-  issues-arm                           Install console/exception hooks that
-                                       populate globalThis.__AGENTIC_ISSUES__
-  issues-collect                       Snapshot + clear the in-app issue buffer
 
 Environment:
   WATCHER_PORT    Metro port (default: 8081)
@@ -775,28 +704,6 @@ Environment:
 
   const port = loadPort();
   const timeout = Number.parseInt(process.env.CDP_TIMEOUT || '5000', 10);
-
-  // `status` probes ALL connected targets so both platforms are visible.
-  if (command === 'status') {
-    const { discoverAllTargets } = require('./lib/target-discovery');
-    const allTargets = await discoverAllTargets(port);
-    const results = [];
-    for (const target of allTargets) {
-      let client;
-      try {
-        client = await createWSClient(target.wsUrl, timeout);
-        const platform = await cdpEval(client, 'globalThis.__AGENTIC__?.platform') || '';
-        const result = await handler(client, args.slice(1), { deviceName: target.deviceName, platform });
-        results.push(result);
-      } catch {
-        // Target not responsive — skip
-      } finally {
-        if (client) client.close();
-      }
-    }
-    console.log(JSON.stringify(results.length === 1 ? results[0] : results, null, 2));
-    return;
-  }
 
   const { wsUrl, deviceName } = await discoverTarget(port);
   const client = await createWSClient(wsUrl, timeout);

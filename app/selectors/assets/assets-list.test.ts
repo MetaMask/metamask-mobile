@@ -15,7 +15,6 @@ import { createDeepEqualSelector } from '../util';
 import {
   createSelectSortedAssetsBySelectedAccountGroup,
   selectAsset,
-  selectAssetsByAccountGroupId,
   selectAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroupForChainIds,
@@ -151,7 +150,6 @@ const mockState = ({
                   decimals: 18,
                   symbol: 'stETH',
                   name: 'Lido Staked Ether',
-                  aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
                   image:
                     'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
                 },
@@ -224,6 +222,19 @@ const mockState = ({
                 tokenAddress: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
                 currency: 'ETH',
                 price: 0.005,
+              },
+            },
+          },
+        },
+        TokenListController: {
+          tokensChainsCache: {
+            '0x1': {
+              data: {
+                '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': {
+                  address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+                  symbol: 'stETH',
+                  aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
+                },
               },
             },
           },
@@ -350,9 +361,6 @@ const mockState = ({
           },
         },
       },
-    },
-    settings: {
-      hideZeroBalanceTokens: false,
     },
   }) as unknown as RootState;
 
@@ -583,122 +591,6 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
         isStaked: false,
       },
     ]);
-  });
-
-  it('includes zero-balance non-native tokens when hideZeroBalanceTokens is false', () => {
-    const state = {
-      ...mockState(),
-      settings: { hideZeroBalanceTokens: false },
-      engine: {
-        ...mockState().engine,
-        backgroundState: {
-          ...mockState().engine.backgroundState,
-          TokenBalancesController: {
-            tokenBalances: {
-              '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                '0x1': {
-                  // stETH has zero balance
-                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
-                  '0x6B175474E89094C44Da98b954EedeAC495271d0F':
-                    '0xAD78EBC5AC6200000',
-                },
-                '0xa': {
-                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
-                },
-              },
-            },
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    const result = selectSortedAssetsBySelectedAccountGroup(state);
-    const addresses = result.map((r) => r.address);
-
-    // stETH zero-balance token should still be present when flag is off
-    expect(addresses).toContain('0xae7ab96520de3a18e5e111b5eaab095312d7fe84');
-  });
-
-  it('filters out zero-balance non-native tokens when hideZeroBalanceTokens is true', () => {
-    const state = {
-      ...mockState(),
-      settings: { hideZeroBalanceTokens: true },
-      engine: {
-        ...mockState().engine,
-        backgroundState: {
-          ...mockState().engine.backgroundState,
-          TokenBalancesController: {
-            tokenBalances: {
-              '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                '0x1': {
-                  // stETH has zero balance
-                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
-                  // DAI has non-zero balance
-                  '0x6B175474E89094C44Da98b954EedeAC495271d0F':
-                    '0xAD78EBC5AC6200000',
-                },
-                '0xa': {
-                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
-                },
-              },
-            },
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    const result = selectSortedAssetsBySelectedAccountGroup(state);
-    const addresses = result.map((r) => r.address);
-
-    // stETH (zero balance, non-native) should be filtered out
-    expect(addresses).not.toContain(
-      '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
-    );
-    // DAI (non-zero balance) should remain
-    expect(addresses).toContain('0x6B175474E89094C44Da98b954EedeAC495271d0F');
-    // USDC (non-zero balance) should remain
-    expect(addresses).toContain('0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85');
-  });
-
-  it('keeps native tokens with zero balance when hideZeroBalanceTokens is true', () => {
-    const state = {
-      ...mockState(),
-      settings: { hideZeroBalanceTokens: true },
-      engine: {
-        ...mockState().engine,
-        backgroundState: {
-          ...mockState().engine.backgroundState,
-          AccountTrackerController: {
-            accountsByChainId: {
-              '0x1': {
-                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                  // Native ETH on 0x1 has zero balance
-                  balance: '0x0',
-                  stakedBalance: '0x0',
-                },
-              },
-              '0xa': {
-                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                  balance: '0xDE0B6B3A7640000',
-                },
-              },
-            },
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    const result = selectSortedAssetsBySelectedAccountGroup(state);
-
-    // Native ETH on 0x1 must still appear despite zero balance
-    expect(
-      result.find(
-        (r) =>
-          r.address === '0x0000000000000000000000000000000000000000' &&
-          r.chainId === '0x1' &&
-          !r.isStaked,
-      ),
-    ).toBeDefined();
   });
 
   it('filters out Tron special assets from the sorted asset list', () => {
@@ -1168,126 +1060,6 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
       ['0x1'],
     );
     expect(byCaip).toEqual(byHex);
-  });
-
-  it('includes all tokens when hideZeroBalanceTokens is false', () => {
-    const state = {
-      ...mockState(),
-      settings: { hideZeroBalanceTokens: false },
-    } as unknown as RootState;
-
-    const result = selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
-      state,
-      ['eip155:1', '0xa'],
-    );
-
-    // All tokens from both chains should be present (all have non-zero balances in mockState)
-    const chainIds = [...new Set(result.map((r) => r.chainId))];
-    expect(chainIds.sort()).toEqual(['0x1', '0xa']);
-    expect(result.length).toBeGreaterThan(0);
-  });
-
-  it('filters out zero-balance tokens when hideZeroBalanceTokens is true', () => {
-    const stateWithZeroBalances = {
-      ...mockState(),
-      settings: { hideZeroBalanceTokens: true },
-      engine: {
-        ...mockState().engine,
-        backgroundState: {
-          ...mockState().engine.backgroundState,
-          TokenBalancesController: {
-            tokenBalances: {
-              '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                '0x1': {
-                  // stETH has zero balance
-                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
-                  // DAI has non-zero balance
-                  '0x6B175474E89094C44Da98b954EedeAC495271d0F':
-                    '0xAD78EBC5AC6200000',
-                },
-                '0xa': {
-                  // USDC has non-zero balance
-                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
-                },
-              },
-            },
-          },
-          // Native ETH on 0x1 has zero balance
-          AccountTrackerController: {
-            accountsByChainId: {
-              '0x1': {
-                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                  balance: '0x0',
-                  stakedBalance: '0x0',
-                },
-              },
-              '0xa': {
-                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                  balance: '0xDE0B6B3A7640000',
-                },
-              },
-            },
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    const result = selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
-      stateWithZeroBalances,
-      ['eip155:1', '0xa'],
-    );
-
-    const addresses = result.map((r) => r.address);
-
-    // stETH (zero balance) should be filtered out
-    expect(addresses).not.toContain(
-      '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
-    );
-    // ETH on 0x1 (zero balance) should be filtered out
-    expect(
-      result.find(
-        (r) =>
-          r.address === '0x0000000000000000000000000000000000000000' &&
-          r.chainId === '0x1' &&
-          !r.isStaked,
-      ),
-    ).toBeUndefined();
-    // DAI (non-zero balance) should remain
-    expect(addresses).toContain('0x6B175474E89094C44Da98b954EedeAC495271d0F');
-    // USDC (non-zero balance) should remain
-    expect(addresses).toContain('0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85');
-    // ETH on 0xa (non-zero balance) should remain
-    expect(
-      result.find(
-        (r) =>
-          r.address === '0x0000000000000000000000000000000000000000' &&
-          r.chainId === '0xa',
-      ),
-    ).toBeDefined();
-  });
-
-  it('keeps all tokens when hideZeroBalanceTokens is true but all have non-zero balances', () => {
-    const state = {
-      ...mockState(),
-      settings: { hideZeroBalanceTokens: true },
-    } as unknown as RootState;
-
-    const withFilter =
-      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(state, [
-        'eip155:1',
-        '0xa',
-      ]);
-    const withoutFilter =
-      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
-        {
-          ...mockState(),
-          settings: { hideZeroBalanceTokens: false },
-        } as unknown as RootState,
-        ['eip155:1', '0xa'],
-      );
-
-    // All tokens in mockState have non-zero balances so counts should match
-    expect(withFilter.length).toBe(withoutFilter.length);
   });
 
   it('always sorts by balance and ignores PreferencesController tokenSortConfig', () => {
@@ -2062,26 +1834,5 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
       trxStakingRewards: undefined,
       trxInLockPeriod: undefined,
     });
-  });
-});
-
-describe('selectAssetsByAccountGroupId', () => {
-  it('returns empty object when accountGroupId is undefined', () => {
-    const state = mockState();
-
-    const result = selectAssetsByAccountGroupId(state, undefined);
-
-    expect(result).toStrictEqual({});
-  });
-
-  it('returns empty object when accountGroupId does not exist in assets', () => {
-    const state = mockState();
-
-    const result = selectAssetsByAccountGroupId(
-      state,
-      'entropy:nonexistent/0' as AccountGroupId,
-    );
-
-    expect(result).toStrictEqual({});
   });
 });

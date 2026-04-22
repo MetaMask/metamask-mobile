@@ -433,11 +433,13 @@ export class PerpsE2EMockService {
     };
     this.mockOrderFills.push(closeFill);
 
-    // Recompute account-level unrealized from remaining positions only.
-    // totalBalance stays cash + locked margin (same invariant as reset / mockPushPrice);
-    // do not add unrealized here — it is already reflected via totalBalance += pnl on close.
+    // Recompute account unrealized PnL based on remaining positions
     const recomputedUnrealized = this.computeTotalUnrealizedPnl();
     this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
+    // Keep totalBalance aligned with equity (realized + unrealized)
+    this.mockAccount.totalBalance = (
+      parseFloat(this.mockAccount.totalBalance) + recomputedUnrealized
+    ).toFixed(2);
 
     // Notify position subscribers about the change
     this.notifyPositionCallbacks();
@@ -720,113 +722,6 @@ export class PerpsE2EMockService {
   }
 
   /**
-   * TP/SL trigger orders created by mockUpdatePositionTPSL (reduce-only).
-   */
-  private isReduceOnlyTpslOrder(order: Order): boolean {
-    const dt = order.detailedOrderType;
-    if (!order.reduceOnly || !order.isTrigger || !dt) {
-      return false;
-    }
-    if (dt.includes('Take Profit')) {
-      return true;
-    }
-    // Stop loss and other stop-style reduce-only triggers (Take Profit handled above).
-    return dt.includes('Stop');
-  }
-
-  /**
-   * Whether a limit order would fill at the given mark (standard entry limits vs TP/SL triggers).
-   */
-  private shouldFillLimitOrderAtMark(order: Order, markPrice: number): boolean {
-    const limitPx = parseFloat(order.price);
-    if (Number.isNaN(limitPx)) {
-      return false;
-    }
-
-    if (this.isReduceOnlyTpslOrder(order)) {
-      const dt = order.detailedOrderType ?? '';
-      if (dt.includes('Take Profit')) {
-        return (
-          (order.side === 'sell' && markPrice >= limitPx) ||
-          (order.side === 'buy' && markPrice <= limitPx)
-        );
-      }
-      // Stop loss (and other stop-style reduce-only triggers)
-      return (
-        (order.side === 'sell' && markPrice <= limitPx) ||
-        (order.side === 'buy' && markPrice >= limitPx)
-      );
-    }
-
-    return (
-      (order.side === 'buy' && markPrice <= limitPx) ||
-      (order.side === 'sell' && markPrice >= limitPx)
-    );
-  }
-
-  /**
-   * Close an open position when a reduce-only TP/SL order triggers. Returns false if no position.
-   */
-  private performReduceOnlyTriggerClose(
-    order: Order,
-    symbolsClosed: Set<string>,
-  ): boolean {
-    const existingPosition = this.mockPositions.find(
-      (p) => p.symbol === order.symbol,
-    );
-    if (!existingPosition) {
-      return false;
-    }
-
-    const pnl = parseFloat(existingPosition.unrealizedPnl || '0');
-
-    const newAvailableBalance =
-      parseFloat(this.mockAccount.availableBalance) +
-      parseFloat(existingPosition.marginUsed) +
-      pnl;
-    const newMarginUsed =
-      parseFloat(this.mockAccount.marginUsed) -
-      parseFloat(existingPosition.marginUsed);
-    const newTotalBalance = parseFloat(this.mockAccount.totalBalance) + pnl;
-    this.mockAccount = {
-      ...this.mockAccount,
-      availableBalance: newAvailableBalance.toString(),
-      marginUsed: newMarginUsed.toString(),
-      totalBalance: newTotalBalance.toString(),
-    };
-
-    this.mockPositions = this.mockPositions.filter(
-      (p) => p.symbol !== order.symbol,
-    );
-
-    const closeFill: OrderFill = {
-      orderId: order.orderId,
-      symbol: existingPosition.symbol,
-      size: Math.abs(parseFloat(existingPosition.size)).toString(),
-      price:
-        this.mockPricesMap[existingPosition.symbol]?.price ||
-        order.price ||
-        existingPosition.entryPrice,
-      timestamp: Date.now(),
-      side: parseFloat(existingPosition.size) > 0 ? 'sell' : 'buy',
-      fee: '0.00',
-      feeToken: 'USDC',
-      pnl: pnl.toFixed(2),
-      direction:
-        parseFloat(existingPosition.size) > 0 ? 'Close Long' : 'Close Short',
-    };
-    this.mockOrderFills.push(closeFill);
-
-    const recomputedUnrealized = this.computeTotalUnrealizedPnl();
-    this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
-
-    symbolsClosed.add(order.symbol);
-    delete this.orderMeta[order.orderId];
-
-    return true;
-  }
-
-  /**
    * Update live price for a symbol and recompute liquidation state where applicable.
    * Triggers callbacks so UI updates without navigation.
    */
@@ -873,107 +768,89 @@ export class PerpsE2EMockService {
       return { ...pos, unrealizedPnl: delta.toFixed(2) };
     });
 
-    // Evaluate open limit orders for potential fills (entry limits open positions;
-    // reduce-only TP/SL trigger orders close positions).
+    // Evaluate open limit orders for potential fills (remove when triggered and open position)
     const remainingOrders: Order[] = [];
-    const symbolsClosedByTpslTrigger = new Set<string>();
-
     for (const order of this.mockOrders) {
       if (order.symbol !== symbol) {
         remainingOrders.push(order);
         continue;
       }
       if (order.orderType === 'limit') {
-        const fill = this.shouldFillLimitOrderAtMark(order, parsed);
+        const limitPx = parseFloat(order.price);
+        const fill =
+          (order.side === 'buy' && parsed <= limitPx) ||
+          (order.side === 'sell' && parsed >= limitPx);
         if (!fill) {
           remainingOrders.push(order);
-          continue;
+        } else {
+          // Mark fill in history and drop from open orders
+          const mockFill: OrderFill = {
+            orderId: order.orderId,
+            symbol: order.symbol,
+            size: order.size,
+            price: order.price,
+            timestamp: Date.now(),
+            side: order.side,
+            fee: '0.00',
+            feeToken: 'USDC',
+            pnl: '0.00',
+            direction: order.side === 'buy' ? 'long' : 'short',
+          };
+          this.mockOrderFills.push(mockFill);
+
+          // Create a position at the limit price using stored leverage metadata
+          const leverage = this.orderMeta[order.orderId]?.leverage || 1;
+          const numericSize = Math.abs(parseFloat(order.size) || 0);
+          const signedSize = order.side === 'buy' ? numericSize : -numericSize;
+          const entry = parseFloat(order.price);
+          const notional = numericSize * entry;
+          const marginUsed = notional / leverage;
+
+          // Update account balances for margin usage
+          const newAvailableBalance =
+            parseFloat(this.mockAccount.availableBalance) - marginUsed;
+          const newMarginUsed =
+            parseFloat(this.mockAccount.marginUsed) + marginUsed;
+          this.mockAccount = {
+            ...this.mockAccount,
+            availableBalance: newAvailableBalance.toString(),
+            marginUsed: newMarginUsed.toString(),
+          };
+
+          // Add position
+          const newPosition: Position = {
+            symbol: order.symbol,
+            entryPrice: entry.toFixed(2),
+            size: signedSize.toString(),
+            positionValue: notional.toFixed(2),
+            unrealizedPnl: '0',
+            marginUsed: marginUsed.toFixed(2),
+            leverage: { type: 'cross', value: leverage },
+            liquidationPrice: this.calculateMockLiquidationPrice(
+              entry,
+              leverage,
+              order.side === 'buy',
+            ).toFixed(2),
+            maxLeverage: 50,
+            returnOnEquity: '0',
+            cumulativeFunding: {
+              allTime: '0',
+              sinceChange: '0',
+              sinceOpen: '0',
+            },
+            takeProfitCount: 0,
+            stopLossCount: 0,
+          };
+          this.mockPositions.push(newPosition);
+
+          // Cleanup order meta
+          delete this.orderMeta[order.orderId];
         }
-
-        if (this.isReduceOnlyTpslOrder(order)) {
-          const didClose = this.performReduceOnlyTriggerClose(
-            order,
-            symbolsClosedByTpslTrigger,
-          );
-          if (!didClose) {
-            remainingOrders.push(order);
-          }
-          continue;
-        }
-
-        // Mark fill in history and drop from open orders (entry / non-TPSL limit)
-        const mockFill: OrderFill = {
-          orderId: order.orderId,
-          symbol: order.symbol,
-          size: order.size,
-          price: order.price,
-          timestamp: Date.now(),
-          side: order.side,
-          fee: '0.00',
-          feeToken: 'USDC',
-          pnl: '0.00',
-          direction: order.side === 'buy' ? 'long' : 'short',
-        };
-        this.mockOrderFills.push(mockFill);
-
-        // Create a position at the limit price using stored leverage metadata
-        const leverage = this.orderMeta[order.orderId]?.leverage || 1;
-        const numericSize = Math.abs(parseFloat(order.size) || 0);
-        const signedSize = order.side === 'buy' ? numericSize : -numericSize;
-        const entry = parseFloat(order.price);
-        const notional = numericSize * entry;
-        const marginUsed = notional / leverage;
-
-        // Update account balances for margin usage
-        const newAvailableBalance =
-          parseFloat(this.mockAccount.availableBalance) - marginUsed;
-        const newMarginUsed =
-          parseFloat(this.mockAccount.marginUsed) + marginUsed;
-        this.mockAccount = {
-          ...this.mockAccount,
-          availableBalance: newAvailableBalance.toString(),
-          marginUsed: newMarginUsed.toString(),
-        };
-
-        // Add position
-        const newPosition: Position = {
-          symbol: order.symbol,
-          entryPrice: entry.toFixed(2),
-          size: signedSize.toString(),
-          positionValue: notional.toFixed(2),
-          unrealizedPnl: '0',
-          marginUsed: marginUsed.toFixed(2),
-          leverage: { type: 'cross', value: leverage },
-          liquidationPrice: this.calculateMockLiquidationPrice(
-            entry,
-            leverage,
-            order.side === 'buy',
-          ).toFixed(2),
-          maxLeverage: 50,
-          returnOnEquity: '0',
-          cumulativeFunding: {
-            allTime: '0',
-            sinceChange: '0',
-            sinceOpen: '0',
-          },
-          takeProfitCount: 0,
-          stopLossCount: 0,
-        };
-        this.mockPositions.push(newPosition);
-
-        // Cleanup order meta
-        delete this.orderMeta[order.orderId];
       } else {
         remainingOrders.push(order);
       }
     }
-
-    this.mockOrders = remainingOrders.filter((o) => {
-      if (!symbolsClosedByTpslTrigger.has(o.symbol)) {
-        return true;
-      }
-      return !(o.reduceOnly && o.isTrigger);
-    });
+    this.mockOrders = remainingOrders;
     this.notifyOrdersCallbacks();
 
     // Liquidation check pass for all positions of this symbol
@@ -1069,9 +946,13 @@ export class PerpsE2EMockService {
 
     this.mockPositions = remaining;
 
+    // Recompute unrealized and totalBalance after potential closures
     if (didAnyClose) {
       const recomputedUnrealized = this.computeTotalUnrealizedPnl();
       this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
+      this.mockAccount.totalBalance = (
+        parseFloat(this.mockAccount.totalBalance) + recomputedUnrealized
+      ).toFixed(2);
     }
 
     return didAnyClose;

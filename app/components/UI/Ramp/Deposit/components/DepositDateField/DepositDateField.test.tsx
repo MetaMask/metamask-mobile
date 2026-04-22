@@ -18,31 +18,29 @@ describe('DepositDateField', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the label', () => {
-    const { getByText } = render(<DepositDateField {...defaultProps} />);
-    expect(getByText('Date of Birth')).toBeOnTheScreen();
+  it('render matches snapshot', () => {
+    const { toJSON } = render(<DepositDateField {...defaultProps} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with a different date value', () => {
+  it('render matches snapshot with a value', () => {
     const value = new Date(2024, 0, 2).getTime().toString();
-    const { getByDisplayValue } = render(
+    const { toJSON } = render(
       <DepositDateField {...defaultProps} value={value} />,
     );
-    expect(getByDisplayValue('01/02/2024')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with an error message', () => {
-    const { getByText } = render(
+  it('render matches snapshot with an error', () => {
+    const { toJSON } = render(
       <DepositDateField {...defaultProps} error="Invalid date format" />,
     );
-    expect(getByText('Invalid date format')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with empty value showing placeholder', () => {
-    const { queryByDisplayValue } = render(
-      <DepositDateField {...defaultProps} value="" />,
-    );
-    expect(queryByDisplayValue(/\d{2}\/\d{2}\/\d{4}/)).not.toBeOnTheScreen();
+  it('render matches snapshot with empty value', () => {
+    const { toJSON } = render(<DepositDateField {...defaultProps} value="" />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('Platform specific rendering', () => {
@@ -52,22 +50,24 @@ describe('DepositDateField', () => {
       Platform.OS = originalPlatform;
     });
 
-    it('opens date picker on Android without Cancel/Done buttons', () => {
+    it('date picker matches snapshot on Android', () => {
       Platform.OS = 'android';
-      const { getByTestId, queryByText } = render(
+      const { toJSON, getByTestId } = render(
         <DepositDateField {...defaultProps} />,
       );
       fireEvent.press(getByTestId('textfield'));
 
-      expect(queryByText('Cancel')).not.toBeOnTheScreen();
-      expect(queryByText('Done')).not.toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
 
-    it('opens date picker on iOS (modal becomes visible)', () => {
+    it('date picker matches snapshot on iOS', () => {
       Platform.OS = 'ios';
-      const { getByTestId } = render(<DepositDateField {...defaultProps} />);
+      const { toJSON, getByTestId } = render(
+        <DepositDateField {...defaultProps} />,
+      );
       fireEvent.press(getByTestId('textfield'));
-      expect(getByTestId('textfield')).toBeOnTheScreen();
+
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

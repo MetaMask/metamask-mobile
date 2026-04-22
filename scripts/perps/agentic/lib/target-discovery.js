@@ -4,11 +4,8 @@ const http = require('node:http');
 const { loadSimulatorName, loadAndroidDevice } = require('./config');
 const { createWSClient } = require('./ws-client');
 
-const FETCH_TIMEOUT_MS = Number.parseInt(process.env.CDP_TIMEOUT || '30000', 10);
-const FETCH_RETRIES = Number.parseInt(process.env.CDP_DISCOVERY_RETRIES || '3', 10);
-
 /** Fetch JSON from a URL (http only, no external deps) */
-function fetchJSONOnce(url) {
+function fetchJSON(url) {
   return new Promise((resolve, reject) => {
     const req = http.get(url, (res) => {
       let data = '';
@@ -22,25 +19,11 @@ function fetchJSONOnce(url) {
       });
     });
     req.on('error', reject);
-    req.setTimeout(FETCH_TIMEOUT_MS, () => {
+    req.setTimeout(5000, () => {
       req.destroy();
-      reject(new Error(`Timeout fetching ${url} after ${FETCH_TIMEOUT_MS}ms`));
+      reject(new Error(`Timeout fetching ${url}`));
     });
   });
-}
-
-async function fetchJSON(url) {
-  let lastError;
-  for (let attempt = 1; attempt <= FETCH_RETRIES; attempt++) {
-    try {
-      return await fetchJSONOnce(url);
-    } catch (error) {
-      lastError = error;
-      if (attempt === FETCH_RETRIES) break;
-      await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
-    }
-  }
-  throw lastError;
 }
 
 /**
@@ -149,48 +132,4 @@ async function discoverTarget(port) {
   return { wsUrl: candidates[0].webSocketDebuggerUrl, deviceName: candidates[0].deviceName || '' };
 }
 
-/**
- * Discover ALL Hermes targets with __AGENTIC__ installed (one per platform/device).
- * Groups by deviceName so each device returns at most one target.
- */
-async function discoverAllTargets(port) {
-  const listUrl = `http://localhost:${port}/json/list`;
-  let targets;
-  try {
-    targets = await fetchJSON(listUrl);
-  } catch (e) {
-    throw new Error(
-      `Cannot reach Metro at ${listUrl}. Is Metro running?\n  ${e.message}`,
-    );
-  }
-
-  const candidates = (targets || []).filter(
-    (t) =>
-      t.webSocketDebuggerUrl &&
-      t.title &&
-      (/react/i.test(t.title) || /hermes/i.test(t.title)),
-  );
-
-  // Sort by page number descending (JS runtime has higher page number)
-  candidates.sort((a, b) => {
-    const aPage = Number.parseInt((a.id || '').split('-').pop() || '0', 10);
-    const bPage = Number.parseInt((b.id || '').split('-').pop() || '0', 10);
-    return bPage - aPage;
-  });
-
-  // Group by deviceName, probe each to find the JS runtime target
-  const seen = new Set();
-  const results = [];
-  for (const candidate of candidates) {
-    const device = candidate.deviceName || candidate.id || candidate.webSocketDebuggerUrl;
-    if (seen.has(device)) continue;
-    const hasAgentic = await probeTarget(candidate.webSocketDebuggerUrl);
-    if (hasAgentic) {
-      seen.add(device);
-      results.push({ wsUrl: candidate.webSocketDebuggerUrl, deviceName: device });
-    }
-  }
-  return results;
-}
-
-module.exports = { discoverTarget, discoverAllTargets };
+module.exports = { discoverTarget };

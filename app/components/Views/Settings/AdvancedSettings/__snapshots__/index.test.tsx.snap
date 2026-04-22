@@ -1,0 +1,820 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AdvancedSettings should render correctly 1`] = `
+<View
+  edges={
+    {
+      "bottom": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 16,
+          "minHeight": 56,
+          "paddingLeft": 8,
+          "paddingRight": 8,
+        },
+        {
+          "marginTop": 0,
+        },
+        undefined,
+      ]
+    }
+    testID="header"
+  >
+    <View>
+      <View
+        onLayout={[Function]}
+      >
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 32,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 32,
+              },
+              undefined,
+              {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            ]
+          }
+          testID="button-icon"
+        >
+          <SvgMock
+            fill="currentColor"
+            name="ArrowLeft"
+            style={
+              [
+                {
+                  "color": "#131416",
+                  "height": 24,
+                  "width": 24,
+                },
+                undefined,
+              ]
+            }
+          />
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+            },
+            undefined,
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Advanced
+        </Text>
+      </View>
+    </View>
+    <View>
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+  </View>
+  <RCTScrollView
+    automaticallyAdjustContentInsets={false}
+    contentInset={
+      {
+        "bottom": 0,
+      }
+    }
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    getScrollResponder={[Function]}
+    handleOnScroll={[Function]}
+    keyboardDismissMode="interactive"
+    keyboardOpeningTime={250}
+    keyboardSpace={0}
+    onScroll={[Function]}
+    resetKeyboardSpace={[Function]}
+    resetScrollToCoords={
+      {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    scrollEventThrottle={1}
+    scrollForExtraHeightOnAndroid={[Function]}
+    scrollIntoView={[Function]}
+    scrollToEnd={[Function]}
+    scrollToFocusedInput={[Function]}
+    scrollToPosition={[Function]}
+    showsVerticalScrollIndicator={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "padding": 16,
+        "paddingBottom": 100,
+      }
+    }
+    testID="advanced-settings-scrollview"
+    update={[Function]}
+    viewIsInsideTabBar={false}
+  >
+    <View>
+      <View
+        style={
+          {
+            "paddingBottom": 48,
+          }
+        }
+        testID="advanced-settings"
+      >
+        <View />
+        <View
+          style={
+            [
+              {
+                "marginTop": 32,
+              },
+              {
+                "marginTop": 0,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 20,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Reset account
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            This action will clear your transaction activity. This data might not be retrievable.
+          </Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#b4b4b528",
+                "borderColor": "transparent",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "marginTop": 16,
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Reset account
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "flex": 1,
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Smart account requests from dapps
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityLabel="Smart account requests from dapps"
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b4b4b566",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="dismiss_smart_account_update"
+                thumbTintColor="#ffffff"
+                tintColor="#b4b4b566"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Let dapps request smart account features for standard accounts. This won't affect accounts that are already smart accounts.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "flex": 1,
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Smart Transactions
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityLabel="Smart Transactions"
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b4b4b566",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="smart_transactions_opt_in_switch"
+                thumbTintColor="#ffffff"
+                tintColor="#b4b4b566"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Turn on Smart Transactions for more reliable and secure transactions on supported networks.
+             
+            <Text
+              accessibilityRole="text"
+              link={true}
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Learn more
+            </Text>
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "flex": 1,
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Show hex data
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityLabel="Show hex data"
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b4b4b566",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#ffffff"
+                tintColor="#b4b4b566"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Select this to show the hex data field on the send screen.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "flex": 1,
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Autodetect tokens
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b4b4b566",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="token-detection-toggle"
+                thumbTintColor="#ffffff"
+                tintColor="#b4b4b566"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "flex": 1,
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Show conversion on test networks
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityLabel="Show conversion on test networks"
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b4b4b566",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="show-fiat-on-testnets"
+                thumbTintColor="#ffffff"
+                tintColor="#b4b4b566"
+                value={false}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Select this to show fiat conversion on test networks.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 20,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            State logs
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon &gt; Send Feedback, or reply to your existing ticket if you have one.
+          </Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#b4b4b528",
+                "borderColor": "transparent",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "marginTop": 16,
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Download state logs
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</View>
+`;

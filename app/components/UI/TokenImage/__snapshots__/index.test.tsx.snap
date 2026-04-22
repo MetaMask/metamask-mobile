@@ -27,7 +27,7 @@ exports[`TokenImage should render correctly 1`] = `
     }
   }
 >
-  <TokenImage
+  <Component
     asset={
       {
         "address": "0x123",

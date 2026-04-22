@@ -20,7 +20,7 @@ describe('ListItem', () => {
         <View />
       </ListItem>,
     );
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render the top accessory', () => {
@@ -29,7 +29,7 @@ describe('ListItem', () => {
         <View />
       </ListItem>,
     );
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render the bottom accessory', () => {
@@ -38,7 +38,7 @@ describe('ListItem', () => {
         <View />
       </ListItem>,
     );
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render the correct topAccessoryGap', () => {

@@ -16,7 +16,12 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { clearOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+  clearSeedlessOnboarding,
+  setPendingSocialLoginMarketingConsentBackfill,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -1534,16 +1539,21 @@ class AuthenticationService {
    * Deletes the wallet by resetting wallet state and deleting user data.
    * This is the main public method for wallet deletion/reset flows.
    * It calls resetWalletState() followed by deleteUser(), and also clears
-   * metrics opt-in UI state and resets onboarding Redux state.
+   * metrics opt-in UI state and resets onboarding completion status.
    *
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
     await this.resetWalletState();
     await this.deleteUser();
-    // Clear metrics opt-in UI state and reset onboarding Redux state
+    // Clear metrics opt-in UI state and reset onboarding completion
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-    ReduxService.store.dispatch(clearOnboarding());
+    ReduxService.store.dispatch(setCompletedOnboarding(false));
+    ReduxService.store.dispatch(clearAccountType());
+    ReduxService.store.dispatch(clearSeedlessOnboarding());
+    ReduxService.store.dispatch(
+      setPendingSocialLoginMarketingConsentBackfill(null),
+    );
   };
 
   /**

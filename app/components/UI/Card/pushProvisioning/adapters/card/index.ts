@@ -5,4 +5,4 @@
  */
 
 export { type ICardProviderAdapter } from './ICardProviderAdapter';
-export { ControllerCardAdapter } from './ControllerCardAdapter';
+export { GalileoCardAdapter } from './GalileoCardAdapter';

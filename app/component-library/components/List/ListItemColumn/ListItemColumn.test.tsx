@@ -20,7 +20,7 @@ describe('ListItemColumn', () => {
         <View />
       </ListItemColumn>,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render component correctly', () => {
     const wrapper = shallow(

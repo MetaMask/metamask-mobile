@@ -92,7 +92,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
 
     expect(mockedGetMarketingOptInStatus).not.toHaveBeenCalled();
     expect(mockedIdentify).toHaveBeenCalledWith({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
     });
     expect(mockedTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -131,7 +131,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
 
     expect(mockedGetMarketingOptInStatus).toHaveBeenCalled();
     expect(mockedIdentify).toHaveBeenCalledWith({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.OFF,
     });
     expect(mockedTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -172,7 +172,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
 
     expect(mockedGetMarketingOptInStatus).toHaveBeenCalled();
     expect(mockedIdentify).toHaveBeenCalledWith({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
     });
     expect(mockedTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -239,7 +239,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
       .run();
 
     expect(mockedIdentify).toHaveBeenCalledWith({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
     });
     expect(updateDataRecordingFlag).not.toHaveBeenCalled();
   });

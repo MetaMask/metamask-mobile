@@ -18,11 +18,9 @@ jest.mock('../../../../core/Engine', () => ({
 // Mock PerpsStreamManager
 const mockSubscribe = jest.fn();
 const mockRefresh = jest.fn();
-let mockChannelMarketsSnapshot: PerpsMarketData[] | null | undefined;
 const mockMarketData = {
   subscribe: mockSubscribe,
   refresh: mockRefresh,
-  getSnapshot: () => mockChannelMarketsSnapshot,
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -58,7 +56,6 @@ describe('usePerpsMarkets', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    mockChannelMarketsSnapshot = undefined;
 
     // Set up default mock behavior
     mockSubscribe.mockImplementation(({ callback }) => {
@@ -75,18 +72,6 @@ describe('usePerpsMarkets', () => {
   });
 
   describe('Initial state', () => {
-    it('returns channel snapshot immediately when available', () => {
-      mockChannelMarketsSnapshot = mockMarketDataArray;
-      mockSubscribe.mockImplementation(() => jest.fn());
-
-      const { result } = renderHook(() => usePerpsMarkets());
-
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.markets).toHaveLength(2);
-      expect(result.current.markets[0].symbol).toBe('BTC');
-      expect(result.current.markets[1].symbol).toBe('ETH');
-    });
-
     it('returns initial state with empty markets and loading true', () => {
       // Setup to not call the callback immediately
       mockSubscribe.mockImplementation(() => jest.fn());

@@ -405,7 +405,6 @@ export async function mockRelayQuote(mockServer: Mockttp) {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url?.includes('api.relay.link/quote') ||
-          url?.includes('bridge.api.cx.metamask.io/relay/quote') ||
           url?.includes('bridge.dev-api.cx.metamask.io/relay/quote'),
       );
     })
@@ -426,7 +425,6 @@ export async function mockRelayQuoteMainnetMusd(mockServer: Mockttp) {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url?.includes('api.relay.link/quote') ||
-          url?.includes('bridge.api.cx.metamask.io/relay/quote') ||
           url?.includes('bridge.dev-api.cx.metamask.io/relay/quote'),
       );
     })
@@ -443,7 +441,6 @@ export async function mockRelayStatus(mockServer: Mockttp) {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url?.includes('api.relay.link/intents/status') ||
-          url?.includes('bridge.api.cx.metamask.io/relay/intents/status') ||
           url?.includes('bridge.dev-api.cx.metamask.io/relay/intents/status'),
       );
     })

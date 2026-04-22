@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 import {
   isEIP1559Transaction,
@@ -180,13 +180,12 @@ export function CancelSpeedupModal({
     networkFeeFiat,
     nativeTokenSymbol,
     isInitialGasReady,
-    isTransactionModifiable,
   } = useCancelSpeedupGas({ txId: tx?.id });
 
   // Seed the transaction with bump params when cancel/speed up modal opens so the gas modal shows suggested values.
   // Stores the original gas as previousGas first (prevents re-seeding on subsequent renders).
   useEffect(() => {
-    if (!isVisible || !tx?.id || !isTransactionModifiable) return;
+    if (!isVisible || !tx?.id) return;
     if (tx.previousGas) return;
 
     const { txParams } = tx;
@@ -215,14 +214,7 @@ export function CancelSpeedupModal({
         userFeeLevel: bumpResult.userFeeLevel,
       });
     }
-  }, [
-    isVisible,
-    tx?.id,
-    isCancel,
-    gasFeeEstimates,
-    tx,
-    isTransactionModifiable,
-  ]);
+  }, [isVisible, tx?.id, isCancel, gasFeeEstimates, tx]);
 
   // Dismiss gas modal when parent cancel/speed up modal closes.
   useEffect(() => {
@@ -231,20 +223,15 @@ export function CancelSpeedupModal({
     }
   }, [isVisible]);
 
-  // Close the gas modal when the transaction is no longer modifiable.
-  useEffect(() => {
-    if (isVisible && gasModalVisible && !isTransactionModifiable) {
-      setGasModalVisible(false);
-    }
-  }, [isVisible, gasModalVisible, isTransactionModifiable]);
-
   const openGasModal = useCallback(() => {
     setGasModalVisible(true);
   }, []);
 
   const close = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
-  }, []);
+    bottomSheetRef.current?.onCloseBottomSheet(() => {
+      onClose();
+    });
+  }, [onClose]);
 
   const effectiveConfirmDisabled = confirmDisabled || !isInitialGasReady;
 
@@ -273,50 +260,56 @@ export function CancelSpeedupModal({
   ];
 
   return (
-    <Modal
-      isVisible={isVisible}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={modalStyle.bottom}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      useNativeDriver
-      onBackdropPress={onClose}
-      onBackButtonPress={onClose}
-    >
-      <BottomSheet
-        ref={bottomSheetRef}
-        shouldNavigateBack={false}
-        onClose={onClose}
-        style={styles.bottomSheetDialogSheet}
+    <>
+      <Modal
+        isVisible={isVisible}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={modalStyle.bottom}
+        backdropColor={colors.overlay.default}
+        backdropOpacity={1}
+        useNativeDriver
+        onBackdropPress={onClose}
+        onBackButtonPress={onClose}
+        onSwipeComplete={onClose}
+        swipeDirection="down"
+        propagateSwipe
       >
-        <HeaderCompactStandard title={title} onClose={close} />
-        <Box style={tw.style('px-3')}>
-          <Box gap={4}>
-            <InfoSection>
-              <NetworkFeeRow
-                fiat={networkFeeFiat}
-                native={networkFeeNative}
-                symbol={nativeTokenSymbol}
-                chainId={chainId}
-                onEditPress={isTransactionModifiable ? openGasModal : undefined}
-              />
-              <SpeedRow transactionId={tx?.id} />
-            </InfoSection>
-            <Description text={description} />
+        <BottomSheet
+          ref={bottomSheetRef}
+          shouldNavigateBack={false}
+          style={styles.bottomSheetDialogSheet}
+        >
+          <HeaderCompactStandard title={title} onClose={close} />
+          <Box style={tw.style('px-3')}>
+            <ScrollView>
+              <Box gap={4}>
+                <InfoSection>
+                  <NetworkFeeRow
+                    fiat={networkFeeFiat}
+                    native={networkFeeNative}
+                    symbol={nativeTokenSymbol}
+                    chainId={chainId}
+                    onEditPress={openGasModal}
+                  />
+                  <SpeedRow transactionId={tx?.id} />
+                </InfoSection>
+                <Description text={description} />
+              </Box>
+            </ScrollView>
+            <BottomSheetFooter
+              buttonsAlignment={ButtonsAlignment.Vertical}
+              buttonPropsArray={buttons}
+              style={tw.style('px-0')}
+            />
           </Box>
-          <BottomSheetFooter
-            buttonsAlignment={ButtonsAlignment.Vertical}
-            buttonPropsArray={buttons}
-            style={tw.style('px-0')}
-          />
-        </Box>
-      </BottomSheet>
+        </BottomSheet>
+      </Modal>
       {gasModalVisible && tx?.id && (
         <GasFeeModalTransactionProvider transactionId={tx.id}>
           <GasFeeModal setGasModalVisible={setGasModalVisible} />
         </GasFeeModalTransactionProvider>
       )}
-    </Modal>
+    </>
   );
 }

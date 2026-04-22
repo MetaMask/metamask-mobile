@@ -41,7 +41,7 @@ describe('Toast', () => {
 
   it('renders correctly with default state', () => {
     const { toJSON } = render(<Toast ref={toastRef} />);
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays toast with correct label when showToast is called', async () => {
@@ -143,39 +143,5 @@ describe('Toast', () => {
     });
 
     expect(screen.queryByText('Test Label')).toBeNull();
-  });
-
-  it('cancels pending toast when showToast is called rapidly in succession', async () => {
-    const inProgressOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'In Progress' }],
-      hasNoTimeout: true,
-    };
-
-    const successOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Success' }],
-      hasNoTimeout: false,
-    };
-
-    render(<Toast ref={toastRef} />);
-
-    // Call showToast twice in the same tick (simulating approved + confirmed
-    // firing before React processes the first state update).
-    act(() => {
-      toastRef.current?.showToast(inProgressOptions);
-      toastRef.current?.showToast(successOptions);
-    });
-
-    // Without the fix two setTimeout(0) callbacks are queued (one per call);
-    // with the fix the first timeout is cleared, leaving only one pending.
-    expect(jest.getTimerCount()).toBe(1);
-
-    await act(async () => {
-      jest.runAllTimers();
-    });
-
-    expect(screen.queryByText('In Progress')).toBeNull();
-    expect(screen.getByText('Success')).toBeOnTheScreen();
   });
 });

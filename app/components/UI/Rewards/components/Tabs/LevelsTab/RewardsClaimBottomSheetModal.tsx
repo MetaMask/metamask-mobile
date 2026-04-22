@@ -37,8 +37,7 @@ import { formatUrl } from '../../../utils/formatUtils';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import useRewardsToast from '../../../hooks/useRewardsToast';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 
 export interface ModalAction {
   label: string;
@@ -77,7 +76,7 @@ const RewardsClaimBottomSheetModal = ({
     useRewardsToast();
   const tw = useTailwind();
   const { claimReward, isClaimingReward, claimRewardError } = useClaimReward();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [inputValue, setInputValue] = useState('');
   const {
     rewardId,

@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -12,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TokenNetworkFilterBar from '../../components/TokenNetworkFilterBar';
 import TokenListItem from '../../components/TokenListItem';
 import { createUnsupportedTokenModalNavigationDetails } from '../Modals/UnsupportedTokenModal/UnsupportedTokenModal';
@@ -33,6 +33,7 @@ import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
@@ -321,28 +322,33 @@ function TokenSelection() {
     return Array.from(uniqueNetworksSet);
   }, [supportedTokens]);
 
-  const handleHeaderBack = useCallback(() => {
-    navigation.goBack();
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-        .addProperties({
-          location: 'Token Selection',
-          ramp_type: rampType,
-        })
-        .build(),
+  useLayoutEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(
+        navigation,
+        {
+          title: strings('deposit.token_modal.select_token'),
+          showBack: false,
+        },
+        theme,
+        () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Token Selection',
+                ramp_type: rampType,
+              })
+              .build(),
+          );
+        },
+      ),
     );
-  }, [navigation, trackEvent, createEventBuilder, rampType]);
+  }, [navigation, theme, createEventBuilder, trackEvent, rampType]);
 
   if (isLoading) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
-            title={strings('deposit.token_modal.select_token')}
-            onBack={handleHeaderBack}
-            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-            includesTopInset
-          />
           <Box twClassName="flex-1 items-center justify-center">
             <ActivityIndicator
               size="large"
@@ -359,12 +365,6 @@ function TokenSelection() {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
-            title={strings('deposit.token_modal.select_token')}
-            onBack={handleHeaderBack}
-            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-            includesTopInset
-          />
           <Box twClassName="flex-1 items-center justify-center px-4">
             <Box twClassName="text-center">
               <Text variant={TextVariant.BodyMd}>
@@ -386,13 +386,14 @@ function TokenSelection() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
-          title={strings('deposit.token_modal.select_token')}
-          onBack={handleHeaderBack}
-          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-          includesTopInset
-        />
-        <Box twClassName="px-4 pb-3">
+        <Box twClassName="py-2">
+          <TokenNetworkFilterBar
+            networks={uniqueNetworks}
+            networkFilter={networkFilter}
+            setNetworkFilter={handleNetworkFilterChange}
+          />
+        </Box>
+        <Box twClassName="px-4 py-3">
           <TextFieldSearch
             testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
@@ -402,13 +403,6 @@ function TokenSelection() {
             placeholder={strings(
               'deposit.token_modal.search_by_name_or_address',
             )}
-          />
-        </Box>
-        <Box twClassName="pt-2 pb-4 pl-4">
-          <TokenNetworkFilterBar
-            networks={uniqueNetworks}
-            networkFilter={networkFilter}
-            setNetworkFilter={handleNetworkFilterChange}
           />
         </Box>
         <FlatList

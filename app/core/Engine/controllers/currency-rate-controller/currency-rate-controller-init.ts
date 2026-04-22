@@ -2,7 +2,7 @@ import {
   CurrencyRateController,
   CurrencyRateMessenger,
 } from '@metamask/assets-controllers';
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 import { defaultCurrencyRateState } from './constants';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 
@@ -20,7 +20,7 @@ interface CurrencyRateEntry {
   usdConversionRate: number | null;
 }
 
-export const currencyRateControllerInit: MessengerClientInitFunction<
+export const currencyRateControllerInit: ControllerInitFunction<
   CurrencyRateController,
   CurrencyRateMessenger
 > = (request) => {

@@ -8,7 +8,6 @@ export interface BrowserParams {
   existingTabId?: number;
   fromTrending?: boolean;
   fromPerps?: boolean;
-  fromBenefit?: boolean;
   linkType?: string;
   url?: string;
 }

@@ -8,8 +8,8 @@ import {
 } from '@metamask/signature-controller';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import AppConstants from '../../../AppConstants';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
-import { MessengerClientInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { ControllerInitRequest } from '../../types';
 import { SignatureControllerInit } from './signature-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -41,12 +41,12 @@ function buildControllerMock(
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
-): jest.Mocked<MessengerClientInitRequest<SignatureControllerMessenger>> {
+): jest.Mocked<ControllerInitRequest<SignatureControllerMessenger>> {
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
+    ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger:
       baseControllerMessenger as unknown as SignatureControllerMessenger,
     persistedState: {
@@ -55,8 +55,8 @@ function buildInitRequestMock(
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getMessengerClient) {
-    requestMock.getMessengerClient = jest
+  if (!initRequestProperties.getController) {
+    requestMock.getController = jest
       .fn()
       .mockReturnValue(buildControllerMock());
   }
@@ -80,7 +80,7 @@ describe('SignatureController Init', () => {
 
   it('throws error if requested controller is not found', () => {
     const requestMock = buildInitRequestMock({
-      getMessengerClient: () => {
+      getController: () => {
         throw new Error('Controller not found');
       },
     });
@@ -103,7 +103,7 @@ describe('SignatureController Init', () => {
   describe('SignatureController constructor options', () => {
     it('correctly sets up isDecodeSignatureRequestEnabled option', () => {
       const requestMock = buildInitRequestMock({
-        getMessengerClient: () =>
+        getController: () =>
           buildControllerMock({
             state: { useTransactionSimulations: true } as PreferencesState,
           }),

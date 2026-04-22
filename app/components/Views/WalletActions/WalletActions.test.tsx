@@ -132,6 +132,10 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../selectors/tokenListController', () => ({
+  selectTokenList: jest.fn().mockReturnValue([]),
+}));
+
 jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(),

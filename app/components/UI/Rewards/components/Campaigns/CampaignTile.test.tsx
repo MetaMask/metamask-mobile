@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import CampaignTile from './CampaignTile';
 import {
   type CampaignDto,
@@ -8,9 +9,15 @@ import {
 import {
   getCampaignStatusInfo,
   isCampaignTypeSupported,
+  isOptinAllowed,
 } from './CampaignTile.utils';
+import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
 import Routes from '../../../../../constants/navigation/Routes';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -51,17 +58,29 @@ jest.mock('./CampaignTile.utils', () => ({
     dateLabelIcon: 'Clock',
   }),
   isCampaignTypeSupported: jest.fn().mockReturnValue(true),
+  isOptinAllowed: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../../../reducers/rewards/selectors', () => ({
+  selectCampaignParticipantCount: jest.fn(),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
-      'rewards.campaign.enter': 'Enter',
+      'rewards.campaign.enter_now': 'Enter now',
       'rewards.campaign.entered': 'Entered',
+      'rewards.campaign.participant_count': `#${params?.count ?? ''}`,
     };
     return translations[key] || key;
   },
 }));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockSelectCampaignParticipantCount =
+  selectCampaignParticipantCount as jest.MockedFunction<
+    typeof selectCampaignParticipantCount
+  >;
 
 const createTestCampaign = (overrides = {}): CampaignDto => ({
   id: 'campaign-1',
@@ -75,6 +94,15 @@ const createTestCampaign = (overrides = {}): CampaignDto => ({
   featured: true,
   ...overrides,
 });
+
+function setupParticipantCount(count: number | null) {
+  const mockSelector = jest.fn().mockReturnValue(count);
+  mockSelectCampaignParticipantCount.mockReturnValue(mockSelector);
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === mockSelector) return count;
+    return undefined;
+  });
+}
 
 function setupParticipantStatus(optedIn: boolean) {
   mockUseGetCampaignParticipantStatus.mockReturnValue({
@@ -95,6 +123,8 @@ describe('CampaignTile', () => {
       dateLabelIcon: 'Clock',
     });
     (isCampaignTypeSupported as jest.Mock).mockReturnValue(true);
+    (isOptinAllowed as jest.Mock).mockReturnValue(true);
+    setupParticipantCount(null);
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
       isLoading: false,
@@ -111,12 +141,12 @@ describe('CampaignTile', () => {
     expect(getByTestId('campaign-tile-name')).toHaveTextContent('My Campaign');
   });
 
-  it('renders date info label via campaign-tile-date-info testID', () => {
+  it('renders empty date label placeholder via campaign-tile-date-label testID', () => {
     const campaign = createTestCampaign();
 
     const { getByTestId } = render(<CampaignTile campaign={campaign} />);
 
-    expect(getByTestId('campaign-tile-date-info')).toBeDefined();
+    expect(getByTestId('campaign-tile-date-label')).toBeDefined();
   });
 
   it('renders status label via campaign-tile-status-label testID', () => {
@@ -150,47 +180,111 @@ describe('CampaignTile', () => {
     expect(getCampaignStatusInfo).toHaveBeenCalledWith(campaign);
   });
 
-  describe('date label', () => {
-    it('renders date label for active campaign', () => {
+  describe('enter now label', () => {
+    it('renders enter-now when status is active and participantCount is null', () => {
+      setupParticipantCount(null);
       const campaign = createTestCampaign();
 
-      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
-
-      expect(getByTestId('campaign-tile-date-info')).toHaveTextContent(
-        'Ends Mar 15, 2:30 PM',
+      const { getByTestId, queryByTestId } = render(
+        <CampaignTile campaign={campaign} />,
       );
+
+      expect(getByTestId('campaign-tile-enter-now')).toHaveTextContent(
+        '•Enter now',
+      );
+      expect(queryByTestId('campaign-tile-participant-count')).toBeNull();
     });
 
-    it('renders date label for upcoming campaign', () => {
+    it('does not render enter-now when isOptinAllowed returns false (entries closed)', () => {
+      (isOptinAllowed as jest.Mock).mockReturnValue(false);
+      setupParticipantCount(null);
+      const campaign = createTestCampaign();
+
+      const { queryByTestId } = render(<CampaignTile campaign={campaign} />);
+
+      expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
+    });
+
+    it('does not render enter-now when status is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
         statusLabel: 'Coming soon',
         dateLabel: 'Starts June 1',
         dateLabelIcon: 'Speed',
       });
+      setupParticipantCount(null);
       const campaign = createTestCampaign();
 
-      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      const { queryByTestId } = render(<CampaignTile campaign={campaign} />);
 
-      expect(getByTestId('campaign-tile-date-info')).toHaveTextContent(
-        'Starts June 1',
-      );
+      expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
+      expect(queryByTestId('campaign-tile-participant-count')).toBeNull();
     });
 
-    it('renders date label for complete campaign', () => {
+    it('does not render enter-now when status is complete', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'complete',
         statusLabel: 'Complete',
         dateLabel: 'December 31',
         dateLabelIcon: 'Confirmation',
       });
+      setupParticipantCount(null);
       const campaign = createTestCampaign();
 
-      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      const { queryByTestId } = render(<CampaignTile campaign={campaign} />);
 
-      expect(getByTestId('campaign-tile-date-info')).toHaveTextContent(
-        'December 31',
+      expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
+      expect(queryByTestId('campaign-tile-participant-count')).toBeNull();
+    });
+  });
+
+  describe('participant count', () => {
+    it('renders participant count when count is available', () => {
+      setupParticipantCount(1234);
+      const campaign = createTestCampaign();
+
+      const { getByTestId, queryByTestId } = render(
+        <CampaignTile campaign={campaign} />,
       );
+
+      expect(getByTestId('campaign-tile-participant-count')).toHaveTextContent(
+        '#1,234',
+      );
+      expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
+    });
+
+    it('renders participant count of zero', () => {
+      setupParticipantCount(0);
+      const campaign = createTestCampaign();
+
+      const { getByTestId, queryByTestId } = render(
+        <CampaignTile campaign={campaign} />,
+      );
+
+      expect(getByTestId('campaign-tile-participant-count')).toHaveTextContent(
+        '#0',
+      );
+      expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
+    });
+
+    it('renders participant count even when status is not active', () => {
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'complete',
+        statusLabel: 'Complete',
+        dateLabel: 'December 31',
+        dateLabelIcon: 'Confirmation',
+      });
+      setupParticipantCount(5000);
+      const campaign = createTestCampaign();
+
+      const { getByTestId, queryByTestId } = render(
+        <CampaignTile campaign={campaign} />,
+      );
+
+      expect(getByTestId('campaign-tile-participant-count')).toHaveTextContent(
+        '#5,000',
+      );
+      expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
     });
   });
 
@@ -199,11 +293,14 @@ describe('CampaignTile', () => {
       setupParticipantStatus(true);
       const campaign = createTestCampaign();
 
-      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      const { getByTestId, queryByTestId } = render(
+        <CampaignTile campaign={campaign} />,
+      );
 
       expect(getByTestId('campaign-tile-entered-label')).toHaveTextContent(
         'Entered',
       );
+      expect(queryByTestId('campaign-tile-enter-now')).toBeNull();
     });
 
     it('shows status label when participant is not opted in', () => {
@@ -220,8 +317,9 @@ describe('CampaignTile', () => {
       );
     });
 
-    it('shows "Entered" label alongside date label when opted in', () => {
+    it('shows "Entered" label alongside participant count when opted in', () => {
       setupParticipantStatus(true);
+      setupParticipantCount(42);
       const campaign = createTestCampaign();
 
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
@@ -229,8 +327,8 @@ describe('CampaignTile', () => {
       expect(getByTestId('campaign-tile-entered-label')).toHaveTextContent(
         'Entered',
       );
-      expect(getByTestId('campaign-tile-date-info')).toHaveTextContent(
-        'Ends Mar 15, 2:30 PM',
+      expect(getByTestId('campaign-tile-participant-count')).toHaveTextContent(
+        '#42',
       );
     });
   });

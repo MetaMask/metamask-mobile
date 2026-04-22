@@ -103,11 +103,12 @@ describe('EditAccountName', () => {
     mockAccountsControllerSetAccountName.mockClear();
   });
   it('should render correctly', () => {
-    const { getByText } = renderComponent(mockInitialState);
-    expect(getByText('Cancel')).toBeOnTheScreen();
-    expect(getByText('Save')).toBeOnTheScreen();
-    expect(getByText('Name')).toBeOnTheScreen();
-    expect(getByText('Address')).toBeOnTheScreen();
+    const { getByText, toJSON } = renderComponent(mockInitialState);
+    expect(getByText('Cancel')).toBeDefined();
+    expect(getByText('Save')).toBeDefined();
+    expect(getByText('Name')).toBeDefined();
+    expect(getByText('Address')).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should enable the save button when text input changes', () => {
@@ -119,10 +120,10 @@ describe('EditAccountName', () => {
 
     fireEvent.changeText(input, '');
 
-    expect(saveButton).toBeDisabled();
+    expect(saveButton.props.disabled).toBe(true);
     fireEvent.changeText(input, 'Account');
 
-    expect(saveButton).toBeEnabled();
+    expect(saveButton.props.disabled).toBe(false);
   });
 
   it('should call goBack when cancel button is pressed', () => {

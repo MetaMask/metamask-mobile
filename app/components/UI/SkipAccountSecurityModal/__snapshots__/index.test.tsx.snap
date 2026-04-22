@@ -38,7 +38,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -243,7 +243,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,

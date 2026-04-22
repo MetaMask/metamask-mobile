@@ -4,19 +4,23 @@ import V2AdditionalVerification from './AdditionalVerification';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    goBack: mockGoBack,
+    setOptions: mockSetOptions,
   }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
+}));
+
+jest.mock('../../../Navbar', () => ({
+  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 const mockNavigateToKycWebview = jest.fn();
@@ -56,35 +60,28 @@ describe('V2AdditionalVerification', () => {
     jest.clearAllMocks();
   });
 
+  it('matches snapshot', () => {
+    const { toJSON } = renderWithTheme(<V2AdditionalVerification />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('calls navigateToKycWebview when continue button is pressed', () => {
     const { getByText } = renderWithTheme(<V2AdditionalVerification />);
 
     fireEvent.press(getByText('deposit.additional_verification.button'));
 
     expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
-      quote: { quoteId: 'test-quote-id', fiatAmount: 127.37 },
       kycUrl: 'https://kyc.example.com',
-      workFlowRunId: 'wf-123',
       amount: 25,
     });
   });
 
-  it('calls navigation.goBack when header back is pressed', () => {
-    const { getByTestId } = renderWithTheme(<V2AdditionalVerification />);
-
-    fireEvent.press(getByTestId('deposit-back-navbar-button'));
-
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
   it('renders the title and paragraphs', () => {
-    const { getByText, getAllByText } = renderWithTheme(
-      <V2AdditionalVerification />,
-    );
+    const { getByText } = renderWithTheme(<V2AdditionalVerification />);
 
-    expect(getAllByText('deposit.additional_verification.title')).toHaveLength(
-      2,
-    );
+    expect(
+      getByText('deposit.additional_verification.title'),
+    ).toBeOnTheScreen();
     expect(
       getByText('deposit.additional_verification.paragraph_1'),
     ).toBeOnTheScreen();

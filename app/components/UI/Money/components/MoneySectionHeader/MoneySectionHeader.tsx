@@ -4,6 +4,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -37,6 +38,7 @@ const MoneySectionHeader = ({ title, onPress }: MoneySectionHeaderProps) => {
     >
       <Text
         variant={TextVariant.HeadingMd}
+        fontWeight={FontWeight.Regular}
         testID={MoneySectionHeaderTestIds.TITLE}
       >
         {title}

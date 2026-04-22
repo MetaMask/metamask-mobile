@@ -49,7 +49,7 @@ describe('PickerAccount', () => {
 
     it('should render correctly with snapshot', () => {
       const { toJSON } = render(<PickerAccount {...defaultProps} />);
-      expect(toJSON()).toBeDefined();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -130,7 +130,8 @@ describe('PickerAccount', () => {
         <PickerAccount {...defaultProps} hitSlop={customHitSlop} />,
       );
 
-      expect(toJSON()).toBeDefined();
+      // Verify through snapshot that hitSlop is applied
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('forwards style prop', () => {
@@ -139,7 +140,7 @@ describe('PickerAccount', () => {
         <PickerAccount {...defaultProps} style={customStyle} />,
       );
 
-      expect(toJSON()).toBeDefined();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('forwards additional TouchableOpacity props', () => {

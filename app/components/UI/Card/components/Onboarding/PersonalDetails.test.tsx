@@ -436,8 +436,8 @@ describe('PersonalDetails Component', () => {
     it('does not show error messages initially', () => {
       const { queryByTestId } = render(<PersonalDetails />);
 
-      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
-      expect(queryByTestId('personal-details-error')).not.toBeOnTheScreen();
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+      expect(queryByTestId('personal-details-error')).toBeNull();
     });
 
     it('calls fetchUserData on mount', () => {
@@ -469,7 +469,7 @@ describe('PersonalDetails Component', () => {
 
       const { queryByTestId } = render(<PersonalDetails />);
 
-      expect(queryByTestId('personal-details-ssn-input')).not.toBeOnTheScreen();
+      expect(queryByTestId('personal-details-ssn-input')).toBeNull();
     });
   });
 
@@ -539,7 +539,7 @@ describe('PersonalDetails Component', () => {
       fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
 
       // Error should not be shown while typing
-      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
     });
 
     it('shows SSN error after blur when SSN is invalid', () => {
@@ -561,7 +561,7 @@ describe('PersonalDetails Component', () => {
       fireEvent(ssnInput, 'onBlur');
 
       // Error should not be shown for valid SSN
-      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
     });
 
     it('clears SSN error when user starts typing again', () => {
@@ -576,7 +576,7 @@ describe('PersonalDetails Component', () => {
 
       // Type again - error should be cleared
       fireEvent.changeText(ssnInput, '1234');
-      expect(queryByTestId('personal-details-ssn-error')).not.toBeOnTheScreen();
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
     });
   });
 
@@ -827,7 +827,7 @@ describe('PersonalDetails Component', () => {
 
       // The nationality should show Canada (from countryOfNationality)
       expect(getByText('Canada')).toBeTruthy();
-      expect(queryByText('United States')).not.toBeOnTheScreen();
+      expect(queryByText('United States')).toBeNull();
     });
   });
 
@@ -1101,7 +1101,7 @@ describe('PersonalDetails Component', () => {
       fireEvent.changeText(firstNameInput, 'John');
       fireEvent.changeText(lastNameInput, 'Doe');
 
-      expect(queryByTestId('personal-details-ssn-input')).not.toBeOnTheScreen();
+      expect(queryByTestId('personal-details-ssn-input')).toBeNull();
     });
   });
 

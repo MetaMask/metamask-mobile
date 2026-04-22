@@ -13,7 +13,6 @@ import {
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { toFormattedAddress } from '../../../../util/address';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-namespace
 import * as AccountSelectorsModule from '../../../../selectors/multichainAccounts/accounts';
@@ -21,8 +20,6 @@ import initialRootState from '../../../../util/test/initial-root-state';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockVar = any;
-
-const MOCK_KEYRING_TYPE = 'HD Key Tree' as KeyringTypes;
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -36,12 +33,10 @@ jest.mock('@react-navigation/native', () => {
 
 const ADDRESS_1 = '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29'.toLowerCase();
 const ADDRESS_2 = '0x700CcD8172BC3807D893883a730A1E0E6630F8EC'.toLowerCase();
-const ADDRESS_3 = '0x111CcD8172BC3807D893883a730A1E0E6630F8AA'.toLowerCase();
 
 // The component uses toFormattedAddress for testIDs, so we need the checksummed versions
 const CHECKSUMMED_ADDRESS_1 = toFormattedAddress(ADDRESS_1);
 const CHECKSUMMED_ADDRESS_2 = toFormattedAddress(ADDRESS_2);
-const CHECKSUMMED_ADDRESS_3 = toFormattedAddress(ADDRESS_3);
 
 const ACCOUNT_1_TEST_ID = {
   item: NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(
@@ -73,16 +68,6 @@ const ACCOUNT_2_TEST_ID = {
     CHECKSUMMED_ADDRESS_2,
   ),
 };
-const ACCOUNT_3_TEST_ID = {
-  item: NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(
-    NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-      CHECKSUMMED_ADDRESS_3,
-    ),
-  ),
-  itemSwitch: NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-    CHECKSUMMED_ADDRESS_3,
-  ),
-};
 
 describe('AccountList', () => {
   const arrangeSelectors = () => {
@@ -100,7 +85,7 @@ describe('AccountList', () => {
         name: `My Account ${idx}`,
       }));
 
-    const createMockMultichainAccountGroup = (
+    const createMockAccountGroup = (
       idx: number,
       accounts: [string, ...string[]],
     ) =>
@@ -119,85 +104,43 @@ describe('AccountList', () => {
         },
       }) as const;
 
-    const createMockSingleAccountGroup = <
-      T extends `keyring:${string}/${string}`,
-    >(
-      id: T,
-      account: string,
-    ) =>
-      ({
-        accounts: [account] as [string],
-        id,
-        type: AccountGroupType.SingleAccount,
-        metadata: {
-          hidden: false,
-          lastSelected: 0,
-          name: id,
-          pinned: false,
-        },
-      }) as const;
-
-    const group1 = createMockMultichainAccountGroup(0, [
+    const group1 = createMockAccountGroup(0, [
       `MOCK-ID-FOR-${CHECKSUMMED_ADDRESS_1}`,
       'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY',
     ]);
-    const group2 = createMockMultichainAccountGroup(1, [
+    const group2 = createMockAccountGroup(1, [
       `MOCK-ID-FOR-${CHECKSUMMED_ADDRESS_2}`,
       'MOCK-ID-FOR-Agsjd8HjGH5DxiXLMWc8fR4jjgHhvJG3TXcCpc1ieD9B',
     ]);
-    const importedGroup = createMockSingleAccountGroup(
-      'keyring:wallet-2/0',
-      `MOCK-ID-FOR-${CHECKSUMMED_ADDRESS_3}`,
-    );
 
     const mockUseAccountProps = jest
       .spyOn(AccountListHooksModule, 'useAccountProps')
       .mockReturnValue({
         accountAvatarType: AvatarAccountType.JazzIcon,
-        accountWalletGroups: [
-          {
-            title: 'Wallet 1',
-            wallet: {
-              id: 'entropy:wallet-1',
-              type: AccountWalletType.Entropy,
-              metadata: {
-                entropy: {
-                  id: '',
-                },
-                name: 'Wallet 1',
+        firstHDWalletGroups: {
+          title: 'Wallet 1',
+          wallet: {
+            id: 'entropy:wallet-1',
+            type: AccountWalletType.Entropy,
+            metadata: {
+              entropy: {
+                id: '',
               },
-              status: 'ready',
-              groups: {
-                [group1.id]: group1,
-                [group2.id]: group2,
-              },
+              name: 'Wallet 1',
             },
-            data: [group1, group2],
-          },
-          {
-            title: 'Imported wallet',
-            wallet: {
-              id: 'keyring:wallet-2',
-              type: AccountWalletType.Keyring,
-              metadata: {
-                name: 'Imported wallet',
-                keyring: {
-                  type: MOCK_KEYRING_TYPE,
-                },
-              },
-              status: 'ready',
-              groups: {
-                [importedGroup.id]: importedGroup,
-              },
+            status: 'ready',
+            groups: {
+              [group1.id]: group1,
+              [group2.id]: group2,
             },
-            data: [importedGroup],
           },
-        ],
+          data: [group1, group2],
+        },
       });
 
     const mockRefetchAccountSettings = jest.fn();
     const createUseNotificationAccountListProps = () => ({
-      shouldDisableSwitches: false,
+      isAnyAccountLoading: false,
       refetchAccountSettings: mockRefetchAccountSettings,
       isAccountLoading: jest
         .fn()
@@ -247,9 +190,8 @@ describe('AccountList', () => {
     );
 
     // Assert - Items exist
-    expect(getByTestId(ACCOUNT_1_TEST_ID.item)).toBeOnTheScreen();
-    expect(getByTestId(ACCOUNT_2_TEST_ID.item)).toBeOnTheScreen();
-    expect(getByTestId(ACCOUNT_3_TEST_ID.item)).toBeOnTheScreen();
+    expect(getByTestId(ACCOUNT_1_TEST_ID.item)).toBeTruthy();
+    expect(getByTestId(ACCOUNT_2_TEST_ID.item)).toBeTruthy();
 
     // Assert - Item Loading
     expect(getByTestId(ACCOUNT_1_TEST_ID.itemLoading)).toBeTruthy();
@@ -261,11 +203,11 @@ describe('AccountList', () => {
     expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch).props.value).toBe(false); // The switch is set to false
   });
 
-  it('disables switches during initial data loading', () => {
+  it('disable switches when any account is loading', () => {
     const mocks = arrangeMocks();
     mocks.mockUseNotificationAccountListProps.mockReturnValue({
       ...mocks.createUseNotificationAccountListProps(),
-      shouldDisableSwitches: true,
+      isAnyAccountLoading: true,
       isAccountLoading: () => false,
     });
 
@@ -273,17 +215,16 @@ describe('AccountList', () => {
       state: initialRootState,
     });
 
-    // Assert switches are disabled during initial loading
+    // Assert switches are disabled since we are loading
     expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch).props.disabled).toBe(true);
     expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch).props.disabled).toBe(true);
-    expect(getByTestId(ACCOUNT_3_TEST_ID.itemSwitch).props.disabled).toBe(true);
   });
 
   it('invokes switch toggle logic when clicked', async () => {
     const mocks = arrangeMocks();
     mocks.mockUseNotificationAccountListProps.mockReturnValue({
       ...mocks.createUseNotificationAccountListProps(),
-      shouldDisableSwitches: false,
+      isAnyAccountLoading: false,
       isAccountLoading: () => false,
     });
 
@@ -300,35 +241,5 @@ describe('AccountList', () => {
       expect(mocks.mockOnToggle).toHaveBeenCalled();
       expect(mocks.mockRefetchAccountSettings).toHaveBeenCalled();
     });
-  });
-
-  it('renders nothing when there are no notification wallet groups', () => {
-    const mocks = arrangeMocks();
-    mocks.mockUseAccountProps.mockReturnValue({
-      accountAvatarType: AvatarAccountType.JazzIcon,
-      accountWalletGroups: [],
-    });
-
-    const { queryByTestId } = renderWithProvider(<AccountsList />, {
-      state: initialRootState,
-    });
-
-    expect(queryByTestId(ACCOUNT_1_TEST_ID.item)).not.toBeOnTheScreen();
-  });
-
-  it('skips account groups without an EVM address', () => {
-    const mocks = arrangeMocks();
-    mocks.mockUseNotificationAccountListProps.mockReturnValue({
-      ...mocks.createUseNotificationAccountListProps(),
-      getEvmAddress: jest.fn().mockReturnValue(undefined),
-    });
-
-    const { queryByTestId } = renderWithProvider(<AccountsList />, {
-      state: initialRootState,
-    });
-
-    expect(queryByTestId(ACCOUNT_1_TEST_ID.item)).not.toBeOnTheScreen();
-    expect(queryByTestId(ACCOUNT_2_TEST_ID.item)).not.toBeOnTheScreen();
-    expect(queryByTestId(ACCOUNT_3_TEST_ID.item)).not.toBeOnTheScreen();
   });
 });

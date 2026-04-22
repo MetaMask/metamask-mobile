@@ -143,11 +143,6 @@ export const setRampRoutingDecision = (
   payload: routingDecision,
 });
 
-export const setHasAgreedTransakNativePolicy = (hasAgreed: boolean) => ({
-  type: ACTIONS.FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY,
-  payload: hasAgreed,
-});
-
 /**
  * Selectors
  */
@@ -227,9 +222,6 @@ export const fiatOrdersGetStartedDeposit: (
   state: RootState,
 ) => FiatOrdersState['getStartedDeposit'] = (state: RootState) =>
   state.fiatOrders.getStartedDeposit;
-
-export const selectHasAgreedTransakNativePolicy = (state: RootState): boolean =>
-  state.fiatOrders.hasAgreedTransakNativePolicy === true;
 
 export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
   const providers = orders
@@ -351,7 +343,6 @@ export const initialState: FiatOrdersState = {
   getStartedAgg: false,
   getStartedSell: false,
   getStartedDeposit: false,
-  hasAgreedTransakNativePolicy: false,
   authenticationUrls: [],
   activationKeys: [],
   rampRoutingDecision: null,
@@ -647,12 +638,6 @@ const fiatOrderReducer: (
       return {
         ...state,
         rampRoutingDecision: action.payload,
-      };
-    }
-    case ACTIONS.FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY: {
-      return {
-        ...state,
-        hasAgreedTransakNativePolicy: action.payload,
       };
     }
 

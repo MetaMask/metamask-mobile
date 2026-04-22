@@ -20,39 +20,11 @@ import {
   type Funding,
   type UpdatePositionTPSLParams,
   type PerpsControllerState,
-  type GetMarketsParams,
-  type MarketInfo,
-  WebSocketConnectionState,
 } from '@metamask/perps-controller';
 
 // Interface for controller with update method access
 interface ControllerWithUpdate {
   update: (fn: (state: PerpsControllerState) => void) => void;
-}
-
-type PerpsDepositTransactionType = 'perpsDepositAndOrder' | 'perpsDeposit';
-
-type AddTransactionMessengerResult =
-  | {
-      result?: Promise<string>;
-      transactionMeta?: { id?: string };
-      transactionMetaId?: string;
-      id?: string;
-    }
-  | undefined;
-
-const PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS = 1200;
-
-/** Size decimals aligned with typical HyperLiquid main-DEX markets (used by order form). */
-const E2E_MARKET_SZ_DECIMALS: Record<string, number> = {
-  BTC: 3,
-  ETH: 4,
-  SOL: 2,
-};
-
-function parseMockMaxLeverageFormatted(maxLeverage: string): number {
-  const match = /^(\d+)/.exec(maxLeverage.trim());
-  return match ? Number.parseInt(match[1], 10) : 40;
 }
 
 /**
@@ -75,160 +47,15 @@ export class E2EControllerOverrides {
     // Update Redux state to reflect the new position/balance
     const mockAccount = this.mockService.getMockAccountState();
 
-    try {
-      (this.controller as ControllerWithUpdate).update(
-        (state: PerpsControllerState) => {
-          state.accountState = mockAccount;
-          state.lastUpdateTimestamp = Date.now();
-          state.lastError = null;
-        },
-      );
-    } catch (e) {
-      console.error('E2E Mock: placeOrder — controller.update() failed:', e);
-    }
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.accountState = mockAccount;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
 
     return result;
-  }
-
-  /**
-   * Best effort: if messenger returns a real transaction id, use it.
-   * Never throw here; fallback keeps E2E stable.
-   */
-  private async mockPerpsDepositTransaction(params: {
-    fallbackTxId: string;
-    transactionType: PerpsDepositTransactionType;
-  }): Promise<{ result: Promise<string> }> {
-    const { fallbackTxId, transactionType } = params;
-    const controllerRecord = this.controller as Record<string, unknown>;
-    const messenger = controllerRecord.messenger as
-      | { call: (...args: unknown[]) => unknown }
-      | undefined;
-
-    let resolvedTxId = fallbackTxId;
-
-    if (messenger) {
-      try {
-        const selectedAccounts = messenger.call(
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ) as { address?: string }[];
-        const fromAddress = selectedAccounts?.[0]?.address;
-        const networkClientId = messenger.call(
-          'NetworkController:findNetworkClientIdByChainId',
-          '0xa4b1',
-        ) as string | undefined;
-
-        if (fromAddress && networkClientId) {
-          const recipientPadded = fromAddress
-            .toLowerCase()
-            .replace('0x', '')
-            .padStart(64, '0');
-          const amountPadded = '0'.padStart(64, '0');
-          const transferData = `0xa9059cbb${recipientPadded}${amountPadded}`;
-
-          const addTransactionCall = Promise.resolve(
-            messenger.call(
-              'TransactionController:addTransaction',
-              {
-                from: fromAddress,
-                to: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-                value: '0x0',
-                data: transferData,
-                gas: '0x493e0',
-              },
-              {
-                networkClientId,
-                origin: 'metamask',
-                skipInitialGasEstimate: true,
-                type: transactionType,
-              },
-            ),
-          ) as Promise<AddTransactionMessengerResult>;
-
-          const addTransactionSafe = addTransactionCall.catch(
-            (): AddTransactionMessengerResult => undefined,
-          );
-
-          const timeout = new Promise<undefined>((resolve) =>
-            setTimeout(
-              () => resolve(undefined),
-              PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS,
-            ),
-          );
-          const maybeAddResult = await Promise.race([
-            addTransactionSafe,
-            timeout,
-          ]);
-
-          resolvedTxId =
-            maybeAddResult?.transactionMeta?.id ??
-            maybeAddResult?.transactionMetaId ??
-            maybeAddResult?.id ??
-            fallbackTxId;
-        }
-      } catch (e) {
-        console.warn(
-          'E2E Mock: mockPerpsDepositTransaction messenger call failed, using fallback txId:',
-          e,
-        );
-        resolvedTxId = fallbackTxId;
-      }
-    }
-
-    try {
-      (this.controller as ControllerWithUpdate).update(
-        (state: PerpsControllerState) => {
-          state.lastDepositTransactionId = resolvedTxId;
-          state.lastUpdateTimestamp = Date.now();
-          state.lastError = null;
-        },
-      );
-    } catch (e) {
-      console.error(
-        'E2E Mock: mockPerpsDepositTransaction — controller.update() failed:',
-        e,
-      );
-    }
-
-    return { result: Promise.resolve(resolvedTxId) };
-  }
-
-  /**
-   * Return MarketInfo for mock markets so usePerpsMarketData finds the asset by symbol
-   * (MarketInfo.name is the universe / ticker, e.g. ETH). Without this, default HyperLiquid
-   * HTTP mocks return empty meta and the order form shows "Invalid asset" before placing a trade.
-   */
-  async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
-    const mockMarkets = this.mockService.getMockMarkets();
-    const marketInfos: MarketInfo[] = mockMarkets.map((m) => ({
-      name: m.symbol,
-      szDecimals: E2E_MARKET_SZ_DECIMALS[m.symbol] ?? 4,
-      maxLeverage: parseMockMaxLeverageFormatted(m.maxLeverage),
-      marginTableId: 1,
-    }));
-
-    const symbols = params?.symbols;
-    if (symbols?.length) {
-      const wanted = new Set(symbols.map((s) => s.toUpperCase()));
-      return marketInfos.filter((mi) => wanted.has(mi.name.toUpperCase()));
-    }
-
-    return marketInfos;
-  }
-
-  // Mock one-click trade deposit initialization used by navigateToOrder()
-  async depositWithOrder(): Promise<{ result: Promise<string> }> {
-    return this.mockPerpsDepositTransaction({
-      fallbackTxId: `0xmock_perps_deposit_with_order_${Date.now()}`,
-      transactionType: 'perpsDepositAndOrder',
-    });
-  }
-
-  // Mock generic deposit initialization used by add-funds flows
-  async depositWithConfirmation(): Promise<{ result: Promise<string> }> {
-    return this.mockPerpsDepositTransaction({
-      fallbackTxId: `0xmock_perps_deposit_with_confirmation_${Date.now()}`,
-      transactionType: 'perpsDeposit',
-    });
   }
 
   // Mock liquidation price calculation: return entry price (0% distance scenario)
@@ -252,20 +79,13 @@ export class E2EControllerOverrides {
     const mockAccount = this.mockService.getMockAccountState();
 
     // Update Redux state just like the real controller does
-    try {
-      (this.controller as ControllerWithUpdate).update(
-        (state: PerpsControllerState) => {
-          state.accountState = mockAccount;
-          state.lastUpdateTimestamp = Date.now();
-          state.lastError = null;
-        },
-      );
-    } catch (e) {
-      console.error(
-        'E2E Mock: getAccountState — controller.update() failed:',
-        e,
-      );
-    }
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.accountState = mockAccount;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
 
     return mockAccount;
   }
@@ -296,16 +116,12 @@ export class E2EControllerOverrides {
     const mockPositions = this.mockService.getMockPositions();
 
     // Update Redux state
-    try {
-      (this.controller as ControllerWithUpdate).update(
-        (state: PerpsControllerState) => {
-          state.lastUpdateTimestamp = Date.now();
-          state.lastError = null;
-        },
-      );
-    } catch (e) {
-      console.error('E2E Mock: getPositions — controller.update() failed:', e);
-    }
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
 
     return mockPositions;
   }
@@ -326,17 +142,13 @@ export class E2EControllerOverrides {
     // Update Redux state to reflect the position closure
     const mockAccount = this.mockService.getMockAccountState();
 
-    try {
-      (this.controller as ControllerWithUpdate).update(
-        (state: PerpsControllerState) => {
-          state.accountState = mockAccount;
-          state.lastUpdateTimestamp = Date.now();
-          state.lastError = null;
-        },
-      );
-    } catch (e) {
-      console.error('E2E Mock: closePosition — controller.update() failed:', e);
-    }
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.accountState = mockAccount;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
 
     return result;
   }
@@ -356,19 +168,12 @@ export class E2EControllerOverrides {
   ): Promise<OrderResult> {
     const result = this.mockService.mockUpdatePositionTPSL(params);
     // Refresh Redux timestamp after TP/SL changes
-    try {
-      (this.controller as ControllerWithUpdate).update(
-        (state: PerpsControllerState) => {
-          state.lastUpdateTimestamp = Date.now();
-          state.lastError = null;
-        },
-      );
-    } catch (e) {
-      console.error(
-        'E2E Mock: updatePositionTPSL — controller.update() failed:',
-        e,
-      );
-    }
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
     return result;
   }
 
@@ -449,12 +254,9 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   // Override key methods with E2E mocks
   const methodsToOverride = [
     'placeOrder',
-    'depositWithOrder',
-    'depositWithConfirmation',
     'cancelOrder',
     'getAccountState',
     'getPositions',
-    'getMarkets',
     'closePosition',
     'updatePositionTPSL',
     'calculateLiquidationPrice',
@@ -469,29 +271,18 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   ];
 
   methodsToOverride.forEach((method) => {
-    try {
-      const controllerRecord = controller as unknown as Record<string, unknown>;
-      const overridesRecord = overrides as unknown as Record<string, unknown>;
-      if (overridesRecord[method]) {
-        // Store original if it exists
-        if (controllerRecord[method]) {
-          controllerRecord[`_original_${method}`] = controllerRecord[method];
-        }
-        // Apply mock override (also adds method if it didn't exist)
-        controllerRecord[method] = (
-          overridesRecord[method] as (...args: unknown[]) => unknown
-        ).bind(overrides);
-        console.log(`Mocked ${method} method`);
-      } else {
-        console.warn(
-          `E2E Mock: Override for '${method}' not found in E2EControllerOverrides — skipping`,
-        );
+    const controllerRecord = controller as unknown as Record<string, unknown>;
+    const overridesRecord = overrides as unknown as Record<string, unknown>;
+    if (overridesRecord[method]) {
+      // Store original if it exists
+      if (controllerRecord[method]) {
+        controllerRecord[`_original_${method}`] = controllerRecord[method];
       }
-    } catch (e) {
-      console.error(
-        `E2E Mock: Failed to override '${method}' on PerpsController:`,
-        e,
-      );
+      // Apply mock override (also adds method if it didn't exist)
+      controllerRecord[method] = (
+        overridesRecord[method] as (...args: unknown[]) => unknown
+      ).bind(overrides);
+      console.log(`Mocked ${method} method`);
     }
   });
 
@@ -507,17 +298,6 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       : {};
     const providerRecord = provider as Record<string, unknown>;
 
-    // Keep connection manager healthy in E2E by forcing provider health/status to connected.
-    providerRecord.ping = async () => undefined;
-    providerRecord.getWebSocketConnectionState = () =>
-      WebSocketConnectionState.Connected;
-    providerRecord.subscribeToConnectionState = (
-      listener: (state: WebSocketConnectionState, attempt: number) => void,
-    ) => {
-      setTimeout(() => listener(WebSocketConnectionState.Connected, 0), 0);
-      return () => undefined;
-    };
-
     // Patch only the methods we need for Activity history
     providerRecord.getOrders = (
       overrides.getOrders as (...args: unknown[]) => unknown
@@ -527,9 +307,6 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     ).bind(overrides);
     providerRecord.getFunding = (
       overrides.getFunding as (...args: unknown[]) => unknown
-    ).bind(overrides);
-    providerRecord.getMarkets = (
-      overrides.getMarkets as (...args: unknown[]) => unknown
     ).bind(overrides);
     providerRecord.getUserHistory = () => {
       const service = PerpsE2EMockService.getInstance();
@@ -556,10 +333,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       mockService.reset();
     }
   } catch (e) {
-    console.warn(
-      'E2E Mock: Failed to read mockProfile from controller state — using default profile:',
-      e,
-    );
+    // no-op if structure differs
   }
   const mockAccount = mockService.getMockAccountState();
   const mockPositions = mockService.getMockPositions();
@@ -570,47 +344,29 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     positionsCount: mockPositions.length,
   });
 
-  try {
-    (controller as ControllerWithUpdate).update(
-      (state: PerpsControllerState) => {
-        state.accountState = mockAccount;
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null;
-        state.isEligible = true;
-      },
-    );
-  } catch (e) {
-    console.error(
-      'E2E Mock: applyE2EPerpsControllerMocks — initial controller.update() failed. ' +
-        'This may cause the app to crash or display stale state:',
-      e,
-    );
-  }
+  (controller as ControllerWithUpdate).update((state: PerpsControllerState) => {
+    state.accountState = mockAccount;
+    state.lastUpdateTimestamp = Date.now();
+    state.lastError = null;
+    state.isEligible = true;
+  });
 
   console.log('✅ E2E PerpsController mocks applied with initial state');
 }
 
 /**
- * Plain channel map before Proxy wrapping (used for contract checks and stream mock shape).
+ * Create E2E mock stream manager for PerpsStreamProvider
  */
-export function buildE2EMockStreamManagerPlain(): Record<
-  string,
-  Record<string, unknown>
-> {
+export function createE2EMockStreamManager(): unknown {
+  console.log('Creating E2E mock stream manager');
+
   // Use centralized E2E mock service for consistent state
   const mockService = PerpsE2EMockService.getInstance();
   const mockMarkets = mockService.getMockMarkets();
   const mockPrices = mockService.getMockPrices();
 
-  /**
-   * Production stream channels expose sync `getSnapshot()` for cold-start reads.
-   * Hooks (e.g. usePerpsMarkets, usePerpsLivePositions) call it on every render.
-   * Without these methods the E2E mock throws: TypeError: undefined is not a function
-   * when the wallet home mounts after login.
-   */
   return {
     prices: {
-      getSnapshot: (): Record<string, PriceUpdate> => mockPrices,
       subscribe: (params: {
         callback: (data: Record<string, PriceUpdate>) => void;
       }) => {
@@ -631,10 +387,6 @@ export function buildE2EMockStreamManagerPlain(): Record<
       },
     },
     marketData: {
-      getSnapshot: () => mockService.getMockMarkets(),
-      refresh: async (): Promise<void> => {
-        await Promise.resolve();
-      },
       subscribe: (params: { callback: (data: unknown[]) => void }) => {
         console.log('E2E Mock: marketData.subscribe called');
         console.log(
@@ -658,7 +410,6 @@ export function buildE2EMockStreamManagerPlain(): Record<
       },
     },
     account: {
-      getSnapshot: () => mockService.getMockAccountState(),
       subscribe: (params: {
         callback: (data: AccountState | null) => void;
       }) => {
@@ -670,7 +421,6 @@ export function buildE2EMockStreamManagerPlain(): Record<
       },
     },
     orders: {
-      getSnapshot: () => mockService.getMockOrders(),
       subscribe: (params: { callback: (data: Order[]) => void }) => {
         // Register for live updates
         mockService.registerOrderCallback(params.callback);
@@ -680,20 +430,12 @@ export function buildE2EMockStreamManagerPlain(): Record<
       },
     },
     positions: {
-      getSnapshot: () => mockService.getMockPositions(),
       subscribe: (params: { callback: (data: Position[]) => void }) => {
         // Register callback for live updates when positions change
         mockService.registerPositionCallback(params.callback);
         // Send initial data
         setTimeout(() => params.callback(mockService.getMockPositions()), 0);
         return () => mockService.unregisterPositionCallback(params.callback);
-      },
-      updatePositionTPSLOptimistic: (
-        _coin: string,
-        _takeProfitPrice: string | undefined,
-        _stopLossPrice: string | undefined,
-      ): void => {
-        // No-op: E2E mock has no WebSocket position cache like production.
       },
     },
     fills: {
@@ -730,57 +472,8 @@ export function buildE2EMockStreamManagerPlain(): Record<
         setTimeout(() => params.callback({ candles: [] }), 0);
         return () => undefined;
       },
-      fetchHistoricalCandles: async (
-        _symbol: string,
-        _interval: unknown,
-        _duration: unknown,
-      ): Promise<void> => {
-        await Promise.resolve();
-      },
     },
   };
-}
-
-/**
- * Create E2E mock stream manager for PerpsStreamProvider
- */
-export function createE2EMockStreamManager(): unknown {
-  console.log('Creating E2E mock stream manager');
-
-  const streamManager = buildE2EMockStreamManagerPlain();
-
-  // Wrap each channel in a Proxy so any missing property access is logged
-  // immediately — no static list to maintain, catches anything production
-  // hooks call regardless of when new methods are added.
-  const wrapChannel = (
-    channel: Record<string, unknown>,
-    channelName: string,
-  ): Record<string, unknown> =>
-    new Proxy(channel, {
-      get(target, prop: string | symbol) {
-        const value = Reflect.get(target, prop);
-        if (typeof prop === 'string' && value === undefined) {
-          console.error(
-            `E2E Mock: createE2EMockStreamManager — '${channelName}.${prop}' is missing. ` +
-              'This will crash when production hooks call it.',
-          );
-        }
-        return value;
-      },
-    });
-
-  const managerRecord = streamManager as Record<
-    string,
-    Record<string, unknown>
-  >;
-  for (const channelName of Object.keys(managerRecord)) {
-    managerRecord[channelName] = wrapChannel(
-      managerRecord[channelName],
-      channelName,
-    );
-  }
-
-  return streamManager;
 }
 
 export default {

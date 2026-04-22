@@ -32,9 +32,12 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import { CardFundingToken } from '../../types';
+import {
+  CardTokenAllowance,
+  DelegationSettingsResponse,
+  CardExternalWalletDetailsResponse,
+} from '../../types';
 import useSpendingLimit from '../../hooks/useSpendingLimit';
-import { useCardHomeData } from '../../hooks/useCardHomeData';
 import useSpendingLimitData from '../../hooks/useSpendingLimitData';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
@@ -43,7 +46,22 @@ import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
 
 interface SpendingLimitRouteParams {
   flow?: 'manage' | 'enable' | 'onboarding';
-  selectedToken?: CardFundingToken;
+  selectedToken?: CardTokenAllowance;
+  priorityToken?: CardTokenAllowance | null;
+  allTokens?: CardTokenAllowance[];
+  delegationSettings?: DelegationSettingsResponse | null;
+  externalWalletDetailsData?:
+    | {
+        walletDetails: never[];
+        mappedWalletDetails: never[];
+        priorityWalletDetail: null;
+      }
+    | {
+        walletDetails: CardExternalWalletDetailsResponse;
+        mappedWalletDetails: CardTokenAllowance[];
+        priorityWalletDetail: CardTokenAllowance | undefined;
+      }
+    | null;
 }
 
 interface SpendingLimitProps {
@@ -66,19 +84,16 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const accountGroupName = useAccountGroupName();
 
-  // Route params carry only intent
+  // Route params
   const flow = route?.params?.flow || 'manage';
   const isOnboardingFlow = flow === 'onboarding';
   const selectedTokenFromRoute = route?.params?.selectedToken;
+  const priorityToken = route?.params?.priorityToken ?? null;
+  const routeAllTokens = route?.params?.allTokens;
+  const routeDelegationSettings = route?.params?.delegationSettings;
+  const externalWalletDetailsData = route?.params?.externalWalletDetailsData;
 
-  // Read card data from state (not navigation params)
-  const {
-    primaryToken,
-    availableTokens: homeAvailableTokens,
-    data: cardHomeData,
-  } = useCardHomeData();
-
-  // For onboarding flow when CardHomeData is empty, fetch delegation settings
+  // Fetch data for onboarding flow (when not passed via route)
   const {
     availableTokens: hookAvailableTokens,
     delegationSettings: hookDelegationSettings,
@@ -88,21 +103,20 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
   } = useSpendingLimitData();
 
   useEffect(() => {
-    if (isOnboardingFlow && homeAvailableTokens.length === 0) {
+    if (isOnboardingFlow && !routeAllTokens) {
       fetchHookData();
     }
-  }, [isOnboardingFlow, homeAvailableTokens.length, fetchHookData]);
+  }, [isOnboardingFlow, routeAllTokens, fetchHookData]);
 
-  // Determine data sources: prefer CardHomeData, fall back to hook data for onboarding
+  // Determine data sources
   const allTokens =
-    homeAvailableTokens.length > 0
-      ? homeAvailableTokens
-      : isOnboardingFlow
-        ? hookAvailableTokens
-        : [];
+    routeAllTokens ?? (isOnboardingFlow ? hookAvailableTokens : []);
   const delegationSettings =
-    cardHomeData?.delegationSettings ??
-    (isOnboardingFlow ? hookDelegationSettings : null);
+    routeDelegationSettings !== undefined
+      ? routeDelegationSettings
+      : isOnboardingFlow
+        ? hookDelegationSettings
+        : null;
 
   // Spending limit hook
   const {
@@ -120,9 +134,10 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
-    priorityToken: primaryToken,
+    priorityToken,
     allTokens,
     delegationSettings,
+    externalWalletDetailsData,
     routeParams: route?.params as Record<string, unknown> | undefined,
   });
 

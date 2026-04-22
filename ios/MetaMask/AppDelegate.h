@@ -2,9 +2,10 @@
 #import <Expo/Expo.h>
 #import <React/RCTBridgeDelegate.h>
 #import <UIKit/UIKit.h>
-#import <BrazeKit/BrazeKit-Swift.h>
 
-@interface AppDelegate : EXAppDelegateWrapper <UIApplicationDelegate, RCTBridgeDelegate, BrazeDelegate>
+@class Braze;
+
+@interface AppDelegate : EXAppDelegateWrapper <UIApplicationDelegate, RCTBridgeDelegate>
 
 @property (nonatomic, strong) UIWindow *window;
 @property (class, strong, nonatomic) Braze *braze;

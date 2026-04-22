@@ -222,21 +222,6 @@ const EarnWithdrawInputView = () => {
 
   useEndTraceOnMount(TraceName.EarnWithdrawScreen);
 
-  // Debounced fee computation that reacts to amount/resourceType changes from any input method.
-  // resourceType is captured implicitly via tronValidateUnstakeAmount's dependency on it.
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  useEffect(() => {
-    if (!isTronEnabled || !isNonZeroAmount) return undefined;
-
-    // Debounce the fee computation to avoid unnecessary re-renders and API calls.
-    const timer = setTimeout(() => {
-      tronValidateUnstakeAmount?.(amountToken);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [amountToken, isTronEnabled, isNonZeroAmount, tronValidateUnstakeAmount]);
-  ///: END:ONLY_INCLUDE_IF
-
   const [maxRiskAwareWithdrawalAmount, setMaxRiskAwareWithdrawalAmount] =
     useState<string | undefined>(undefined);
   const [
@@ -832,8 +817,20 @@ const EarnWithdrawInputView = () => {
   const handleKeypadChangeWithValidation = useCallback(
     (data: { value: string; valueAsNumber: number; pressedKey: string }) => {
       handleKeypadChange(data);
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      if (isTronEnabled && !isFiat) {
+        tronValidateUnstakeAmount?.(data.value);
+      }
+      ///: END:ONLY_INCLUDE_IF
     },
-    [handleKeypadChange],
+    [
+      handleKeypadChange,
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      isTronEnabled,
+      isFiat,
+      tronValidateUnstakeAmount,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)

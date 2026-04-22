@@ -83,24 +83,8 @@ describe('CustomAction Component', () => {
     expect(onPressMock).toHaveBeenCalled();
   });
 
-  it('does not call onPress when isLoading is true', () => {
-    const onPressMock = jest.fn();
-    const { getByLabelText } = renderWithProvider(
-      <CustomAction
-        customAction={mockCustomAction}
-        showInfo={jest.fn()}
-        onPress={onPressMock}
-        isLoading
-      />,
-      { state: defaultState },
-    );
-
-    const customActionRow = getByLabelText('Paypal (Staging)');
-    expect(customActionRow.props.onPress).toBeUndefined();
-  });
-
   it('shows loading indicator when isLoading is true', () => {
-    const { queryByText } = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <CustomAction
         customAction={mockCustomAction}
         showInfo={jest.fn()}
@@ -109,7 +93,7 @@ describe('CustomAction Component', () => {
       { state: defaultState },
     );
 
-    expect(queryByText('Continue with Paypal (Staging)')).not.toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays previously used provider tag', () => {

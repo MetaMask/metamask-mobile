@@ -11,7 +11,6 @@ import {
   formatPositionSize,
   formatLeverage,
   parseCurrencyString,
-  truncateToTwoDecimals,
   parsePercentageString,
   formatTransactionDate,
   formatDateSection,
@@ -572,20 +571,20 @@ describe('formatUtils', () => {
         formatPerpsFiat(0.0000012, { ranges: PRICE_RANGES_UNIVERSAL }),
       ).toBe('$0.000001'); // 4 sig figs: 1,2,0,0 → rounds to $0.000001
 
-      // Very small value below VERY_SMALL threshold (0.000001) → <$0 prefix
+      // Very small value that rounds to 0 after 6 decimal cap
       expect(
         formatPerpsFiat(0.00000045, { ranges: PRICE_RANGES_UNIVERSAL }),
-      ).toBe('<$0'); // Below threshold: shows <$X prefix
+      ).toBe('$0'); // Rounds to 0 with 6 decimal cap
 
       // Edge case: exactly at 6 decimal boundary
       expect(
         formatPerpsFiat(0.000001, { ranges: PRICE_RANGES_UNIVERSAL }),
       ).toBe('$0.000001'); // 1 sig fig at boundary
 
-      // Example from rules-decimals.md: 0.0000004 → below threshold → <$0 prefix
+      // Example from rules-decimals.md: 0.0000004 → 0 (rounds down with cap)
       expect(
         formatPerpsFiat(0.0000004, { ranges: PRICE_RANGES_UNIVERSAL }),
-      ).toBe('<$0');
+      ).toBe('$0');
     });
 
     describe('PRICE_RANGES_UNIVERSAL boundary testing', () => {
@@ -942,31 +941,6 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('truncateToTwoDecimals', () => {
-    it('truncates without rounding up', () => {
-      expect(truncateToTwoDecimals(16.069)).toBe(16.06);
-      expect(truncateToTwoDecimals(16.999)).toBe(16.99);
-      expect(truncateToTwoDecimals(0.009)).toBe(0);
-    });
-
-    it('preserves values with 2 or fewer decimals', () => {
-      expect(truncateToTwoDecimals(16.07)).toBe(16.07);
-      expect(truncateToTwoDecimals(16)).toBe(16);
-      expect(truncateToTwoDecimals(0)).toBe(0);
-    });
-
-    it('handles IEEE 754 edge cases correctly', () => {
-      expect(truncateToTwoDecimals(10.29)).toBe(10.29);
-      expect(truncateToTwoDecimals(1.005)).toBe(1);
-      expect(truncateToTwoDecimals(0.1 + 0.2)).toBe(0.3);
-    });
-
-    it('handles negative values', () => {
-      expect(truncateToTwoDecimals(-16.069)).toBe(-16.06);
-      expect(truncateToTwoDecimals(-10.29)).toBe(-10.29);
-    });
-  });
-
   describe('parsePercentageString', () => {
     it('should parse formatted percentage strings', () => {
       expect(parsePercentageString('+2.50%')).toBe(2.5);
@@ -1238,7 +1212,7 @@ describe('formatUtils', () => {
         priceRange: '$0.00001-$0.0001',
         expected4SF: '$0.000012',
         expectedDetailed: '$0.00001234',
-        expectedMinimal: '<$0.01',
+        expectedMinimal: '$0',
         expectedUserInput: '$0.000012345',
       },
       {
@@ -1246,7 +1220,7 @@ describe('formatUtils', () => {
         priceRange: '$0.00001-$0.0001',
         expected4SF: '$0.000099',
         expectedDetailed: '$0.00009876',
-        expectedMinimal: '<$0.01',
+        expectedMinimal: '$0',
         expectedUserInput: '$0.000098765',
       },
       {
@@ -1254,7 +1228,7 @@ describe('formatUtils', () => {
         priceRange: '$0.00001-$0.0001',
         expected4SF: '$0.00005',
         expectedDetailed: '$0.00005',
-        expectedMinimal: '<$0.01',
+        expectedMinimal: '$0',
         expectedUserInput: '$0.00005',
       },
       // <$0.00001 range (<$0.01: 4 sig figs)
@@ -1263,7 +1237,7 @@ describe('formatUtils', () => {
         priceRange: '<$0.00001',
         expected4SF: '$0.000001',
         expectedDetailed: '$0.00000123',
-        expectedMinimal: '<$0.01',
+        expectedMinimal: '$0',
         expectedUserInput: '$0.00000123',
       },
       {
@@ -1271,7 +1245,7 @@ describe('formatUtils', () => {
         priceRange: '<$0.00001',
         expected4SF: '$0.000043',
         expectedDetailed: '$0.00004321',
-        expectedMinimal: '<$0.01',
+        expectedMinimal: '$0',
         expectedUserInput: '$0.00004321',
       },
       // Edge cases

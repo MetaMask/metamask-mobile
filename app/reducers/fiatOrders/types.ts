@@ -36,7 +36,6 @@ import {
   setFiatSellTxHash,
   removeFiatSellTxHash,
   setRampRoutingDecision,
-  setHasAgreedTransakNativePolicy,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -104,8 +103,6 @@ export interface FiatOrdersState {
   getStartedAgg: boolean;
   getStartedSell: boolean;
   getStartedDeposit: boolean;
-  /** Unified Buy / Transak native: user agreed to policy copy on the verify-identity explainer screen */
-  hasAgreedTransakNativePolicy: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
   rampRoutingDecision: UnifiedRampRoutingType | null;
@@ -138,8 +135,6 @@ export const ACTIONS = {
   FIAT_SET_SELL_TX_HASH: 'FIAT_SET_SELL_TX_HASH',
   FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
   FIAT_SET_RAMP_ROUTING_DECISION: 'FIAT_SET_RAMP_ROUTING_DECISION',
-  FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY:
-    'FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY',
 } as const;
 
 export type Action =
@@ -166,8 +161,7 @@ export type Action =
   | ReturnType<typeof updateOnRampNetworks>
   | ReturnType<typeof setFiatSellTxHash>
   | ReturnType<typeof removeFiatSellTxHash>
-  | ReturnType<typeof setRampRoutingDecision>
-  | ReturnType<typeof setHasAgreedTransakNativePolicy>;
+  | ReturnType<typeof setRampRoutingDecision>;
 
 export type Region = Country & State;
 

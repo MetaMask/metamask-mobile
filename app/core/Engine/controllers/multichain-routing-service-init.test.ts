@@ -1,11 +1,11 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getMultichainRoutingServiceInitMessenger,
   getMultichainRoutingServiceMessenger,
   MultichainRoutingServiceInitMessenger,
 } from '../messengers/multichain-routing-service-messenger.ts';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { multichainRoutingServiceInit } from './multichain-routing-service-init.ts';
 import {
   MultichainRoutingService,
@@ -16,7 +16,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/snaps-controllers');
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<
+  ControllerInitRequest<
     MultichainRoutingServiceMessenger,
     MultichainRoutingServiceInitMessenger
   >
@@ -26,7 +26,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getMultichainRoutingServiceMessenger(baseMessenger),
     initMessenger: getMultichainRoutingServiceInitMessenger(baseMessenger),
   };

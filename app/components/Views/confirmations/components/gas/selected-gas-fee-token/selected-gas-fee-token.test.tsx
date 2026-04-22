@@ -14,7 +14,6 @@ import { Alert } from '../../../types/alerts';
 import { GasFeeToken } from '@metamask/transaction-controller';
 import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { Hex } from '@metamask/utils';
 
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert');
 jest.mock('../../../hooks/gas/useEstimationFailed');
@@ -48,8 +47,6 @@ describe('SelectedGasFeeToken', () => {
     gasFeeTokens = [],
     transactionMetadata,
     estimationFailed = false,
-    excludeNativeTokenForFee,
-    chainId = '0x1',
   }: {
     insufficientBalance?: Alert[];
     selectedGasFeeToken?: ReturnType<typeof useSelectedGasFeeToken>;
@@ -61,8 +58,6 @@ describe('SelectedGasFeeToken', () => {
     > | null;
     expectModal?: boolean;
     estimationFailed?: boolean;
-    excludeNativeTokenForFee?: boolean;
-    chainId?: Hex;
   } = {}) => {
     mockUseInsufficientBalanceAlert.mockReturnValue(insufficientBalance);
     mockUseEstimationFailed.mockReturnValue(estimationFailed);
@@ -86,16 +81,14 @@ describe('SelectedGasFeeToken', () => {
       mockUseTransactionMetadataRequest.mockReturnValue(transactionMetadata);
     } else if (gasFeeTokens.length > 0) {
       mockUseTransactionMetadataRequest.mockReturnValue({
-        chainId,
+        chainId: '0x1',
         gasFeeTokens,
-        excludeNativeTokenForFee,
       } as Partial<
         ReturnType<typeof useTransactionMetadataRequest>
       > as ReturnType<typeof useTransactionMetadataRequest>);
     } else {
       mockUseTransactionMetadataRequest.mockReturnValue({
-        chainId,
-        excludeNativeTokenForFee,
+        chainId: '0x1',
       } as Partial<
         ReturnType<typeof useTransactionMetadataRequest>
       > as ReturnType<typeof useTransactionMetadataRequest>);
@@ -126,9 +119,7 @@ describe('SelectedGasFeeToken', () => {
       pressTokenButton: () =>
         fireEvent.press(renderResult.getByTestId('selected-gas-fee-token')),
       expectModalToOpen: () => {
-        expect(
-          renderResult.queryByTestId('gas-fee-token-modal'),
-        ).not.toBeOnTheScreen();
+        expect(renderResult.queryByTestId('gas-fee-token-modal')).toBeNull();
         fireEvent.press(renderResult.getByTestId('selected-gas-fee-token'));
         expect(
           renderResult.getByTestId('gas-fee-token-modal'),
@@ -136,9 +127,7 @@ describe('SelectedGasFeeToken', () => {
       },
       expectModalNotToOpen: () => {
         fireEvent.press(renderResult.getByTestId('selected-gas-fee-token'));
-        expect(
-          renderResult.queryByTestId('gas-fee-token-modal'),
-        ).not.toBeOnTheScreen();
+        expect(renderResult.queryByTestId('gas-fee-token-modal')).toBeNull();
       },
     };
   };
@@ -154,18 +143,6 @@ describe('SelectedGasFeeToken', () => {
     const { getByTestId, getByText } = setupTest();
     expect(getByTestId('selected-gas-fee-token')).toBeOnTheScreen();
     expect(getByText('ETH')).toBeOnTheScreen();
-  });
-
-  it('renders local native symbol if `gasFeeTokens` is empty and `excludeNativeTokenForFee` is set (Tempo)', () => {
-    const { getByTestId, getByText } = setupTest({
-      chainId: '0x1079',
-      selectedGasFeeToken: undefined,
-      gaslessSupported: true,
-      gasFeeTokens: [] as unknown as GasFeeToken[],
-      excludeNativeTokenForFee: true,
-    });
-    expect(getByTestId('selected-gas-fee-token')).toBeOnTheScreen();
-    expect(getByText('pathUSD')).toBeOnTheScreen();
   });
 
   it('renders the arrow icon when gas fee tokens are available', () => {
@@ -188,40 +165,7 @@ describe('SelectedGasFeeToken', () => {
 
   it('does not render the arrow icon when no gas fee tokens are available', () => {
     const { queryByTestId } = setupTest();
-    expect(queryByTestId('selected-gas-fee-token-arrow')).not.toBeOnTheScreen();
-  });
-
-  it('does not render arrow icon if only one gas fee token and `excludeNativeTokenForFee` is set', () => {
-    const { queryByTestId } = setupTest({
-      selectedGasFeeToken: {
-        tokenAddress: '0xTokenAddress',
-        symbol: 'DAI',
-      } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
-      gaslessSupported: true,
-      gasFeeTokens: [
-        { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
-      ] as unknown as GasFeeToken[],
-      excludeNativeTokenForFee: true,
-    });
-    expect(queryByTestId('selected-gas-fee-token-arrow')).not.toBeOnTheScreen();
-  });
-
-  it('still renders the arrow icon if two non-native gas fee tokens and `excludeNativeTokenForFee` is set', () => {
-    const { getByTestId, getByText } = setupTest({
-      selectedGasFeeToken: {
-        tokenAddress: '0xTokenAddress',
-        symbol: 'DAI',
-      } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
-      gaslessSupported: true,
-      gasFeeTokens: [
-        { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
-        { tokenAddress: '0xOtherTokenAddress', symbol: 'USDS' },
-      ] as unknown as GasFeeToken[],
-      excludeNativeTokenForFee: true,
-    });
-    expect(getByTestId('selected-gas-fee-token')).toBeOnTheScreen();
-    expect(getByText('DAI')).toBeOnTheScreen();
-    expect(getByTestId('selected-gas-fee-token-arrow')).toBeOnTheScreen();
+    expect(queryByTestId('selected-gas-fee-token-arrow')).toBeNull();
   });
 
   describe('Modal', () => {
@@ -269,7 +213,7 @@ describe('SelectedGasFeeToken', () => {
 
       // Close modal
       fireEvent.press(getByTestId('close-button'));
-      expect(queryByTestId('gas-fee-token-modal')).not.toBeOnTheScreen();
+      expect(queryByTestId('gas-fee-token-modal')).toBeNull();
     });
 
     describe('Future native token', () => {
@@ -360,9 +304,7 @@ describe('SelectedGasFeeToken', () => {
         estimationFailed: true,
       });
 
-      expect(
-        queryByTestId('selected-gas-fee-token-arrow'),
-      ).not.toBeOnTheScreen();
+      expect(queryByTestId('selected-gas-fee-token-arrow')).toBeNull();
     });
 
     it('opens modal when estimation has not failed and gas fee tokens are supported', () => {

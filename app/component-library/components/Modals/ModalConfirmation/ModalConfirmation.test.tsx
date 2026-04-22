@@ -22,7 +22,7 @@ describe('ModalConfirmation', () => {
         }}
       />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should show normal variant button', () => {
     const wrapper = shallow(

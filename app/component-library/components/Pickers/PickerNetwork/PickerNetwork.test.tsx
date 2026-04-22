@@ -18,7 +18,7 @@ describe('PickerNetwork', () => {
       <PickerNetwork {...SAMPLE_PICKERNETWORK_PROPS} />,
     );
 
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('does not render Icon when onPress is not passed', () => {
     const { queryByTestId } = render(

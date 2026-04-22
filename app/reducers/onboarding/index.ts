@@ -10,8 +10,6 @@ import {
   SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
-  SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT,
-  CLEAR_ONBOARDING,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -30,17 +28,12 @@ export interface OnboardingState {
     clientId: string;
     authConnection: AuthConnection;
   };
-
-  /** Epoch ms when the user last dismissed the iOS Google version warning sheet; null if never shown. */
-  iosGoogleWarningSheetLastDismissedAt: number | null;
 }
 
 export const initialOnboardingState: OnboardingState = {
   events: [],
   completedOnboarding: false,
   pendingSocialLoginMarketingConsentBackfill: null,
-
-  iosGoogleWarningSheetLastDismissedAt: null,
 };
 
 /**
@@ -98,14 +91,6 @@ const onboardingReducer = (
         ...state,
         seedlessOnboarding: undefined,
       };
-    case SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT:
-      return {
-        ...state,
-        iosGoogleWarningSheetLastDismissedAt:
-          action.iosGoogleWarningSheetLastDismissedAt,
-      };
-    case CLEAR_ONBOARDING:
-      return { ...initialOnboardingState };
     default:
       return state;
   }

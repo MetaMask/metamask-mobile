@@ -23,7 +23,6 @@ interface PerpsSelectModifyActionViewProps {
   position?: Position;
   onClose?: () => void;
   onReversePosition?: (position: Position) => void;
-  testID?: string;
 }
 
 const PerpsSelectModifyActionView: React.FC<
@@ -33,7 +32,6 @@ const PerpsSelectModifyActionView: React.FC<
   position: positionProp,
   onClose: onExternalClose,
   onReversePosition,
-  testID,
 }) => {
   const navigation = useNavigation();
   const route =
@@ -161,7 +159,6 @@ const PerpsSelectModifyActionView: React.FC<
       position={position}
       onActionSelect={handleActionSelect}
       sheetRef={sheetRef}
-      testID={testID}
     />
   );
 };

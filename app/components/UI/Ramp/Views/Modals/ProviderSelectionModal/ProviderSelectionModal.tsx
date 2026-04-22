@@ -3,10 +3,9 @@ import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
 import { useSelector } from 'react-redux';
-import {
-  BottomSheet,
-  type BottomSheetRef,
-} from '@metamask/design-system-react-native';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import {
   createNavigationDetails,
@@ -17,11 +16,9 @@ import ProviderSelection from './ProviderSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
-import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
-import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -85,17 +82,12 @@ function ProviderSelectionModal() {
     '';
   const assetId = paramAssetId ?? selectedToken?.assetId ?? '';
 
-  /**
-   * Only list (and quote) providers that support the effective asset. Uses the
-   * same id as `getQuotes` (`paramAssetId ?? selectedToken?.assetId`), so flows
-   * without route `assetId` still filter when `selectedToken` is set.
-   */
   const displayProviders = useMemo(() => {
-    if (!assetId) {
-      return providers;
-    }
-    return providers.filter((p) => providerSupportsAsset(p, assetId));
-  }, [providers, assetId]);
+    if (!paramAssetId) return providers;
+    return providers.filter(
+      (p) => p.supportedCryptoCurrencies?.[paramAssetId] === true,
+    );
+  }, [providers, paramAssetId]);
 
   const providerIds = useMemo(
     () => displayProviders.map((p) => p.id),
@@ -113,9 +105,9 @@ function ProviderSelectionModal() {
             amount,
             walletAddress,
             assetId,
-            redirectUrl: getRampCallbackBaseUrl(),
             providers: providerIds,
             paymentMethods: [selectedPaymentMethod.id],
+            forceRefresh: true,
           }
         : null,
     [
@@ -174,11 +166,7 @@ function ProviderSelectionModal() {
   );
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      onClose={handleDismiss}
-    >
+    <BottomSheet ref={sheetRef} shouldNavigateBack onClose={handleDismiss}>
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}

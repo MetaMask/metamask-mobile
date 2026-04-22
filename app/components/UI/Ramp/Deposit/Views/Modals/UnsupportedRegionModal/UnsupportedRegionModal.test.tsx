@@ -56,7 +56,7 @@ describe('UnsupportedRegionModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders title, region name and action buttons', () => {
+  it('render match snapshot', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: {
         isoCode: 'BR',
@@ -72,11 +72,8 @@ describe('UnsupportedRegionModal', () => {
       },
     });
 
-    const { getByText } = render(UnsupportedRegionModal);
-    expect(getByText('Region not supported')).toBeOnTheScreen();
-    expect(getByText('Brazil')).toBeOnTheScreen();
-    expect(getByText('Buy crypto')).toBeOnTheScreen();
-    expect(getByText('Change region')).toBeOnTheScreen();
+    const { toJSON } = render(UnsupportedRegionModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('closes parent navigator and navigates to buy screen when Buy Crypto button is pressed', () => {
@@ -140,8 +137,8 @@ describe('UnsupportedRegionModal', () => {
       selectedRegion: null,
     });
 
-    const { getByText } = render(UnsupportedRegionModal);
+    const { toJSON } = render(UnsupportedRegionModal);
 
-    expect(getByText('Region not supported')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

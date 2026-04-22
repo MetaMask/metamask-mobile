@@ -84,8 +84,8 @@ describe('GeneralSettings', () => {
   });
 
   it('should render correctly', () => {
-    const { getByText } = renderComponent();
-    expect(getByText('General')).toBeOnTheScreen();
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders header with correct title', () => {

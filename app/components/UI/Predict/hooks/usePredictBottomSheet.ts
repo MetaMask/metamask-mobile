@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import type { BottomSheetRef } from '@metamask/design-system-react-native';
+import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 
 interface UsePredictBottomSheetParams {
   onDismiss?: () => void;
@@ -35,6 +35,8 @@ export function usePredictBottomSheet(params?: UsePredictBottomSheetParams) {
   const getRefHandlers = useCallback(
     (): PredictBottomSheetRef => ({
       onOpenBottomSheet: () => {
+        // setIsVisible(true) is idempotent - safe to call multiple times
+        // No need to check isVisible which would cause stale closure issues
         setIsVisible(true);
       },
       onCloseBottomSheet: () => {

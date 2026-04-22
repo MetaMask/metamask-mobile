@@ -19,10 +19,10 @@ import {
 import { getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
+import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
 import {
   Box,
-  ButtonFilter,
-  ButtonBaseSize,
+  ButtonSize as ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRampsOrders } from '../../../hooks/useRampsOrders';

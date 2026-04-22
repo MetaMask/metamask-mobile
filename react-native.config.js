@@ -7,6 +7,9 @@ const path = require('path');
 
 /**
  * React Native configuration for autolinking.
+ *
+ * Google Wallet provisioning is enabled on Android when the TapAndPay SDK is present.
+ * iOS is disabled in this branch.
  */
 
 // Check if Google Tap and Pay SDK is present for Android push provisioning
@@ -23,9 +26,10 @@ const dependencies = {
       ios: null, // disable Android platform, other platforms will still autolink if provided
     },
   },
-  // "Add to Google Wallet" library setup: Android enabled only when TapAndPay SDK present
+  // Google Wallet branch: iOS always disabled, Android enabled only when SDK present
   '@expensify/react-native-wallet': {
     platforms: {
+      ios: null,
       ...(hasTapAndPaySdk ? {} : { android: null }),
     },
   },

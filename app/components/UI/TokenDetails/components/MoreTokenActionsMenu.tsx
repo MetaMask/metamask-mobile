@@ -12,6 +12,7 @@ import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
+import { selectTokenList } from '../../../../selectors/tokenListController';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
@@ -65,6 +66,7 @@ const MoreTokenActionsMenu = () => {
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const tokenList = useSelector(selectTokenList);
   const explorer = useBlockExplorer(asset.chainId);
 
   const closeBottomSheetAndNavigate = useCallback(
@@ -137,7 +139,8 @@ const MoreTokenActionsMenu = () => {
                 );
               TokensController.ignoreTokens([asset.address], networkClientId);
 
-              const tokenSymbol = asset.symbol || null;
+              const tokenSymbol =
+                tokenList[asset.address?.toLowerCase()]?.symbol || null;
 
               NotificationManager.showSimpleNotification({
                 status: 'simple_notification',
@@ -171,7 +174,7 @@ const MoreTokenActionsMenu = () => {
     navigation,
     asset.chainId,
     asset.address,
-    asset.symbol,
+    tokenList,
     trackEvent,
     createEventBuilder,
   ]);

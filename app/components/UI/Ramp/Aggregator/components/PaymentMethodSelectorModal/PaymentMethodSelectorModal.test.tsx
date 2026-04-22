@@ -81,9 +81,8 @@ describe('PaymentMethodSelectorModal', () => {
   });
 
   it('renders correctly', () => {
-    const { getByText } = render(PaymentMethodSelectorModal);
-    expect(getByText('Credit Card')).toBeOnTheScreen();
-    expect(getByText('Bank Transfer')).toBeOnTheScreen();
+    const { toJSON } = render(PaymentMethodSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders without disclaimer when selected payment method has none', () => {
@@ -92,9 +91,8 @@ describe('PaymentMethodSelectorModal', () => {
       selectedPaymentMethodId: 'payment-method-2',
     };
 
-    const { getByText, queryByText } = render(PaymentMethodSelectorModal);
-    expect(getByText('Bank Transfer')).toBeOnTheScreen();
-    expect(queryByText('Test disclaimer')).not.toBeOnTheScreen();
+    const { toJSON } = render(PaymentMethodSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders for sell flow', () => {
@@ -108,8 +106,8 @@ describe('PaymentMethodSelectorModal', () => {
       isBuy: false,
     };
 
-    const { getByText } = render(PaymentMethodSelectorModal);
-    expect(getByText('Bank Transfer')).toBeOnTheScreen();
+    const { toJSON } = render(PaymentMethodSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks OFFRAMP_PAYMENT_METHOD_SELECTED event when payment method is selected in sell flow', () => {

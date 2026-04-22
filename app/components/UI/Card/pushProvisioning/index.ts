@@ -7,11 +7,11 @@
  * ## Architecture
  *
  * The module uses an adapter pattern to support:
- * - Card providers (currently Galileo via CardController)
+ * - Card providers (Galileo, Monavate)
  * - Wallet providers (Google Wallet, Apple Wallet)
  *
  * Providers are selected automatically based on:
- * - User location: only 'us' users are eligible; other locations are not supported yet
+ * - User location: 'us' -> Galileo, 'international' -> Monavate
  * - Platform OS: 'android' -> Google Wallet, 'ios' -> Apple Wallet
  *
  * ## Usage
@@ -38,10 +38,9 @@ export { getCardProvider, getWalletProvider } from './providers';
 export {
   // Card provider adapters
   type ICardProviderAdapter,
-  ControllerCardAdapter,
+  GalileoCardAdapter,
   // Wallet provider adapters
   type IWalletProviderAdapter,
-  AppleWalletAdapter,
   GoogleWalletAdapter,
 } from './adapters';
 

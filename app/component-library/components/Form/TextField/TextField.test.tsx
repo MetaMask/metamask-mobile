@@ -15,7 +15,7 @@ describe('TextField', () => {
   it('renders default settings correctly', () => {
     const wrapper = shallow(<TextField />);
 
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders TextField component', () => {

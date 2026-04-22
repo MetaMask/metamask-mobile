@@ -4,9 +4,10 @@ import type { PaymentMethod } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
-  BottomSheet,
-  type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
@@ -31,7 +32,6 @@ import { PAYMENT_SELECTION_MODAL_TEST_IDS } from './PaymentSelectionModal.testId
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
-import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -93,9 +93,9 @@ function PaymentSelectionModal() {
             amount,
             walletAddress,
             assetId,
-            redirectUrl: getRampCallbackBaseUrl(),
             providers: selectedProvider ? [selectedProvider.id] : undefined,
             paymentMethods: paymentMethodIds,
+            forceRefresh: true,
           }
         : null,
     [
@@ -219,18 +219,7 @@ function PaymentSelectionModal() {
         </ScrollView>
       );
     }
-    // Filter out payment methods that have no available quote once quotes
-    // have loaded. This avoids showing dead-end options to the user.
-    // Custom-action quotes (e.g. PayPal) count as available since they have
-    // their own checkout flow even without a standard priced quote.
-    const visiblePaymentMethods =
-      !quotesLoading && quotes
-        ? paymentMethods.filter((pm) =>
-            quotes.success?.some((q) => q.quote?.paymentMethod === pm.id),
-          )
-        : paymentMethods;
-
-    if (visiblePaymentMethods.length === 0) {
+    if (paymentMethods.length === 0) {
       return (
         <ScrollView
           style={styles.list}
@@ -246,7 +235,7 @@ function PaymentSelectionModal() {
     return (
       <FlatList
         style={styles.list}
-        data={visiblePaymentMethods}
+        data={paymentMethods}
         renderItem={renderPaymentMethod}
         keyExtractor={(item) => item.id}
         keyboardDismissMode="none"
@@ -256,7 +245,7 @@ function PaymentSelectionModal() {
   };
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
           <HeaderCompactStandard

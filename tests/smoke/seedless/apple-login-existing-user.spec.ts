@@ -11,9 +11,9 @@ import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeSeedlessOnboarding } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 
-describe(SmokeSeedlessOnboarding('Apple Login - Existing User'), () => {
+describe(SmokeWalletPlatform('Apple Login - Existing User'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
   });

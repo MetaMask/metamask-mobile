@@ -8,7 +8,6 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
-import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 /**
  * PERPS navigation parameter types
@@ -102,7 +101,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
     source?: string;
     button_clicked?: string;
     button_location?: string;
-    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsPositions: undefined;
@@ -239,7 +237,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
     asset: string;
     /** When true, the order was initiated from the token details screen */
     fromTokenDetails?: boolean;
-    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+    /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };
 }
 

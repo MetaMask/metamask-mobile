@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
-import { InteractionManager, ScrollView, View } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -30,7 +30,10 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import {
+  selectHomepageRedesignV1Enabled,
+  selectHomepageSectionsV1Enabled,
+} from '../../../selectors/featureFlagController/homepage';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
@@ -56,19 +59,6 @@ interface TokensProps {
    * (e.g. network filter set to a chain without mUSD).
    */
   hasMusdBalanceOnAnyChain?: boolean;
-  listFooterComponent?: React.ReactElement;
-  /**
-   * Optional external RefreshControl. When provided, overrides the internal
-   * refresh wiring so callers (e.g. the Money Hub) can compose their own
-   * refreshers. Applied to both the FlashList-backed list and the empty-state
-   * ScrollView.
-   */
-  refreshControl?: React.ReactElement;
-  /**
-   * When true, suppress the internal TokenListSkeleton. Useful when the parent
-   * already handles its own loading state (e.g. CashTokensFullView).
-   */
-  hideLoadingSkeleton?: boolean;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -77,9 +67,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       isFullView = false,
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
-      listFooterComponent,
-      refreshControl,
-      hideLoadingSkeleton = false,
     },
     ref,
   ) => {
@@ -100,6 +87,10 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
       null;
     const isSolanaSelected = selectedSolanaAccount !== null;
+
+    const isHomepageRedesignV1Enabled = useSelector(
+      selectHomepageRedesignV1Enabled,
+    );
 
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
@@ -237,15 +228,12 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       if (isFullView) {
         return undefined;
       }
-      return 10;
-    }, [isFullView]);
+      return isHomepageRedesignV1Enabled ? 10 : undefined;
+    }, [isFullView, isHomepageRedesignV1Enabled]);
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
       if (!hasInitialLoad) {
-        if (hideLoadingSkeleton) {
-          return null;
-        }
         return (
           <Box twClassName={isFullView ? 'px-4' : undefined}>
             <TokenListSkeleton />
@@ -269,8 +257,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               setShowScamWarningModal={handleScamWarningModal}
               maxItems={maxItems}
               isFullView={isFullView}
-              listFooterComponent={listFooterComponent}
-              refreshControl={refreshControl}
             />
           </>
         );
@@ -283,7 +269,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             ? strings('homepage.sections.cash_empty_description')
             : undefined;
 
-      const emptyState = (
+      return (
         <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
           {cashEmptyDescription !== undefined ? (
             <TokensEmptyState description={cashEmptyDescription} />
@@ -292,24 +278,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
           )}
         </Box>
       );
-
-      if (listFooterComponent || refreshControl) {
-        return (
-          <ScrollView
-            style={tw`flex-1`}
-            showsVerticalScrollIndicator={false}
-            refreshControl={refreshControl}
-          >
-            {emptyState}
-            {listFooterComponent}
-          </ScrollView>
-        );
-      }
-
-      return emptyState;
     }, [
       hasInitialLoad,
-      hideLoadingSkeleton,
       isFullView,
       tokenKeysForList,
       showOnlyMusd,
@@ -322,23 +292,23 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       handleScamWarningModal,
       maxItems,
       isGeoEligible,
-      listFooterComponent,
-      refreshControl,
     ]);
 
     return (
       <Box
-        twClassName={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
+        twClassName={
+          isHomepageRedesignV1Enabled && !isFullView
+            ? 'bg-default'
+            : 'flex-1 bg-default'
+        }
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
-        {!showOnlyMusd && (
-          <TokenListControlBar
-            goToAddToken={goToAddToken}
-            showAddToken={!showOnlyMusd}
-            hideSort={showOnlyMusd}
-            style={isFullView ? tw`px-4 pb-4` : undefined}
-          />
-        )}
+        <TokenListControlBar
+          goToAddToken={goToAddToken}
+          showAddToken={!showOnlyMusd}
+          hideSort={showOnlyMusd}
+          style={isFullView ? tw`px-4 pb-4` : undefined}
+        />
         {tokenContent}
         <ScamWarningModal
           showScamWarningModal={showScamWarningModal}

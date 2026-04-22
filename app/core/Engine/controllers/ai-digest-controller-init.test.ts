@@ -1,7 +1,7 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getAiDigestControllerMessenger } from '../messengers/ai-digest-controller-messenger';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { aiDigestControllerInit } from './ai-digest-controller-init';
 import {
   AiDigestController,
@@ -14,14 +14,14 @@ import AppConstants from '../../AppConstants';
 jest.mock('@metamask/ai-controllers');
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<AiDigestControllerMessenger>
+  ControllerInitRequest<AiDigestControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   return {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getAiDigestControllerMessenger(baseMessenger),
   };
 }

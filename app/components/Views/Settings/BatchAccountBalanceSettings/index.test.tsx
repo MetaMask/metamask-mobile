@@ -5,7 +5,6 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import BatchAccountBalanceSettings from './';
 import { SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID } from './index.constants';
-import { strings } from '../../../../../locales/i18n';
 
 let mockSetIsMultiAccountBalancesEnabled: jest.Mock;
 
@@ -45,12 +44,10 @@ describe('BatchAccountBalanceSettings', () => {
   };
 
   it('should render correctly', () => {
-    const { getByText } = renderWithProvider(<BatchAccountBalanceSettings />, {
+    const tree = renderWithProvider(<BatchAccountBalanceSettings />, {
       state: initialState,
     });
-    expect(
-      getByText(strings('app_settings.batch_balance_requests_title')),
-    ).toBeOnTheScreen();
+    expect(tree).toMatchSnapshot();
   });
 
   it('should display correct initial state of multi-account balances toggle', () => {

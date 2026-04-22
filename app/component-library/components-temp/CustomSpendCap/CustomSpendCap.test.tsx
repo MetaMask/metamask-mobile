@@ -1,4 +1,5 @@
 import { fireEvent } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CustomSpendCap from './CustomSpendCap';
@@ -9,6 +10,7 @@ import {
   INPUT_VALUE_CHANGED,
   TICKER,
 } from './CustomSpendCap.constants';
+import { CustomSpendCapProps } from './CustomSpendCap.types';
 
 function RenderCustomSpendCap(
   tokenSpendValue = '',
@@ -37,95 +39,130 @@ function RenderCustomSpendCap(
 const isInputValid = jest.fn();
 
 describe('CustomSpendCap', () => {
-  it('renders the spend cap container', () => {
-    const { getByTestId } = renderWithProvider(RenderCustomSpendCap(''));
-
-    expect(getByTestId(CUSTOM_SPEND_CAP_TEST_ID)).toBeOnTheScreen();
+  it('should render CustomSpendCap', () => {
+    const wrapper = shallow<CustomSpendCapProps>(RenderCustomSpendCap(''));
+    const singleSelectComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === CUSTOM_SPEND_CAP_TEST_ID,
+    );
+    expect(singleSelectComponent.exists()).toBe(true);
   });
 
-  it('displays error message when value is not a number', async () => {
-    const { findByText } = renderWithProvider(RenderCustomSpendCap('abc'));
-
-    expect(await findByText('Error: Enter only numbers')).toBeOnTheScreen();
+  it('should match snapshot', () => {
+    const container = renderWithProvider(RenderCustomSpendCap(''));
+    expect(container).toMatchSnapshot();
   });
 
-  it('displays caution message when value is 0', async () => {
-    const { findByText } = renderWithProvider(RenderCustomSpendCap('0'));
+  it('should render error message is value is not a number', async () => {
+    const notANumber = 'abc';
+    const { findByText } = renderWithProvider(RenderCustomSpendCap(notANumber));
+
+    expect(await findByText('Error: Enter only numbers')).toBeDefined();
+  });
+
+  it('should render valid message if value is 0', async () => {
+    const zeroValue = '0';
+    const { findByText } = renderWithProvider(RenderCustomSpendCap(zeroValue));
 
     expect(
       await findByText(
         `Only enter a number that you're comfortable with the third party spending now or in the future. You can always increase the spending cap later. Learn more`,
       ),
-    ).toBeOnTheScreen();
+    ).toBeDefined();
   });
 
-  it('displays spend value in ticker format when value is within account balance', async () => {
-    const { toJSON } = renderWithProvider(RenderCustomSpendCap('100'));
+  it('should render valid message if value is less than or equal to account balance', async () => {
+    const valueLessThanBalance = '100';
+    const { toJSON } = renderWithProvider(
+      RenderCustomSpendCap(valueLessThanBalance),
+    );
 
-    expect(JSON.stringify(toJSON())).toMatch(`100 ${TICKER}`);
+    expect(JSON.stringify(toJSON())).toMatch(
+      `${valueLessThanBalance} ${TICKER}`,
+    );
   });
 
-  it('displays over-balance warning when value exceeds account balance', async () => {
-    const { findByText } = renderWithProvider(RenderCustomSpendCap('300'));
+  it('should render valid message if value is greater than account balance', async () => {
+    const valueGreaterThanBalance = '300';
+    const { findByText } = renderWithProvider(
+      RenderCustomSpendCap(valueGreaterThanBalance),
+    );
 
     expect(
       await findByText(
         'This allows the third party to spend all your token balance until it reaches the cap or you revoke the spending cap. If this is not intended, consider setting a lower spending cap. Learn more',
       ),
-    ).toBeOnTheScreen();
+    ).toBeDefined();
   });
 
-  it('calls isInputValid with false when value is not a number', () => {
-    renderWithProvider(RenderCustomSpendCap('abc', isInputValid));
+  it('should call isInputValid with false if value is not a number', async () => {
+    const notANumber = 'abc';
+    renderWithProvider(RenderCustomSpendCap(notANumber, isInputValid));
 
     expect(isInputValid).toHaveBeenCalledWith(false);
   });
 
-  it('calls isInputValid with true when value is a number', () => {
-    renderWithProvider(RenderCustomSpendCap('100', isInputValid));
+  it('should call isInputValid with true if value is a number', async () => {
+    const validNumber = '100';
+    renderWithProvider(RenderCustomSpendCap(validNumber, isInputValid));
 
     expect(isInputValid).toHaveBeenCalledWith(true);
   });
 
-  it('displays token spend value when tokenSpendValue is provided', async () => {
+  it('should render token spend value if present', async () => {
+    const inputtedSpendValue = '100';
+
     const { findByText } = renderWithProvider(
-      RenderCustomSpendCap('100', isInputValid, DAPP_PROPOSED_VALUE),
-    );
-
-    expect(await findByText(`100 ${TICKER}`)).toBeOnTheScreen();
-  });
-
-  it('populates input with rounded balance when max is pressed and unrounded balance is empty', async () => {
-    const { findByTestId, findByText } = renderWithProvider(
       RenderCustomSpendCap(
-        '100',
+        inputtedSpendValue,
         isInputValid,
         DAPP_PROPOSED_VALUE,
-        '3.14',
-        '',
+      ),
+    );
+
+    expect(await findByText(`${inputtedSpendValue} ${TICKER}`)).toBeDefined();
+  });
+
+  it('should render account balance when clicking max if unrounded account balance is empty string', async () => {
+    const inputtedSpendValue = '100';
+
+    const roundedAccountBalance = '3.14';
+    const unroundedAccountBalance = '';
+
+    const { findByTestId, findByText } = renderWithProvider(
+      RenderCustomSpendCap(
+        inputtedSpendValue,
+        isInputValid,
+        DAPP_PROPOSED_VALUE,
+        roundedAccountBalance,
+        unroundedAccountBalance,
       ),
     );
 
     fireEvent.press(await findByText('Max'));
 
-    const input = await findByTestId('custom-spend-cap-input-input-id');
-    expect(input.props.value).toEqual('3.14');
+    const input = await findByTestId(`${'custom-spend-cap-input-input-id'}`);
+    expect(input.props.value).toEqual(roundedAccountBalance);
   });
 
-  it('populates input with unrounded balance when max is pressed and unrounded balance is set', async () => {
+  it('should render unrounded account balance when clicking max if unrounded account balance is not empty string', async () => {
+    const inputtedSpendValue = '100';
+
+    const roundedAccountBalance = '3.14';
+    const unroundedAccountBalance = '3.141592654';
+
     const { findByTestId, findByText } = renderWithProvider(
       RenderCustomSpendCap(
-        '100',
+        inputtedSpendValue,
         isInputValid,
         DAPP_PROPOSED_VALUE,
-        '3.14',
-        '3.141592654',
+        roundedAccountBalance,
+        unroundedAccountBalance,
       ),
     );
 
     fireEvent.press(await findByText('Max'));
 
-    const input = await findByTestId('custom-spend-cap-input-input-id');
-    expect(input.props.value).toEqual('3.141592654');
+    const input = await findByTestId(`${'custom-spend-cap-input-input-id'}`);
+    expect(input.props.value).toEqual(unroundedAccountBalance);
   });
 });

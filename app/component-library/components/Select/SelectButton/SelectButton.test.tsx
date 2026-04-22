@@ -12,7 +12,7 @@ import {
 describe('SelectButton', () => {
   it('should render snapshot correctly', () => {
     const wrapper = render(<SelectButton {...SAMPLE_SELECTBUTTON_PROPS} />);
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render SelectButton with the correct size', () => {

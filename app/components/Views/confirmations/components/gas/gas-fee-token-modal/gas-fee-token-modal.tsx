@@ -21,11 +21,10 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
     id: transactionId = '',
     gasFeeTokens,
     selectedGasFeeToken,
-    excludeNativeTokenForFee,
   } = transactionMeta || {};
 
   const gasFeeTokenAddresses = [
-    ...(excludeNativeTokenForFee ? [] : [NATIVE_TOKEN_ADDRESS as Hex]),
+    NATIVE_TOKEN_ADDRESS as Hex,
     ...(gasFeeTokens
       // Temporarily disable future ETH flow
       ?.filter((token) => token.tokenAddress !== NATIVE_TOKEN_ADDRESS)

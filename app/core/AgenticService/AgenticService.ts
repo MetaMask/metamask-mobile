@@ -21,14 +21,12 @@ import {
   setExistingUser,
   logIn,
   seedphraseBackedUp,
-  setMultichainAccountsIntroModalSeen,
 } from '../../actions/user';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
-  OPTIN_META_METRICS_UI_SEEN,
   PERPS_GTM_MODAL_SHOWN,
   PREDICT_GTM_MODAL_SHOWN,
   REWARDS_GTM_MODAL_SHOWN,
@@ -93,10 +91,6 @@ interface AgenticBridge {
     testId?: string;
     error?: string;
   };
-  pressText: (
-    text: string,
-    options?: { requiredTexts?: string[]; maxTexts?: number },
-  ) => { ok: boolean; text?: string; error?: string };
   scrollView: (options?: {
     testId?: string;
     offset?: number;
@@ -117,23 +111,6 @@ interface AgenticBridge {
     value?: string;
     error?: string;
   };
-  getTextByTestId: (
-    testId: string,
-    options?: { all?: boolean },
-  ) => string | string[] | null;
-  getAncestorTextsByTestId: (
-    testId: string,
-    options?: { requiredLabels?: string[]; maxTexts?: number },
-  ) => string[] | null;
-  getRowValue: (
-    label: string,
-    pattern: string,
-    options?: {
-      anchorTestId?: string;
-      requiredLabels?: string[];
-      maxTexts?: number;
-    },
-  ) => string | null;
   switchAccount: (address: string) => {
     switched: boolean;
     id: string;
@@ -273,129 +250,6 @@ function tryScroll(
   return false;
 }
 
-function appendTextContent(value: unknown, out: string[]) {
-  if (value === null || value === undefined) {
-    return;
-  }
-  if (typeof value === 'string' || typeof value === 'number') {
-    const text = String(value).trim();
-    if (text.length > 0) {
-      out.push(text);
-    }
-    return;
-  }
-  if (Array.isArray(value)) {
-    value.forEach((entry) => appendTextContent(entry, out));
-    return;
-  }
-  if (typeof value === 'object' && value && 'props' in value) {
-    const maybeProps = (value as { props?: { children?: unknown } }).props;
-    if (maybeProps?.children !== undefined) {
-      appendTextContent(maybeProps.children, out);
-    }
-  }
-}
-
-function dedupeTexts(texts: string[]): string[] {
-  return texts.filter((text, index) => texts.indexOf(text) === index);
-}
-
-function collectFiberTexts(fiber: FiberNode | null): string[] {
-  const texts: string[] = [];
-  walkFiber(fiber, (node) => {
-    if (node.memoizedProps?.children !== undefined) {
-      appendTextContent(node.memoizedProps.children, texts);
-    }
-    return false;
-  });
-  return dedupeTexts(texts);
-}
-
-function findAncestorTexts(
-  fiber: FiberNode | null,
-  predicate: (texts: string[]) => boolean,
-  maxTexts = 14,
-): string[] | null {
-  let current = fiber;
-  while (current) {
-    const texts = collectFiberTexts(current);
-    if (texts.length > 0 && texts.length <= maxTexts && predicate(texts)) {
-      return texts;
-    }
-    current = current.return;
-  }
-  return null;
-}
-
-function findRowTexts(
-  label: string,
-  options: {
-    anchorTestId?: string;
-    requiredLabels?: string[];
-    maxTexts?: number;
-  } = {},
-): string[] | null {
-  const { anchorTestId, requiredLabels = [], maxTexts = 14 } = options;
-  const matchesRow = (texts: string[]) =>
-    texts.includes(label) &&
-    requiredLabels.every((requiredLabel) => texts.includes(requiredLabel));
-
-  if (anchorTestId) {
-    let anchoredMatch: string[] | null = null;
-    walkFiberRoots((rootFiber) => {
-      const anchor = findFiberByTestId(rootFiber, anchorTestId);
-      if (!anchor) {
-        return false;
-      }
-      anchoredMatch = findAncestorTexts(anchor, matchesRow, maxTexts);
-      return Boolean(anchoredMatch);
-    });
-    if (anchoredMatch) {
-      return anchoredMatch;
-    }
-  }
-
-  let fallbackMatch: string[] | null = null;
-  walkFiberRoots((rootFiber) =>
-    walkFiber(rootFiber, (fiber) => {
-      const texts = collectFiberTexts(fiber);
-      if (texts.length === 0 || texts.length > maxTexts) {
-        return false;
-      }
-      if (!matchesRow(texts)) {
-        return false;
-      }
-      fallbackMatch = texts;
-      return true;
-    }),
-  );
-
-  return fallbackMatch;
-}
-
-function getRowValue(
-  label: string,
-  pattern: string,
-  options: {
-    anchorTestId?: string;
-    requiredLabels?: string[];
-    maxTexts?: number;
-  } = {},
-): string | null {
-  try {
-    const rowTexts = findRowTexts(label, options);
-    if (!rowTexts) {
-      return null;
-    }
-    const matcher = new RegExp(pattern);
-    return (
-      rowTexts.find((text) => text !== label && matcher.test(text)) ?? null
-    );
-  } catch {
-    return null;
-  }
-}
-
 // ─── Step HUD callback registry ─────────────────────────────────────────────
 
 type StepHudCallback =
@@ -473,49 +327,6 @@ const AgenticService = {
           return { ok: false, error: String(e) };
         }
       },
-      pressText: (
-        text: string,
-        options: { requiredTexts?: string[]; maxTexts?: number } = {},
-      ) => {
-        const { requiredTexts = [], maxTexts = 14 } = options;
-        try {
-          let bestMatch: FiberNode | null = null;
-          let bestTextCount = Number.POSITIVE_INFINITY;
-          walkFiberRoots((rootFiber) =>
-            walkFiber(rootFiber, (fiber) => {
-              if (typeof fiber.memoizedProps?.onPress !== 'function') {
-                return false;
-              }
-              const texts = collectFiberTexts(fiber);
-              if (texts.length === 0 || texts.length > maxTexts) {
-                return false;
-              }
-              if (!texts.includes(text)) {
-                return false;
-              }
-              if (requiredTexts.some((required) => !texts.includes(required))) {
-                return false;
-              }
-              if (texts.length < bestTextCount) {
-                bestMatch = fiber;
-                bestTextCount = texts.length;
-              }
-              return false;
-            }),
-          );
-          const matched = bestMatch as FiberNode | null;
-          if (matched && typeof matched.memoizedProps?.onPress === 'function') {
-            matched.memoizedProps.onPress();
-            return { ok: true, text };
-          }
-          return {
-            ok: false,
-            error: `No pressable found for text="${text}"`,
-          };
-        } catch (e) {
-          return { ok: false, error: String(e) };
-        }
-      },
       scrollView: (
         options: {
           testId?: string;
@@ -584,52 +395,6 @@ const AgenticService = {
           return { ok: false, error: String(e) };
         }
       },
-      getTextByTestId: (testId: string, options: { all?: boolean } = {}) => {
-        let texts: string[] | null = null;
-        walkFiberRoots((rootFiber) => {
-          const target = findFiberByTestId(rootFiber, testId);
-          if (!target) {
-            return false;
-          }
-          texts = collectFiberTexts(target);
-          return true;
-        });
-        const collected = texts as string[] | null;
-        if (!collected || collected.length === 0) {
-          return null;
-        }
-        return options.all ? collected : collected[0];
-      },
-      getAncestorTextsByTestId: (
-        testId: string,
-        options: { requiredLabels?: string[]; maxTexts?: number } = {},
-      ) => {
-        const { requiredLabels = [], maxTexts = 14 } = options;
-        let texts: string[] | null = null;
-        walkFiberRoots((rootFiber) => {
-          const target = findFiberByTestId(rootFiber, testId);
-          if (!target) {
-            return false;
-          }
-          texts = findAncestorTexts(
-            target,
-            (candidateTexts) =>
-              requiredLabels.every((label) => candidateTexts.includes(label)),
-            maxTexts,
-          );
-          return Boolean(texts);
-        });
-        return texts;
-      },
-      getRowValue: (
-        label: string,
-        pattern: string,
-        options: {
-          anchorTestId?: string;
-          requiredLabels?: string[];
-          maxTexts?: number;
-        } = {},
-      ) => getRowValue(label, pattern, options),
       switchAccount: (address: string) => {
         const accounts = Engine.context.AccountsController.listAccounts();
         const target = accounts.find(
@@ -723,15 +488,6 @@ const AgenticService = {
             // Suppress ExperienceEnhancer (marketing consent) modal
             store.dispatch(setDataCollectionForMarketing(false));
           }
-
-          // 5b. Set metrics UI as seen (prevents Authentication.unlockWallet
-          // from navigating to OptinMetrics after setupWallet resets to Wallet)
-          if (settings.metametrics !== undefined) {
-            await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, 'true');
-          }
-
-          // 5c. Mark multichain accounts intro modal as seen
-          store.dispatch(setMultichainAccountsIntroModalSeen(true));
 
           // 6. Skip perps tutorial onboarding if requested
           if (settings.skipPerpsTutorial === true) {

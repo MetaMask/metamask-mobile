@@ -24,7 +24,7 @@ describe('CellBase', () => {
         tagLabel={SAMPLE_CELLBASE_TAGLABEL}
       />,
     );
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render Avatar', () => {
     const { queryByTestId } = render(

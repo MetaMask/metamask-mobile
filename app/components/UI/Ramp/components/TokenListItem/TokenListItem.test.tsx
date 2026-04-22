@@ -45,15 +45,14 @@ describe('TokenListItem', () => {
   });
 
   describe('basic rendering', () => {
-    it('renders token name and symbol', () => {
-      const token = createMockToken({ name: 'Ethereum', symbol: 'ETH' });
+    it('renders correctly and matches snapshot', () => {
+      const token = createMockToken();
 
-      const { getByText } = render(
+      const { toJSON } = render(
         <TokenListItem token={token} onPress={mockOnPress} />,
       );
 
-      expect(getByText('Ethereum')).toBeOnTheScreen();
-      expect(getByText('ETH')).toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('displays token name and symbol', () => {
@@ -63,14 +62,14 @@ describe('TokenListItem', () => {
         <TokenListItem token={token} onPress={mockOnPress} />,
       );
 
-      expect(getByText('USD Coin')).toBeOnTheScreen();
-      expect(getByText('USDC')).toBeOnTheScreen();
+      expect(getByText('USD Coin')).toBeTruthy();
+      expect(getByText('USDC')).toBeTruthy();
     });
 
-    it('renders disabled token with info button visible', () => {
+    it('renders disabled token with info button and matches snapshot', () => {
       const token = createMockToken();
 
-      const { getByTestId } = render(
+      const { toJSON } = render(
         <TokenListItem
           token={token}
           onPress={mockOnPress}
@@ -79,7 +78,7 @@ describe('TokenListItem', () => {
         />,
       );
 
-      expect(getByTestId('token-unsupported-info-button')).toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -96,7 +95,7 @@ describe('TokenListItem', () => {
         />,
       );
 
-      expect(getByTestId('token-unsupported-info-button')).toBeOnTheScreen();
+      expect(getByTestId('token-unsupported-info-button')).toBeTruthy();
     });
 
     it('hides info button when isDisabled is false', () => {
@@ -111,9 +110,7 @@ describe('TokenListItem', () => {
         />,
       );
 
-      expect(
-        queryByTestId('token-unsupported-info-button'),
-      ).not.toBeOnTheScreen();
+      expect(queryByTestId('token-unsupported-info-button')).toBeNull();
     });
 
     it('hides info button when onInfoPress is not provided', () => {
@@ -123,9 +120,7 @@ describe('TokenListItem', () => {
         <TokenListItem token={token} onPress={mockOnPress} isDisabled />,
       );
 
-      expect(
-        queryByTestId('token-unsupported-info-button'),
-      ).not.toBeOnTheScreen();
+      expect(queryByTestId('token-unsupported-info-button')).toBeNull();
     });
   });
 
@@ -183,8 +178,8 @@ describe('TokenListItem', () => {
         <TokenListItem token={token} onPress={mockOnPress} />,
       );
 
-      expect(getByText('USD Coin')).toBeOnTheScreen();
-      expect(getByText('USDC')).toBeOnTheScreen();
+      expect(getByText('USD Coin')).toBeTruthy();
+      expect(getByText('USDC')).toBeTruthy();
     });
   });
 });

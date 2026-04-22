@@ -111,7 +111,7 @@ export function useMusdConversionNavbar() {
         <ButtonIcon
           iconName={IconName.Info}
           size={ButtonIconSize.Md}
-          iconProps={{ color: IconColor.IconAlternative }}
+          iconProps={{ color: IconColor.IconDefault }}
           onPress={onInfoPress}
         />
       </View>

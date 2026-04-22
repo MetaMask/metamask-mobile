@@ -5,11 +5,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
+  ButtonVariants,
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 import { trace, TraceName } from '../../../../util/trace';
 import { sleep } from '../../../../util/testUtils';
 import { useStyles } from '../../../../component-library/hooks';
@@ -60,14 +60,13 @@ function GenerateTrace() {
         {strings('app_settings.developer_options.generate_trace_test_desc')}
       </Text>
       <Button
-        variant={ButtonVariant.Secondary}
+        variant={ButtonVariants.Secondary}
         size={ButtonSize.Lg}
+        label={strings('app_settings.developer_options.generate_trace_test')}
         onPress={handleGenerateTraceTest}
-        isFullWidth
+        width={ButtonWidthTypes.Full}
         style={styles.accessory}
-      >
-        {strings('app_settings.developer_options.generate_trace_test')}
-      </Button>
+      />
     </>
   );
 }

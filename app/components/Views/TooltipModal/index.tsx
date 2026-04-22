@@ -19,14 +19,8 @@ import { TooltipModalRouteParams } from './ToolTipModal.types';
 import { useParams } from '../../../util/navigation/navUtils';
 
 const TooltipModal = () => {
-  const {
-    tooltip,
-    title,
-    footerText,
-    buttonText,
-    onButtonPress,
-    dismissOnButtonPress,
-  } = useParams<TooltipModalRouteParams>();
+  const { tooltip, title, footerText, buttonText } =
+    useParams<TooltipModalRouteParams>();
 
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
@@ -36,11 +30,8 @@ const TooltipModal = () => {
   const onCloseModal = () => bottomSheetRef.current?.onCloseBottomSheet();
 
   const handleGotItPress = useCallback(() => {
-    onButtonPress?.();
-    if (dismissOnButtonPress !== false) {
-      bottomSheetRef.current?.onCloseBottomSheet();
-    }
-  }, [onButtonPress, dismissOnButtonPress]);
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   return (
     <BottomSheet ref={bottomSheetRef}>

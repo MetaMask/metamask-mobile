@@ -181,8 +181,6 @@ export const useTrendingRequest = (options: {
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
 
-  const initialLoadCompleteRef = useRef(false);
-
   // Stabilize the chainIds array reference to prevent unnecessary re-fetching
   const stableChainIds = useStableArray(chainIds);
 
@@ -261,6 +259,7 @@ export const useTrendingRequest = (options: {
   }, [fetchTrendingTokens]);
 
   // Track if initial load has completed successfully
+  const initialLoadCompleteRef = useRef(false);
   useEffect(() => {
     if (!isLoading && !initialLoadCompleteRef.current) {
       if (results.length > 0 || !error) {

@@ -402,8 +402,9 @@ exports[`ActivityView matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
+                                      "fontWeight": 700,
                                       "letterSpacing": 0,
                                       "lineHeight": 32,
                                     },

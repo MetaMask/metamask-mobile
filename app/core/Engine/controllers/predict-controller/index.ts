@@ -1,4 +1,4 @@
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 import {
   PredictController,
   PredictControllerMessenger,
@@ -11,7 +11,7 @@ import {
  * @param request - The request object.
  * @returns The PredictController.
  */
-export const predictControllerInit: MessengerClientInitFunction<
+export const predictControllerInit: ControllerInitFunction<
   PredictController,
   PredictControllerMessenger
 > = (request) => {

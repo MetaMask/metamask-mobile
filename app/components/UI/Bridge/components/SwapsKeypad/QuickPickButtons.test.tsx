@@ -1,6 +1,5 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
 import { QuickPickButtons } from './QuickPickButtons';
 import { QuickPickButtonOption } from './types';
 
@@ -303,25 +302,6 @@ describe('QuickPickButtons', () => {
 
       buttons.forEach((button) => {
         expect(button).toBeTruthy();
-      });
-    });
-
-    it('applies shrink-safe styles so all quick-pick buttons stay visible', () => {
-      const { getAllByRole } = render(
-        <QuickPickButtons options={defaultOptions} show />,
-      );
-
-      const buttons = getAllByRole('button');
-
-      buttons.forEach((button) => {
-        const flattenedStyle = StyleSheet.flatten(button.props.style);
-
-        expect(flattenedStyle).toMatchObject({
-          flex: 1,
-          flexBasis: 0,
-          flexShrink: 1,
-          minWidth: 0,
-        });
       });
     });
   });

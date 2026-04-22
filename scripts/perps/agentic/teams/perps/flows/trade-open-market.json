@@ -59,8 +59,7 @@
         },
         "wait-form": {
           "action": "wait_for",
-          "test_id": "perps-amount-display-touchable",
-          "timeout_ms": 10000,
+          "route": "RedesignedConfirmations",
           "next": "press-amount"
         },
         "press-amount": {
@@ -70,8 +69,7 @@
         },
         "wait-keypad": {
           "action": "wait_for",
-          "test_id": "perps-order-view-keypad",
-          "timeout_ms": 5000,
+          "test_id": "keypad-delete-button",
           "next": "clear-keypad"
         },
         "clear-keypad": {
@@ -82,17 +80,26 @@
         "type-amount": {
           "action": "type_keypad",
           "value": "{{usdAmount}}",
+          "next": "assert-amount"
+        },
+        "assert-amount": {
+          "action": "eval_sync",
+          "expression": "JSON.stringify((function(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook)return{v:null}; var found=null; function walk(f){if(!f)return; if(f.memoizedProps&&f.memoizedProps.testID==='perps-amount-display-amount'){found=f;return;} walk(f.child);if(!found)walk(f.sibling);} for(var [id] of hook.renderers){var roots=hook.getFiberRoots?hook.getFiberRoots(id):null;if(roots)roots.forEach(function(r){if(!found)walk(r.current);});} return {v: found&&found.memoizedProps?String(found.memoizedProps.children||''):null}; })())",
+          "assert": {
+            "operator": "contains",
+            "field": "v",
+            "value": "{{usdAmount}}"
+          },
           "next": "press-done"
         },
         "press-done": {
           "action": "press",
           "test_id": "perps-order-view-keypad-done",
-          "next": "wait-place-order"
+          "next": "wait-summary"
         },
-        "wait-place-order": {
+        "wait-summary": {
           "action": "wait_for",
           "test_id": "perps-order-view-place-order-button",
-          "timeout_ms": 15000,
           "next": "place-order"
         },
         "place-order": {
@@ -103,7 +110,6 @@
         "wait-order-placed": {
           "action": "wait_for",
           "not_route": "RedesignedConfirmations",
-          "timeout_ms": 30000,
           "next": "done"
         },
         "done": {

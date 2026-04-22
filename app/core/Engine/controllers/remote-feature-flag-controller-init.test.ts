@@ -4,10 +4,10 @@ import {
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerMessenger,
 } from '@metamask/remote-feature-flag-controller';
-import { MessengerClientInitRequest } from '../types';
+import { ControllerInitRequest } from '../types';
 import { getRemoteFeatureFlagControllerMessenger } from '../messengers/remote-feature-flag-controller-messenger';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import Logger from '../../../util/Logger';
 
@@ -23,14 +23,14 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
 }));
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<RemoteFeatureFlagControllerMessenger>
+  ControllerInitRequest<RemoteFeatureFlagControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getRemoteFeatureFlagControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

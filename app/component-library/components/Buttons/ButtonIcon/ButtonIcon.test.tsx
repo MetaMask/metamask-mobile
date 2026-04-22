@@ -20,6 +20,6 @@ describe('ButtonIcon', () => {
         onPress={jest.fn}
       />,
     );
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

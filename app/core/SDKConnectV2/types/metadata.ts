@@ -11,7 +11,4 @@ export interface Metadata {
     version: string;
     platform: string;
   };
-  analytics?: {
-    remote_session_id: string;
-  };
 }

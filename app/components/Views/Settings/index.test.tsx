@@ -73,10 +73,10 @@ describe('Settings', () => {
   });
 
   it('renders settings component with all sections', () => {
-    const { getByText } = renderWithProvider(<Settings />, {
+    const { toJSON } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(getByText(strings('app_settings.title'))).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders header with correct title', () => {
@@ -119,22 +119,11 @@ describe('Settings', () => {
     const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
-
-  it('renders updated security and advanced descriptions', () => {
-    const { getByText } = renderWithProvider(<Settings />, {
-      state: initialState,
-    });
-
-    expect(getByText(strings('app_settings.advanced_desc'))).toBeOnTheScreen();
-    expect(getByText(strings('app_settings.security_desc'))).toBeOnTheScreen();
-  });
   it('does not render contacts (account menu entry)', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(
-      queryByTestId(SettingsViewSelectorsIDs.CONTACTS),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId(SettingsViewSelectorsIDs.CONTACTS)).toBeNull();
   });
   it('render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
@@ -156,39 +145,31 @@ describe('Settings', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(
-      queryByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK)).toBeNull();
   });
   it('does not render request feature (account menu entry)', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(
-      queryByTestId(SettingsViewSelectorsIDs.REQUEST),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId(SettingsViewSelectorsIDs.REQUEST)).toBeNull();
   });
   it('does not render contact support (account menu entry)', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(
-      queryByTestId(SettingsViewSelectorsIDs.CONTACT),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId(SettingsViewSelectorsIDs.CONTACT)).toBeNull();
   });
   it('does not render lock button (account menu entry)', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(queryByTestId(SettingsViewSelectorsIDs.LOCK)).not.toBeOnTheScreen();
+    expect(queryByTestId(SettingsViewSelectorsIDs.LOCK)).toBeNull();
   });
   it('does not render permissions (account menu entry)', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(
-      queryByTestId(SettingsViewSelectorsIDs.PERMISSIONS),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId(SettingsViewSelectorsIDs.PERMISSIONS)).toBeNull();
   });
   it('renders backup and sync settings button and navigates to correct page on press', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {

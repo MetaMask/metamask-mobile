@@ -561,9 +561,6 @@ const PerpsClosePositionView: React.FC = () => {
         receiveTooltip:
           PerpsClosePositionViewSelectorsIDs.YOU_RECEIVE_TOOLTIP_BUTTON,
         pointsTooltip: PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON,
-        marginValue: PerpsClosePositionViewSelectorsIDs.MARGIN_VALUE,
-        feesValue: PerpsClosePositionViewSelectorsIDs.FEES_VALUE,
-        receiveValue: PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE,
       }}
     />
   );

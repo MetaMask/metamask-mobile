@@ -1,7 +1,6 @@
 import { UserAction, UserActionType } from '../../actions/user/types';
 import { AppThemeKey } from '../../util/theme/models';
 import { UserState } from './types';
-import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 
 export * from './types';
 
@@ -29,7 +28,6 @@ export const userInitialState: UserState = {
   multichainAccountsIntroModalSeen: false,
   musdConversionEducationSeen: false,
   musdConversionAssetDetailCtasSeen: {},
-  tokenOverviewChartType: ChartType.Line,
 };
 
 /**
@@ -149,11 +147,6 @@ const userReducer = (
           ...state.musdConversionAssetDetailCtasSeen,
           [action.payload.key]: true,
         },
-      };
-    case UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE:
-      return {
-        ...state,
-        tokenOverviewChartType: action.payload.chartType,
       };
     default:
       return state;

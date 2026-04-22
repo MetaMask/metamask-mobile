@@ -4,7 +4,12 @@ import ReferralActionsSection from './ReferralActionsSection';
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
+  strings: jest.fn((key: string) => {
+    const translations: Record<string, string> = {
+      'rewards.referral.actions.share_referral_link': 'Share Referral Link',
+    };
+    return translations[key] || key;
+  }),
 }));
 
 // Mock CopyableField component
@@ -50,6 +55,7 @@ describe('ReferralActionsSection', () => {
     referralCodeError: false,
     onCopyCode: jest.fn(),
     onCopyLink: jest.fn(),
+    onShareLink: jest.fn(),
   };
 
   beforeEach(() => {
@@ -58,7 +64,7 @@ describe('ReferralActionsSection', () => {
 
   describe('rendering', () => {
     it('should render correctly with all props', () => {
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <ReferralActionsSection {...defaultProps} />,
       );
 
@@ -68,6 +74,7 @@ describe('ReferralActionsSection', () => {
       expect(
         getByTestId('copyable-field-rewards.referral.referral_link'),
       ).toBeTruthy();
+      expect(getByText('Share Referral Link')).toBeTruthy();
     });
 
     it('should render with null referral code', () => {
@@ -149,6 +156,25 @@ describe('ReferralActionsSection', () => {
       expect(
         getByText('link.metamask.io/rewards?referral=CUSTOM456'),
       ).toBeTruthy();
+    });
+  });
+
+  describe('share functionality', () => {
+    it('should call onShareLink with correct URL when share button is pressed', () => {
+      const mockOnShareLink = jest.fn();
+      const { getByText } = render(
+        <ReferralActionsSection
+          {...defaultProps}
+          onShareLink={mockOnShareLink}
+        />,
+      );
+
+      const shareButton = getByText('Share Referral Link');
+      fireEvent.press(shareButton);
+
+      expect(mockOnShareLink).toHaveBeenCalledWith(
+        'https://link.metamask.io/rewards?referral=TEST123',
+      );
     });
   });
 
@@ -303,6 +329,7 @@ describe('ReferralActionsSection', () => {
           referralCodeError
           onCopyCode={jest.fn()}
           onCopyLink={jest.fn()}
+          onShareLink={jest.fn()}
         />,
       );
 
@@ -324,6 +351,7 @@ describe('ReferralActionsSection', () => {
           referralCodeError
           onCopyCode={jest.fn()}
           onCopyLink={jest.fn()}
+          onShareLink={jest.fn()}
         />,
       );
 

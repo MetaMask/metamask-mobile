@@ -10,7 +10,7 @@ describe('SegmentedControl', () => {
   // Single-select mode tests
   describe('Single-select mode', () => {
     it('renders correctly with default selection', () => {
-      const { getAllByRole } = render(
+      const { toJSON, getAllByRole } = render(
         <SegmentedControl
           options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
           selectedValue={SAMPLE_SEGMENTEDCONTROL_OPTIONS[0].value}
@@ -22,6 +22,7 @@ describe('SegmentedControl', () => {
       expect(getAllByRole('button')).toHaveLength(
         SAMPLE_SEGMENTEDCONTROL_OPTIONS.length,
       );
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('calls onValueChange when an option is pressed', () => {
@@ -76,7 +77,7 @@ describe('SegmentedControl', () => {
         SAMPLE_SEGMENTEDCONTROL_OPTIONS[2].value,
       ];
 
-      const { getAllByRole } = render(
+      const { toJSON, getAllByRole } = render(
         <SegmentedControl
           options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
           selectedValues={selectedValues}
@@ -89,6 +90,7 @@ describe('SegmentedControl', () => {
       expect(getAllByRole('button')).toHaveLength(
         SAMPLE_SEGMENTEDCONTROL_OPTIONS.length,
       );
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('adds value to selection when unselected option is pressed', () => {

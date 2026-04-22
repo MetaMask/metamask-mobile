@@ -166,8 +166,6 @@ describe('MultichainTransactionsView', () => {
       />,
     );
 
-    expect(
-      queryByText('transactions.view_full_history_on'),
-    ).not.toBeOnTheScreen();
+    expect(queryByText('transactions.view_full_history_on')).toBeNull();
   });
 });

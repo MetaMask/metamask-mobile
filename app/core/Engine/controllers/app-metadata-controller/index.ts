@@ -4,11 +4,11 @@ import {
 } from '@metamask/app-metadata-controller';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../../../store/migrations';
-import type { MessengerClientInitRequest } from '../../types';
+import type { ControllerInitRequest } from '../../types';
 import { logAppMetadataControllerCreation } from './utils';
 
 export function appMetadataControllerInit(
-  initRequest: MessengerClientInitRequest<AppMetadataControllerMessenger>,
+  initRequest: ControllerInitRequest<AppMetadataControllerMessenger>,
 ) {
   const currentVersion = getVersion();
   const currentState = initRequest.persistedState?.AppMetadataController || {

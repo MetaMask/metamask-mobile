@@ -33,8 +33,8 @@ import { getTransactionById } from '../../../../util/transactions';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
-  MessengerClientInitFunction,
-  MessengerClientInitRequest,
+  ControllerInitFunction,
+  ControllerInitRequest,
 } from '../../types';
 import AppConstants from '../../../../core/AppConstants';
 import type { TransactionEventHandlerRequest } from './types';
@@ -58,17 +58,8 @@ import { isSendBundleSupported } from '../../../../util/transactions/sentinel-ap
 import { NetworkClientId } from '@metamask/network-controller';
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
-import { updateConfirmationMetric } from '../../../redux/slices/confirmationMetrics';
-import { store } from '../../../../store';
 
-const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
-  'transaction_submission_method';
-const TRANSACTION_SUBMISSION_METHOD = {
-  SENTINEL_STX: 'sentinel_stx',
-  SENTINEL_RELAY: 'sentinel_relay',
-} as const;
-
-export const TransactionControllerInit: MessengerClientInitFunction<
+export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
@@ -266,21 +257,6 @@ async function publishHook({
 
     const result = await hook(transactionMeta, signedTransactionInHex);
     if (result?.transactionHash) {
-      try {
-        store.dispatch(
-          updateConfirmationMetric({
-            id: transactionMeta.id,
-            params: {
-              properties: {
-                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_RELAY,
-              },
-            },
-          }),
-        );
-      } catch (e) {
-        console.error('Failed to record sentinel_relay metrics fragment', e);
-      }
       return result;
     }
     // else, fall back to regular regular transaction submission
@@ -302,21 +278,6 @@ async function publishHook({
     });
 
     if (result?.transactionHash) {
-      try {
-        store.dispatch(
-          updateConfirmationMetric({
-            id: transactionMeta.id,
-            params: {
-              properties: {
-                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
-              },
-            },
-          }),
-        );
-      } catch (e) {
-        console.error('Failed to record sentinel_stx metrics fragment', e);
-      }
       return result;
     }
   }
@@ -338,7 +299,7 @@ function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
   };
 }
 
-async function publishBatchSmartTransactionHook({
+function publishBatchSmartTransactionHook({
   transactionController,
   smartTransactionsController,
   initMessenger,
@@ -369,10 +330,10 @@ async function publishBatchSmartTransactionHook({
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
   if (!shouldUseSmartTransaction) {
-    return undefined;
+    return Promise.resolve(undefined);
   }
 
-  const result = await submitBatchSmartTransactionHook({
+  return submitBatchSmartTransactionHook({
     transactions,
     transactionController,
     smartTransactionsController,
@@ -382,33 +343,6 @@ async function publishBatchSmartTransactionHook({
     featureFlags,
     transactionMeta,
   });
-
-  if (result) {
-    for (const tx of transactions) {
-      if (tx.id) {
-        try {
-          store.dispatch(
-            updateConfirmationMetric({
-              id: tx.id,
-              params: {
-                properties: {
-                  [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                    TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
-                },
-              },
-            }),
-          );
-        } catch (e) {
-          console.error(
-            'Failed to record sentinel_stx metrics fragment for batch tx',
-            e,
-          );
-        }
-      }
-    }
-  }
-
-  return result;
 }
 
 function isIncomingTransactionsEnabled(
@@ -424,17 +358,17 @@ function isFirstTimeInteractionEnabled(
 }
 
 function getControllers(
-  request: MessengerClientInitRequest<
+  request: ControllerInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
 ) {
   return {
-    gasFeeController: request.getMessengerClient('GasFeeController'),
-    keyringController: request.getMessengerClient('KeyringController'),
-    networkController: request.getMessengerClient('NetworkController'),
-    preferencesController: request.getMessengerClient('PreferencesController'),
-    smartTransactionsController: request.getMessengerClient(
+    gasFeeController: request.getController('GasFeeController'),
+    keyringController: request.getController('KeyringController'),
+    networkController: request.getController('NetworkController'),
+    preferencesController: request.getController('PreferencesController'),
+    smartTransactionsController: request.getController(
       'SmartTransactionsController',
     ),
   };
@@ -442,12 +376,12 @@ function getControllers(
 
 function beforeSign(
   hookRequest: { transactionMeta: TransactionMeta },
-  request: MessengerClientInitRequest<
+  request: ControllerInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
 ) {
-  const predictController = request.getMessengerClient('PredictController');
+  const predictController = request.getController('PredictController');
   return predictController.beforeSign(hookRequest);
 }
 

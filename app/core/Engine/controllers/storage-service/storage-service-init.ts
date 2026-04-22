@@ -1,7 +1,7 @@
 import type { Json } from '@metamask/utils';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 
-import { MessengerClientInitFunction } from '../../types';
+import { ControllerInitFunction } from '../../types';
 import {
   StorageService,
   StorageServiceMessenger,
@@ -188,7 +188,7 @@ const mobileStorageAdapter: StorageAdapter = {
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const storageServiceInit: MessengerClientInitFunction<
+export const storageServiceInit: ControllerInitFunction<
   StorageService,
   StorageServiceMessenger
 > = ({ controllerMessenger }) => {

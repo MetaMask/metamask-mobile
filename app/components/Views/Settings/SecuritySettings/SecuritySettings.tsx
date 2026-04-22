@@ -38,14 +38,10 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import {
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
-import OldButton, {
+import Button, {
   ButtonVariants,
-  ButtonSize as OldButtonSize,
+  ButtonSize,
+  ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
@@ -230,14 +226,13 @@ const Settings: React.FC = () => {
       </Text>
       <View style={styles.accessory}>
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariants.Secondary}
           size={ButtonSize.Lg}
-          isFullWidth
+          width={ButtonWidthTypes.Full}
+          label={strings('app_settings.clear_browser_history_desc')}
           onPress={toggleClearBrowserHistoryModal}
           isDisabled={browserHistory.length === 0}
-        >
-          {strings('app_settings.clear_browser_history_desc')}
-        </Button>
+        />
       </View>
     </View>
   );
@@ -299,9 +294,9 @@ const Settings: React.FC = () => {
           style={styles.desc}
         >
           {strings('app_settings.simulation_details_description')}
-          <OldButton
+          <Button
             variant={ButtonVariants.Link}
-            size={OldButtonSize.Auto}
+            size={ButtonSize.Auto}
             onPress={() => {
               Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
               trackEvent(

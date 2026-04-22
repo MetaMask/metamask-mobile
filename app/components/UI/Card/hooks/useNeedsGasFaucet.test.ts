@@ -4,7 +4,7 @@ import { useNeedsGasFaucet } from './useNeedsGasFaucet';
 import { useAccountNativeBalance } from '../../../Views/confirmations/hooks/useAccountNativeBalance';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
 import Engine from '../../../../core/Engine';
-import { CardFundingToken, FundingStatus } from '../types';
+import { CardTokenAllowance, AllowanceState } from '../types';
 import { BigNumber } from 'ethers';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
@@ -45,15 +45,16 @@ const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
 
 // Helper to create mock token
 const createMockToken = (
-  overrides: Partial<CardFundingToken> = {},
-): CardFundingToken => ({
+  overrides: Partial<CardTokenAllowance> = {},
+): CardTokenAllowance => ({
   address: '0x1234567890123456789012345678901234567890',
   caipChainId: 'eip155:59144', // Linea
   decimals: 18,
   symbol: 'USDC',
   name: 'USD Coin',
-  fundingStatus: FundingStatus.Enabled,
-  spendableBalance: '500',
+  allowanceState: AllowanceState.Enabled,
+  allowance: '1000',
+  availableBalance: '500',
   walletAddress: '0xwallet1',
   delegationContract: '0xdelegation123',
   ...overrides,

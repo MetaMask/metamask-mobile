@@ -32,11 +32,11 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('PermissionItem', () => {
   it('renders correctly', () => {
-    const { getByText } = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <PermissionItem item={mockPermissionItems[0]} />,
       { state: mockInitialState },
     );
 
-    expect(getByText(mockPermissionItems[0].dappHostName)).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

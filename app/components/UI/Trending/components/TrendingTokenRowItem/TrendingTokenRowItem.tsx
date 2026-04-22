@@ -17,34 +17,12 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import {
+  parseCaipChainId,
   CaipChainId,
   Hex,
   isCaipChainId,
-  parseCaipChainId,
 } from '@metamask/utils';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  Icon,
-  IconSize,
-  Text as DesignSystemText,
-  TextVariant as DesignSystemTextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
-import { getSecurityBadgeConfig } from '../../../SecurityTrust/utils/securityUtils';
-
-/**
- * Converts CAIP chain ID to hex chain ID
- */
-const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
-  const { namespace, reference } = parseCaipChainId(caipChainId);
-  return namespace === 'eip155'
-    ? (`0x${Number(reference).toString(16)}` as Hex)
-    : (caipChainId as Hex);
-};
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
-import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
   getDefaultNetworkByChainId,
   getTestNetImageByChainId,
@@ -72,6 +50,16 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
  */
 const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
   assetId.split('/')[0] as CaipChainId;
+
+/**
+ * Converts CAIP chain ID to hex chain ID
+ */
+const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
+  const { namespace, reference } = parseCaipChainId(caipChainId);
+  return namespace === 'eip155'
+    ? (`0x${Number(reference).toString(16)}` as Hex)
+    : (caipChainId as Hex);
+};
 
 /**
  * Gets network badge image source for a given CAIP chain ID
@@ -148,13 +136,6 @@ interface TrendingTokenRowItemProps {
    * @default TokenDetailsSource.Trending
    */
   tokenDetailsSource?: TokenDetailsSource;
-  /** Passed through to Asset navigation for tx-scoped `active_ab_tests` */
-  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /**
-   * Custom press handler. When provided, bypasses default navigation to the
-   * asset details screen (including network-add logic and analytics tracking).
-   */
-  onPress?: (token: TrendingAsset) => void;
 }
 
 /**
@@ -163,7 +144,6 @@ interface TrendingTokenRowItemProps {
 const getAssetNavigationParams = (
   token: TrendingAsset,
   source: TokenDetailsSource,
-  transactionActiveAbTests?: TransactionActiveAbTestEntry[],
 ) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
   if (!isCaipChainId(caipChainId)) return null;
@@ -192,7 +172,6 @@ const getAssetNavigationParams = (
     source,
     rwaData: token.rwaData,
     securityData: token.securityData,
-    ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
   };
 };
 
@@ -202,8 +181,6 @@ const TrendingTokenRowItem = ({
   position,
   filterContext,
   tokenDetailsSource = TokenDetailsSource.Trending,
-  transactionActiveAbTests,
-  onPress,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -220,23 +197,13 @@ const TrendingTokenRowItem = ({
   );
 
   const assetParams = useMemo(
-    () =>
-      getAssetNavigationParams(
-        token,
-        tokenDetailsSource,
-        transactionActiveAbTests,
-      ),
-    [token, tokenDetailsSource, transactionActiveAbTests],
+    () => getAssetNavigationParams(token, tokenDetailsSource),
+    [token, tokenDetailsSource],
   );
 
   const networkBadgeImageSource = useMemo(
     () => getNetworkBadgeSource(caipChainId),
     [caipChainId],
-  );
-
-  const securityBadge = useMemo(
-    () => getSecurityBadgeConfig(token.securityData),
-    [token.securityData],
   );
 
   // Parse price change percentage from API (comes as string like "-3.44" or "+0.456")
@@ -254,11 +221,6 @@ const TrendingTokenRowItem = ({
   const isPositiveChange = hasPercentageChange && pricePercentChange > 0;
 
   const handlePress = useCallback(async () => {
-    if (onPress) {
-      onPress(token);
-      return;
-    }
-
     if (!assetParams) return;
 
     // Track token click event BEFORE navigation to ensure capture
@@ -304,7 +266,6 @@ const TrendingTokenRowItem = ({
     // of navigating forward to the new token.
     navigation.dispatch(StackActions.push('Asset', assetParams));
   }, [
-    onPress,
     assetParams,
     caipChainId,
     navigation,
@@ -351,40 +312,9 @@ const TrendingTokenRowItem = ({
             color={TextColor.Default}
             numberOfLines={1}
             ellipsizeMode="tail"
-            style={styles.tokenName}
           >
             {token?.name ?? token?.symbol}
           </Text>
-          {securityBadge && securityBadge.label === null && (
-            <Icon
-              name={securityBadge.icon}
-              size={IconSize.Sm}
-              color={securityBadge.iconColor}
-              testID="security-badge-icon"
-            />
-          )}
-          {securityBadge && securityBadge.label !== null && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName={`rounded min-w-[22px] px-1.5 gap-1 shrink-0 ${securityBadge.bg}`}
-            >
-              <Icon
-                name={securityBadge.icon}
-                size={IconSize.Sm}
-                color={securityBadge.iconColor}
-              />
-              <DesignSystemText
-                variant={DesignSystemTextVariant.BodySm}
-                color={securityBadge.textColor}
-                fontWeight={FontWeight.Medium}
-                numberOfLines={1}
-                twClassName="whitespace-nowrap"
-              >
-                {securityBadge.label}
-              </DesignSystemText>
-            </Box>
-          )}
         </View>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {formatMarketStats(

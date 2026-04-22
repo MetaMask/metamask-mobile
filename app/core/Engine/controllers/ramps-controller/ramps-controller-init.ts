@@ -1,4 +1,4 @@
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 import {
   RampsController,
   RampsControllerMessenger,
@@ -48,7 +48,7 @@ function getIsRampsUnifiedBuyV2Enabled(
  * @param request.initMessenger - The init messenger for reading feature flags.
  * @returns The initialized controller.
  */
-export const rampsControllerInit: MessengerClientInitFunction<
+export const rampsControllerInit: ControllerInitFunction<
   RampsController,
   RampsControllerMessenger,
   RampsControllerInitMessenger

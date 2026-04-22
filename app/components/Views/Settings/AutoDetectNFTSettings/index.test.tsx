@@ -2,7 +2,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../locales/i18n';
 
 // External dependencies
 import Engine from '../../../../core/Engine';
@@ -85,12 +84,10 @@ describe('AutoDetectNFTSettings', () => {
   };
 
   it('render matches snapshot', () => {
-    const { getByText } = renderWithProvider(<AutoDetectNFTSettings />, {
+    const tree = renderWithProvider(<AutoDetectNFTSettings />, {
       state: initialState,
     });
-    expect(
-      getByText(strings('app_settings.nft_autodetect_mode')),
-    ).toBeOnTheScreen();
+    expect(tree).toMatchSnapshot();
   });
 
   describe('NFT Autodetection', () => {

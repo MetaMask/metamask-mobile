@@ -12,7 +12,7 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
+import { usePredictEntryPoint } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
@@ -20,6 +20,7 @@ import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import { PREDICT_SPORT_CARD_FOOTER_TEST_IDS } from './PredictSportCardFooter.testIds';
 
 interface PredictSportCardFooterProps {
@@ -66,7 +67,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   });
 
   const { claim, isClaimPending } = usePredictClaim();
-  const { openBuySheet } = usePredictPreviewSheet();
+  const { navigateToBuyPreview } = usePredictNavigation();
 
   const outcome = market.outcomes?.[0];
   const isMarketOpen =
@@ -84,19 +85,34 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
 
       executeGuardedAction(
         () => {
-          openBuySheet({
-            market,
-            outcome: matchingOutcome,
-            outcomeToken: token,
-            entryPoint: resolvedEntryPoint,
-          });
+          // When accessed from Carousel, we're outside the Predict navigator,
+          // so we need to navigate through the ROOT first
+          const throughRoot =
+            isCarousel ||
+            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL;
+
+          navigateToBuyPreview(
+            {
+              market,
+              outcome: matchingOutcome,
+              outcomeToken: token,
+              entryPoint: resolvedEntryPoint,
+            },
+            { throughRoot },
+          );
         },
         {
           attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
         },
       );
     },
-    [executeGuardedAction, resolvedEntryPoint, openBuySheet, market],
+    [
+      executeGuardedAction,
+      isCarousel,
+      resolvedEntryPoint,
+      navigateToBuyPreview,
+      market,
+    ],
   );
 
   const handleClaimPress = useCallback(async () => {

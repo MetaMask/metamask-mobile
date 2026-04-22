@@ -11,7 +11,7 @@ import ImportSrpView from '../../page-objects/importSrp/ImportSrpView';
 
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeSeedlessOnboarding } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -19,7 +19,7 @@ import { completeGoogleNewUserOnboarding } from './utils';
 
 const IMPORTED_ACCOUNT_NAME = 'Account 1';
 
-describe(SmokeSeedlessOnboarding('Google Login - Add New SRP'), () => {
+describe(SmokeWalletPlatform('Google Login - Add New SRP'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
   });

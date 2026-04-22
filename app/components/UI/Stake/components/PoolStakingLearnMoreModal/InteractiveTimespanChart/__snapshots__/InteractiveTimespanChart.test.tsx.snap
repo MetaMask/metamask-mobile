@@ -118,7 +118,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -385,7 +385,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -648,7 +648,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -913,7 +913,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -1178,7 +1178,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -1445,7 +1445,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,

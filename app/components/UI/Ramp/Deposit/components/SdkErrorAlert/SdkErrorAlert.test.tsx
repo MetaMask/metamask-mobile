@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import SdkErrorAlert from './SdkErrorAlert';
-import { strings } from '../../../../../../../locales/i18n';
 
 describe('SdkErrorAlert', () => {
   it('renders nothing when error is null', () => {
@@ -19,9 +18,7 @@ describe('SdkErrorAlert', () => {
         onRetry={jest.fn()}
       />,
     );
-    expect(
-      screen.getByText(strings('deposit.errors.fetch_regions')),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders tokens error message', () => {
@@ -32,9 +29,7 @@ describe('SdkErrorAlert', () => {
         onRetry={jest.fn()}
       />,
     );
-    expect(
-      screen.getByText(strings('deposit.errors.fetch_tokens')),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders payment methods error message', () => {
@@ -45,9 +40,7 @@ describe('SdkErrorAlert', () => {
         onRetry={jest.fn()}
       />,
     );
-    expect(
-      screen.getByText(strings('deposit.errors.fetch_payment_methods')),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders user details error message', () => {
@@ -58,9 +51,7 @@ describe('SdkErrorAlert', () => {
         onRetry={jest.fn()}
       />,
     );
-    expect(
-      screen.getByText(strings('deposit.errors.fetch_user_details')),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls onRetry when retry button is pressed', () => {
@@ -73,7 +64,7 @@ describe('SdkErrorAlert', () => {
       />,
     );
 
-    const retryButton = screen.getByText(strings('deposit.errors.try_again'));
+    const retryButton = screen.getByText('Try again');
     fireEvent.press(retryButton);
 
     expect(mockRetry).toHaveBeenCalledTimes(1);
@@ -90,15 +81,11 @@ describe('SdkErrorAlert', () => {
       />,
     );
 
-    expect(
-      screen.getByRole('link', { name: strings('deposit.errors.try_again') }),
-    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('does not render retry button when onRetry is not provided', () => {
     render(<SdkErrorAlert error="Some error" errorType="regions" />);
-    expect(
-      screen.queryByText(strings('deposit.errors.try_again')),
-    ).not.toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

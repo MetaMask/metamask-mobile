@@ -23,10 +23,6 @@ const styleSheet = (_params: { theme: Theme }) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-      flexShrink: 1,
-    },
-    tokenName: {
-      flexShrink: 1,
     },
     rightContainer: {
       display: 'flex',

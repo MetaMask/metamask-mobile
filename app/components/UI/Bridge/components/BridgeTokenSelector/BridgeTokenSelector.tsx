@@ -525,19 +525,7 @@ export const BridgeTokenSelector: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <Box twClassName="px-4 pb-3">
-        <TextFieldSearch
-          value={searchString}
-          onChangeText={handleSearchTextChange}
-          placeholder={strings('swaps.search_token')}
-          testID="bridge-token-search-input"
-          autoComplete="off"
-          autoCorrect={false}
-          autoCapitalize="none"
-          onPressClearButton={handleClearSearch}
-        />
-      </Box>
-      <Box twClassName="pt-2 pb-4 pl-4">
+      <Box style={styles.buttonContainer}>
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}
@@ -546,6 +534,18 @@ export const BridgeTokenSelector: React.FC = () => {
               screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
             })
           }
+        />
+
+        <TextFieldSearch
+          value={searchString}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings('swaps.search_token')}
+          testID="bridge-token-search-input"
+          style={styles.searchInput}
+          autoComplete="off"
+          autoCorrect={false}
+          autoCapitalize="none"
+          onPressClearButton={handleClearSearch}
         />
       </Box>
 

@@ -22,7 +22,6 @@ import type {
   DiscoverSeasonsDto,
   SeasonMetadataDto,
   SeasonStateDto,
-  SubscriptionBenefitDto,
   LineaTokenRewardDto,
   ApplyReferralDto,
   ApplyBonusCodeDto,
@@ -32,8 +31,6 @@ import type {
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioDto,
-  PaginatedOndoGmActivityDto,
-  OndoGmCampaignDepositsDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -116,7 +113,6 @@ export interface RewardsDataServiceGetPerpsDiscountAction {
   type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
   handler: RewardsDataService['getPerpsDiscount'];
 }
-
 export interface RewardsDataServiceMobileOptinAction {
   type: `${typeof SERVICE_NAME}:mobileOptin`;
   handler: RewardsDataService['mobileOptin'];
@@ -242,21 +238,6 @@ export interface RewardsDataServiceGetOndoCampaignPortfolioPositionAction {
   handler: RewardsDataService['getOndoCampaignPortfolioPosition'];
 }
 
-export interface RewardsDataServiceGetOndoCampaignActivityAction {
-  type: `${typeof SERVICE_NAME}:getOndoCampaignActivity`;
-  handler: RewardsDataService['getOndoCampaignActivity'];
-}
-
-export interface RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction {
-  type: `${typeof SERVICE_NAME}:getOndoCampaignActivityLastUpdated`;
-  handler: RewardsDataService['getOndoCampaignActivityLastUpdated'];
-}
-
-export interface RewardsDataServiceGetOndoCampaignDepositsAction {
-  type: `${typeof SERVICE_NAME}:getOndoCampaignDeposits`;
-  handler: RewardsDataService['getOndoCampaignDeposits'];
-}
-
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -275,16 +256,6 @@ export interface RewardsDataServiceSetRewardsEnvUrlAction {
 export interface RewardsDataServiceGetDefaultRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getDefaultRewardsEnvUrl`;
   handler: RewardsDataService['getDefaultRewardsEnvUrl'];
-}
-
-export interface RewardsDataServiceGetBenefitsAction {
-  type: `${typeof SERVICE_NAME}:getBenefits`;
-  handler: RewardsDataService['getBenefits'];
-}
-
-export interface RewardsDataServicePostBenefitImpressionAction {
-  type: `${typeof SERVICE_NAME}:postBenefitImpression`;
-  handler: RewardsDataService['postBenefitImpression'];
 }
 
 export type RewardsDataServiceActions =
@@ -318,16 +289,11 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
-  | RewardsDataServiceGetBenefitsAction
-  | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
-  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
-  | RewardsDataServiceGetOndoCampaignActivityAction
-  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
-  | RewardsDataServiceGetOndoCampaignDepositsAction;
+  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -487,18 +453,6 @@ export class RewardsDataService {
       this.getOndoCampaignPortfolioPosition.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getOndoCampaignActivity`,
-      this.getOndoCampaignActivity.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getOndoCampaignActivityLastUpdated`,
-      this.getOndoCampaignActivityLastUpdated.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getOndoCampaignDeposits`,
-      this.getOndoCampaignDeposits.bind(this),
-    );
-    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
       this.getRewardsEnvUrl.bind(this),
     );
@@ -513,14 +467,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
       this.getDefaultRewardsEnvUrl.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getBenefits`,
-      this.getBenefits.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:postBenefitImpression`,
-      this.postBenefitImpression.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClientVersionRequirements`,
@@ -1479,58 +1425,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Get benefits for a specific subscription.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The benefits paged array.
-   */
-  async getBenefits(
-    subscriptionId: string,
-    limit: number,
-  ): Promise<SubscriptionBenefitDto[]> {
-    const response = await this.makeRequest(
-      `/benefits?limit=${limit}&offset=0`,
-      {
-        method: 'GET',
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(`Get benefits failed: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.results as SubscriptionBenefitDto[];
-  }
-
-  /**
-   * Record an impression for a specific benefit. This is used to track when users have viewed a benefit in the UI.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @param benefitId - The benefit ID to record impression for.
-   * @param benefitType - The benefit type to record impression for.
-   * @returns Promise that resolves when the impression is recorded successfully.
-   */
-  async postBenefitImpression(
-    subscriptionId: string,
-    benefitId: number,
-    benefitType: number,
-  ): Promise<void> {
-    const response = await this.makeRequest(
-      `/benefits/impression`,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          benefitId,
-          benefitType,
-        }),
-      },
-      subscriptionId,
-    );
-    if (!response.ok) {
-      throw new Error(`Post benefit impression failed: ${response.status}`);
-    }
-  }
-
-  /**
    * Get the campaign leaderboard showing top 20 participants per tier.
    * This is a public endpoint - no authentication required.
    * @param campaignId - The campaign ID to get leaderboard for.
@@ -1609,85 +1503,5 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as OndoGmPortfolioDto;
-  }
-
-  /**
-   * Get paginated activity for an Ondo GM campaign.
-   * This is an authenticated endpoint.
-   * @param campaignId - The campaign ID.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @param cursor - Pagination cursor, null for the first page.
-   * @returns Paginated activity entries.
-   */
-  async getOndoCampaignActivity(
-    campaignId: string,
-    subscriptionId: string,
-    cursor: string | null,
-  ): Promise<PaginatedOndoGmActivityDto> {
-    const queryParams: string[] = [];
-    if (cursor) queryParams.push(`cursor=${encodeURIComponent(cursor)}`);
-
-    let url = `/ondo-gm/${campaignId}/activity/me`;
-    if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
-
-    const response = await this.makeRequest(
-      url,
-      { method: 'GET' },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(`Get campaign activity failed: ${response.status}`);
-    }
-
-    return (await response.json()) as PaginatedOndoGmActivityDto;
-  }
-
-  /**
-   * Get the last-updated timestamp for Ondo GM campaign activity.
-   * This is an authenticated endpoint.
-   * @param campaignId - The campaign ID.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The last-updated date, or null if no activity exists.
-   */
-  async getOndoCampaignActivityLastUpdated(
-    campaignId: string,
-    subscriptionId: string,
-  ): Promise<Date | null> {
-    const response = await this.makeRequest(
-      `/ondo-gm/${campaignId}/activity/me/last-updated`,
-      { method: 'GET' },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Get campaign activity last updated failed: ${response.status}`,
-      );
-    }
-
-    const result = await response.json();
-    return result?.lastUpdated ? new Date(result.lastUpdated) : null;
-  }
-
-  /**
-   * Get campaign-wide total deposits.
-   * This is a public endpoint - no authentication required.
-   * @param campaignId - The campaign ID to get deposits for.
-   * @returns The total USD deposited across all participants.
-   */
-  async getOndoCampaignDeposits(
-    campaignId: string,
-  ): Promise<OndoGmCampaignDepositsDto> {
-    const response = await this.makeRequest(
-      `/ondo-gm/${campaignId}/stats/deposits`,
-      { method: 'GET' },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Get campaign deposits failed: ${response.status}`);
-    }
-
-    return (await response.json()) as OndoGmCampaignDepositsDto;
   }
 }

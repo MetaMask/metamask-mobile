@@ -22,8 +22,10 @@ import ReferralStatsSummary from './ReferralStatsSummary';
 import MetamaskRewardsPointsImage from '../../../../../../../images/rewards/metamask-rewards-points.svg';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
 import { useSelector } from 'react-redux';
-import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
-import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
 import { selectSeasonWaysToEarn } from '../../../../../../../reducers/rewards/selectors';
 import { getIconName } from '../../../../utils/formatUtils';
@@ -83,7 +85,7 @@ const getBottomSheetData = (wayToEarn: SeasonWayToEarnDto) => ({
 
 export const WaysToEarn = () => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const seasonWaysToEarn = useSelector(selectSeasonWaysToEarn);
 
   const handleCTAPress = async (wayToEarn: SeasonWayToEarnDto) => {

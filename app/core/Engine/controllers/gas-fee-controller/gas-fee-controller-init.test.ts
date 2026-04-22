@@ -9,8 +9,8 @@ import { addHexPrefix } from '../../../../util/number';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import AppConstants from '../../../AppConstants';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
-import { MessengerClientInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { ControllerInitRequest } from '../../types';
 import { GasFeeControllerInit } from './gas-fee-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -42,19 +42,19 @@ function buildControllerMock(
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
-): jest.Mocked<MessengerClientInitRequest<GasFeeMessenger>> {
+): jest.Mocked<ControllerInitRequest<GasFeeMessenger>> {
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
+    ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger: baseControllerMessenger as unknown as GasFeeMessenger,
     getGlobalChainId: jest.fn().mockReturnValue('0x1'),
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getMessengerClient) {
-    requestMock.getMessengerClient = jest
+  if (!initRequestProperties.getController) {
+    requestMock.getController = jest
       .fn()
       .mockReturnValue(buildControllerMock());
   }
@@ -82,7 +82,7 @@ describe('GasFeeController Init', () => {
 
   it('throws error if requested controller is not found', () => {
     const requestMock = buildInitRequestMock({
-      getMessengerClient: () => {
+      getController: () => {
         throw new Error('Controller not found');
       },
     });
@@ -106,7 +106,7 @@ describe('GasFeeController Init', () => {
     it('correctly sets up getProvider option', () => {
       const MOCK_PROVIDER = { someProvider: true };
       const requestMock = buildInitRequestMock({
-        getMessengerClient: () =>
+        getController: () =>
           buildControllerMock({
             getProviderAndBlockTracker: jest
               .fn()
@@ -123,7 +123,7 @@ describe('GasFeeController Init', () => {
 
     it('correctly sets up getCurrentNetworkEIP1559Compatibility option', async () => {
       const requestMock = buildInitRequestMock({
-        getMessengerClient: () =>
+        getController: () =>
           buildControllerMock({
             getEIP1559Compatibility: jest.fn().mockResolvedValue(true),
           }),
@@ -139,7 +139,7 @@ describe('GasFeeController Init', () => {
 
     it('handles undefined EIP1559 compatibility', async () => {
       const requestMock = buildInitRequestMock({
-        getMessengerClient: () =>
+        getController: () =>
           buildControllerMock({
             getEIP1559Compatibility: jest.fn().mockResolvedValue(undefined),
           }),

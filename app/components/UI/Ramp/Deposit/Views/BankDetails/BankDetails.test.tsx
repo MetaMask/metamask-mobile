@@ -149,9 +149,17 @@ describe('BankDetails Component', () => {
     mockOrderData.state = FIAT_ORDER_STATES.CREATED;
   });
 
-  it('renders initial state with show bank information button', () => {
-    render(BankDetails);
-    expect(screen.getByText('Show bank information')).toBeOnTheScreen();
+  it('render matches snapshot', () => {
+    const { toJSON } = render(BankDetails);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('render matches snapshot with bank info shown', () => {
+    const { toJSON } = render(BankDetails);
+
+    fireEvent.press(screen.getByText('Show bank information'));
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls confirmPayment when bank transfer sent button is pressed', async () => {
@@ -191,7 +199,7 @@ describe('BankDetails Component', () => {
     render(BankDetails);
 
     // Initially beneficiary address should not be visible
-    expect(screen.queryByText('456 Recipient Street')).not.toBeOnTheScreen();
+    expect(screen.queryByText('456 Recipient Street')).toBeNull();
 
     // Show bank information
     fireEvent.press(screen.getByText('Show bank information'));
@@ -313,7 +321,7 @@ describe('BankDetails Component', () => {
     expect(mockLoggerError).toHaveBeenCalled();
   });
 
-  it('calls endTrace three times when component mounts', () => {
+  it('should call endTrace three times when component mounts', () => {
     const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
     mockEndTrace.mockClear();
 

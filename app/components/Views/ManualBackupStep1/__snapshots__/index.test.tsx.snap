@@ -394,7 +394,8 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                       [
                         [
                           "text-icon-default",
-                          "w-8 h-8",
+                          "w-[32px]",
+                          "h-[32px]",
                           undefined,
                         ],
                         undefined,
@@ -945,7 +946,8 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                       [
                         [
                           "text-icon-default",
-                          "w-8 h-8",
+                          "w-[32px]",
+                          "h-[32px]",
                           undefined,
                         ],
                         undefined,
@@ -1496,7 +1498,8 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                       [
                         [
                           "text-icon-default",
-                          "w-8 h-8",
+                          "w-[32px]",
+                          "h-[32px]",
                           undefined,
                         ],
                         undefined,

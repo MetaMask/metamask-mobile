@@ -3,8 +3,7 @@ import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { render, screen, cleanup, act } from '@testing-library/react-native';
-import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
+import { render, cleanup } from '@testing-library/react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -14,11 +13,7 @@ import {
   getBlockExplorerName,
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
-  findBlockExplorerUrlForChain,
-  getHexEvmChainId,
 } from '../../../util/networks';
-import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
-import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { isHardwareAccount } from '../../../util/address';
 import NotificationManager from '../../../core/NotificationManager';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
@@ -37,22 +32,15 @@ const mockNavigation = {
 
 // Mock the multichain utils
 jest.mock('../../../core/Multichain/utils', () => ({
-  ...jest.requireActual('../../../core/Multichain/utils'),
   isNonEvmChainId: jest.fn(),
-  getFormattedAddressFromInternalAccount: jest.fn(
-    (account) => account?.address ?? '0x123...456',
-  ),
 }));
 
 // Mock network utils
 jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
   getBlockExplorerAddressUrl: jest.fn(),
   getBlockExplorerName: jest.fn(),
   findBlockExplorerForNonEvmChainId: jest.fn(),
   findBlockExplorerForRpc: jest.fn(),
-  findBlockExplorerUrlForChain: jest.fn(),
-  getHexEvmChainId: jest.fn(),
   isMainnetByChainId: jest.fn(),
 }));
 
@@ -84,18 +72,6 @@ jest.mock('../../../core/Engine', () => ({
     TransactionController: {
       stopTransaction: jest.fn(),
     },
-    GasFeeController: {
-      startPolling: jest.fn().mockReturnValue('polling-token'),
-      stopPollingByPollingToken: jest.fn(),
-    },
-  },
-}));
-
-jest.mock('../../../core/ToastService/ToastService', () => ({
-  __esModule: true,
-  default: {
-    showToast: jest.fn(),
-    closeToast: jest.fn(),
   },
 }));
 
@@ -111,6 +87,11 @@ jest.mock('../TransactionElement', () => ({
 
 // Mock other connected components
 jest.mock('../TransactionActionModal', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('./RetryModal', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -137,6 +118,12 @@ jest.mock('../../../component-library/components/Buttons/Button', () => ({
   default: () => null,
   ButtonVariants: { Link: 'link', Primary: 'primary' },
   ButtonSize: { Lg: 'lg', Md: 'md' },
+}));
+
+jest.mock('../../../util/accounts', () => ({
+  getFormattedAddressFromInternalAccount: jest.fn(
+    (account) => account?.address || '0x123...456',
+  ),
 }));
 
 // Mock React Native components and StyleSheet
@@ -173,7 +160,6 @@ jest.mock('../../../util/number', () => ({
 }));
 
 jest.mock('../../../util/conversions', () => ({
-  ...jest.requireActual('../../../util/conversions'),
   decGWEIToHexWEI: jest.fn(() => '0x123'),
 }));
 
@@ -187,9 +173,6 @@ const initialState = {
   },
   settings: {
     primaryCurrency: 'USD',
-  },
-  qrKeyringScanner: {
-    isScanning: false,
   },
 };
 const store = mockStore(initialState);
@@ -212,13 +195,6 @@ const mockFindBlockExplorerForRpc =
   findBlockExplorerForRpc as jest.MockedFunction<
     typeof findBlockExplorerForRpc
   >;
-const mockFindBlockExplorerUrlForChain =
-  findBlockExplorerUrlForChain as jest.MockedFunction<
-    typeof findBlockExplorerUrlForChain
-  >;
-const mockGetHexEvmChainId = getHexEvmChainId as jest.MockedFunction<
-  typeof getHexEvmChainId
->;
 const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
   typeof isHardwareAccount
 >;
@@ -270,7 +246,7 @@ describe('Transactions', () => {
   });
 
   it('should render correctly', () => {
-    render(
+    const wrapper = shallow(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -293,18 +269,10 @@ describe('Transactions', () => {
             },
           ]}
           loading={false}
-          navigation={mockNavigation}
-          confirmedTransactions={[]}
-          submittedTransactions={[]}
         />
       </Provider>,
     );
-    act(() => {
-      jest.advanceTimersByTime(100);
-    });
-    expect(
-      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(wrapper).toMatchSnapshot();
   });
 
   describe('Transaction Component Behavior', () => {
@@ -355,10 +323,19 @@ describe('Transactions', () => {
       const mockState = {
         speedUpIsOpen: false,
         cancelIsOpen: false,
+        retryIsOpen: false,
+        errorMsg: null,
       };
 
       const newState = { ...mockState, speedUpIsOpen: true };
       expect(newState.speedUpIsOpen).toBe(true);
+
+      const errorState = {
+        ...mockState,
+        retryIsOpen: true,
+        errorMsg: 'Test error',
+      };
+      expect(errorState.errorMsg).toBe('Test error');
     });
 
     it('calculates gas prices', () => {
@@ -1605,6 +1582,39 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(mockOnScrollThroughContent).toHaveBeenCalledWith(100);
   });
 
+  it('should test toggleRetry method directly', () => {
+    instance.setState = jest.fn();
+
+    const errorMsg = 'Test error message';
+    instance.toggleRetry(errorMsg);
+
+    expect(instance.setState).toHaveBeenCalled();
+  });
+
+  it('should test retry method directly', () => {
+    instance.setState = jest.fn();
+    instance.onSpeedUpAction = jest.fn();
+    instance.onCancelAction = jest.fn();
+    instance.speedUpTxId = 'speed-up-tx';
+    instance.existingTx = { id: 'speed-up-tx' };
+
+    instance.retry();
+
+    // The retry method calls setState with a function, not an object
+    expect(instance.setState).toHaveBeenCalled();
+
+    // Test that the state function produces the expected result
+    const setStateCall = instance.setState.mock.calls[0][0];
+    const newState = setStateCall({
+      retryIsOpen: true,
+      errorMsg: 'test error',
+    });
+    expect(newState).toEqual({
+      retryIsOpen: false,
+      errorMsg: undefined,
+    });
+  });
+
   it('should test navigation patterns for coverage', () => {
     // Test non-EVM chain navigation
     const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -1813,9 +1823,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.mounted).toBe(true);
 
     // Fast-forward timers
-    act(() => {
-      jest.advanceTimersByTime(100);
-    });
+    jest.advanceTimersByTime(100);
 
     expect(instance.setState).toHaveBeenCalledWith({ ready: true });
     expect(instance.init).toHaveBeenCalled();
@@ -2063,10 +2071,14 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.state = {
       ready: true,
+      retryIsOpen: false,
+      errorMsg: null,
     };
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
+    instance.toggleRetry = jest.fn();
+    instance.retry = jest.fn();
 
     const result = instance.render();
     expect(result).toBeDefined();
@@ -2273,5 +2285,36 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     await instance.cancelTransaction(transactionObject);
 
     expect(instance.signLedgerTransaction).toHaveBeenCalled();
+  });
+
+  it('should test retry method with different scenarios', () => {
+    instance.setState = jest.fn();
+    instance.onSpeedUpAction = jest.fn();
+    instance.onCancelAction = jest.fn();
+
+    // Test retry with speedUpTxId
+    instance.speedUpTxId = 'speed-up-tx';
+    instance.cancelTxId = null;
+    instance.existingTx = { id: 'speed-up-tx' };
+
+    instance.retry();
+
+    expect(instance.setState).toHaveBeenCalled();
+
+    // Test retry with cancelTxId
+    instance.speedUpTxId = null;
+    instance.cancelTxId = 'cancel-tx';
+
+    instance.retry();
+
+    expect(instance.setState).toHaveBeenCalled();
+
+    // Test retry with neither speedUpTxId nor cancelTxId
+    instance.speedUpTxId = null;
+    instance.cancelTxId = null;
+
+    instance.retry();
+
+    expect(instance.setState).toHaveBeenCalled();
   });
 });

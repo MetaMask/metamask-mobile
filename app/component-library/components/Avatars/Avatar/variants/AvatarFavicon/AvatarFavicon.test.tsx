@@ -18,9 +18,9 @@ describe('AvatarFavicon', () => {
     global.fetch = jest.fn();
   });
 
-  it('renders correctly', () => {
+  it('should match the snapshot', () => {
     const wrapper = shallow(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render favicon with remote image', () => {
@@ -61,6 +61,8 @@ describe('AvatarFavicon', () => {
     await waitFor(() =>
       expect(getByTestId(AVATARFAVICON_IMAGE_SVG_TESTID)).toBeDefined(),
     );
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render fallback', () => {
@@ -92,5 +94,6 @@ describe('AvatarFavicon', () => {
       (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
     );
     expect(currentImageComponent.exists()).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 });

@@ -51,7 +51,6 @@ import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
@@ -119,7 +118,6 @@ function TradeWalletActions() {
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
-    swapButtonEventLocationOverride: ActionLocation.NAVBAR,
   });
 
   const handleNavigateBack = useCallback(() => {

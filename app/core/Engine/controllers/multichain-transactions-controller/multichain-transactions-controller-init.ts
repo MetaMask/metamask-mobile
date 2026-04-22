@@ -2,7 +2,7 @@ import {
   MultichainTransactionsController,
   MultichainTransactionsControllerState,
 } from '@metamask/multichain-transactions-controller';
-import type { MessengerClientInitFunction } from '../../types';
+import type { ControllerInitFunction } from '../../types';
 import { MultichainTransactionsControllerMessenger } from '../../messengers/multichain-transactions-controller-messenger/types';
 
 /**
@@ -13,7 +13,7 @@ import { MultichainTransactionsControllerMessenger } from '../../messengers/mult
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const multichainTransactionsControllerInit: MessengerClientInitFunction<
+export const multichainTransactionsControllerInit: ControllerInitFunction<
   MultichainTransactionsController,
   MultichainTransactionsControllerMessenger
 > = (request) => {

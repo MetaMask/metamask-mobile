@@ -85,7 +85,7 @@ describe('text component', () => {
     const weights = ['bold', 'medium', 'regular'] as const;
 
     const expectedWeights = {
-      bold: '600',
+      bold: '700',
       medium: '500',
       regular: '400',
     };

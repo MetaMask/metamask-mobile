@@ -5,10 +5,7 @@ import {
 } from '@metamask/bridge-controller';
 import { fetch as expoFetch } from 'expo/fetch';
 
-import {
-  MessengerClientInitFunction,
-  MessengerClientInitRequest,
-} from '../../types';
+import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import type { BridgeControllerInitMessenger } from '../../messengers/bridge-controller-messenger';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { buildAndTrackEvent } from '../../utils/analytics';
@@ -36,7 +33,7 @@ export const handleBridgeFetch = async (
   return handleFetch(url, options);
 };
 
-export const bridgeControllerInit: MessengerClientInitFunction<
+export const bridgeControllerInit: ControllerInitFunction<
   BridgeController,
   BridgeControllerMessenger,
   BridgeControllerInitMessenger
@@ -85,12 +82,12 @@ export const bridgeControllerInit: MessengerClientInitFunction<
 };
 
 function getControllers(
-  request: MessengerClientInitRequest<
+  request: ControllerInitRequest<
     BridgeControllerMessenger,
     BridgeControllerInitMessenger
   >,
 ) {
   return {
-    transactionController: request.getMessengerClient('TransactionController'),
+    transactionController: request.getController('TransactionController'),
   };
 }

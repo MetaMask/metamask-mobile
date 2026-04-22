@@ -8,10 +8,6 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
 import { Alert } from 'react-native';
-import {
-  IMPORT_WALLET_PRIVATE_KEY_URL,
-  IMPORT_WALLET_GUIDE_URL,
-} from '../../../constants/urls';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -166,7 +162,7 @@ describe('ImportPrivateKey', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: IMPORT_WALLET_PRIVATE_KEY_URL,
+        url: 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
         title: strings('drawer.metamask_support'),
       },
     });
@@ -187,7 +183,7 @@ describe('ImportPrivateKey', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: IMPORT_WALLET_GUIDE_URL,
+        url: 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
         title: strings('drawer.metamask_support'),
       },
     });

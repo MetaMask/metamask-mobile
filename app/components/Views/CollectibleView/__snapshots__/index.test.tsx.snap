@@ -84,7 +84,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "Geist-SemiBold",
+                        "fontFamily": "Geist-Bold",
                       },
                       undefined,
                       undefined,
@@ -304,7 +304,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "Geist-SemiBold",
+                        "fontFamily": "Geist-Bold",
                       },
                       undefined,
                       {
@@ -440,7 +440,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist-SemiBold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 15,
             "marginLeft": 8,
           }

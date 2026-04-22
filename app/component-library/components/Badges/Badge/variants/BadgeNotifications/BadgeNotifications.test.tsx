@@ -18,6 +18,6 @@ describe('BadgeNotifications', () => {
         iconName={TEST_NOTIFICATIONS_ICON_NAME}
       />,
     );
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

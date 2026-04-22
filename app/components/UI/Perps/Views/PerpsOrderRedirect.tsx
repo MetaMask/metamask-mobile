@@ -20,7 +20,6 @@ import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS, PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 
@@ -40,8 +39,12 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 const PerpsOrderRedirect: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteParams>();
-  const { direction, asset, fromTokenDetails, transactionActiveAbTests } =
-    route.params;
+  const {
+    direction,
+    asset,
+    fromTokenDetails,
+    assetsASSETS2493AbtestTokenDetailsLayout,
+  } = route.params;
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
@@ -60,12 +63,8 @@ const PerpsOrderRedirect: React.FC = () => {
       asset,
     });
 
-    const runDepositFlow = async (): Promise<void> => {
-      try {
-        await withPendingTransactionActiveAbTests(
-          transactionActiveAbTests,
-          async () => depositWithOrder(),
-        );
+    depositWithOrder()
+      .then(() => {
         Logger.log(
           '[PerpsOrderRedirect] depositWithOrder resolved, navigating to confirmation',
         );
@@ -77,13 +76,15 @@ const PerpsOrderRedirect: React.FC = () => {
               direction,
               asset,
               fromTokenDetails,
+              assetsASSETS2493AbtestTokenDetailsLayout,
               source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
           ),
         );
-      } catch (error: unknown) {
+      })
+      .catch((error: unknown) => {
         const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
         Logger.error(err, {
           tags: { feature: PERPS_CONSTANTS.FeatureName },
@@ -94,22 +95,14 @@ const PerpsOrderRedirect: React.FC = () => {
         );
         // Go back to token details on failure
         navigation.goBack();
-      }
-    };
-
-    runDepositFlow().catch((error: unknown) => {
-      Logger.error(ensureError(error, 'PerpsOrderRedirect.runDepositFlow'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
-        context: { name: 'PerpsOrderRedirect.runDepositFlow', data: {} },
       });
-    });
   }, [
     isConnected,
     isInitialized,
     direction,
     asset,
     fromTokenDetails,
-    transactionActiveAbTests,
+    assetsASSETS2493AbtestTokenDetailsLayout,
     depositWithOrder,
     navigation,
     showToast,

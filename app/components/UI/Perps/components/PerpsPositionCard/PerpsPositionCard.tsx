@@ -612,7 +612,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             color={TextColor.Default}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
-            testID={PerpsPositionCardSelectorsIDs.ENTRY_VALUE}
           >
             {formatPerpsFiat(position.entryPrice, {
               ranges: PRICE_RANGES_UNIVERSAL,
@@ -633,7 +632,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               color={TextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
-              testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
             >
               {position.liquidationPrice !== undefined &&
               position.liquidationPrice !== null
@@ -673,7 +671,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             color={privacyMode ? TextColor.Default : fundingColor}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
-            testID={PerpsPositionCardSelectorsIDs.FUNDING_PAYMENTS_VALUE}
           >
             {fundingDisplay}
           </SensitiveText>

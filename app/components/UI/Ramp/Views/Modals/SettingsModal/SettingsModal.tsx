@@ -6,11 +6,10 @@ import React, {
   useEffect,
 } from 'react';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import {
-  BottomSheet,
-  type BottomSheetRef,
-  IconName,
-} from '@metamask/design-system-react-native';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import { IconName } from '@metamask/design-system-react-native';
 import {
   IconName as ComponentLibraryIconName,
   IconColor as ComponentLibraryIconColor,
@@ -26,7 +25,7 @@ import {
 import Logger from '../../../../../../util/Logger';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import MenuItem from '../../../components/MenuItem';
-import { useRampsProviders } from '../../../hooks/useRampsProviders';
+import { useRampsController } from '../../../hooks/useRampsController';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
@@ -54,7 +53,7 @@ function SettingsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
-  const { selectedProvider, setSelectedProvider } = useRampsProviders();
+  const { selectedProvider, setSelectedProvider } = useRampsController();
 
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
@@ -132,8 +131,8 @@ function SettingsModal() {
         await InAppBrowser.open(supportUrl);
       } else {
         // Navigate without closing the sheet first. If we called onCloseBottomSheet() here,
-        // goBack would run after the close animation and pop the Webview screen off the
-        // stack instead of the modal.
+        // shouldNavigateBack would fire goBack() after the close animation and pop the
+        // Webview screen off the stack instead of the modal.
         navigation.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url: supportUrl },
@@ -196,7 +195,7 @@ function SettingsModal() {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
       <HeaderCompactStandard
         title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
         onClose={handleClosePress}

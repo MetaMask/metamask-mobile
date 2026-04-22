@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { SectionList, View } from 'react-native';
+import React from 'react';
+import { FlatList, View } from 'react-native';
 import {
   useAccountProps,
   useNotificationAccountListProps,
@@ -15,63 +15,43 @@ export const AccountsList = () => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 
-  const { accountAvatarType, accountWalletGroups } = useAccountProps();
+  const { accountAvatarType, firstHDWalletGroups } = useAccountProps();
   const {
-    shouldDisableSwitches,
+    isAnyAccountLoading,
     isAccountLoading,
     isAccountEnabled,
     refetchAccountSettings,
     getEvmAddress,
   } = useNotificationAccountListProps();
 
-  const sections = useMemo(
-    () =>
-      accountWalletGroups.map((walletGroup) => ({
-        key: walletGroup.wallet.id,
-        title: walletGroup.title,
-        data: walletGroup.data,
-      })),
-    [accountWalletGroups],
-  );
-
-  if (accountWalletGroups.length === 0) {
+  if (!firstHDWalletGroups) {
     return null;
   }
 
   return (
     <View>
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id}
-        stickySectionHeadersEnabled={false}
-        renderSectionHeader={({ section }) => (
-          <AccountListHeader
-            title={section.title}
-            containerStyle={styles.accountHeader}
+      <AccountListHeader
+        title={firstHDWalletGroups.title}
+        containerStyle={styles.accountHeader}
+      />
+      <FlatList
+        data={firstHDWalletGroups.data}
+        keyExtractor={(item) => `address-${item.id}`}
+        renderItem={({ item }) => (
+          <NotificationOptionToggle
+            key={item.id}
+            item={item}
+            evmAddress={getEvmAddress(item.accounts)}
+            icon={accountAvatarType}
+            disabledSwitch={isAnyAccountLoading}
+            isLoading={isAccountLoading(item.accounts)}
+            isEnabled={isAccountEnabled(item.accounts)}
+            refetchNotificationAccounts={refetchAccountSettings}
+            testID={NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+              getEvmAddress(item.accounts) ?? '',
+            )}
           />
         )}
-        renderItem={({ item }) => {
-          const evmAddress = getEvmAddress(item.accounts);
-          if (!evmAddress) {
-            return null;
-          }
-
-          return (
-            <NotificationOptionToggle
-              key={item.id}
-              item={item}
-              evmAddress={evmAddress}
-              icon={accountAvatarType}
-              disabledSwitch={shouldDisableSwitches}
-              isLoading={isAccountLoading(item.accounts)}
-              isEnabled={isAccountEnabled(item.accounts)}
-              refetchNotificationAccounts={refetchAccountSettings}
-              testID={NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-                evmAddress,
-              )}
-            />
-          );
-        }}
       />
     </View>
   );

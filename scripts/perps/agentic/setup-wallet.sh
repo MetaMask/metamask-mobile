@@ -35,7 +35,6 @@ fi
 PORT="${WATCHER_PORT:-8081}"
 SCRIPTS="$(dirname "$0")"
 export CDP_TIMEOUT="${CDP_TIMEOUT:-30000}"
-export CDP_DISCOVERY_RETRIES="${CDP_DISCOVERY_RETRIES:-3}"
 CDP="node $SCRIPTS/cdp-bridge.js"
 FIXTURE_PATH=""
 

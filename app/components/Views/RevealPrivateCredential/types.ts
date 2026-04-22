@@ -14,7 +14,11 @@ export type RevealPrivateCredentialRouteProp = RouteProp<
 >;
 
 export interface IRevealPrivateCredentialProps {
-  cancel?: () => void;
+  /** When omitted or null, e.g. outside NavigationContainer, "Learn more" nav is a no-op. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  navigation?: any;
+  cancel: () => void;
+  route: RevealPrivateCredentialRouteProp;
   showCancelButton?: boolean;
 }
 

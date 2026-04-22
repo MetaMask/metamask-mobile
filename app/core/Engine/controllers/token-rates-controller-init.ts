@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   TokenRatesController,
   type TokenRatesControllerMessenger,
@@ -12,7 +12,7 @@ import { Duration, inMilliseconds } from '@metamask/utils';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokenRatesControllerInit: MessengerClientInitFunction<
+export const tokenRatesControllerInit: ControllerInitFunction<
   TokenRatesController,
   TokenRatesControllerMessenger
 > = ({ controllerMessenger, persistedState, codefiTokenApiV2 }) => {

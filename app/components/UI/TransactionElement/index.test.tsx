@@ -2,7 +2,7 @@ import React from 'react';
 import TransactionElement from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import {
   TransactionType,
   WalletDevice,
@@ -106,8 +106,8 @@ describe('TransactionElement', () => {
     jest.useRealTimers();
   });
 
-  it('renders correctly', async () => {
-    renderWithProvider(
+  it('renders correctly', () => {
+    const component = renderWithProvider(
       <Provider store={store}>
         <TransactionElement
           tx={{
@@ -126,9 +126,7 @@ describe('TransactionElement', () => {
         />
       </Provider>,
     );
-    await waitFor(() => {
-      expect(screen.getByText('Test Action')).toBeOnTheScreen();
-    });
+    expect(component).toMatchSnapshot();
   });
 
   describe('MUSD conversion navigation', () => {
@@ -181,7 +179,7 @@ describe('TransactionElement', () => {
   });
 
   describe('renderTxTime - "from this device" label', () => {
-    it('renders "from this device" label with nonce when nonce exists', async () => {
+    it('renders "from this device" label with nonce when nonce exists', () => {
       const txWithNonce = {
         id: 'tx-with-nonce-123',
         chainId: '0x1',
@@ -195,7 +193,7 @@ describe('TransactionElement', () => {
         },
       };
 
-      renderWithProvider(
+      const component = renderWithProvider(
         <Provider store={store}>
           <TransactionElement
             tx={txWithNonce}
@@ -205,12 +203,10 @@ describe('TransactionElement', () => {
         </Provider>,
       );
 
-      await waitFor(() => {
-        expect(screen.getByText(/from this device/i)).toBeOnTheScreen();
-      });
+      expect(component).toMatchSnapshot();
     });
 
-    it('renders "from this device" label without nonce for EIP-7702 transactions', async () => {
+    it('renders "from this device" label without nonce for EIP-7702 transactions', () => {
       const eip7702Tx = {
         id: 'eip7702-tx-123',
         chainId: '0x1',
@@ -224,7 +220,7 @@ describe('TransactionElement', () => {
         },
       };
 
-      renderWithProvider(
+      const component = renderWithProvider(
         <Provider store={store}>
           <TransactionElement
             tx={eip7702Tx}
@@ -234,14 +230,11 @@ describe('TransactionElement', () => {
         </Provider>,
       );
 
-      // The component should render "from this device" without "#NaN"
-      await waitFor(() => {
-        expect(screen.getByText(/from this device/i)).toBeOnTheScreen();
-        expect(screen.queryByText(/#NaN/)).not.toBeOnTheScreen();
-      });
+      // The component should render without "#NaN"
+      expect(component).toMatchSnapshot();
     });
 
-    it('renders date only when deviceConfirmedOn is not MM_MOBILE', async () => {
+    it('renders date only when deviceConfirmedOn is not MM_MOBILE', () => {
       const txWithoutDevice = {
         id: 'tx-without-device-123',
         chainId: '0x1',
@@ -255,7 +248,7 @@ describe('TransactionElement', () => {
         },
       };
 
-      renderWithProvider(
+      const component = renderWithProvider(
         <Provider store={store}>
           <TransactionElement
             tx={txWithoutDevice}
@@ -265,10 +258,7 @@ describe('TransactionElement', () => {
         </Provider>,
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Action')).toBeOnTheScreen();
-      });
-      expect(screen.queryByText(/from this device/i)).not.toBeOnTheScreen();
+      expect(component).toMatchSnapshot();
     });
   });
 
@@ -300,8 +290,8 @@ describe('TransactionElement', () => {
         expect(getByText('Test Action')).toBeTruthy();
       });
 
-      expect(queryByText('Speed up')).not.toBeOnTheScreen();
-      expect(queryByText('Cancel')).not.toBeOnTheScreen();
+      expect(queryByText('Speed up')).toBeNull();
+      expect(queryByText('Cancel')).toBeNull();
     });
 
     it('renders Speed up and Cancel when status is submitted and selectedGasFeeToken is not set', async () => {

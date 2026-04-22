@@ -230,13 +230,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                   >
                     {strings('perps.flip_position.est_size')}
                   </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
-                    testID={
-                      PerpsFlipPositionConfirmSheetSelectorsIDs.EST_SIZE_VALUE
-                    }
-                  >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {positionSize} {getPerpsDisplaySymbol(position.symbol)}
                   </Text>
                 </View>
@@ -257,7 +251,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                         ranges: PRICE_RANGES_MINIMAL_VIEW,
                       })
                 }
-                testID={PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_VALUE}
                 variant={TextVariant.BodyMD}
               />
             </View>

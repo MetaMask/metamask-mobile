@@ -37,7 +37,12 @@ import {
   logIn,
   passwordSet,
 } from '../../actions/user';
-import { clearOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+  clearSeedlessOnboarding,
+  setPendingSocialLoginMarketingConsentBackfill,
+} from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -3910,7 +3915,16 @@ describe('Authentication', () => {
       );
       expect(createDataDeletionTaskMock).toHaveBeenCalledTimes(1);
       expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
-      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearOnboarding());
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setCompletedOnboarding(false),
+      );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        clearSeedlessOnboarding(),
+      );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setPendingSocialLoginMarketingConsentBackfill(null),
+      );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });

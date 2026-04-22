@@ -18,9 +18,3 @@ export const selectPendingSocialLoginMarketingConsentBackfill = createSelector(
   (onboardingState) =>
     onboardingState?.pendingSocialLoginMarketingConsentBackfill ?? null,
 );
-
-export const selectOnboardingIosGoogleWarningSheetLastDismissedAt =
-  createSelector(
-    selectOnboarding,
-    (onboardingState) => onboardingState.iosGoogleWarningSheetLastDismissedAt,
-  );

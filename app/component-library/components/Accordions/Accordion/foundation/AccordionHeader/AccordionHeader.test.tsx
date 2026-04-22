@@ -14,18 +14,18 @@ import {
   SAMPLE_ACCORDIONHEADER_TITLE,
 } from './AccordionHeader.constants';
 
-describe('AccordionHeader - Rendering', () => {
+describe('AccordionHeader - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render a rotated down Arrow if isExpanded is true', () => {
     const wrapper = shallow(
       <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} isExpanded />,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 });
 

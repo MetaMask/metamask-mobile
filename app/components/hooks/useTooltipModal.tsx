@@ -11,8 +11,6 @@ const useTooltipModal = () => {
       tooltip: string | ReactNode,
       footerText?: string,
       buttonText?: string,
-      onButtonPress?: () => void,
-      dismissOnButtonPress?: boolean,
     ) =>
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.TOOLTIP_MODAL,
@@ -21,8 +19,6 @@ const useTooltipModal = () => {
           tooltip,
           footerText,
           buttonText,
-          onButtonPress,
-          dismissOnButtonPress,
         },
       }),
     [navigate],

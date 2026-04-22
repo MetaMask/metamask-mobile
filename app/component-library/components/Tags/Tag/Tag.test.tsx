@@ -8,6 +8,6 @@ import Tag from './Tag';
 describe('Tag', () => {
   it('should render correctly', () => {
     const { toJSON } = render(<Tag label={'Imported'} />);
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

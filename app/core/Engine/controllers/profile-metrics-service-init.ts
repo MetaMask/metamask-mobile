@@ -2,7 +2,7 @@ import {
   ProfileMetricsService,
   ProfileMetricsServiceMessenger,
 } from '@metamask/profile-metrics-controller';
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import { SDK } from '@metamask/profile-sync-controller';
 
 /**
@@ -12,7 +12,7 @@ import { SDK } from '@metamask/profile-sync-controller';
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized controller.
  */
-export const profileMetricsServiceInit: MessengerClientInitFunction<
+export const profileMetricsServiceInit: ControllerInitFunction<
   ProfileMetricsService,
   ProfileMetricsServiceMessenger
 > = ({ controllerMessenger }) => {

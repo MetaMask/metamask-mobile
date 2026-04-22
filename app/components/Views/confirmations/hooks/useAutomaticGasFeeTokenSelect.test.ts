@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import { GasFeeToken, TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { act } from '@testing-library/react';
@@ -20,13 +19,6 @@ jest.mock('./useHasInsufficientBalance');
 jest.mock('../../../../util/transaction-controller');
 jest.mock('./gas/useIsGaslessSupported');
 
-const mockSetConfirmationMetric = jest.fn();
-jest.mock('./metrics/useConfirmationMetricEvents', () => ({
-  useConfirmationMetricEvents: () => ({
-    setConfirmationMetric: mockSetConfirmationMetric,
-  }),
-}));
-
 const FROM_MOCK = '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc';
 export const GAS_FEE_TOKEN_MOCK: GasFeeToken = {
   amount: toHex(1000),
@@ -45,12 +37,7 @@ export const GAS_FEE_TOKEN_MOCK: GasFeeToken = {
 function getState({
   gasFeeTokens,
   selectedGasFeeToken,
-  excludeNativeTokenForFee,
-}: {
-  gasFeeTokens?: GasFeeToken[];
-  selectedGasFeeToken?: Hex;
-  excludeNativeTokenForFee?: Boolean;
-} = {}): {
+}: { gasFeeTokens?: GasFeeToken[]; selectedGasFeeToken?: Hex } = {}): {
   state: ProviderValues['state'];
 } {
   const state = merge({}, contractDeploymentTransactionStateMock, {
@@ -63,7 +50,6 @@ function getState({
               address: FROM_MOCK,
               gasFeeTokens: gasFeeTokens ?? [GAS_FEE_TOKEN_MOCK],
               selectedGasFeeToken,
-              excludeNativeTokenForFee,
             },
           ],
         },
@@ -86,17 +72,11 @@ function getState({
 function runHook({
   gasFeeTokens,
   selectedGasFeeToken,
-  excludeNativeTokenForFee,
 }: {
   gasFeeTokens?: GasFeeToken[];
   selectedGasFeeToken?: Hex;
-  excludeNativeTokenForFee?: Boolean;
 } = {}) {
-  const { state } = getState({
-    gasFeeTokens,
-    selectedGasFeeToken,
-    excludeNativeTokenForFee,
-  });
+  const { state } = getState({ gasFeeTokens, selectedGasFeeToken });
 
   const result = renderHookWithProvider(useAutomaticGasFeeTokenSelect, {
     state,
@@ -136,54 +116,16 @@ describe('useAutomaticGasFeeTokenSelect', () => {
       expect.any(String),
       GAS_FEE_TOKEN_MOCK.tokenAddress,
     );
-    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-      properties: {
-        gas_payment_token_default: true,
-        gas_payment_token_default_symbol: GAS_FEE_TOKEN_MOCK.symbol,
-      },
-    });
   });
 
   it('does not select first gas fee token if gas fee token already selected', () => {
     runHook({ selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress });
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
-    expect(mockSetConfirmationMetric).not.toHaveBeenCalled();
-  });
-
-  it('selects first gas fee token if gas fee token already selected but doesnt correspond to any gasFeeTokens (only if `excludeNativeTokenForFee` is set', () => {
-    runHook({
-      selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-      gasFeeTokens: [
-        {
-          // When a gasFeeToken is available but is not the same as `selectedGasFeeToken`.
-          tokenAddress: NATIVE_TOKEN_ADDRESS,
-        } as unknown as GasFeeToken,
-        {
-          // When a gasFeeToken is available but is not the same as `selectedGasFeeToken`.
-          tokenAddress: '0x9876543210000000000000000000000000000000',
-        } as unknown as GasFeeToken,
-      ],
-      excludeNativeTokenForFee: true,
-    });
-    expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(1);
-    expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledWith(
-      expect.any(String),
-      '0x9876543210000000000000000000000000000000',
-    );
-    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-      properties: {
-        gas_payment_token_default: true,
-        gas_payment_token_default_symbol: undefined,
-      },
-    });
   });
 
   it('does not select first gas fee token if no gas fee tokens', () => {
     runHook({ gasFeeTokens: [] });
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
-    expect(mockSetConfirmationMetric).not.toHaveBeenCalled();
   });
 
   it('does not select first gas fee token if not first load', () => {
@@ -201,7 +143,6 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     rerender({});
 
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
-    expect(mockSetConfirmationMetric).not.toHaveBeenCalled();
   });
 
   it('does not select first gas fee token if gasless not supported', () => {
@@ -214,13 +155,11 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     runHook();
 
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
-    expect(mockSetConfirmationMetric).not.toHaveBeenCalled();
   });
 
   it('does not select first gas fee token if sufficient balance', () => {
     runHook();
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
-    expect(mockSetConfirmationMetric).not.toHaveBeenCalled();
   });
 
   it('does not select first gas fee token after firstCheck is set to false', () => {
@@ -237,13 +176,11 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     });
     rerender({});
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(1); // Only first run
-    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1); // Only first run
   });
 
   it('does not select if gasFeeTokens is falsy', () => {
     runHook({ gasFeeTokens: [] });
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
-    expect(mockSetConfirmationMetric).not.toHaveBeenCalled();
   });
 
   it('does not select first gas fee token if 7702 and future native token', () => {
@@ -263,7 +200,6 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     });
 
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
-    expect(mockSetConfirmationMetric).not.toHaveBeenCalled();
   });
 
   it('selects second gas fee token if 7702 and future native token', () => {
@@ -287,12 +223,5 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     });
 
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(1);
-    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-      properties: {
-        gas_payment_token_default: true,
-        gas_payment_token_default_symbol: GAS_FEE_TOKEN_MOCK.symbol,
-      },
-    });
   });
 });

@@ -7,14 +7,24 @@ import {
 } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { CardSDKProvider, useCardSDK, ICardSDK } from './index';
+import {
+  CardSDKProvider,
+  useCardSDK,
+  ICardSDK,
+  CardVerification,
+} from './index';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
   SupportedToken,
   selectCardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { selectOnboardingId } from '../../../../core/redux/slices/card';
+import {
+  selectUserCardLocation,
+  selectOnboardingId,
+} from '../../../../core/redux/slices/card';
+import { useCardholderCheck } from '../hooks/useCardholderCheck';
+import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
 import {
   getCardBaanxToken,
   storeCardBaanxToken,
@@ -24,23 +34,10 @@ import Logger from '../../../../util/Logger';
 import { View } from 'react-native';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
-import { selectCardUserLocation } from '../../../../selectors/cardController';
-import Engine from '../../../../core/Engine';
-
-jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      CardController: {
-        setUserLocation: jest.fn(),
-        logout: jest.fn().mockResolvedValue(undefined),
-      },
-    },
-  },
-}));
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
+    isCardEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getSupportedTokensAllowances: jest.fn(),
@@ -52,18 +49,23 @@ jest.mock('./CardSDK', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
   selectCardFeatureFlag: jest.fn(),
+  selectCardExperimentalSwitch: jest.fn(() => false),
+  selectCardSupportedCountries: jest.fn(() => []),
+  selectDisplayCardButtonFeatureFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({
+  setIsAuthenticatedCard: jest.fn(),
+  selectUserCardLocation: jest.fn(),
+  setUserCardLocation: jest.fn(),
   setContactVerificationId: jest.fn(),
   selectOnboardingId: jest.fn(),
   resetOnboardingState: jest.fn(() => ({
     type: 'card/resetOnboardingState',
   })),
-}));
-
-jest.mock('../../../../selectors/cardController', () => ({
-  selectCardUserLocation: jest.fn(),
+  resetAuthenticatedData: jest.fn(() => ({
+    type: 'card/resetAuthenticatedData',
+  })),
 }));
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
@@ -77,6 +79,14 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
   useDispatch: jest.fn(() => mockDispatch),
+}));
+
+jest.mock('../hooks/useCardholderCheck', () => ({
+  useCardholderCheck: jest.fn(),
+}));
+
+jest.mock('../hooks/useCardAuthenticationVerification', () => ({
+  useCardAuthenticationVerification: jest.fn(),
 }));
 
 jest.mock('../util/cardTokenVault', () => ({
@@ -98,7 +108,11 @@ describe('CardSDK Context', () => {
   const MockedCardholderSDK = jest.mocked(CardSDK);
   const mockUseSelector = jest.mocked(useSelector);
   const mockSelectCardFeatureFlag = jest.mocked(selectCardFeatureFlag);
-  const mockSelectCardUserLocation = jest.mocked(selectCardUserLocation);
+  const mockSelectUserCardLocation = jest.mocked(selectUserCardLocation);
+  const mockUseCardholderCheck = jest.mocked(useCardholderCheck);
+  const mockUseCardAuthenticationVerification = jest.mocked(
+    useCardAuthenticationVerification,
+  );
   const mockGetCardBaanxToken = jest.mocked(getCardBaanxToken);
   const mockStoreCardBaanxToken = jest.mocked(storeCardBaanxToken);
   const mockRemoveCardBaanxToken = jest.mocked(removeCardBaanxToken);
@@ -139,11 +153,11 @@ describe('CardSDK Context', () => {
       if (selector === mockSelectCardFeatureFlag) {
         return featureFlag;
       }
+      if (selector === mockSelectUserCardLocation) {
+        return userCardLocation;
+      }
       if (selector === mockSelectOnboardingId) {
         return onboardingId;
-      }
-      if (selector === mockSelectCardUserLocation) {
-        return userCardLocation;
       }
       return null;
     });
@@ -153,6 +167,7 @@ describe('CardSDK Context', () => {
   const createMockSDK = (
     overrides: Partial<CardSDK> = {},
   ): Partial<CardSDK> => ({
+    isCardEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getSupportedTokensAllowances: jest.fn(),
@@ -189,6 +204,8 @@ describe('CardSDK Context', () => {
     MockedCardholderSDK.mockClear();
     mockSelectCardFeatureFlag.mockClear();
     mockUseSelector.mockClear();
+    mockUseCardholderCheck.mockClear();
+    mockUseCardAuthenticationVerification.mockClear();
     mockGetCardBaanxToken.mockClear();
     mockStoreCardBaanxToken.mockClear();
     mockRemoveCardBaanxToken.mockClear();
@@ -223,7 +240,7 @@ describe('CardSDK Context', () => {
       // Then: SDK should be created with feature flag
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
-        userCardLocation: 'international',
+        userCardLocation: null,
       });
     });
 
@@ -366,11 +383,9 @@ describe('CardSDK Context', () => {
   describe('Logout Functionality', () => {
     it('logs out user successfully', async () => {
       // Given: SDK available
-      setupMockSDK();
+      const mockLogout = jest.fn().mockResolvedValue(undefined);
+      setupMockSDK({ logout: mockLogout });
       setupMockUseSelector(mockCardFeatureFlag);
-      const mockControllerLogout = Engine.context.CardController
-        .logout as jest.Mock;
-      mockControllerLogout.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useCardSDK(), {
         wrapper: createWrapper,
@@ -385,9 +400,33 @@ describe('CardSDK Context', () => {
         await result.current.logoutFromProvider();
       });
 
-      // Then: CardController.logout should be called and Redux actions dispatched
-      expect(mockControllerLogout).toHaveBeenCalled();
+      // Then: SDK logout should be called and Redux actions dispatched
+      expect(mockLogout).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('dispatches resetAuthenticatedData action on logout', async () => {
+      // Given: SDK available
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // When: user logs out
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: should dispatch resetAuthenticatedData
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+      );
     });
 
     it('dispatches resetOnboardingState action on logout', async () => {
@@ -414,12 +453,9 @@ describe('CardSDK Context', () => {
       );
     });
 
-    it('completes logout successfully even when SDK is unavailable', async () => {
-      // Given: no SDK (feature flag null → sdk = null)
+    it('throws error when SDK is unavailable for logout', async () => {
+      // Given: no SDK available
       setupMockUseSelector(null);
-      const mockControllerLogout = Engine.context.CardController
-        .logout as jest.Mock;
-      mockControllerLogout.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useCardSDK(), {
         wrapper: createWrapper,
@@ -430,20 +466,18 @@ describe('CardSDK Context', () => {
       });
 
       // When: attempting logout
-      // Then: should complete without throwing and dispatch cleanup actions
-      await act(async () => {
-        await result.current.logoutFromProvider();
-      });
-
-      expect(mockControllerLogout).toHaveBeenCalled();
+      // Then: should throw error
+      await expect(result.current.logoutFromProvider()).rejects.toThrow(
+        'SDK not available for logout',
+      );
     });
 
-    it('clears Redux state even when CardController.logout() fails', async () => {
-      // Given: CardController.logout fails
-      const mockControllerLogout = Engine.context.CardController
-        .logout as jest.Mock;
-      mockControllerLogout.mockRejectedValue(new Error('Server logout failed'));
-      setupMockSDK();
+    it('clears Redux state even when sdk.logout() fails', async () => {
+      // Given: SDK logout fails
+      const mockLogout = jest
+        .fn()
+        .mockRejectedValue(new Error('Server logout failed'));
+      setupMockSDK({ logout: mockLogout });
       setupMockUseSelector(mockCardFeatureFlag);
 
       const { result } = renderHook(() => useCardSDK(), {
@@ -454,24 +488,27 @@ describe('CardSDK Context', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // When: user logs out (even though controller fails)
+      // When: user logs out (even though server fails)
       await act(async () => {
         await result.current.logoutFromProvider();
       });
 
       // Then: Redux state should still be cleared
-      expect(mockControllerLogout).toHaveBeenCalled();
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+      );
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'card/resetOnboardingState' }),
       );
     });
 
-    it('clears user state even when CardController.logout() fails', async () => {
-      // Given: controller logout fails and user is set
-      const mockControllerLogout = Engine.context.CardController
-        .logout as jest.Mock;
-      mockControllerLogout.mockRejectedValue(new Error('Network error'));
-      setupMockSDK();
+    it('clears user state even when sdk.logout() fails', async () => {
+      // Given: SDK logout fails and user is set
+      const mockLogout = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+      setupMockSDK({ logout: mockLogout });
       setupMockUseSelector(mockCardFeatureFlag);
 
       const mockUser: UserResponse = {
@@ -549,6 +586,32 @@ describe('CardSDK Context', () => {
       });
 
       expect(result.current.sdk).toBeNull();
+    });
+  });
+
+  describe('CardVerification', () => {
+    it('calls useCardholderCheck hook', () => {
+      // When: component renders
+      render(<CardVerification />);
+
+      // Then: should call cardholder check
+      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls useCardAuthenticationVerification hook', () => {
+      // When: component renders
+      render(<CardVerification />);
+
+      // Then: should call authentication verification
+      expect(mockUseCardAuthenticationVerification).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders nothing', () => {
+      // When: component renders
+      const { toJSON } = render(<CardVerification />);
+
+      // Then: should return null
+      expect(toJSON()).toBeNull();
     });
   });
 
@@ -736,60 +799,8 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        'international',
+        null,
       );
-    });
-
-    it('calls setUserLocation when countryOfResidence is provided', async () => {
-      const userWithCountry: UserResponse = {
-        ...mockUserResponse,
-        countryOfResidence: 'US',
-      };
-      const mockGetRegistrationStatus = jest
-        .fn()
-        .mockResolvedValue(userWithCountry);
-      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
-      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
-
-      const mockSetUserLocation = Engine.context.CardController
-        .setUserLocation as jest.Mock;
-      mockSetUserLocation.mockClear();
-
-      const { result } = renderHook(() => useCardSDK(), {
-        wrapper: createWrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.user).toEqual(userWithCountry);
-      });
-
-      expect(mockSetUserLocation).toHaveBeenCalledWith('us');
-    });
-
-    it('does not call setUserLocation when countryOfResidence is null', async () => {
-      const userWithoutCountry: UserResponse = {
-        ...mockUserResponse,
-        countryOfResidence: null,
-      };
-      const mockGetRegistrationStatus = jest
-        .fn()
-        .mockResolvedValue(userWithoutCountry);
-      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
-      setupMockUseSelector(mockCardFeatureFlag, 'us', 'test-onboarding-id');
-
-      const mockSetUserLocation = Engine.context.CardController
-        .setUserLocation as jest.Mock;
-      mockSetUserLocation.mockClear();
-
-      const { result } = renderHook(() => useCardSDK(), {
-        wrapper: createWrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.user).toEqual(userWithoutCountry);
-      });
-
-      expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 
     it('does not fetch user data when SDK is not available', async () => {
@@ -854,7 +865,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        'international',
+        null,
       );
       expect(result.current.user).toBe(null);
     });
@@ -881,7 +892,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        'international',
+        null,
       );
       expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
       expect(mockDispatch).toHaveBeenCalledWith({
@@ -915,7 +926,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        'international',
+        null,
       );
       expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
       // Verify resetOnboardingState was NOT dispatched
@@ -988,7 +999,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'existing-onboarding-id',
-        'international',
+        null,
       );
     });
 
@@ -1015,7 +1026,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        'international',
+        null,
       );
       expect(result.current.user).toEqual(mockUserResponse);
     });

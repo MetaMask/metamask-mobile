@@ -54,26 +54,6 @@ describe('useFeeCalculations', () => {
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
-  it('returns zero fee when gas is sponsored', () => {
-    const { result } = renderHookWithProvider(
-      () =>
-        useFeeCalculations({
-          ...transactionMeta,
-          isGasFeeSponsored: true,
-        }),
-      {
-        state: stakingDepositConfirmationState,
-      },
-    );
-    expect(result.current.estimatedFeeFiat).toBe('$0');
-    expect(result.current.estimatedFeeNative).toBe('0');
-    expect(result.current.estimatedFeeFiatPrecise).toBe('0');
-    expect(result.current.preciseNativeFeeInHex).toBe('0x0');
-    expect(result.current.maxFeeFiat).toBe('$0');
-    expect(result.current.maxFeeNative).toBe('0');
-    expect(result.current.calculateGasEstimate).toBeDefined();
-  });
-
   it('returns fee calculations but hides fiat on testnets when showFiatOnTestnets is false', () => {
     mockIsTestNet.mockReturnValue(true);
     const clonedStakingDepositConfirmationState = cloneDeep(

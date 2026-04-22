@@ -19,6 +19,7 @@ import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
+import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 
 const { InteractionManager, Alert, Linking } =
@@ -128,6 +129,13 @@ jest.mock('../../../../../../selectors/legalNotices', () => ({
   selectIsPna25Acknowledged: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../../selectors/featureFlagController/legalNotices',
+  () => ({
+    selectIsPna25FlagEnabled: jest.fn(),
+  }),
+);
+
 jest.mock('../../../../../../actions/legalNotices', () => ({
   storePna25Acknowledged: jest.fn(() => ({ type: 'STORE_PNA25_ACKNOWLEDGED' })),
 }));
@@ -135,6 +143,11 @@ jest.mock('../../../../../../actions/legalNotices', () => ({
 const mockSelectIsPna25Acknowledged =
   selectIsPna25Acknowledged as jest.MockedFunction<
     typeof selectIsPna25Acknowledged
+  >;
+
+const mockSelectIsPna25FlagEnabled =
+  selectIsPna25FlagEnabled as jest.MockedFunction<
+    typeof selectIsPna25FlagEnabled
   >;
 
 const mockStorePna25Acknowledged =
@@ -187,14 +200,12 @@ describe('MetaMetricsAndDataCollectionSection', () => {
   });
 
   it('render matches snapshot', () => {
-    const { getByText } = renderScreen(
+    const { toJSON } = renderScreen(
       MetaMetricsAndDataCollectionSection,
       { name: 'MetaMetricsAndDataCollectionSection' },
       { state: initialStateMarketingFalse },
     );
-    expect(
-      getByText(strings('app_settings.metametrics_title')),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('MetaMetrics section', () => {
@@ -532,8 +543,9 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         });
       });
 
-      it('dispatches storePna25Acknowledged when user enables metrics', async () => {
+      it('dispatches storePna25Acknowledged when flag is enabled and user enables metrics', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
+        mockSelectIsPna25FlagEnabled.mockReturnValue(true);
         mockSelectIsPna25Acknowledged.mockReturnValue(false);
 
         const { findByTestId } = renderScreen(
@@ -553,8 +565,31 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         });
       });
 
+      it('does not dispatch storePna25Acknowledged when flag is disabled', async () => {
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
+        mockSelectIsPna25FlagEnabled.mockReturnValue(false);
+        mockSelectIsPna25Acknowledged.mockReturnValue(false);
+
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingFalse },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockStorePna25Acknowledged).not.toHaveBeenCalled();
+        });
+      });
+
       it('does not dispatch storePna25Acknowledged when already acknowledged', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
+        mockSelectIsPna25FlagEnabled.mockReturnValue(true);
         mockSelectIsPna25Acknowledged.mockReturnValue(true);
 
         const { findByTestId } = renderScreen(
@@ -576,6 +611,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
       it('does not dispatch storePna25Acknowledged when user disables metrics', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+        mockSelectIsPna25FlagEnabled.mockReturnValue(true);
         mockSelectIsPna25Acknowledged.mockReturnValue(false);
 
         const { findByTestId } = renderScreen(
@@ -829,7 +865,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             // if MetaMetrics is initially disabled, addTraitsToUser is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
             {
-              has_marketing_consent: true,
+              has_marketing_consent: 'ON',
             },
           );
           expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
@@ -888,7 +924,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockAnalytics.identify).toHaveBeenCalledTimes(1);
           expect(mockAnalytics.identify).toHaveBeenCalledWith({
-            has_marketing_consent: false,
+            has_marketing_consent: 'OFF',
           });
           expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
           expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(

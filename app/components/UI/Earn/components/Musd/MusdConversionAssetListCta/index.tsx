@@ -204,12 +204,14 @@ const MusdConversionAssetListCta = () => {
       </View>
 
       <Button
-        variant={ButtonVariant.Primary}
+        variant={ButtonVariant.Secondary}
         style={styles.button}
         onPress={() => handlePress(CTA_CLICK_TARGET.CTA_BUTTON)}
         size={ButtonSize.Sm}
       >
-        {buttonText}
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
+          {buttonText}
+        </Text>
       </Button>
     </View>
   );

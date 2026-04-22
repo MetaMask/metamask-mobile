@@ -4,14 +4,14 @@ import {
   normalizeSymbol,
   getCaipChainId,
   shouldProcessNetwork,
-  buildDelegationTokenList,
+  buildTokenListFromSettings,
   buildQuickSelectTokens,
   QUICK_SELECT_TOKENS,
   LINEA_CAIP_CHAIN_ID,
 } from './buildTokenList';
 import {
-  FundingStatus,
-  CardFundingToken,
+  AllowanceState,
+  CardTokenAllowance,
   DelegationSettingsResponse,
 } from '../types';
 
@@ -146,7 +146,7 @@ describe('buildTokenList utilities', () => {
     });
   });
 
-  describe('buildDelegationTokenList', () => {
+  describe('buildTokenListFromSettings', () => {
     const createDelegationSettings = (
       networks: DelegationSettingsResponse['networks'],
     ): DelegationSettingsResponse => ({
@@ -156,7 +156,7 @@ describe('buildTokenList utilities', () => {
     });
 
     it('returns empty array when delegationSettings is null', () => {
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings: null,
       });
 
@@ -164,7 +164,7 @@ describe('buildTokenList utilities', () => {
     });
 
     it('returns empty array when networks is undefined', () => {
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings: {
           networks: undefined,
           count: 0,
@@ -188,7 +188,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings,
       });
 
@@ -199,8 +199,8 @@ describe('buildTokenList utilities', () => {
           symbol: 'USDC',
           decimals: 6,
           caipChainId: 'eip155:59144',
-          fundingStatus: FundingStatus.NotEnabled,
-          spendableBalance: '0',
+          allowanceState: AllowanceState.NotEnabled,
+          allowance: '0',
           delegationContract: '0xDelegation',
         }),
       );
@@ -219,7 +219,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings,
       });
 
@@ -239,7 +239,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings,
       });
 
@@ -260,7 +260,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings,
       });
 
@@ -286,7 +286,7 @@ describe('buildTokenList utilities', () => {
           { symbol: 'USDC', address: '0xProductionUSDC', name: 'USD Coin' },
         ]);
 
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings,
         getSupportedTokensByChainId: mockGetSupportedTokens,
       });
@@ -308,7 +308,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings,
       });
 
@@ -328,7 +328,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings,
       });
 
@@ -357,7 +357,7 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildDelegationTokenList({
+      const result = buildTokenListFromSettings({
         delegationSettings,
       });
 
@@ -374,15 +374,15 @@ describe('buildTokenList utilities', () => {
     const createMockToken = (
       symbol: string,
       caipChainId: CaipChainId = LINEA_CAIP_CHAIN_ID,
-    ): CardFundingToken => ({
+    ): CardTokenAllowance => ({
       address: `0x${symbol}`,
       symbol,
       name: symbol,
       decimals: 18,
       caipChainId,
       walletAddress: undefined,
-      fundingStatus: FundingStatus.NotEnabled,
-      spendableBalance: '0',
+      allowanceState: AllowanceState.NotEnabled,
+      allowance: '0',
       delegationContract: '0xDelegation',
     });
 
@@ -406,7 +406,7 @@ describe('buildTokenList utilities', () => {
     });
 
     it('returns null for missing tokens', () => {
-      const allTokens: CardFundingToken[] = [];
+      const allTokens: CardTokenAllowance[] = [];
 
       const result = buildQuickSelectTokens(allTokens, null);
 

@@ -13,11 +13,11 @@ import {
 import { ButtonsAlignment } from './BottomSheetFooter.types';
 
 describe('BottomSheetFooter', () => {
-  it('renders correctly', () => {
+  it('should render snapshot correctly', () => {
     const wrapper = render(
       <BottomSheetFooter {...SAMPLE_BOTTOMSHEETFOOTER_PROPS} />,
     );
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render the correct default buttonsAlignment', () => {

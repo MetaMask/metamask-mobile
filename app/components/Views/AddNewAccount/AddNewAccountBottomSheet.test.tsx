@@ -3,6 +3,7 @@ import AddNewAccountBottomSheet from './AddNewAccountBottomSheet';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { SolScope } from '@metamask/keyring-api';
 import { renderScreen } from '../../../util/test/renderWithProvider';
+import { CaipChainId } from '@metamask/utils';
 import { RootState } from '../../../reducers';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -74,23 +75,14 @@ jest.mock('../../../core/Engine', () => {
 
 jest.mocked(Engine);
 
-let mockRouteParams: Record<string, unknown> | undefined;
-
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useRoute: () => ({
-      key: '1',
-      name: 'params',
-      params: mockRouteParams,
-    }),
+const render = (route: {
+  params: {
+    scope: CaipChainId;
+    clientType: WalletClientType;
   };
-});
-
-const renderComponent = () =>
+}) =>
   renderScreen(
-    () => <AddNewAccountBottomSheet />,
+    () => <AddNewAccountBottomSheet route={route} />,
     {
       name: 'AddNewAccountBottomSheet',
     },
@@ -99,17 +91,22 @@ const renderComponent = () =>
 
 describe('AddNewAccountBottomSheet', () => {
   it('renders correctly with default props', () => {
-    mockRouteParams = undefined;
-    const { toJSON } = renderComponent();
+    const route = { params: undefined };
+    // @ts-expect-error - params not defined for evm
+    const { toJSON } = render(route);
+
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders correctly with provided scope and clientType', () => {
-    mockRouteParams = {
-      scope: SolScope.Mainnet,
-      clientType: WalletClientType.Solana,
+    const route = {
+      params: {
+        scope: SolScope.Mainnet,
+        clientType: WalletClientType.Solana,
+      },
     };
-    const { toJSON } = renderComponent();
+    const { toJSON } = render(route);
+
     expect(toJSON()).toBeTruthy();
   });
 });

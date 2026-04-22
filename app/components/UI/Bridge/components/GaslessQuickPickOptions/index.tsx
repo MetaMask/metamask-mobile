@@ -1,18 +1,17 @@
 import React, { useCallback, useMemo } from 'react';
-import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { QuickPickButtonOption } from '../SwapsKeypad/types';
 import { QuickPickButtons } from '../SwapsKeypad/QuickPickButtons';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
-import Engine from '../../../../../core/Engine';
 import {
   NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
   NUMPAD_QUICK_ACTIONS_AB_KEY,
   NUMPAD_QUICK_ACTIONS_VARIANTS,
   NumpadQuickActionsVariant,
 } from './abTestConfig';
+import { useTrackInputAmountChange } from './useTrackInputAmountChange';
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
@@ -29,7 +28,7 @@ export const GaslessQuickPickOptions = ({
   tokenBalance,
   isQuoteSponsored,
 }: GaslessQuickPickOptionsProps) => {
-  const { variantName, isActive } = useABTest(
+  const { variantName } = useABTest(
     NUMPAD_QUICK_ACTIONS_AB_KEY,
     NUMPAD_QUICK_ACTIONS_VARIANTS,
   );
@@ -37,29 +36,7 @@ export const GaslessQuickPickOptions = ({
     variantName === NumpadQuickActionsVariant.Treatment
       ? NumpadQuickActionsVariant.Treatment
       : NumpadQuickActionsVariant.Control;
-  const trackInputAmountChange = useCallback(
-    ({ inputValue, preset }: { inputValue: string; preset?: string }) => {
-      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-        UnifiedSwapBridgeEventName.InputChanged,
-        {
-          input: 'token_amount_source',
-          input_value: inputValue,
-          ...(preset && { input_amount_preset: preset }),
-          // This Bridge-specific event bypasses the shared analytics wrappers,
-          // so its A/B context still needs to be attached manually here.
-          ...(isActive && {
-            active_ab_tests: [
-              {
-                key: NUMPAD_QUICK_ACTIONS_AB_KEY,
-                value: variantName,
-              },
-            ],
-          }),
-        },
-      );
-    },
-    [isActive, variantName],
-  );
+  const trackInputAmountChange = useTrackInputAmountChange();
 
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {

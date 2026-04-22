@@ -31,6 +31,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
+              "fontWeight": 400,
               "letterSpacing": 0,
               "lineHeight": 24,
             },
@@ -48,6 +49,7 @@ exports[`DefaultSettings should render correctly 1`] = `
                 "color": "#4459ff",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
+                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -64,51 +66,30 @@ exports[`DefaultSettings should render correctly 1`] = `
       onPress={[Function]}
     >
       <View
+        accessibilityRole="none"
+        accessible={true}
         style={
-          [
-            {
-              "display": "flex",
-            },
-            [
-              {
-                "paddingBottom": 16,
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "paddingTop": 16,
-              },
-              {
-                "backgroundColor": "#ffffff",
-                "padding": 16,
-              },
-            ],
-          ]
+          {
+            "backgroundColor": "#ffffff",
+            "padding": 16,
+          }
         }
       >
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
           }
         >
           <View
             style={
-              [
-                {
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexDirection": "column",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
+              {
+                "flex": 1,
+              }
             }
+            testID="listitemcolumn"
           >
             <Text
               accessibilityRole="text"
@@ -150,13 +131,11 @@ exports[`DefaultSettings should render correctly 1`] = `
           />
           <View
             style={
-              [
-                {
-                  "display": "flex",
-                },
-                undefined,
-              ]
+              {
+                "flex": -1,
+              }
             }
+            testID="listitemcolumn"
           >
             <SvgMock
               color="#131416"
@@ -180,51 +159,30 @@ exports[`DefaultSettings should render correctly 1`] = `
       onPress={[Function]}
     >
       <View
+        accessibilityRole="none"
+        accessible={true}
         style={
-          [
-            {
-              "display": "flex",
-            },
-            [
-              {
-                "paddingBottom": 16,
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "paddingTop": 16,
-              },
-              {
-                "backgroundColor": "#ffffff",
-                "padding": 16,
-              },
-            ],
-          ]
+          {
+            "backgroundColor": "#ffffff",
+            "padding": 16,
+          }
         }
       >
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
           }
         >
           <View
             style={
-              [
-                {
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexDirection": "column",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
+              {
+                "flex": 1,
+              }
             }
+            testID="listitemcolumn"
           >
             <Text
               accessibilityRole="text"
@@ -266,13 +224,11 @@ exports[`DefaultSettings should render correctly 1`] = `
           />
           <View
             style={
-              [
-                {
-                  "display": "flex",
-                },
-                undefined,
-              ]
+              {
+                "flex": -1,
+              }
             }
+            testID="listitemcolumn"
           >
             <SvgMock
               color="#131416"
@@ -296,51 +252,30 @@ exports[`DefaultSettings should render correctly 1`] = `
       onPress={[Function]}
     >
       <View
+        accessibilityRole="none"
+        accessible={true}
         style={
-          [
-            {
-              "display": "flex",
-            },
-            [
-              {
-                "paddingBottom": 16,
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "paddingTop": 16,
-              },
-              {
-                "backgroundColor": "#ffffff",
-                "padding": 16,
-              },
-            ],
-          ]
+          {
+            "backgroundColor": "#ffffff",
+            "padding": 16,
+          }
         }
       >
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
           }
         >
           <View
             style={
-              [
-                {
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexDirection": "column",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
+              {
+                "flex": 1,
+              }
             }
+            testID="listitemcolumn"
           >
             <Text
               accessibilityRole="text"
@@ -382,13 +317,11 @@ exports[`DefaultSettings should render correctly 1`] = `
           />
           <View
             style={
-              [
-                {
-                  "display": "flex",
-                },
-                undefined,
-              ]
+              {
+                "flex": -1,
+              }
             }
+            testID="listitemcolumn"
           >
             <SvgMock
               color="#131416"

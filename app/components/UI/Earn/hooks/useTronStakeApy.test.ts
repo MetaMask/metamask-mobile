@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { ChainId } from '@metamask/stake-sdk';
-import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
+import useTronStakeApy from './useTronStakeApy';
 import { tronStakingApiService } from '../../Stake/sdk/stakeSdkProvider';
 
 jest.mock('../../Stake/sdk/stakeSdkProvider', () => ({
@@ -195,7 +195,7 @@ describe('useTronStakeApy', () => {
     });
   });
 
-  describe.skip('loading state', () => {
+  describe('loading state', () => {
     it('sets isLoading true during fetch', async () => {
       let resolvePromise: (
         value: ReturnType<typeof createMockWitnessesResponse>,
@@ -209,7 +209,7 @@ describe('useTronStakeApy', () => {
 
       const { result } = renderHook(() => useTronStakeApy());
 
-      expect(result.current.fetchStatus).toBe(FetchStatus.Fetching);
+      expect(result.current.isLoading).toBe(true);
 
       await act(async () => {
         resolvePromise(createMockWitnessesResponse());
@@ -223,7 +223,7 @@ describe('useTronStakeApy', () => {
 
       await waitForNextUpdate();
 
-      expect(result.current.fetchStatus).toBe(FetchStatus.Fetched);
+      expect(result.current.isLoading).toBe(false);
     });
 
     it('sets isLoading false after failed fetch', async () => {
@@ -233,7 +233,7 @@ describe('useTronStakeApy', () => {
 
       await waitForNextUpdate();
 
-      expect(result.current.fetchStatus).toBe(FetchStatus.Error);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 

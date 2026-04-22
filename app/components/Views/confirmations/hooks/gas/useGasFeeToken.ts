@@ -5,6 +5,7 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
@@ -12,10 +13,11 @@ import I18n from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
 import { useFeeCalculations } from './useFeeCalculations';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
 import { useEthFiatAmount } from '../useEthFiatAmount';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useMemo } from 'react';
-import { useNativeCurrencySymbol } from '../useNativeCurrencySymbol';
 
 export const RATE_WEI_NATIVE = '0xDE0B6B3A7640000'; // 1x10^18
 
@@ -24,20 +26,14 @@ export function useGasFeeToken({ tokenAddress }: { tokenAddress?: Hex }) {
 
   const locale = I18n.locale;
   const nativeFeeToken = useNativeGasFeeToken();
-  const { gasFeeTokens, chainId, excludeNativeTokenForFee } =
-    transactionMeta || {};
+  const { gasFeeTokens, chainId } = transactionMeta || {};
 
   let gasFeeToken = gasFeeTokens?.find(
     (token) => token.tokenAddress.toLowerCase() === tokenAddress?.toLowerCase(),
   );
 
   if (!gasFeeToken) {
-    // If `excludeNativeTokenForFee` is set to true, we select any available fee token
-    // if available instead of the native token.
-    gasFeeToken =
-      excludeNativeTokenForFee && gasFeeTokens && gasFeeTokens.length > 0
-        ? gasFeeTokens[0]
-        : nativeFeeToken;
+    gasFeeToken = nativeFeeToken;
   }
 
   const {
@@ -116,8 +112,8 @@ function useNativeGasFeeToken(): GasFeeToken {
       : ({ txParams: {} } as TransactionMeta),
   );
 
-  const { nativeCurrencySymbol } = useNativeCurrencySymbol(
-    transactionMeta?.chainId,
+  const networkConfiguration = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, transactionMeta?.chainId),
   );
 
   const { balanceWeiInHex: balance } = useAccountNativeBalance(
@@ -125,6 +121,7 @@ function useNativeGasFeeToken(): GasFeeToken {
     transactionMeta?.txParams?.from as string,
   );
 
+  const { nativeCurrency } = networkConfiguration ?? {};
   const { gas, maxFeePerGas, maxPriorityFeePerGas } = txParams ?? {};
 
   return useMemo(
@@ -138,7 +135,7 @@ function useNativeGasFeeToken(): GasFeeToken {
       maxPriorityFeePerGas: maxPriorityFeePerGas as Hex,
       rateWei: RATE_WEI_NATIVE,
       recipient: NATIVE_TOKEN_ADDRESS,
-      symbol: nativeCurrencySymbol,
+      symbol: nativeCurrency,
       tokenAddress: NATIVE_TOKEN_ADDRESS,
     }),
     [
@@ -147,7 +144,7 @@ function useNativeGasFeeToken(): GasFeeToken {
       gas,
       maxFeePerGas,
       maxPriorityFeePerGas,
-      nativeCurrencySymbol,
+      nativeCurrency,
     ],
   );
 }

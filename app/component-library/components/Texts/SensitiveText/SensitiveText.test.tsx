@@ -21,7 +21,7 @@ describe('SensitiveText', () => {
 
   it('should render correctly', () => {
     const wrapper = render(<SensitiveText {...testProps} />);
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should display the text when isHidden is false', () => {

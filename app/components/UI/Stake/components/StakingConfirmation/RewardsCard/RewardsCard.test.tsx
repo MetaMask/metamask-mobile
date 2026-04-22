@@ -4,10 +4,6 @@ import RewardsCard from './RewardsCard';
 import { RewardsCardProps } from './RewardsCard.types';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
-
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 const mockNavigate = jest.fn();
 
@@ -24,7 +20,6 @@ jest.mock('@react-navigation/native', () => {
 describe('RewardsCard', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
   it('render matches snapshot', () => {

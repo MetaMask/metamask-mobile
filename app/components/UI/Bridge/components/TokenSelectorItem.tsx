@@ -35,7 +35,6 @@ import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
-import { SecurityDataType } from '../hooks/usePopularTokens';
 import { RootState } from '../../../../reducers';
 import { fontStyles } from '../../../../styles/common';
 import {
@@ -74,14 +73,13 @@ const createStyles = ({
       flex: 1,
       flexShrink: 1,
       minWidth: 0,
-      marginLeft: 12,
+      marginLeft: 8,
     },
     container: {
       backgroundColor: vars.isSelected
         ? theme.colors.primary.muted
         : theme.colors.background.default,
       paddingVertical: 4,
-      minHeight: 72,
       paddingLeft: 16,
       paddingRight: 10,
     },
@@ -97,7 +95,7 @@ const createStyles = ({
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingVertical: 12,
+      paddingVertical: 10,
       alignItems: 'flex-start',
     },
     tokenMainInfo: {
@@ -169,29 +167,6 @@ interface TokenSelectorItemProps {
 const isLoadingBalance = (balance?: string) =>
   balance === TOKEN_BALANCE_LOADING ||
   balance === TOKEN_BALANCE_LOADING_UPPERCASE;
-
-export const getSecurityTag = (securityType: SecurityDataType | undefined) => {
-  if (
-    securityType === SecurityDataType.Warning ||
-    securityType === SecurityDataType.Spam
-  ) {
-    return {
-      severity: TagSeverity.Warning,
-      label: strings('bridge.token_suspicious'),
-      iconName: IconName.Danger,
-      iconColor: IconColor.WarningDefault,
-    };
-  }
-  if (securityType === SecurityDataType.Malicious) {
-    return {
-      severity: TagSeverity.Danger,
-      label: strings('bridge.token_malicious'),
-      iconName: IconName.Warning,
-      iconColor: IconColor.ErrorDefault,
-    };
-  }
-  return null;
-};
 
 const FiatBalanceView = ({
   balance,
@@ -323,15 +298,13 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     textColor: TextColor.Default,
   };
   const bottomRowBalanceTextStyle = {
-    textVariant: TextVariant.BodySM,
+    textVariant: TextVariant.BodyMD,
     textColor: TextColor.Alternative,
   };
 
   const label = token.accountType
     ? ACCOUNT_TYPE_LABELS[token.accountType]
     : undefined;
-
-  const securityTag = getSecurityTag(token.securityData?.type);
 
   return (
     <Box
@@ -370,7 +343,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <AvatarToken
               name={token.symbol}
               imageSource={getTokenImageSource(token.symbol, token.image)}
-              size={AvatarSize.Lg}
+              size={AvatarSize.Md}
               testID={
                 isNative
                   ? `network-logo-${token.symbol}`
@@ -408,23 +381,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                       color={IconColor.InfoDefault}
                       style={styles.verifiedIcon}
                     />
-                  )}
-                  {securityTag && (
-                    <TagBase
-                      shape={TagShape.Pill}
-                      severity={securityTag.severity}
-                      startAccessory={
-                        <Icon
-                          name={securityTag.iconName}
-                          size={IconSize.Sm}
-                          color={securityTag.iconColor}
-                        />
-                      }
-                      textProps={{ variant: TextVariant.BodySM }}
-                      style={styles.verifiedIcon}
-                    >
-                      {securityTag.label}
-                    </TagBase>
                   )}
                 </Box>
                 {label && <Tag label={label} />}

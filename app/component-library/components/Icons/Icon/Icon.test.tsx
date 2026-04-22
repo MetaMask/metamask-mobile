@@ -10,7 +10,7 @@ describe('Icon', () => {
   it('renders correctly', () => {
     const wrapper = render(<Icon name={IconName.Add} />);
 
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('check icon property name', () => {
     const { getByTestId } = render(

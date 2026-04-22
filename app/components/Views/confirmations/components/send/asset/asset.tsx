@@ -205,7 +205,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           ))}
         </Box>
       )}
-      <Box twClassName="w-full px-4 pb-2">
+      <Box twClassName="w-full px-4 py-2">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}

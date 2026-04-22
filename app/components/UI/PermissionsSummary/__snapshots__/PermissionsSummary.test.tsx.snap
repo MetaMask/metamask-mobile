@@ -232,7 +232,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1053,7 +1053,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1113,7 +1113,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1367,7 +1367,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1773,7 +1773,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1833,7 +1833,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -2087,7 +2087,7 @@ exports[`PermissionsSummary should render only the account permissions card when
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -2437,7 +2437,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -2497,7 +2497,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -2654,7 +2654,7 @@ exports[`PermissionsSummary should render only the network permissions card when
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -3013,7 +3013,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -3073,7 +3073,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -3327,7 +3327,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -4148,7 +4148,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -4208,7 +4208,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -4462,7 +4462,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -5283,7 +5283,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -5343,7 +5343,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 null,
                 [
                   {
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },

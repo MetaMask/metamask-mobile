@@ -23,10 +23,5 @@
     "description": "Watchlist markets from controller state",
     "expression": "JSON.stringify(Engine.context.PerpsController.state.watchlistMarkets)",
     "async": false
-  },
-  "available-dexs": {
-    "description": "HIP-3 DEX list (validates DEX discovery cache)",
-    "expression": "Engine.context.PerpsController.getAvailableDexs().then(function(dexs){return JSON.stringify({count:dexs.length,dexs:dexs,hasMainDex:dexs.indexOf('')>=0})})",
-    "async": true
   }
 }

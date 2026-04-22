@@ -2,7 +2,7 @@ import {
   AccountTreeController,
   AccountTreeControllerMessenger,
 } from '@metamask/account-tree-controller';
-import type { MessengerClientInitFunction } from '../../../core/Engine/types';
+import type { ControllerInitFunction } from '../../../core/Engine/types';
 import { trace } from '../../../util/trace';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../core/SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -16,7 +16,7 @@ import { AccountTreeControllerInitMessenger } from '../../messengers/account-tre
  * @param request - The request object.
  * @returns The AccountTreeController.
  */
-export const accountTreeControllerInit: MessengerClientInitFunction<
+export const accountTreeControllerInit: ControllerInitFunction<
   AccountTreeController,
   AccountTreeControllerMessenger,
   AccountTreeControllerInitMessenger

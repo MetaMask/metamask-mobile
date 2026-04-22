@@ -182,7 +182,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     style={
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-SemiBold",
+                        "fontFamily": "Geist-Bold",
                         "fontSize": 20,
                         "letterSpacing": 0,
                         "lineHeight": 24,

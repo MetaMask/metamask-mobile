@@ -99,7 +99,7 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      const onClosed = async () => {
+      const onClosed = () => {
         if (
           hasTransactionType(transactionMeta, [TransactionType.musdConversion])
         ) {
@@ -123,7 +123,7 @@ export function PayWithModal() {
 
         // Ensure the token is tracked by TokensController so the pay
         // controller can resolve its metadata (symbol, decimals, balance).
-        // Must complete before setPayToken so the controller can find the token.
+        // This is needed for zero-balance tokens from the catalog.
         if (isWithdraw && token.balance === '0' && !token.isNative) {
           const { TokensController, NetworkController } = Engine.context;
           try {
@@ -131,17 +131,16 @@ export function PayWithModal() {
               NetworkController.findNetworkClientIdByChainId(
                 token.chainId as Hex,
               );
-            await TokensController.addTokens(
+            TokensController.addTokens(
               [
                 {
                   address: token.address,
                   symbol: token.symbol,
                   decimals: token.decimals,
-                  image: token.image || undefined,
                 },
               ],
               networkClientId,
-            );
+            ).catch(noop);
           } catch {
             // Network not configured — skip
           }

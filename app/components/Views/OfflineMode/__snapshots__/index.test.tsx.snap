@@ -51,7 +51,7 @@ exports[`OfflineMode should render correctly 1`] = `
             },
             undefined,
             {
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
             },
             undefined,
             undefined,
@@ -75,7 +75,7 @@ exports[`OfflineMode should render correctly 1`] = `
             undefined,
             {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "marginBottom": 10,
             },
@@ -170,7 +170,7 @@ exports[`OfflineMode should render correctly 1`] = `
               null,
               [
                 {
-                  "fontFamily": "Geist-SemiBold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 14,
                   "textAlign": "center",
                 },

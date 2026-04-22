@@ -5,19 +5,9 @@
  * Run with: yarn test:view --testPathPattern="PerpsMarketDetailsView.view.test"
  */
 import '../../../../../../tests/component-view/mocks';
-import type { ComponentType } from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import {
-  MOCK_PERPS_MARKET_INSIGHTS_REPORT,
-  OPEN_POSITION_STREAM_ITEM,
-  setupPerpsMarketInsightsEngineMock,
-} from '../../../../../../tests/component-view/fixtures/perpsMarketInsights';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
-import Routes from '../../../../../constants/navigation/Routes';
-import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
-import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
-import { analytics } from '../../../../../util/analytics/analytics';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
@@ -33,22 +23,6 @@ const CANDLE_SELECTOR_BASE =
 const MORE_CANDLE_SHEET_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet` as const;
 
-function renderEligibleNoPositionPerpsDetails(
-  params?: Partial<Parameters<typeof renderPerpsMarketDetailsView>[0]>,
-) {
-  renderPerpsMarketDetailsView({
-    streamOverrides: { positions: [] },
-    overrides: {
-      engine: {
-        backgroundState: {
-          PerpsController: { isEligible: true },
-        },
-      },
-    },
-    ...params,
-  });
-}
-
 describe('PerpsMarketDetailsView', () => {
   it('renders error state when route does not provide market params', async () => {
     renderPerpsMarketDetailsView({ initialParams: {} });
@@ -62,7 +36,16 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   it('renders long and short actions when there is no open position', async () => {
-    renderEligibleNoPositionPerpsDetails();
+    renderPerpsMarketDetailsView({
+      streamOverrides: { positions: [] },
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: { isEligible: true },
+          },
+        },
+      },
+    });
 
     expect(
       await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
@@ -240,7 +223,16 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('opens statistics tooltip and Got it dismisses it', async () => {
-      renderEligibleNoPositionPerpsDetails();
+      renderPerpsMarketDetailsView({
+        streamOverrides: { positions: [] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+      });
 
       const openInterestIcon = await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
@@ -263,7 +255,15 @@ describe('PerpsMarketDetailsView', () => {
 
   describe('Header and chart actions', () => {
     it('renders back button and fullscreen chart button', async () => {
-      renderEligibleNoPositionPerpsDetails();
+      renderPerpsMarketDetailsView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+      });
 
       expect(
         await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON),
@@ -276,7 +276,16 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('renders header and title section with market title', async () => {
-      renderEligibleNoPositionPerpsDetails();
+      renderPerpsMarketDetailsView({
+        streamOverrides: { positions: [] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+      });
 
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
@@ -325,7 +334,16 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('title section onLayout sets header height for scroll animation', async () => {
-      renderEligibleNoPositionPerpsDetails();
+      renderPerpsMarketDetailsView({
+        streamOverrides: { positions: [] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+      });
 
       const titleSectionWrapper = await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER,
@@ -341,7 +359,16 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('opens fullscreen chart modal and close button is pressable', async () => {
-      renderEligibleNoPositionPerpsDetails();
+      renderPerpsMarketDetailsView({
+        streamOverrides: { positions: [] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+      });
 
       const fullscreenButton = await screen.findByTestId(
         `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
@@ -456,173 +483,6 @@ describe('PerpsMarketDetailsView', () => {
       );
       expect(tutorialCard).toBeOnTheScreen();
       // Not pressing to avoid unhandled NAVIGATE(PerpsTutorial) in test navigator.
-    });
-
-    const renderPerpsInsightsJourney = ({
-      hasPosition,
-      insightsFlagEnabled = true,
-      report = MOCK_PERPS_MARKET_INSIGHTS_REPORT,
-    }: {
-      hasPosition: boolean;
-      insightsFlagEnabled?: boolean;
-      report?: typeof MOCK_PERPS_MARKET_INSIGHTS_REPORT | null;
-    }) => {
-      setupPerpsMarketInsightsEngineMock(report);
-      renderPerpsMarketDetailsView({
-        streamOverrides: {
-          positions: hasPosition ? [OPEN_POSITION_STREAM_ITEM] : [],
-        },
-        overrides: {
-          engine: {
-            backgroundState: {
-              PerpsController: { isEligible: true },
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  aiSocialMarketInsightsPerpsEnabled: {
-                    enabled: insightsFlagEnabled,
-                    featureVersion: '1',
-                    minimumVersion: '0.0.0',
-                  },
-                },
-              },
-            },
-          },
-        },
-        extraRoutes: [
-          {
-            name: Routes.MARKET_INSIGHTS.VIEW,
-            Component: MarketInsightsView as unknown as ComponentType<unknown>,
-            mount: 'root',
-          },
-          { name: Routes.BRIDGE.ROOT, mount: 'root' },
-          { name: Routes.RAMP.TOKEN_SELECTION, mount: 'root' },
-        ],
-      });
-    };
-
-    it('opens market insights from Perps and hides Long/Short when position is open', async () => {
-      renderPerpsInsightsJourney({ hasPosition: true });
-
-      const entryCard = await screen.findByTestId(
-        MarketInsightsSelectorsIDs.ENTRY_CARD,
-      );
-      fireEvent.press(entryCard);
-
-      expect(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
-        await screen.findByText(
-          'Ethereum shows strong momentum amid institutional demand',
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        await screen.findByText(MOCK_PERPS_MARKET_INSIGHTS_REPORT.summary),
-      ).toBeOnTheScreen();
-      expect(
-        await screen.findByText('Institutional Adoption'),
-      ).toBeOnTheScreen();
-      expect(await screen.findByText('DeFi Activity Surge')).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('shows Long/Short in market insights when there is no position', async () => {
-      renderPerpsInsightsJourney({ hasPosition: false });
-
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
-
-      expect(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render perps market insights card when feature flag is disabled', async () => {
-      renderPerpsInsightsJourney({
-        hasPosition: true,
-        insightsFlagEnabled: false,
-      });
-
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-        ).not.toBeOnTheScreen();
-      });
-    });
-
-    it('shows sources bottom sheet when tapping a trend item from Perps insights', async () => {
-      renderPerpsInsightsJourney({ hasPosition: true });
-
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
-
-      const trendItem = await screen.findByTestId(
-        `${MarketInsightsSelectorsIDs.TREND_ITEM}-0`,
-      );
-      fireEvent.press(trendItem);
-
-      expect(
-        await screen.findByText('Spot Ethereum ETFs See Record Weekly Inflows'),
-      ).toBeOnTheScreen();
-    });
-
-    it('tracks thumbs up interaction from Perps insights', async () => {
-      const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
-      try {
-        renderPerpsInsightsJourney({ hasPosition: true });
-
-        fireEvent.press(
-          await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-        );
-        const thumbsUp = await screen.findByTestId(
-          MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON,
-        );
-
-        trackEventSpy.mockClear();
-        fireEvent.press(thumbsUp);
-
-        await waitFor(() => {
-          expect(trackEventSpy).toHaveBeenCalledWith(
-            expect.objectContaining({
-              name: 'Market Insights Interaction',
-              properties: expect.objectContaining({
-                interaction_type: 'thumbs_up',
-              }),
-            }),
-          );
-        });
-      } finally {
-        trackEventSpy.mockRestore();
-      }
-    });
-
-    it('shows feedback bottom sheet on thumbs down from Perps insights', async () => {
-      renderPerpsInsightsJourney({ hasPosition: true });
-
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
-      fireEvent.press(
-        await screen.findByTestId(
-          MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON,
-        ),
-      );
-
-      expect(
-        await screen.findByTestId(
-          MarketInsightsSelectorsIDs.FEEDBACK_BOTTOM_SHEET,
-        ),
-      ).toBeOnTheScreen();
     });
   });
 });

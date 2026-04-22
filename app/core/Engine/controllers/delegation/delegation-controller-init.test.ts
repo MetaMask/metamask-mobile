@@ -16,20 +16,20 @@ import {
   DelegationControllerInit,
   awaitDeleteDelegationEntry,
 } from './delegation-controller-init';
-import { MessengerClientInitRequest } from '../../types';
+import { ControllerInitRequest } from '../../types';
 import {
   DelegationControllerInitMessenger,
   getDelegationControllerInitMessenger,
   getDelegationControllerMessenger,
 } from '../../messengers/delegation/delegation-controller-messenger';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { Hex } from '@metamask/utils';
 
 jest.mock('@metamask/delegation-controller');
 
 function buildInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<
+  ControllerInitRequest<
     DelegationControllerMessenger,
     DelegationControllerInitMessenger
   >
@@ -48,7 +48,7 @@ function buildInitRequestMock(): jest.Mocked<
   });
 
   return {
-    ...buildMessengerClientInitRequestMock(extendedControllerMessenger),
+    ...buildControllerInitRequestMock(extendedControllerMessenger),
     controllerMessenger,
     initMessenger,
   };

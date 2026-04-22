@@ -2,8 +2,7 @@ import {
   ComplianceService,
   type ComplianceServiceMessenger,
 } from '@metamask/compliance-controller';
-import type { MessengerClientInitFunction } from '../../types';
-import { isProduction } from '../../../../util/environment';
+import type { ControllerInitFunction } from '../../types';
 
 /**
  * Initialize the ComplianceService.
@@ -12,14 +11,14 @@ import { isProduction } from '../../../../util/environment';
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized ComplianceService.
  */
-export const complianceServiceInit: MessengerClientInitFunction<
+export const complianceServiceInit: ControllerInitFunction<
   ComplianceService,
   ComplianceServiceMessenger
 > = ({ controllerMessenger }) => {
   const controller = new ComplianceService({
     messenger: controllerMessenger,
     fetch,
-    env: isProduction() ? 'production' : 'development',
+    env: __DEV__ ? 'development' : 'production',
   });
 
   return { controller };

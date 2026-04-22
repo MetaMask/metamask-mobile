@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleOverview should render correctly 1`] = `
+<ContextProvider
+  value={
+    {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
+      "store": {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
+        "handleChangeWrapper": [Function],
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
+      },
+    }
+  }
+>
+  <Component
+    collectible={
+      {
+        "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
+        "externalLink": "https://nft.example.com",
+        "name": "Leopard",
+        "tokenId": 6904,
+        "tradable": true,
+      }
+    }
+  />
+</ContextProvider>
+`;

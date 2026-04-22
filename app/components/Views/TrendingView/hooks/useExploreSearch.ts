@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  useSearchSectionsArray,
+  useSectionsArray,
   useSectionsData,
   type SectionId,
 } from '../sections.config';
@@ -37,7 +37,7 @@ export const useExploreSearch = (
   query: string,
   options?: ExploreSearchOptions,
 ): ExploreSearchResult => {
-  const sectionsArray = useSearchSectionsArray();
+  const sectionsArray = useSectionsArray();
   const sectionsOrder = useMemo(
     () => options?.sectionsOrder ?? sectionsArray.map((s) => s.id),
     [options?.sectionsOrder, sectionsArray],

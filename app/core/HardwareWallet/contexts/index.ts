@@ -3,5 +3,3 @@
  */
 
 export { useHardwareWallet } from './HardwareWalletContext';
-export { useQRSigning } from './QRSigningContext';
-export type { QRSigningContextValue } from './QRSigningContext';

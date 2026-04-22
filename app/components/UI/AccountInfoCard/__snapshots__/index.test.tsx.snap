@@ -99,7 +99,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           {
             "0": {
               "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "marginRight": 2,
               "maxWidth": "45%",
@@ -135,7 +135,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
             "0": {
               "color": "#131416",
               "flexGrow": 1,
-              "fontFamily": "Geist-SemiBold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 16,
             },
             "1": undefined,

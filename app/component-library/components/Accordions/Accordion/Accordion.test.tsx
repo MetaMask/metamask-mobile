@@ -11,14 +11,14 @@ import {
   SAMPLE_ACCORDION_TITLE,
 } from './Accordion.constants';
 
-describe('Accordion - Rendering', () => {
+describe('Accordion - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <Accordion title={SAMPLE_ACCORDION_TITLE}>
         <View />
       </Accordion>,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
   it('should render a proper expanded state', () => {
     const wrapper = shallow(
@@ -26,7 +26,7 @@ describe('Accordion - Rendering', () => {
         <View />
       </Accordion>,
     );
-    expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
   });
 });
 

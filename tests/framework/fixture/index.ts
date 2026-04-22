@@ -196,16 +196,11 @@ export const test = base.extend<TestLevelFixtures>({
   },
 
   performanceTracker: async ({ deviceProvider }, use, testInfo) => {
-    const isSystemTestMode = process.env.SYSTEM_TEST_MODE === 'true';
     const testId = getTestId(testInfo);
 
     // Skip retry if previous attempt failed due to quality gates
     // Quality gate failures should NOT be retried - the measurement was valid, only threshold exceeded
-    if (
-      !isSystemTestMode &&
-      testInfo.retry > 0 &&
-      hasQualityGateFailure(testId)
-    ) {
+    if (testInfo.retry > 0 && hasQualityGateFailure(testId)) {
       console.log(
         `⏭️ Skipping retry for "${testInfo.title}" - previous attempt failed due to Quality Gates (threshold exceeded, not a test execution error)`,
       );
@@ -229,10 +224,6 @@ export const test = base.extend<TestLevelFixtures>({
 
     // Provide the tracker to the test
     await use(performanceTracker);
-
-    if (isSystemTestMode) {
-      return;
-    }
 
     // After test completes, handle performance metrics and session cleanup
     console.log('🔍 Post-test cleanup: attaching performance metrics...');

@@ -1,6 +1,14 @@
 import React from 'react';
 import {
+  AvatarToken,
+  AvatarTokenSize,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -9,18 +17,16 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyHowItWorksTestIds } from './MoneyHowItWorks.testIds';
-import { isPositiveNumber } from '../../utils/number';
+import { MUSD_TOKEN } from '../../../Earn/constants/musd';
+import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 
 interface MoneyHowItWorksProps {
-  /** APY expressed as a percentage (e.g. 3 for 3%). */
-  apy: number | undefined;
-  isLoading?: boolean;
+  onAddMusdPress?: () => void;
   onHeaderPress?: () => void;
 }
 
 const MoneyHowItWorks = ({
-  apy,
-  isLoading = false,
+  onAddMusdPress = () => undefined,
   onHeaderPress,
 }: MoneyHowItWorksProps) => (
   <Box twClassName="px-4 py-3" testID={MoneyHowItWorksTestIds.CONTAINER}>
@@ -28,26 +34,50 @@ const MoneyHowItWorks = ({
       title={strings('money.how_it_works.title')}
       onPress={onHeaderPress}
     />
+
     <Box twClassName="mt-3">
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        testID={MoneyHowItWorksTestIds.DESCRIPTION}
-      >
-        {strings('money.how_it_works.description_prefix')}
-        {!isLoading && isPositiveNumber(apy) && (
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-            testID={MoneyHowItWorksTestIds.APY}
-          >
-            {' '}
-            {strings('money.apy_label', { percentage: apy })}
-          </Text>
-        )}
-        {strings('money.how_it_works.description_suffix')}
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('money.how_it_works.description')}
       </Text>
+    </Box>
+
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="mt-3 py-3"
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="flex-1 gap-4"
+      >
+        <AvatarToken
+          name={MUSD_TOKEN.symbol}
+          src={MUSD_TOKEN.imageSource as ImageOrSvgSrc}
+          size={AvatarTokenSize.Lg}
+        />
+        <Box twClassName="flex-1">
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {MUSD_TOKEN.name}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {MUSD_TOKEN.symbol}
+          </Text>
+        </Box>
+      </Box>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        onPress={onAddMusdPress}
+        testID={MoneyHowItWorksTestIds.ADD_MUSD_BUTTON}
+      >
+        {strings('money.how_it_works.add')}
+      </Button>
     </Box>
   </Box>
 );

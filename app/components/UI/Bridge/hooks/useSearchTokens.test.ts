@@ -69,8 +69,7 @@ describe('useSearchTokens', () => {
           headers: {
             'Content-Type': 'application/json',
             // Initial fetch may not have a bearer token
-            'Client-Version': expect.any(String),
-            'X-Client-Id': 'mobile',
+            Authorization: 'Bearer ',
           },
           body: expect.stringContaining('test query'),
         }),

@@ -7,8 +7,6 @@ import { ButtonBaseSize } from '@metamask/design-system-react-native';
 
 export type PredictBetButtonVariant = 'yes' | 'no' | 'draw';
 
-export type PredictBetButtonLayout = 'inline' | 'stacked';
-
 export interface PredictBetButtonProps {
   label: string;
   price: number;
@@ -18,7 +16,6 @@ export interface PredictBetButtonProps {
   disabled?: boolean;
   testID?: string;
   size?: ButtonBaseSize;
-  layout?: PredictBetButtonLayout;
 }
 
 export interface PredictBetButtonsProps {

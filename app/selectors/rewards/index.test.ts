@@ -4,7 +4,6 @@ import {
   selectRewardsSubscriptionId,
   selectRewardsActiveAccountAddress,
   selectRewardsActiveAccountSubscriptionId,
-  selectCurrentSubscriptionAccounts,
 } from './index';
 // Mock rewards controller state
 const createMockRewardsControllerState = (overrides = {}) => ({
@@ -335,89 +334,6 @@ describe('Rewards Selectors', () => {
 
       // Assert
       expect(result).toBe(expectedAddress);
-    });
-  });
-
-  describe('selectCurrentSubscriptionAccounts', () => {
-    it('returns accounts belonging to the current subscription', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            RewardsController: {
-              activeAccount: { subscriptionId: 'sub-1' },
-              accounts: {
-                'acct-1': {
-                  subscriptionId: 'sub-1',
-                  account: 'eip155:1:0x123',
-                },
-                'acct-2': {
-                  subscriptionId: 'sub-2',
-                  account: 'eip155:1:0x456',
-                },
-              },
-              subscriptions: {
-                'sub-1': { id: 'sub-1' },
-              },
-            },
-          },
-        },
-        rewards: { candidateSubscriptionId: null },
-      } as unknown as RootState;
-
-      const result = selectCurrentSubscriptionAccounts(state);
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
-        subscriptionId: 'sub-1',
-        account: 'eip155:1:0x123',
-      });
-    });
-
-    it('returns empty array when no current subscription', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            RewardsController: {
-              activeAccount: null,
-              accounts: {
-                'acct-1': {
-                  subscriptionId: 'sub-1',
-                  account: 'eip155:1:0x123',
-                },
-              },
-              subscriptions: {},
-            },
-          },
-        },
-        rewards: { candidateSubscriptionId: null },
-      } as unknown as RootState;
-
-      const result = selectCurrentSubscriptionAccounts(state);
-      expect(result).toHaveLength(0);
-    });
-
-    it('returns empty array when no accounts match subscription', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            RewardsController: {
-              activeAccount: { subscriptionId: 'sub-1' },
-              accounts: {
-                'acct-2': {
-                  subscriptionId: 'sub-2',
-                  account: 'eip155:1:0x456',
-                },
-              },
-              subscriptions: {
-                'sub-1': { id: 'sub-1' },
-              },
-            },
-          },
-        },
-        rewards: { candidateSubscriptionId: null },
-      } as unknown as RootState;
-
-      const result = selectCurrentSubscriptionAccounts(state);
-      expect(result).toHaveLength(0);
     });
   });
 

@@ -23,7 +23,6 @@ import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
-import { LEARN_MORE_URL } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
 import { analytics } from '../../../util/analytics/analytics';
@@ -64,7 +63,7 @@ class ProtectYourWalletModal extends PureComponent {
     this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: LEARN_MORE_URL,
+        url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
         title: strings('protect_wallet_modal.title'),
       },
     });

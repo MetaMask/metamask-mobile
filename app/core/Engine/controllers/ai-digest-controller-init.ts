@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   AiDigestController,
   AiDigestService,
@@ -14,7 +14,7 @@ import AppConstants from '../../AppConstants';
  * @param request.persistedState - The persisted state to hydrate from.
  * @returns The initialized controller.
  */
-export const aiDigestControllerInit: MessengerClientInitFunction<
+export const aiDigestControllerInit: ControllerInitFunction<
   AiDigestController,
   AiDigestControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

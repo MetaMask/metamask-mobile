@@ -45,7 +45,6 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
   TransactionType.moneyAccountDeposit,
-  TransactionType.moneyAccountWithdraw,
 ];
 
 export enum ConfirmationLoader {

@@ -30,6 +30,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
 import {
   Box,
   Text,
@@ -55,6 +56,11 @@ import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsigh
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { isSafeUrl } from '../../utils/marketInsightsFormatting';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../../Bridge/hooks/useSwapBridgeNavigation';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type {
   MarketInsightsTweet,
   MarketInsightsTrend,
@@ -64,7 +70,7 @@ import {
   selectMarketInsightsPerpsEnabled,
 } from '../../../../../selectors/featureFlagController/marketInsights';
 import { endTrace, TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
 import {
@@ -76,17 +82,16 @@ import { useAppThemeFromContext } from '../../../../../util/theme';
 import MarketInsightsFeedbackBottomSheet, {
   MarketInsightsFeedbackReason,
 } from '../../components/MarketInsightsFeedbackBottomSheet';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
+import { getDecimalChainId } from '../../../../../util/networks';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
-import { useComplianceGate } from '../../../Compliance';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import PerpsBottomSheetTooltip from '../../../Perps/components/PerpsBottomSheetTooltip';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTracking';
-import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
-import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -154,8 +159,14 @@ interface MarketInsightsRouteParams {
   /** Asset identifier: CAIP-19 ID for tokens, or a perps market symbol (e.g. "ETH") */
   assetIdentifier: string;
   tokenImageUrl?: string;
-  /** Full token object for the sticky footer (buy/swap actions). Passed from Token Details. */
-  token?: TokenDetailsRouteParams;
+  /** Token address for swap navigation */
+  tokenAddress?: string;
+  /** Token decimals for swap navigation */
+  tokenDecimals?: number;
+  /** Token name for swap navigation */
+  tokenName?: string;
+  /** Token chainId for swap navigation */
+  tokenChainId?: string;
   /** When true, indicates the view was opened from the Perps market details view */
   isPerps?: boolean;
   /** When true, the user has an existing perps position for this asset */
@@ -184,7 +195,10 @@ const MarketInsightsView: React.FC = () => {
     assetSymbol,
     assetIdentifier,
     tokenImageUrl,
-    token: stickyFooterToken,
+    tokenAddress,
+    tokenDecimals,
+    tokenName,
+    tokenChainId,
     isPerps = false,
     hasPerpsPosition = false,
   } = route.params;
@@ -210,8 +224,6 @@ const MarketInsightsView: React.FC = () => {
   const isEligible = useSelector(selectPerpsEligibility);
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const { gate } = useComplianceGate(selectedAddress ?? '');
   const { track } = usePerpsEventTracking();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -250,6 +262,32 @@ const MarketInsightsView: React.FC = () => {
     null,
   );
 
+  // Build BridgeToken from route params for swap navigation
+  const sourceToken = useMemo(() => {
+    if (!tokenChainId) return undefined;
+    return {
+      address: tokenAddress ?? NATIVE_SWAPS_TOKEN_ADDRESS,
+      symbol: assetSymbol,
+      name: tokenName,
+      image: tokenImageUrl,
+      decimals: tokenDecimals ?? 18,
+      chainId: tokenChainId as Hex | CaipChainId,
+    };
+  }, [
+    assetSymbol,
+    tokenAddress,
+    tokenDecimals,
+    tokenName,
+    tokenImageUrl,
+    tokenChainId,
+  ]);
+
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenView,
+    sourcePage: 'MarketInsightsView',
+    sourceToken,
+  });
+
   // Sends the identifier under the right analytics property name.
   // Token flow uses caip19 (a real CAIP-19 ID); perps flow uses perps_market
   // (a plain market symbol like "ETH") to keep the two dimensions clean.
@@ -267,6 +305,7 @@ const MarketInsightsView: React.FC = () => {
     () => (report?.asset ? { asset_symbol: report.asset } : {}),
     [report?.asset],
   );
+  const { goToBuy } = useRampNavigation();
 
   // Collect all tweets from all trends for the "What people are saying" section
   const allTweets: MarketInsightsTweet[] = useMemo(() => {
@@ -296,42 +335,60 @@ const MarketInsightsView: React.FC = () => {
     }
   }, []);
 
+  const handleSwapPress = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+        interaction_type: 'swap',
+      })
+      .build();
+    trackEvent(event);
+    goToSwaps();
+  }, [
+    goToSwaps,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+  ]);
+
   const closeEligibilityModal = useCallback(() => {
     setIsEligibilityModalVisible(false);
   }, []);
 
   const handlePerpsDirectionPress = useCallback(
-    (direction: 'long' | 'short') =>
-      gate(async () => {
-        if (!isEligible) {
-          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.MARKET_INSIGHTS,
-          });
-          setIsEligibilityModalVisible(true);
-          return;
-        }
-
-        const event = createEventBuilder(
-          MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-        )
-          .addProperties({
-            ...assetIdProperty,
-            ...assetSymbolProperty,
-            interaction_type: direction,
-          })
-          .build();
-        trackEvent(event);
-
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.ORDER_REDIRECT,
-          params: { direction, asset: assetSymbol },
+    async (direction: 'long' | 'short') => {
+      if (!isEligible) {
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.MARKET_INSIGHTS,
         });
-      }),
+        setIsEligibilityModalVisible(true);
+        return;
+      }
+
+      const event = createEventBuilder(
+        MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+      )
+        .addProperties({
+          ...assetIdProperty,
+          ...assetSymbolProperty,
+          interaction_type: direction,
+        })
+        .build();
+      trackEvent(event);
+
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.ORDER_REDIRECT,
+        params: { direction, asset: assetSymbol },
+      });
+    },
     [
-      gate,
       isEligible,
       track,
       navigation,
@@ -343,20 +400,7 @@ const MarketInsightsView: React.FC = () => {
     ],
   );
 
-  const handleStickySwapPress = useCallback(() => {
-    const event = createEventBuilder(
-      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-    )
-      .addProperties({
-        ...assetIdProperty,
-        ...assetSymbolProperty,
-        interaction_type: 'swap',
-      })
-      .build();
-    trackEvent(event);
-  }, [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty]);
-
-  const handleStickyBuyPress = useCallback(() => {
+  const handleBuyPress = useCallback(() => {
     const event = createEventBuilder(
       MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
     )
@@ -367,7 +411,31 @@ const MarketInsightsView: React.FC = () => {
       })
       .build();
     trackEvent(event);
-  }, [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty]);
+
+    let assetId: string | undefined;
+    try {
+      if (tokenAddress && isCaipAssetType(tokenAddress)) {
+        assetId = tokenAddress;
+      } else if (tokenChainId && tokenAddress) {
+        assetId = parseRampIntent({
+          chainId: getDecimalChainId(tokenChainId),
+          address: tokenAddress,
+        })?.assetId;
+      }
+    } catch {
+      assetId = undefined;
+    }
+
+    goToBuy({ assetId });
+  }, [
+    goToBuy,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+    tokenAddress,
+    tokenChainId,
+  ]);
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -581,7 +649,6 @@ const MarketInsightsView: React.FC = () => {
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
         showsVerticalScrollIndicator={false}
-        testID={MarketInsightsSelectorsIDs.VIEW_SCROLL}
       >
         <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
           {showLastFrame && (
@@ -741,11 +808,11 @@ const MarketInsightsView: React.FC = () => {
         </Box>
       </ScrollView>
 
-      {!(isPerps && hasPerpsPosition) &&
-        (isPerps ? (
-          <Box
-            twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-          >
+      {!(isPerps && hasPerpsPosition) && (
+        <Box
+          twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
+        >
+          {isPerps ? (
             <Box flexDirection={BoxFlexDirection.Row} gap={3}>
               <Button
                 variant={ButtonVariant.Primary}
@@ -766,39 +833,42 @@ const MarketInsightsView: React.FC = () => {
                 {strings('perps.market.short')}
               </Button>
             </Box>
-            <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('market_insights.footer_disclaimer')}
-              </Text>
+          ) : (
+            <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleSwapPress}
+                  testID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
+                >
+                  {strings('market_insights.swap_button')}
+                </Button>
+              </Box>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleBuyPress}
+                  testID={MarketInsightsSelectorsIDs.BUY_BUTTON}
+                >
+                  {strings('market_insights.buy_button')}
+                </Button>
+              </Box>
             </Box>
+          )}
+          <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.footer_disclaimer')}
+            </Text>
           </Box>
-        ) : stickyFooterToken ? (
-          <Box
-            twClassName="bg-default"
-            style={{ paddingBottom: insets.bottom }}
-          >
-            <TokenDetailsStickyFooter
-              token={stickyFooterToken}
-              skipBottomInset
-              swapTestID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
-              buyTestID={MarketInsightsSelectorsIDs.BUY_BUTTON}
-              onSwapPress={handleStickySwapPress}
-              onBuyPress={handleStickyBuyPress}
-              sourcePage="MarketInsightsView"
-            />
-            <Box alignItems={BoxAlignItems.Center}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('market_insights.footer_disclaimer')}
-              </Text>
-            </Box>
-          </Box>
-        ) : null)}
+        </Box>
+      )}
 
       {selectedTrend ? (
         <MarketInsightsTrendSourcesBottomSheet

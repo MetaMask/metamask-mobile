@@ -1,4 +1,4 @@
-import { MessengerClientInitFunction } from '../../types';
+import { ControllerInitFunction } from '../../types';
 import {
   Controller as AuthenticationController,
   type AuthenticationControllerMessenger,
@@ -12,7 +12,7 @@ import { Platform } from '@metamask/profile-sync-controller/sdk';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const authenticationControllerInit: MessengerClientInitFunction<
+export const authenticationControllerInit: ControllerInitFunction<
   AuthenticationController,
   AuthenticationControllerMessenger
 > = ({ controllerMessenger, persistedState, analyticsId }) => {

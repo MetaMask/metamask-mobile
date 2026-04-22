@@ -21,6 +21,7 @@ describe('Badge', () => {
     const wrapper = shallow(
       <Badge {...SAMPLE_BADGENETWORK_PROPS} variant={BadgeVariant.Network} />,
     );
+    expect(wrapper).toMatchSnapshot();
     const contentElement = wrapper.findWhere(
       (node) => node.prop('testID') === BADGE_BADGENETWORK_TEST_ID,
     );
@@ -31,6 +32,7 @@ describe('Badge', () => {
     const wrapper = shallow(
       <Badge {...SAMPLE_BADGESTATUS_PROPS} variant={BadgeVariant.Status} />,
     );
+    expect(wrapper).toMatchSnapshot();
     const contentElement = wrapper.findWhere(
       (node) => node.prop('testID') === BADGE_BADGESTATUS_TEST_ID,
     );
@@ -44,6 +46,7 @@ describe('Badge', () => {
         variant={BadgeVariant.NotificationsKinds}
       />,
     );
+    expect(wrapper).toMatchSnapshot();
     const contentElement = wrapper.findWhere(
       (node) => node.prop('testID') === BADGE_BADGENOTIFICATIONS_TEST_ID,
     );
