@@ -1,15 +1,21 @@
 import {
+  formatPerpsFiat,
   formatPercentage,
   formatTransactionDate,
 } from '../../../UI/Perps/utils/formatUtils';
-import { formatUsd as formatUsdFiat } from '../../../UI/Rewards/utils/formatUtils';
 import formatNumber from '../../../../util/formatNumber';
 
 const EM_DASH = '\u2014';
 
+/**
+ * USD for social leaderboard rows/cards: match perps-style fiat (always two
+ * fractional digits for whole dollars). Rewards `formatUsd`/`formatFiat` omits
+ * `.00` for integers and is not a drop-in here.
+ */
 export function formatUsd(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
-  return formatUsdFiat(value);
+  const sign = value < 0 ? '-' : '';
+  return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
 }
 
 export function formatTokenAmount(value: number): string {
