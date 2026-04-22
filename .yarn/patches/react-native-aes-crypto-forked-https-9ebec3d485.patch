@@ -1,0 +1,79 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index e717caf2f02c470b7f5204d5e4f6ae13d7c46e49..558bd5fe4d0fa04692f2a61f56c6c0a6fcbdcae6 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -1,12 +1,12 @@
+ apply plugin: 'com.android.library'
+ 
+ android {
+-    compileSdkVersion 26
+-    buildToolsVersion "26.0.1"
++    compileSdkVersion 36
++    buildToolsVersion "36.0.0"
+ 
+     defaultConfig {
+         minSdkVersion 19
+-        targetSdkVersion 22
++        targetSdkVersion 36
+         versionCode 1
+         versionName "1.0"
+     }
+@@ -19,10 +19,10 @@ android {
+ }
+ 
+ dependencies {
+-    compile 'com.android.support:appcompat-v7:23.0.1'
+-    compile 'com.facebook.react:react-native:+'
+-    compile 'com.madgag.spongycastle:core:1.58.0.0'
+-    compile 'com.madgag.spongycastle:prov:1.54.0.0'
+-    compile 'com.madgag.spongycastle:pkix:1.54.0.0'
+-    compile 'com.madgag.spongycastle:pg:1.54.0.0'
++    implementation 'com.android.support:appcompat-v7:23.0.1'
++    implementation 'com.facebook.react:react-native:+'
++    implementation 'com.madgag.spongycastle:core:1.58.0.0'
++    implementation 'com.madgag.spongycastle:prov:1.54.0.0'
++    implementation 'com.madgag.spongycastle:pkix:1.54.0.0'
++    implementation 'com.madgag.spongycastle:pg:1.54.0.0'
+ }
+diff --git a/ios/RCTAesForked.xcodeproj/project.pbxproj b/ios/RCTAesForked.xcodeproj/project.pbxproj
+index 1c332b1000000000000000000000000000000000..bccbf9b000000000000000000000000000000000 100644
+--- a/ios/RCTAesForked.xcodeproj/project.pbxproj
++++ b/ios/RCTAesForked.xcodeproj/project.pbxproj
+@@ -228,13 +228,15 @@
+ 		32D980F21BE9F11C00FA27E5 /* Debug */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+ 				HEADER_SEARCH_PATHS = (
+ 					"$(inherited)",
+ 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+-					"$(SRCROOT)/../../../react-native/React/**",
+-					"$(SRCROOT)/../../../../../node_modules/react-native/React/**",
+-					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core"
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/RCTDeprecation",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Private/React-Core",
++					"$(SRCROOT)/../../react-native/React/**",
+ 				);
+ 				OTHER_LDFLAGS = "-ObjC";
+ 				PRODUCT_NAME = "$(TARGET_NAME)";
+ 				SKIP_INSTALL = YES;
+@@ -244,13 +246,15 @@
+ 		32D980F31BE9F11C00FA27E5 /* Release */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+ 				HEADER_SEARCH_PATHS = (
+ 					"$(inherited)",
+ 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+-					"$(SRCROOT)/../../../react-native/React/**",
+-					"$(SRCROOT)/../../../../../node_modules/react-native/React/**",
+-					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core"
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/RCTDeprecation",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Private/React-Core",
++					"$(SRCROOT)/../../react-native/React/**",
+ 				);
+ 				OTHER_LDFLAGS = "-ObjC";
+ 				PRODUCT_NAME = "$(TARGET_NAME)";
+ 				SKIP_INSTALL = YES;

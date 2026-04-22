@@ -36,7 +36,7 @@ exports[`Options should render options correctly 1`] = `
       [
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#949596",
+          "borderColor": "#b7bbc8",
           "borderRadius": 10,
           "borderWidth": 1,
           "paddingBottom": 5,
@@ -60,33 +60,49 @@ exports[`Options should render options correctly 1`] = `
     }
     testID="browser-options-menu"
   >
-    <TouchableOpacity
-      delayPressIn={50}
-      onPress={[MockFunction]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "flex-start",
-            "marginTop": -5,
-            "minHeight": 44,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-        ]
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 4,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": "auto",
+          "justifyContent": "flex-start",
+          "marginTop": -5,
+          "minHeight": 44,
+          "opacity": 1,
+          "paddingHorizontal": 15,
+          "paddingVertical": 10,
+        }
       }
     >
       <View
@@ -145,34 +161,50 @@ exports[`Options should render options correctly 1`] = `
       >
         New tab
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      delayPressIn={50}
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "flex-start",
-            "marginTop": -5,
-            "minHeight": 44,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-        ]
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 4,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": "auto",
+          "justifyContent": "flex-start",
+          "marginTop": -5,
+          "minHeight": 44,
+          "opacity": 1,
+          "paddingHorizontal": 15,
+          "paddingVertical": 10,
+        }
       }
     >
       <View
@@ -231,34 +263,50 @@ exports[`Options should render options correctly 1`] = `
       >
         Reload
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      delayPressIn={50}
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "flex-start",
-            "marginTop": -5,
-            "minHeight": 44,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-        ]
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 4,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": "auto",
+          "justifyContent": "flex-start",
+          "marginTop": -5,
+          "minHeight": 44,
+          "opacity": 1,
+          "paddingHorizontal": 15,
+          "paddingVertical": 10,
+        }
       }
     >
       <View
@@ -317,34 +365,50 @@ exports[`Options should render options correctly 1`] = `
       >
         Add to favorites
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      delayPressIn={50}
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "flex-start",
-            "marginTop": -5,
-            "minHeight": 44,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-        ]
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 4,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": "auto",
+          "justifyContent": "flex-start",
+          "marginTop": -5,
+          "minHeight": 44,
+          "opacity": 1,
+          "paddingHorizontal": 15,
+          "paddingVertical": 10,
+        }
       }
     >
       <View
@@ -403,34 +467,50 @@ exports[`Options should render options correctly 1`] = `
       >
         Share
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      delayPressIn={50}
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "flex-start",
-            "marginTop": -5,
-            "minHeight": 44,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-        ]
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 4,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": "auto",
+          "justifyContent": "flex-start",
+          "marginTop": -5,
+          "minHeight": 44,
+          "opacity": 1,
+          "paddingHorizontal": 15,
+          "paddingVertical": 10,
+        }
       }
     >
       <View
@@ -489,7 +569,7 @@ exports[`Options should render options correctly 1`] = `
       >
         Open in browser
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

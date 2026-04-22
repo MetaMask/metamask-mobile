@@ -68,11 +68,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-// Mock Linking
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-}));
-
 // Mock usePerpsEventTracking
 jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(),

@@ -318,7 +318,7 @@ jest.mock('react-native/Libraries/Animated/Easing', () => {
   const returnIdentity = () => identity;
   const wrapIdentity = () => identity;
 
-  return {
+  const easing = {
     // Core easings
     linear: identity,
     ease: identity,
@@ -337,23 +337,7 @@ jest.mock('react-native/Libraries/Animated/Easing', () => {
     in: wrapIdentity,
     out: wrapIdentity,
     inOut: wrapIdentity,
-    // Default export shape
-    default: {
-      linear: identity,
-      ease: identity,
-      quad: identity,
-      cubic: identity,
-      poly: () => identity,
-      sin: identity,
-      circle: identity,
-      exp: identity,
-      elastic: returnIdentity,
-      back: returnIdentity,
-      bounce: identity,
-      bezier: returnIdentity,
-      in: wrapIdentity,
-      out: wrapIdentity,
-      inOut: wrapIdentity,
-    },
   };
+
+  return { __esModule: true, default: easing, ...easing };
 });

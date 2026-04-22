@@ -377,7 +377,7 @@ describe('Network Selector', () => {
     expect(popularNetworksTitle).toBeTruthy();
   });
 
-  it('changes network when another network cell is pressed', async () => {
+  it('changes network when another network cell is pressed', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);
     const polygonCell = getByText('Polygon Mainnet');
@@ -459,10 +459,10 @@ describe('Network Selector', () => {
     );
 
     expect(testNetworksSwitch.props.value).toBeTruthy();
-    expect(testNetworksSwitch.props.disabled).toBeTruthy();
+    expect(testNetworksSwitch).toHaveProp('disabled', true);
   });
 
-  it('changes to non infura network when another network cell is pressed', async () => {
+  it('changes to non infura network when another network cell is pressed', () => {
     const { getByText } = renderComponent(initialState);
     const gnosisCell = getByText('Gnosis Chain');
 
@@ -726,8 +726,17 @@ describe('Network Selector', () => {
 
   describe('network switching with connected dapp', () => {
     beforeEach(() => {
-      // Reset the mock before each test
-      jest.clearAllMocks();
+      // Reset only the specific mocks being asserted, not all mocks
+      // (jest.clearAllMocks() would clear Engine mock implementations too)
+      (
+        mockEngine.context.SelectedNetworkController
+          .setNetworkClientIdForDomain as jest.Mock
+      ).mockClear();
+      (
+        mockEngine.context.MultichainNetworkController
+          .setActiveNetwork as jest.Mock
+      ).mockClear();
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     });
 
     it('should not call setNetworkClientIdForDomain when dapp is not connected', async () => {

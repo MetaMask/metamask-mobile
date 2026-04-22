@@ -491,74 +491,59 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('initializes to zero when amount param is "0"', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-
+    it('initializes to zero when amount param is "0"', () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
-      mockGetQuote.mockResolvedValue(mockQuote);
       mockUseRoute.mockReturnValue({
         params: { amount: '0' },
       });
 
       render(BuildQuote);
 
+      // Continue button is disabled when amount is 0
       const continueButton = screen.getByText('Continue');
       fireEvent.press(continueButton);
 
-      await waitFor(() => {
-        expect(mockTrackEvent).toHaveBeenCalledWith(
-          'RAMPS_ORDER_PROPOSED',
-          expect.objectContaining({
-            amount_source: 0,
-          }),
-        );
-      });
+      expect(mockGetQuote).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_ORDER_PROPOSED',
+        expect.any(Object),
+      );
     });
 
-    it('initializes to zero when amount param is invalid', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-
+    it('initializes to zero when amount param is invalid', () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
-      mockGetQuote.mockResolvedValue(mockQuote);
       mockUseRoute.mockReturnValue({
         params: { amount: 'invalid' },
       });
 
       render(BuildQuote);
 
+      // Continue button is disabled when amount is 0 (invalid parsed to 0)
       const continueButton = screen.getByText('Continue');
       fireEvent.press(continueButton);
 
-      await waitFor(() => {
-        expect(mockTrackEvent).toHaveBeenCalledWith(
-          'RAMPS_ORDER_PROPOSED',
-          expect.objectContaining({
-            amount_source: 0,
-          }),
-        );
-      });
+      expect(mockGetQuote).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_ORDER_PROPOSED',
+        expect.any(Object),
+      );
     });
 
-    it('initializes to zero when amount param is not provided', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-
+    it('initializes to zero when amount param is not provided', () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
-      mockGetQuote.mockResolvedValue(mockQuote);
       mockUseRoute.mockReturnValue({ params: {} });
 
       render(BuildQuote);
 
+      // Continue button is disabled when amount is 0
       const continueButton = screen.getByText('Continue');
       fireEvent.press(continueButton);
 
-      await waitFor(() => {
-        expect(mockTrackEvent).toHaveBeenCalledWith(
-          'RAMPS_ORDER_PROPOSED',
-          expect.objectContaining({
-            amount_source: 0,
-          }),
-        );
-      });
+      expect(mockGetQuote).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_ORDER_PROPOSED',
+        expect.any(Object),
+      );
     });
   });
 
@@ -601,6 +586,7 @@ describe('BuildQuote Component', () => {
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -617,6 +603,7 @@ describe('BuildQuote Component', () => {
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote, []);
 
@@ -626,7 +613,7 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
           ramp_type: 'DEPOSIT',
-          amount_source: 0,
+          amount_source: 100,
           amount_destination: 0,
           payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
           region: MOCK_US_REGION.isoCode,
@@ -652,6 +639,7 @@ describe('BuildQuote Component', () => {
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote, [mockOrder]);
 
@@ -661,7 +649,7 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
           ramp_type: 'DEPOSIT',
-          amount_source: 0,
+          amount_source: 100,
           amount_destination: 0,
           payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
           region: MOCK_US_REGION.isoCode,
@@ -681,6 +669,7 @@ describe('BuildQuote Component', () => {
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
       render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');
@@ -700,6 +689,7 @@ describe('BuildQuote Component', () => {
         createMockSDKReturn({ isAuthenticated: true }),
       );
       mockGetQuote.mockResolvedValue(mockQuote);
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -715,6 +705,7 @@ describe('BuildQuote Component', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({ selectedWalletAddress: null }),
       );
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -750,6 +741,7 @@ describe('BuildQuote Component', () => {
         createMockSDKReturn({ isAuthenticated: true }),
       );
       mockGetQuote.mockResolvedValue(mockQuote);
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -779,6 +771,7 @@ describe('BuildQuote Component', () => {
     it('displays error when quote fetch fails', async () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -795,6 +788,7 @@ describe('BuildQuote Component', () => {
     it('tracks RAMPS_ORDER_FAILED event when quote fetch fails', async () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -806,7 +800,7 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
           ramp_type: 'DEPOSIT',
-          amount_source: 0,
+          amount_source: 100,
           amount_destination: 0,
           payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
           region: MOCK_US_REGION.isoCode,
@@ -824,6 +818,7 @@ describe('BuildQuote Component', () => {
     it('displays error when quote is falsy', async () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockReturnValue(null);
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -840,6 +835,7 @@ describe('BuildQuote Component', () => {
     it('tracks RAMPS_ORDER_FAILED event when quote is falsy', async () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockReturnValue(null);
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -851,7 +847,7 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
           ramp_type: 'DEPOSIT',
-          amount_source: 0,
+          amount_source: 100,
           amount_destination: 0,
           payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
           region: MOCK_US_REGION.isoCode,
@@ -876,6 +872,7 @@ describe('BuildQuote Component', () => {
       mockRouteAfterAuthentication.mockRejectedValue(
         new Error('Routing failed'),
       );
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -905,6 +902,7 @@ describe('BuildQuote Component', () => {
       mockRouteAfterAuthentication.mockRejectedValue(
         new Error('Routing failed'),
       );
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -1101,6 +1099,7 @@ describe('BuildQuote Component', () => {
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 
@@ -1113,7 +1112,7 @@ describe('BuildQuote Component', () => {
         expect(mockTrace).toHaveBeenCalledWith({
           name: 'Deposit Continue Flow',
           tags: {
-            amount: 0,
+            amount: 100,
             currency: MOCK_USDC_TOKEN.symbol,
             paymentMethod: MOCK_CREDIT_DEBIT_CARD.id,
             authenticated: false,
@@ -1150,6 +1149,7 @@ describe('BuildQuote Component', () => {
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+      mockUseRoute.mockReturnValue({ params: { amount: '100' } });
 
       render(BuildQuote);
 

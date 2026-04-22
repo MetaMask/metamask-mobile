@@ -1,7 +1,7 @@
 import React from 'react';
 import CollectibleOverview from './';
 import configureMockStore from 'redux-mock-store';
-import { render, screen } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -19,7 +19,7 @@ const store = mockStore(initialState);
 
 describe('CollectibleOverview', () => {
   it('should render correctly', () => {
-    render(
+    const { toJSON } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <CollectibleOverview
@@ -30,11 +30,10 @@ describe('CollectibleOverview', () => {
               externalLink: 'https://nft.example.com',
               tradable: true,
             }}
-            openLink={jest.fn()}
           />
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(screen.getByText('Leopard')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -47,6 +47,15 @@
       // TODO: Remove this once we use `Node16` module resolution.
       "@metamask/json-rpc-engine/v2": [
         "node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"
+      ],
+      "@metamask/design-system-react-native/spinner": [
+        "node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
+      ],
+      "@metamask/delegation-controller/types": [
+        "node_modules/@metamask/delegation-controller/dist/types.cjs"
+      ],
+      "@metamask/transaction-pay-controller/types": [
+        "node_modules/@metamask/transaction-pay-controller/dist/types.cjs"
       ]
     } /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */,
     // "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */

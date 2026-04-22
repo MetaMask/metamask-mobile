@@ -14,7 +14,7 @@
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
-import { cleanup, fireEvent, screen } from '@testing-library/react-native';
+import { cleanup, act, fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   renderPerpsView,
@@ -128,7 +128,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(screen.getByText('Connecting to Perps...')).toBeOnTheScreen();
 
     // Inline loader with custom message
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsComponent(
       PerpsLoader as unknown as React.ComponentType<Record<string, unknown>>,
       { fullScreen: false, message: 'Loading positions...' },
@@ -143,7 +145,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
 
     // ── PHASE 2: Live price display ──────────────────────────────────────
     // No live data available from stream → shows "--" placeholder
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const LivePriceWrapper: React.FC = () => (
       <LivePriceDisplay symbol="ETH" testID="live-price-eth" />
     );
@@ -153,7 +157,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
 
     // ── PHASE 3: Market row items ────────────────────────────────────────
     // Trader sees ETH market row: symbol, price, change, volume
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const mockOnPress = jest.fn();
     renderPerpsComponent(
       PerpsMarketRowItem as unknown as React.ComponentType<
@@ -170,7 +176,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
 
     // Trader sees BTC market row with negative change
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsComponent(
       PerpsMarketRowItem as unknown as React.ComponentType<
         Record<string, unknown>
@@ -183,7 +191,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
 
     // ── PHASE 4: Recent trades list ──────────────────────────────────────
     // Trader views recent trades section — header visible, presses "See all"
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const TradesListWrapper: React.FC = () => (
       <PerpsMarketTradesList symbol="ETH" />
     );
@@ -199,7 +209,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
 
     // ── PHASE 5: Stop-loss prompt — add margin variant ───────────────────
     // Trader's position is near liquidation — add margin prompt appears
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const mockOnAddMargin = jest.fn();
     renderPerpsComponent(
       PerpsStopLossPromptBanner as unknown as React.ComponentType<
@@ -226,7 +238,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(mockOnAddMargin).toHaveBeenCalledTimes(1);
 
     // Stop-loss variant — set stop loss prompt
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const mockOnSetStopLoss = jest.fn();
     renderPerpsComponent(
       PerpsStopLossPromptBanner as unknown as React.ComponentType<
@@ -253,7 +267,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(mockOnSetStopLoss).toHaveBeenCalledTimes(1);
 
     // Stop-loss in loading state — button shows spinner, not label
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsComponent(
       PerpsStopLossPromptBanner as unknown as React.ComponentType<
         Record<string, unknown>
@@ -278,7 +294,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     ).not.toBeOnTheScreen();
 
     // Stop-loss success state — button shows check icon
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsComponent(
       PerpsStopLossPromptBanner as unknown as React.ComponentType<
         Record<string, unknown>
@@ -301,7 +319,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
 
     // ── PHASE 6: Notification prompt ─────────────────────────────────────
     // Trader sees notification bottom sheet: title, description, turn on
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const mockOnClose = jest.fn();
     const NotificationWrapper: React.FC = () => (
       <PerpsNotificationBottomSheet
@@ -323,7 +343,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     fireEvent.press(turnOnButton);
 
     // Hidden notification sheet renders nothing
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const NotificationHiddenWrapper: React.FC = () => (
       <PerpsNotificationBottomSheet
         isVisible={false}
@@ -336,7 +358,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
 
     // ── PHASE 7: Transaction detail asset hero ───────────────────────────
     // Trader opens a closed position transaction — asset icon and subtitle
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsComponent(
       PerpsTransactionDetailAssetHero as unknown as React.ComponentType<
         Record<string, unknown>
@@ -354,7 +378,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(screen.getByText('2.5 ETH')).toBeOnTheScreen();
 
     // ── PHASE 8: Market sort field bottom sheet ───────────────────────────
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const mockOnOptionSelect = jest.fn();
     const mockOnCloseSort = jest.fn();
     renderPerpsComponent(
@@ -378,7 +404,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(mockOnOptionSelect).toHaveBeenCalled();
 
     // ── PHASE 9: Transaction list item ───────────────────────────────────
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const mockOnPressItem = jest.fn();
     renderPerpsComponent(
       PerpsTransactionItem as unknown as React.ComponentType<
@@ -400,7 +428,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(mockOnPressItem).toHaveBeenCalledWith(sampleTransaction);
 
     // ── PHASE 10: TradingView chart container ──────────────────────────────
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsComponent(
       TradingViewChart as unknown as React.ComponentType<
         Record<string, unknown>
@@ -416,7 +446,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     ).toBeOnTheScreen();
 
     // ── PHASE 11: Notification tooltip (no sheet when orderSuccess false) ─
-    cleanup();
+    await act(async () => {
+      cleanup();
+    });
     const NotificationTooltipWrapper: React.FC = () => (
       <PerpsNotificationTooltip orderSuccess={false} onComplete={jest.fn()} />
     );

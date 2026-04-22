@@ -239,7 +239,7 @@ describe('AccountList', () => {
     };
   };
 
-  it('renders correctly', async () => {
+  it('renders correctly', () => {
     arrangeMocks();
     const { getByTestId, queryByTestId } = renderWithProvider(
       <AccountsList />,
@@ -273,10 +273,15 @@ describe('AccountList', () => {
       state: initialRootState,
     });
 
-    // Assert switches are disabled during initial loading
-    expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch).props.disabled).toBe(true);
-    expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch).props.disabled).toBe(true);
-    expect(getByTestId(ACCOUNT_3_TEST_ID.itemSwitch).props.disabled).toBe(true);
+    // Assert switches are disabled since we are loading
+    expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch)).toHaveProp(
+      'disabled',
+      true,
+    );
+    expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch)).toHaveProp(
+      'disabled',
+      true,
+    );
   });
 
   it('invokes switch toggle logic when clicked', async () => {

@@ -9,6 +9,29 @@ const mockEventBuilder = {
   build: jest.fn().mockReturnValue({ event: 'built' }),
 };
 
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const twFn = () => ({});
+  twFn.style = () => ({});
+  twFn.color = () => 'black';
+  return { useTailwind: () => twFn };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    Button: RN.TouchableOpacity,
+    ButtonVariant: { Primary: 'primary', Secondary: 'secondary' },
+    ButtonSize: { Md: 'md', Lg: 'lg' },
+    Text: RN.Text,
+    TextVariant: {},
+    TextColor: {},
+    IconName: {},
+    Skeleton: RN.View,
+  };
+});
+
 jest.mock('../../../../../component-library/components/Toast', () => {
   const React = jest.requireActual('react');
   const ToastContext = React.createContext({ toastRef: null });
@@ -111,7 +134,7 @@ jest.mock('../../hooks/useCashbackWallet', () => ({
 }));
 
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import Cashback from './Cashback';
@@ -337,7 +360,7 @@ describe('Cashback Component', () => {
   });
 
   describe('withdraw action', () => {
-    it('calls withdraw with balance on button press', () => {
+    it('calls withdraw with balance on button press', async () => {
       mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
@@ -353,12 +376,14 @@ describe('Cashback Component', () => {
 
       render();
 
-      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+      });
 
       expect(mockWithdraw).toHaveBeenCalledWith('10.00');
     });
 
-    it('tracks analytics event on withdraw', () => {
+    it('tracks analytics event on withdraw', async () => {
       mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
@@ -374,7 +399,9 @@ describe('Cashback Component', () => {
 
       render();
 
-      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+      });
 
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(

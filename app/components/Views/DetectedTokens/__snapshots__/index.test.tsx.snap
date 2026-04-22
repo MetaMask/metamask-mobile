@@ -55,30 +55,46 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
-          [
-            {
-              "borderRadius": 12,
-              "justifyContent": "center",
-              "padding": 15,
-            },
-            {
-              "backgroundColor": "transparent",
-              "borderColor": "blue",
-              "borderWidth": 1,
-            },
-            {
-              "flex": 1,
-            },
-          ],
-          null,
-        ]
+        {
+          "backgroundColor": "transparent",
+          "borderColor": "blue",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flex": 1,
+          "justifyContent": "center",
+          "opacity": 1,
+          "padding": 15,
+        }
       }
     >
       <Text
@@ -108,7 +124,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
       >
         Hide all
       </Text>
-    </TouchableOpacity>
+    </View>
     <View
       style={
         {
@@ -116,31 +132,45 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
         }
       }
     />
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": true,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
-          [
-            {
-              "borderRadius": 12,
-              "justifyContent": "center",
-              "padding": 15,
-            },
-            {
-              "backgroundColor": "blue",
-              "minHeight": 50,
-            },
-            {
-              "flex": 1,
-            },
-          ],
-          {
-            "opacity": 0.6,
-          },
-        ]
+        {
+          "backgroundColor": "blue",
+          "borderRadius": 12,
+          "flex": 1,
+          "justifyContent": "center",
+          "minHeight": 50,
+          "opacity": 0.6,
+          "padding": 15,
+        }
       }
       testID="token-detection-import-button"
     >
@@ -175,7 +205,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
       >
         Import (0)
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>,
 ]
 `;
@@ -382,12 +412,39 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               >
                 Token address: 
               </Text>
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "flexDirection": "row",
+                    "opacity": 1,
                   }
                 }
               >
@@ -427,7 +484,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 >
                   
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
             <View
               style={
@@ -637,12 +694,39 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               >
                 Token address: 
               </Text>
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "flexDirection": "row",
+                    "opacity": 1,
                   }
                 }
               >
@@ -682,7 +766,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 >
                   
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
             <View
               style={
@@ -759,30 +843,46 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
-          [
-            {
-              "borderRadius": 12,
-              "justifyContent": "center",
-              "padding": 15,
-            },
-            {
-              "backgroundColor": "transparent",
-              "borderColor": "blue",
-              "borderWidth": 1,
-            },
-            {
-              "flex": 1,
-            },
-          ],
-          null,
-        ]
+        {
+          "backgroundColor": "transparent",
+          "borderColor": "blue",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flex": 1,
+          "justifyContent": "center",
+          "opacity": 1,
+          "padding": 15,
+        }
       }
     >
       <Text
@@ -812,7 +912,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
       >
         Hide all
       </Text>
-    </TouchableOpacity>
+    </View>
     <View
       style={
         {
@@ -820,30 +920,45 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
         }
       }
     />
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      disabled={false}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
-          [
-            {
-              "borderRadius": 12,
-              "justifyContent": "center",
-              "padding": 15,
-            },
-            {
-              "backgroundColor": "blue",
-              "minHeight": 50,
-            },
-            {
-              "flex": 1,
-            },
-          ],
-          null,
-        ]
+        {
+          "backgroundColor": "blue",
+          "borderRadius": 12,
+          "flex": 1,
+          "justifyContent": "center",
+          "minHeight": 50,
+          "opacity": 1,
+          "padding": 15,
+        }
       }
       testID="token-detection-import-button"
     >
@@ -874,7 +989,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
       >
         Import (2)
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>,
 ]
 `;

@@ -28,11 +28,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn(() => ({})),
-  })),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const twFn = () => ({});
+  twFn.style = () => ({});
+  twFn.color = () => 'black';
+  return {
+    useTailwind: jest.fn(() => twFn),
+  };
+});
 
 jest.mock('../../../../../util/networks', () => ({
   isTestNet: jest.fn((chainId: string) => chainId === '0x5'),

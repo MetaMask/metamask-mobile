@@ -7,6 +7,8 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 
+const mockReact = React;
+
 // Mock hooks - must be hoisted before imports
 const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
@@ -40,6 +42,21 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
   }),
 }));
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const MockBottomSheet = mockReact.forwardRef(
+      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) =>
+        mockReact.createElement(mockReact.Fragment, null, children),
+    );
+    MockBottomSheet.displayName = 'MockBottomSheet';
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
 
 const renderWithProvider = (component: React.ComponentType) =>
   renderScreen(
@@ -132,7 +149,7 @@ describe('PasswordBottomSheet', () => {
     const passwordInput = getByTestId(CardHomeSelectors.PASSWORD_INPUT);
 
     expect(passwordInput).toBeTruthy();
-    expect(passwordInput.props.secureTextEntry).toBe(true);
+    expect(passwordInput).toHaveProp('secureTextEntry', true);
   });
 
   it('displays cancel and confirm buttons', () => {

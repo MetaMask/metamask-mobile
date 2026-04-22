@@ -18,49 +18,34 @@ exports[`InputStepper complete component snapshot renders complete component cor
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="54"
+      style={
+        [
           {
             "transform": [
               {
@@ -68,24 +53,76 @@ exports[`InputStepper complete component snapshot renders complete component cor
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -104,14 +141,14 @@ exports[`InputStepper complete component snapshot renders complete component cor
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="Enter value"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 40,
               "fontWeight": "400",
@@ -133,7 +170,7 @@ exports[`InputStepper complete component snapshot renders complete component cor
           style={
             [
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -153,49 +190,34 @@ exports[`InputStepper complete component snapshot renders complete component cor
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="55"
+      style={
+        [
           {
             "transform": [
               {
@@ -203,24 +225,76 @@ exports[`InputStepper complete component snapshot renders complete component cor
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -244,49 +318,34 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="56"
+      style={
+        [
           {
             "transform": [
               {
@@ -294,24 +353,76 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -330,14 +441,14 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 40,
               "fontWeight": "400",
@@ -353,49 +464,34 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="57"
+      style={
+        [
           {
             "transform": [
               {
@@ -403,24 +499,76 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -444,49 +592,34 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="38"
+      style={
+        [
           {
             "transform": [
               {
@@ -494,24 +627,76 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -530,14 +715,14 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 40,
               "fontWeight": "400",
@@ -553,49 +738,34 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="39"
+      style={
+        [
           {
             "transform": [
               {
@@ -603,24 +773,76 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -644,49 +866,34 @@ exports[`InputStepper input renders correct style when value character length is
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="10"
+      style={
+        [
           {
             "transform": [
               {
@@ -694,24 +901,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -730,14 +989,14 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 40,
               "fontWeight": "400",
@@ -753,49 +1012,34 @@ exports[`InputStepper input renders correct style when value character length is
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": true,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 0.5,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="11"
+      style={
+        [
           {
             "transform": [
               {
@@ -803,24 +1047,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -844,49 +1140,34 @@ exports[`InputStepper input renders correct style when value character length is
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="12"
+      style={
+        [
           {
             "transform": [
               {
@@ -894,24 +1175,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -930,14 +1263,14 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 35,
               "fontWeight": "400",
@@ -953,49 +1286,34 @@ exports[`InputStepper input renders correct style when value character length is
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": true,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 0.5,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="13"
+      style={
+        [
           {
             "transform": [
               {
@@ -1003,24 +1321,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -1044,49 +1414,34 @@ exports[`InputStepper input renders correct style when value character length is
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="14"
+      style={
+        [
           {
             "transform": [
               {
@@ -1094,24 +1449,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -1130,14 +1537,14 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -1153,49 +1560,34 @@ exports[`InputStepper input renders correct style when value character length is
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": true,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 0.5,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="15"
+      style={
+        [
           {
             "transform": [
               {
@@ -1203,24 +1595,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -1244,49 +1688,34 @@ exports[`InputStepper input renders correct style when value character length is
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="16"
+      style={
+        [
           {
             "transform": [
               {
@@ -1294,24 +1723,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -1330,14 +1811,14 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 25,
               "fontWeight": "400",
@@ -1353,49 +1834,34 @@ exports[`InputStepper input renders correct style when value character length is
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": true,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 0.5,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="17"
+      style={
+        [
           {
             "transform": [
               {
@@ -1403,24 +1869,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -1444,49 +1962,34 @@ exports[`InputStepper input renders correct style when value character length is
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="18"
+      style={
+        [
           {
             "transform": [
               {
@@ -1494,24 +1997,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -1530,14 +2085,14 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 20,
               "fontWeight": "400",
@@ -1553,49 +2108,34 @@ exports[`InputStepper input renders correct style when value character length is
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": true,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 0.5,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="19"
+      style={
+        [
           {
             "transform": [
               {
@@ -1603,24 +2143,76 @@ exports[`InputStepper input renders correct style when value character length is
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -1644,49 +2236,34 @@ exports[`InputStepper minus button renders correct style of minus button when di
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": true,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 0.5,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="28"
+      style={
+        [
           {
             "transform": [
               {
@@ -1694,24 +2271,76 @@ exports[`InputStepper minus button renders correct style of minus button when di
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -1730,14 +2359,14 @@ exports[`InputStepper minus button renders correct style of minus button when di
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 40,
               "fontWeight": "400",
@@ -1753,49 +2382,34 @@ exports[`InputStepper minus button renders correct style of minus button when di
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="29"
+      style={
+        [
           {
             "transform": [
               {
@@ -1803,24 +2417,76 @@ exports[`InputStepper minus button renders correct style of minus button when di
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -1844,49 +2510,34 @@ exports[`InputStepper minus button renders correct style of minus button when en
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="26"
+      style={
+        [
           {
             "transform": [
               {
@@ -1894,24 +2545,76 @@ exports[`InputStepper minus button renders correct style of minus button when en
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -1930,14 +2633,14 @@ exports[`InputStepper minus button renders correct style of minus button when en
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 40,
               "fontWeight": "400",
@@ -1953,49 +2656,34 @@ exports[`InputStepper minus button renders correct style of minus button when en
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="27"
+      style={
+        [
           {
             "transform": [
               {
@@ -2003,24 +2691,76 @@ exports[`InputStepper minus button renders correct style of minus button when en
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -2044,49 +2784,34 @@ exports[`InputStepper plus button renders correct style of plus button when disa
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="36"
+      style={
+        [
           {
             "transform": [
               {
@@ -2094,24 +2819,76 @@ exports[`InputStepper plus button renders correct style of plus button when disa
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -2130,14 +2907,14 @@ exports[`InputStepper plus button renders correct style of plus button when disa
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 40,
               "fontWeight": "400",
@@ -2153,49 +2930,34 @@ exports[`InputStepper plus button renders correct style of plus button when disa
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": true,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 0.5,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="37"
+      style={
+        [
           {
             "transform": [
               {
@@ -2203,24 +2965,76 @@ exports[`InputStepper plus button renders correct style of plus button when disa
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
@@ -2244,49 +3058,34 @@ exports[`InputStepper plus button renders correct style of plus button when enab
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="34"
+      style={
+        [
           {
             "transform": [
               {
@@ -2294,24 +3093,76 @@ exports[`InputStepper plus button renders correct style of plus button when enab
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-minus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Minus"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -2330,14 +3181,14 @@ exports[`InputStepper plus button renders correct style of plus button when enab
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
-          placeholderTextColor="#66676a"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#4459ff",
               "borderWidth": 0,
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 40,
               "fontWeight": "400",
@@ -2353,49 +3204,34 @@ exports[`InputStepper plus button renders correct style of plus button when enab
       </View>
     </View>
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 9999,
-            "height": 40,
             "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
           },
-          {
-            "backgroundColor": "#b4b4b528",
-          },
+        ]
+      }
+      nativeID="35"
+      style={
+        [
           {
             "transform": [
               {
@@ -2403,24 +3239,76 @@ exports[`InputStepper plus button renders correct style of plus button when enab
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
-      testID="input-stepper-plus-button"
     >
-      <SvgMock
-        fill="currentColor"
-        name="Add"
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#131416",
-              "height": 32,
-              "width": 32,
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
             },
-            undefined,
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
           ]
         }
-      />
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
 </View>

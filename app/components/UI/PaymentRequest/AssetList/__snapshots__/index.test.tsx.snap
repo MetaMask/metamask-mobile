@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetList should render correctly 1`] = `
+<Text
+  style={
+    {
+      "color": "#121314",
+      "fontFamily": "Geist-Regular",
+    }
+  }
+>
+  Enpty Message
+</Text>
+`;

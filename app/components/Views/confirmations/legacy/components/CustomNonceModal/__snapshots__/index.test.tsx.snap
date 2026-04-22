@@ -1,58 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CustomNonceModal renders correctly 1`] = `
-<ReactNativeModal
-  animationIn="slideInUp"
-  animationInTiming={600}
-  animationOut="slideOutDown"
-  animationOutTiming={600}
-  avoidKeyboard={false}
-  backdropColor="#0a0d135c"
-  backdropOpacity={1}
-  backdropTransitionInTiming={300}
-  backdropTransitionOutTiming={300}
-  coverScreen={true}
-  customBackdrop={null}
-  deviceHeight={null}
-  deviceWidth={null}
-  hasBackdrop={true}
-  hideModalContentWhileAnimating={false}
-  isVisible={true}
-  onBackButtonPress={[MockFunction]}
-  onBackdropPress={[MockFunction]}
-  onModalHide={[Function]}
-  onModalShow={[Function]}
-  onModalWillHide={[Function]}
-  onModalWillShow={[Function]}
-  onSwipeComplete={[MockFunction]}
-  panResponderThreshold={4}
-  propagateSwipe={true}
-  scrollHorizontal={false}
-  scrollOffset={0}
-  scrollOffsetMax={0}
-  scrollTo={null}
-  statusBarTranslucent={false}
-  style={
-    {
-      "justifyContent": "flex-end",
-      "margin": 0,
-    }
-  }
-  supportedOrientations={
-    [
-      "portrait",
-      "landscape",
-    ]
-  }
-  swipeDirection="down"
-  swipeThreshold={100}
-  useNativeDriver={true}
+<View
+  testID="modal-mock"
 >
-  <KeyboardAwareScrollView
+  <RCTScrollView
+    automaticallyAdjustContentInsets={false}
     contentContainerStyle={
       {
         "flex": 1,
         "justifyContent": "flex-end",
+      }
+    }
+    contentInset={
+      {
+        "bottom": 0,
       }
     }
     enableAutomaticScroll={true}
@@ -60,234 +22,614 @@ exports[`CustomNonceModal renders correctly 1`] = `
     enableResetScrollToCoords={true}
     extraHeight={75}
     extraScrollHeight={0}
+    getScrollResponder={[Function]}
+    handleOnScroll={[Function]}
+    keyboardDismissMode="interactive"
     keyboardOpeningTime={250}
+    keyboardSpace={0}
+    onScroll={[Function]}
+    resetKeyboardSpace={[Function]}
+    scrollEventThrottle={1}
+    scrollForExtraHeightOnAndroid={[Function]}
+    scrollIntoView={[Function]}
+    scrollToEnd={[Function]}
+    scrollToFocusedInput={[Function]}
+    scrollToPosition={[Function]}
+    showsVerticalScrollIndicator={true}
+    update={[Function]}
     viewIsInsideTabBar={false}
   >
-    <ForwardRef
-      style={
-        {
-          "backgroundColor": "#ffffff",
-          "borderTopLeftRadius": 20,
-          "borderTopRightRadius": 20,
-          "minHeight": 200,
-        }
-      }
-    >
-      <ModalDragger />
-      <View
+    <View>
+      <RCTSafeAreaView
         style={
           {
-            "margin": 24,
+            "backgroundColor": "#ffffff",
+            "borderTopLeftRadius": 20,
+            "borderTopRightRadius": 20,
+            "minHeight": 200,
           }
         }
       >
-        <Text
-          bold={true}
-          centered={true}
-          style={
-            {
-              "color": "#131416",
-              "fontSize": 14,
-            }
-          }
-        >
-          Edit transaction nonce
-        </Text>
         <View
           style={
-            {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "marginVertical": 10,
-            }
+            [
+              {
+                "alignItems": "center",
+                "borderBottomWidth": 0.5,
+                "borderColor": "#b7bbc866",
+                "height": 33,
+                "justifyContent": "center",
+                "width": "100%",
+              },
+              undefined,
+            ]
           }
         >
-          <TextInput
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={true}
-            keyboardAppearance="light"
-            keyboardType="numeric"
-            numberOfLines={1}
-            onChangeText={[Function]}
-            onSubmitEditing={[Function]}
-            placeholder="26"
-            placeholderTextColor="#babbbe"
-            showSoftInputOnFocus={false}
-            spellCheck={false}
+          <View
             style={
               {
-                "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
-                "fontSize": 36,
-                "marginHorizontal": 24,
-                "maxWidth": 200,
-                "minWidth": 80,
-                "textAlign": "center",
+                "backgroundColor": "#b7bbc8",
+                "borderRadius": 4,
+                "height": 5,
+                "width": 48,
               }
             }
-            value="26"
           />
         </View>
-        <Text
-          centered={true}
-          style={
-            {
-              "color": "#66676a",
-              "fontSize": 14,
-              "marginBottom": 10,
-            }
-          }
-        >
-          Current suggested nonce:
-           
-          <Text
-            bold={true}
-          >
-            26
-          </Text>
-        </Text>
         <View
           style={
             {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "display": "flex",
+              "margin": 24,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 30,
+                  "marginVertical": 2,
+                },
+                {
+                  "textAlign": "center",
+                },
+                undefined,
+                {
+                  "fontFamily": "Geist-Bold",
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "color": "#121314",
+                  "fontSize": 14,
+                },
+              ]
+            }
+          >
+            Edit transaction nonce
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "marginVertical": 10,
+              }
+            }
+          >
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={true}
+              keyboardAppearance="light"
+              keyboardType="numeric"
+              numberOfLines={1}
+              onChangeText={[Function]}
+              onSubmitEditing={[Function]}
+              placeholder="26"
+              placeholderTextColor="#b7bbc8"
+              showSoftInputOnFocus={false}
+              spellCheck={false}
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 36,
+                  "marginHorizontal": 24,
+                  "maxWidth": 200,
+                  "minWidth": 80,
+                  "textAlign": "center",
+                }
+              }
+              value="26"
+            />
+          </View>
+          <Text
+            style={
+              [
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 30,
+                  "marginVertical": 2,
+                },
+                {
+                  "textAlign": "center",
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "color": "#686e7d",
+                  "fontSize": 14,
+                  "marginBottom": 10,
+                },
+              ]
+            }
+          >
+            Current suggested nonce:
+             
+            <Text
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 30,
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  {
+                    "fontFamily": "Geist-Bold",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            >
+              26
+            </Text>
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "display": "flex",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "opacity": 1,
+                  "padding": 4,
+                }
+              }
+              testID="decrement-nonce"
+            >
+              <Text
+                allowFontScaling={false}
+                selectable={false}
+                style={
+                  [
+                    {
+                      "color": undefined,
+                      "fontSize": 64,
+                    },
+                    {
+                      "color": "#4459ff",
+                    },
+                    {
+                      "fontFamily": "EvilIcons",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    {},
+                  ]
+                }
+              >
+                
+              </Text>
+            </View>
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "opacity": 1,
+                  "padding": 4,
+                }
+              }
+              testID="increment-nonce"
+            >
+              <Text
+                allowFontScaling={false}
+                selectable={false}
+                style={
+                  [
+                    {
+                      "color": undefined,
+                      "fontSize": 64,
+                    },
+                    {
+                      "color": "#4459ff",
+                    },
+                    {
+                      "fontFamily": "EvilIcons",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    {},
+                  ]
+                }
+              >
+                
+              </Text>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "height": 240,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 30,
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  {
+                    "fontFamily": "Geist-Bold",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#121314",
+                    "fontSize": 12,
+                    "lineHeight": 16,
+                    "marginVertical": 10,
+                  },
+                ]
+              }
+            >
+              This is an advanced feature used to cancel or speed up any pending transactions.
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 30,
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#121314",
+                    "fontSize": 12,
+                    "lineHeight": 16,
+                    "marginVertical": 10,
+                  },
+                ]
+              }
+            >
+              Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
               "flexDirection": "row",
+              "marginBottom": 15,
             }
           }
         >
-          <TouchableOpacity
-            onPress={[Function]}
-            style={
+          <View
+            accessibilityRole="button"
+            accessibilityState={
               {
-                "padding": 4,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-            testID="decrement-nonce"
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "justifyContent": "center",
+                "marginHorizontal": 8,
+                "opacity": 1,
+                "padding": 15,
+              }
+            }
           >
-            <Icon
-              allowFontScaling={false}
-              name="minus"
-              size={64}
+            <Text
               style={
-                {
-                  "color": "#4459ff",
-                }
+                [
+                  {
+                    "color": "#007aff",
+                    "fontSize": 17,
+                    "fontWeight": "500",
+                    "textAlign": "center",
+                  },
+                  null,
+                  [
+                    {
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 14,
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#4459ff",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
               }
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={[Function]}
-            style={
+            >
+              Cancel
+            </Text>
+          </View>
+          <View
+            accessibilityRole="button"
+            accessibilityState={
               {
-                "padding": 4,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-            testID="increment-nonce"
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "backgroundColor": "#4459ff",
+                "borderRadius": 12,
+                "flex": 1,
+                "justifyContent": "center",
+                "marginHorizontal": 8,
+                "opacity": 1,
+                "padding": 15,
+              }
+            }
           >
-            <Icon
-              allowFontScaling={false}
-              name="plus"
-              size={64}
+            <Text
               style={
-                {
-                  "color": "#4459ff",
-                }
+                [
+                  {
+                    "color": "#007aff",
+                    "fontSize": 17,
+                    "fontWeight": "500",
+                    "textAlign": "center",
+                  },
+                  null,
+                  [
+                    {
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 14,
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#ffffff",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
               }
-            />
-          </TouchableOpacity>
+            >
+              Save
+            </Text>
+          </View>
         </View>
-        <View
-          style={
-            {
-              "height": 240,
-            }
-          }
-        >
-          <Text
-            bold={true}
-            style={
-              {
-                "color": "#131416",
-                "fontSize": 12,
-                "lineHeight": 16,
-                "marginVertical": 10,
-              }
-            }
-          >
-            This is an advanced feature used to cancel or speed up any pending transactions.
-          </Text>
-          <Text
-            style={
-              {
-                "color": "#131416",
-                "fontSize": 12,
-                "lineHeight": 16,
-                "marginVertical": 10,
-              }
-            }
-          >
-            Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "marginBottom": 15,
-          }
-        }
-      >
-        <StyledButton
-          containerStyle={
-            {
-              "flex": 1,
-              "marginHorizontal": 8,
-            }
-          }
-          disabledContainerStyle={
-            {
-              "opacity": 0.6,
-            }
-          }
-          onPress={[MockFunction]}
-          styleDisabled={
-            {
-              "opacity": 0.6,
-            }
-          }
-          type="normal"
-        >
-          Cancel
-        </StyledButton>
-        <StyledButton
-          containerStyle={
-            {
-              "flex": 1,
-              "marginHorizontal": 8,
-            }
-          }
-          disabledContainerStyle={
-            {
-              "opacity": 0.6,
-            }
-          }
-          onPress={[Function]}
-          styleDisabled={
-            {
-              "opacity": 0.6,
-            }
-          }
-          type="blue"
-        >
-          Save
-        </StyledButton>
-      </View>
-    </ForwardRef>
-  </KeyboardAwareScrollView>
-</ReactNativeModal>
+      </RCTSafeAreaView>
+    </View>
+  </RCTScrollView>
+</View>
 `;

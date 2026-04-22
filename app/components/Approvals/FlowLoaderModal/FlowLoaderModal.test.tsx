@@ -1,6 +1,6 @@
 import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import {
   ApprovalFlowState,
@@ -8,9 +8,11 @@ import {
 } from '@metamask/approval-controller';
 import FlowLoaderModal from './FlowLoaderModal';
 import useApprovalFlow from '../../Views/confirmations/hooks/useApprovalFlow';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../Views/confirmations/hooks/useApprovalFlow');
+jest.mock('../../UI/AnimatedSpinner', () => 'AnimatedSpinner');
 
 const APPROVAL_FLOW_MOCK: ApprovalFlowState = {
   id: 'testId1',
@@ -46,17 +48,25 @@ describe('FlowLoaderModal', () => {
     mockApprovalFlow(APPROVAL_FLOW_MOCK);
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<FlowLoaderModal />);
+    const { toJSON } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <FlowLoaderModal />
+      </ThemeContext.Provider>,
+    );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no approval flow', () => {
     mockApprovalFlow(undefined);
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<FlowLoaderModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <FlowLoaderModal />
+      </ThemeContext.Provider>,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if approval request', () => {
@@ -65,7 +75,11 @@ describe('FlowLoaderModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.CONNECT_ACCOUNTS } as any);
 
-    const wrapper = shallow(<FlowLoaderModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <FlowLoaderModal />
+      </ThemeContext.Provider>,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -29,14 +29,6 @@ jest.mock('@metamask/react-native-webview', () => ({
   )),
 }));
 
-// Mock the BottomSheet component
-jest.mock('../../BottomSheets/BottomSheet', () => ({
-  __esModule: true,
-  default: jest.fn(({ children }) => (
-    <div data-testid="mock-bottom-sheet">{children}</div>
-  )),
-}));
-
 // Mock useNavigation
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -88,7 +80,7 @@ describe('ModalMandatory', () => {
         onMessage: expect.any(Function),
         onScroll: expect.any(Function),
       }),
-      expect.any(Object),
+      undefined,
     );
   });
 
@@ -104,10 +96,10 @@ describe('ModalMandatory', () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const button = getByTestId('test-button');
 
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
   });
 
-  it('enables button when conditions are met', async () => {
+  it('enables button when conditions are met', () => {
     const routeWithoutScroll = {
       ...mockRoute,
       params: {
@@ -123,16 +115,16 @@ describe('ModalMandatory', () => {
     const button = getByTestId('test-button');
 
     // Initially disabled
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
 
     // Select checkbox
     fireEvent.press(checkbox);
 
     // Should be enabled after checkbox selection
-    expect(button.props.disabled).toBe(false);
+    expect(button).toBeEnabled();
   });
 
-  it('calls onAccept when button is pressed', async () => {
+  it('calls onAccept when button is pressed', () => {
     // Mock the navigation object
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();

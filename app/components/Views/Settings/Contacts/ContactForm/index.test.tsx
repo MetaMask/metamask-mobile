@@ -345,9 +345,9 @@ describe('ContactForm', () => {
 
     await waitFor(() => {
       expect(addressInput.props.value).toBe(MOCK_ADDRESS);
-      expect(addressInput.props.editable).toBeFalsy(); // Address is immutable in edit mode
-      expect(nameInput.props.editable).toBeTruthy();
-      expect(memoInput.props.editable).toBeTruthy();
+      expect(addressInput).toHaveProp('editable', false); // Address is immutable in edit mode
+      expect(nameInput).toHaveProp('editable', true);
+      expect(memoInput).toHaveProp('editable', true);
     });
 
     // The delete button should be visible now

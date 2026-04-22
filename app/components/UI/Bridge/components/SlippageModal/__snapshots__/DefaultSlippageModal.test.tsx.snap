@@ -10,14 +10,45 @@ exports[`DefaultSlippageModal edge cases handles empty slippage options 1`] = `
     <Text>
       Slippage
     </Text>
-    <TouchableOpacity
+    <View
       accessibilityLabel="Close"
-      onPress={[Function]}
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
     >
       <Text>
         Close
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -32,9 +63,10 @@ exports[`DefaultSlippageModal edge cases handles empty slippage options 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
+            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -60,54 +92,34 @@ exports[`DefaultSlippageModal edge cases handles empty slippage options 1`] = `
     }
   >
     <View
-      accessibilityLabel="Submit"
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 48,
             "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-            "width": "100%",
           },
+        ]
+      }
+      nativeID="58"
+      style={
+        [
           {
             "transform": [
               {
@@ -115,32 +127,182 @@ exports[`DefaultSlippageModal edge cases handles empty slippage options 1`] = `
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
     >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="clip"
-        numberOfLines={1}
+      <View
+        accessibilityLabel="Submit"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#ffffff",
-              "flexGrow": 0,
-              "flexShrink": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
             },
-            undefined,
           ]
         }
       >
-        Submit
-      </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              collapsable={false}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={[]}
+              nativeID="59"
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#ffffff",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="text"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#ffffff",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "fontWeight": 400,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
+                },
+                undefined,
+              ]
+            }
+          >
+            Submit
+          </Text>
+        </View>
+      </View>
     </View>
   </View>
 </View>
@@ -156,14 +318,45 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for complete modal
     <Text>
       Slippage
     </Text>
-    <TouchableOpacity
+    <View
       accessibilityLabel="Close"
-      onPress={[Function]}
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
     >
       <Text>
         Close
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -178,9 +371,10 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for complete modal
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
+            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -197,46 +391,201 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for complete modal
     <View
       testID="default-slippage-button-group"
     >
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-auto"
       >
         <Text>
           Auto
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-0.5"
       >
         <Text>
           0.5%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-2"
       >
         <Text>
           2%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-3"
       >
         <Text>
           3%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-custom"
       >
         <Text>
           Custom
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -247,54 +596,34 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for complete modal
     }
   >
     <View
-      accessibilityLabel="Submit"
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 48,
             "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-            "width": "100%",
           },
+        ]
+      }
+      nativeID="38"
+      style={
+        [
           {
             "transform": [
               {
@@ -302,32 +631,182 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for complete modal
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
     >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="clip"
-        numberOfLines={1}
+      <View
+        accessibilityLabel="Submit"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#ffffff",
-              "flexGrow": 0,
-              "flexShrink": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
             },
-            undefined,
           ]
         }
       >
-        Submit
-      </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              collapsable={false}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={[]}
+              nativeID="39"
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#ffffff",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="text"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#ffffff",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "fontWeight": 400,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
+                },
+                undefined,
+              ]
+            }
+          >
+            Submit
+          </Text>
+        </View>
+      </View>
     </View>
   </View>
 </View>
@@ -343,14 +822,45 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for description: d
     <Text>
       Slippage
     </Text>
-    <TouchableOpacity
+    <View
       accessibilityLabel="Close"
-      onPress={[Function]}
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
     >
       <Text>
         Close
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -365,9 +875,10 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for description: d
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
+            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -384,46 +895,201 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for description: d
     <View
       testID="default-slippage-button-group"
     >
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-auto"
       >
         <Text>
           Auto
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-0.5"
       >
         <Text>
           0.5%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-2"
       >
         <Text>
           2%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-3"
       >
         <Text>
           3%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-custom"
       >
         <Text>
           Custom
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -434,54 +1100,34 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for description: d
     }
   >
     <View
-      accessibilityLabel="Submit"
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 48,
             "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-            "width": "100%",
           },
+        ]
+      }
+      nativeID="46"
+      style={
+        [
           {
             "transform": [
               {
@@ -489,32 +1135,182 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for description: d
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
     >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="clip"
-        numberOfLines={1}
+      <View
+        accessibilityLabel="Submit"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#ffffff",
-              "flexGrow": 0,
-              "flexShrink": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
             },
-            undefined,
           ]
         }
       >
-        Submit
-      </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              collapsable={false}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={[]}
+              nativeID="47"
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#ffffff",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="text"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#ffffff",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "fontWeight": 400,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
+                },
+                undefined,
+              ]
+            }
+          >
+            Submit
+          </Text>
+        </View>
+      </View>
     </View>
   </View>
 </View>
@@ -530,14 +1326,45 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for header: header
     <Text>
       Slippage
     </Text>
-    <TouchableOpacity
+    <View
       accessibilityLabel="Close"
-      onPress={[Function]}
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
     >
       <Text>
         Close
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -552,9 +1379,10 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for header: header
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
+            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -571,46 +1399,201 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for header: header
     <View
       testID="default-slippage-button-group"
     >
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-auto"
       >
         <Text>
           Auto
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-0.5"
       >
         <Text>
           0.5%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-2"
       >
         <Text>
           2%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-3"
       >
         <Text>
           3%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-custom"
       >
         <Text>
           Custom
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -621,54 +1604,34 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for header: header
     }
   >
     <View
-      accessibilityLabel="Submit"
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 48,
             "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-            "width": "100%",
           },
+        ]
+      }
+      nativeID="44"
+      style={
+        [
           {
             "transform": [
               {
@@ -676,32 +1639,182 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for header: header
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
     >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="clip"
-        numberOfLines={1}
+      <View
+        accessibilityLabel="Submit"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#ffffff",
-              "flexGrow": 0,
-              "flexShrink": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
             },
-            undefined,
           ]
         }
       >
-        Submit
-      </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              collapsable={false}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={[]}
+              nativeID="45"
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#ffffff",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="text"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#ffffff",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "fontWeight": 400,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
+                },
+                undefined,
+              ]
+            }
+          >
+            Submit
+          </Text>
+        </View>
+      </View>
     </View>
   </View>
 </View>
@@ -717,14 +1830,45 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for submit button:
     <Text>
       Slippage
     </Text>
-    <TouchableOpacity
+    <View
       accessibilityLabel="Close"
-      onPress={[Function]}
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
     >
       <Text>
         Close
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -739,9 +1883,10 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for submit button:
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
+            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -758,46 +1903,201 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for submit button:
     <View
       testID="default-slippage-button-group"
     >
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-auto"
       >
         <Text>
           Auto
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-0.5"
       >
         <Text>
           0.5%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-2"
       >
         <Text>
           2%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-3"
       >
         <Text>
           3%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-custom"
       >
         <Text>
           Custom
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -808,54 +2108,34 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for submit button:
     }
   >
     <View
-      accessibilityLabel="Submit"
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 48,
             "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-            "width": "100%",
           },
+        ]
+      }
+      nativeID="48"
+      style={
+        [
           {
             "transform": [
               {
@@ -863,32 +2143,182 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for submit button:
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
     >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="clip"
-        numberOfLines={1}
+      <View
+        accessibilityLabel="Submit"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#ffffff",
-              "flexGrow": 0,
-              "flexShrink": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
             },
-            undefined,
           ]
         }
       >
-        Submit
-      </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              collapsable={false}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={[]}
+              nativeID="49"
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#ffffff",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="text"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#ffffff",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "fontWeight": 400,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
+                },
+                undefined,
+              ]
+            }
+          >
+            Submit
+          </Text>
+        </View>
+      </View>
     </View>
   </View>
 </View>
@@ -904,14 +2334,45 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with auto selected
     <Text>
       Slippage
     </Text>
-    <TouchableOpacity
+    <View
       accessibilityLabel="Close"
-      onPress={[Function]}
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
     >
       <Text>
         Close
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -926,9 +2387,10 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with auto selected
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
+            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -945,46 +2407,201 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with auto selected
     <View
       testID="default-slippage-button-group"
     >
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-auto"
       >
         <Text>
           Auto
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-0.5"
       >
         <Text>
           0.5%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-2"
       >
         <Text>
           2%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-3"
       >
         <Text>
           3%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-custom"
       >
         <Text>
           Custom
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -995,54 +2612,34 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with auto selected
     }
   >
     <View
-      accessibilityLabel="Submit"
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 48,
             "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-            "width": "100%",
           },
+        ]
+      }
+      nativeID="40"
+      style={
+        [
           {
             "transform": [
               {
@@ -1050,32 +2647,182 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with auto selected
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
     >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="clip"
-        numberOfLines={1}
+      <View
+        accessibilityLabel="Submit"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#ffffff",
-              "flexGrow": 0,
-              "flexShrink": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
             },
-            undefined,
           ]
         }
       >
-        Submit
-      </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              collapsable={false}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={[]}
+              nativeID="41"
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#ffffff",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="text"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#ffffff",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "fontWeight": 400,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
+                },
+                undefined,
+              ]
+            }
+          >
+            Submit
+          </Text>
+        </View>
+      </View>
     </View>
   </View>
 </View>
@@ -1091,14 +2838,45 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with numeric slipp
     <Text>
       Slippage
     </Text>
-    <TouchableOpacity
+    <View
       accessibilityLabel="Close"
-      onPress={[Function]}
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
     >
       <Text>
         Close
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -1113,9 +2891,10 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with numeric slipp
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
+            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1132,46 +2911,201 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with numeric slipp
     <View
       testID="default-slippage-button-group"
     >
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-auto"
       >
         <Text>
           Auto
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-0.5"
       >
         <Text>
           0.5%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-2"
       >
         <Text>
           2%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-3"
       >
         <Text>
           3%
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
         testID="option-custom"
       >
         <Text>
           Custom
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -1182,54 +3116,34 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with numeric slipp
     }
   >
     <View
-      accessibilityLabel="Submit"
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
       collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 48,
             "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-            "width": "100%",
           },
+        ]
+      }
+      nativeID="42"
+      style={
+        [
           {
             "transform": [
               {
@@ -1237,32 +3151,182 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with numeric slipp
               },
             ],
           },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
     >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="clip"
-        numberOfLines={1}
+      <View
+        accessibilityLabel="Submit"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "color": "#ffffff",
-              "flexGrow": 0,
-              "flexShrink": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
             },
-            undefined,
           ]
         }
       >
-        Submit
-      </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              collapsable={false}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={[]}
+              nativeID="43"
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#ffffff",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="text"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#ffffff",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "fontWeight": 400,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
+                },
+                undefined,
+              ]
+            }
+          >
+            Submit
+          </Text>
+        </View>
+      </View>
     </View>
   </View>
 </View>

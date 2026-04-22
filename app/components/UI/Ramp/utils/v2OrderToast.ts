@@ -4,7 +4,7 @@ import {
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { Spinner } from '@metamask/design-system-react-native/spinner';
 import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';

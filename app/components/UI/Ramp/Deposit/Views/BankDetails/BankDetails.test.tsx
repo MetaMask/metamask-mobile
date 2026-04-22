@@ -276,7 +276,7 @@ describe('BankDetails Component', () => {
     render(BankDetails);
 
     await act(async () => {
-      await screen
+      screen
         .getByTestId('bank-details-refresh-control-scrollview')
         .props.refreshControl.props.onRefresh();
     });
@@ -286,7 +286,7 @@ describe('BankDetails Component', () => {
     });
   });
 
-  it('calls Logger.error when handleBankTransferSent fails', async () => {
+  it('calls Logger.error when handleBankTransferSent fails', () => {
     mockConfirmPayment.mockImplementationOnce(() => {
       throw new Error('Payment confirmation failed');
     });
@@ -301,7 +301,7 @@ describe('BankDetails Component', () => {
     expect(mockLoggerError).toHaveBeenCalled();
   });
 
-  it('calls Logger.error when cancelOrder fails', async () => {
+  it('calls Logger.error when cancelOrder fails', () => {
     mockCancelOrder.mockImplementationOnce(() => {
       throw new Error('Order cancellation failed');
     });
@@ -497,7 +497,7 @@ describe('BankDetails Component', () => {
       render(BankDetails);
 
       await act(async () => {
-        await screen
+        screen
           .getByTestId('bank-details-refresh-control-scrollview')
           .props.refreshControl.props.onRefresh();
       });
@@ -525,7 +525,7 @@ describe('BankDetails Component', () => {
       render(BankDetails);
 
       await act(async () => {
-        await screen
+        screen
           .getByTestId('bank-details-refresh-control-scrollview')
           .props.refreshControl.props.onRefresh();
       });

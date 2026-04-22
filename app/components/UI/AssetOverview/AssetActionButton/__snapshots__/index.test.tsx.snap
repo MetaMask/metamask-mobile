@@ -1,0 +1,777 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetActionButtons should render correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "flexShrink": 1,
+      "justifyContent": "center",
+      "marginHorizontal": 0,
+      "minWidth": 60,
+      "opacity": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  />
+  <Text
+    numberOfLines={1}
+    style={
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 30,
+          "marginVertical": 2,
+        },
+        {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "color": "#4459ff",
+          "fontSize": 14,
+          "marginHorizontal": 3,
+          "marginTop": 8,
+        },
+      ]
+    }
+  >
+    mock text
+  </Text>
+</View>
+`;
+
+exports[`AssetActionButtons should render type add correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "flexShrink": 1,
+      "justifyContent": "center",
+      "marginHorizontal": 0,
+      "minWidth": 60,
+      "opacity": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Text
+      allowFontScaling={false}
+      selectable={false}
+      style={
+        [
+          {
+            "color": undefined,
+            "fontSize": 30,
+          },
+          {
+            "alignContent": "center",
+            "color": "#ffffff",
+            "justifyContent": "center",
+            "textAlign": "center",
+          },
+          {
+            "fontFamily": "Ionicons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
+      }
+    >
+      
+    </Text>
+  </View>
+  <Text
+    numberOfLines={1}
+    style={
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 30,
+          "marginVertical": 2,
+        },
+        {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "color": "#4459ff",
+          "fontSize": 14,
+          "marginHorizontal": 3,
+          "marginTop": 8,
+        },
+      ]
+    }
+  >
+    mock text
+  </Text>
+</View>
+`;
+
+exports[`AssetActionButtons should render type information correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "flexShrink": 1,
+      "justifyContent": "center",
+      "marginHorizontal": 0,
+      "minWidth": 60,
+      "opacity": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Text
+      allowFontScaling={false}
+      selectable={false}
+      style={
+        [
+          {
+            "color": undefined,
+            "fontSize": 30,
+          },
+          {
+            "alignContent": "center",
+            "color": "#ffffff",
+            "justifyContent": "center",
+            "textAlign": "center",
+          },
+          {
+            "fontFamily": "Ionicons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
+      }
+    >
+      
+    </Text>
+  </View>
+  <Text
+    numberOfLines={1}
+    style={
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 30,
+          "marginVertical": 2,
+        },
+        {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "color": "#4459ff",
+          "fontSize": 14,
+          "marginHorizontal": 3,
+          "marginTop": 8,
+        },
+      ]
+    }
+  >
+    mock text
+  </Text>
+</View>
+`;
+
+exports[`AssetActionButtons should render type receive correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "flexShrink": 1,
+      "justifyContent": "center",
+      "marginHorizontal": 0,
+      "minWidth": 60,
+      "opacity": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Text
+      allowFontScaling={false}
+      selectable={false}
+      style={
+        [
+          {
+            "color": "#ffffff",
+            "fontSize": 20,
+          },
+          [
+            {
+              "alignContent": "center",
+              "color": "#ffffff",
+              "justifyContent": "center",
+              "textAlign": "center",
+            },
+            {
+              "bottom": 1,
+              "right": 1,
+              "transform": [
+                {
+                  "rotate": "90deg",
+                },
+              ],
+            },
+          ],
+          {
+            "fontFamily": "Material Design Icons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
+      }
+    >
+      󰌒
+    </Text>
+  </View>
+  <Text
+    numberOfLines={1}
+    style={
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 30,
+          "marginVertical": 2,
+        },
+        {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "color": "#4459ff",
+          "fontSize": 14,
+          "marginHorizontal": 3,
+          "marginTop": 8,
+        },
+      ]
+    }
+  >
+    receive...
+  </Text>
+</View>
+`;
+
+exports[`AssetActionButtons should render type send correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "flexShrink": 1,
+      "justifyContent": "center",
+      "marginHorizontal": 0,
+      "minWidth": 60,
+      "opacity": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Text
+      allowFontScaling={false}
+      selectable={false}
+      style={
+        [
+          {
+            "color": undefined,
+            "fontSize": 20,
+          },
+          {
+            "alignContent": "center",
+            "color": "#ffffff",
+            "justifyContent": "center",
+            "textAlign": "center",
+          },
+          {
+            "fontFamily": "Material Design Icons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
+      }
+    >
+      󰁜
+    </Text>
+  </View>
+  <Text
+    numberOfLines={1}
+    style={
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 30,
+          "marginVertical": 2,
+        },
+        {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "color": "#4459ff",
+          "fontSize": 14,
+          "marginHorizontal": 3,
+          "marginTop": 8,
+        },
+      ]
+    }
+  >
+    mock text
+  </Text>
+</View>
+`;
+
+exports[`AssetActionButtons should render type swap correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "flexShrink": 1,
+      "justifyContent": "center",
+      "marginHorizontal": 0,
+      "minWidth": 60,
+      "opacity": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Text
+      allowFontScaling={false}
+      selectable={false}
+      style={
+        [
+          {
+            "color": undefined,
+            "fontSize": 22,
+          },
+          [
+            {
+              "alignContent": "center",
+              "color": "#ffffff",
+              "justifyContent": "center",
+              "textAlign": "center",
+            },
+            {
+              "bottom": 0,
+              "right": 0,
+            },
+          ],
+          {
+            "fontFamily": "Material Design Icons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
+      }
+    >
+      󰑖
+    </Text>
+  </View>
+  <Text
+    numberOfLines={1}
+    style={
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 30,
+          "marginVertical": 2,
+        },
+        {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "color": "#4459ff",
+          "fontSize": 14,
+          "marginHorizontal": 3,
+          "marginTop": 8,
+        },
+      ]
+    }
+  >
+    mock text
+  </Text>
+</View>
+`;

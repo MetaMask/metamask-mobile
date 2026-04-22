@@ -5,7 +5,7 @@ exports[`PredictMarketSkeleton matches snapshot 1`] = `
   style={
     [
       {
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 12,
         "display": "flex",
         "marginBottom": 8,
@@ -59,7 +59,7 @@ exports[`PredictMarketSkeleton matches snapshot 1`] = `
         pointerEvents="none"
         style={
           {
-            "backgroundColor": "#66676a",
+            "backgroundColor": "#686e7d",
             "borderRadius": 4,
             "bottom": 0,
             "left": 0,
@@ -109,7 +109,7 @@ exports[`PredictMarketSkeleton matches snapshot 1`] = `
           pointerEvents="none"
           style={
             {
-              "backgroundColor": "#66676a",
+              "backgroundColor": "#686e7d",
               "borderRadius": 4,
               "bottom": 0,
               "left": 0,
@@ -149,7 +149,7 @@ exports[`PredictMarketSkeleton matches snapshot 1`] = `
       pointerEvents="none"
       style={
         {
-          "backgroundColor": "#66676a",
+          "backgroundColor": "#686e7d",
           "borderRadius": 4,
           "bottom": 0,
           "left": 0,
@@ -186,7 +186,7 @@ exports[`PredictMarketSkeleton matches snapshot 1`] = `
       pointerEvents="none"
       style={
         {
-          "backgroundColor": "#66676a",
+          "backgroundColor": "#686e7d",
           "borderRadius": 4,
           "bottom": 0,
           "left": 0,

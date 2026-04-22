@@ -153,7 +153,7 @@ describe('MusdConversionInfo', () => {
         expect.objectContaining({
           preferredToken: preferredPaymentToken,
         }),
-        expect.anything(),
+        undefined,
       );
     });
   });
@@ -168,7 +168,7 @@ describe('MusdConversionInfo', () => {
         expect.objectContaining({
           hidePayTokenAmount: true,
         }),
-        expect.anything(),
+        undefined,
       );
     });
   });

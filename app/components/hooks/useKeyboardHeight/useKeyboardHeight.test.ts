@@ -1,29 +1,36 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { Keyboard } from 'react-native';
 import { useKeyboardHeight } from './useKeyboardHeight';
 
 describe('useKeyboardHeight', () => {
-  let mockSubscription: { remove: jest.Mock };
   let showListener: (e: { endCoordinates: { height: number } }) => void;
   let hideListener: () => void;
+  let mockRemove1: jest.Mock;
+  let mockRemove2: jest.Mock;
 
   beforeEach(() => {
-    mockSubscription = { remove: jest.fn() };
+    mockRemove1 = jest.fn();
+    mockRemove2 = jest.fn();
+
     jest
       .spyOn(Keyboard, 'addListener')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockReturnValue(mockSubscription as any);
+      .mockImplementation((eventName: string, callback: any) => {
+        if (eventName === 'keyboardDidShow') {
+          showListener = callback;
+          return { remove: mockRemove1 } as any;
+        }
+        if (eventName === 'keyboardDidHide') {
+          hideListener = callback;
+          return { remove: mockRemove2 } as any;
+        }
+        return { remove: jest.fn() } as any;
+      });
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
-
-  const getListeners = () => {
-    const calls = (Keyboard.addListener as jest.Mock).mock.calls;
-    showListener = calls.find((call) => call[0] === 'keyboardDidShow')?.[1];
-    hideListener = calls.find((call) => call[0] === 'keyboardDidHide')?.[1];
-  };
 
   it('should initialize with height of 0', () => {
     const { result } = renderHook(() => useKeyboardHeight());
@@ -44,29 +51,36 @@ describe('useKeyboardHeight', () => {
 
   it('should update height on show and reset on hide', () => {
     const { result } = renderHook(() => useKeyboardHeight());
-    getListeners();
 
-    act(() => showListener({ endCoordinates: { height: 300 } }));
+    act(() => {
+      showListener({ endCoordinates: { height: 300 } });
+    });
     expect(result.current).toBe(300);
 
-    act(() => hideListener());
+    act(() => {
+      hideListener();
+    });
     expect(result.current).toBe(0);
   });
 
   it('should handle multiple height changes', () => {
     const { result } = renderHook(() => useKeyboardHeight());
-    getListeners();
 
-    act(() => showListener({ endCoordinates: { height: 250 } }));
+    act(() => {
+      showListener({ endCoordinates: { height: 250 } });
+    });
     expect(result.current).toBe(250);
 
-    act(() => showListener({ endCoordinates: { height: 400 } }));
+    act(() => {
+      showListener({ endCoordinates: { height: 400 } });
+    });
     expect(result.current).toBe(400);
   });
 
   it('should remove listeners on unmount', () => {
     const { unmount } = renderHook(() => useKeyboardHeight());
     unmount();
-    expect(mockSubscription.remove).toHaveBeenCalledTimes(2);
+    expect(mockRemove1).toHaveBeenCalledTimes(1);
+    expect(mockRemove2).toHaveBeenCalledTimes(1);
   });
 });

@@ -3,7 +3,7 @@ import Share from 'react-native-share';
 
 import { Alert, AlertButton } from 'react-native';
 
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
@@ -26,7 +26,6 @@ import { strings } from '../../../../locales/i18n';
 import * as Networks7702 from '../confirmations/hooks/7702/useEIP7702Networks';
 // eslint-disable-next-line import-x/no-namespace
 import * as AddressUtils from '../../../util/address';
-import { act } from '@testing-library/react-hooks';
 import { RPC } from '../../../constants/network';
 
 jest.mock('../confirmations/hooks/7702/useEIP7702Networks', () => ({

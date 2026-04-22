@@ -366,6 +366,7 @@ describe('getStakingNavbar', () => {
     );
 
     const headerLeft = options.headerLeft();
+    // In React 19, fireEvent.press can't be used on unrendered React elements
     headerLeft.props.onPress();
 
     expect(withMetaMetrics).toHaveBeenCalledTimes(1);
@@ -395,6 +396,7 @@ describe('getStakingNavbar', () => {
     );
 
     const headerRight = options.headerRight();
+    // In React 19, fireEvent.press can't be used on unrendered React elements
     headerRight.props.onPress();
 
     expect(withMetaMetrics).toHaveBeenCalledTimes(1);

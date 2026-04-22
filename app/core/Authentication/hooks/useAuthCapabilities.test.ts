@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import useAuthCapabilities from './useAuthCapabilities';
 import { Authentication } from '../Authentication';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -56,24 +56,20 @@ describe('useAuthCapabilities', () => {
   });
 
   it('returns active loading state and empty capabilities when hook is mounted', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useAuthCapabilities(),
-    );
+    const { result } = renderHook(() => useAuthCapabilities());
 
     // Initially loading (synchronous check before async completes)
     expect(result.current.isLoading).toBe(true);
     expect(result.current.capabilities).toBeNull();
 
     // Wait for async updates to complete to avoid act warnings
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.capabilities).toEqual(mockCapabilities);
     });
   });
 
   it('returns inactive loading state and populated capabilities after fetching auth capabilities completes', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useAuthCapabilities(),
-    );
+    const { result } = renderHook(() => useAuthCapabilities());
 
     mockOsAuthEnabled = true;
 
@@ -82,11 +78,9 @@ describe('useAuthCapabilities', () => {
     expect(result.current.capabilities).toBeNull();
 
     // Wait for async update within act
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.capabilities).toEqual(mockCapabilities);
     });
-
-    expect(result.current.capabilities).toEqual(mockCapabilities);
     expect(result.current.isLoading).toBe(false);
 
     expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(1);
@@ -97,23 +91,18 @@ describe('useAuthCapabilities', () => {
   });
 
   it('calls getAuthCapabilities again when osAuthEnabled or allowLoginWithRememberMe change', async () => {
-    const { waitForNextUpdate, rerender } = renderHook(() =>
-      useAuthCapabilities(),
-    );
+    const { rerender } = renderHook(() => useAuthCapabilities());
 
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(1);
     });
-    expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(1);
 
     mockOsAuthEnabled = false;
     rerender();
 
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(2);
     });
-
-    expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(2);
     expect(getAuthCapabilitiesSpy).toHaveBeenLastCalledWith({
       osAuthEnabled: false,
       allowLoginWithRememberMe: mockAllowLoginWithRememberMe,

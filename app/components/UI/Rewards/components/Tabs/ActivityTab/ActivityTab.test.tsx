@@ -552,7 +552,7 @@ describe('ActivityTab', () => {
     const { getByTestId } = render(<ActivityTab />);
 
     const flatList = getByTestId('flatlist');
-    flatList.props.onRefresh();
+    fireEvent(flatList, 'refresh');
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
@@ -570,7 +570,7 @@ describe('ActivityTab', () => {
 
     const { getByTestId } = render(<ActivityTab />);
     const flatList = getByTestId('flatlist');
-    flatList.props.onEndReached();
+    fireEvent(flatList, 'endReached');
 
     expect(mockLoadMore).toHaveBeenCalledTimes(1);
   });

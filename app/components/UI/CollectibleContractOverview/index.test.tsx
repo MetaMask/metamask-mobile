@@ -84,7 +84,7 @@ describe('CollectibleContractOverview', () => {
   });
 
   it('should render correctly', () => {
-    render(
+    const { toJSON } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <CollectibleContractOverview
@@ -99,7 +99,7 @@ describe('CollectibleContractOverview', () => {
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(screen.getByText('name')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onSend and navigates when send button is pressed', () => {

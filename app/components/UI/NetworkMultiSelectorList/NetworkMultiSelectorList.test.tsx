@@ -1051,7 +1051,7 @@ describe('NetworkMultiSelectorList', () => {
   describe('additionalNetworksComponent', () => {
     it('renders additional networks section at the end of the list', () => {
       const AdditionalComponent = () => (
-        <Text testID="additional-networks">Add Networks</Text>
+        <Text testID="additional-networks">{'Add Networks'}</Text>
       );
 
       const { getByTestId } = render(
@@ -1074,7 +1074,7 @@ describe('NetworkMultiSelectorList', () => {
 
     it('exercises key extractor and item type for additional section', () => {
       const AdditionalComponent = () => (
-        <Text testID="additional-networks">Add Networks</Text>
+        <Text testID="additional-networks">{'Add Networks'}</Text>
       );
       const singleNetwork: Network[] = [
         {

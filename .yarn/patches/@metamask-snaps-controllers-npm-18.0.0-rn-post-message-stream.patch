@@ -1,0 +1,23 @@
+diff --git a/dist/services/webview/WebViewMessageStream.cjs b/dist/services/webview/WebViewMessageStream.cjs
+index 9f3ddca4dfbb9fba5f7aeb9f11f8a0fcb0d0913c..7e0ef2a23f1f7f7ed71159f3c977633f17a011c4 100644
+--- a/dist/services/webview/WebViewMessageStream.cjs
++++ b/dist/services/webview/WebViewMessageStream.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.WebViewMessageStream = void 0;
+-const post_message_stream_1 = require("@metamask/post-message-stream");
++const post_message_stream_1 = require("@metamask/post-message-stream/react-native");
+ const utils_1 = require("@metamask/utils");
+ /**
+  * A special postMessage stream used to interface with a WebView.
+diff --git a/dist/services/webview/WebViewMessageStream.mjs b/dist/services/webview/WebViewMessageStream.mjs
+index a32377c5bba15f1f9f49d7906c8282a758179320..c6202fbe0eec803fbfa6a0124887a0d51c7ba8ee 100644
+--- a/dist/services/webview/WebViewMessageStream.mjs
++++ b/dist/services/webview/WebViewMessageStream.mjs
+@@ -1,4 +1,4 @@
+-import { BasePostMessageStream, isValidStreamMessage } from "@metamask/post-message-stream";
++import { BasePostMessageStream, isValidStreamMessage } from "@metamask/post-message-stream/react-native";
+ import { assert } from "@metamask/utils";
+ /**
+  * A special postMessage stream used to interface with a WebView.

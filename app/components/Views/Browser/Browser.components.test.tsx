@@ -111,14 +111,6 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
@@ -219,7 +211,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromTrending: true,
         }),
-        {},
+        undefined,
       );
     });
 
@@ -265,7 +257,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromPerps: true,
         }),
-        {},
+        undefined,
       );
     });
 
@@ -363,13 +355,13 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           linkType: 'deeplink',
         }),
-        {},
+        undefined,
       );
     });
   });
 
   describe('showTabsView function', () => {
-    it('takes screenshot and shows tabs view when active tab exists', async () => {
+    it('takes screenshot and shows tabs view when active tab exists', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
@@ -413,7 +405,7 @@ describe('Browser - Component Rendering', () => {
       expect(mockUpdateTab).toBeDefined();
     });
 
-    it('handles screenshot error gracefully', async () => {
+    it('handles screenshot error gracefully', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];

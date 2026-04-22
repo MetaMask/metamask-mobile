@@ -38,10 +38,11 @@ mkdir -p "$REPO_ROOT/sourcemaps/ios"
 export SOURCEMAP_FILE="${SOURCEMAP_FILE:-$REPO_ROOT/sourcemaps/ios/index.js.map}"
 
 # Generate JS bundle and upload Sentry source maps
+# Note: with-environment.sh was already sourced above, so environment is set.
+# Run sentry-xcode.sh directly passing react-native-xcode.sh as the bundler.
 REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
 SENTRY_XCODE="../node_modules/@sentry/react-native/scripts/sentry-xcode.sh"
-BUNDLE_REACT_NATIVE="/bin/sh $SENTRY_XCODE $REACT_NATIVE_XCODE"
-/bin/sh -c "$WITH_ENVIRONMENT \"$BUNDLE_REACT_NATIVE\""
+/bin/sh "$SENTRY_XCODE" "$REACT_NATIVE_XCODE"
 
 # Upload Sentry debug symbols
 if [ "$SENTRY_DISABLE_AUTO_UPLOAD" == "false" ]; then

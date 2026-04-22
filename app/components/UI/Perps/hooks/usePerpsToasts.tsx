@@ -4,7 +4,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { Spinner } from '@metamask/design-system-react-native/spinner';
 import { useNavigation } from '@react-navigation/native';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import React, { useCallback, useContext, useMemo } from 'react';

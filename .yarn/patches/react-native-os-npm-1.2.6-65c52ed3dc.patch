@@ -1,0 +1,11 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 7055b60151a2cbbf7aa1727dcb9515b641f74038..784681dc982811576f91783d371071ef3cb5878e 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -44,5 +44,5 @@ repositories {
+ }
+ 
+ dependencies {
+-    compile 'com.facebook.react:react-native:+'
++    implementation 'com.facebook.react:react-native:+'
+ }

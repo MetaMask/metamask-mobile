@@ -352,7 +352,7 @@ describe('NetworkDetailsView', () => {
       const chainInput = getByTestId(
         NetworkDetailsViewSelectorsIDs.CHAIN_INPUT,
       );
-      expect(chainInput.props.editable).toBe(false);
+      expect(chainInput).toHaveProp('editable', false);
     });
 
     it('shows RPC warning banner when warningRpcUrl is set', () => {
@@ -451,7 +451,7 @@ describe('NetworkDetailsView', () => {
     const saveButton = getByTestId(
       NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
     );
-    expect(saveButton.props.disabled).toBe(true);
+    expect(saveButton).toBeDisabled();
   });
 
   it('disables save button when validation disables network name', () => {

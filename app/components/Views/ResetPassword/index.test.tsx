@@ -107,9 +107,12 @@ jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
 }));
 
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -546,7 +549,7 @@ describe('ResetPassword', () => {
       const getNewPasswordTextInput = () =>
         within(newPasswordField).getByDisplayValue('NewPassword123');
 
-      expect(getNewPasswordTextInput().props.secureTextEntry).toBe(true);
+      expect(newPasswordField).toHaveProp('secureTextEntry', true);
 
       const showIcon = component.getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID,
@@ -554,7 +557,7 @@ describe('ResetPassword', () => {
       fireEvent.press(showIcon);
 
       await waitFor(() => {
-        expect(getNewPasswordTextInput().props.secureTextEntry).toBe(false);
+        expect(newPasswordField).toHaveProp('secureTextEntry', false);
       });
     });
 
@@ -571,7 +574,7 @@ describe('ResetPassword', () => {
       const getConfirmPasswordTextInput = () =>
         within(confirmPasswordField).getByDisplayValue('NewPassword123');
 
-      expect(getConfirmPasswordTextInput().props.secureTextEntry).toBe(true);
+      expect(confirmPasswordField).toHaveProp('secureTextEntry', true);
 
       const showIcon = component.getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID,
@@ -579,7 +582,7 @@ describe('ResetPassword', () => {
       fireEvent.press(showIcon);
 
       await waitFor(() => {
-        expect(getConfirmPasswordTextInput().props.secureTextEntry).toBe(false);
+        expect(confirmPasswordField).toHaveProp('secureTextEntry', false);
       });
     });
 

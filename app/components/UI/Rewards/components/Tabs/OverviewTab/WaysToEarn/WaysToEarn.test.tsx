@@ -317,7 +317,7 @@ describe('WaysToEarn', () => {
           showCancelButton: false,
           confirmAction: expect.objectContaining({
             label: 'Start a swap',
-            variant: 'primary',
+            variant: 'Primary',
           }),
         }),
       );
@@ -815,7 +815,7 @@ describe('WaysToEarn', () => {
         { title: 'Perps', expectedLabel: 'Start a trade' },
       ];
 
-      testCases.forEach(({ title, expectedLabel }) => {
+      for (const { title, expectedLabel } of testCases) {
         jest.clearAllMocks();
         mockUseNavigation.mockReturnValue({
           navigate: mockNavigate,
@@ -840,7 +840,7 @@ describe('WaysToEarn', () => {
           (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         );
         expect(modalCall?.[1]?.confirmAction?.label).toBe(expectedLabel);
-      });
+      }
     });
   });
 });

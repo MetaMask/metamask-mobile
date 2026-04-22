@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SamplePetNames matches rendered snapshot 1`] = `
-<View
+<RCTSafeAreaView
   style={
     {
       "backgroundColor": "#ffffff",
@@ -25,13 +25,41 @@ exports[`SamplePetNames matches rendered snapshot 1`] = `
       ]
     }
   >
-    <TouchableOpacity
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#949596",
+          "borderColor": "#b7bbc8",
           "borderRadius": 4,
           "borderWidth": 1,
+          "opacity": 1,
           "padding": 16,
           "width": "100%",
         }
@@ -41,8 +69,8 @@ exports[`SamplePetNames matches rendered snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
-            "fontFamily": "Geist-SemiBold",
+            "color": "#121314",
+            "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -57,7 +85,7 @@ exports[`SamplePetNames matches rendered snapshot 1`] = `
       <View
         testID="mocked-sample-pet-names-form"
       />
-    </TouchableOpacity>
+    </View>
   </View>
-</View>
+</RCTSafeAreaView>
 `;

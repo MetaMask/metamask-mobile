@@ -1,0 +1,58 @@
+diff --git a/package.json b/package.json
+index a592f5f9b1b3c2d4e5f60718293a4b5c6d7e8f90..b0d3ab7d22b5fa5f1356d82de70b22f2fcb7b200 100644
+--- a/package.json
++++ b/package.json
+@@ -20,6 +20,16 @@
+         "types": "./dist/node.d.cts",
+         "default": "./dist/node.cjs"
+       }
++    },
++    "./react-native": {
++      "import": {
++        "types": "./dist/react-native.d.mts",
++        "default": "./dist/react-native.mjs"
++      },
++      "require": {
++        "types": "./dist/react-native.d.cts",
++        "default": "./dist/react-native.cjs"
++      }
+     },
+     "./package.json": "./package.json"
+   },
+diff --git a/dist/react-native.cjs b/dist/react-native.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..f8b26b34a26ee86a0f2227edb6b8f31b178f1bc4
+--- /dev/null
++++ b/dist/react-native.cjs
+@@ -0,0 +1,7 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.isValidStreamMessage = exports.BasePostMessageStream = void 0;
++var BasePostMessageStream_cjs_1 = require("./BasePostMessageStream.cjs");
++Object.defineProperty(exports, "BasePostMessageStream", { enumerable: true, get: function () { return BasePostMessageStream_cjs_1.BasePostMessageStream; } });
++var utils_cjs_1 = require("./utils.cjs");
++Object.defineProperty(exports, "isValidStreamMessage", { enumerable: true, get: function () { return utils_cjs_1.isValidStreamMessage; } });
+diff --git a/dist/react-native.mjs b/dist/react-native.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b0dc7ea9d25d20d60f227b8f0eb685d54f2f0e8f
+--- /dev/null
++++ b/dist/react-native.mjs
+@@ -0,0 +1,2 @@
++export { BasePostMessageStream } from "./BasePostMessageStream.mjs";
++export { isValidStreamMessage } from "./utils.mjs";
+diff --git a/dist/react-native.d.cts b/dist/react-native.d.cts
+new file mode 100644
+index 0000000000000000000000000000000000000000..3de1d6b2c5cf6f1f4c14d8f5fd0d7f0fefe6fb61
+--- /dev/null
++++ b/dist/react-native.d.cts
+@@ -0,0 +1,2 @@
++export { BasePostMessageStream, PostMessageEvent } from "./BasePostMessageStream.cjs";
++export { isValidStreamMessage } from "./utils.cjs";
+diff --git a/dist/react-native.d.mts b/dist/react-native.d.mts
+new file mode 100644
+index 0000000000000000000000000000000000000000..73974674a7f2f4ff1805e9a2a8f0d4014c95b447
+--- /dev/null
++++ b/dist/react-native.d.mts
+@@ -0,0 +1,2 @@
++export { BasePostMessageStream, PostMessageEvent } from "./BasePostMessageStream.mjs";
++export { isValidStreamMessage } from "./utils.mjs";

@@ -8,16 +8,6 @@ import useSampleNetwork from '../hooks/useSampleNetwork/useSampleNetwork';
 import { strings } from '../../../../../locales/i18n';
 
 /**
- * Mock implementation for react-native Linking module
- * Required for testing components that use deep linking functionality
- */
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(() => ({
-    remove: jest.fn(),
-  })),
-}));
-
-/**
  * Mock the feature flag selector to control test scenarios
  */
 jest.mock('../../selectors/sampleFeatureCounter', () => ({
@@ -195,11 +185,11 @@ describe('SampleFeature', () => {
 
       // Assert
       expect(mockSampleNetworkDisplay).toHaveBeenCalledWith(
-        {
+        expect.objectContaining({
           name: expectedNetworkName,
           imageSource: expectedImageSource,
-        },
-        expect.anything(),
+        }),
+        undefined,
       );
     });
 

@@ -47,23 +47,23 @@ const createStyles = (colors) =>
  * only on ActionModal component
  */
 export default function ActionContent({
-  cancelTestID,
-  confirmTestID,
-  cancelText,
+  cancelTestID = '',
+  confirmTestID = '',
+  cancelText = strings('action_view.cancel'),
   children,
-  confirmText,
-  confirmDisabled,
-  cancelButtonMode,
-  cancelButtonDisabled,
-  confirmButtonMode,
-  displayCancelButton,
-  displayConfirmButton,
+  confirmText = strings('action_view.confirm'),
+  confirmDisabled = false,
+  cancelButtonMode = 'neutral',
+  cancelButtonDisabled = false,
+  confirmButtonMode = 'warning',
+  displayCancelButton = true,
+  displayConfirmButton = true,
   onCancelPress,
   onConfirmPress,
-  viewWrapperStyle,
-  viewContainerStyle,
+  viewWrapperStyle = null,
+  viewContainerStyle = null,
   actionContainerStyle,
-  childrenContainerStyle,
+  childrenContainerStyle = null,
   verticalButtons,
 }) {
   const { colors } = useTheme();
@@ -116,22 +116,6 @@ export default function ActionContent({
     </View>
   );
 }
-
-ActionContent.defaultProps = {
-  cancelButtonMode: 'neutral',
-  cancelButtonDisabled: false,
-  confirmButtonMode: 'warning',
-  confirmTestID: '',
-  cancelTestID: '',
-  cancelText: strings('action_view.cancel'),
-  confirmText: strings('action_view.confirm'),
-  confirmDisabled: false,
-  displayCancelButton: true,
-  displayConfirmButton: true,
-  viewWrapperStyle: null,
-  viewContainerStyle: null,
-  childrenContainerStyle: null,
-};
 
 ActionContent.propTypes = {
   cancelButtonDisabled: PropTypes.bool,

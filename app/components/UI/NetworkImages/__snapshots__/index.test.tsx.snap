@@ -27,17 +27,44 @@ exports[`NetworkImageComponent should render correctly 1`] = `
       testID="network-avatar-image"
     />
   </View>
-  <TouchableOpacity
+  <View
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": false,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={1}
-    disabled={false}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
     testID="button-icon-test-id"
   >
     <SvgMock
-      color="#131416"
+      color="#121314"
       fill="currentColor"
       height={20}
       name="ArrowDown"
@@ -49,6 +76,6 @@ exports[`NetworkImageComponent should render correctly 1`] = `
       }
       width={20}
     />
-  </TouchableOpacity>
+  </View>
 </View>
 `;

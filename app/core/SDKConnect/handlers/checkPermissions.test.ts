@@ -6,7 +6,7 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => {
     OS: 'ios',
     select: jest.fn(),
   };
-  return Platform;
+  return { __esModule: true, default: Platform, ...Platform };
 });
 
 // Mock wait util - change this part

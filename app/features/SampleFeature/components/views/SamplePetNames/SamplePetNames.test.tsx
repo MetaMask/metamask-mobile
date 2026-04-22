@@ -5,10 +5,6 @@ import initialRootState from '../../../../../util/test/initial-root-state';
 import { waitFor } from '@testing-library/react-native';
 import { SamplePetNames } from './SamplePetNames';
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-}));
-
 /**
  * Mock variables for child components
  */

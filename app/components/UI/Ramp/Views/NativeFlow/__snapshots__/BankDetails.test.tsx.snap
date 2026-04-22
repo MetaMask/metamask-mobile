@@ -1,0 +1,2412 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": null,
+              "props": {},
+              "type": "RCTRefreshControl",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": null,
+                          "props": {
+                            "testID": "loader",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {},
+              "type": "View",
+            },
+          ],
+          "props": {
+            "collapsable": false,
+            "enabled": undefined,
+            "handlerTag": -1,
+            "handlerType": "NativeViewGestureHandler",
+            "hitSlop": undefined,
+            "onGestureHandlerEvent": [Function],
+            "onGestureHandlerStateChange": [Function],
+            "refreshControl": <RefreshControlMock
+              colors={
+                [
+                  "#4459ff",
+                ]
+              }
+              onRefresh={[Function]}
+              ref={
+                {
+                  "current": {
+                    "_reactInternalInstance": "[Circular]",
+                    "_reactInternals": {
+                      "_debugHookTypes": null,
+                      "_debugInfo": null,
+                      "_debugNeedsRemount": false,
+                      "_debugOwner": "[Circular]",
+                      "_debugStack": {},
+                      "_debugTask": null,
+                      "actualDuration": 0,
+                      "actualStartTime": 0,
+                      "alternate": null,
+                      "child": "[Circular]",
+                      "childLanes": 0,
+                      "deletions": null,
+                      "dependencies": null,
+                      "elementType": [Function],
+                      "flags": 5243397,
+                      "index": 0,
+                      "key": null,
+                      "lanes": 0,
+                      "memoizedProps": "[Circular]",
+                      "memoizedState": null,
+                      "mode": 1,
+                      "pendingProps": "[Circular]",
+                      "ref": "[Circular]",
+                      "refCleanup": null,
+                      "return": {
+                        "_debugHookTypes": null,
+                        "_debugInfo": null,
+                        "_debugNeedsRemount": false,
+                        "_debugOwner": "[Circular]",
+                        "_debugStack": {},
+                        "_debugTask": null,
+                        "actualDuration": 0,
+                        "actualStartTime": 0,
+                        "alternate": null,
+                        "child": "[Circular]",
+                        "childLanes": 0,
+                        "deletions": null,
+                        "dependencies": null,
+                        "elementType": "RCTScrollView",
+                        "flags": 0,
+                        "index": 0,
+                        "key": null,
+                        "lanes": 0,
+                        "memoizedProps": "[Circular]",
+                        "memoizedState": null,
+                        "mode": 1,
+                        "pendingProps": "[Circular]",
+                        "ref": null,
+                        "refCleanup": null,
+                        "return": "[Circular]",
+                        "selfBaseDuration": 0,
+                        "sibling": null,
+                        "stateNode": {
+                          "children": [
+                            {
+                              "children": [],
+                              "internalInstanceHandle": {
+                                "_debugHookTypes": null,
+                                "_debugInfo": null,
+                                "_debugNeedsRemount": false,
+                                "_debugOwner": "[Circular]",
+                                "_debugStack": [Object],
+                                "_debugTask": null,
+                                "actualDuration": 0,
+                                "actualStartTime": 0,
+                                "alternate": null,
+                                "child": null,
+                                "childLanes": 0,
+                                "deletions": null,
+                                "dependencies": null,
+                                "elementType": "RCTRefreshControl",
+                                "flags": 0,
+                                "index": 0,
+                                "key": null,
+                                "lanes": 0,
+                                "memoizedProps": "[Circular]",
+                                "memoizedState": null,
+                                "mode": 1,
+                                "pendingProps": "[Circular]",
+                                "ref": null,
+                                "refCleanup": null,
+                                "return": [Object],
+                                "selfBaseDuration": 0,
+                                "sibling": null,
+                                "stateNode": "[Circular]",
+                                "subtreeFlags": 0,
+                                "tag": 5,
+                                "treeBaseDuration": 0,
+                                "type": "RCTRefreshControl",
+                                "updateQueue": null,
+                              },
+                              "isHidden": false,
+                              "props": {
+                                "children": undefined,
+                              },
+                              "rootContainerInstance": "[Circular]",
+                              "tag": "INSTANCE",
+                              "type": "RCTRefreshControl",
+                            },
+                            {
+                              "children": [
+                                [Object],
+                              ],
+                              "internalInstanceHandle": "[Circular]",
+                              "isHidden": false,
+                              "props": {
+                                "children": "[Circular]",
+                              },
+                              "rootContainerInstance": "[Circular]",
+                              "tag": "INSTANCE",
+                              "type": "View",
+                            },
+                          ],
+                          "internalInstanceHandle": "[Circular]",
+                          "isHidden": false,
+                          "props": {
+                            "children": [
+                              "[Circular]",
+                              <View>
+                                <Body … />
+                              </View>,
+                            ],
+                            "collapsable": false,
+                            "enabled": undefined,
+                            "handlerTag": -1,
+                            "handlerType": "NativeViewGestureHandler",
+                            "hitSlop": undefined,
+                            "onGestureHandlerEvent": [Function],
+                            "onGestureHandlerStateChange": [Function],
+                            "refreshControl": "[Circular]",
+                            "testID": "bank-details-refresh-control-scrollview",
+                          },
+                          "rootContainerInstance": "[Circular]",
+                          "tag": "INSTANCE",
+                          "type": "RCTScrollView",
+                        },
+                        "subtreeFlags": 5767685,
+                        "tag": 5,
+                        "treeBaseDuration": 0,
+                        "type": "RCTScrollView",
+                        "updateQueue": null,
+                      },
+                      "selfBaseDuration": 0,
+                      "sibling": "[Circular]",
+                      "stateNode": "[Circular]",
+                      "subtreeFlags": 1,
+                      "tag": 1,
+                      "treeBaseDuration": 0,
+                      "type": [Function],
+                      "updateQueue": {
+                        "baseState": null,
+                        "callbacks": null,
+                        "firstBaseUpdate": null,
+                        "lastBaseUpdate": null,
+                        "shared": {
+                          "hiddenCallbacks": null,
+                          "lanes": 0,
+                          "pending": null,
+                        },
+                      },
+                    },
+                    "context": {},
+                    "props": {
+                      "colors": "[Circular]",
+                      "onRefresh": [Function],
+                      "refreshing": false,
+                      "tintColor": "#121314",
+                    },
+                    "refs": {},
+                    "state": null,
+                    "updater": {
+                      "enqueueForceUpdate": [Function],
+                      "enqueueReplaceState": [Function],
+                      "enqueueSetState": [Function],
+                    },
+                  },
+                }
+              }
+              refreshing={false}
+              tintColor="#121314"
+            />,
+            "testID": "bank-details-refresh-control-scrollview",
+          },
+          "type": "RCTScrollView",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": null,
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "accessibilityRole": "none",
+                        "accessible": true,
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": true,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": true,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                            "testID": "main-action-button",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {
+                "style": "[Circular]",
+              },
+              "type": "View",
+            },
+          ],
+          "props": {},
+          "type": "View",
+        },
+      ],
+      "props": {
+        "style": [
+          {
+            "backgroundColor": "#ffffff",
+            "flex": 1,
+          },
+          undefined,
+        ],
+      },
+      "type": "View",
+    },
+  ],
+  "props": {
+    "edges": {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    },
+    "style": {
+      "flex": 1,
+    },
+  },
+  "type": "RNCSafeAreaView",
+}
+`;
+
+exports[`V2BankDetails matches snapshot with both buttons disabled while cancel order loads 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": null,
+              "props": {},
+              "type": "RCTRefreshControl",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {},
+              "type": "View",
+            },
+          ],
+          "props": {
+            "collapsable": false,
+            "enabled": undefined,
+            "handlerTag": 17,
+            "handlerType": "NativeViewGestureHandler",
+            "hitSlop": undefined,
+            "onGestureHandlerEvent": [Function],
+            "onGestureHandlerStateChange": [Function],
+            "refreshControl": <RefreshControlMock
+              colors={
+                [
+                  "#4459ff",
+                ]
+              }
+              onRefresh={[Function]}
+              ref={
+                {
+                  "current": {
+                    "_reactInternalInstance": "[Circular]",
+                    "_reactInternals": {
+                      "_debugHookTypes": null,
+                      "_debugInfo": null,
+                      "_debugNeedsRemount": false,
+                      "_debugOwner": "[Circular]",
+                      "_debugStack": "[Circular]",
+                      "_debugTask": null,
+                      "actualDuration": 0,
+                      "actualStartTime": 0,
+                      "alternate": "[Circular]",
+                      "child": "[Circular]",
+                      "childLanes": 0,
+                      "deletions": null,
+                      "dependencies": null,
+                      "elementType": [Function],
+                      "flags": 4194305,
+                      "index": 0,
+                      "key": null,
+                      "lanes": 0,
+                      "memoizedProps": "[Circular]",
+                      "memoizedState": null,
+                      "mode": 1,
+                      "pendingProps": "[Circular]",
+                      "ref": "[Circular]",
+                      "refCleanup": null,
+                      "return": {
+                        "_debugHookTypes": null,
+                        "_debugInfo": null,
+                        "_debugNeedsRemount": false,
+                        "_debugOwner": "[Circular]",
+                        "_debugStack": "[Circular]",
+                        "_debugTask": null,
+                        "actualDuration": 0,
+                        "actualStartTime": 0,
+                        "alternate": "[Circular]",
+                        "child": "[Circular]",
+                        "childLanes": 0,
+                        "deletions": null,
+                        "dependencies": null,
+                        "elementType": "RCTScrollView",
+                        "flags": 4,
+                        "index": 0,
+                        "key": null,
+                        "lanes": 0,
+                        "memoizedProps": "[Circular]",
+                        "memoizedState": null,
+                        "mode": 1,
+                        "pendingProps": {
+                          "children": "[Circular]",
+                          "collapsable": false,
+                          "enabled": undefined,
+                          "handlerTag": 17,
+                          "handlerType": "NativeViewGestureHandler",
+                          "hitSlop": undefined,
+                          "onGestureHandlerEvent": [Function],
+                          "onGestureHandlerStateChange": [Function],
+                          "refreshControl": "[Circular]",
+                          "testID": "bank-details-refresh-control-scrollview",
+                        },
+                        "ref": null,
+                        "refCleanup": null,
+                        "return": "[Circular]",
+                        "selfBaseDuration": 0,
+                        "sibling": null,
+                        "stateNode": {
+                          "children": [
+                            "[Circular]",
+                            "[Circular]",
+                          ],
+                          "internalInstanceHandle": "[Circular]",
+                          "isHidden": false,
+                          "props": {
+                            "children": [
+                              "[Circular]",
+                              <View>
+                                <Body … />
+                              </View>,
+                            ],
+                            "collapsable": false,
+                            "enabled": undefined,
+                            "handlerTag": 17,
+                            "handlerType": "NativeViewGestureHandler",
+                            "hitSlop": undefined,
+                            "onGestureHandlerEvent": [Function],
+                            "onGestureHandlerStateChange": [Function],
+                            "refreshControl": "[Circular]",
+                            "testID": "bank-details-refresh-control-scrollview",
+                          },
+                          "rootContainerInstance": "[Circular]",
+                          "tag": "INSTANCE",
+                          "type": "RCTScrollView",
+                        },
+                        "subtreeFlags": 13371909,
+                        "tag": 5,
+                        "treeBaseDuration": 0,
+                        "type": "RCTScrollView",
+                        "updateQueue": null,
+                      },
+                      "selfBaseDuration": 0,
+                      "sibling": "[Circular]",
+                      "stateNode": "[Circular]",
+                      "subtreeFlags": 5,
+                      "tag": 1,
+                      "treeBaseDuration": 0,
+                      "type": [Function],
+                      "updateQueue": {
+                        "baseState": null,
+                        "callbacks": null,
+                        "firstBaseUpdate": null,
+                        "lastBaseUpdate": null,
+                        "shared": "[Circular]",
+                      },
+                    },
+                    "context": {},
+                    "props": {
+                      "colors": "[Circular]",
+                      "onRefresh": [Function],
+                      "refreshing": false,
+                      "tintColor": "#121314",
+                    },
+                    "refs": {},
+                    "state": null,
+                    "updater": {
+                      "enqueueForceUpdate": [Function],
+                      "enqueueReplaceState": [Function],
+                      "enqueueSetState": [Function],
+                    },
+                  },
+                }
+              }
+              refreshing={false}
+              tintColor="#121314"
+            />,
+            "testID": "bank-details-refresh-control-scrollview",
+          },
+          "type": "RCTScrollView",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": null,
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "accessibilityRole": "none",
+                        "accessible": true,
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": null,
+                              "props": [Object],
+                              "type": "ActivityIndicator",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": false,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": false,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                            "testID": "main-action-button",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {
+                "style": "[Circular]",
+              },
+              "type": "View",
+            },
+          ],
+          "props": {},
+          "type": "View",
+        },
+      ],
+      "props": {
+        "style": [
+          {
+            "backgroundColor": "#ffffff",
+            "flex": 1,
+          },
+          undefined,
+        ],
+      },
+      "type": "View",
+    },
+  ],
+  "props": {
+    "edges": {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    },
+    "style": {
+      "flex": 1,
+    },
+  },
+  "type": "RNCSafeAreaView",
+}
+`;
+
+exports[`V2BankDetails matches snapshot with both buttons disabled while confirm payment loads 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": null,
+              "props": {},
+              "type": "RCTRefreshControl",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {},
+              "type": "View",
+            },
+          ],
+          "props": {
+            "collapsable": false,
+            "enabled": undefined,
+            "handlerTag": 16,
+            "handlerType": "NativeViewGestureHandler",
+            "hitSlop": undefined,
+            "onGestureHandlerEvent": [Function],
+            "onGestureHandlerStateChange": [Function],
+            "refreshControl": <RefreshControlMock
+              colors={
+                [
+                  "#4459ff",
+                ]
+              }
+              onRefresh={[Function]}
+              ref={
+                {
+                  "current": {
+                    "_reactInternalInstance": "[Circular]",
+                    "_reactInternals": {
+                      "_debugHookTypes": null,
+                      "_debugInfo": null,
+                      "_debugNeedsRemount": false,
+                      "_debugOwner": "[Circular]",
+                      "_debugStack": "[Circular]",
+                      "_debugTask": null,
+                      "actualDuration": 0,
+                      "actualStartTime": 0,
+                      "alternate": "[Circular]",
+                      "child": "[Circular]",
+                      "childLanes": 0,
+                      "deletions": null,
+                      "dependencies": null,
+                      "elementType": [Function],
+                      "flags": 4194305,
+                      "index": 0,
+                      "key": null,
+                      "lanes": 0,
+                      "memoizedProps": "[Circular]",
+                      "memoizedState": null,
+                      "mode": 1,
+                      "pendingProps": "[Circular]",
+                      "ref": "[Circular]",
+                      "refCleanup": null,
+                      "return": {
+                        "_debugHookTypes": null,
+                        "_debugInfo": null,
+                        "_debugNeedsRemount": false,
+                        "_debugOwner": "[Circular]",
+                        "_debugStack": "[Circular]",
+                        "_debugTask": null,
+                        "actualDuration": 0,
+                        "actualStartTime": 0,
+                        "alternate": "[Circular]",
+                        "child": "[Circular]",
+                        "childLanes": 0,
+                        "deletions": null,
+                        "dependencies": null,
+                        "elementType": "RCTScrollView",
+                        "flags": 4,
+                        "index": 0,
+                        "key": null,
+                        "lanes": 0,
+                        "memoizedProps": "[Circular]",
+                        "memoizedState": null,
+                        "mode": 1,
+                        "pendingProps": {
+                          "children": "[Circular]",
+                          "collapsable": false,
+                          "enabled": undefined,
+                          "handlerTag": 16,
+                          "handlerType": "NativeViewGestureHandler",
+                          "hitSlop": undefined,
+                          "onGestureHandlerEvent": [Function],
+                          "onGestureHandlerStateChange": [Function],
+                          "refreshControl": "[Circular]",
+                          "testID": "bank-details-refresh-control-scrollview",
+                        },
+                        "ref": null,
+                        "refCleanup": null,
+                        "return": "[Circular]",
+                        "selfBaseDuration": 0,
+                        "sibling": null,
+                        "stateNode": {
+                          "children": [
+                            "[Circular]",
+                            "[Circular]",
+                          ],
+                          "internalInstanceHandle": "[Circular]",
+                          "isHidden": false,
+                          "props": {
+                            "children": [
+                              "[Circular]",
+                              <View>
+                                <Body … />
+                              </View>,
+                            ],
+                            "collapsable": false,
+                            "enabled": undefined,
+                            "handlerTag": 16,
+                            "handlerType": "NativeViewGestureHandler",
+                            "hitSlop": undefined,
+                            "onGestureHandlerEvent": [Function],
+                            "onGestureHandlerStateChange": [Function],
+                            "refreshControl": "[Circular]",
+                            "testID": "bank-details-refresh-control-scrollview",
+                          },
+                          "rootContainerInstance": "[Circular]",
+                          "tag": "INSTANCE",
+                          "type": "RCTScrollView",
+                        },
+                        "subtreeFlags": 13371909,
+                        "tag": 5,
+                        "treeBaseDuration": 0,
+                        "type": "RCTScrollView",
+                        "updateQueue": null,
+                      },
+                      "selfBaseDuration": 0,
+                      "sibling": "[Circular]",
+                      "stateNode": "[Circular]",
+                      "subtreeFlags": 5,
+                      "tag": 1,
+                      "treeBaseDuration": 0,
+                      "type": [Function],
+                      "updateQueue": {
+                        "baseState": null,
+                        "callbacks": null,
+                        "firstBaseUpdate": null,
+                        "lastBaseUpdate": null,
+                        "shared": "[Circular]",
+                      },
+                    },
+                    "context": {},
+                    "props": {
+                      "colors": "[Circular]",
+                      "onRefresh": [Function],
+                      "refreshing": false,
+                      "tintColor": "#121314",
+                    },
+                    "refs": {},
+                    "state": null,
+                    "updater": {
+                      "enqueueForceUpdate": [Function],
+                      "enqueueReplaceState": [Function],
+                      "enqueueSetState": [Function],
+                    },
+                  },
+                }
+              }
+              refreshing={false}
+              tintColor="#121314"
+            />,
+            "testID": "bank-details-refresh-control-scrollview",
+          },
+          "type": "RCTScrollView",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": null,
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "accessibilityRole": "none",
+                        "accessible": true,
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": false,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": null,
+                              "props": [Object],
+                              "type": "ActivityIndicator",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": false,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                            "testID": "main-action-button",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {
+                "style": "[Circular]",
+              },
+              "type": "View",
+            },
+          ],
+          "props": {},
+          "type": "View",
+        },
+      ],
+      "props": {
+        "style": [
+          {
+            "backgroundColor": "#ffffff",
+            "flex": 1,
+          },
+          undefined,
+        ],
+      },
+      "type": "View",
+    },
+  ],
+  "props": {
+    "edges": {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    },
+    "style": {
+      "flex": 1,
+    },
+  },
+  "type": "RNCSafeAreaView",
+}
+`;
+
+exports[`V2BankDetails matches snapshot with order data and depositOrder from refresh 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": null,
+              "props": {},
+              "type": "RCTRefreshControl",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {},
+              "type": "View",
+            },
+          ],
+          "props": {
+            "collapsable": false,
+            "enabled": undefined,
+            "handlerTag": 3,
+            "handlerType": "NativeViewGestureHandler",
+            "hitSlop": undefined,
+            "onGestureHandlerEvent": [Function],
+            "onGestureHandlerStateChange": [Function],
+            "refreshControl": <RefreshControlMock
+              colors={
+                [
+                  "#4459ff",
+                ]
+              }
+              onRefresh={[Function]}
+              ref={
+                {
+                  "current": {
+                    "_reactInternalInstance": "[Circular]",
+                    "_reactInternals": {
+                      "_debugHookTypes": null,
+                      "_debugInfo": null,
+                      "_debugNeedsRemount": false,
+                      "_debugOwner": "[Circular]",
+                      "_debugStack": "[Circular]",
+                      "_debugTask": null,
+                      "actualDuration": 0,
+                      "actualStartTime": 0,
+                      "alternate": "[Circular]",
+                      "child": "[Circular]",
+                      "childLanes": 0,
+                      "deletions": null,
+                      "dependencies": null,
+                      "elementType": [Function],
+                      "flags": 4194305,
+                      "index": 0,
+                      "key": null,
+                      "lanes": 0,
+                      "memoizedProps": "[Circular]",
+                      "memoizedState": null,
+                      "mode": 1,
+                      "pendingProps": "[Circular]",
+                      "ref": "[Circular]",
+                      "refCleanup": null,
+                      "return": {
+                        "_debugHookTypes": null,
+                        "_debugInfo": null,
+                        "_debugNeedsRemount": false,
+                        "_debugOwner": "[Circular]",
+                        "_debugStack": "[Circular]",
+                        "_debugTask": null,
+                        "actualDuration": 0,
+                        "actualStartTime": 0,
+                        "alternate": "[Circular]",
+                        "child": "[Circular]",
+                        "childLanes": 0,
+                        "deletions": null,
+                        "dependencies": null,
+                        "elementType": "RCTScrollView",
+                        "flags": 4,
+                        "index": 0,
+                        "key": null,
+                        "lanes": 0,
+                        "memoizedProps": "[Circular]",
+                        "memoizedState": null,
+                        "mode": 1,
+                        "pendingProps": "[Circular]",
+                        "ref": null,
+                        "refCleanup": null,
+                        "return": "[Circular]",
+                        "selfBaseDuration": 0,
+                        "sibling": null,
+                        "stateNode": {
+                          "children": [
+                            "[Circular]",
+                            "[Circular]",
+                          ],
+                          "internalInstanceHandle": "[Circular]",
+                          "isHidden": false,
+                          "props": {
+                            "children": [
+                              "[Circular]",
+                              <View>
+                                <Body … />
+                              </View>,
+                            ],
+                            "collapsable": false,
+                            "enabled": undefined,
+                            "handlerTag": 3,
+                            "handlerType": "NativeViewGestureHandler",
+                            "hitSlop": undefined,
+                            "onGestureHandlerEvent": [Function],
+                            "onGestureHandlerStateChange": [Function],
+                            "refreshControl": "[Circular]",
+                            "testID": "bank-details-refresh-control-scrollview",
+                          },
+                          "rootContainerInstance": "[Circular]",
+                          "tag": "INSTANCE",
+                          "type": "RCTScrollView",
+                        },
+                        "subtreeFlags": 13371909,
+                        "tag": 5,
+                        "treeBaseDuration": 0,
+                        "type": "RCTScrollView",
+                        "updateQueue": null,
+                      },
+                      "selfBaseDuration": 0,
+                      "sibling": "[Circular]",
+                      "stateNode": "[Circular]",
+                      "subtreeFlags": 5,
+                      "tag": 1,
+                      "treeBaseDuration": 0,
+                      "type": [Function],
+                      "updateQueue": {
+                        "baseState": null,
+                        "callbacks": null,
+                        "firstBaseUpdate": null,
+                        "lastBaseUpdate": null,
+                        "shared": "[Circular]",
+                      },
+                    },
+                    "context": {},
+                    "props": {
+                      "colors": "[Circular]",
+                      "onRefresh": [Function],
+                      "refreshing": false,
+                      "tintColor": "#121314",
+                    },
+                    "refs": {},
+                    "state": null,
+                    "updater": {
+                      "enqueueForceUpdate": [Function],
+                      "enqueueReplaceState": [Function],
+                      "enqueueSetState": [Function],
+                    },
+                  },
+                }
+              }
+              refreshing={false}
+              tintColor="#121314"
+            />,
+            "testID": "bank-details-refresh-control-scrollview",
+          },
+          "type": "RCTScrollView",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": null,
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "accessibilityRole": "none",
+                        "accessible": true,
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": true,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": true,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                            "testID": "main-action-button",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {
+                "style": "[Circular]",
+              },
+              "type": "View",
+            },
+          ],
+          "props": {},
+          "type": "View",
+        },
+      ],
+      "props": {
+        "style": [
+          {
+            "backgroundColor": "#ffffff",
+            "flex": 1,
+          },
+          undefined,
+        ],
+      },
+      "type": "View",
+    },
+  ],
+  "props": {
+    "edges": {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    },
+    "style": {
+      "flex": 1,
+    },
+  },
+  "type": "RNCSafeAreaView",
+}
+`;
+
+exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": null,
+              "props": {},
+              "type": "RCTRefreshControl",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {},
+              "type": "View",
+            },
+          ],
+          "props": {
+            "collapsable": false,
+            "enabled": undefined,
+            "handlerTag": 13,
+            "handlerType": "NativeViewGestureHandler",
+            "hitSlop": undefined,
+            "onGestureHandlerEvent": [Function],
+            "onGestureHandlerStateChange": [Function],
+            "refreshControl": <RefreshControlMock
+              colors={
+                [
+                  "#4459ff",
+                ]
+              }
+              onRefresh={[Function]}
+              ref={
+                {
+                  "current": {
+                    "_reactInternalInstance": "[Circular]",
+                    "_reactInternals": {
+                      "_debugHookTypes": null,
+                      "_debugInfo": null,
+                      "_debugNeedsRemount": false,
+                      "_debugOwner": "[Circular]",
+                      "_debugStack": "[Circular]",
+                      "_debugTask": null,
+                      "actualDuration": 0,
+                      "actualStartTime": 0,
+                      "alternate": "[Circular]",
+                      "child": "[Circular]",
+                      "childLanes": 0,
+                      "deletions": null,
+                      "dependencies": null,
+                      "elementType": [Function],
+                      "flags": 4194305,
+                      "index": 0,
+                      "key": null,
+                      "lanes": 0,
+                      "memoizedProps": "[Circular]",
+                      "memoizedState": null,
+                      "mode": 1,
+                      "pendingProps": "[Circular]",
+                      "ref": "[Circular]",
+                      "refCleanup": null,
+                      "return": {
+                        "_debugHookTypes": null,
+                        "_debugInfo": null,
+                        "_debugNeedsRemount": false,
+                        "_debugOwner": "[Circular]",
+                        "_debugStack": "[Circular]",
+                        "_debugTask": null,
+                        "actualDuration": 0,
+                        "actualStartTime": 0,
+                        "alternate": "[Circular]",
+                        "child": "[Circular]",
+                        "childLanes": 0,
+                        "deletions": null,
+                        "dependencies": null,
+                        "elementType": "RCTScrollView",
+                        "flags": 4,
+                        "index": 0,
+                        "key": null,
+                        "lanes": 0,
+                        "memoizedProps": "[Circular]",
+                        "memoizedState": null,
+                        "mode": 1,
+                        "pendingProps": "[Circular]",
+                        "ref": null,
+                        "refCleanup": null,
+                        "return": "[Circular]",
+                        "selfBaseDuration": 0,
+                        "sibling": null,
+                        "stateNode": {
+                          "children": [
+                            "[Circular]",
+                            "[Circular]",
+                          ],
+                          "internalInstanceHandle": "[Circular]",
+                          "isHidden": false,
+                          "props": {
+                            "children": [
+                              "[Circular]",
+                              <View>
+                                <Body … />
+                              </View>,
+                            ],
+                            "collapsable": false,
+                            "enabled": undefined,
+                            "handlerTag": 13,
+                            "handlerType": "NativeViewGestureHandler",
+                            "hitSlop": undefined,
+                            "onGestureHandlerEvent": [Function],
+                            "onGestureHandlerStateChange": [Function],
+                            "refreshControl": "[Circular]",
+                            "testID": "bank-details-refresh-control-scrollview",
+                          },
+                          "rootContainerInstance": "[Circular]",
+                          "tag": "INSTANCE",
+                          "type": "RCTScrollView",
+                        },
+                        "subtreeFlags": 13371909,
+                        "tag": 5,
+                        "treeBaseDuration": 0,
+                        "type": "RCTScrollView",
+                        "updateQueue": null,
+                      },
+                      "selfBaseDuration": 0,
+                      "sibling": "[Circular]",
+                      "stateNode": "[Circular]",
+                      "subtreeFlags": 5,
+                      "tag": 1,
+                      "treeBaseDuration": 0,
+                      "type": [Function],
+                      "updateQueue": {
+                        "baseState": null,
+                        "callbacks": null,
+                        "firstBaseUpdate": null,
+                        "lastBaseUpdate": null,
+                        "shared": "[Circular]",
+                      },
+                    },
+                    "context": {},
+                    "props": {
+                      "colors": "[Circular]",
+                      "onRefresh": [Function],
+                      "refreshing": false,
+                      "tintColor": "#121314",
+                    },
+                    "refs": {},
+                    "state": null,
+                    "updater": {
+                      "enqueueForceUpdate": [Function],
+                      "enqueueReplaceState": [Function],
+                      "enqueueSetState": [Function],
+                    },
+                  },
+                }
+              }
+              refreshing={false}
+              tintColor="#121314"
+            />,
+            "testID": "bank-details-refresh-control-scrollview",
+          },
+          "type": "RCTScrollView",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": null,
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "accessibilityRole": "none",
+                        "accessible": true,
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": true,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": true,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                            "testID": "main-action-button",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {
+                "style": "[Circular]",
+              },
+              "type": "View",
+            },
+          ],
+          "props": {},
+          "type": "View",
+        },
+      ],
+      "props": {
+        "style": [
+          {
+            "backgroundColor": "#ffffff",
+            "flex": 1,
+          },
+          undefined,
+        ],
+      },
+      "type": "View",
+    },
+  ],
+  "props": {
+    "edges": {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    },
+    "style": {
+      "flex": 1,
+    },
+  },
+  "type": "RNCSafeAreaView",
+}
+`;
+
+exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank details from controller order 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": null,
+              "props": {},
+              "type": "RCTRefreshControl",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {},
+              "type": "View",
+            },
+          ],
+          "props": {
+            "collapsable": false,
+            "enabled": undefined,
+            "handlerTag": -1,
+            "handlerType": "NativeViewGestureHandler",
+            "hitSlop": undefined,
+            "onGestureHandlerEvent": [Function],
+            "onGestureHandlerStateChange": [Function],
+            "refreshControl": <RefreshControlMock
+              colors={
+                [
+                  "#4459ff",
+                ]
+              }
+              onRefresh={[Function]}
+              ref={
+                {
+                  "current": {
+                    "_reactInternalInstance": "[Circular]",
+                    "_reactInternals": {
+                      "_debugHookTypes": null,
+                      "_debugInfo": null,
+                      "_debugNeedsRemount": false,
+                      "_debugOwner": "[Circular]",
+                      "_debugStack": {},
+                      "_debugTask": null,
+                      "actualDuration": 0,
+                      "actualStartTime": 0,
+                      "alternate": null,
+                      "child": "[Circular]",
+                      "childLanes": 0,
+                      "deletions": null,
+                      "dependencies": null,
+                      "elementType": [Function],
+                      "flags": 5243397,
+                      "index": 0,
+                      "key": null,
+                      "lanes": 0,
+                      "memoizedProps": "[Circular]",
+                      "memoizedState": null,
+                      "mode": 1,
+                      "pendingProps": "[Circular]",
+                      "ref": "[Circular]",
+                      "refCleanup": null,
+                      "return": {
+                        "_debugHookTypes": null,
+                        "_debugInfo": null,
+                        "_debugNeedsRemount": false,
+                        "_debugOwner": "[Circular]",
+                        "_debugStack": {},
+                        "_debugTask": null,
+                        "actualDuration": 0,
+                        "actualStartTime": 0,
+                        "alternate": null,
+                        "child": "[Circular]",
+                        "childLanes": 0,
+                        "deletions": null,
+                        "dependencies": null,
+                        "elementType": "RCTScrollView",
+                        "flags": 0,
+                        "index": 0,
+                        "key": null,
+                        "lanes": 0,
+                        "memoizedProps": "[Circular]",
+                        "memoizedState": null,
+                        "mode": 1,
+                        "pendingProps": "[Circular]",
+                        "ref": null,
+                        "refCleanup": null,
+                        "return": "[Circular]",
+                        "selfBaseDuration": 0,
+                        "sibling": null,
+                        "stateNode": {
+                          "children": [
+                            {
+                              "children": [],
+                              "internalInstanceHandle": {
+                                "_debugHookTypes": null,
+                                "_debugInfo": null,
+                                "_debugNeedsRemount": false,
+                                "_debugOwner": "[Circular]",
+                                "_debugStack": [Object],
+                                "_debugTask": null,
+                                "actualDuration": 0,
+                                "actualStartTime": 0,
+                                "alternate": null,
+                                "child": null,
+                                "childLanes": 0,
+                                "deletions": null,
+                                "dependencies": null,
+                                "elementType": "RCTRefreshControl",
+                                "flags": 0,
+                                "index": 0,
+                                "key": null,
+                                "lanes": 0,
+                                "memoizedProps": "[Circular]",
+                                "memoizedState": null,
+                                "mode": 1,
+                                "pendingProps": "[Circular]",
+                                "ref": null,
+                                "refCleanup": null,
+                                "return": [Object],
+                                "selfBaseDuration": 0,
+                                "sibling": null,
+                                "stateNode": "[Circular]",
+                                "subtreeFlags": 0,
+                                "tag": 5,
+                                "treeBaseDuration": 0,
+                                "type": "RCTRefreshControl",
+                                "updateQueue": null,
+                              },
+                              "isHidden": false,
+                              "props": {
+                                "children": undefined,
+                              },
+                              "rootContainerInstance": "[Circular]",
+                              "tag": "INSTANCE",
+                              "type": "RCTRefreshControl",
+                            },
+                            {
+                              "children": [
+                                [Object],
+                              ],
+                              "internalInstanceHandle": "[Circular]",
+                              "isHidden": false,
+                              "props": {
+                                "children": "[Circular]",
+                              },
+                              "rootContainerInstance": "[Circular]",
+                              "tag": "INSTANCE",
+                              "type": "View",
+                            },
+                          ],
+                          "internalInstanceHandle": "[Circular]",
+                          "isHidden": false,
+                          "props": {
+                            "children": [
+                              "[Circular]",
+                              <View>
+                                <Body … />
+                              </View>,
+                            ],
+                            "collapsable": false,
+                            "enabled": undefined,
+                            "handlerTag": -1,
+                            "handlerType": "NativeViewGestureHandler",
+                            "hitSlop": undefined,
+                            "onGestureHandlerEvent": [Function],
+                            "onGestureHandlerStateChange": [Function],
+                            "refreshControl": "[Circular]",
+                            "testID": "bank-details-refresh-control-scrollview",
+                          },
+                          "rootContainerInstance": "[Circular]",
+                          "tag": "INSTANCE",
+                          "type": "RCTScrollView",
+                        },
+                        "subtreeFlags": 14158341,
+                        "tag": 5,
+                        "treeBaseDuration": 0,
+                        "type": "RCTScrollView",
+                        "updateQueue": null,
+                      },
+                      "selfBaseDuration": 0,
+                      "sibling": "[Circular]",
+                      "stateNode": "[Circular]",
+                      "subtreeFlags": 1,
+                      "tag": 1,
+                      "treeBaseDuration": 0,
+                      "type": [Function],
+                      "updateQueue": {
+                        "baseState": null,
+                        "callbacks": null,
+                        "firstBaseUpdate": null,
+                        "lastBaseUpdate": null,
+                        "shared": {
+                          "hiddenCallbacks": null,
+                          "lanes": 0,
+                          "pending": null,
+                        },
+                      },
+                    },
+                    "context": {},
+                    "props": {
+                      "colors": "[Circular]",
+                      "onRefresh": [Function],
+                      "refreshing": false,
+                      "tintColor": "#121314",
+                    },
+                    "refs": {},
+                    "state": null,
+                    "updater": {
+                      "enqueueForceUpdate": [Function],
+                      "enqueueReplaceState": [Function],
+                      "enqueueSetState": [Function],
+                    },
+                  },
+                }
+              }
+              refreshing={false}
+              tintColor="#121314"
+            />,
+            "testID": "bank-details-refresh-control-scrollview",
+          },
+          "type": "RCTScrollView",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": null,
+                              "props": [Object],
+                              "type": "View",
+                            },
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "View",
+                            },
+                          ],
+                          "props": {
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "accessibilityRole": "none",
+                        "accessible": true,
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": true,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                          },
+                          "type": "View",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [Array],
+                              "props": [Object],
+                              "type": "Text",
+                            },
+                          ],
+                          "props": {
+                            "accessibilityRole": "button",
+                            "accessibilityState": "[Circular]",
+                            "accessibilityValue": "[Circular]",
+                            "accessible": true,
+                            "collapsable": false,
+                            "focusable": true,
+                            "onClick": [Function],
+                            "onResponderGrant": [Function],
+                            "onResponderMove": [Function],
+                            "onResponderRelease": [Function],
+                            "onResponderTerminate": [Function],
+                            "onResponderTerminationRequest": [Function],
+                            "onStartShouldSetResponder": [Function],
+                            "style": "[Circular]",
+                            "testID": "main-action-button",
+                          },
+                          "type": "View",
+                        },
+                      ],
+                      "props": {
+                        "style": "[Circular]",
+                      },
+                      "type": "View",
+                    },
+                  ],
+                  "props": {
+                    "style": "[Circular]",
+                  },
+                  "type": "View",
+                },
+              ],
+              "props": {
+                "style": "[Circular]",
+              },
+              "type": "View",
+            },
+          ],
+          "props": {},
+          "type": "View",
+        },
+      ],
+      "props": {
+        "style": [
+          {
+            "backgroundColor": "#ffffff",
+            "flex": 1,
+          },
+          undefined,
+        ],
+      },
+      "type": "View",
+    },
+  ],
+  "props": {
+    "edges": {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    },
+    "style": {
+      "flex": 1,
+    },
+  },
+  "type": "RNCSafeAreaView",
+}
+`;

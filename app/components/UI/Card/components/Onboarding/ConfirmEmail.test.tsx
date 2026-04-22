@@ -619,7 +619,7 @@ describe('ConfirmEmail Component', () => {
       );
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('should remain enabled when confirmation code is incomplete', () => {
@@ -634,7 +634,7 @@ describe('ConfirmEmail Component', () => {
       fireEvent.changeText(codeFieldInput, '123');
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).toBeEnabled();
     });
 
     it('should be enabled when confirmation code is complete', () => {
@@ -649,7 +649,7 @@ describe('ConfirmEmail Component', () => {
       fireEvent.changeText(codeFieldInput, '123456');
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).toBeEnabled();
     });
 
     it('should navigate to CONFIRM_PHONE_NUMBER when continue button is pressed', async () => {
@@ -883,7 +883,7 @@ describe('ConfirmEmail Component', () => {
   });
 
   describe('Resend Cooldown Timer', () => {
-    it('shows initial cooldown timer on component mount', async () => {
+    it('shows initial cooldown timer on component mount', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -897,7 +897,7 @@ describe('ConfirmEmail Component', () => {
       expect(resendElement).toHaveTextContent('Resend in 60s');
     });
 
-    it('shows "Resend verification code" when initial cooldown expires', async () => {
+    it('shows "Resend verification code" when initial cooldown expires', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>

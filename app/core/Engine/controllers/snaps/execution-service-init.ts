@@ -1,16 +1,100 @@
 import {
   ExecutionService,
   ExecutionServiceMessenger,
+  AbstractExecutionService,
 } from '@metamask/snaps-controllers';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import { MessengerClientInitFunction } from '../../types';
-import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { createWebView, removeWebView } from '../../../../lib/snaps';
 import Logger from '../../../../util/Logger';
 import { SnapBridge } from '../../../Snaps';
 import getRpcMethodMiddleware from '../../../RPCMethods/RPCMethodMiddleware';
 import { SnapId } from '@metamask/snaps-sdk';
+
+type WebViewExecutionServiceCtor = new (args: {
+  messenger: ExecutionServiceMessenger;
+  setupSnapProvider: (snapId: string, connectionStream: Duplex) => void;
+  createWebView: typeof createWebView;
+  removeWebView: typeof removeWebView;
+}) => AbstractExecutionService<unknown>;
+
+const ensureMessageEventShim = () => {
+  const globalScope = globalThis as typeof globalThis & {
+    MessageEvent?: new (
+      type: string,
+      init?: { data?: unknown; origin?: string; source?: unknown },
+    ) => {
+      type: string;
+      data?: unknown;
+      origin?: string;
+      source?: unknown;
+    };
+  };
+
+  if (typeof globalScope.MessageEvent === 'function') {
+    return;
+  }
+
+  class RNMessageEvent {
+    type: string;
+    data?: unknown;
+    private _origin?: string;
+    private _source?: unknown;
+
+    constructor(
+      type: string,
+      init?: { data?: unknown; origin?: string; source?: unknown },
+    ) {
+      this.type = type;
+      this.data = init?.data;
+      this._origin = init?.origin;
+      this._source = init?.source;
+    }
+  }
+
+  Object.defineProperty(RNMessageEvent.prototype, 'origin', {
+    configurable: true,
+    enumerable: false,
+    get() {
+      return this._origin;
+    },
+    set(value: unknown) {
+      this._origin = value as string | undefined;
+    },
+  });
+
+  Object.defineProperty(RNMessageEvent.prototype, 'source', {
+    configurable: true,
+    enumerable: false,
+    get() {
+      return this._source;
+    },
+    set(value: unknown) {
+      this._source = value;
+    },
+  });
+
+  globalScope.MessageEvent = RNMessageEvent as typeof globalScope.MessageEvent;
+};
+
+const getWebViewExecutionServiceCtor = (): WebViewExecutionServiceCtor => {
+  ensureMessageEventShim();
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const snapsControllersRN =
+    require('@metamask/snaps-controllers/react-native') as {
+      WebViewExecutionService?: WebViewExecutionServiceCtor;
+    };
+
+  if (!snapsControllersRN.WebViewExecutionService) {
+    throw new Error(
+      'Snaps react-native WebViewExecutionService is unavailable after module import.',
+    );
+  }
+
+  return snapsControllersRN.WebViewExecutionService;
+};
 
 /**
  * Initialize the Snaps execution service.
@@ -23,6 +107,8 @@ export const executionServiceInit: MessengerClientInitFunction<
   ExecutionService,
   ExecutionServiceMessenger
 > = ({ controllerMessenger }) => {
+  const WebViewExecutionService = getWebViewExecutionServiceCtor();
+
   /**
    * Set up the EIP-1193 provider for the given Snap.
    *
@@ -63,7 +149,6 @@ export const executionServiceInit: MessengerClientInitFunction<
   return {
     controller: new WebViewExecutionService({
       messenger: controllerMessenger,
-      // @ts-expect-error The stream type doesn't match because of a version mismatch.
       setupSnapProvider,
       createWebView,
       removeWebView,

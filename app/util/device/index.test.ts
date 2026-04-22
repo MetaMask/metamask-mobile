@@ -4,10 +4,13 @@ import Device from '.';
 
 describe('Device', () => {
   describe('isAndroid + isIos', () => {
+    const originalOS = Platform.OS;
+    afterEach(() => {
+      Platform.OS = originalOS;
+    });
+
     it('should return expected values when Platform.OS is "android"', () => {
-      jest.doMock('react-native/Libraries/Utilities/Platform', () => ({
-        OS: 'android',
-      }));
+      Platform.OS = 'android';
       expect(Device.isAndroid()).toBe(true);
       expect(Device.isIos()).toBe(false);
     });

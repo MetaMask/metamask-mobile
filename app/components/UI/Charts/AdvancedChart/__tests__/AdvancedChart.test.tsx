@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render, act, fireEvent } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
 import {
   ChartType,
@@ -143,7 +143,7 @@ describe('AdvancedChart', () => {
 
     const webView = getByTestId('mock-webview');
     act(() => {
-      webView.props.onLoadEnd();
+      fireEvent(webView, 'loadEnd');
     });
 
     expect(mockPostMessage).toHaveBeenCalledWith(
@@ -722,7 +722,7 @@ describe('AdvancedChart', () => {
     const webView = getByTestId('mock-webview');
 
     act(() => {
-      webView.props.onLoadEnd();
+      fireEvent(webView, 'loadEnd');
     });
     act(() => {
       webView.props.onMessage({
@@ -747,7 +747,7 @@ describe('AdvancedChart', () => {
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
 
     act(() => {
-      webView.props.onLoadEnd();
+      fireEvent(webView, 'loadEnd');
     });
     act(() => {
       webView.props.onMessage({

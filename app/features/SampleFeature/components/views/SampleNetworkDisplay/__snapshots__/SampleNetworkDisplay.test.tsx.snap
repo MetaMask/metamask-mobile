@@ -42,7 +42,7 @@ exports[`SampleNetworkDisplay matches rendered snapshot 1`] = `
   <Text
     style={
       {
-        "color": "#131416",
+        "color": "#121314",
       }
     }
   >

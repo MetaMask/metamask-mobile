@@ -10,6 +10,7 @@ import {
 } from '@metamask/react-native-webview/src/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
+// eslint-disable-next-line import-x/no-unresolved
 import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';
 import { EmptyObject } from '@metamask/snaps-sdk';
 import { assert, hasProperty } from '@metamask/utils';

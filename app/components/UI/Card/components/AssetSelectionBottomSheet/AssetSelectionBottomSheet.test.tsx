@@ -1,3 +1,7 @@
+import React from 'react';
+
+const mockReact = React;
+
 // Mock dependencies first - must be hoisted before imports
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -91,6 +95,30 @@ jest.mock('../../hooks/useUpdateFundingPriority', () => ({
 
 jest.mock('../../../../../util/Logger');
 
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const MockBottomSheet = mockReact.forwardRef(
+      (
+        { children }: { children: React.ReactNode },
+        ref: React.Ref<unknown>,
+      ) => {
+        mockReact.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+        }));
+        return mockReact.createElement(mockReact.Fragment, null, children);
+      },
+    );
+    MockBottomSheet.displayName = 'MockBottomSheet';
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
+
 // Create a mock tailwind function that can be called and has a style method
 const mockTw = Object.assign(
   jest.fn((className: string) => ({ className })),
@@ -116,7 +144,6 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
-import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';

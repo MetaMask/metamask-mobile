@@ -107,7 +107,7 @@ describe('SnapUIAddressInput', () => {
     );
 
     const textfield = getByTestId('testAddress-snap-address-input');
-    expect(textfield.props.placeholder).toBe(placeholder);
+    expect(textfield).toHaveProp('placeholder', placeholder);
   });
 
   it('supports the disabled prop', () => {
@@ -117,7 +117,7 @@ describe('SnapUIAddressInput', () => {
     );
 
     const textfield = getByTestId('testAddress-snap-address-input');
-    expect(textfield.props.editable).toBe(false);
+    expect(textfield).toHaveProp('editable', false);
   });
 
   it('will render within a field', () => {
@@ -248,7 +248,7 @@ describe('SnapUIAddressInput', () => {
     );
 
     const input = getByTestId('testAddress-snap-address-input');
-    expect(input.props.editable).toBe(false);
+    expect(input).toHaveProp('editable', false);
     expect(input.props.value).toBe(testAddress);
 
     const closeButton = getByTestId('snap-ui-address-input__clear-button');

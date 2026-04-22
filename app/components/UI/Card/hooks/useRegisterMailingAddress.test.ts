@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { useCardSDK, ICardSDK } from '../sdk';
 import {
   RegisterPhysicalAddressRequest,
@@ -168,13 +168,13 @@ describe('useRegisterMailingAddress', () => {
 
       const { result } = renderHook(() => useRegisterMailingAddress());
 
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerAddress(mockAddressRequest, 'us');
-        });
-      } catch (error) {
-        // Expected to throw
-      }
+        } catch {
+          // Expected to throw
+        }
+      });
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...mockAddressRequest,
@@ -197,13 +197,13 @@ describe('useRegisterMailingAddress', () => {
 
       const { result } = renderHook(() => useRegisterMailingAddress());
 
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerAddress(mockAddressRequest, 'us');
-        });
-      } catch (error) {
-        // Expected to throw
-      }
+        } catch {
+          // Expected to throw
+        }
+      });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(networkError);
       expect(result.current.isLoading).toBe(false);
@@ -222,13 +222,13 @@ describe('useRegisterMailingAddress', () => {
 
       const { result } = renderHook(() => useRegisterMailingAddress());
 
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerAddress(mockAddressRequest, 'us');
-        });
-      } catch (error) {
-        // Expected to throw
-      }
+        } catch {
+          // Expected to throw
+        }
+      });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(genericError);
       expect(result.current.isLoading).toBe(false);
@@ -286,13 +286,13 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       // First call should fail
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerAddress(mockAddressRequest);
-        });
-      } catch (error) {
-        // Expected to throw
-      }
+        } catch {
+          // Expected to throw
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Invalid address');
@@ -322,13 +322,13 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       // Trigger error
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerAddress(mockAddressRequest);
-        });
-      } catch (err) {
-        // Expected to throw
-      }
+        } catch {
+          // Expected to throw
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Invalid address');
@@ -380,13 +380,13 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       // Trigger error
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerAddress(mockAddressRequest);
-        });
-      } catch (err) {
-        // Expected to throw
-      }
+        } catch {
+          // Expected to throw
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Invalid address');

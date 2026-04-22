@@ -330,7 +330,7 @@ describe('KYCPending Component', () => {
 
       const button = getByTestId('kyc-pending-got-it-button');
 
-      expect(button.props.disabled).toBeFalsy();
+      expect(button).toBeEnabled();
     });
   });
 

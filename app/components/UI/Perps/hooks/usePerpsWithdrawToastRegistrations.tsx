@@ -3,7 +3,7 @@ import {
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { Spinner } from '@metamask/design-system-react-native/spinner';
 import {
   TransactionMeta,
   TransactionStatus,

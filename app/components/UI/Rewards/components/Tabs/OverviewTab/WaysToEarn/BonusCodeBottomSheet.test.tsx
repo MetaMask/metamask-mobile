@@ -222,7 +222,7 @@ describe('BonusCodeBottomSheet', () => {
       );
 
       const button = getByTestId('bonus-code-submit-button');
-      expect(button.props.accessibilityState.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
@@ -321,7 +321,7 @@ describe('BonusCodeBottomSheet', () => {
       );
 
       const button = getByTestId('bonus-code-submit-button');
-      expect(button.props.accessibilityState.disabled).toBe(false);
+      expect(button).toBeEnabled();
     });
 
     it('calls applyBonusCode when submit is pressed', () => {
@@ -381,7 +381,7 @@ describe('BonusCodeBottomSheet', () => {
       );
 
       const button = getByTestId('bonus-code-submit-button');
-      expect(button.props.accessibilityState.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('shows loading state on submit button while applying', () => {

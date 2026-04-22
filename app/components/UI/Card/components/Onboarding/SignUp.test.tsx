@@ -202,7 +202,7 @@ describe('SignUp Component', () => {
   });
 
   describe('Email Input', () => {
-    it('allows text input', () => {
+    it('allows text input', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -210,7 +210,9 @@ describe('SignUp Component', () => {
       );
 
       const emailInput = getByTestId('signup-email-input');
-      fireEvent.changeText(emailInput, 'test@example.com');
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+      });
 
       expect(emailInput.props.value).toBe('test@example.com');
     });
@@ -252,7 +254,7 @@ describe('SignUp Component', () => {
   });
 
   describe('Password Input', () => {
-    it('allows text input', () => {
+    it('allows text input', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -260,7 +262,9 @@ describe('SignUp Component', () => {
       );
 
       const passwordInput = getByTestId('signup-password-input');
-      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'password123');
+      });
 
       expect(passwordInput.props.value).toBe('password123');
     });
@@ -273,10 +277,10 @@ describe('SignUp Component', () => {
       );
 
       const passwordInput = getByTestId('signup-password-input');
-      expect(passwordInput.props.secureTextEntry).toBe(true);
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
     });
 
-    it('toggles password visibility when eye icon is pressed', () => {
+    it('toggles password visibility when eye icon is pressed', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -287,15 +291,19 @@ describe('SignUp Component', () => {
       const visibilityToggle = getByTestId('signup-password-visibility-toggle');
 
       // Initially hidden
-      expect(passwordInput.props.secureTextEntry).toBe(true);
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
 
       // Press to show password
-      fireEvent.press(visibilityToggle);
-      expect(passwordInput.props.secureTextEntry).toBe(false);
+      await act(async () => {
+        fireEvent.press(visibilityToggle);
+      });
+      expect(passwordInput).toHaveProp('secureTextEntry', false);
 
       // Press again to hide password
-      fireEvent.press(visibilityToggle);
-      expect(passwordInput.props.secureTextEntry).toBe(true);
+      await act(async () => {
+        fireEvent.press(visibilityToggle);
+      });
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
     });
 
     it('shows description by default when no error', () => {
@@ -387,7 +395,7 @@ describe('SignUp Component', () => {
       expect(countrySelect).toBeTruthy();
     });
 
-    it('navigates to region selector modal on press', () => {
+    it('navigates to region selector modal on press', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -395,7 +403,9 @@ describe('SignUp Component', () => {
       );
 
       const countrySelect = getByTestId('signup-country-select');
-      fireEvent.press(countrySelect);
+      await act(async () => {
+        fireEvent.press(countrySelect);
+      });
 
       expect(mockNavigate).toHaveBeenCalled();
     });
@@ -535,8 +545,12 @@ describe('SignUp Component', () => {
 
       // Fill in all form fields
       await act(async () => {
-        fireEvent.changeText(emailInput, 'test@example.com');
-        fireEvent.changeText(passwordInput, 'Password123!');
+        await act(async () => {
+          fireEvent.changeText(emailInput, 'test@example.com');
+        });
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Password123!');
+        });
       });
 
       // Now check if the continue button is enabled
@@ -563,8 +577,12 @@ describe('SignUp Component', () => {
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
-        fireEvent.changeText(emailInput, 'invalid-email');
-        fireEvent.changeText(passwordInput, 'Password123!');
+        await act(async () => {
+          fireEvent.changeText(emailInput, 'invalid-email');
+        });
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Password123!');
+        });
       });
 
       await waitFor(() => {
@@ -594,8 +612,12 @@ describe('SignUp Component', () => {
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
-        fireEvent.changeText(emailInput, 'test@example.com');
-        fireEvent.changeText(passwordInput, 'weak');
+        await act(async () => {
+          fireEvent.changeText(emailInput, 'test@example.com');
+        });
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'weak');
+        });
       });
 
       await waitFor(() => {
@@ -615,8 +637,12 @@ describe('SignUp Component', () => {
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
-        fireEvent.changeText(emailInput, 'test@example.com');
-        fireEvent.changeText(passwordInput, 'Password123!');
+        await act(async () => {
+          fireEvent.changeText(emailInput, 'test@example.com');
+        });
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Password123!');
+        });
         // Don't select country
       });
 
@@ -641,8 +667,12 @@ describe('SignUp Component', () => {
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
-        fireEvent.changeText(emailInput, 'test@example.com');
-        fireEvent.changeText(passwordInput, 'Password123!');
+        await act(async () => {
+          fireEvent.changeText(emailInput, 'test@example.com');
+        });
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Password123!');
+        });
       });
 
       await waitFor(() => {
@@ -736,7 +766,7 @@ describe('SignUp Component', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to authentication screen when "I already have an account" is pressed', () => {
+    it('navigates to authentication screen when "I already have an account" is pressed', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -746,7 +776,9 @@ describe('SignUp Component', () => {
       const alreadyHaveAccountButton = getByTestId(
         'signup-i-already-have-an-account-text',
       );
-      fireEvent.press(alreadyHaveAccountButton);
+      await act(async () => {
+        fireEvent.press(alreadyHaveAccountButton);
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith('CardAuthentication');
     });

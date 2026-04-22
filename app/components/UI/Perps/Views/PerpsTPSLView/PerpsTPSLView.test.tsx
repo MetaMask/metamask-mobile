@@ -3,10 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
 import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
 
-// Mock dependencies
-jest.mock('react-native-reanimated', () =>
-  jest.requireActual('react-native-reanimated/mock'),
-);
+// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
@@ -217,7 +214,7 @@ describe('PerpsTPSLView', () => {
       ],
     ])(
       'calls %s handler when user types',
-      (_description, getInput, handlerName) => {
+      async (_description, getInput, handlerName) => {
         const mockHandler = jest.fn();
         renderView({
           handlers: {
@@ -226,13 +223,15 @@ describe('PerpsTPSLView', () => {
           },
         });
 
-        fireEvent.changeText(getInput(), '123.45');
+        await act(async () => {
+          fireEvent.changeText(getInput(), '123.45');
+        });
 
         expect(mockHandler).toHaveBeenCalledWith('123.45');
       },
     );
 
-    it('calls take profit clear handler when Clear button pressed', () => {
+    it('calls take profit clear handler when Clear button pressed', async () => {
       const mockHandler = jest.fn();
       renderView({
         formState: {
@@ -246,12 +245,14 @@ describe('PerpsTPSLView', () => {
       });
 
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      fireEvent.press(clearButtons[0]);
+      await act(async () => {
+        fireEvent.press(clearButtons[0]);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
 
-    it('dismisses keyboard before clearing take profit when input is focused', () => {
+    it('dismisses keyboard before clearing take profit when input is focused', async () => {
       const mockHandler = jest.fn();
       renderView({
         formState: {
@@ -270,12 +271,14 @@ describe('PerpsTPSLView', () => {
 
       // Now press clear
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      fireEvent.press(clearButtons[0]);
+      await act(async () => {
+        fireEvent.press(clearButtons[0]);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
 
-    it('dismisses keyboard before clearing stop loss when input is focused', () => {
+    it('dismisses keyboard before clearing stop loss when input is focused', async () => {
       const mockHandler = jest.fn();
       renderView({
         formState: {
@@ -294,7 +297,9 @@ describe('PerpsTPSLView', () => {
 
       // Now press clear
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      fireEvent.press(clearButtons[0]);
+      await act(async () => {
+        fireEvent.press(clearButtons[0]);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
@@ -334,7 +339,7 @@ describe('PerpsTPSLView', () => {
       ],
     ])(
       'prevents %s input exceeding 9 digits',
-      (_description, getInput, handlerName) => {
+      async (_description, getInput, handlerName) => {
         const mockHandler = jest.fn();
         renderView({
           handlers: {
@@ -343,7 +348,9 @@ describe('PerpsTPSLView', () => {
           },
         });
 
-        fireEvent.changeText(getInput(), '1234567890');
+        await act(async () => {
+          fireEvent.changeText(getInput(), '1234567890');
+        });
 
         expect(mockHandler).not.toHaveBeenCalled();
       },
@@ -445,11 +452,13 @@ describe('PerpsTPSLView', () => {
   // ==================== Navigation and Actions ====================
 
   describe('Navigation and Actions', () => {
-    it('navigates back when back button pressed', () => {
+    it('navigates back when back button pressed', async () => {
       renderView();
 
       const backButton = screen.getByTestId('back-button');
-      fireEvent.press(backButton);
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
@@ -462,6 +471,10 @@ describe('PerpsTPSLView', () => {
           ...defaultMockReturn.formState,
           takeProfitPrice: '$3,150.00',
           stopLossPrice: '$2,850.00',
+        },
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
         },
       });
 
@@ -489,7 +502,12 @@ describe('PerpsTPSLView', () => {
     it('calls onConfirm with undefined when values are empty', async () => {
       const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
-      renderView();
+      renderView({
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
+      });
 
       const setButton = screen.getByText('perps.tpsl.set');
       await act(async () => {
@@ -529,10 +547,14 @@ describe('PerpsTPSLView', () => {
       fireEvent(getTakeProfitPriceInput(), 'focus');
 
       const doneButton = screen.getByText('perps.tpsl.done');
-      fireEvent.press(doneButton);
+      await act(async () => {
+        fireEvent.press(doneButton);
+      });
 
       const setButton = screen.getByText('perps.tpsl.set');
-      fireEvent.press(setButton);
+      await act(async () => {
+        fireEvent.press(setButton);
+      });
 
       expect(mockOnConfirm).toHaveBeenCalled();
     });

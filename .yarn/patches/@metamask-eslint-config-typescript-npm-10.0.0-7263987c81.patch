@@ -1,0 +1,13 @@
+diff --git a/src/index.js b/src/index.js
+index 8938fb1e6b3d062c7acef11b59d8a2d829ce19fb..23789670bd4ddf23ec1087eee0da0238512b1d6d 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -41,7 +41,7 @@ module.exports = {
+       { allowDefinitionFiles: true },
+     ],
+     '@typescript-eslint/no-non-null-assertion': 'error',
+-    '@typescript-eslint/no-parameter-properties': 'error',
++    '@typescript-eslint/parameter-properties': 'error',
+     '@typescript-eslint/no-require-imports': 'error',
+     '@typescript-eslint/prefer-for-of': 'error',
+     '@typescript-eslint/prefer-function-type': 'error',
