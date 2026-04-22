@@ -179,27 +179,30 @@ export const TokenWarningModal = () => {
           paddingBottom={4}
           gap={4}
         >
-          <Box alignItems={BoxAlignItems.Center} gap={2} twClassName="w-full">
+          <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
             <Icon
               name={headlineIconName}
               size={IconSize.Xl}
               color={headlineIconColor}
             />
-            <Text variant={TextVariant.HeadingMd} twClassName="text-center">
+            <Text
+              variant={TextVariant.HeadingMd}
+              twClassName="text-center mt-4"
+            >
               {title}
             </Text>
             {isMalicious ? (
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
                 backgroundColor={BoxBackgroundColor.ErrorMuted}
                 gap={3}
-                twClassName="w-full rounded-2xl pl-6 pr-4 py-3"
+                twClassName="mt-5 w-full rounded-2xl pl-[25px] pr-4 py-3"
               >
                 <Icon
                   name={IconName.Error}
                   size={IconSize.Md}
                   color={IconColor.ErrorDefault}
+                  twClassName="mt-1"
                 />
                 <Text
                   variant={TextVariant.BodyMd}
@@ -213,7 +216,7 @@ export const TokenWarningModal = () => {
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                twClassName="text-center mt-2"
               >
                 {description}
               </Text>
