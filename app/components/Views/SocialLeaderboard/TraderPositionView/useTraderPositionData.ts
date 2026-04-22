@@ -181,7 +181,11 @@ export function useTraderPositionData(
   const [isPricesLoading, setIsPricesLoading] = useState(true);
 
   useEffect(() => {
-    if (!positionParam || !caipChainId) return;
+    if (!positionParam || !caipChainId) {
+      setAllPrices({});
+      setIsPricesLoading(false);
+      return;
+    }
     setIsPricesLoading(true);
     const assetIdentifier = `erc20:${positionParam.tokenAddress}`;
     const vsCurrency = currentCurrency.toLowerCase();
@@ -235,7 +239,10 @@ export function useTraderPositionData(
     let prices = allPrices[activeTimePeriod] ?? [];
 
     if (activeTimePeriod === 'All' && !prices.length) {
-      prices = allPrices['1M'] ?? allPrices['1W'] ?? allPrices['1D'] ?? [];
+      prices =
+        [allPrices['1M'], allPrices['1W'], allPrices['1D']].find(
+          (fallbackPrices) => fallbackPrices?.length,
+        ) ?? [];
     }
 
     if (activeTimePeriod === '1H' && prices.length) {

@@ -187,6 +187,34 @@ describe('TraderPositionView', () => {
     expect(screen.getAllByText('DOGE').length).toBeGreaterThanOrEqual(1);
   });
 
+  it('does not leave price chart in loading state when position is undefined', async () => {
+    mockRouteParams.position = undefined;
+    mockRouteParams.tokenSymbol = 'DOGE';
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    await waitFor(() => {
+      const lastCall =
+        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
+      expect(lastCall).toMatchObject({ isLoading: false });
+    });
+  });
+
+  it('does not leave price chart in loading state when chain is unsupported', async () => {
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      chain: 'unsupported-chain',
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    await waitFor(() => {
+      const lastCall =
+        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
+      expect(lastCall).toMatchObject({ isLoading: false });
+    });
+  });
+
   it('renders the buy button', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
