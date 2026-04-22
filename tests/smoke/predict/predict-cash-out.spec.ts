@@ -32,6 +32,9 @@ Test Scenario: Cash out on open position - Spurs vs. Pelicans
   2. Cash out the position with updated mocks
   3. Verify balance and cash out in Activities tab
   */
+const SPURS_PELICANS_POSITION_ID =
+  '110743925263777693447488608878982152642205002490046349037358337248548507433643';
+
 const positionDetails = {
   name: 'Spurs vs. Pelicans',
   cashOutValue: '$30.75',
@@ -44,11 +47,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     carouselBanners: false,
-    exploreSectionsOrder: {
-      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
-      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-    },
+    exploreSectionsOrder: {},
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
@@ -73,7 +72,9 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
 
-        await PredictDetailsPage.tapCashOutButton();
+        await PredictDetailsPage.tapGameCashOutButton(
+          SPURS_PELICANS_POSITION_ID,
+        );
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
         await Assertions.expectElementToBeVisible(

@@ -34,11 +34,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,
-    exploreSectionsOrder: {
-      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
-      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-    },
+    exploreSectionsOrder: {},
   }); // we need to mock the confirmations redesign Feature flag
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer); // needed to load the withdraw/deposit/claim screen

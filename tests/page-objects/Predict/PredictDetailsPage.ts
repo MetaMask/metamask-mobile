@@ -14,6 +14,7 @@ import {
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
 } from '../../../app/components/UI/Predict/Predict.testIds';
+import { PREDICT_PICK_ITEM_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictPicks/PredictPickItem.testIds';
 
 class PredictDetailsPage {
   get container(): EncapsulatedElementType {
@@ -243,6 +244,20 @@ class PredictDetailsPage {
   async tapCashOutButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.cashOutButton, {
       description: 'Cash out button',
+    });
+  }
+
+  getGameCashOutButton(positionId: string): EncapsulatedElementType {
+    const testID = `${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_CASH_OUT_BUTTON}-${positionId}`;
+    return encapsulated({
+      detox: () => Matchers.getElementByID(testID),
+      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
+    });
+  }
+
+  async tapGameCashOutButton(positionId: string): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.getGameCashOutButton(positionId), {
+      description: 'Game details cash out button',
     });
   }
 
