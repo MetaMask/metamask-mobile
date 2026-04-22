@@ -515,18 +515,6 @@ export type RewardsControllerGetOndoCampaignDepositsAction = {
 };
 
 /**
- * Fetch the winning code for the current user in a completed Ondo GM campaign.
- *
- * @param campaignId - The campaign ID.
- * @param subscriptionId - The subscription ID for authentication.
- * @returns The winner's claim code, or null if unavailable.
- */
-export type RewardsControllerGetOndoCampaignWinnerCodeAction = {
-  type: `RewardsController:getOndoCampaignWinnerCode`;
-  handler: RewardsController['getOndoCampaignWinnerCode'];
-};
-
-/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes.
@@ -538,6 +526,18 @@ export type RewardsControllerGetOndoCampaignWinnerCodeAction = {
 export type RewardsControllerGetOndoCampaignLeaderboardPositionAction = {
   type: `RewardsController:getOndoCampaignLeaderboardPosition`;
   handler: RewardsController['getOndoCampaignLeaderboardPosition'];
+};
+
+/**
+ * Fetch the winning code for the current user in a completed Ondo GM campaign.
+ * This is an authenticated, no-cache endpoint — called only when the winner
+ * screen is shown, so freshness is guaranteed.
+ * Returns null when rewards are disabled; otherwise propagates request failures
+ * so callers can surface retry UI (unlike a silent null on errors).
+ */
+export type RewardsControllerGetOndoCampaignWinnerCodeAction = {
+  type: `RewardsController:getOndoCampaignWinnerCode`;
+  handler: RewardsController['getOndoCampaignWinnerCode'];
 };
 
 /**
@@ -763,8 +763,8 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction
-  | RewardsControllerGetOndoCampaignWinnerCodeAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
+  | RewardsControllerGetOndoCampaignWinnerCodeAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
   | RewardsControllerGetOndoCampaignActivityAction
   | RewardsControllerGetActivityIfChangedAction

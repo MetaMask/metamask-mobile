@@ -3714,6 +3714,8 @@ export class RewardsController extends BaseController<
    * Fetch the winning code for the current user in a completed Ondo GM campaign.
    * This is an authenticated, no-cache endpoint — called only when the winner
    * screen is shown, so freshness is guaranteed.
+   * Returns null when rewards are disabled; otherwise propagates request failures
+   * so callers can surface retry UI (unlike a silent null on errors).
    */
   async getOndoCampaignWinnerCode(
     campaignId: string,
@@ -3722,23 +3724,14 @@ export class RewardsController extends BaseController<
     if (!this.isRewardsFeatureEnabled()) {
       return null;
     }
-    try {
-      const result = await this.#withAuthRetry(async () => {
-        Logger.log('RewardsController: Fetching Ondo campaign winner code');
-        return this.messenger.call(
-          'RewardsDataService:getOndoCampaignWinnerCode',
-          campaignId,
-          subscriptionId,
-        );
-      }, subscriptionId);
-      return result;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to get Ondo campaign winner code:',
-        error instanceof Error ? error.message : String(error),
+    return this.#withAuthRetry(async () => {
+      Logger.log('RewardsController: Fetching Ondo campaign winner code');
+      return this.messenger.call(
+        'RewardsDataService:getOndoCampaignWinnerCode',
+        campaignId,
+        subscriptionId,
       );
-      return null;
-    }
+    }, subscriptionId);
   }
 
   /**

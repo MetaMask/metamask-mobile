@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import OndoCampaignWinningView, {
@@ -384,6 +384,18 @@ describe('OndoCampaignWinningView', () => {
       expect(queryByText('3rd place')).toBeNull();
       expect(queryByText('+28.23%')).toBeNull();
     });
+  });
+
+  it('does not throw when mailto openURL rejects', async () => {
+    const openSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockRejectedValue(new Error('no mail app'));
+    const { getByText } = render(<OndoCampaignWinningView />);
+    await act(async () => {
+      fireEvent.press(getByText('Open mail'));
+    });
+    expect(openSpy).toHaveBeenCalled();
+    openSpy.mockRestore();
   });
 
   describe('mailto URL construction', () => {

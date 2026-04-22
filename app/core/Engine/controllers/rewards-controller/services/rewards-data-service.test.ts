@@ -5032,4 +5032,14 @@ describe('RewardsDataService', () => {
       ).rejects.toThrow('Get campaign deposits failed: 500');
     });
   });
+
+  describe('getOndoCampaignWinnerCode', () => {
+    it('returns an empty string until the winner-code endpoint is implemented', async () => {
+      const result = await service.getOndoCampaignWinnerCode(
+        'campaign-winner',
+        'sub-1',
+      );
+      expect(result).toBe('');
+    });
+  });
 });
