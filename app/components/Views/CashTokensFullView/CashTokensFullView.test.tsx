@@ -648,7 +648,7 @@ describe('CashTokensFullView', () => {
           button_action: 'max',
           asset_symbol: undefined,
           network_chain_id: '0x1',
-          money_hub_filled_state: 'empty',
+          money_hub_filled_state: 'filled',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -673,7 +673,7 @@ describe('CashTokensFullView', () => {
           button_action: 'custom',
           asset_symbol: undefined,
           network_chain_id: '0xa',
-          money_hub_filled_state: 'empty',
+          money_hub_filled_state: 'filled',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
