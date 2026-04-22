@@ -19,9 +19,7 @@ describe('SnapUILink', () => {
   };
 
   it('renders correctly with valid props', () => {
-    const { getByTestId } = render(
-      <SnapUILink {...validProps} />,
-    );
+    const { getByTestId } = render(<SnapUILink {...validProps} />);
 
     const linkText = getByTestId('snaps-ui-link');
     expect(linkText).toBeTruthy();

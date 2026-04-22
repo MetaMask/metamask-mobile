@@ -265,8 +265,8 @@ describe('PaymentRequest', () => {
       );
 
       await act(async () => {
-      fireEvent.press(networkPicker);
-    });
+        fireEvent.press(networkPicker);
+      });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
@@ -286,8 +286,8 @@ describe('PaymentRequest', () => {
 
       // When user types and then presses clear button
       await act(async () => {
-      fireEvent.changeText(searchInput, 'BAT');
-    });
+        fireEvent.changeText(searchInput, 'BAT');
+      });
 
       // Wait for debounce to complete
       act(() => {
@@ -302,8 +302,8 @@ describe('PaymentRequest', () => {
       // Find and press clear button using testID
       const clearButton = getByTestId('clear-search-input-button');
       await act(async () => {
-      fireEvent.press(clearButton);
-    });
+        fireEvent.press(clearButton);
+      });
 
       // Then input should be cleared and results reset
       expect(searchInput.props.value).toBe('');
@@ -318,11 +318,11 @@ describe('PaymentRequest', () => {
 
       // When user types and clears
       await act(async () => {
-      fireEvent.changeText(searchInput, 'BAT');
-    });
+        fireEvent.changeText(searchInput, 'BAT');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, '');
-    });
+        fireEvent.changeText(searchInput, '');
+      });
 
       // Then search input should maintain focus
       expect(searchInput.props.value).toBe('');
@@ -337,8 +337,8 @@ describe('PaymentRequest', () => {
 
       // When user types and component unmounts before debounce completes
       await act(async () => {
-      fireEvent.changeText(searchInput, 'ETH');
-    });
+        fireEvent.changeText(searchInput, 'ETH');
+      });
 
       // Then unmount the component
       unmount();
@@ -393,8 +393,8 @@ describe('PaymentRequest', () => {
 
       // When user types invalid input (simulating edge case)
       await act(async () => {
-      fireEvent.changeText(searchInput, '123');
-    });
+        fireEvent.changeText(searchInput, '123');
+      });
 
       // Then it should handle the search without errors
       act(() => {
@@ -413,8 +413,8 @@ describe('PaymentRequest', () => {
 
       // When user types special characters
       await act(async () => {
-      fireEvent.changeText(searchInput, '!@#$%');
-    });
+        fireEvent.changeText(searchInput, '!@#$%');
+      });
 
       // Then it should handle the search gracefully
       act(() => {
@@ -435,8 +435,8 @@ describe('PaymentRequest', () => {
       // When user types a very long search term
       const longSearchTerm = 'a'.repeat(100);
       await act(async () => {
-      fireEvent.changeText(searchInput, longSearchTerm);
-    });
+        fireEvent.changeText(searchInput, longSearchTerm);
+      });
 
       // Then it should handle the search without performance issues
       act(() => {
@@ -488,14 +488,14 @@ describe('PaymentRequest', () => {
 
       // When user types rapidly
       await act(async () => {
-      fireEvent.changeText(searchInput, 'E');
-    });
+        fireEvent.changeText(searchInput, 'E');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, 'ET');
-    });
+        fireEvent.changeText(searchInput, 'ET');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, 'ETH');
-    });
+        fireEvent.changeText(searchInput, 'ETH');
+      });
 
       // Then the input value should update immediately
       expect(searchInput.props.value).toBe('ETH');
@@ -520,11 +520,11 @@ describe('PaymentRequest', () => {
 
       // When user types and then clears immediately
       await act(async () => {
-      fireEvent.changeText(searchInput, 'ETH');
-    });
+        fireEvent.changeText(searchInput, 'ETH');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, '');
-    });
+        fireEvent.changeText(searchInput, '');
+      });
 
       // Then the input should be cleared immediately
       expect(searchInput.props.value).toBe('');
@@ -548,8 +548,8 @@ describe('PaymentRequest', () => {
 
       // When user types a search term
       await act(async () => {
-      fireEvent.changeText(searchInput, 'BAT');
-    });
+        fireEvent.changeText(searchInput, 'BAT');
+      });
 
       // Then the input value should update immediately
       expect(searchInput.props.value).toBe('BAT');
@@ -574,14 +574,14 @@ describe('PaymentRequest', () => {
 
       // When user types rapidly with different terms
       await act(async () => {
-      fireEvent.changeText(searchInput, 'E');
-    });
+        fireEvent.changeText(searchInput, 'E');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, 'ET');
-    });
+        fireEvent.changeText(searchInput, 'ET');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, 'ETH');
-    });
+        fireEvent.changeText(searchInput, 'ETH');
+      });
 
       // Then only the final search should execute
       act(() => {
@@ -603,8 +603,8 @@ describe('PaymentRequest', () => {
 
       // When user types and component unmounts before debounce completes
       await act(async () => {
-      fireEvent.changeText(searchInput, 'ETH');
-    });
+        fireEvent.changeText(searchInput, 'ETH');
+      });
 
       // Then unmount the component
       unmount();
@@ -629,11 +629,11 @@ describe('PaymentRequest', () => {
 
       // When user types and then clears to empty
       await act(async () => {
-      fireEvent.changeText(searchInput, 'ETH');
-    });
+        fireEvent.changeText(searchInput, 'ETH');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, '');
-    });
+        fireEvent.changeText(searchInput, '');
+      });
 
       // Then it should show top picks immediately
       expect(getByText('Top picks')).toBeTruthy();
@@ -653,8 +653,8 @@ describe('PaymentRequest', () => {
 
       // When user types and submits (which calls handleSearchTokenList)
       await act(async () => {
-      fireEvent.changeText(searchInput, 'BAT');
-    });
+        fireEvent.changeText(searchInput, 'BAT');
+      });
       fireEvent(searchInput, 'submitEditing');
 
       // Then the search should not execute immediately
@@ -681,8 +681,8 @@ describe('PaymentRequest', () => {
 
       // When searching for token symbol
       await act(async () => {
-      fireEvent.changeText(searchInput, 'BAT');
-    });
+        fireEvent.changeText(searchInput, 'BAT');
+      });
       act(() => {
         jest.advanceTimersByTime(300);
       });
@@ -696,8 +696,8 @@ describe('PaymentRequest', () => {
 
       // When searching for token name
       await act(async () => {
-      fireEvent.changeText(searchInput, 'Basic Attention');
-    });
+        fireEvent.changeText(searchInput, 'Basic Attention');
+      });
       act(() => {
         jest.advanceTimersByTime(300);
       });
@@ -711,8 +711,8 @@ describe('PaymentRequest', () => {
 
       // When searching for non-existent token
       await act(async () => {
-      fireEvent.changeText(searchInput, 'NONEXISTENT');
-    });
+        fireEvent.changeText(searchInput, 'NONEXISTENT');
+      });
       act(() => {
         jest.advanceTimersByTime(300);
       });
@@ -732,8 +732,8 @@ describe('PaymentRequest', () => {
 
       // When searching with partial symbol
       await act(async () => {
-      fireEvent.changeText(searchInput, 'BA');
-    });
+        fireEvent.changeText(searchInput, 'BA');
+      });
       act(() => {
         jest.advanceTimersByTime(300);
       });
@@ -747,8 +747,8 @@ describe('PaymentRequest', () => {
 
       // When searching with partial name
       await act(async () => {
-      fireEvent.changeText(searchInput, 'Basic');
-    });
+        fireEvent.changeText(searchInput, 'Basic');
+      });
       act(() => {
         jest.advanceTimersByTime(300);
       });
@@ -769,14 +769,14 @@ describe('PaymentRequest', () => {
 
       // When typing rapidly with valid search terms
       await act(async () => {
-      fireEvent.changeText(searchInput, 'B');
-    });
+        fireEvent.changeText(searchInput, 'B');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, 'BA');
-    });
+        fireEvent.changeText(searchInput, 'BA');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, 'BAT');
-    });
+        fireEvent.changeText(searchInput, 'BAT');
+      });
 
       // Then should not show results immediately
       expect(queryByText('BAT')).toBeNull();
@@ -795,11 +795,11 @@ describe('PaymentRequest', () => {
 
       // When typing rapidly with invalid then valid terms
       await act(async () => {
-      fireEvent.changeText(searchInput, 'INVALID');
-    });
+        fireEvent.changeText(searchInput, 'INVALID');
+      });
       await act(async () => {
-      fireEvent.changeText(searchInput, 'BAT');
-    });
+        fireEvent.changeText(searchInput, 'BAT');
+      });
 
       // When debounce delay passes
       act(() => {
@@ -821,11 +821,11 @@ describe('PaymentRequest', () => {
 
       // When searching by token address
       await act(async () => {
-      fireEvent.changeText(
-        searchInput,
-        '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
-      );
-    });
+        fireEvent.changeText(
+          searchInput,
+          '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+        );
+      });
       act(() => {
         jest.advanceTimersByTime(300);
       });
@@ -845,8 +845,8 @@ describe('PaymentRequest', () => {
 
       // When searching with different cases
       await act(async () => {
-      fireEvent.changeText(searchInput, 'bat');
-    });
+        fireEvent.changeText(searchInput, 'bat');
+      });
       act(() => {
         jest.advanceTimersByTime(300);
       });

@@ -160,7 +160,9 @@ describe('GasFeeTokenListItem', () => {
       onClick,
       mockGasFeeTokenResponse: MOCK_TOKEN,
     });
-    fireEvent.press(getByTestId(`gas-fee-token-list-item-${MOCK_TOKEN.symbol}`));
+    fireEvent.press(
+      getByTestId(`gas-fee-token-list-item-${MOCK_TOKEN.symbol}`),
+    );
     expect(onClick).toHaveBeenCalledWith(MOCK_TOKEN);
   });
 

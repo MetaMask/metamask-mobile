@@ -1,5 +1,11 @@
 import React from 'react';
-import { renderHook, act, render, screen, fireEvent } from '@testing-library/react-native';
+import {
+  renderHook,
+  act,
+  render,
+  screen,
+  fireEvent,
+} from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { Text } from 'react-native';
 import {

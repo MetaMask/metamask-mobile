@@ -33,6 +33,8 @@ describe('ContractBox', () => {
         },
       },
     );
-    expect(screen.getAllByTestId(CONTRACT_BOX_TEST_ID).length).toBeGreaterThan(0);
+    expect(screen.getAllByTestId(CONTRACT_BOX_TEST_ID).length).toBeGreaterThan(
+      0,
+    );
   });
 });

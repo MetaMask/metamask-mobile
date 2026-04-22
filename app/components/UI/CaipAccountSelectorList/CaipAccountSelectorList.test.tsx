@@ -959,7 +959,7 @@ describe('CaipAccountSelectorList', () => {
 
     // Get the FlatList and trigger content size change
     const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
-    fireEvent(flatList, 'contentSizeChange', );
+    fireEvent(flatList, 'contentSizeChange');
 
     // Verify that scrollToOffset was not called
     expect(mockScrollToOffset).not.toHaveBeenCalled();

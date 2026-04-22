@@ -31,9 +31,7 @@ describe('useValidateReferralCode', () => {
   it('initializes with custom initial value and validates immediately', async () => {
     mockEngineCall.mockResolvedValueOnce(true);
 
-    const { result } = renderHook(() =>
-      useValidateReferralCode('ABCDEF'),
-    );
+    const { result } = renderHook(() => useValidateReferralCode('ABCDEF'));
 
     await waitFor(() => {
       expect(result.current.isValid).toBe(true);

@@ -1,7 +1,7 @@
 import React from 'react';
 import PhishingModal from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent , act } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 
 import { Linking } from 'react-native';
 

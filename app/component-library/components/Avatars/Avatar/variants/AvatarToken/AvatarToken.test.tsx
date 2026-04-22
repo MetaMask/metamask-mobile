@@ -15,9 +15,7 @@ jest.mock('react-native-svg', () => {
   const actual = jest.requireActual('react-native-svg');
   return {
     ...actual,
-    SvgUri: jest.fn((props) => (
-      <View testID={props.testID} uri={props.uri} />
-    )),
+    SvgUri: jest.fn((props) => <View testID={props.testID} uri={props.uri} />),
   };
 });
 
@@ -53,14 +51,14 @@ describe('AvatarToken', () => {
     render(<AvatarToken {...SAMPLE_AVATARTOKEN_PROPS} />);
     const prevImageComponent = screen.getByTestId(AVATARTOKEN_IMAGE_TESTID);
     // Simulate onError on Image component
-    fireEvent(prevImageComponent, 'error', { nativeEvent: { error: 'ERROR!' } });
+    fireEvent(prevImageComponent, 'error', {
+      nativeEvent: { error: 'ERROR!' },
+    });
     expect(screen.queryByTestId(AVATARTOKEN_IMAGE_TESTID)).toBeNull();
   });
 
   it('should render fallback when tokenImageUrl is not provided', () => {
-    render(
-      <AvatarToken name={SAMPLE_AVATARTOKEN_PROPS.name} />,
-    );
+    render(<AvatarToken name={SAMPLE_AVATARTOKEN_PROPS.name} />);
     expect(screen.queryByTestId(AVATARTOKEN_IMAGE_TESTID)).toBeNull();
   });
 

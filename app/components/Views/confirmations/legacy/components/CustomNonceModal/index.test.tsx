@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import CustomNonceModal from '.';
-import { ThemeContext , mockTheme } from '../../../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
 const PROPOSED_NONCE = 26;
 const saveMock = jest.fn();

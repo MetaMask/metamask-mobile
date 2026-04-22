@@ -2,7 +2,7 @@ import React from 'react';
 import DiscoveryTab from './DiscoveryTab';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
-import { fireEvent , act } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { processUrlForBrowser } from '../../../util/browser';
 import Device from '../../../util/device';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';

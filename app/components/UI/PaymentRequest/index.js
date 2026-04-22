@@ -578,7 +578,8 @@ class PaymentRequest extends PureComponent {
     const { conversionRate, currentCurrency, contractExchangeRates } =
       this.props;
     const { selectedAsset } = this.state;
-    if (!selectedAsset) return { symbol: '', secondaryAmount: undefined, cryptoAmount: amount };
+    if (!selectedAsset)
+      return { symbol: '', secondaryAmount: undefined, cryptoAmount: amount };
     let secondaryAmount;
     const symbol = selectedAsset.symbol;
     const undefAmount =
@@ -617,7 +618,12 @@ class PaymentRequest extends PureComponent {
     const { conversionRate, currentCurrency, contractExchangeRates } =
       this.props;
     const { selectedAsset } = this.state;
-    if (!selectedAsset) return { symbol: currentCurrency, secondaryAmount: undefined, cryptoAmount: amount };
+    if (!selectedAsset)
+      return {
+        symbol: currentCurrency,
+        secondaryAmount: undefined,
+        cryptoAmount: amount,
+      };
     const symbol = currentCurrency;
     const exchangeRate =
       selectedAsset &&

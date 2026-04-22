@@ -41,12 +41,9 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   IconColor: { Error: 'Error', Warning: 'Warning', Success: 'Success' },
 }));
 
-jest.mock(
-  '@metamask/design-system-react-native/spinner',
-  () => ({
-    Spinner: () => null,
-  }),
-);
+jest.mock('@metamask/design-system-react-native/spinner', () => ({
+  Spinner: () => null,
+}));
 
 jest.mock('@metamask/design-system-react-native', () => ({
   IconColor: { PrimaryDefault: 'PrimaryDefault' },

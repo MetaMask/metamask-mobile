@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent , act } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import AddToAddressBookWrapper from './AddToAddressBookWrapper';

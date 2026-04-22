@@ -120,7 +120,9 @@ describe('useAccounts', () => {
     };
     const { result } = renderHook(() => useAccounts());
     await waitFor(() => {
-      expect(Object.keys(result.current.ensByAccountAddress).length).toBeGreaterThan(0);
+      expect(
+        Object.keys(result.current.ensByAccountAddress).length,
+      ).toBeGreaterThan(0);
     });
     expect(result.current.ensByAccountAddress).toStrictEqual(expectedENSNames);
   });
@@ -141,7 +143,9 @@ describe('useAccounts', () => {
 
       const { result } = renderHook(() => useAccounts());
       await waitFor(() => {
-        expect(Object.keys(result.current.ensByAccountAddress).length).toBeGreaterThan(0);
+        expect(
+          Object.keys(result.current.ensByAccountAddress).length,
+        ).toBeGreaterThan(0);
       });
 
       expect(result.current.ensByAccountAddress).toStrictEqual(
@@ -154,11 +158,11 @@ describe('useAccounts', () => {
         [MOCK_ACCOUNT_1.address]: MOCK_ENS_CACHED_NAME,
       };
 
-      const { result } = renderHook(() =>
-        useAccounts({ fetchENS: true }),
-      );
+      const { result } = renderHook(() => useAccounts({ fetchENS: true }));
       await waitFor(() => {
-        expect(Object.keys(result.current.ensByAccountAddress).length).toBeGreaterThan(0);
+        expect(
+          Object.keys(result.current.ensByAccountAddress).length,
+        ).toBeGreaterThan(0);
       });
 
       expect(result.current.ensByAccountAddress).toStrictEqual(

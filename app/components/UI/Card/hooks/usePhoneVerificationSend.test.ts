@@ -174,7 +174,9 @@ describe('usePhoneVerificationSend', () => {
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       await act(async () => {
-        await result.current.sendPhoneVerification(mockSendRequest).catch(() => {});
+        await result.current
+          .sendPhoneVerification(mockSendRequest)
+          .catch(() => {});
       });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(cardError);
@@ -191,7 +193,9 @@ describe('usePhoneVerificationSend', () => {
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       await act(async () => {
-        await result.current.sendPhoneVerification(mockSendRequest).catch(() => {});
+        await result.current
+          .sendPhoneVerification(mockSendRequest)
+          .catch(() => {});
       });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(networkError);
@@ -208,7 +212,9 @@ describe('usePhoneVerificationSend', () => {
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       await act(async () => {
-        await result.current.sendPhoneVerification(mockSendRequest).catch(() => {});
+        await result.current
+          .sendPhoneVerification(mockSendRequest)
+          .catch(() => {});
       });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(unknownError);
@@ -228,7 +234,9 @@ describe('usePhoneVerificationSend', () => {
 
       // First, trigger an error
       await act(async () => {
-        await result.current.sendPhoneVerification(mockSendRequest).catch(() => {});
+        await result.current
+          .sendPhoneVerification(mockSendRequest)
+          .catch(() => {});
       });
 
       expect(result.current.isError).toBe(true);
@@ -279,7 +287,9 @@ describe('usePhoneVerificationSend', () => {
 
       // First, trigger an error
       await act(async () => {
-        await result.current.sendPhoneVerification(mockSendRequest).catch(() => {});
+        await result.current
+          .sendPhoneVerification(mockSendRequest)
+          .catch(() => {});
       });
 
       expect(result.current.isError).toBe(true);
@@ -330,7 +340,9 @@ describe('usePhoneVerificationSend', () => {
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       await act(async () => {
-        await result.current.sendPhoneVerification(mockSendRequest).catch(() => {});
+        await result.current
+          .sendPhoneVerification(mockSendRequest)
+          .catch(() => {});
       });
     });
   });

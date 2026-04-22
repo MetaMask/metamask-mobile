@@ -359,9 +359,7 @@ describe('SearchTokenAutocomplete', () => {
     ).not.toBeDisabled();
 
     fireEvent.press(tokenResult);
-    expect(
-      getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON),
-    ).toBeDisabled();
+    expect(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON)).toBeDisabled();
   });
 
   it('navigates to ConfirmAddAsset with correct params and tracks analytics', () => {

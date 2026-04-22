@@ -20,8 +20,6 @@ import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
 import AccountListFooter from './AccountListFooter';
 
-
-
 import {
   MultichainAccountSelectorListProps,
   FlattenedMultichainAccountListItem,

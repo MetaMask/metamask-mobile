@@ -134,7 +134,7 @@ jest.mock('../../hooks/useCashbackWallet', () => ({
 }));
 
 import React from 'react';
-import { fireEvent, screen , act } from '@testing-library/react-native';
+import { fireEvent, screen, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import Cashback from './Cashback';

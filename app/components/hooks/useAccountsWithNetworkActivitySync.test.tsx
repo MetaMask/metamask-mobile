@@ -70,7 +70,10 @@ describe('useAccountsWithNetworkActivitySync', () => {
           controllerMessenger: unknown;
         }) => void;
       }
-    ).setMocks({ context: {}, controllerMessenger: { subscribe: jest.fn(), unsubscribe: jest.fn() } });
+    ).setMocks({
+      context: {},
+      controllerMessenger: { subscribe: jest.fn(), unsubscribe: jest.fn() },
+    });
   });
 
   it('fetches on first load if basicFunctionalityEnabled is true', () => {

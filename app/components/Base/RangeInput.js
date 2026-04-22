@@ -233,7 +233,6 @@ const RangeInput = ({
   );
 };
 
-
 RangeInput.propTypes = {
   /**
    * Component or text to render on the right side of the label

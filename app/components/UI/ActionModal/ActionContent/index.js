@@ -117,7 +117,6 @@ export default function ActionContent({
   );
 }
 
-
 ActionContent.propTypes = {
   cancelButtonDisabled: PropTypes.bool,
   /**

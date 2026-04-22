@@ -12,7 +12,9 @@ import {
 
 describe('AvatarNetwork', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
+    const { toJSON } = render(
+      <AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />,
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -37,14 +39,14 @@ describe('AvatarNetwork', () => {
     render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
     const prevImageComponent = screen.getByTestId(AVATARNETWORK_IMAGE_TESTID);
     // Simulate onError on Image component
-    fireEvent(prevImageComponent, 'error', { nativeEvent: { error: 'ERROR!' } });
+    fireEvent(prevImageComponent, 'error', {
+      nativeEvent: { error: 'ERROR!' },
+    });
     expect(screen.queryByTestId(AVATARNETWORK_IMAGE_TESTID)).toBeNull();
   });
 
   it('should render fallback when image is not provided', () => {
-    render(
-      <AvatarNetwork name={SAMPLE_AVATARNETWORK_PROPS.name} />,
-    );
+    render(<AvatarNetwork name={SAMPLE_AVATARNETWORK_PROPS.name} />);
     expect(screen.queryByTestId(AVATARNETWORK_IMAGE_TESTID)).toBeNull();
   });
 });

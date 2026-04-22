@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent , act } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';

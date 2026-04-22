@@ -852,7 +852,6 @@ const EditGasFee1559 = ({
   );
 };
 
-
 EditGasFee1559.propTypes = {
   /**
    * Gas option selected (low, medium, high)

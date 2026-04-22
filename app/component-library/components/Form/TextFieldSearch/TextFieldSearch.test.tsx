@@ -26,17 +26,13 @@ describe('TextFieldSearch', () => {
   });
 
   it('renders TextFieldSearch component', () => {
-    render(
-      <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
-    );
+    render(<TextFieldSearch onPressClearButton={mockOnPressClearButton} />);
 
     expect(screen.getByTestId(TEXTFIELDSEARCH_TEST_ID)).toBeDefined();
   });
 
   it('applies rounded border radius style', () => {
-    render(
-      <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
-    );
+    render(<TextFieldSearch onPressClearButton={mockOnPressClearButton} />);
 
     const textFieldContainer = screen.getByTestId(TEXTFIELD_TEST_ID);
     const containerStyle = textFieldContainer.props.style;
@@ -61,9 +57,7 @@ describe('TextFieldSearch', () => {
   });
 
   it('hides clear button when no value', () => {
-    render(
-      <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
-    );
+    render(<TextFieldSearch onPressClearButton={mockOnPressClearButton} />);
 
     // When no value, the end accessory container should not be rendered
     expect(screen.queryByTestId(TEXTFIELD_ENDACCESSORY_TEST_ID)).toBeNull();

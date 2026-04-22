@@ -168,7 +168,9 @@ describe('usePhoneVerificationVerify', () => {
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest).catch(() => {});
+        await result.current
+          .verifyPhoneVerification(mockVerifyRequest)
+          .catch(() => {});
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -185,7 +187,9 @@ describe('usePhoneVerificationVerify', () => {
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest).catch(() => {});
+        await result.current
+          .verifyPhoneVerification(mockVerifyRequest)
+          .catch(() => {});
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -202,7 +206,9 @@ describe('usePhoneVerificationVerify', () => {
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest).catch(() => {});
+        await result.current
+          .verifyPhoneVerification(mockVerifyRequest)
+          .catch(() => {});
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -240,7 +246,9 @@ describe('usePhoneVerificationVerify', () => {
 
       // First verification with error
       await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest).catch(() => {});
+        await result.current
+          .verifyPhoneVerification(mockVerifyRequest)
+          .catch(() => {});
       });
 
       expect(result.current.isError).toBe(true);
@@ -266,7 +274,9 @@ describe('usePhoneVerificationVerify', () => {
 
       // Set error state
       await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest).catch(() => {});
+        await result.current
+          .verifyPhoneVerification(mockVerifyRequest)
+          .catch(() => {});
       });
 
       expect(result.current.isError).toBe(true);
@@ -316,7 +326,9 @@ describe('usePhoneVerificationVerify', () => {
 
       // Set error state
       await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest).catch(() => {});
+        await result.current
+          .verifyPhoneVerification(mockVerifyRequest)
+          .catch(() => {});
       });
 
       expect(result.current.isError).toBe(true);

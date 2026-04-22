@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor  } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 // Mock dependencies
 import RewardsClaimBottomSheetModal from './RewardsClaimBottomSheetModal';
 import { SeasonRewardType } from '../../../../../../core/Engine/controllers/rewards-controller/types';

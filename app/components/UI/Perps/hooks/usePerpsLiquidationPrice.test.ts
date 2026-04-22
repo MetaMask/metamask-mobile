@@ -34,9 +34,7 @@ describe('usePerpsLiquidationPrice', () => {
       asset: 'BTC',
     };
 
-    const { result } = renderHook(() =>
-      usePerpsLiquidationPrice(params),
-    );
+    const { result } = renderHook(() => usePerpsLiquidationPrice(params));
 
     // With 0ms debounce, still need to wait for async debounced function
     await waitFor(() => {
@@ -64,9 +62,7 @@ describe('usePerpsLiquidationPrice', () => {
       asset: 'ETH',
     };
 
-    const { result } = renderHook(() =>
-      usePerpsLiquidationPrice(params),
-    );
+    const { result } = renderHook(() => usePerpsLiquidationPrice(params));
 
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);
@@ -88,9 +84,7 @@ describe('usePerpsLiquidationPrice', () => {
       asset: 'BTC',
     };
 
-    const { result } = renderHook(() =>
-      usePerpsLiquidationPrice(params),
-    );
+    const { result } = renderHook(() => usePerpsLiquidationPrice(params));
 
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);
@@ -207,9 +201,7 @@ describe('usePerpsLiquidationPrice', () => {
       asset: 'BTC',
     };
 
-    const { result } = renderHook(() =>
-      usePerpsLiquidationPrice(params),
-    );
+    const { result } = renderHook(() => usePerpsLiquidationPrice(params));
 
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);

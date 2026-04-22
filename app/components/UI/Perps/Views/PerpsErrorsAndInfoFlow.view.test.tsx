@@ -131,7 +131,9 @@ describe('Errors, Recovery & Information Flow', () => {
 
     // ── PHASE 2: Connection failure and retry cycle ──────────────────────
     // Connection fails — trader sees error title and retry button, no go-back
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsView(ConnectionErrorDefault, 'ConnectionErrorTest');
     expect(await screen.findByText(CONNECTION_FAILED_TITLE)).toBeOnTheScreen();
     const retryButton = screen.getByText(CONNECTION_FAILED_RETRY);
@@ -143,7 +145,9 @@ describe('Errors, Recovery & Information Flow', () => {
     expect(mockOnRetry).toHaveBeenCalledTimes(1);
 
     // Retry fails — "Go back" button now appears alongside retry
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     mockOnRetry.mockClear();
     renderPerpsView(ConnectionErrorWithBack, 'ConnectionErrorTest');
     expect(
@@ -152,14 +156,18 @@ describe('Errors, Recovery & Information Flow', () => {
     expect(screen.getByText(CONNECTION_FAILED_RETRY)).toBeOnTheScreen();
 
     // Trader retries again — spinner replaces the retry label
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsView(ConnectionErrorRetrying, 'ConnectionErrorTest');
     await screen.findByText(CONNECTION_FAILED_TITLE);
     expect(screen.queryByText(CONNECTION_FAILED_RETRY)).not.toBeOnTheScreen();
 
     // ── PHASE 3: Error state variants ────────────────────────────────────
     // CONNECTION_FAILED error state — retry fires callback
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     const retryFn1 = jest.fn();
     renderErrorState(PerpsErrorType.CONNECTION_FAILED, retryFn1);
     expect(await screen.findByText(CONNECTION_FAILED_TITLE)).toBeOnTheScreen();
@@ -167,7 +175,9 @@ describe('Errors, Recovery & Information Flow', () => {
     expect(retryFn1).toHaveBeenCalledTimes(1);
 
     // NETWORK_ERROR — title, description, and retry
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     const retryFn2 = jest.fn();
     renderErrorState(PerpsErrorType.NETWORK_ERROR, retryFn2);
     expect(
@@ -182,7 +192,9 @@ describe('Errors, Recovery & Information Flow', () => {
     expect(retryFn2).toHaveBeenCalledTimes(1);
 
     // UNKNOWN without retry — no retry button
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderErrorState(PerpsErrorType.UNKNOWN);
     expect(
       await screen.findByText(strings('perps.errors.unknown.title')),
@@ -195,7 +207,9 @@ describe('Errors, Recovery & Information Flow', () => {
     ).not.toBeOnTheScreen();
 
     // UNKNOWN with retry — retry button fires callback
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     const retryFn3 = jest.fn();
     renderErrorState(PerpsErrorType.UNKNOWN, retryFn3);
     fireEvent.press(
@@ -205,7 +219,9 @@ describe('Errors, Recovery & Information Flow', () => {
 
     // ── PHASE 4: Trader recovers and browses tooltips ────────────────────
     // Trader reads the leverage tooltip, then dismisses
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsTooltipView({ contentKey: 'leverage' });
     expect(
       await screen.findByText(strings('perps.tooltips.leverage.title')),
@@ -214,14 +230,18 @@ describe('Errors, Recovery & Information Flow', () => {
     fireEvent.press(gotItButton);
 
     // Trader opens margin tooltip
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsTooltipView({ contentKey: 'margin' });
     expect(
       await screen.findByText(strings('perps.tooltips.margin.title')),
     ).toBeOnTheScreen();
 
     // Trader opens fees tooltip
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsTooltipView({ contentKey: 'fees' });
     expect(
       await screen.findByText(strings('perps.tooltips.fees.title')),
@@ -229,7 +249,9 @@ describe('Errors, Recovery & Information Flow', () => {
     expect(screen.getByText(GOT_IT_BUTTON)).toBeOnTheScreen();
 
     // Trader opens liquidation price tooltip
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderPerpsTooltipView({ contentKey: 'liquidation_price' });
     expect(
       await screen.findByText(
@@ -246,7 +268,9 @@ describe('Errors, Recovery & Information Flow', () => {
       'forex',
     ];
     for (const type of badgeTypes) {
-      await act(async () => { cleanup(); });
+      await act(async () => {
+        cleanup();
+      });
       renderBadge(type);
       expect(
         await screen.findByText(strings(`perps.market.badge.${type}`)),
@@ -254,13 +278,17 @@ describe('Errors, Recovery & Information Flow', () => {
     }
 
     // Custom label overrides default badge
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderBadge('crypto', 'CUSTOM');
     expect(await screen.findByText('CUSTOM')).toBeOnTheScreen();
 
     // ── PHASE 6: Fill tags on past transactions ──────────────────────────
     // Standard fill — no tag visible
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderFillTag(FillType.Standard);
     expect(
       screen.queryByText(strings('perps.transactions.order.take_profit')),
@@ -270,21 +298,27 @@ describe('Errors, Recovery & Information Flow', () => {
     ).not.toBeOnTheScreen();
 
     // TakeProfit fill — tag visible
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderFillTag(FillType.TakeProfit);
     expect(
       await screen.findByText(strings('perps.transactions.order.take_profit')),
     ).toBeOnTheScreen();
 
     // StopLoss fill — tag visible
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderFillTag(FillType.StopLoss);
     expect(
       await screen.findByText(strings('perps.transactions.order.stop_loss')),
     ).toBeOnTheScreen();
 
     // AutoDeleveraging fill — tag visible
-    await act(async () => { cleanup(); });
+    await act(async () => {
+      cleanup();
+    });
     renderFillTag(FillType.AutoDeleveraging);
     expect(
       await screen.findByText(

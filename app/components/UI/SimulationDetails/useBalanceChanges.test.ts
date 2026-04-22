@@ -216,21 +216,21 @@ describe('useBalanceChanges', () => {
 
       await waitFor(() => {
         expect(result.current.value).toEqual([
-        {
-          asset: {
-            address: ERC20_TOKEN_ADDRESS_1_MOCK,
-            type: AssetType.ERC20,
-            tokenId: undefined,
-            chainId: CHAIN_ID_MOCK,
+          {
+            asset: {
+              address: ERC20_TOKEN_ADDRESS_1_MOCK,
+              type: AssetType.ERC20,
+              tokenId: undefined,
+              chainId: CHAIN_ID_MOCK,
+            },
+            balance: new BigNumber(0),
+            decimals: 3,
+            amount: new BigNumber('-0.017'),
+            fiatAmount: -0.0255,
+            tokenSymbol: undefined,
+            usdAmount: -0.051,
           },
-          balance: new BigNumber(0),
-          decimals: 3,
-          amount: new BigNumber('-0.017'),
-          fiatAmount: -0.0255,
-          tokenSymbol: undefined,
-          usdAmount: -0.051,
-        },
-      ]);
+        ]);
       });
       expect(result.current.value[0].amount.toString()).toBe('-0.017');
     });
@@ -407,16 +407,16 @@ describe('useBalanceChanges', () => {
 
       await waitFor(() => {
         expect(result.current.value).toEqual([
-        {
-          asset: {
-            type: AssetType.Native,
-            chainId: CHAIN_ID_MOCK,
+          {
+            asset: {
+              type: AssetType.Native,
+              chainId: CHAIN_ID_MOCK,
+            },
+            amount: new BigNumber('-5373.003641998677469065'),
+            fiatAmount: Number('-16119.010925996032'),
+            usdAmount: Number('-21492.01456799471'),
           },
-          amount: new BigNumber('-5373.003641998677469065'),
-          fiatAmount: Number('-16119.010925996032'),
-          usdAmount: Number('-21492.01456799471'),
-        },
-      ]);
+        ]);
       });
     });
 

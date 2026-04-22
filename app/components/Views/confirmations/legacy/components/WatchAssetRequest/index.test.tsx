@@ -15,7 +15,11 @@ describe('WatchAssetRequest', () => {
     const { toJSON } = renderWithProvider(
       <WatchAssetRequest
         suggestedAssetMeta={{
-          asset: { address: '0x0000000000000000000000000000000000000002', symbol: 'TKN', decimals: 0 },
+          asset: {
+            address: '0x0000000000000000000000000000000000000002',
+            symbol: 'TKN',
+            decimals: 0,
+          },
           interactingAddress: '0x0000000000000000000000000000000000000001',
         }}
       />,

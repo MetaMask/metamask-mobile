@@ -515,7 +515,6 @@ const EditGasFeeLegacy = ({
   );
 };
 
-
 EditGasFeeLegacy.propTypes = {
   /**
    * Gas option selected (low, medium, high)

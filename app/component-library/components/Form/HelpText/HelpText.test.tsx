@@ -23,9 +23,7 @@ describe('HelpText', () => {
   });
   it('should render the given severity color', () => {
     const testSeverity = HelpTextSeverity.Error;
-    render(
-      <HelpText severity={testSeverity}>{SAMPLE_HELPTEXT_TEXT}</HelpText>,
-    );
+    render(<HelpText severity={testSeverity}>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
     expect(screen.getByTestId(HELPTEXT_TEST_ID)).toBeDefined();
   });
   it('should render the given text with the appropriate variant', () => {

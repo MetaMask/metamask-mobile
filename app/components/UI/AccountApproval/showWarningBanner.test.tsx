@@ -49,6 +49,8 @@ describe('ShowWarningBanner', () => {
 
     fireEvent.press(getByText('Learn more'));
 
-    expect(Linking.openURL).toHaveBeenCalledWith(CONNECTING_TO_A_DECEPTIVE_SITE);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      CONNECTING_TO_A_DECEPTIVE_SITE,
+    );
   });
 });

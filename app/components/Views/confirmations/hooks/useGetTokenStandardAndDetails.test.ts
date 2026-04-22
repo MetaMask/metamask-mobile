@@ -53,8 +53,8 @@ describe('useGetTokenStandardAndDetails', () => {
 
     await waitFor(() => {
       expect(result.current).toEqual({
-      details: { ...mockDetails, decimalsNumber: 18 },
-      isPending: false,
+        details: { ...mockDetails, decimalsNumber: 18 },
+        isPending: false,
       });
     });
 
@@ -79,8 +79,8 @@ describe('useGetTokenStandardAndDetails', () => {
 
     await waitFor(() => {
       expect(result.current).toEqual({
-      details: { decimalsNumber: undefined },
-      isPending: false,
+        details: { decimalsNumber: undefined },
+        isPending: false,
       });
     });
   });

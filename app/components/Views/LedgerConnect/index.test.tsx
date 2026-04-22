@@ -6,7 +6,7 @@ import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from '../../hooks/Ledger/useBluetoothDevices';
-import { fireEvent, waitFor , act } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import {
   useNavigation,
   NavigationProp,

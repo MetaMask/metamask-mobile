@@ -85,7 +85,6 @@ export default function TransactionActionContent({
   );
 }
 
-
 TransactionActionContent.propTypes = {
   /**
    * Whether confirm button is disabled

@@ -41,7 +41,9 @@ describe('ModalConfirmation', () => {
         }}
       />,
     );
-    expect(screen.getByTestId(MODAL_CONFIRMATION_NORMAL_BUTTON_ID)).toBeDefined();
+    expect(
+      screen.getByTestId(MODAL_CONFIRMATION_NORMAL_BUTTON_ID),
+    ).toBeDefined();
   });
   it('should show danger variant button', () => {
     render(
@@ -56,6 +58,8 @@ describe('ModalConfirmation', () => {
         }}
       />,
     );
-    expect(screen.getByTestId(MODAL_CONFIRMATION_DANGER_BUTTON_ID)).toBeDefined();
+    expect(
+      screen.getByTestId(MODAL_CONFIRMATION_DANGER_BUTTON_ID),
+    ).toBeDefined();
   });
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent , act } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { strings } from '../../../../../../locales/i18n';

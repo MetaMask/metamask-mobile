@@ -42,19 +42,28 @@ describe('CustomInput', () => {
 
   it('should update value if input is integer', () => {
     renderComponent();
-    fireEvent.changeText(screen.getByTestId(CUSTOM_SPEND_CAP_INPUT_INPUT_ID), '123');
+    fireEvent.changeText(
+      screen.getByTestId(CUSTOM_SPEND_CAP_INPUT_INPUT_ID),
+      '123',
+    );
     expect(props.setValue).toHaveBeenCalledWith('123');
   });
 
   it('should update value if input is decimal and decimal points are less than or equal to tokenDecimal', () => {
     renderComponent();
-    fireEvent.changeText(screen.getByTestId(CUSTOM_SPEND_CAP_INPUT_INPUT_ID), '123.1234');
+    fireEvent.changeText(
+      screen.getByTestId(CUSTOM_SPEND_CAP_INPUT_INPUT_ID),
+      '123.1234',
+    );
     expect(props.setValue).toHaveBeenCalledWith('123.1234');
   });
 
   it('should not update value if input is decimal and decimal points are greater than tokenDecimal', () => {
     renderComponent();
-    fireEvent.changeText(screen.getByTestId(CUSTOM_SPEND_CAP_INPUT_INPUT_ID), '123.1234567');
+    fireEvent.changeText(
+      screen.getByTestId(CUSTOM_SPEND_CAP_INPUT_INPUT_ID),
+      '123.1234567',
+    );
     expect(props.setValue).not.toHaveBeenCalled();
   });
 });

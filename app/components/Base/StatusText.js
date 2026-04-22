@@ -118,7 +118,6 @@ function StatusText({ status, context = 'transaction', testID, ...props }) {
   }
 }
 
-
 StatusText.propTypes = {
   status: PropTypes.string.isRequired,
   context: PropTypes.string,

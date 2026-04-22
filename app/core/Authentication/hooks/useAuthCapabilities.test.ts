@@ -56,9 +56,7 @@ describe('useAuthCapabilities', () => {
   });
 
   it('returns active loading state and empty capabilities when hook is mounted', async () => {
-    const { result } = renderHook(() =>
-      useAuthCapabilities(),
-    );
+    const { result } = renderHook(() => useAuthCapabilities());
 
     // Initially loading (synchronous check before async completes)
     expect(result.current.isLoading).toBe(true);
@@ -71,9 +69,7 @@ describe('useAuthCapabilities', () => {
   });
 
   it('returns inactive loading state and populated capabilities after fetching auth capabilities completes', async () => {
-    const { result } = renderHook(() =>
-      useAuthCapabilities(),
-    );
+    const { result } = renderHook(() => useAuthCapabilities());
 
     mockOsAuthEnabled = true;
 
@@ -95,9 +91,7 @@ describe('useAuthCapabilities', () => {
   });
 
   it('calls getAuthCapabilities again when osAuthEnabled or allowLoginWithRememberMe change', async () => {
-    const { rerender } = renderHook(() =>
-      useAuthCapabilities(),
-    );
+    const { rerender } = renderHook(() => useAuthCapabilities());
 
     await waitFor(() => {
       expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(1);

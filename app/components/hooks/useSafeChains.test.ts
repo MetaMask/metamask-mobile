@@ -110,18 +110,14 @@ describe('useSafeChains', () => {
         json: () => Promise.resolve(mockSafeChains),
       });
 
-    const { result: firstResult } = renderHook(
-      () => useSafeChains(),
-    );
+    const { result: firstResult } = renderHook(() => useSafeChains());
 
     await waitFor(() => {
       expect(firstResult.current.error).toBe(mockError);
     });
     expect(global.fetch).toHaveBeenCalledTimes(1);
 
-    const { result: secondResult } = renderHook(
-      () => useSafeChains(),
-    );
+    const { result: secondResult } = renderHook(() => useSafeChains());
 
     await waitFor(() => {
       expect(secondResult.current.safeChains).toEqual(mockSafeChains);

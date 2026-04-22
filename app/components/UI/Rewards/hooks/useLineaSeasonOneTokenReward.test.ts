@@ -64,9 +64,7 @@ describe('useLineaSeasonOneTokenReward', () => {
       mockUseSelector.mockReturnValue(mockSubscriptionId);
       mockEngineCall.mockResolvedValue(mockLineaTokenReward);
 
-      const { result } = renderHook(() =>
-        useLineaSeasonOneTokenReward(),
-      );
+      const { result } = renderHook(() => useLineaSeasonOneTokenReward());
 
       await waitFor(() => {
         expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
@@ -119,9 +117,7 @@ describe('useLineaSeasonOneTokenReward', () => {
       mockUseSelector.mockReturnValue(mockSubscriptionId);
       mockEngineCall.mockResolvedValue(mockLineaTokenReward);
 
-      const { result } = renderHook(() =>
-        useLineaSeasonOneTokenReward(),
-      );
+      const { result } = renderHook(() => useLineaSeasonOneTokenReward());
 
       await waitFor(() => {
         expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
@@ -138,9 +134,7 @@ describe('useLineaSeasonOneTokenReward', () => {
       mockUseSelector.mockReturnValue(mockSubscriptionId);
       mockEngineCall.mockResolvedValue(null);
 
-      const { result } = renderHook(() =>
-        useLineaSeasonOneTokenReward(),
-      );
+      const { result } = renderHook(() => useLineaSeasonOneTokenReward());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -189,9 +183,7 @@ describe('useLineaSeasonOneTokenReward', () => {
       const mockError = new Error('Network error');
       mockEngineCall.mockRejectedValue(mockError);
 
-      const { result } = renderHook(() =>
-        useLineaSeasonOneTokenReward(),
-      );
+      const { result } = renderHook(() => useLineaSeasonOneTokenReward());
 
       await waitFor(() => {
         expect(result.current.error).toBe(true);
@@ -212,9 +204,7 @@ describe('useLineaSeasonOneTokenReward', () => {
       const mockError = new Error('Network error');
       mockEngineCall.mockRejectedValue(mockError);
 
-      const { result } = renderHook(() =>
-        useLineaSeasonOneTokenReward(),
-      );
+      const { result } = renderHook(() => useLineaSeasonOneTokenReward());
 
       await waitFor(() => {
         expect(result.current.error).toBe(true);
@@ -233,9 +223,7 @@ describe('useLineaSeasonOneTokenReward', () => {
           amount: '2000',
         });
 
-      const { result } = renderHook(() =>
-        useLineaSeasonOneTokenReward(),
-      );
+      const { result } = renderHook(() => useLineaSeasonOneTokenReward());
 
       await waitFor(() => {
         expect(result.current.lineaTokenReward?.amount).toBe('1000');
@@ -256,9 +244,7 @@ describe('useLineaSeasonOneTokenReward', () => {
         .mockResolvedValueOnce(mockLineaTokenReward)
         .mockRejectedValueOnce(new Error('Refetch error'));
 
-      const { result } = renderHook(() =>
-        useLineaSeasonOneTokenReward(),
-      );
+      const { result } = renderHook(() => useLineaSeasonOneTokenReward());
 
       await waitFor(() => {
         expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);

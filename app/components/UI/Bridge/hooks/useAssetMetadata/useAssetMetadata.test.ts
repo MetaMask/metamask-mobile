@@ -96,13 +96,13 @@ describe('useAssetMetadata', () => {
 
       await waitFor(() => {
         expect(result.current.assetMetadata).toEqual({
-        ...mockMetadata,
-        chainId: mockChainIdEvm,
-        isNative: false,
-        type: AssetType.token,
-        image: 'mock-image-url',
-        balance: '',
-        string: '',
+          ...mockMetadata,
+          chainId: mockChainIdEvm,
+          isNative: false,
+          type: AssetType.token,
+          image: 'mock-image-url',
+          balance: '',
+          string: '',
         });
       });
 
@@ -134,13 +134,13 @@ describe('useAssetMetadata', () => {
 
       await waitFor(() => {
         expect(result.current.assetMetadata).toEqual({
-        ...mockMetadata,
-        chainId: mockChainIdSol,
-        isNative: false,
-        type: AssetType.token,
-        image: 'mock-image-url',
-        balance: '',
-        string: '',
+          ...mockMetadata,
+          chainId: mockChainIdSol,
+          isNative: false,
+          type: AssetType.token,
+          image: 'mock-image-url',
+          balance: '',
+          string: '',
         });
       });
 

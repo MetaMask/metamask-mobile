@@ -207,7 +207,9 @@ describe('usePredictPrices', () => {
         expect(result.current.isFetching).toBe(false);
       });
       expect(result.current.prices).toEqual(mockPrices);
-      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(1);
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        1,
+      );
     });
   });
 
@@ -335,9 +337,9 @@ describe('usePredictPrices', () => {
       );
 
       await waitFor(() => {
-        expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
-        1,
-        );
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
       });
 
       act(() => {
@@ -345,9 +347,9 @@ describe('usePredictPrices', () => {
       });
 
       await waitFor(() => {
-        expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
-        2,
-        );
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(2);
       });
 
       act(() => {
@@ -355,9 +357,9 @@ describe('usePredictPrices', () => {
       });
 
       await waitFor(() => {
-        expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
-        3,
-        );
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(3);
       });
     });
 
@@ -378,9 +380,9 @@ describe('usePredictPrices', () => {
       );
 
       await waitFor(() => {
-        expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
-        1,
-        );
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
       });
 
       unmount();
@@ -410,9 +412,9 @@ describe('usePredictPrices', () => {
       );
 
       await waitFor(() => {
-        expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
-        1,
-        );
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
       });
 
       act(() => {
@@ -461,15 +463,15 @@ describe('usePredictPrices', () => {
 
       await waitFor(() => {
         expect(
-        Engine.context.PredictController.getPrices,
+          Engine.context.PredictController.getPrices,
         ).toHaveBeenLastCalledWith({
-        queries: [
-        {
-        marketId: 'market-2',
-        outcomeId: 'outcome-2',
-        outcomeTokenId: 'token-2',
-        },
-        ],
+          queries: [
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
+          ],
         });
       });
     });
@@ -505,15 +507,15 @@ describe('usePredictPrices', () => {
 
       await waitFor(() => {
         expect(
-        Engine.context.PredictController.getPrices,
+          Engine.context.PredictController.getPrices,
         ).toHaveBeenLastCalledWith({
-        queries: [
-        {
-        marketId: 'market-3',
-        outcomeId: 'outcome-3',
-        outcomeTokenId: 'token-3',
-        },
-        ],
+          queries: [
+            {
+              marketId: 'market-3',
+              outcomeId: 'outcome-3',
+              outcomeTokenId: 'token-3',
+            },
+          ],
         });
       });
     });
@@ -774,9 +776,9 @@ describe('usePredictPrices', () => {
       );
 
       await waitFor(() => {
-        expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
-        1,
-        );
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
       });
 
       unmount();

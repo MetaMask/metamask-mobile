@@ -1,6 +1,6 @@
 import React from 'react';
 import { SectionList } from 'react-native';
-import { act, render, screen , fireEvent } from '@testing-library/react-native';
+import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
 import { PredictActivityType } from '../../types';
 

@@ -231,5 +231,4 @@ BaseNotification.propTypes = {
   autoDismiss: PropTypes.bool,
 };
 
-
 export default BaseNotification;

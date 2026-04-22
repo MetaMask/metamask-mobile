@@ -236,7 +236,9 @@ describe('AccountApproval', () => {
     mockTrackEvent.mockClear();
     fireEvent.press(learnMore);
 
-    expect(Linking.openURL).toHaveBeenCalledWith(CONNECTING_TO_A_DECEPTIVE_SITE);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      CONNECTING_TO_A_DECEPTIVE_SITE,
+    );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: MetaMetricsEvents.EXTERNAL_LINK_CLICKED,

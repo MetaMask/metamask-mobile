@@ -44,7 +44,6 @@ export default function TransactionActionModal({
   );
 }
 
-
 TransactionActionModal.propTypes = {
   isVisible: PropTypes.bool,
   /**

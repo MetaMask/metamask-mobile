@@ -50,7 +50,11 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
   const interactionManager = {
     runAfterInteractions: (callback: () => Promise<void>) => callback(),
   };
-  return { __esModule: true, default: interactionManager, ...interactionManager };
+  return {
+    __esModule: true,
+    default: interactionManager,
+    ...interactionManager,
+  };
 });
 
 const expectedDataDeletionTaskResponse = {

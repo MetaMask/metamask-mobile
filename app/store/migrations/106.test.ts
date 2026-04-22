@@ -18,7 +18,6 @@ jest.mock('react-native-mmkv', () => ({
 }));
 
 describe('Migration #106', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });

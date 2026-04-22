@@ -14,7 +14,10 @@ jest.mock('../ReusableModal', () => {
   return {
     __esModule: true,
     default: forwardRef(
-      ({ children }: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
+      (
+        { children }: { children: React.ReactNode },
+        ref: React.Ref<unknown>,
+      ) => {
         useImperativeHandle(ref, () => ({
           dismissModal: (cb?: () => void) => cb?.(),
         }));

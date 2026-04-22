@@ -36,9 +36,7 @@ describe('useAccountsBalance', () => {
   });
 
   it('should update the tracked accounts when untracked accounts are added', async () => {
-    const { result } = renderHook(() =>
-      useAccountsBalance(mockAccounts),
-    );
+    const { result } = renderHook(() => useAccountsBalance(mockAccounts));
 
     expect(result.current).toEqual({});
 
