@@ -110,13 +110,13 @@ const CashTokensFullView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MONEY_HUB_SCREEN_VIEWED)
         .addProperties({
-          moneyHubFilledState,
-          hasConvertibleTokens,
+          money_hub_filled_state: moneyHubFilledState,
+          has_convertible_tokens: hasConvertibleTokens,
           ...(hasConvertibleTokens
             ? {
-                highestBalanceConversionTokenSymbol:
+                highest_balance_conversion_token_symbol:
                   highestBalanceConversionToken?.symbol,
-                highestBalanceConversionTokenChainId:
+                highest_balance_conversion_token_chain_id:
                   highestBalanceConversionToken?.chainId,
               }
             : {}),
@@ -168,7 +168,7 @@ const CashTokensFullView = () => {
               network_name: token.chainId
                 ? getNetworkName(token.chainId as Hex)
                 : 'unknown',
-              moneyHubFilledState,
+              money_hub_filled_state: moneyHubFilledState,
             })
             .build(),
         );
@@ -205,7 +205,7 @@ const CashTokensFullView = () => {
               network_name: token.chainId
                 ? getNetworkName(token.chainId as Hex)
                 : 'unknown',
-              moneyHubFilledState,
+              money_hub_filled_state: moneyHubFilledState,
             })
             .build(),
         );
@@ -248,7 +248,7 @@ const CashTokensFullView = () => {
             network_name: topToken.chainId
               ? getNetworkName(topToken.chainId as Hex)
               : 'unknown',
-            moneyHubFilledState,
+            money_hub_filled_state: moneyHubFilledState,
           })
           .build(),
       );
@@ -272,7 +272,7 @@ const CashTokensFullView = () => {
       createEventBuilder(MetaMetricsEvents.MONEY_HUB_SWAP_BUTTON_CLICKED)
         .addProperties({
           location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
-          moneyHubFilledState,
+          money_hub_filled_state: moneyHubFilledState,
         })
         .build(),
     );
@@ -285,7 +285,7 @@ const CashTokensFullView = () => {
       createEventBuilder(MetaMetricsEvents.MONEY_HUB_BUY_BUTTON_CLICKED)
         .addProperties({
           location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
-          moneyHubFilledState,
+          money_hub_filled_state: moneyHubFilledState,
         })
         .build(),
     );
@@ -300,7 +300,7 @@ const CashTokensFullView = () => {
       createEventBuilder(MetaMetricsEvents.MONEY_HUB_LEARN_MORE_PRESSED)
         .addProperties({
           location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
-          moneyHubFilledState,
+          money_hub_filled_state: moneyHubFilledState,
           url: AppConstants.URLS.MUSD_LEARN_MORE,
         })
         .build(),

@@ -559,7 +559,7 @@ describe('useMerklBonusClaim', () => {
       );
     });
 
-    it('includes moneyHubFilledState when location is money_hub', () => {
+    it('includes money_hub_filled_state when location is money_hub', () => {
       mockMoneyHubFilledState = 'filled';
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '5.00',
@@ -579,12 +579,12 @@ describe('useMerklBonusClaim', () => {
       expect(getAnalyticsMocks().addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           location: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
-          moneyHubFilledState: 'filled',
+          money_hub_filled_state: 'filled',
         }),
       );
     });
 
-    it('omits moneyHubFilledState when location is not money_hub', () => {
+    it('omits money_hub_filled_state when location is not money_hub', () => {
       mockUseMerklRewards.mockReturnValue({
         claimableReward: '5.00',
         hasClaimedBefore: false,
@@ -598,7 +598,7 @@ describe('useMerklBonusClaim', () => {
 
       const addPropertiesCall =
         getAnalyticsMocks().addProperties.mock.calls[0][0];
-      expect(addPropertiesCall).not.toHaveProperty('moneyHubFilledState');
+      expect(addPropertiesCall).not.toHaveProperty('money_hub_filled_state');
     });
   });
 

@@ -808,7 +808,7 @@ describe('AssetOverviewClaimBonus', () => {
       );
     });
 
-    it('includes moneyHubFilledState in claim analytics when location is money_hub', () => {
+    it('includes money_hub_filled_state in claim analytics when location is money_hub', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus
           asset={createMockAsset()}
@@ -824,7 +824,7 @@ describe('AssetOverviewClaimBonus', () => {
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           location: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
-          moneyHubFilledState: 'filled',
+          money_hub_filled_state: 'filled',
         }),
       );
     });

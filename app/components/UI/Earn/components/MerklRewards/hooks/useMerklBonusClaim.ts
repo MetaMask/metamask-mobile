@@ -167,7 +167,7 @@ export const useMerklBonusClaim = (
           bonus_amount_range: getUsdAmountRange(claimableReward),
           has_claimed_before: hasClaimedBefore,
           ...(location === EVENT_LOCATIONS.MONEY_HUB
-            ? { moneyHubFilledState }
+            ? { money_hub_filled_state: moneyHubFilledState }
             : {}),
         })
         .build(),

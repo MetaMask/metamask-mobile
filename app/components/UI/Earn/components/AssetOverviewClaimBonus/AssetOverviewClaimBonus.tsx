@@ -171,7 +171,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
           location: MUSD_EVENT_LOCATIONS.BONUS_CLAIM_TOOLTIP,
           url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
           ...(location === MONEY_EVENT_LOCATIONS.MONEY_HUB
-            ? { moneyHubFilledState }
+            ? { money_hub_filled_state: moneyHubFilledState }
             : {}),
         })
         .build(),
@@ -187,7 +187,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
           location: MUSD_EVENT_LOCATIONS.BONUS_CLAIM_TOOLTIP,
           url: AppConstants.URLS.MUSD_LEARN_MORE,
           ...(location === MONEY_EVENT_LOCATIONS.MONEY_HUB
-            ? { moneyHubFilledState }
+            ? { money_hub_filled_state: moneyHubFilledState }
             : {}),
         })
         .build(),
@@ -204,7 +204,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
           tooltip_name: 'your_bonus_info',
           text: 'Your bonus',
           ...(location === MONEY_EVENT_LOCATIONS.MONEY_HUB
-            ? { moneyHubFilledState }
+            ? { money_hub_filled_state: moneyHubFilledState }
             : {}),
         })
         .build(),
@@ -266,7 +266,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
           network_name: network?.name,
           asset_symbol: asset.symbol,
           ...(location === MONEY_EVENT_LOCATIONS.MONEY_HUB
-            ? { moneyHubFilledState }
+            ? { money_hub_filled_state: moneyHubFilledState }
             : {}),
         })
         .build(),
