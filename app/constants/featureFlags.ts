@@ -17,6 +17,7 @@ export enum FeatureFlagNames {
   legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
+  addDeviceSyncEnabled = 'addDeviceSyncEnabled',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
@@ -27,4 +28,5 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,
   [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: false,
+  [FeatureFlagNames.addDeviceSyncEnabled]: false,
 };
