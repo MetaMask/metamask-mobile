@@ -145,6 +145,8 @@ export class HyperLiquidSubscriptionService {
 
   #accountSpotRefreshUserAddress?: string;
 
+  #accountSpotRefreshSubscriptionGeneration = 0;
+
   #accountSpotRefreshTimeout?: ReturnType<typeof setTimeout>;
 
   readonly #symbolSubscriberCounts = new Map<string, number>();
@@ -1174,7 +1176,12 @@ export class HyperLiquidSubscriptionService {
 
     this.#cleanupAccountSpotRefreshSubscription();
 
-    const promise = this.#createAccountSpotRefreshSubscription(userAddress);
+    const subscriptionGeneration =
+      this.#accountSpotRefreshSubscriptionGeneration;
+    const promise = this.#createAccountSpotRefreshSubscription(
+      userAddress,
+      subscriptionGeneration,
+    );
     this.#accountSpotRefreshSubscriptionPromise = promise;
     this.#accountSpotRefreshUserAddress = userAddress;
 
@@ -1189,18 +1196,32 @@ export class HyperLiquidSubscriptionService {
 
   async #createAccountSpotRefreshSubscription(
     userAddress: string,
+    subscriptionGeneration: number,
   ): Promise<void> {
-    const subscriptionClient = this.#clientService.getSubscriptionClient();
+    let subscriptionClient = this.#clientService.getSubscriptionClient();
     if (!subscriptionClient) {
       await this.#clientService.ensureSubscriptionClient(
         this.#walletService.createWalletAdapter(),
       );
-      return this.#createAccountSpotRefreshSubscription(userAddress);
+      subscriptionClient = this.#clientService.getSubscriptionClient();
+      if (!subscriptionClient) {
+        throw new Error(
+          'HyperLiquidSubscriptionService.createAccountSpotRefreshSubscription: subscription client unavailable after ensureSubscriptionClient',
+        );
+      }
     }
 
     const subscription = await subscriptionClient.userFills(
       { user: userAddress },
       (data: UserFillsWsEvent) => {
+        if (
+          this.#accountSpotRefreshSubscriptionGeneration !==
+            subscriptionGeneration ||
+          this.#accountSpotRefreshUserAddress !== userAddress
+        ) {
+          return;
+        }
+
         const { isSnapshot } = data as { isSnapshot?: boolean };
         if (isSnapshot !== false) {
           return;
@@ -1209,6 +1230,25 @@ export class HyperLiquidSubscriptionService {
         this.#scheduleAccountSpotRefresh(userAddress);
       },
     );
+
+    if (
+      this.#accountSpotRefreshSubscriptionGeneration !==
+        subscriptionGeneration ||
+      this.#accountSpotRefreshUserAddress !== userAddress
+    ) {
+      await subscription.unsubscribe().catch((error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.createAccountSpotRefreshSubscription.unsubscribeStale',
+          ),
+          this.#getErrorContext(
+            'createAccountSpotRefreshSubscription.unsubscribeStale',
+          ),
+        );
+      });
+      return undefined;
+    }
 
     this.#accountSpotRefreshSubscription = subscription;
     return undefined;
@@ -1220,8 +1260,11 @@ export class HyperLiquidSubscriptionService {
       this.#accountSpotRefreshTimeout = undefined;
     }
 
-    if (this.#accountSpotRefreshSubscription) {
-      this.#accountSpotRefreshSubscription.unsubscribe().catch((error) => {
+    this.#accountSpotRefreshSubscriptionGeneration += 1;
+
+    const subscription = this.#accountSpotRefreshSubscription;
+    if (subscription) {
+      subscription.unsubscribe().catch((error) => {
         this.#logErrorUnlessClearing(
           ensureError(
             error,

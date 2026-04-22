@@ -4047,6 +4047,100 @@ describe('HyperLiquidSubscriptionService', () => {
 
       expect(accountSpotRefreshSubscription.unsubscribe).toHaveBeenCalled();
     });
+
+    it('ignores stale fills callbacks after switching accounts', async () => {
+      mockSpotClearinghouseState.mockResolvedValue({
+        balances: [{ coin: 'USDC', total: '100', hold: '0' }],
+      });
+
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '50',
+        availableToTradeBalance: '50',
+        totalBalance: '200',
+        marginUsed: '10',
+        unrealizedPnl: '5',
+        returnOnEquity: '0.05',
+      }));
+
+      let firstUserFillsCallback: ((data: any) => void) | undefined;
+      let secondUserFillsCallback: ((data: any) => void) | undefined;
+      let resolveFirstUnsubscribe: (() => void) | undefined;
+      const firstSubscription = {
+        unsubscribe: jest.fn(
+          () =>
+            new Promise<void>((resolve) => {
+              resolveFirstUnsubscribe = resolve;
+            }),
+        ),
+      };
+      const secondSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockWalletService.getUserAddressWithDefault.mockImplementation(
+        async (accountId?: CaipAccountId) =>
+          (accountId === 'eip155:1:0x456' ? '0x456' : '0x123') as Hex,
+      );
+
+      mockSubscriptionClient.userFills.mockImplementation(
+        (params: { user: string }, callback: any) => {
+          if (params.user === '0x123') {
+            firstUserFillsCallback = callback;
+            return Promise.resolve(firstSubscription);
+          }
+
+          secondUserFillsCallback = callback;
+          return Promise.resolve(secondSubscription);
+        },
+      );
+
+      const singleDexService = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        mockDeps,
+        false,
+      );
+
+      const mockCallback = jest.fn();
+      const unsubscribeFirst = singleDexService.subscribeToAccount({
+        accountId: 'eip155:1:0x123',
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+      expect(firstUserFillsCallback).toBeDefined();
+
+      unsubscribeFirst();
+
+      const unsubscribeSecond = singleDexService.subscribeToAccount({
+        accountId: 'eip155:1:0x456',
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+      expect(secondUserFillsCallback).toBeDefined();
+
+      mockSpotClearinghouseState.mockClear();
+      mockCallback.mockClear();
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      firstUserFillsCallback!({
+        isSnapshot: false,
+        fills: [{ oid: 12345, coin: 'BTC', side: 'B', sz: '0.1', px: '50000' }],
+      });
+
+      await jest.advanceTimersByTimeAsync(250);
+      await jest.runAllTimersAsync();
+
+      expect(mockSpotClearinghouseState).not.toHaveBeenCalled();
+      expect(mockCallback).not.toHaveBeenCalled();
+
+      resolveFirstUnsubscribe?.();
+      await Promise.resolve();
+
+      unsubscribeSecond();
+      expect(secondSubscription.unsubscribe).toHaveBeenCalled();
+    });
   });
 
   describe('aggregateAccountStates - returnOnEquity calculation', () => {
@@ -4363,6 +4457,42 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Verify allMids was not called
       expect(mockSubscriptionClient.allMids).not.toHaveBeenCalled();
+    });
+
+    it('restores the internal account spot refresh fills subscription when account subscribers exist', async () => {
+      const firstSpotRefreshSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      const secondSpotRefreshSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockSubscriptionClient.userFills
+        .mockResolvedValueOnce(firstSpotRefreshSubscription)
+        .mockResolvedValueOnce(secondSpotRefreshSubscription);
+
+      const singleDexService = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        mockDeps,
+        false,
+      );
+
+      const unsubscribe = singleDexService.subscribeToAccount({
+        callback: jest.fn(),
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(mockSubscriptionClient.userFills).toHaveBeenCalledTimes(1);
+
+      await singleDexService.restoreSubscriptions();
+
+      expect(firstSpotRefreshSubscription.unsubscribe).toHaveBeenCalled();
+      expect(mockSubscriptionClient.userFills).toHaveBeenCalledTimes(2);
+
+      unsubscribe();
+      expect(secondSpotRefreshSubscription.unsubscribe).toHaveBeenCalled();
     });
 
     // TODO: Refactor to test restoreSubscriptions through public disconnect/reconnect API
