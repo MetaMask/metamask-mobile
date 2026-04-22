@@ -247,6 +247,8 @@ export enum IconName {
   PersonCancel = 'PersonCancel',
   Pin = 'Pin',
   Plant = 'Plant',
+  Portfolio = 'Portfolio',
+  Predict = 'Predict',
   Plug = 'Plug',
   PlusAndMinus = 'PlusAndMinus',
   PolicyAlert = 'PolicyAlert',

@@ -8,13 +8,19 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import Icon, { IconSize, IconColor } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import { TabProps } from './Tab.types';
 
 const Tab: React.FC<TabProps> = ({
   label,
+  iconName,
   isActive,
   isDisabled = false,
   onPress,
@@ -42,7 +48,7 @@ const Tab: React.FC<TabProps> = ({
     >
       <Pressable
         style={tw.style(
-          'px-0 py-1 flex-row items-center justify-center relative',
+          'px-0 py-1 flex-col items-center justify-center relative',
           isDisabled && 'opacity-50',
         )}
         onPress={isDisabled ? undefined : onPress}
@@ -50,34 +56,75 @@ const Tab: React.FC<TabProps> = ({
         testID={testID}
         {...pressableProps}
       >
-        {/* Hidden bold text that determines layout size */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          numberOfLines={1}
-          style={tw.style('opacity-0')}
-        >
-          {label}
-        </Text>
-
-        {/* Visible text positioned absolutely over the hidden text */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={
-            isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
-          }
-          twClassName={
-            isDisabled
-              ? 'text-muted'
-              : isActive
-                ? 'text-default'
-                : 'text-alternative'
-          }
-          numberOfLines={1}
-          style={tw.style('absolute inset-0 flex items-center justify-center')}
-        >
-          {label}
-        </Text>
+        {iconName ? (
+          // Icon mode: simple column stack, no layout-shift trick needed
+          <Box
+            twClassName="mb-1"
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+          >
+            <Icon
+              name={iconName}
+              size={IconSize.Lg}
+              color={
+                isDisabled
+                  ? IconColor.Muted
+                  : isActive
+                    ? IconColor.Default
+                    : IconColor.Alternative
+              }
+              style={tw.style('mb-1')}
+            />
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={
+                isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
+              }
+              twClassName={
+                isDisabled
+                  ? 'text-muted'
+                  : isActive
+                    ? 'text-default'
+                    : 'text-alternative'
+              }
+              numberOfLines={1}
+            >
+              {label}
+            </Text>
+          </Box>
+        ) : (
+          // No icon: use hidden/visible text trick to prevent layout shift on bold toggle
+          <>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              numberOfLines={1}
+              style={tw.style('opacity-0')}
+            >
+              {label}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={
+                isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
+              }
+              twClassName={
+                isDisabled
+                  ? 'text-muted'
+                  : isActive
+                    ? 'text-default'
+                    : 'text-alternative'
+              }
+              numberOfLines={1}
+              style={tw.style(
+                'absolute inset-0 flex items-center justify-center',
+              )}
+            >
+              {label}
+            </Text>
+          </>
+        )}
       </Pressable>
     </View>
   );

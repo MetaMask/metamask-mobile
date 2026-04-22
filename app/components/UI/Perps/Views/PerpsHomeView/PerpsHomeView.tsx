@@ -72,7 +72,11 @@ import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 
-const PerpsHomeView = () => {
+interface PerpsHomeViewProps {
+  hideHeader?: boolean;
+}
+
+const PerpsHomeView = ({ hideHeader = false }: PerpsHomeViewProps) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -417,13 +421,18 @@ const PerpsHomeView = () => {
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={hideHeader ? { bottom: 'additive' } : undefined}
+    >
       {/* Header */}
-      <PerpsHomeHeader
-        onBack={handleBackPress}
-        onSearchToggle={handleSearchToggle}
-        testID="perps-home"
-      />
+      {!hideHeader && (
+        <PerpsHomeHeader
+          onBack={handleBackPress}
+          onSearchToggle={handleSearchToggle}
+          testID="perps-home"
+        />
+      )}
 
       {/* Main Content - ScrollView with all carousels */}
       <ScrollView

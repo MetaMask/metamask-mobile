@@ -22,7 +22,10 @@ import {
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -132,6 +135,13 @@ import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
+import HomepageDiscoveryTabs from '../Homepage/components/HomepageDiscoveryTabs';
+import {
+  HUB_PAGE_DISCOVERY_TABS_AB_KEY,
+  HUB_PAGE_DISCOVERY_TABS_VARIANTS,
+  HubPageDiscoveryTabsVariant,
+} from '../Homepage/abTestConfig';
+import { useABTest } from '../../../hooks';
 import { SectionRefreshHandle } from '../Homepage/types';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
@@ -227,6 +237,13 @@ const createStyles = ({ colors }: Theme) =>
     },
     headerAccountPickerStyle: {
       marginRight: 16,
+      backgroundColor: 'transparent',
+    },
+    accountGroupBalanceContainer: {
+      marginBottom: 16,
+    },
+    walletHeaderRoot: {
+      zIndex: 2,
     },
   });
 
@@ -597,6 +614,8 @@ const Wallet = ({
   // ─── Homepage scroll context state ───────────────────────────────────────
   const [viewportHeight, setViewportHeight] = useState(0);
   const [containerScreenY, setContainerScreenY] = useState(0);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const insets = useSafeAreaInsets();
   const { entryPoint, visitId } = useHomepageEntryPoint(navigation);
 
   // Ref to the scroll container View — used to measure its absolute screen Y
@@ -1021,6 +1040,13 @@ const Wallet = ({
     selectHomepageSectionsV1Enabled,
   );
 
+  const { variantName: discoveryTabsVariantName } = useABTest(
+    HUB_PAGE_DISCOVERY_TABS_AB_KEY,
+    HUB_PAGE_DISCOVERY_TABS_VARIANTS,
+  );
+  const isDiscoveryTabsTreatment =
+    discoveryTabsVariantName === HubPageDiscoveryTabsVariant.Treatment;
+
   const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
@@ -1297,62 +1323,75 @@ const Wallet = ({
     ],
   );
 
+  // Shared banner content — shown in all layout paths.
+  const bannerContent = (
+    <View style={styles.banner}>
+      {!basicFunctionalityEnabled ? (
+        <BannerAlert
+          severity={BannerAlertSeverity.Error}
+          title={strings('wallet.banner.title')}
+          description={
+            <CustomText
+              color={TextColor.Info}
+              onPress={turnOnBasicFunctionality}
+            >
+              {strings('wallet.banner.link')}
+            </CustomText>
+          }
+        />
+      ) : null}
+      <NetworkConnectionBanner />
+    </View>
+  );
+
+  // Portfolio header — balance, actions, and carousel rendered inside the
+  // Portfolio tab scroll view when HomepageDiscoveryTabs is active.
+  const portfolioHeader = (
+    <>
+      {bannerContent}
+      <View style={styles.accountGroupBalanceContainer}>
+        <AccountGroupBalance />
+      </View>
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      />
+      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+    </>
+  );
+
+  // Legacy scroll view content — used only when the sections redesign is off.
   const content = (
     <>
-      <View style={styles.banner}>
-        {!basicFunctionalityEnabled ? (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            title={strings('wallet.banner.title')}
-            description={
-              <CustomText
-                color={TextColor.Info}
-                onPress={turnOnBasicFunctionality}
-              >
-                {strings('wallet.banner.link')}
-              </CustomText>
-            }
-          />
-        ) : null}
-        <NetworkConnectionBanner />
-      </View>
-      <>
-        <AccountGroupBalance />
-
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
-
-        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-
-        {isHomepageSectionsV1Enabled ? (
-          <>
-            {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
-            <HomepageScrollContext.Provider value={homepageScrollContextValue}>
-              <Homepage ref={homepageRef} />
-            </HomepageScrollContext.Provider>
-          </>
-        ) : (
-          <>
-            {isFocused && <AssetPollingProvider />}
-            <WalletTokensTabView
-              ref={walletTokensTabViewRef}
-              navigation={navigation}
-              onChangeTab={onChangeTab}
-              defiEnabled={defiEnabled}
-              collectiblesEnabled={collectiblesEnabled}
-            />
-          </>
-        )}
-      </>
+      {bannerContent}
+      <AccountGroupBalance />
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      />
+      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {isFocused && <AssetPollingProvider />}
+      <WalletTokensTabView
+        ref={walletTokensTabViewRef}
+        navigation={navigation}
+        onChangeTab={onChangeTab}
+        defiEnabled={defiEnabled}
+        collectiblesEnabled={collectiblesEnabled}
+      />
     </>
   );
   const renderLoader = useCallback(
@@ -1378,7 +1417,9 @@ const Wallet = ({
           {selectedInternalAccount ? (
             <>
               <HeaderRoot
+                onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}
                 testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+                style={styles.walletHeaderRoot}
                 endAccessory={
                   <View style={styles.headerEndAccessoryContainer}>
                     <View style={styles.headerActionButtonsContainer}>
@@ -1462,29 +1503,77 @@ const Wallet = ({
                   });
                 }}
               >
-                <ConditionalScrollView
-                  ref={scrollViewRef}
-                  isScrollEnabled
-                  scrollViewProps={{
-                    testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
-                    contentContainerStyle: scrollViewContentStyle,
-                    showsVerticalScrollIndicator: false,
-                    onScroll: isHomepageSectionsV1Enabled
-                      ? handleHomepageScroll
-                      : undefined,
-                    scrollEventThrottle: 16,
-                    refreshControl: (
-                      <RefreshControl
-                        colors={[colors.primary.default]}
-                        tintColor={colors.icon.default}
-                        refreshing={refreshing}
-                        onRefresh={handleRefresh}
-                      />
-                    ),
-                  }}
-                >
-                  {content}
-                </ConditionalScrollView>
+                {isHomepageSectionsV1Enabled ? (
+                  <>
+                    {isFocused && (
+                      <AssetPollingProvider chainIds={evmChainIds} />
+                    )}
+                    <HomepageScrollContext.Provider
+                      value={homepageScrollContextValue}
+                    >
+                      {isDiscoveryTabsTreatment ? (
+                        <HomepageDiscoveryTabs
+                          ref={homepageRef}
+                          portfolioHeader={portfolioHeader}
+                          onPortfolioScroll={handleHomepageScroll}
+                          walletHeaderOffset={headerHeight + insets.top}
+                          refreshControl={
+                            <RefreshControl
+                              colors={[colors.primary.default]}
+                              tintColor={colors.icon.default}
+                              refreshing={refreshing}
+                              onRefresh={handleRefresh}
+                            />
+                          }
+                        />
+                      ) : (
+                        <ConditionalScrollView
+                          ref={scrollViewRef}
+                          isScrollEnabled
+                          scrollViewProps={{
+                            testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                            contentContainerStyle: scrollViewContentStyle,
+                            showsVerticalScrollIndicator: false,
+                            onScroll: handleHomepageScroll,
+                            scrollEventThrottle: 16,
+                            refreshControl: (
+                              <RefreshControl
+                                colors={[colors.primary.default]}
+                                tintColor={colors.icon.default}
+                                refreshing={refreshing}
+                                onRefresh={handleRefresh}
+                              />
+                            ),
+                          }}
+                        >
+                          {portfolioHeader}
+                          <Homepage ref={homepageRef} />
+                        </ConditionalScrollView>
+                      )}
+                    </HomepageScrollContext.Provider>
+                  </>
+                ) : (
+                  <ConditionalScrollView
+                    ref={scrollViewRef}
+                    isScrollEnabled
+                    scrollViewProps={{
+                      testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                      contentContainerStyle: scrollViewContentStyle,
+                      showsVerticalScrollIndicator: false,
+                      scrollEventThrottle: 16,
+                      refreshControl: (
+                        <RefreshControl
+                          colors={[colors.primary.default]}
+                          tintColor={colors.icon.default}
+                          refreshing={refreshing}
+                          onRefresh={handleRefresh}
+                        />
+                      ),
+                    }}
+                  >
+                    {content}
+                  </ConditionalScrollView>
+                )}
               </View>
             </>
           ) : (

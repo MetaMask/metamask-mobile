@@ -6,6 +6,7 @@ import { BoxProps } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import { TabsBarProps } from '../TabsBar/TabsBar.types';
+import { IconName } from '../../../components/Icons/Icon/Icon.types';
 
 /**
  * Individual tab item data interface
@@ -16,6 +17,7 @@ export interface TabItem {
   content: React.ReactNode;
   isDisabled?: boolean;
   testID?: string;
+  iconName?: IconName;
 }
 
 /**

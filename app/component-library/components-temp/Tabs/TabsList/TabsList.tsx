@@ -14,6 +14,7 @@ import { runOnJS } from 'react-native-reanimated';
 import { InteractionManager } from 'react-native';
 
 import TabsBar from '../TabsBar';
+import type { IconName } from '../../../components/Icons/Icon/Icon.types';
 import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
 
 const TAB_LOAD_FALLBACK_TIMEOUT_MS = 250;
@@ -38,6 +39,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           .map((child, index) => {
             const props = (child as React.ReactElement).props as {
               tabLabel?: string;
+              tabIcon?: IconName;
               isDisabled?: boolean;
               testID?: string;
             };
@@ -47,6 +49,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               key:
                 (child as React.ReactElement).key?.toString() || `tab-${index}`,
               label: tabLabel,
+              iconName: props.tabIcon,
               content: child,
               isDisabled,
               isLoaded: false,

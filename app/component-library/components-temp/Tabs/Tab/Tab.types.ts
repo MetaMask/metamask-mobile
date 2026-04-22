@@ -1,6 +1,9 @@
 // Third party dependencies.
 import { PressableProps, LayoutChangeEvent } from 'react-native';
 
+// Internal dependencies.
+import { IconName } from 'app/component-library/components/Icons/Icon/Icon.types';
+
 /**
  * Tab component props
  */
@@ -9,6 +12,10 @@ export interface TabProps extends PressableProps {
    * The label text for the tab
    */
   label: string;
+  /**
+   * Optional icon rendered above the label.
+   */
+  iconName?: IconName;
   /**
    * Whether the tab is currently active
    */

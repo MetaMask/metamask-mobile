@@ -281,7 +281,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   return (
     <Box
-      twClassName={`relative overflow-hidden px-4 ${twClassName || ''}`}
+      twClassName={`relative overflow-hidden px-4 border-b border-border-default ${twClassName || ''}`}
       testID={testID}
       onLayout={handleContainerLayout as (layoutEvent: unknown) => void}
       {...boxProps}
@@ -304,21 +304,26 @@ const TabsBar: React.FC<TabsBarProps> = ({
               <Tab
                 key={tab.key}
                 label={tab.label}
+                iconName={tab.iconName}
                 isActive={index === activeIndex}
                 isDisabled={tab.isDisabled}
                 onPress={() => handleTabPress(index)}
                 onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
                 testID={tab.testID ?? `${testID}-tab-${index}`}
+                style={tw.style('py-2')}
               />
             ))}
 
             {/* Animated underline for scrollable tabs */}
             {activeIndex >= 0 && isInitialized && (
               <Animated.View
-                style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-                  width: underlineWidthAnimated,
-                  transform: [{ translateX: underlineAnimated }],
-                })}
+                style={tw.style(
+                  'absolute -bottom-px h-0.5 bg-icon-default z-1',
+                  {
+                    width: underlineWidthAnimated,
+                    transform: [{ translateX: underlineAnimated }],
+                  },
+                )}
               />
             )}
           </Box>
@@ -333,6 +338,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
             <Tab
               key={tab.key}
               label={tab.label}
+              iconName={tab.iconName}
               isActive={index === activeIndex}
               isDisabled={tab.isDisabled}
               onPress={() => handleTabPress(index)}
@@ -344,7 +350,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           {/* Animated underline for non-scrollable tabs */}
           {activeIndex >= 0 && isInitialized && (
             <Animated.View
-              style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
+              style={tw.style('absolute -bottom-px h-0.5 bg-icon-default', {
                 width: underlineWidthAnimated,
                 transform: [{ translateX: underlineAnimated }],
               })}
