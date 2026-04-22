@@ -1,14 +1,9 @@
-import React, { memo } from 'react';
-import { Pressable } from 'react-native';
+import React, { memo, useMemo } from 'react';
+import { Box } from '@metamask/design-system-react-native';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+  TabsBar,
+  type TabItem,
+} from '../../../../../../../component-library/components-temp/Tabs';
 import {
   getPredictMarketDetailsSelector,
   PredictMarketDetailsSelectorsIDs,
@@ -19,54 +14,64 @@ export interface PredictMarketDetailsTabBarProps {
   tabs: { label: string; key: PredictMarketDetailsTabKey }[];
   activeTab: number | null;
   onTabPress: (tabIndex: number) => void;
-  tabTwStyle?: string;
 }
 
+const clampActiveIndex = (
+  activeTab: number | null,
+  tabCount: number,
+): number => {
+  if (tabCount === 0) {
+    return 0;
+  }
+  if (activeTab === null || activeTab < 0) {
+    return 0;
+  }
+  if (activeTab >= tabCount) {
+    return tabCount - 1;
+  }
+  return activeTab;
+};
+
+/**
+ * Market / game details tabs — same `TabsBar` + `Tab` stack as {@link PredictFeedTabBar}
+ * (body md typography, animated underline, horizontal scroll when needed).
+ */
 const PredictMarketDetailsTabBar = memo(
-  ({
-    tabs,
-    activeTab,
-    tabTwStyle,
-    onTabPress,
-  }: PredictMarketDetailsTabBarProps) => {
-    const tw = useTailwind();
+  ({ tabs, activeTab, onTabPress }: PredictMarketDetailsTabBarProps) => {
+    const tabItems: TabItem[] = useMemo(
+      () =>
+        tabs.map((tab) => ({
+          key: tab.key,
+          label: tab.label,
+          content: null,
+          testID: getPredictMarketDetailsSelector.tabBarTab(tab.key),
+        })),
+      [tabs],
+    );
+
+    const activeIndex = useMemo(
+      () => clampActiveIndex(activeTab, tabs.length),
+      [activeTab, tabs.length],
+    );
+
+    if (tabs.length === 0) {
+      return (
+        <Box
+          twClassName="bg-default pt-4"
+          testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
+        />
+      );
+    }
 
     return (
-      <Box
-        twClassName="bg-default border-b border-muted pt-4"
-        testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-3"
-        >
-          {tabs.map((tab, index) => (
-            <Pressable
-              key={tab.key}
-              onPress={() => onTabPress(index)}
-              style={tw.style(
-                'w-1/3 py-3',
-                activeTab === index ? 'border-b-2 border-default' : '',
-                tabTwStyle,
-              )}
-              testID={getPredictMarketDetailsSelector.tabBarTab(tab.key)}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName="font-medium"
-                color={
-                  activeTab === index
-                    ? TextColor.TextDefault
-                    : TextColor.TextAlternative
-                }
-                style={tw.style('text-center')}
-              >
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
-        </Box>
+      <Box twClassName="bg-default pt-4">
+        <TabsBar
+          tabs={tabItems}
+          activeIndex={activeIndex}
+          onTabPress={onTabPress}
+          testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
+          twClassName="!px-3"
+        />
       </Box>
     );
   },

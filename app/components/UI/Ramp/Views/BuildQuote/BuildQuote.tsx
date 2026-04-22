@@ -424,7 +424,8 @@ function BuildQuote() {
     selectedToken?.assetId &&
     tokenStateIsSettled &&
     debouncedPollingAmount > 0 &&
-    !amountLimitError
+    !amountLimitError &&
+    !isTokenUnavailable
   );
 
   /*
@@ -924,7 +925,7 @@ function BuildQuote() {
         />
       );
     }
-    if (selectedProvider) {
+    if (selectedProvider && !isTokenUnavailable && tokenStateIsSettled) {
       return (
         <Text variant={TextVariant.BodySm} style={styles.poweredByText}>
           {strings('fiat_on_ramp.powered_by_provider', {
@@ -1037,7 +1038,12 @@ function BuildQuote() {
                   onPress={handleContinuePress}
                   isFullWidth
                   isDisabled={!canContinue}
-                  isLoading={selectedQuoteLoading || isContinueLoading}
+                  isLoading={
+                    selectedQuoteLoading ||
+                    isContinueLoading ||
+                    isTokenUnavailable ||
+                    !tokenStateIsSettled
+                  }
                   testID={BuildQuoteSelectors.CONTINUE_BUTTON}
                 >
                   {strings('fiat_on_ramp.continue')}
