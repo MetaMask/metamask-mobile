@@ -490,28 +490,35 @@ export class HyperLiquidClientService {
       throw new DOMException('Aborted', 'AbortError');
     }
 
-    // Coalesce the candleSnapshot REST so rapid market switching (pass 1 →
-    // pass 2 of the 10-market stress loop) shares one snapshot per
+    // Explicit endTime is a paging call — the caller owns that exact window
+    // and expects a fresh page. Coalescing per-millisecond endTimes produces
+    // keys that never dedupe and never evict (TTL-miss sweep only fires on
+    // re-access with the same key), so route paging straight to the SDK and
+    // only coalesce the live-snapshot path where all callers share 'now'.
+    if (endTime !== undefined) {
+      return this.#runCandleSnapshotFetch({ symbol, interval, limit, endTime });
+    }
+
+    // Live snapshot: coalesce across rapid market switches (pass 1 → pass 2
+    // of the 10-market stress loop) so callers share one snapshot per
     // (symbol, interval).
     // Signal is intentionally dropped inside the coalesced fetch — the HL
     // SDK charges weight for any request already sent, and dropping a
     // per-caller abort lets the next caller reuse the in-flight/cached
-    // result instead of re-firing the REST.
-    // endTime === undefined collapses all "live" callers onto the 'now'
-    // bucket on purpose: the WS stream keeps live candles fresh, so
-    // reusing the first-caller snapshot for up to the TTL is acceptable.
+    // result instead of re-firing the REST. The WS stream keeps live
+    // candles fresh, so reusing the first-caller snapshot for up to the
+    // TTL is acceptable.
     const cacheKey = [
       'candleSnapshot',
       this.#isTestnet ? 'testnet' : 'mainnet',
       symbol,
       interval,
       limit,
-      endTime ?? 'now',
     ].join('|');
 
     return coalescePerpsRestRequest<CandleData | null>(
       cacheKey,
-      () => this.#runCandleSnapshotFetch({ symbol, interval, limit, endTime }),
+      () => this.#runCandleSnapshotFetch({ symbol, interval, limit }),
       { ttlMs: PERFORMANCE_CONFIG.PerpsCandleCoalesceTtlMs },
     );
   }
