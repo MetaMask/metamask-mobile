@@ -389,15 +389,6 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   }
 
   /**
-   * Get user history from all providers.
-   *
-   * @param params - Optional parameters
-   * @param params.accountId - Account ID to filter by
-   * @param params.startTime - Start time filter
-   * @param params.endTime - End time filter
-   * @returns Aggregated user history with providerId
-   */
-  /**
    * Resolve the currently selected CAIP account identifier. Accounts are
    * shared across sub-providers (same InternalAccountController), so the
    * default provider's view is authoritative.
@@ -408,6 +399,15 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     return this.#getDefaultProvider().getCurrentAccountId();
   }
 
+  /**
+   * Get user history from all providers.
+   *
+   * @param params - Optional parameters
+   * @param params.accountId - Account ID to filter by
+   * @param params.startTime - Start time filter
+   * @param params.endTime - End time filter
+   * @returns Aggregated user history with providerId
+   */
   async getUserHistory(params?: {
     accountId?: CaipAccountId;
     startTime?: number;

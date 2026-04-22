@@ -497,6 +497,9 @@ export class HyperLiquidClientService {
     // SDK charges weight for any request already sent, and dropping a
     // per-caller abort lets the next caller reuse the in-flight/cached
     // result instead of re-firing the REST.
+    // endTime === undefined collapses all "live" callers onto the 'now'
+    // bucket on purpose: the WS stream keeps live candles fresh, so
+    // reusing the first-caller snapshot for up to the TTL is acceptable.
     const cacheKey = [
       'candleSnapshot',
       this.#isTestnet ? 'testnet' : 'mainnet',
