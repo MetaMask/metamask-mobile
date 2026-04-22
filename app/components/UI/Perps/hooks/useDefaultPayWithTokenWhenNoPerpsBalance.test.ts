@@ -18,10 +18,7 @@ const mockUsePerpsPaymentTokens = jest.requireMock<
 
 function getState(
   overrides: {
-    perpsAccount?: {
-      availableBalance: string;
-      availableToTradeBalance?: string;
-    } | null;
+    perpsAccount?: { availableBalance: string } | null;
     allowlistAssets?: string[];
     isTestnet?: boolean;
     activeProvider?: 'hyperliquid' | 'myx' | 'aggregated';
@@ -86,30 +83,6 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
     const { result } = runHook(
       getState({
         perpsAccount: { availableBalance: '100' },
-        allowlistAssets: ['0xa4b1.0xusdc'],
-      }),
-    );
-
-    expect(result.current).toBeNull();
-  });
-
-  it('returns null when availableToTradeBalance is above threshold even if availableBalance is zero', () => {
-    mockUsePerpsPaymentTokens.mockReturnValue([
-      {
-        address: '0xusdc',
-        chainId: '0xa4b1',
-        symbol: 'USDC',
-        balanceFiat: '$500',
-        decimals: 6,
-      },
-    ] as PerpsToken[]);
-
-    const { result } = runHook(
-      getState({
-        perpsAccount: {
-          availableBalance: '0',
-          availableToTradeBalance: '100',
-        },
         allowlistAssets: ['0xa4b1.0xusdc'],
       }),
     );

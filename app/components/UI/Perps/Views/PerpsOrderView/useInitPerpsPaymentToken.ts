@@ -5,20 +5,13 @@ import Engine from '../../../../../core/Engine';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePerpsPayWithToken } from '../../hooks/useIsPerpsBalanceSelected';
-import {
-  arePaymentTokensEqual,
-  useDefaultPayWithTokenWhenNoPerpsBalance,
-  useHasNativeTradeablePerpsBalance,
-  usePreferredFallbackPayTokenCandidate,
-} from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 
 export function useInitPerpsPaymentToken(initialAsset: string) {
   const { payToken, setPayToken } = useTransactionPayToken();
   const selectedPaymentToken = usePerpsPayWithToken();
   const defaultPayTokenWhenNoPerpsBalance =
     useDefaultPayWithTokenWhenNoPerpsBalance();
-  const fallbackPayTokenCandidate = usePreferredFallbackPayTokenCandidate();
-  const hasNativeTradeablePerpsBalance = useHasNativeTradeablePerpsBalance();
 
   const pendingConfig = usePerpsSelector((state) =>
     selectPendingTradeConfiguration(state, initialAsset),
@@ -42,18 +35,14 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
   );
 
   useEffect(() => {
-    if (pendingConfigSelectedPaymentToken != null) return;
+    if (
+      pendingConfigSelectedPaymentToken != null ||
+      appliedPendingTokenRef.current != null
+    )
+      return;
 
     const defaultToken = defaultPayTokenWhenNoPerpsBalance;
-    const applied = appliedPendingTokenRef.current;
-
     if (defaultToken != null) {
-      const alreadyAppliedSameFallback =
-        applied != null &&
-        applied.address === defaultToken.address &&
-        applied.chainId === defaultToken.chainId;
-      if (alreadyAppliedSameFallback) return;
-
       appliedPendingTokenRef.current = {
         address: defaultToken.address,
         chainId: defaultToken.chainId,
@@ -71,10 +60,7 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
       return;
     }
 
-    // Fallback no longer needed (e.g. balance arrived after mount). Clear any
-    // fallback we previously auto-applied so the form defaults back to Perps
-    // balance.
-    if (applied == null) return;
+    if (appliedPendingTokenRef.current === null) return;
     appliedPendingTokenRef.current = null;
     Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
   }, [
@@ -95,24 +81,6 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
         : appliedPendingTokenRef.current.address === pendingAddr &&
           appliedPendingTokenRef.current.chainId === pendingChainId);
     if (alreadyApplied) return;
-
-    // Saved token was previously auto-selected (pay-with-any-token fallback)
-    // but the user now has native perps buying power. Clear the stale selection
-    // so the form defaults to Perps balance.
-    const isStaleAutoFallback =
-      hasNativeTradeablePerpsBalance &&
-      arePaymentTokensEqual(
-        pendingConfigSelectedPaymentToken,
-        fallbackPayTokenCandidate,
-      );
-    if (isStaleAutoFallback) {
-      appliedPendingTokenRef.current = {
-        address: pendingAddr,
-        chainId: pendingChainId,
-      };
-      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
-      return;
-    }
 
     appliedPendingTokenRef.current = {
       address: pendingAddr,
@@ -137,8 +105,6 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
       });
     }
   }, [
-    fallbackPayTokenCandidate,
-    hasNativeTradeablePerpsBalance,
     initialAsset,
     payToken,
     pendingConfigSelectedPaymentToken,
