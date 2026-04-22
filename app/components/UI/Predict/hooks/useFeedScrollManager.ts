@@ -1,5 +1,5 @@
 import { useState, useCallback, useLayoutEffect } from 'react';
-import { View, Platform, LayoutChangeEvent } from 'react-native';
+import { View, LayoutChangeEvent } from 'react-native';
 import {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -59,7 +59,7 @@ export const SCROLL_THRESHOLD = 250;
  * - Threshold-based triggering: Requires SCROLL_THRESHOLD pixels of scroll before toggling
  * - Direction change reset: Accumulated delta resets when scroll direction changes
  * - Tab switch handling: Skips first scroll event after tab switch to prevent false triggers
- * - Platform-aware: Handles iOS contentInset vs Android paddingTop differences
+ * - paddingTop-based layout: both platforms share the same scroll coordinate space
  *
  * @param params.headerRef - Ref to the header (balance card) View for height measurement
  * @param params.tabBarRef - Ref to the tab bar View for height measurement
@@ -164,11 +164,12 @@ export const useFeedScrollManager = ({
       const delta = currentY - lastScrollY.value;
       lastScrollY.value = currentY;
 
-      // At top of list - always show header
+      // At top of list - always show header.
+      // Both platforms now use paddingTop (no iOS contentInset), so scroll
+      // rest position is 0 and the padded area occupies [0, contentInsetTop].
       const contentInsetTop =
         sharedHeaderHeight.value + sharedTabBarHeight.value;
-      const atTop =
-        Platform.OS === 'ios' ? currentY < 0 : currentY < contentInsetTop;
+      const atTop = currentY < contentInsetTop;
 
       const currentDirection = delta > 0 ? 1 : delta < 0 ? -1 : 0;
       if (currentDirection === 0) return;

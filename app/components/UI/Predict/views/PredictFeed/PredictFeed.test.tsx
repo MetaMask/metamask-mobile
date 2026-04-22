@@ -21,6 +21,16 @@ jest.mock('../../hooks/useFeaturedCarouselData', () => ({
   }),
 }));
 
+const FEATURED_CAROUSEL_MOCK_TEST_ID = 'featured-carousel-mock';
+
+jest.mock('../../components/FeaturedCarousel', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(() => <View testID="featured-carousel-mock" />),
+  };
+});
+
 jest.mock('react-native-pager-view', () => {
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -79,7 +89,10 @@ jest.mock('react-redux', () => {
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectPredictHotTabFlag: jest.fn(),
+  selectPredictFeaturedCarouselEnabledFlag: jest.fn(),
 }));
+
+import { selectPredictFeaturedCarouselEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: jest.fn(),
@@ -139,6 +152,7 @@ jest.mock('@shopify/flash-list', () => {
         renderItem,
         keyExtractor,
         testID,
+        ListHeaderComponent,
         ListFooterComponent,
       }: {
         data: { id: string }[];
@@ -148,6 +162,7 @@ jest.mock('@shopify/flash-list', () => {
         }) => React.ReactNode;
         keyExtractor: (item: { id: string }) => string;
         testID?: string;
+        ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
         ListFooterComponent?: React.ComponentType | React.ReactElement | null;
       },
       ref: React.Ref<unknown>,
@@ -155,6 +170,12 @@ jest.mock('@shopify/flash-list', () => {
       MockReact.useImperativeHandle(ref, () => ({}));
       return (
         <ScrollView testID={testID}>
+          {ListHeaderComponent &&
+            (typeof ListHeaderComponent === 'function' ? (
+              <ListHeaderComponent />
+            ) : (
+              ListHeaderComponent
+            ))}
           {data?.map((item, index) => (
             <View key={keyExtractor?.(item) ?? item.id}>
               {renderItem({ item, index })}
@@ -266,21 +287,25 @@ describe('PredictFeed', () => {
     });
     mockUseFocusEffect.mockImplementation(() => undefined);
     mockGetInstance.mockReturnValue(mockSessionManager);
-    mockUseSelector.mockReturnValue({
-      enabled: false,
-      queryParams: undefined,
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPredictFeaturedCarouselEnabledFlag) {
+        return false;
+      }
+      return { enabled: false, queryParams: undefined };
     });
-    mockUseFeedScrollManager.mockReturnValue({
-      headerTranslateY: { value: 0 },
-      headerHidden: false,
-      headerHeight: 100,
-      tabBarHeight: 48,
-      layoutReady: true,
-      onTabSwitch: jest.fn(),
-      scrollHandler: jest.fn(),
-      onHeaderLayout: jest.fn(),
-      onTabBarLayout: jest.fn(),
-    });
+    mockUseFeedScrollManager.mockImplementation(
+      ({ setActiveIndex }: { setActiveIndex: (index: number) => void }) => ({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: true,
+        onTabSwitch: setActiveIndex,
+        scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
+      }),
+    );
     mockUsePredictMarketData.mockReturnValue({
       marketData: [
         { id: '1', title: 'Test Market 1' },
@@ -799,6 +824,113 @@ describe('PredictFeed', () => {
       fireEvent.changeText(searchInput, 'test');
 
       expect(mockUseDebouncedValue).toHaveBeenCalledWith('test', 200);
+    });
+  });
+
+  describe('featured carousel', () => {
+    const enableCarouselFlag = () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPredictFeaturedCarouselEnabledFlag) {
+          return true;
+        }
+        return { enabled: true, queryParams: 'tag_id=149' };
+      });
+    };
+
+    const switchToTab = (
+      getByTestId: (id: string) => unknown,
+      index: number,
+    ) => {
+      const page = getByTestId(
+        getPredictFeedMockSelector.pagerPage(index),
+      ) as Parameters<typeof fireEvent>[0];
+      fireEvent(page, 'onTouchEnd');
+    };
+
+    it('renders carousel inside the Hot market list when flag is enabled', () => {
+      enableCarouselFlag();
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      const hotList = getByTestId(getPredictFeedSelector.marketList('hot'));
+      const carousel = getByTestId(FEATURED_CAROUSEL_MOCK_TEST_ID);
+
+      expect(hotList).toContainElement(carousel);
+    });
+
+    it('renders carousel inside the Trending market list after switching tabs', () => {
+      enableCarouselFlag();
+
+      const { getByTestId, getAllByTestId } = render(<PredictFeed />);
+
+      switchToTab(getByTestId, 1);
+
+      const trendingList = getByTestId(
+        getPredictFeedSelector.marketList('trending'),
+      );
+      const carousels = getAllByTestId(FEATURED_CAROUSEL_MOCK_TEST_ID);
+
+      expect(
+        carousels.some((carousel) => {
+          try {
+            expect(trendingList).toContainElement(carousel);
+            return true;
+          } catch {
+            return false;
+          }
+        }),
+      ).toBe(true);
+    });
+
+    it('does not render carousel inside the New market list', () => {
+      enableCarouselFlag();
+
+      const { getByTestId, queryAllByTestId } = render(<PredictFeed />);
+
+      switchToTab(getByTestId, 3);
+
+      const newList = getByTestId(getPredictFeedSelector.marketList('new'));
+      const carousels = queryAllByTestId(FEATURED_CAROUSEL_MOCK_TEST_ID);
+
+      carousels.forEach((carousel) => {
+        expect(newList).not.toContainElement(carousel);
+      });
+    });
+
+    it('does not render carousel inside the Sports market list', () => {
+      enableCarouselFlag();
+
+      const { getByTestId, queryAllByTestId } = render(<PredictFeed />);
+
+      switchToTab(getByTestId, 4);
+
+      const sportsList = getByTestId(
+        getPredictFeedSelector.marketList('sports'),
+      );
+      const carousels = queryAllByTestId(FEATURED_CAROUSEL_MOCK_TEST_ID);
+
+      carousels.forEach((carousel) => {
+        expect(sportsList).not.toContainElement(carousel);
+      });
+    });
+
+    it('does not render carousel when flag is disabled', () => {
+      const { queryByTestId } = render(<PredictFeed />);
+
+      expect(queryByTestId(FEATURED_CAROUSEL_MOCK_TEST_ID)).toBeNull();
+    });
+
+    it('does not render carousel inside the balance header', () => {
+      enableCarouselFlag();
+
+      const { getByTestId, getAllByTestId } = render(<PredictFeed />);
+
+      const balanceMock = getByTestId(PredictFeedMockSelectorsIDs.BALANCE_MOCK);
+      const carousels = getAllByTestId(FEATURED_CAROUSEL_MOCK_TEST_ID);
+
+      carousels.forEach((carousel) => {
+        expect(balanceMock).not.toContainElement(carousel);
+      });
     });
   });
 

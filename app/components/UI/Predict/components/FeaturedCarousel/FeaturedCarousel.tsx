@@ -82,10 +82,20 @@ export const PaginationDots: React.FC<PaginationDotsProps> = ({
   );
 };
 
-const FeaturedCarousel: React.FC = () => {
+export interface FeaturedCarouselProps {
+  /** Shared ref to sync the active index between sibling carousels (e.g. Hot/Trending tabs). */
+  indexRef?: React.MutableRefObject<number>;
+  /** When the owning tab is activated, scroll to `indexRef.current` to stay in sync. */
+  isActive?: boolean;
+}
+
+const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
+  indexRef,
+  isActive = true,
+}) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<PredictMarket>>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(() => indexRef?.current ?? 0);
   const { cardWidth, snapInterval } = useCarouselLayout();
 
   const { markets, isLoading, error } = useFeaturedCarouselData();
@@ -93,6 +103,19 @@ const FeaturedCarousel: React.FC = () => {
   useEffect(() => {
     setActiveIndex((prev) => (prev >= markets.length ? 0 : prev));
   }, [markets.length]);
+
+  useEffect(() => {
+    if (!isActive || !indexRef || markets.length === 0) return;
+
+    const targetIndex = Math.min(indexRef.current, markets.length - 1);
+    if (targetIndex === activeIndex) return;
+
+    setActiveIndex(targetIndex);
+    flashListRef.current?.scrollToOffset({
+      offset: targetIndex * snapInterval,
+      animated: false,
+    });
+  }, [isActive, indexRef, markets.length, snapInterval, activeIndex]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -102,8 +125,11 @@ const FeaturedCarousel: React.FC = () => {
         markets.length - 1,
       );
       setActiveIndex(newIndex);
+      if (indexRef) {
+        indexRef.current = newIndex;
+      }
     },
-    [markets.length, snapInterval],
+    [markets.length, snapInterval, indexRef],
   );
 
   const renderItem = useCallback(

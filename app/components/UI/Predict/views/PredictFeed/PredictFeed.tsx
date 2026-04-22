@@ -11,7 +11,6 @@ import {
   Pressable,
   RefreshControl,
   TextInput,
-  Platform,
   LayoutChangeEvent,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
@@ -161,9 +160,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const isFeaturedCarouselEnabled = useSelector(
-    selectPredictFeaturedCarouselEnabledFlag,
-  );
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: headerTranslateY.value }],
@@ -195,11 +191,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         onLayout={onHeaderLayout}
       >
         <PredictFeedHeader />
-        {isFeaturedCarouselEnabled && (
-          <Box twClassName="pb-3">
-            <FeaturedCarousel />
-          </Box>
-        )}
       </Animated.View>
       <View ref={tabBarRef} onLayout={onTabBarLayout}>
         <PredictFeedTabBar
@@ -231,8 +222,15 @@ interface PredictTabContentProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
+  showFeaturedCarousel: boolean;
+  carouselIndexRef: React.MutableRefObject<number>;
   customQueryParams?: string;
 }
+
+const CATEGORIES_WITH_CAROUSEL: readonly PredictCategory[] = [
+  'hot',
+  'trending',
+];
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
   category,
@@ -241,6 +239,8 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
+  showFeaturedCarousel,
+  carouselIndexRef,
   customQueryParams,
 }) => {
   const tw = useTailwind();
@@ -276,31 +276,36 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   const contentInsetTop = headerHeight + tabBarHeight;
   const currentPaddingTop = headerHidden ? tabBarHeight : contentInsetTop;
 
-  const hasFlashListMounted = useRef(false);
-  const getContentOffset = () => {
-    if (hasFlashListMounted.current) return undefined;
-    hasFlashListMounted.current = true;
-    return Platform.select({
-      ios: { x: 0, y: headerHidden ? -tabBarHeight : -contentInsetTop },
-      android: undefined,
-    });
-  };
-
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
-      <PredictMarketListItem
-        market={info.item}
-        entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
-        testID={getPredictMarketListSelector.marketCardByCategory(
-          category,
-          info.index + 1, // E2E tests use 1-based indexing
-        )}
-      />
+      <Box twClassName="px-4">
+        <PredictMarketListItem
+          market={info.item}
+          entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
+          testID={getPredictMarketListSelector.marketCardByCategory(
+            category,
+            info.index + 1, // E2E tests use 1-based indexing
+          )}
+        />
+      </Box>
     ),
     [category],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
+
+  const showCarouselForCategory =
+    showFeaturedCarousel && CATEGORIES_WITH_CAROUSEL.includes(category);
+
+  const listHeaderComponent = useMemo(
+    () =>
+      showCarouselForCategory ? (
+        <Box twClassName="pb-3">
+          <FeaturedCarousel indexRef={carouselIndexRef} isActive={isActive} />
+        </Box>
+      ) : null,
+    [showCarouselForCategory, carouselIndexRef, isActive],
+  );
 
   const handleEndReached = useCallback(() => {
     if (hasMore && !isFetchingMore) {
@@ -333,16 +338,10 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 
   const contentContainerStyle = useMemo(
     () =>
-      tw.style(
-        'pb-4 px-4',
-        Platform.select({
-          ios: { flexGrow: 1 },
-          android: {
-            flexGrow: 1,
-            paddingTop: headerHidden ? tabBarHeight : contentInsetTop,
-          },
-        }),
-      ),
+      tw.style('pb-4', {
+        flexGrow: 1,
+        paddingTop: headerHidden ? tabBarHeight : contentInsetTop,
+      }),
     [tw, contentInsetTop, headerHidden, tabBarHeight],
   );
 
@@ -396,11 +395,10 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       keyExtractor={keyExtractor}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.7}
+      ListHeaderComponent={listHeaderComponent}
       ListFooterComponent={renderFooter}
       scrollEventThrottle={50}
       onScroll={isActive ? (scrollHandler as never) : undefined}
-      contentInset={Platform.select({ ios: { top: contentInsetTop } })}
-      contentOffset={getContentOffset()}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -424,6 +422,8 @@ interface PredictFeedTabsProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
+  showFeaturedCarousel: boolean;
+  carouselIndexRef: React.MutableRefObject<number>;
   hotTabQueryParams?: string;
   initialPage: number;
 }
@@ -436,6 +436,8 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
+  showFeaturedCarousel,
+  carouselIndexRef,
   hotTabQueryParams,
   initialPage,
 }) => {
@@ -475,6 +477,8 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
+            showFeaturedCarousel={showFeaturedCarousel}
+            carouselIndexRef={carouselIndexRef}
             customQueryParams={
               tab.key === 'hot' ? hotTabQueryParams : undefined
             }
@@ -694,6 +698,11 @@ const PredictFeed: React.FC = () => {
     }, [sessionManager]),
   );
 
+  const isFeaturedCarouselEnabled = useSelector(
+    selectPredictFeaturedCarouselEnabledFlag,
+  );
+  const carouselIndexRef = useRef(0);
+
   const {
     headerTranslateY,
     headerHidden,
@@ -782,6 +791,8 @@ const PredictFeed: React.FC = () => {
               headerHeight={headerHeight}
               tabBarHeight={tabBarHeight + 6}
               headerHidden={headerHidden}
+              showFeaturedCarousel={isFeaturedCarouselEnabled}
+              carouselIndexRef={carouselIndexRef}
               hotTabQueryParams={hotTabQueryParams}
               initialPage={activeIndex}
             />
