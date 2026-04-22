@@ -20,9 +20,10 @@ import {
   Box,
   Icon,
   IconColor,
-  IconName as DSIconName,
+  IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { getBridgeTokenSecurityConfig } from '../../utils/tokenSecurityUtils';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -43,8 +44,8 @@ import {
   selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
 import { SecurityDataType } from '../../hooks/usePopularTokens';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
+import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import {
   useNavigation,
@@ -492,7 +493,7 @@ const BridgeView = () => {
                       style={quoteStreamErrorBannerStyle}
                       startAccessory={
                         <Icon
-                          name={DSIconName.Error}
+                          name={IconName.Error}
                           color={IconColor.ErrorDefault}
                           size={IconSize.Lg}
                         />
@@ -518,6 +519,9 @@ const BridgeView = () => {
                     backgroundColor: bannerColors.muted,
                     paddingLeft: 8,
                   };
+                  const securityConfig = getBridgeTokenSecurityConfig(
+                    tokenWarning.type,
+                  );
                   const navigateToModal = () =>
                     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
                       screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
@@ -534,14 +538,8 @@ const BridgeView = () => {
                         style={bannerStyle}
                         startAccessory={
                           <Icon
-                            name={
-                              isMalicious ? DSIconName.Error : DSIconName.Danger
-                            }
-                            color={
-                              isMalicious
-                                ? IconColor.ErrorDefault
-                                : IconColor.WarningDefault
-                            }
+                            name={securityConfig.iconName}
+                            color={securityConfig.iconColor}
                             size={IconSize.Lg}
                           />
                         }
@@ -558,7 +556,7 @@ const BridgeView = () => {
                               )
                         }
                         onClose={navigateToModal}
-                        closeButtonProps={{ iconName: IconName.ArrowRight }}
+                        closeButtonProps={{ iconName: CLIconName.ArrowRight }}
                       />
                     </Pressable>
                   );

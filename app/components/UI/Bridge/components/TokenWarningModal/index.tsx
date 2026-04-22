@@ -27,6 +27,7 @@ import {
 } from '../../utils/getPriceImpactViewData';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import { NEGATIVE_FEATURE_LABELS } from '../../../SecurityTrust/utils/securityUtils';
+import { getBridgeTokenSecurityConfig } from '../../utils/tokenSecurityUtils';
 import {
   SecurityDataType,
   SecurityFeature,
@@ -62,16 +63,13 @@ export const getTokenWarningContent = (
   destTokenSymbol: string,
 ) => {
   const isMalicious = warningType === SecurityDataType.Malicious;
+  const securityConfig = getBridgeTokenSecurityConfig(warningType);
   return {
     isMalicious,
-    headlineIconName: isMalicious ? IconName.Error : IconName.Danger,
-    headlineIconColor: isMalicious
-      ? IconColor.ErrorDefault
-      : IconColor.WarningDefault,
-    featureIconName: isMalicious ? IconName.Error : IconName.Danger,
-    featureIconColor: isMalicious
-      ? IconColor.ErrorDefault
-      : IconColor.WarningDefault,
+    headlineIconName: securityConfig.iconName,
+    headlineIconColor: securityConfig.iconColor,
+    featureIconName: securityConfig.iconName,
+    featureIconColor: securityConfig.iconColor,
     title: isMalicious
       ? strings('bridge.token_warning_modal_malicious_title')
       : strings('bridge.token_warning_modal_suspicious_title'),
