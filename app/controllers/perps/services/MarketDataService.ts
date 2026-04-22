@@ -171,11 +171,9 @@ export class MarketDataService {
       // sharing payloads with an all-history caller.
       const isPaginated =
         params?.limit !== undefined || params?.endTime !== undefined;
-      const fetchOrderFills = (): Promise<OrderFill[]> =>
-        provider.getOrderFills(params, { forceRefresh });
 
       if (isPaginated) {
-        const result = await fetchOrderFills();
+        const result = await provider.getOrderFills(params, { forceRefresh });
         traceData = { success: true };
         return result;
       }
@@ -184,9 +182,15 @@ export class MarketDataService {
       // account-scoped. Without this, callers that omit params.accountId
       // (the common hook path) would collide on a shared "default" bucket —
       // after an account switch, account B could receive account A's
-      // still-fresh payload until the TTL expired.
+      // still-fresh payload until the TTL expired. Pin the resolved id onto
+      // the forwarded params so the provider cannot re-resolve to a different
+      // account between our resolve() and its fetch (TOCTOU guard).
       const resolvedAccountId =
         params?.accountId ?? (await provider.getCurrentAccountId());
+      const pinnedParams: GetOrderFillsParams = {
+        ...params,
+        accountId: resolvedAccountId,
+      };
       const result = await coalescePerpsRestRequest(
         [
           context.tracingContext.provider,
@@ -198,7 +202,7 @@ export class MarketDataService {
             ? 'unbounded'
             : `s${Math.floor(params.startTime / 86_400_000)}`,
         ].join('|'),
-        fetchOrderFills,
+        () => provider.getOrderFills(pinnedParams, { forceRefresh }),
         { forceRefresh },
       );
 
@@ -277,19 +281,23 @@ export class MarketDataService {
         params?.limit !== undefined ||
         params?.offset !== undefined ||
         params?.endTime !== undefined;
-      const fetchOrders = (): Promise<Order[]> =>
-        provider.getOrders(params, { forceRefresh });
 
       if (isPaginated) {
-        const result = await fetchOrders();
+        const result = await provider.getOrders(params, { forceRefresh });
         traceData = { success: true };
         return result;
       }
 
       // Non-paginated: resolve the caller's account so the cache key is
-      // account-scoped (see getOrderFills for rationale).
+      // account-scoped (see getOrderFills for rationale). Pin the resolved
+      // id onto the forwarded params so the provider cannot re-resolve to a
+      // different account between our resolve() and its fetch.
       const resolvedAccountId =
         params?.accountId ?? (await provider.getCurrentAccountId());
+      const pinnedParams: GetOrdersParams = {
+        ...params,
+        accountId: resolvedAccountId,
+      };
       const result = await coalescePerpsRestRequest(
         [
           context.tracingContext.provider,
@@ -297,7 +305,7 @@ export class MarketDataService {
           'getOrders',
           resolvedAccountId,
         ].join('|'),
-        fetchOrders,
+        () => provider.getOrders(pinnedParams, { forceRefresh }),
         { forceRefresh },
       );
 
@@ -452,19 +460,23 @@ export class MarketDataService {
         params?.offset !== undefined ||
         params?.startTime !== undefined ||
         params?.endTime !== undefined;
-      const fetchFunding = (): Promise<Funding[]> =>
-        provider.getFunding(params, { forceRefresh });
 
       if (isPaginated) {
-        const result = await fetchFunding();
+        const result = await provider.getFunding(params, { forceRefresh });
         traceData = { success: true };
         return result;
       }
 
       // Non-paginated: resolve the caller's account so the cache key is
-      // account-scoped (see getOrderFills for rationale).
+      // account-scoped (see getOrderFills for rationale). Pin the resolved
+      // id onto the forwarded params so the provider cannot re-resolve to a
+      // different account between our resolve() and its fetch.
       const resolvedAccountId =
         params?.accountId ?? (await provider.getCurrentAccountId());
+      const pinnedParams: GetFundingParams = {
+        ...params,
+        accountId: resolvedAccountId,
+      };
       const result = await coalescePerpsRestRequest(
         [
           context.tracingContext.provider,
@@ -472,7 +484,7 @@ export class MarketDataService {
           'getFunding',
           resolvedAccountId,
         ].join('|'),
-        fetchFunding,
+        () => provider.getFunding(pinnedParams, { forceRefresh }),
         { forceRefresh },
       );
 
