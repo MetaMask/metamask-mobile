@@ -92,6 +92,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       option: PriceChangeOption.MarketCap,
       direction: SortDirection.Descending,
     },
+    includeStocks: true,
   });
 
   // Convert API search results to ImportAsset format
