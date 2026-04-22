@@ -31,7 +31,6 @@ import rewardsReducer, {
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
-  markCampaignEndToastShown,
   setOndoCampaignLeaderboard,
   setOndoCampaignLeaderboardLoading,
   setOndoCampaignLeaderboardError,
@@ -2079,7 +2078,6 @@ describe('rewardsReducer', () => {
         versionGuardLoading: false,
         versionGuardError: false,
         pendingDeeplink: null,
-        campaignEndToastShownByCampaignId: {},
       };
       const action = resetRewardsState();
 
@@ -2201,7 +2199,6 @@ describe('rewardsReducer', () => {
         versionGuardLoading: false,
         versionGuardError: false,
         pendingDeeplink: null,
-        campaignEndToastShownByCampaignId: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -4846,31 +4843,6 @@ describe('setCampaignsError', () => {
     currentState = rewardsReducer(currentState, action);
     expect(currentState.campaignsError).toBe(true);
     expect(currentState.campaignsHasLoaded).toBe(true);
-  });
-});
-
-describe('markCampaignEndToastShown', () => {
-  it('records a campaign id as shown', () => {
-    const state = rewardsReducer(
-      initialState,
-      markCampaignEndToastShown('campaign-ondo-1'),
-    );
-
-    expect(state.campaignEndToastShownByCampaignId['campaign-ondo-1']).toBe(
-      true,
-    );
-  });
-
-  it('does not remove other campaign ids', () => {
-    const withOne: RewardsState = {
-      ...initialState,
-      campaignEndToastShownByCampaignId: { a: true },
-    };
-
-    const state = rewardsReducer(withOne, markCampaignEndToastShown('b'));
-
-    expect(state.campaignEndToastShownByCampaignId.a).toBe(true);
-    expect(state.campaignEndToastShownByCampaignId.b).toBe(true);
   });
 });
 

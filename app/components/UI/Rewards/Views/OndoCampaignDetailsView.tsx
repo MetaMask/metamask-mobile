@@ -59,13 +59,11 @@ import {
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
 import {
-  ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
+  isOndoCampaignWinner,
 } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { isOndoCampaignWinner } from '../hooks/useMaybeShowCampaignEndToast';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

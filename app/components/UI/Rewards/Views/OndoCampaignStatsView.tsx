@@ -35,6 +35,7 @@ import { formatPercentChange, formatUsd } from '../utils/formatUtils';
 import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
+  isOndoCampaignWinner,
 } from '../utils/ondoCampaignConstants';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
@@ -43,7 +44,6 @@ import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import Routes from '../../../../constants/navigation/Routes';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectCampaignById } from '../../../../reducers/rewards/selectors';
-import { isOndoCampaignWinner } from '../hooks/useMaybeShowCampaignEndToast';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

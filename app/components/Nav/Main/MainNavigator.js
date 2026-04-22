@@ -315,10 +315,7 @@ const RewardsHome = () => {
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
-        name={Routes.REWARDS_STACK_ROOT}
-        component={RewardsNavigator}
-      />
+      <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
       <Stack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
@@ -778,7 +775,7 @@ const HomeTabs = () => {
     if (currentRoute.name === Routes.REWARDS_VIEW) {
       const rewardsHomeState = currentRoute?.state;
       const rewardsViewRoute = rewardsHomeState?.routes?.find(
-        (r) => r.name === Routes.REWARDS_STACK_ROOT,
+        (r) => r.name === Routes.REWARDS_VIEW,
       );
       const rewardsNavState = rewardsViewRoute?.state;
       const activeRewardsRouteName =
