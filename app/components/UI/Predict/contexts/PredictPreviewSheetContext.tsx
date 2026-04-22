@@ -37,6 +37,19 @@ import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
+import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
+
+let _providerMounted = false;
+
+/**
+ * Returns whether `PredictPreviewSheetProvider` is currently mounted somewhere
+ * in the tree. Used by `usePredictToastRegistrations` to decide whether to
+ * suppress the order-failure toast (the provider auto-reopens the sheet with
+ * an inline error banner instead).
+ */
+export function isPredictSheetProviderMounted(): boolean {
+  return _providerMounted;
+}
 
 const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
   params,
@@ -140,6 +153,7 @@ export const PredictPreviewSheetProvider: React.FC<
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
   );
+  const { activeOrder, clearOrderError } = usePredictActiveOrder();
 
   const buySheetRef = useRef<PredictPreviewSheetRef>(null);
   const sellSheetRef = useRef<PredictPreviewSheetRef>(null);
@@ -154,8 +168,23 @@ export const PredictPreviewSheetProvider: React.FC<
   const [buyNonce, setBuyNonce] = useState(0);
   const [sellNonce, setSellNonce] = useState(0);
 
+  /**
+   * Remembers the last params passed to `openBuySheet` so we can auto-reopen
+   * the sheet when an order fails in the background after the sheet was
+   * dismissed (e.g. closed during DEPOSITING).
+   */
+  const lastBuyParamsRef = useRef<PredictBuyPreviewParams | null>(null);
+
+  useEffect(() => {
+    _providerMounted = true;
+    return () => {
+      _providerMounted = false;
+    };
+  }, []);
+
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
+      lastBuyParamsRef.current = params;
       if (bottomSheetEnabled) {
         setBuyParams(params);
         buyNonceRef.current += 1;
@@ -192,12 +221,32 @@ export const PredictPreviewSheetProvider: React.FC<
     }
   }, [sellParams, sellNonce]);
 
+  // Auto-reopen the buy sheet when a background order fails so the user can
+  // see the inline error banner and retry instead of getting a toast.
+  useEffect(() => {
+    if (
+      bottomSheetEnabled &&
+      activeOrder?.error &&
+      !buyParams &&
+      lastBuyParamsRef.current
+    ) {
+      const savedParams = lastBuyParamsRef.current;
+      lastBuyParamsRef.current = null;
+      setBuyParams(savedParams);
+      buyNonceRef.current += 1;
+      setBuyNonce(buyNonceRef.current);
+    }
+  }, [activeOrder?.error, buyParams, bottomSheetEnabled]);
+
   const BuyComponent = useMemo(
     () => (payWithAnyTokenEnabled ? PredictBuyWithAnyToken : PredictBuyPreview),
     [payWithAnyTokenEnabled],
   );
 
-  const onBuyDismiss = useCallback(() => setBuyParams(null), []);
+  const onBuyDismiss = useCallback(() => {
+    setBuyParams(null);
+    clearOrderError();
+  }, [clearOrderError]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(

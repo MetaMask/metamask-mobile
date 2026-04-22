@@ -3,10 +3,17 @@ import { strings } from '../../../../../../../locales/i18n';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
-import { OrderPreview } from '../../../types';
-import { formatPrice } from '../../../utils/format';
+import { OrderPreview, PlaceOrderParams } from '../../../types';
+import { formatCents, formatPrice } from '../../../utils/format';
 import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
+import type { PredictBuyErrorBannerVariant } from '../components/PredictBuyErrorBanner';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
+
+export interface PredictBuyErrorBannerData {
+  variant: PredictBuyErrorBannerVariant;
+  title: string;
+  description: string;
+}
 
 interface UsePredictBuyInfoParams {
   preview?: OrderPreview | null;
@@ -18,6 +25,7 @@ interface UsePredictBuyInfoParams {
   maxBetAmount: number;
   isPayFeesLoading: boolean;
   blockingPayAlertMessage: string | null;
+  outcomeTokenPrice?: number;
 }
 
 export const usePredictBuyError = ({
@@ -30,6 +38,7 @@ export const usePredictBuyError = ({
   maxBetAmount,
   isPayFeesLoading,
   blockingPayAlertMessage,
+  outcomeTokenPrice,
 }: UsePredictBuyInfoParams) => {
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
@@ -102,6 +111,11 @@ export const usePredictBuyError = ({
     }
 
     if (errorResult.status === 'error') {
+      // Active-order errors (with no pay-alert priority) are surfaced via
+      // buyErrorBanner instead of inline text in sheet flows.
+      if (activeOrder?.error && !blockingPayAlertMessage) {
+        return undefined;
+      }
       return errorResult.error;
     }
 
@@ -112,9 +126,67 @@ export const usePredictBuyError = ({
     isBelowMinimum,
     isInsufficientBalance,
     maxBetAmount,
+    activeOrder?.error,
+    blockingPayAlertMessage,
+  ]);
+
+  const buyErrorBanner = useMemo<PredictBuyErrorBannerData | null>(() => {
+    if (isPlacingOrder || isConfirming) {
+      return null;
+    }
+
+    if (!activeOrder?.error) {
+      return null;
+    }
+
+    if (blockingPayAlertMessage) {
+      return null;
+    }
+
+    const orderError = getPlaceOrderErrorOutcome({
+      error: activeOrder.error,
+      orderParams: { preview } as PlaceOrderParams,
+    });
+
+    if (!orderError) {
+      return null;
+    }
+
+    if (orderError.status === 'order_not_filled') {
+      const fallbackPrice = preview?.sharePrice ?? outcomeTokenPrice ?? 0;
+      return {
+        variant: 'price_changed',
+        title: strings('predict.order.price_changed_title'),
+        description: strings('predict.order.price_changed_body', {
+          price: formatCents(fallbackPrice),
+        }),
+      };
+    }
+
+    if (orderError.status === 'error') {
+      return {
+        variant: 'order_failed',
+        title: strings('predict.order.order_failed_title'),
+        description: strings('predict.order.order_failed_body'),
+      };
+    }
+
+    return null;
+  }, [
+    activeOrder?.error,
+    preview,
+    outcomeTokenPrice,
+    isPlacingOrder,
+    isConfirming,
+    blockingPayAlertMessage,
   ]);
 
   const resetOrderNotFilled = useCallback(() => {
+    clearOrderError();
+    setIsOrderNotFilled(false);
+  }, [clearOrderError]);
+
+  const clearBuyErrorBanner = useCallback(() => {
     clearOrderError();
     setIsOrderNotFilled(false);
   }, [clearOrderError]);
@@ -127,7 +199,9 @@ export const usePredictBuyError = ({
 
   return {
     errorMessage,
+    buyErrorBanner,
     isOrderNotFilled,
     resetOrderNotFilled,
+    clearBuyErrorBanner,
   };
 };

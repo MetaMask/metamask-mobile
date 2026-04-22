@@ -23,6 +23,7 @@ import PredictBuyActionButton from './components/PredictBuyActionButton';
 import PredictBuyAmountSection from './components/PredictBuyAmountSection';
 import PredictBuyBottomContent from './components/PredictBuyBottomContent';
 import PredictBuyError from './components/PredictBuyError';
+import PredictBuyErrorBanner from './components/PredictBuyErrorBanner';
 import PredictBuyPreviewHeader from './components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from './components/PredictFeeSummary/PredictFeeSummary';
@@ -175,18 +176,24 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     hasBlockingPayAlerts,
   });
 
-  const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
-    usePredictBuyError({
-      preview,
-      previewError,
-      isPlacingOrder,
-      isBelowMinimum,
-      isInsufficientBalance,
-      maxBetAmount,
-      isConfirming,
-      isPayFeesLoading,
-      blockingPayAlertMessage,
-    });
+  const {
+    errorMessage,
+    buyErrorBanner,
+    isOrderNotFilled,
+    resetOrderNotFilled,
+    clearBuyErrorBanner,
+  } = usePredictBuyError({
+    preview,
+    previewError,
+    isPlacingOrder,
+    isBelowMinimum,
+    isInsufficientBalance,
+    maxBetAmount,
+    isConfirming,
+    isPayFeesLoading,
+    blockingPayAlertMessage,
+    outcomeTokenPrice: outcomeToken?.price,
+  });
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({
     analyticsProperties,
@@ -213,7 +220,38 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    isSheetMode,
   });
+
+  const isBannerActive = !!buyErrorBanner;
+  const previousValueRef = useRef(currentValue);
+  useEffect(() => {
+    if (
+      isBannerActive &&
+      previousValueRef.current !== currentValue &&
+      isUserInputChange
+    ) {
+      clearBuyErrorBanner();
+    }
+    previousValueRef.current = currentValue;
+  }, [currentValue, isBannerActive, isUserInputChange, clearBuyErrorBanner]);
+
+  // When the banner appears in sheet mode, blur the amount input so the keypad
+  // collapses and the Retry CTA + banner are immediately visible without the
+  // user having to dismiss the keyboard.
+  useEffect(() => {
+    if (isSheetMode && isBannerActive && isInputFocused) {
+      setIsInputFocused(false);
+    }
+  }, [isSheetMode, isBannerActive, isInputFocused, setIsInputFocused]);
+
+  const handleBuyButtonPress = useCallback(() => {
+    if (isBannerActive) {
+      handleRetryWithBestPrice();
+      return;
+    }
+    handleConfirm();
+  }, [isBannerActive, handleRetryWithBestPrice, handleConfirm]);
 
   // Track screen load performance (balance + initial preview)
   usePredictMeasurement({
@@ -290,7 +328,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           </Box>
         </ScrollView>
       )}
-      <PredictBuyError errorMessage={errorMessage} />
+      {!(isSheetMode && buyErrorBanner) && (
+        <PredictBuyError errorMessage={errorMessage} />
+      )}
       {!isSheetMode && (
         <PredictKeypad
           ref={keypadRef}
@@ -327,14 +367,27 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           rewardsLoadingOverride={isUserChangeTriggeringCalculation}
           handleFeesInfoPress={handleFeesInfoPress}
         />
+        {isSheetMode && buyErrorBanner && (
+          <PredictBuyErrorBanner
+            variant={buyErrorBanner.variant}
+            title={buyErrorBanner.title}
+            description={buyErrorBanner.description}
+            testID={
+              buyErrorBanner.variant === 'price_changed'
+                ? PredictBuyPreviewSelectorsIDs.PRICE_CHANGED_BANNER
+                : PredictBuyPreviewSelectorsIDs.ORDER_FAILED_BANNER
+            }
+          />
+        )}
         <PredictBuyActionButton
           isLoading={isPlacingOrder}
-          onPress={handleConfirm}
-          disabled={!canPlaceBet}
-          showReducedOpacity={!canPlaceBet}
+          onPress={handleBuyButtonPress}
+          disabled={isBannerActive ? false : !canPlaceBet}
+          showReducedOpacity={isBannerActive ? false : !canPlaceBet}
           outcomeTokenTitle={outcomeToken?.title}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
           isSheetMode={isSheetMode}
+          isRetry={isSheetMode && isBannerActive}
           testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
         />
       </PredictBuyBottomContent>
