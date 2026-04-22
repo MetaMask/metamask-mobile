@@ -1,0 +1,80 @@
+diff --git a/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.cjs b/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.cjs
+index 66884ed..3763145 100644
+--- a/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.cjs
++++ b/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.cjs
+@@ -238,7 +238,13 @@ exports.getPayStrategiesConfig = getPayStrategiesConfig;
+ function isRelayExecuteEnabled(messenger) {
+     const state = messenger.call('RemoteFeatureFlagController:getState');
+     const featureFlags = state.remoteFeatureFlags?.confirmations_pay ?? {};
+-    return featureFlags.payStrategies?.relay?.executeEnabled ?? false;
++    // Read from `gaslessEnabled` instead of `executeEnabled`. The original
++    // flag name predates per-version gating in the feature flag service, so
++    // any previously shipped client that only looks at `executeEnabled` would
++    // re-enable the flow on older, broken builds as soon as the flag is
++    // turned on. Renaming the key here ensures only clients carrying this
++    // patch (i.e. >=19.2.1) pick up the flag.
++    return featureFlags.payStrategies?.relay?.gaslessEnabled ?? false;
+ }
+ exports.isRelayExecuteEnabled = isRelayExecuteEnabled;
+ /**
+diff --git a/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.mjs b/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.mjs
+index c8b2f8a..c7122c6 100644
+--- a/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.mjs
++++ b/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.mjs
+@@ -232,7 +232,13 @@ export function getPayStrategiesConfig(messenger) {
+ export function isRelayExecuteEnabled(messenger) {
+     const state = messenger.call('RemoteFeatureFlagController:getState');
+     const featureFlags = state.remoteFeatureFlags?.confirmations_pay ?? {};
+-    return featureFlags.payStrategies?.relay?.executeEnabled ?? false;
++    // Read from `gaslessEnabled` instead of `executeEnabled`. The original
++    // flag name predates per-version gating in the feature flag service, so
++    // any previously shipped client that only looks at `executeEnabled` would
++    // re-enable the flow on older, broken builds as soon as the flag is
++    // turned on. Renaming the key here ensures only clients carrying this
++    // patch (i.e. >=19.2.1) pick up the flag.
++    return featureFlags.payStrategies?.relay?.gaslessEnabled ?? false;
+ }
+ /**
+  * Get the origin gas overhead to include in Relay quote requests
+diff --git a/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.d.cts b/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.d.cts
+index 0ef444d..a23a5e6 100644
+--- a/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.d.cts
++++ b/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.d.cts
+@@ -41,7 +41,15 @@ export type PayStrategiesConfigRaw = {
+     across?: AcrossConfigRaw;
+     relay?: {
+         enabled?: boolean;
+-        executeEnabled?: boolean;
++        /**
++         * Renamed from `executeEnabled`. The original flag name predates
++         * per-version gating in the feature flag service, so older clients
++         * that only recognise `executeEnabled` would re-enable the Relay
++         * /execute gasless flow on previously broken builds as soon as the
++         * flag is toggled on. This patched name is only read by clients
++         * carrying the rename patch (i.e. >=19.2.1).
++         */
++        gaslessEnabled?: boolean;
+         originGasOverhead?: string;
+         pollingInterval?: number;
+         pollingTimeout?: number;
+diff --git a/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.d.mts b/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.d.mts
+index e08336e..42ade48 100644
+--- a/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.d.mts
++++ b/node_modules/@metamask/transaction-pay-controller/dist/utils/feature-flags.d.mts
+@@ -41,7 +41,15 @@ export type PayStrategiesConfigRaw = {
+     across?: AcrossConfigRaw;
+     relay?: {
+         enabled?: boolean;
+-        executeEnabled?: boolean;
++        /**
++         * Renamed from `executeEnabled`. The original flag name predates
++         * per-version gating in the feature flag service, so older clients
++         * that only recognise `executeEnabled` would re-enable the Relay
++         * /execute gasless flow on previously broken builds as soon as the
++         * flag is toggled on. This patched name is only read by clients
++         * carrying the rename patch (i.e. >=19.2.1).
++         */
++        gaslessEnabled?: boolean;
+         originGasOverhead?: string;
+         pollingInterval?: number;
+         pollingTimeout?: number;
