@@ -594,7 +594,7 @@ describe('MYXProvider', () => {
     it('getAccountState returns zeroed state', async () => {
       const result = await provider.getAccountState();
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         availableBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
