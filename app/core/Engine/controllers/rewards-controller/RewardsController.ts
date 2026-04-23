@@ -137,6 +137,9 @@ const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 // Campaign activity cache threshold (first page only)
 const ONDO_CAMPAIGN_ACTIVITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
+// Campaign participant outcome cache threshold
+const ONDO_CAMPAIGN_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 
@@ -453,6 +456,10 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
+  #participantOutcomeCache: Map<
+    string,
+    { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
+  > = new Map();
   #clientVersionRequirements: ClientVersionRequirementDto | null = null;
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
@@ -3718,16 +3725,32 @@ export class RewardsController extends BaseController<
     if (!this.isRewardsFeatureEnabled()) {
       return null;
     }
+    const key = `${subscriptionId}:${campaignId}`;
     try {
-      const result = await this.#withAuthRetry(async () => {
-        Logger.log('RewardsController: Fetching Ondo campaign participant outcome');
-        return this.messenger.call(
-          'RewardsDataService:getOndoCampaignParticipantOutcome',
-          campaignId,
-          subscriptionId,
-        );
-      }, subscriptionId);
-      return result;
+      return await wrapWithCache<OndoGmCampaignParticipantOutcomeDto | null>({
+        key,
+        ttl: ONDO_CAMPAIGN_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS,
+        readCache: (k) => this.#participantOutcomeCache.get(k) ?? undefined,
+        fetchFresh: async () =>
+          this.#withAuthRetry(async () => {
+            Logger.log(
+              'RewardsController: Fetching Ondo campaign participant outcome',
+            );
+            return this.messenger.call(
+              'RewardsDataService:getOndoCampaignParticipantOutcome',
+              campaignId,
+              subscriptionId,
+            );
+          }, subscriptionId),
+        writeCache: (k, payload) => {
+          if (payload !== null) {
+            this.#participantOutcomeCache.set(k, {
+              payload,
+              lastFetched: Date.now(),
+            });
+          }
+        },
+      });
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get Ondo campaign participant outcome:',

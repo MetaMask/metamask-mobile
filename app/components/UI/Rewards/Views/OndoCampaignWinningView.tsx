@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import { Image, Linking, ScrollView, useWindowDimensions } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -25,8 +24,7 @@ import {
 } from '@metamask/design-system-react-native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { selectOndoCampaignParticipantOutcomeById } from '../../../../reducers/rewards/selectors';
-import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import { strings } from '../../../../../locales/i18n';
 import CopyableField from '../components/ReferralDetails/CopyableField';
 import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
@@ -68,14 +66,9 @@ const OndoCampaignWinningView: React.FC = () => {
   const { position, isLoading: positionLoading } =
     useGetOndoLeaderboardPosition(campaignId);
 
-  const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const winningCode =
-    useSelector(
-      selectOndoCampaignParticipantOutcomeById(
-        subscriptionId ?? undefined,
-        campaignId,
-      ),
-    )?.winnerVerificationCode ?? null;
+  const { outcome, isLoading: isOutcomeLoading } =
+    useOndoCampaignParticipantOutcome(campaignId);
+  const winningCode = outcome?.winnerVerificationCode ?? null;
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_winning',
@@ -222,6 +215,7 @@ const OndoCampaignWinningView: React.FC = () => {
               <CopyableField
                 label={strings('rewards.ondo_campaign_winning.winning_code')}
                 value={winningCode}
+                valueLoading={isOutcomeLoading}
                 onCopy={handleCopyWinningCode}
               />
             </Box>
