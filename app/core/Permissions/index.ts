@@ -43,133 +43,34 @@ const Engine = ImportedEngine as any;
 // Error indicating that there was no CAIP-25 endowment found for the target origin
 class Caip25EndowmentMissingError extends Error {}
 
-/**
- * Checks that all accounts referenced have a matching InternalAccount. Sends
- * an error to sentry for any accounts that were expected but are missing from the wallet.
- *
- * @param [internalAccounts] - The list of evm accounts the wallet knows about.
- * @param [accounts] - The list of accounts addresses that should exist.
- */
-const captureKeyringTypesWithMissingIdentities = (
-  internalAccounts: InternalAccount[] = [],
-  accounts: string[] = [],
-) => {
-  const accountsMissingIdentities = accounts.filter(
-    (address) =>
-      !internalAccounts.some((account) =>
-        areAddressesEqual(account.address, address),
-      ),
-  );
-  const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
-    (address) =>
-      Engine.context.KeyringController.getAccountKeyringType(address),
-  );
-
-  const internalAccountCount = internalAccounts.length;
-
-  const accountTrackerCount = Object.keys(
-    Engine.context.AccountTrackerController.state.accounts || {},
-  ).length;
-
-  captureException(
-    new Error(
-      `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
-    ),
-  );
-};
-
-/**
- * Sorts a list of addresses by most recently selected by using the lastSelected value for
- * the matching InternalAccount object from the list of internalAccounts provided.
- */
-const sortAddressesWithInternalAccounts = <T extends string>(
-  addresses: T[],
-  internalAccounts: InternalAccount[],
-): T[] =>
-  [...addresses].sort((firstAddress, secondAddress) => {
-    const firstAccount = internalAccounts.find((internalAccount) =>
-      areAddressesEqual(internalAccount.address, firstAddress),
-    );
-
-    const secondAccount = internalAccounts.find((internalAccount) =>
-      areAddressesEqual(internalAccount.address, secondAddress),
-    );
-
-    if (!firstAccount) {
-      captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
-      throw new Error(`Missing identity for address: "${firstAddress}".`);
-    } else if (!secondAccount) {
-      captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
-      throw new Error(`Missing identity for address: "${secondAddress}".`);
-    } else if (
-      firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
-    ) {
-      return 0;
-    } else if (firstAccount.metadata.lastSelected === undefined) {
-      return 1;
-    } else if (secondAccount.metadata.lastSelected === undefined) {
-      return -1;
+const sortAddressesByLastSelected = (addresses: string[]): string[] => {
+  const cachedLastSelected = new Map<string, number>();
+  const getLastSelected = (address: string) => {
+    if (cachedLastSelected.has(address)) {
+      return cachedLastSelected.get(address);
     }
-
-    return (
-      secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
-    );
-  });
-
-/**
- * Sorts a list of evm account addresses by most recently selected by using
- * the lastSelected value for the matching InternalAccount object stored in state.
- */
-export const sortEvmAccountsByLastSelected = (addresses: Hex[]): Hex[] => {
-  const internalAccounts = Engine.context.AccountsController.listAccounts();
-  return sortAddressesWithInternalAccounts(addresses, internalAccounts);
-};
-
-/**
- * Sorts a list of caip account id by most recently selected by using the lastSelected value for
- * the matching InternalAccount object from the list of internalAccounts provided.
- */
-const sortCaipAccountIdsWithInternalAccounts = (
-  caipAccountIds: CaipAccountId[],
-  internalAccounts: InternalAccount[],
-): CaipAccountId[] =>
-  [...caipAccountIds].sort((firstAccountId, secondAccountId) => {
-    const firstAccount = internalAccounts.find((internalAccount) =>
-      isInternalAccountInPermittedAccountIds(internalAccount, [firstAccountId]),
-    );
-
-    const secondAccount = internalAccounts.find((internalAccount) =>
-      isInternalAccountInPermittedAccountIds(internalAccount, [
-        secondAccountId,
-      ]),
-    );
-
-    if (!firstAccount) {
-      captureKeyringTypesWithMissingIdentities(
-        internalAccounts,
-        caipAccountIds,
-      );
-      throw new Error(`Missing identity for address: "${firstAccountId}".`);
-    } else if (!secondAccount) {
-      captureKeyringTypesWithMissingIdentities(
-        internalAccounts,
-        caipAccountIds,
-      );
-      throw new Error(`Missing identity for address: "${secondAccountId}".`);
-    } else if (
-      firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
-    ) {
-      return 0;
-    } else if (firstAccount.metadata.lastSelected === undefined) {
-      return 1;
-    } else if (secondAccount.metadata.lastSelected === undefined) {
-      return -1;
+    const account = Engine.context.AccountsController.getAccountByAddress(address);
+    if (!account) {
+      return undefined;
     }
-
-    return (
-      secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
+    const context = Engine.context.AccountTreeController.getAccountContext(account.id);
+    if (!context) {
+      return undefined;
+    }
+    const group = Engine.context.AccountTreeController.getAccountGroupObject(
+      context.groupId,
     );
-  });
+    if (!group) {
+      return undefined;
+    }
+    cachedLastSelected.set(address, group.metadata.lastSelected);
+    return group.metadata.lastSelected;
+  };
+
+  return addresses.sort(
+    (a, b) => (getLastSelected(b) ?? 0) - (getLastSelected(a) ?? 0),
+  );
+}
 
 /**
  * Sorts a list of multichain account ids by most recently selected by using
@@ -178,11 +79,34 @@ const sortCaipAccountIdsWithInternalAccounts = (
 export const sortMultichainAccountsByLastSelected = (
   caipAccountIds: CaipAccountId[],
 ) => {
-  const internalAccounts =
-    Engine.context.AccountsController.listMultichainAccounts();
-  return sortCaipAccountIdsWithInternalAccounts(
-    caipAccountIds,
-    internalAccounts,
+  if (caipAccountIds.length < 2) {
+    return caipAccountIds;
+  }
+
+  const addressByCaipAccountId = new Map(
+    caipAccountIds.map((caipAccountId) => {
+      const { address } = parseCaipAccountId(caipAccountId);
+      return [caipAccountId, address];
+    }),
+  );
+
+  const addresses = [...new Set(addressByCaipAccountId.values())];
+  const sortedAddresses = sortAddressesByLastSelected(addresses);
+  const rankByAddress = new Map(
+    sortedAddresses.map((address: string, index: number) => [address, index]),
+  );
+
+  const getRank = (caipAccountId: CaipAccountId): number => {
+    const address = addressByCaipAccountId.get(caipAccountId);
+    if (address === undefined) {
+      return 0;
+    }
+    return rankByAddress.get(address) ?? 0;
+  };
+
+  return [...caipAccountIds].sort(
+    (firstCaipAccountId, secondCaipAccountId) =>
+      getRank(firstCaipAccountId) - getRank(secondCaipAccountId),
   );
 };
 
@@ -232,7 +156,7 @@ function getCaipAccountIdsFromSubject(subject: any): CaipAccountId[] {
 function getEvmAddessesFromSubject(subject: any): Hex[] {
   return getDataFromSubject(subject, (caveat) => {
     const ethAccounts = getEthAccounts(caveat.value);
-    return sortEvmAccountsByLastSelected(ethAccounts);
+    return sortAddressesByLastSelected(ethAccounts) as Hex[];
   });
 }
 
@@ -620,7 +544,7 @@ export const getPermittedAccounts = (
   }
 
   const ethAccounts = getEthAccounts(caveat.value);
-  return sortEvmAccountsByLastSelected(ethAccounts);
+  return sortAddressesByLastSelected(ethAccounts);
 };
 
 /**
