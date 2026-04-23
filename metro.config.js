@@ -9,6 +9,8 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
+// eslint-disable-next-line import-x/no-extraneous-dependencies
+const FileStore = require('metro-cache').FileStore;
 
 // eslint-disable-next-line import-x/no-nodejs-modules
 const { parseArgs } = require('node:util');
@@ -72,6 +74,18 @@ module.exports = function (baseConfig) {
             Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
         ),
       );
+
+  // Allow CI (and power users) to point Metro's transform cache at a stable,
+  // cacheable path via `METRO_CACHE_DIR`. When unset we fall back to Metro's
+  // default, which is `<os.tmpdir()>/metro-cache` — ephemeral on Cirrus
+  // runners and therefore never reused between jobs.
+  //
+  // The actions/cache step in `.github/workflows/build-{android,ios}-e2e.yml`
+  // saves and restores this directory keyed on yarn.lock + babel/metro/expo
+  // config, so E2E repacks start with a warm transform cache.
+  const metroCacheStores = process.env.METRO_CACHE_DIR
+    ? [new FileStore({ root: process.env.METRO_CACHE_DIR })]
+    : undefined;
 
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
@@ -235,6 +249,7 @@ module.exports = function (baseConfig) {
           getPolyfills,
         },
       ),
+      ...(metroCacheStores ? { cacheStores: metroCacheStores } : {}),
       resetCache: process.env.METRO_RESET_CACHE !== 'false',
       maxWorkers,
     }),

@@ -324,6 +324,18 @@ jobs:
         run: yarn setup:github-ci --no-build-ios --no-build-android
         shell: bash
 
+      - name: Restore Metro transform cache (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        id: metro-cache-restore
+        uses: actions/cache@v4
+        with:
+          path: .metro-cache
+          key: metro-ios-${{ github.ref_name }}-${{ hashFiles('yarn.lock', 'babel.config.js', 'metro.config.js', 'metro.transform.js', 'app.config.js') }}
+          restore-keys: |
+            metro-ios-${{ github.ref_name }}-
+            metro-ios-main-
+            metro-ios-
+
       # -------------------------------------------------------------------------
       # Build (fresh) or Repack (reuse) — exactly one of these runs per job.
       # -------------------------------------------------------------------------
@@ -381,6 +393,12 @@ jobs:
           GITHUB_CI: 'true'
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
+          METRO_MAX_WORKERS: '6'
+          METRO_CACHE_DIR: ${{ github.workspace }}/.metro-cache
+          # See Android comment: `@expo/repack-app` hard-codes `--reset-cache`;
+          # we strip it in `scripts/repack.js` and defensively disable reset
+          # here so the persisted cache is actually honored.
+          METRO_RESET_CACHE: 'false'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'

@@ -10,6 +10,15 @@ const OTA_ENV_MAP = {
 
 const OTA_ENV = OTA_ENV_MAP[process.env.METAMASK_ENVIRONMENT] ?? 'exp';
 
+// Disable OTA updates for E2E builds. We only ship OTA updates to real users
+// on production/RC builds; flipping this off for E2E lets the native runtime
+// skip reading `app.manifest` entirely (see expo-updates'
+// `EmbeddedManifestUtils`), which in turn lets `scripts/repack.js` replace
+// the redundant Metro-backed manifest generation with a cheap stub and cut
+// ~2m off every repack.
+const IS_E2E_BUILD =
+  process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
+
 const CODE_SIGNING_CERTS = {
   production: './certs/production.certificate.pem',
   exp: './certs/exp.certificate.pem',
@@ -100,6 +109,7 @@ module.exports = {
     owner: 'metamask',
     runtimeVersion: RUNTIME_VERSION,
     updates: {
+      ...(IS_E2E_BUILD ? { enabled: false } : {}),
       codeSigningCertificate: CODE_SIGNING_CERTS[OTA_ENV],
       codeSigningMetadata: {
         keyid: CODE_SIGNING_KEYIDS[OTA_ENV],
