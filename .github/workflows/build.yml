@@ -408,7 +408,7 @@ jobs:
           echo "✅ Installed provisioning profile"
 
           # Add keychain to search list (codesign searches this; default-keychain alone is insufficient)
-          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"' | xargs)
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "$(security list-keychains -d user | tr -d '"' | xargs)"
           security default-keychain -s "$KEYCHAIN_PATH"
           echo "✅ Keychain added to search list and set as default"
 
