@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 
 /**
  * Logger utility
@@ -15,6 +16,159 @@ const logger = {
   error: (msg) => console.error(`❌ ${msg}`),
   warn: (msg) => console.warn(`⚠️  ${msg}`),
 };
+
+// Repack only runs for E2E-style builds; we use this to safely stub
+// `expo-updates` manifest generation (see `makeCustomSpawnAsync`).
+const IS_E2E_REPACK =
+  process.env.IS_TEST === 'true' ||
+  process.env.E2E === 'true' ||
+  process.env.METAMASK_ENVIRONMENT === 'e2e';
+
+/**
+ * Implements the `SpawnProcessAsync` contract expected by `@expo/repack-app`
+ * using Node's `child_process.spawn`. Resolves with `{ pid, output, stdout,
+ * stderr, status, signal }` and attaches `.child` to the returned promise.
+ *
+ * Kept dependency-free so repack keeps working even if `@expo/spawn-async`
+ * is pruned.
+ */
+function runSpawnAsync(command, args, options = {}) {
+  let child;
+  const promise = new Promise((resolve, reject) => {
+    child = spawn(command, args, { stdio: 'pipe', ...options });
+    let stdout = '';
+    let stderr = '';
+    if (child.stdout) {
+      child.stdout.on('data', (data) => {
+        const chunk = data.toString();
+        stdout += chunk;
+        if (options.stdio === 'inherit') process.stdout.write(chunk);
+      });
+    }
+    if (child.stderr) {
+      child.stderr.on('data', (data) => {
+        const chunk = data.toString();
+        stderr += chunk;
+        if (options.stdio === 'inherit') process.stderr.write(chunk);
+      });
+    }
+    child.once('error', (err) => {
+      Object.assign(err, {
+        pid: child.pid,
+        output: [stdout, stderr],
+        stdout,
+        stderr,
+        status: null,
+        signal: null,
+      });
+      reject(err);
+    });
+    child.once('close', (code, signal) => {
+      const result = {
+        pid: child.pid,
+        output: [stdout, stderr],
+        stdout,
+        stderr,
+        status: code,
+        signal,
+      };
+      if (code !== 0) {
+        const err = new Error(
+          `${command} ${args.join(' ')} exited with code ${code}${signal ? ` (signal ${signal})` : ''}`
+        );
+        Object.assign(err, result);
+        reject(err);
+        return;
+      }
+      resolve(result);
+    });
+  });
+  promise.child = child;
+  return promise;
+}
+
+/**
+ * Resolves a fake `SpawnProcessResult` synchronously, keeping the same shape
+ * `@expo/repack-app` expects.
+ */
+function fakeSpawnResult() {
+  const promise = Promise.resolve({
+    pid: 0,
+    output: ['', ''],
+    stdout: '',
+    stderr: '',
+    status: 0,
+    signal: null,
+  });
+  promise.child = {}; // Duck-typed; @expo/repack-app only awaits the result.
+  return promise;
+}
+
+/**
+ * Creates a `spawnAsync` function tailored to the current repack context.
+ *
+ * Two optimizations relative to `@expo/repack-app`'s default spawn:
+ *
+ * 1. Strip `--reset-cache` from `expo export:embed` so Metro's transform
+ *    cache persists across invocations (shared with CI `actions/cache`).
+ *    Without this, every repack pays a ~2-3m cold-cache tax.
+ *
+ * 2. Stub `expo-updates/utils/build/createUpdatesResources.js` for E2E
+ *    builds. `@expo/repack-app` always generates `app.manifest` when
+ *    `expo-updates` is a dependency — even though E2E builds set
+ *    `EXUpdatesEnabled=false` at runtime, so the manifest is never
+ *    consulted. Skipping this second Metro bundle saves ~2m per repack.
+ *    The stub writes an empty JSON manifest so the downstream `copyFile`
+ *    call still succeeds.
+ *
+ * @param {string} workingDirectory - Passed through so the stub can write
+ *   `app.manifest` at the expected path.
+ */
+function makeCustomSpawnAsync(workingDirectory) {
+  return function customSpawnAsync(command, args, options = {}) {
+    // 1) Drop --reset-cache from `npx expo export:embed` invocations so
+    //    Metro reuses a persisted transform cache.
+    if (
+      command === 'npx' &&
+      Array.isArray(args) &&
+      args[0] === 'expo' &&
+      args[1] === 'export:embed' &&
+      args.includes('--reset-cache')
+    ) {
+      args = args.filter((a) => a !== '--reset-cache');
+    }
+
+    // 2) Skip `createUpdatesResources.js` for E2E repacks — `expo-updates`
+    //    is disabled at runtime (see `app.config.js`), so the manifest is
+    //    unused. We still write a stub so the library's `copyFile(manifest)`
+    //    step below doesn't ENOENT.
+    if (
+      IS_E2E_REPACK &&
+      typeof command === 'string' &&
+      command.endsWith('createUpdatesResources.js')
+    ) {
+      const manifestPath = path.join(workingDirectory, 'app.manifest');
+      try {
+        fs.mkdirSync(workingDirectory, { recursive: true });
+        fs.writeFileSync(
+          manifestPath,
+          JSON.stringify({ id: 'e2e-stub', assets: [], launchAsset: {} })
+        );
+        logger.info(
+          'Skipped expo-updates manifest generation (E2E build; updates disabled at runtime)'
+        );
+      } catch (err) {
+        logger.warn(
+          `Could not write stub app.manifest at ${manifestPath}: ${err.message}. Falling back to real generation.`
+        );
+        return runSpawnAsync(command, args, options);
+      }
+      return fakeSpawnResult();
+    }
+
+    return runSpawnAsync(command, args, options);
+  };
+}
 
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
@@ -87,6 +241,7 @@ async function repackAndroid() {
         sourcemapOutput: sourcemapPath,
       },
       env: process.env,
+      spawnAsync: makeCustomSpawnAsync(workingDir),
     });
 
     // Copy to final location
@@ -203,6 +358,7 @@ async function repackIos() {
         sourcemapOutput: sourcemapPath,
       },
       env: process.env,
+      spawnAsync: makeCustomSpawnAsync(workingDir),
     });
 
     // Verify repacked app exists and contains a bundle executable
