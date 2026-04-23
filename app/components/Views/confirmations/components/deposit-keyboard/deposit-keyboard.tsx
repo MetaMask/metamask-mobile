@@ -8,7 +8,7 @@ import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
 import { PERPS_CURRENCY } from '../../constants/perps';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Keypad from '../../../../Base/Keypad/components';
 import { noop } from 'lodash';
 
@@ -41,6 +41,7 @@ export interface DepositKeyboardProps {
   doneLabel?: string;
   hasInput?: boolean;
   hasMax?: boolean;
+  hidePercentageButtons?: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -53,6 +54,7 @@ export const DepositKeyboard = memo(
     doneLabel,
     hasInput,
     hasMax,
+    hidePercentageButtons,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -108,6 +110,7 @@ export const DepositKeyboard = memo(
           )}
           {!alertMessage &&
             !hasInput &&
+            !hidePercentageButtons &&
             buttons.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}

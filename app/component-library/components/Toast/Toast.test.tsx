@@ -25,10 +25,6 @@ jest.mock('react-native-reanimated', () => ({
 }));
 
 // Mock safe area context
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ bottom: 0, top: 0, left: 0, right: 0 }),
-}));
-
 describe('Toast', () => {
   let toastRef: React.RefObject<ToastRef>;
 

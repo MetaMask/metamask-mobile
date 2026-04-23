@@ -13,19 +13,6 @@ jest.mock('../../../../actions/settings', () => ({
   toggleBasicFunctionality: jest.fn(() => jest.fn()),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 const { InteractionManager } = jest.requireActual('react-native');
 
 InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
@@ -60,7 +47,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: jest.fn(),
       goBack: jest.fn(),
       reset: jest.fn(),
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: jest.fn(),
       }),
       isFocused: jest.fn(() => true),

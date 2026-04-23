@@ -1,0 +1,39 @@
+import {
+  SnapRegistryController,
+  SnapRegistryControllerMessenger,
+} from '@metamask/snaps-controllers';
+import { ControllerInitFunction } from '../../types';
+import { getVersion } from 'react-native-device-info';
+import { SemVerVersion } from '@metamask/utils';
+
+/**
+ * Initialize the Snaps registry controller.
+ *
+ * @param request - The request object.
+ * @param request.controllerMessenger - The messenger to use for the controller.
+ * @param request.persistedState - The persisted state of the extension.
+ * @returns The initialized controller.
+ */
+export const snapRegistryControllerInit: ControllerInitFunction<
+  SnapRegistryController,
+  SnapRegistryControllerMessenger
+> = ({ controllerMessenger, persistedState }) => {
+  const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
+
+  const controller = new SnapRegistryController({
+    // @ts-expect-error: `persistedState.SnapRegistryController` is not compatible
+    // with the expected type.
+    // TODO: Look into the type mismatch.
+    state: persistedState.SnapRegistryController,
+    messenger: controllerMessenger,
+    refetchOnAllowlistMiss: requireAllowlist,
+    clientConfig: {
+      type: 'mobile',
+      version: getVersion() as SemVerVersion,
+    },
+  });
+
+  return {
+    controller,
+  };
+};

@@ -313,8 +313,21 @@ const MarketInsightsView: React.FC = () => {
     return report.trends.flatMap((trend) => trend.tweets).slice(0, 4);
   }, [report]);
   const handleBackPress = useCallback(() => {
+    const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_CLOSED)
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+      })
+      .build();
+    trackEvent(event);
     navigation.goBack();
-  }, [navigation]);
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+  ]);
 
   const handleTweetPress = useCallback((url: string) => {
     if (isSafeUrl(url)) {
@@ -569,17 +582,14 @@ const MarketInsightsView: React.FC = () => {
       }
       trackMarketInsightsInteraction('source_click', { source: url });
       setSelectedTrend(null);
-      navigation.navigate(
-        Routes.BROWSER.HOME as never,
-        {
-          screen: Routes.BROWSER.VIEW,
-          params: {
-            newTabUrl: url,
-            timestamp: Date.now(),
-            fromTrending: true,
-          },
-        } as never,
-      );
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: url,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
     },
     [trackMarketInsightsInteraction, navigation, setSelectedTrend],
   );
@@ -657,6 +667,8 @@ const MarketInsightsView: React.FC = () => {
               paused={false}
               controls={false}
               disableFocus
+              ignoreSilentSwitch="obey"
+              mixWithOthers="mix"
               onEnd={handleVideoEnd}
               testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
             />

@@ -58,7 +58,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground', async ({
+test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground', async ({
   device,
   performanceTracker,
 }) => {

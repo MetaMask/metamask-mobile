@@ -83,12 +83,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock @react-navigation/compat to prevent issues with createNavigatorFactory
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-  withNavigationFocus: jest.fn((component) => component),
-}));
-
 // Mock i18n strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
@@ -431,6 +425,20 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
     onReject: jest.fn(),
   })),
 }));
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+  () => ({
+    useInsufficientPayTokenBalanceAlert: jest.fn(() => []),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+  () => ({
+    useNoPayTokenQuotesAlert: jest.fn(() => []),
+  }),
+);
 
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken',
@@ -3835,6 +3843,61 @@ describe('PerpsOrderView', () => {
       // Wait for price to appear after isDataReady becomes true
       const priceText = await findByText('$3,000');
       expect(priceText).toBeOnTheScreen();
+    });
+  });
+
+  describe('Market data fallback to route defaults', () => {
+    it('uses defaultSzDecimals and defaultMaxLeverage when marketData is loading', async () => {
+      // Arrange - marketData is null and still loading, but defaults are provided
+      (usePerpsMarketData as jest.Mock).mockReturnValue({
+        marketData: null,
+        isLoading: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'ETH',
+          direction: 'long',
+          defaultSzDecimals: 4,
+          defaultMaxLeverage: 50,
+        },
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - order button should be present (not blocked by loading) because
+      // the component falls back to route param defaults
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('treats market data as loading when no fallback defaults and data is unavailable', async () => {
+      // Arrange - marketData null, loading, AND no route defaults
+      (usePerpsMarketData as jest.Mock).mockReturnValue({
+        marketData: null,
+        isLoading: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
     });
   });
 });

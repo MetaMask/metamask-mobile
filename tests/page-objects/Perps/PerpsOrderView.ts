@@ -9,11 +9,18 @@ import {
   PerpsAmountDisplaySelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import {
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { element as detoxElement, by as detoxBy } from 'detox';
+import {
+  encapsulatedAction,
+  PlatformDetector,
+  PlaywrightElement,
+  PlaywrightGestures,
+} from '../../framework';
 
 class PerpsOrderView {
   /** Place order button - wdio uses 'perps-order-view-place-order-button' */
@@ -198,6 +205,42 @@ class PerpsOrderView {
     await Gestures.waitAndTap(setButton, {
       elemDescription: 'Confirm limit price',
     });
+  }
+
+  /**
+   * Set leverage for appium context — opens modal, selects option, confirms.
+   */
+  async setLeverageAppium(leverageX: number): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        // Tap "Leverage" row to open modal
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.leverageRowLabel),
+        );
+
+        // Tap the leverage option (e.g. "40x")
+        let optionEl: PlaywrightElement;
+        if (await PlatformDetector.isIOS()) {
+          optionEl = await PlaywrightMatchers.getElementByText(`${leverageX}x`);
+        } else {
+          optionEl = await PlaywrightMatchers.getElementByAndroidUIAutomator(
+            `.text("${leverageX}x").instance(1)`,
+          );
+        }
+
+        await PlaywrightGestures.waitAndTap(optionEl);
+
+        // Tap confirm button (e.g. "Set 40x")
+        const confirmEl = await PlaywrightMatchers.getElementByText(
+          `Set ${leverageX}x`,
+        );
+        await PlaywrightGestures.waitAndTap(confirmEl);
+      },
+    });
+  }
+
+  async tapPlaceOrder(): Promise<void> {
+    await this.tapPlaceOrderButton();
   }
 }
 

@@ -14,7 +14,7 @@ import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientType } from '../../UI/recipient';
 import { Recipient } from './recipient';
 
-jest.mock('../../../../../../component-library/components/Skeleton');
+jest.mock('../../../../../../component-library/components-temp/Skeleton');
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');

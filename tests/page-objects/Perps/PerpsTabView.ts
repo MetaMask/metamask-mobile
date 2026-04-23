@@ -84,22 +84,46 @@ class PerpsTabView {
   }
 
   async getBalance(): Promise<number> {
-    // Prefer explicit value elements; fallback to balance button for accessibility labels
-    const isMarketValueVisible = await Utilities.isElementVisible(
-      this.marketBalanceValue,
-      1500,
-    );
-    const isLegacyValueVisible = await Utilities.isElementVisible(
-      this.balanceValue,
-      1000,
-    );
+    return Utilities.executeWithRetry(
+      async () => {
+        const isMarketValueVisible = await Utilities.isElementVisible(
+          this.marketBalanceValue,
+          2000,
+        );
+        if (isMarketValueVisible) {
+          return await this.getBalanceFromElement(this.marketBalanceValue);
+        }
 
-    const targetElement: DetoxElement = isMarketValueVisible
-      ? this.marketBalanceValue
-      : isLegacyValueVisible
-        ? this.balanceValue
-        : this.balanceButton; // final fallback to button
+        const isLegacyValueVisible = await Utilities.isElementVisible(
+          this.balanceValue,
+          1000,
+        );
+        if (isLegacyValueVisible) {
+          return await this.getBalanceFromElement(this.balanceValue);
+        }
 
+        const isLegacyButtonVisible = await Utilities.isElementVisible(
+          this.balanceButton,
+          1000,
+        );
+        if (isLegacyButtonVisible) {
+          return await this.getBalanceFromElement(this.balanceButton);
+        }
+
+        throw new Error('Perps balance value is not visible yet');
+      },
+      {
+        timeout: 20000,
+        interval: 1000,
+        elemDescription: 'Perps balance value',
+        description: 'read perps balance value',
+      },
+    );
+  }
+
+  private async getBalanceFromElement(
+    targetElement: DetoxElement,
+  ): Promise<number> {
     const attributes = await (
       (await targetElement) as IndexableNativeElement
     ).getAttributes();
@@ -109,7 +133,6 @@ class PerpsTabView {
       (attributes as { text?: string; label?: string; value?: string }).value ||
       '0';
 
-    // Extract numeric value from balance text (remove currency symbols, commas, etc.)
     const numericValue = balanceText.replace(/[^0-9.-]/g, '');
     return parseFloat(numericValue) || 0;
   }

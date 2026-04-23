@@ -135,11 +135,20 @@ export const useSearchTokens = ({
             body: JSON.stringify(requestBody),
           },
         );
-        const searchData: SearchTokensResponse = await response.json();
+        if (response.ok === false) {
+          throw new Error(
+            `Failed to search tokens with status ${response.status}`,
+          );
+        }
+
+        const searchData: Partial<SearchTokensResponse> = await response.json();
+        const searchResultData: PopularToken[] = Array.isArray(searchData.data)
+          ? searchData.data
+          : [];
 
         // Store the cursor for pagination if there's a next page
         setSearchCursor(
-          searchData.pageInfo.hasNextPage
+          searchData.pageInfo?.hasNextPage
             ? searchData.pageInfo.endCursor
             : undefined,
         );
@@ -149,10 +158,10 @@ export const useSearchTokens = ({
         if (isPagination) {
           setSearchResults((prevResults) => [
             ...prevResults,
-            ...searchData.data,
+            ...searchResultData,
           ]);
         } else {
-          setSearchResults(searchData.data);
+          setSearchResults(searchResultData);
         }
       } catch (error) {
         console.error('Error searching tokens:', error);

@@ -26,12 +26,24 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 4;
 
-  get container(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_CONTAINER,
+          {
+            exact: true,
+          },
+        ),
+    });
   }
 
   /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
@@ -96,8 +108,20 @@ class WalletView {
     );
   }
 
-  get accountIcon(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
+  get accountIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByCatchAll(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+      },
+    });
   }
 
   get eyeSlashIcon(): DetoxElement {
@@ -110,10 +134,18 @@ class WalletView {
     );
   }
 
-  get hamburgerMenuButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
-    );
+  get hamburgerMenuButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
   get navbarNetworkText(): DetoxElement {
@@ -393,27 +425,55 @@ class WalletView {
     });
   }
 
+  tokenRow(token: string, index = 0): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(token, index),
+      appium: () =>
+        PlaywrightMatchers.getElementById(getAssetTestId(token), {
+          exact: true,
+        }),
+    });
+  }
+
   async tapOnToken(token: string, index = 0): Promise<void> {
     const tokenLabel = token || WalletViewSelectorsText.DEFAULT_TOKEN;
-    const elem = Matchers.getElementByText(tokenLabel, index);
-    await Assertions.expectElementToBeVisible(elem, {
-      description: `${tokenLabel} token in wallet list`,
-    });
-    // Wait for the token list to finish loading/reordering before tapping.
-    // New tokens appearing asynchronously can shift positions mid-tap.
-    await Utilities.waitForElementToStopMoving(elem, {
-      timeout: 10000,
-      interval: 500,
-      stableCount: 6,
-    });
-    await Gestures.waitAndTap(elem, {
-      elemDescription: 'Token',
+    await encapsulatedAction({
+      detox: async () => {
+        const elem = Matchers.getElementByText(tokenLabel, index);
+        await Assertions.expectElementToBeVisible(elem, {
+          description: `${tokenLabel} token in wallet list`,
+        });
+        // Wait for the token list to finish loading/reordering before tapping.
+        // New tokens appearing asynchronously can shift positions mid-tap.
+        await Utilities.waitForElementToStopMoving(elem, {
+          timeout: 10000,
+          interval: 500,
+          stableCount: 6,
+        });
+        await Gestures.waitAndTap(elem, {
+          elemDescription: 'Token',
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.waitAndTap(this.tokenRow(tokenLabel), {
+          description: 'Token',
+        });
+      },
     });
   }
 
   async tapIdenticon(): Promise<void> {
-    await Gestures.waitAndTap(this.accountIcon, {
-      elemDescription: 'Top Account Icon',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.accountIcon, {
+          elemDescription: 'Top Account Icon',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.accountIcon),
+        );
+      },
     });
   }
 
@@ -740,8 +800,12 @@ class WalletView {
         });
       },
       appium: async () => {
-        const el = await asPlaywrightElement(this.tokensSection);
-        await el.click();
+        const elem = await asPlaywrightElement(this.tokensSection);
+        await PlaywrightGestures.waitForElementStable(elem);
+
+        // Re-fetch to avoid stale reference after stability wait
+        const freshElem = await asPlaywrightElement(this.tokensSection);
+        await freshElem.unwrap().click();
       },
     });
   }

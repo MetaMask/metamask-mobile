@@ -76,6 +76,8 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
+jest.mock('react-native-qrcode-svg', () => 'QRCode');
+
 jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
 jest.mock('../../../images/branding/metamask-name.png', () => 'metamask-name');
 
@@ -211,7 +213,13 @@ describe('OAuthRehydration', () => {
     mockEngine.context.KeyringController.submitPassword.mockResolvedValue(
       undefined,
     );
-    mockUnlockWallet.mockResolvedValue(undefined);
+    mockUnlockWallet.mockImplementation(
+      async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+        if (options.onBeforeNavigate) {
+          await options.onBeforeNavigate();
+        }
+      },
+    );
     mockGetAuthType.mockResolvedValue({
       currentAuthType: 'password',
       availableBiometryType: null,
@@ -236,9 +244,14 @@ describe('OAuthRehydration', () => {
 
   describe('Successful login flow', () => {
     it('navigates to home after successful password login', async () => {
-      mockUnlockWallet.mockImplementationOnce(async () => {
-        mockReplace(Routes.ONBOARDING.HOME_NAV);
-      });
+      mockUnlockWallet.mockImplementationOnce(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+          mockReplace(Routes.ONBOARDING.HOME_NAV);
+        },
+      );
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -394,16 +407,19 @@ describe('OAuthRehydration', () => {
 
     it('clears password field after login attempt', async () => {
       mockUnlockWallet.mockRejectedValue(new Error('Invalid password'));
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const { getByTestId, queryByDisplayValue } = renderWithProvider(
+        <OAuthRehydration />,
+      );
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
       fireEvent.changeText(passwordInput, 'wrongPassword');
+
       await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
       await waitFor(() => {
-        expect(passwordInput.props.value).toBe('');
+        expect(queryByDisplayValue('wrongPassword')).toBeNull();
       });
     });
   });

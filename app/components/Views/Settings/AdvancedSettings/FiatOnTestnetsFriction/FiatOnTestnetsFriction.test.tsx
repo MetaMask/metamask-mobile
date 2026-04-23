@@ -6,10 +6,6 @@ import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../../app/core/AppConstants';
 
 jest.mock('@react-navigation/native');
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn().mockImplementation(() => ({})),
-  useSafeAreaFrame: jest.fn().mockImplementation(() => ({})),
-}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

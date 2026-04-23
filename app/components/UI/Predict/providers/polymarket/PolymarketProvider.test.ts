@@ -254,6 +254,7 @@ describe('PolymarketProvider', () => {
       minimumVersion: '7.64.0',
     },
     fakOrdersEnabled: false,
+    predictWithAnyTokenEnabled: false,
   };
   const createProvider = (
     featureFlagsOverride?: Partial<PredictFeatureFlags>,
@@ -5171,6 +5172,168 @@ describe('PolymarketProvider', () => {
         // Assert
         const result = await provider.getPositions({ address: mockAddress });
         expect(result).toHaveLength(0);
+      });
+    });
+
+    describe('createOptimisticPositionFromPreview', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('creates optimistic position for a new position using preview data', async () => {
+        const { provider, mockAddress, mockFetch } =
+          setupOptimisticUpdateTest();
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([]);
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-1',
+          outcomes: [
+            {
+              id: 'outcome-456',
+              title: 'Yes',
+              tokenId: 'token-456',
+              price: 0.5,
+            },
+          ],
+        });
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          sharePrice: 0.5,
+          maxAmountSpent: 10,
+          minAmountReceived: 20,
+        });
+
+        await provider.createOptimisticPositionFromPreview({
+          address: mockAddress,
+          preview,
+        });
+
+        const positions = await provider.getPositions({
+          address: mockAddress,
+        });
+
+        expect(positions).toHaveLength(1);
+        expect(positions[0]).toEqual(
+          expect.objectContaining({
+            marketId: 'market-1',
+            outcomeTokenId: 'token-456',
+            optimistic: true,
+          }),
+        );
+      });
+
+      it('updates existing position when one already exists', async () => {
+        const { provider, mockAddress, mockFetch } =
+          setupOptimisticUpdateTest();
+
+        const existingPosition = createMockPosition({
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          amount: 10,
+          size: 10,
+          initialValue: 5,
+        });
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([existingPosition]);
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          sharePrice: 0.5,
+          maxAmountSpent: 5,
+          minAmountReceived: 10,
+        });
+
+        await provider.createOptimisticPositionFromPreview({
+          address: mockAddress,
+          preview,
+        });
+
+        mockParsePolymarketPositions.mockResolvedValue([existingPosition]);
+
+        const positions = await provider.getPositions({
+          address: mockAddress,
+        });
+
+        const optimisticPosition = positions.find(
+          (p) => p.outcomeTokenId === 'token-456',
+        );
+        expect(optimisticPosition?.optimistic).toBe(true);
+        expect(optimisticPosition?.amount).toBe(20);
+        expect(optimisticPosition?.initialValue).toBe(10);
+      });
+    });
+
+    describe('clearOptimisticPosition', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('removes optimistic position so it no longer appears in getPositions', async () => {
+        const { provider, mockAddress, mockFetch } =
+          setupOptimisticUpdateTest();
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([]);
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-1',
+          outcomes: [
+            {
+              id: 'outcome-456',
+              title: 'Yes',
+              tokenId: 'token-456',
+              price: 0.5,
+            },
+          ],
+        });
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+        });
+
+        await provider.createOptimisticPositionFromPreview({
+          address: mockAddress,
+          preview,
+        });
+
+        provider.clearOptimisticPosition(mockAddress, 'token-456');
+
+        const positions = await provider.getPositions({
+          address: mockAddress,
+        });
+
+        expect(positions).toHaveLength(0);
+      });
+
+      it('is a no-op when no optimistic position exists for the address', () => {
+        const provider = createProvider();
+
+        expect(() => {
+          provider.clearOptimisticPosition('0xunknown', 'token-1');
+        }).not.toThrow();
       });
     });
 

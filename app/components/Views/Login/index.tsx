@@ -7,13 +7,12 @@ import React, {
 } from 'react';
 import {
   Alert,
-  SafeAreaView,
   BackHandler,
   TouchableOpacity,
   Platform,
   Image,
-  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -24,7 +23,6 @@ import {
   TextVariant,
   FontWeight,
   TextField,
-  TextFieldSize,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -397,14 +395,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView
-        style={[
-          tw.style('flex-1'),
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
-        ]}
-      >
+      <SafeAreaView style={tw.style('flex-1')}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           style={tw.style('flex-1')}
@@ -461,7 +452,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 keyboardAppearance={themeAppearance}
                 isError={!!error}
                 isDisabled={loading}
-                size={TextFieldSize.Lg}
               />
             </Box>
 

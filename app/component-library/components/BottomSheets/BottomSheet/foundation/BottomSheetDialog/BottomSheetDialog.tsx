@@ -65,6 +65,7 @@ const BottomSheetDialog = forwardRef<
       keyboardAvoidingViewEnabled = true,
       onClose,
       onOpen,
+      panGestureHandlerProps,
       style,
       ...props
     },
@@ -245,6 +246,7 @@ const BottomSheetDialog = forwardRef<
         <PanGestureHandler
           enabled={isInteractable}
           onGestureEvent={gestureHandler}
+          {...panGestureHandlerProps}
         >
           <Animated.View
             onLayout={updateSheetHeight}

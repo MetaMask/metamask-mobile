@@ -3,6 +3,7 @@ import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictionsSection from './PredictionsSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PREDICT_CLAIM_BUTTON_TEST_IDS } from '../../../../UI/Predict/components/PredictActionButtons/PredictClaimButton.testIds';
 
 const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
@@ -24,6 +25,29 @@ jest.mock('../../../../UI/Predict/selectors/featureFlags', () => ({
 jest.mock('../../../../UI/Predict/hooks/usePredictClaim', () => ({
   usePredictClaim: () => ({ claim: mockClaim }),
 }));
+
+jest.mock('../../../../UI/Predict/hooks/useUnrealizedPnL', () => ({
+  useUnrealizedPnL: jest.fn(() => ({
+    data: { cashUpnl: 10, percentUpnl: 5, user: '0x0' },
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQueryClient: jest.fn(() => ({
+      invalidateQueries: jest.fn(() => Promise.resolve()),
+    })),
+  };
+});
 
 // Mock the hooks
 jest.mock('./hooks', () => ({
@@ -57,6 +81,9 @@ const mockUsePredictMarketsForHomepage =
   jest.requireMock('./hooks').usePredictMarketsForHomepage;
 const mockUsePredictPositionsForHomepage =
   jest.requireMock('./hooks').usePredictPositionsForHomepage;
+const mockSelectPrivacyMode = jest.requireMock(
+  '../../../../../selectors/preferencesController',
+).selectPrivacyMode as jest.Mock;
 
 const mockActivePositions = [
   {
@@ -120,6 +147,7 @@ describe('PredictionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockClaim.mockResolvedValue(undefined);
+    mockSelectPrivacyMode.mockReturnValue(false);
 
     // Reset mock return value to default (true) to ensure test isolation
     jest
@@ -449,6 +477,76 @@ describe('PredictionsSection', () => {
       });
 
       fireEvent.press(screen.getByText('Claim $200.00'));
+
+      await waitFor(() => {
+        expect(mockClaim).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  describe('privacy mode', () => {
+    beforeEach(() => {
+      mockSelectPrivacyMode.mockReturnValue(true);
+    });
+
+    it('hides monetary values on position rows', async () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable ? [] : mockActivePositions,
+          isLoading: false,
+          error: null,
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
+        }),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
+      });
+
+      expect(screen.queryByText('$10 on Yes to win $15')).toBeNull();
+      expect(screen.queryByText('$12')).toBeNull();
+      expect(screen.queryByText('20%')).toBeNull();
+      expect(screen.queryByText('-40%')).toBeNull();
+      expect(screen.queryAllByText(/•+/).length).toBeGreaterThan(0);
+    });
+
+    it('masks claim amount and still invokes claim on press', async () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable ? mockClaimablePositions : mockActivePositions,
+          isLoading: false,
+          error: null,
+          totalClaimableValue: claimable ? 200 : 0,
+          refetch: jest.fn(),
+        }),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PREDICT_CLAIM_BUTTON_TEST_IDS.PREDICT_CLAIM_BUTTON,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      expect(screen.queryByText('Claim $200.00')).toBeNull();
+
+      fireEvent.press(
+        screen.getByTestId(PREDICT_CLAIM_BUTTON_TEST_IDS.PREDICT_CLAIM_BUTTON),
+      );
 
       await waitFor(() => {
         expect(mockClaim).toHaveBeenCalledTimes(1);

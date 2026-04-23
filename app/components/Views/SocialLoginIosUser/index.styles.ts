@@ -43,6 +43,9 @@ const styles = StyleSheet.create({
     flex: 1,
     rowGap: Device.isMediumDevice() ? 24 : 32,
   },
+  title: {
+    textAlign: 'center' as const,
+  },
 });
 
 export default styles;

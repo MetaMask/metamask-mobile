@@ -3,10 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import MoneyFooter from './MoneyFooter';
 import { MoneyFooterTestIds } from './MoneyFooter.testIds';
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 34, left: 0, right: 0 }),
-}));
-
 describe('MoneyFooter', () => {
   it('renders the Add money button', () => {
     const { getByTestId } = render(<MoneyFooter />);

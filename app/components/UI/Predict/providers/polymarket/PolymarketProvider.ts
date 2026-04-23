@@ -279,9 +279,11 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return isSportsEvent
+      const result = isSportsEvent
         ? GameCache.getInstance().overlayOnMarket(parsedMarket)
         : parsedMarket;
+
+      return result;
     } catch (error) {
       DevLogger.log('Error getting market details via Polymarket API:', error);
       throw error;
@@ -749,6 +751,64 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   /**
+   * Create an optimistic position from a preview before the order is placed.
+   * Used during the deposit phase of the pay-with-any-token flow so the
+   * position appears immediately while the deposit confirms.
+   *
+   * On order success the provider's own placeOrder() will overwrite this
+   * entry with real amounts (same outcomeTokenId key).
+   */
+  async createOptimisticPositionFromPreview({
+    address,
+    preview,
+  }: {
+    address: string;
+    preview: OrderPreview;
+  }): Promise<void> {
+    const { outcomeTokenId, outcomeId } = preview;
+
+    let existingPosition: PredictPosition | undefined;
+    try {
+      const positions = await this.getPositions({
+        address,
+        outcomeId,
+        limit: 5,
+      });
+      existingPosition = positions.find(
+        (p) => p.outcomeTokenId === outcomeTokenId && !p.claimable,
+      );
+    } catch {
+      // Position lookup failure is non-critical; treat as new position
+    }
+
+    await this.createOrUpdateOptimisticPosition({
+      address,
+      type: existingPosition
+        ? OptimisticUpdateType.UPDATE
+        : OptimisticUpdateType.CREATE,
+      marketId: preview.marketId,
+      outcomeId,
+      outcomeTokenId,
+      spentAmount: preview.maxAmountSpent,
+      receivedAmount: preview.minAmountReceived,
+      existingPosition,
+      preview,
+    });
+  }
+
+  /**
+   * Remove a previously created optimistic position entry.
+   * Used to immediately clean up preview-based optimistic positions
+   * when a deposit or order fails.
+   */
+  clearOptimisticPosition(address: string, outcomeTokenId: string): void {
+    const addressMap = this.#optimisticPositionUpdatesByAddress.get(address);
+    if (addressMap) {
+      addressMap.delete(outcomeTokenId);
+    }
+  }
+
+  /**
    * Check if an API position has been updated to match our expected size
    * Simple comparison: if API size matches expected size, we're done
    */
@@ -937,8 +997,13 @@ export class PolymarketProvider implements PredictProvider {
     }
     const positionsData = (await response.json()) as PolymarketPosition[];
 
+    const teamLookup = this.#createTeamLookup(
+      this.#getSupportedLeagues().length > 0,
+    );
+
     const parsedPositions = await parsePolymarketPositions({
       positions: positionsData,
+      teamLookup,
     });
 
     // Apply optimistic updates (unified for BUY/SELL/CLAIM)

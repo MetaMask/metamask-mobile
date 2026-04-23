@@ -1,10 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { ImageSourcePropType, View } from 'react-native';
 import styleSheet from './DeFiProtocolPositionDetails.styles';
-import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
-import { getDeFiProtocolPositionDetailsNavbarOptions } from '../Navbar';
 import Text, {
   TextColor,
   TextVariant,
@@ -32,17 +30,10 @@ interface DeFiProtocolPositionDetailsParams {
 
 const DeFiProtocolPositionDetails: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
-  const navigation = useNavigation();
 
   const { protocolAggregate, networkIconAvatar } =
     useParams<DeFiProtocolPositionDetailsParams>();
   const privacyMode = useSelector(selectPrivacyMode);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getDeFiProtocolPositionDetailsNavbarOptions(navigation),
-    );
-  }, [navigation]);
 
   return (
     <View

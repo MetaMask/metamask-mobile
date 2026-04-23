@@ -63,10 +63,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-}));
-
 jest.mock('../../hooks/useMarketInsights', () => ({
   useMarketInsights: (assetIdentifier: string) => {
     const result = mockUseMarketInsights(assetIdentifier);
@@ -367,6 +363,24 @@ describe('MarketInsightsView', () => {
 
     const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
     expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
+  });
+
+  it('configures background video to mix with other audio', () => {
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport(),
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    const backgroundVideo = getByTestId(
+      MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION,
+    );
+
+    expect(backgroundVideo.props.ignoreSilentSwitch).toBe('obey');
+    expect(backgroundVideo.props.mixWithOthers).toBe('mix');
   });
 
   it('renders report content and handles tweet/swap/buy actions', () => {

@@ -29,8 +29,10 @@ const BROWSERSTACK_STATUS_MAP: Record<string, 'passed' | 'failed'> = {
   passed: 'passed',
   failed: 'failed',
   timedOut: 'failed',
-  skipped: 'failed',
   interrupted: 'failed',
+  // 'skipped' intentionally absent — leaves BrowserStack session unmarked,
+  // consistent with appwright-based fixture behaviour on main where
+  // quality-gate-triggered skips never call syncTestDetails at all.
 };
 
 /**
@@ -120,13 +122,14 @@ export class BrowserStackAPI {
       const mappedStatus = BROWSERSTACK_STATUS_MAP[details.status];
       if (mappedStatus) {
         body.status = mappedStatus;
-      } else {
-        // Log warning for unknown status values and default to 'failed'
+      } else if (details.status !== 'skipped') {
+        // Log warning for truly unknown status values and default to 'failed'
         logger.warn(
           `Unknown test status "${details.status}", defaulting to "failed"`,
         );
         body.status = 'failed';
       }
+      // 'skipped' falls through without setting body.status — leaves session unmarked
     }
     if (details.reason) body.reason = details.reason;
 

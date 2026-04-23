@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -1492,17 +1489,14 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -3132,5 +3126,5 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;

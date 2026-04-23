@@ -94,7 +94,12 @@ export interface UseTokenActionsResult {
   onBuy: () => void;
   onSend: () => Promise<void>;
   onReceive: () => void;
-  goToSwaps: () => void;
+  goToSwaps: (
+    tokenOverride?: BridgeToken,
+    destTokenOverride?: BridgeToken,
+    buttonLabel?: string,
+    scrollToTopOnNav?: boolean,
+  ) => void;
   /** Sticky bar Buy handler - smart source selection, current asset as destination */
   handleBuyPress: () => void;
   /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
@@ -481,6 +486,7 @@ export const useTokenActions = ({
       buySourceToken,
       currentTokenAsBridgeToken,
       strings('asset_overview.buy_button'),
+      true,
     );
   }, [
     goToSwaps,
@@ -498,6 +504,7 @@ export const useTokenActions = ({
       currentTokenAsBridgeToken,
       undefined,
       strings('asset_overview.sell_button'),
+      true,
     );
   }, [goToSwaps, currentTokenAsBridgeToken]);
 
@@ -508,16 +515,16 @@ export const useTokenActions = ({
     if (!goToSwaps) return;
 
     if (currentTokenHasBalance) {
-      goToSwaps(currentTokenAsBridgeToken, undefined, undefined);
+      goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
       return;
     }
 
     if (buySourceToken) {
-      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined);
+      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined, true);
       return;
     }
 
-    goToSwaps(currentTokenAsBridgeToken, undefined, undefined);
+    goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
   }, [
     goToSwaps,
     currentTokenHasBalance,

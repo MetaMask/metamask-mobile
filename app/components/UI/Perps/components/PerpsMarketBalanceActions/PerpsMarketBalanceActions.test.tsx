@@ -96,6 +96,12 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsWithdrawConfirmation', () => ({
+  usePerpsWithdrawConfirmation: jest.fn(() => ({
+    withdrawWithConfirmation: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
 }));

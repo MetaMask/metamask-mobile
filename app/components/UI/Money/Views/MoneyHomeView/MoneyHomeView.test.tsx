@@ -26,20 +26,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) => {
-    const { View } = jest.requireActual('react-native');
-    return <View {...props}>{children}</View>;
-  },
-  useSafeAreaInsets: () => ({ top: 0, bottom: 34, left: 0, right: 0 }),
-}));
-
 const mockConversionTokens = [
   {
     name: 'USD Coin',

@@ -1,5 +1,5 @@
 import React, { Fragment, useRef } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { Box } from '@metamask/design-system-react-native';

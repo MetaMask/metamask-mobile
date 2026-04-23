@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
-import { Image, Linking, SafeAreaView } from 'react-native';
+import { Image, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';

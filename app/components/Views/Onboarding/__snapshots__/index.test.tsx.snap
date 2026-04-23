@@ -1,15 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Onboarding applies compact gap and medium button size on medium device 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -312,19 +304,11 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
       ]
     }
   />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -894,19 +878,11 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`Onboarding applies standard gap and large button size on non-medium device 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -1209,19 +1185,11 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
       ]
     }
   />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`Onboarding applies standard notification padding when not on iPhoneX 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -1791,19 +1759,11 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`Onboarding renders correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -2106,19 +2066,11 @@ exports[`Onboarding renders correctly 1`] = `
       ]
     }
   />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`Onboarding renders correctly with android 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -2421,19 +2373,11 @@ exports[`Onboarding renders correctly with android 1`] = `
       ]
     }
   />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -2736,19 +2680,11 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
       ]
     }
   />
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`Onboarding renders correctly with medium device and android 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -3051,5 +2987,5 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
       ]
     }
   />
-</RNCSafeAreaView>
+</View>
 `;

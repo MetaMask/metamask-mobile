@@ -56,6 +56,11 @@ const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
 export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
+
+/** UAT QA mock token URL — optional ping when `E2E_MOCK_OAUTH` + `E2E_BYOA_AUTH_SECRET` (BrowserStack perf). */
+export const E2E_QA_MOCK_OAUTH_TOKEN_URL =
+  'https://auth-service.uat-api.cx.metamask.io/api/v1/qa/mock/oauth/token';
+
 export const AUTH_SERVER_MARKETING_OPT_IN_PATH =
   '/api/v1/oauth/marketing_opt_in_status';
 

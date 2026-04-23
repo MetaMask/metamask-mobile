@@ -290,7 +290,7 @@ exports[`CollectibleModal renders correctly 1`] = `
             }
           />
         </View>
-        <RCTSafeAreaView>
+        <View>
           <View
             onLayout={[Function]}
           >
@@ -628,7 +628,7 @@ exports[`CollectibleModal renders correctly 1`] = `
               </Text>
             </View>
           </View>
-        </RCTSafeAreaView>
+        </View>
       </View>
     </View>
   </View>

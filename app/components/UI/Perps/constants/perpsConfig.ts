@@ -302,3 +302,14 @@ export function getPerpsProviderChainId(
 ): string | undefined {
   return PERPS_PROVIDER_CHAIN_IDS[provider]?.[network];
 }
+
+/** Source identifiers for PerpsConnectionManager.connect/ensureConnected/resumeFromForeground calls. */
+export const PERPS_CONNECTION_SOURCE = {
+  WALLET_ROOT_MOUNT: 'wallet_root_mount',
+  WALLET_ROOT_RETRY: 'wallet_root_retry',
+  WALLET_ROOT_FOREGROUND: 'wallet_root_foreground',
+  TUTORIAL_PRELOAD: 'tutorial_preload',
+  PERPS_FULLSCREEN_ENTRY: 'perps_fullscreen_entry',
+  PERPS_CONNECTION_PROVIDER: 'perps_connection_provider',
+  UNSPECIFIED: 'unspecified',
+} as const;
