@@ -355,9 +355,7 @@ describe('CashTokensFullView', () => {
     });
   });
 
-  it('renders CashTokensFullViewSkeleton on first render before data is marked loaded', () => {
-    // Prevent InteractionManager's callback from running so the view stays
-    // in its loading state for the duration of the render.
+  it('renders header immediately and content skeleton before InteractionManager fires', () => {
     jest.restoreAllMocks();
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
@@ -368,6 +366,7 @@ describe('CashTokensFullView', () => {
       }));
 
     renderWithProvider(<CashTokensFullView />);
+    expect(screen.getByText('Money')).toBeOnTheScreen();
     expect(
       screen.getByTestId(CashTokensFullViewSkeletonTestIds.CONTAINER),
     ).toBeOnTheScreen();

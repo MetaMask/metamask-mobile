@@ -77,15 +77,10 @@ const CashTokensFullView = () => {
 
   const hasConversionTokens = conversionTokens.length > 0;
 
-  // Loading signal: neither useMusdBalance nor useMusdConversionTokens expose
-  // an isLoading flag (they derive from synchronous Redux selectors). We mirror
-  // the Tokens component's hasInitialLoad pattern and flip loading off after
-  // the first InteractionManager tick so the Hub's dedicated skeleton shows on
-  // the first paint instead of falling through to TokenListSkeleton.
-  const [isLoading, setIsLoading] = useState(true);
+  const [isContentReady, setIsContentReady] = useState(false);
   useEffect(() => {
     const handle = InteractionManager.runAfterInteractions(() => {
-      setIsLoading(false);
+      setIsContentReady(true);
     });
     return () => handle.cancel();
   }, []);
@@ -93,7 +88,8 @@ const CashTokensFullView = () => {
   const screenViewedRef = useRef(false);
 
   useEffect(() => {
-    if (isLoading || screenViewedRef.current || !isMoneyHubEnabled) return;
+    if (!isContentReady || screenViewedRef.current || !isMoneyHubEnabled)
+      return;
     screenViewedRef.current = true;
 
     const hasConvertibleTokens = conversionTokens.length > 0;
@@ -121,11 +117,11 @@ const CashTokensFullView = () => {
         .build(),
     );
   }, [
-    isLoading,
     conversionTokens,
     createEventBuilder,
     trackEvent,
     isMoneyHubEnabled,
+    isContentReady,
   ]);
 
   const merklRefetchRef = useRef<(() => void) | null>(null);
@@ -318,10 +314,6 @@ const CashTokensFullView = () => {
     ],
   );
 
-  if (isLoading) {
-    return <CashTokensFullViewSkeleton />;
-  }
-
   return (
     <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
       <HeaderBase
@@ -338,32 +330,42 @@ const CashTokensFullView = () => {
       >
         {strings('homepage.sections.cash')}
       </HeaderBase>
-      {hasMusdBalanceOnAnyChain ? (
-        <Tokens
-          isFullView
-          showOnlyMusd
-          hideLoadingSkeleton
-          hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
-          listFooterComponent={
-            isMoneyHubEnabled ? bonusAndConvertSections : undefined
-          }
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
+      {isContentReady ? (
+        <>
+          {hasMusdBalanceOnAnyChain ? (
+            <Tokens
+              isFullView
+              showOnlyMusd
+              hideLoadingSkeleton
+              hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+              listFooterComponent={
+                isMoneyHubEnabled ? bonusAndConvertSections : undefined
+              }
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            />
+          ) : (
+            <ScrollView
+              style={tw`flex-1`}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            >
+              <SectionRow>
+                <CashGetMusdEmptyState isFullView />
+              </SectionRow>
+              {isMoneyHubEnabled ? bonusAndConvertSections : undefined}
+            </ScrollView>
+          )}
+        </>
       ) : (
-        <ScrollView
-          style={tw`flex-1`}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          <SectionRow>
-            <CashGetMusdEmptyState isFullView />
-          </SectionRow>
-          {isMoneyHubEnabled ? bonusAndConvertSections : undefined}
-        </ScrollView>
+        <CashTokensFullViewSkeleton
+          hasMusdBalance={hasMusdBalanceOnAnyChain}
+          isMoneyHubEnabled={isMoneyHubEnabled}
+          conversionTokenCount={conversionTokens.length}
+        />
       )}
       {isMoneyHubEnabled &&
         (hasConversionTokens ? (
