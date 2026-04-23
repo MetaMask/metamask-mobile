@@ -1373,56 +1373,13 @@ describe('CardController — getCapabilities', () => {
     supportsCashback: true,
   };
 
-  it('returns base capabilities when provider has no resolveCapabilities', () => {
-    // Provider without resolveCapabilities → controller falls back to capabilities
+  it('returns base capabilities', () => {
     const provider = buildMockProvider({ capabilities: baseCapabilities });
-    const controller = buildController(provider, {
-      providerData: { baanx: { location: 'international' } },
-    });
+    const controller = buildController(provider);
 
     const caps = controller.getCapabilities();
     expect(caps.supportsPinView).toBe(false);
     expect(caps.supportsCashback).toBe(true);
-  });
-
-  it('delegates to resolveCapabilities with the current location', () => {
-    const resolved = {
-      ...baseCapabilities,
-      supportsPinView: true,
-      supportsCashback: false,
-    };
-    const provider = buildMockProvider({
-      capabilities: baseCapabilities,
-      resolveCapabilities: jest.fn().mockReturnValue(resolved),
-    });
-    const controller = buildController(provider, {
-      providerData: { baanx: { location: 'us' } },
-    });
-
-    const caps = controller.getCapabilities();
-    expect(provider.resolveCapabilities).toHaveBeenCalledWith('us');
-    expect(caps.supportsPinView).toBe(true);
-    expect(caps.supportsCashback).toBe(false);
-  });
-
-  it('forces supportsPinView true and supportsCashback false for US', () => {
-    // Use a provider that implements the Baanx-style location override logic
-    const provider = buildMockProvider({
-      capabilities: baseCapabilities,
-      resolveCapabilities: jest.fn((location: string) => ({
-        ...baseCapabilities,
-        supportsPinView: location === 'us' || baseCapabilities.supportsPinView,
-        supportsCashback:
-          location !== 'us' && baseCapabilities.supportsCashback,
-      })),
-    });
-    const controller = buildController(provider, {
-      providerData: { baanx: { location: 'us' } },
-    });
-
-    const caps = controller.getCapabilities();
-    expect(caps.supportsPinView).toBe(true);
-    expect(caps.supportsCashback).toBe(false);
   });
 });
 

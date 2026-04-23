@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import Settings, {
   RAMP_SETTINGS_BACK_BUTTON_TEST_ID,
   RAMP_SETTINGS_HEADER_TEST_ID,
+  RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID,
 } from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
 import { RampSDK, withRampSDK } from '../../sdk';
@@ -420,6 +421,45 @@ describe('Settings', () => {
       });
       fireEvent.press(removeActivationKeyButton);
       expect(mockRemoveActivationKey).toHaveBeenCalledWith('testKey1');
+    });
+  });
+
+  describe('Headless Playground entry', () => {
+    it('does not render the entry button when not an internal build', () => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: false,
+      };
+      render(Settings);
+      expect(
+        screen.queryByTestId(RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the entry button when on an internal build', () => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: true,
+      };
+      render(Settings);
+      expect(
+        screen.getByTestId(RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to the headless playground when the entry button is pressed', () => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: true,
+      };
+      render(Settings);
+      const entryButton = screen.getByTestId(
+        RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID,
+      );
+      fireEvent.press(entryButton);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.HEADLESS_PLAYGROUND,
+      );
     });
   });
 });

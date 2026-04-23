@@ -5,6 +5,11 @@ description: Create a GitHub pull request from the current branch. Validates pre
 
 # PR Create
 
+The canonical Definition of Ready For Review lives at
+[`docs/readme/ready-for-review.md`](../../../docs/readme/ready-for-review.md).
+This skill always opens PRs as draft. A PR is never considered ready for review
+at the moment it is created.
+
 ## Workflow
 
 ### 1. Precondition checks
@@ -65,7 +70,11 @@ Identify code owners and their Slack handles for the changed files (see `pr-code
 ### 4. Output
 
 - Print the PR URL
-- Provide a Slack review request message in a fenced code block for easy copy
+- Provide a Slack review request message in a fenced code block for easy copy.
+  The PR was created as draft, so instruct the user to post this message only
+  once the PR meets the canonical Definition of Ready For Review in
+  [`docs/readme/ready-for-review.md`](../../../docs/readme/ready-for-review.md)
+  and has been moved out of draft.
 
 If code owners were found:
 
@@ -84,7 +93,7 @@ PR ready for review: <PR title>
 <one-line summary of what changed>
 ```
 
-Tell the user they can paste it in `#metamask-mobile-dev` in the "Mobile PRs that need review" thread of the day.
+Tell the user they can paste it in `#metamask-mobile-dev` in the "Mobile PRs that need review" thread of the day **after** the PR is undrafted and meets the Definition of Ready For Review.
 
 ### 5. Offer to add PR to review queue
 
@@ -92,7 +101,8 @@ Use the `AskQuestion` tool to ask whether to add the PR to the [PR review queue]
 
 ## Rules
 
-- Always create as **draft** per repo guidelines ("Submit as Draft initially for CI")
+- Always create as **draft**. A PR is only ready for review once it meets the canonical Definition of Ready For Review in [`docs/readme/ready-for-review.md`](../../../docs/readme/ready-for-review.md).
 - Always assign to `@me`
 - Target `main` branch
 - Team label is handled automatically by CI (`add-team-label.yml`) on PR open
+- Never mark the PR as ready for review as part of this skill, even if the user asks; that is an explicit author-side decision tied to the Definition of Ready For Review.
