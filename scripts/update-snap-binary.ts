@@ -33,6 +33,11 @@ function parseArgs(): { snapName: string; version: string } {
   const snapName = nameVersion.slice(0, atIndex);
   const version = nameVersion.slice(atIndex + 1);
 
+  if (!/^[a-z0-9-]+$/i.test(snapName)) {
+    console.error(`Invalid snap name: ${snapName}. Only alphanumeric and hyphens allowed.`);
+    process.exit(1);
+  }
+
   if (!valid(version)) {
     console.error(`Invalid semver version: ${version}`);
     process.exit(1);
@@ -76,10 +81,13 @@ async function downloadSnapBinary(
   deleteOldSnapFiles(snapName);
 
   const buffer = Buffer.from(await response.arrayBuffer());
-  const binaryPath = join(
-    SNAP_BINARIES_DIR,
-    `${snapName}@${version}.txt`,
-  );
+  const binaryPath = resolve(SNAP_BINARIES_DIR, `${snapName}@${version}.txt`);
+  const headersPath = resolve(SNAP_BINARIES_DIR, `${snapName}@${version}-headers.json`);
+
+  if (!binaryPath.startsWith(SNAP_BINARIES_DIR) || !headersPath.startsWith(SNAP_BINARIES_DIR)) {
+    throw new Error('Resolved path escapes target directory');
+  }
+
   writeFileSync(binaryPath, buffer);
   console.log(`Saved binary: ${basename(binaryPath)}`);
 
@@ -90,10 +98,6 @@ async function downloadSnapBinary(
       headers[headerName] = value;
     }
   }
-  const headersPath = join(
-    SNAP_BINARIES_DIR,
-    `${snapName}@${version}-headers.json`,
-  );
   writeFileSync(headersPath, JSON.stringify(headers, null, 2));
   console.log(`Saved headers: ${basename(headersPath)}`);
 }
