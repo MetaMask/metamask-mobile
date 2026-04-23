@@ -306,7 +306,6 @@ export interface RootStackParamList extends ParamListBase {
   HardwareWalletSearchingForDevicePreview: undefined;
   ConnectQRHardwareFlow: undefined;
   ConnectLedgerFlow: undefined;
-  LedgerDiscoveryFlow: undefined;
   LedgerConnect: undefined;
   HardwareWalletDiscoveryFlow:
     | {

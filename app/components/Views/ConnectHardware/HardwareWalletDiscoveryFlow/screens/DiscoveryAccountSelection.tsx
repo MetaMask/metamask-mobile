@@ -37,7 +37,7 @@ import { getConnectedDevicesCount } from '../../../../../core/HardwareWallets/an
 import { createAdapter } from '../../../../../core/HardwareWallet/adapters/factory';
 import createStyles from '../../../LedgerSelectAccount/index.styles';
 import SearchingForDevice from '../../SearchingForDevice';
-import { LedgerDiscoveryNotFoundView } from '../../LedgerDiscoveryFlow/LedgerDiscoveryNotFound';
+import DiscoveryNotFoundScreen from './DiscoveryNotFound';
 import type { DeviceUIConfig, AccountInfo, HDPathOption } from '../DiscoveryFlow.types';
 import type { DiscoveredDevice } from '../../../../../core/HardwareWallet/types';
 
@@ -340,7 +340,7 @@ const DiscoveryAccountSelectionScreen: React.FC<
   }
 
   if ((commandError || errorMsg) && accounts.length <= 0) {
-    return <LedgerDiscoveryNotFoundView onBack={onBack} />;
+    return <DiscoveryNotFoundScreen config={config} onBack={onBack} />;
   }
 
   return (

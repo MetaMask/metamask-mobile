@@ -89,7 +89,6 @@ const Routes = {
     SEARCHING_FOR_DEVICE_PREVIEW: 'HardwareWalletSearchingForDevicePreview',
     CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
     CONNECT_LEDGER: 'ConnectLedgerFlow',
-    LEDGER_DISCOVERY: 'LedgerDiscoveryFlow',
     LEDGER_CONNECT: 'LedgerConnect',
     HARDWARE_WALLET_DISCOVERY: 'HardwareWalletDiscoveryFlow',
   },

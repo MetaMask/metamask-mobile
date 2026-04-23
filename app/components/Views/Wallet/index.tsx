@@ -1197,10 +1197,6 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  const navigateToLedgerDiscovery = useCallback(() => {
-    navigate(Routes.HW.LEDGER_DISCOVERY);
-  }, [navigate]);
-
   const defiEnabled =
     isNetworkEnabledForDefi &&
     !enabledNetworksHasTestNet &&
