@@ -306,6 +306,7 @@ const Routes = {
       MARKET_CLOSED_MODAL: 'MarketClosedModal',
       NETWORK_LIST_MODAL: 'NetworkListModal',
       PRICE_IMPACT_MODAL: 'PriceImpactModal',
+      MISSING_PRICE_MODAL: 'MissingPriceModal',
       TOKEN_WARNING_MODAL: 'TokenWarningModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',

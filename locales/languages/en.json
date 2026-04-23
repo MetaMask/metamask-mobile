@@ -5451,7 +5451,7 @@
     "more_gas_to_complete": "more for gas to complete this swap.",
     "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "Check your rate before proceeding",
-    "market_price_unavailable": "Market price is unavailable and price impact is therefore unknown. Please verify that you are comfortable with the amount of tokens you will receive before swapping.",
+    "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "Price difference of {{amount}}",
     "price_difference_title": "Price difference",
     "price_difference_body": "The difference in market prices can be affected by fees taken by intermediaries, size of market, size of trade, or market inefficiencies.",

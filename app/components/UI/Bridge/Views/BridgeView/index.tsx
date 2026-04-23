@@ -14,7 +14,11 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import { useStyles } from '../../../../../component-library/hooks';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Box,
+} from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -100,6 +104,7 @@ import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index
 import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
+import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -549,6 +554,15 @@ const BridgeView = () => {
                   );
                 })()
               : null}
+
+            {contentMode === 'quote' && hasMissingPriceData(activeQuote) ? (
+              <BannerAlert
+                severity={BannerAlertSeverity.Danger}
+                title={strings('swaps.market_price_unavailable_title')}
+                description={strings('swaps.market_price_unavailable')}
+                testID={BridgeViewSelectorsIDs.MISSING_PRICE_BANNER}
+              />
+            ) : null}
           </Box>
 
           <Box

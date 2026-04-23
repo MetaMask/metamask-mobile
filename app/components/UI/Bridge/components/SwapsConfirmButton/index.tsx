@@ -34,6 +34,7 @@ import {
   exceedsPriceImpactErrorThreshold,
   parsePriceImpact,
 } from '../../utils/getPriceImpactViewData';
+import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 
@@ -166,6 +167,16 @@ export const SwapsConfirmButton = ({
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params,
+      });
+      return;
+    }
+
+    if (hasMissingPriceData(activeQuote)) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: {
+          location,
+        },
       });
       return;
     }
