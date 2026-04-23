@@ -225,7 +225,11 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     this.#scanSubscription = new Observable(TransportBLE.listen).subscribe({
       next: (event: {
         type: string;
-        descriptor: { id: string; name: string };
+        descriptor: {
+          id: string;
+          name: string;
+          serviceUUIDs?: string[] | null;
+        };
       }) => {
         DevLogger.log(
           '[LedgerBluetoothAdapter] BLE event:',
@@ -238,6 +242,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           const discoveredDev: DiscoveredDevice = {
             id: event.descriptor.id,
             name: event.descriptor.name || 'Unknown Device',
+            serviceUUIDs: event.descriptor.serviceUUIDs ?? undefined,
           };
           DevLogger.log(
             '[LedgerBluetoothAdapter] Found device:',
@@ -334,7 +339,14 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   onTransportStateChange(callback: (isAvailable: boolean) => void): () => void {
     this.#transportStateCallbacks.add(callback);
 
-    callback(this.#isBluetoothOn);
+    // Only fire immediately if we've already received the real OS BLE state.
+    // If not yet received, the callback will be invoked from #notifyTransportStateChange
+    // once TransportBLE.observeState fires. Calling back with the uninitialized
+    // default (false) before the real state arrives would falsely trigger the
+    // "Bluetooth off" screen even when BT is actually on.
+    if (this.#hasReceivedInitialBleState) {
+      callback(this.#isBluetoothOn);
+    }
 
     return () => {
       this.#transportStateCallbacks.delete(callback);

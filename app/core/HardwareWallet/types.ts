@@ -158,6 +158,11 @@ export interface DiscoveredDevice {
   id: string;
   /** Device name (e.g., 'Nano X 1234') */
   name: string;
+  /**
+   * BLE service UUIDs advertised by the device.
+   * Used to identify the Ledger model (Nano X, Flex, etc.).
+   */
+  serviceUUIDs?: string[];
   /** Device-specific metadata (rssi for BLE, etc.) */
   metadata?: Record<string, unknown>;
 }

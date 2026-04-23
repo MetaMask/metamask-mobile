@@ -485,7 +485,10 @@
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
-    "select_hardware": "Select a hardware wallet you'd like to use"
+    "select_hardware": "Select a hardware wallet you'd like to use",
+    "other_qr_wallet": "Other QR wallet",
+    "preview_loading_screen": "Preview loading screen",
+    "preview_ledger_discovery": "Preview Ledger discovery flow"
   },
   "enter_password": {
     "title": "Enter your password",
@@ -6005,9 +6008,11 @@
     "unlock_ledger_device": "Unlock your Ledger device",
     "cannot_get_account": "Cannot get account",
     "connect_ledger": "Connect Ledger",
-    "looking_for_device": "Looking for device",
+    "looking_for_device": "Looking for your device",
     "device_found": "Ledger device found",
-    "wait_while_we_search_for_it": "Wait while we search for it...",
+    "wait_while_we_search_for_it": "Hold on while we search for it...",
+    "select_device": "Select device",
+    "save_device_selection": "Save",
     "enable_bluetooth": "Enable Bluetooth",
     "install_and_open_eth_app": "Install and open the Ethereum app",
     "ledger_reminder_message": "Please make sure your Ledger device is:",
@@ -6064,7 +6069,22 @@
     "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one.",
     "hd_path_error": "HD Path is invalid: {{path}}",
     "unspecified_error_during_connect": "Unspecified error when connect Ledger Hardware,",
-    "account_name_existed": "Account {{accountName}} already exists"
+    "account_name_existed": "Account {{accountName}} already exists",
+    "unresponsive": "Ledger is unresponsive",
+    "unresponsive_message": "Please disconnect and reconnect your device",
+    "ethereum_app_closed": "Ethereum app is closed",
+    "ethereum_app_closed_message": "Please open it on your Ledger device to continue",
+    "ledger_locked_message_continue": "Please unlock your Ledger device to continue",
+    "bluetooth_access_denied": "Bluetooth access denied",
+    "bluetooth_access_denied_message": "Enable Bluetooth in your device settings to connect your Ledger device",
+    "location_access_denied": "Location access denied",
+    "location_access_denied_message": "Enable location permissions in your device settings to connect your Ledger device",
+    "nearby_devices_denied": "Permissions to nearby devices denied",
+    "nearby_devices_denied_message": "Enable access to nearby devices in Settings to connect your Ledger device",
+    "bluetooth_turned_off": "Bluetooth is turned off",
+    "bluetooth_turned_off_message": "Enable Bluetooth in your device settings to connect your Ledger device",
+    "bluetooth_connection_failed_reconnect": "Make sure your device is nearby, then try reconnecting",
+    "not_now": "Not now"
   },
   "account_actions": {
     "add_wallet": "Add a wallet",

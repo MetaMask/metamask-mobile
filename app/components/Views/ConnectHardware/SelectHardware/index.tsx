@@ -4,6 +4,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Icon,
   IconName,
@@ -14,13 +17,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { ReactNode, useEffect } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../../component-library/components-temp/TitleStandard';
@@ -35,48 +33,22 @@ import LedgerLogo from '../../../../images/hardware-ledger-logo.svg';
 import KeystoneLogo from '../../../../images/hardware-keystone-logo.svg';
 import oneKeyLogo from '../../../../images/hardware-onekey-logo.png';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyle = (colors: any) =>
-  StyleSheet.create({
-    screen: { justifyContent: 'center' },
-    container: {
-      flex: 1,
-      justifyContent: 'center',
-    },
-    contentContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      paddingHorizontal: 16,
-      gap: 16,
-    },
-    buttonsContainer: {
-      width: '100%',
-      flexDirection: 'row',
-      gap: 12,
-    },
-    image: {
-      width: 150,
-      height: 75,
-    },
-    hardwareButton: {
-      height: 125,
-      flex: 1,
-      borderRadius: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.background.section,
-    },
-    button: {
-      width: '100%',
-    },
-    previewButton: {
-      width: '100%',
-    },
-    subtitle: {
-      marginTop: 4,
-    },
-  });
+const styles = StyleSheet.create({
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    gap: 16,
+  },
+  buttonsContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  previewButton: {
+    width: '100%',
+  },
+});
 interface HardwareOption {
   title: string;
   onPress: () => Promise<void>;
@@ -192,7 +164,7 @@ const SelectHardwareWallet = () => {
       ),
     },
     {
-      title: 'Other QR wallet',
+      title: strings('connect_hardware.other_qr_wallet'),
       onPress: () => navigateToConnectQRWallet({ hideMarketingContent: true }),
       testID: SelectHardwareTestIds.OTHER_QR_BUTTON,
       leadingIcon: renderIconTile(
@@ -253,8 +225,7 @@ const SelectHardwareWallet = () => {
       />
       <View style={styles.contentContainer}>
         <View style={styles.buttonsContainer}>
-          <LedgerButton />
-          <QRButton />
+          {hardwareOptions.map(renderHardwareButton)}
         </View>
         <View style={styles.previewButton}>
           <Button
@@ -264,7 +235,7 @@ const SelectHardwareWallet = () => {
             onPress={navigateToSearchingPreview}
             testID="hw-device-preview-button"
           >
-            Preview loading screen
+            {strings('connect_hardware.preview_loading_screen')}
           </Button>
         </View>
         <View style={styles.previewButton}>
@@ -275,7 +246,7 @@ const SelectHardwareWallet = () => {
             onPress={navigateToDiscoveryPreview}
             testID="hw-ledger-discovery-preview-button"
           >
-            Preview Ledger discovery flow
+            {strings('connect_hardware.preview_ledger_discovery')}
           </Button>
         </View>
       </View>

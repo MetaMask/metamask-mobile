@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   StackActions,
   useNavigation,
@@ -14,7 +15,7 @@ import {
 import { useDispatch } from 'react-redux';
 import { KeyringController } from '@metamask/keyring-controller';
 import { AccountsController } from '@metamask/accounts-controller';
-import type { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
+import type { DiscoveredDevice } from '../../../../core/HardwareWallet/types';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Engine from '../../../../core/Engine';
 import AccountSelector from '../../../UI/HardwareWallet/AccountSelector';
@@ -39,7 +40,8 @@ import { setReloadAccounts } from '../../../../actions/accounts';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
 import PAGINATION_OPERATIONS from '../../../../constants/pagination';
 import { ledgerDeviceUUIDToModelName } from '../../../../util/hardwareWallet/deviceNameUtils';
-import useLedgerBluetooth from '../../../hooks/Ledger/useLedgerBluetooth';
+import { LedgerBluetoothAdapter } from '../../../../core/HardwareWallet/adapters/LedgerBluetoothAdapter';
+import { DeviceEvent } from '@metamask/hw-wallet-sdk';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_BIP44_STRING,
@@ -74,7 +76,7 @@ interface OptionType {
 
 interface LedgerDiscoveryAccountSelectionProps {
   onBack: () => void;
-  selectedDevice: LedgerDevice;
+  selectedDevice: DiscoveredDevice;
 }
 
 const LedgerDiscoveryAccountSelection = ({
@@ -95,11 +97,10 @@ const LedgerDiscoveryAccountSelection = ({
   );
 
   const ledgerModelName = useMemo(() => {
-    if (selectedDevice) {
-      const [bluetoothServiceId] = selectedDevice.serviceUUIDs;
-      return ledgerDeviceUUIDToModelName(bluetoothServiceId);
-    }
-    return undefined;
+    const [bluetoothServiceId] = selectedDevice.serviceUUIDs ?? [];
+    return bluetoothServiceId
+      ? ledgerDeviceUUIDToModelName(bluetoothServiceId)
+      : undefined;
   }, [selectedDevice]);
 
   const ledgerPathOptions: OptionType[] = useMemo(
@@ -123,17 +124,52 @@ const LedgerDiscoveryAccountSelection = ({
     [],
   );
 
-  const {
-    isSendingLedgerCommands,
-    isAppLaunchConfirmationNeeded,
-    ledgerLogicToRun,
-    error: ledgerError,
-  } = useLedgerBluetooth(selectedDevice?.id);
+  const [isSendingLedgerCommands, setIsSendingLedgerCommands] =
+    useState(false);
+  const [ledgerError, setLedgerError] = useState<Error | null>(null);
+  const adapterRef = useRef<LedgerBluetoothAdapter | null>(null);
+  // Incremented only when the user explicitly changes the HD path, so the
+  // re-fetch effect fires on user intent rather than on accounts state changes.
+  const [pathChangeCount, setPathChangeCount] = useState(0);
 
-  const ledgerLogicToRunRef = useRef(ledgerLogicToRun);
+  // Create adapter for this device
   useEffect(() => {
-    ledgerLogicToRunRef.current = ledgerLogicToRun;
-  }, [ledgerLogicToRun]);
+    const adapter = new LedgerBluetoothAdapter({
+      onDisconnect: () => undefined,
+      onDeviceEvent: (payload) => {
+        if (payload.event === DeviceEvent.AppOpened) {
+          setIsSendingLedgerCommands(false);
+        }
+      },
+    });
+    adapterRef.current = adapter;
+
+    return () => {
+      adapter.destroy();
+      adapterRef.current = null;
+    };
+  }, []);
+
+  const ledgerLogicToRun = useCallback(
+    async (logic: () => Promise<void>) => {
+      const adapter = adapterRef.current;
+      if (!adapter || !selectedDevice?.id) return;
+
+      setIsSendingLedgerCommands(true);
+      try {
+        await adapter.connect(selectedDevice.id);
+        const ready = await adapter.ensureDeviceReady(selectedDevice.id);
+        if (ready) {
+          await logic();
+        }
+      } catch (error) {
+        setLedgerError(error as Error);
+      } finally {
+        setIsSendingLedgerCommands(false);
+      }
+    },
+    [selectedDevice?.id],
+  );
 
   const keyringController = useMemo(() => {
     const { KeyringController: controller } = Engine.context as {
@@ -192,12 +228,14 @@ const LedgerDiscoveryAccountSelection = ({
 
   const onConnectHardware = useCallback(async () => {
     setErrorMsg(null);
-    const initialAccounts = await getLedgerAccountsByOperation(
-      PAGINATION_OPERATIONS.GET_FIRST_PAGE,
-    );
-    setAccounts(initialAccounts);
+    await ledgerLogicToRun(async () => {
+      const initialAccounts = await getLedgerAccountsByOperation(
+        PAGINATION_OPERATIONS.GET_FIRST_PAGE,
+      );
+      setAccounts(initialAccounts);
+    });
     setHasLoadedAccounts(true);
-  }, []);
+  }, [ledgerLogicToRun]);
 
   useEffect(() => {
     onConnectHardware().catch((error: Error) => {
@@ -206,26 +244,29 @@ const LedgerDiscoveryAccountSelection = ({
     });
   }, [onConnectHardware]);
 
+  // Re-fetch page 1 when the user explicitly changes the HD path.
+  // pathChangeCount starts at 0 and is only incremented by onSelectedPathChanged,
+  // preventing spurious re-fetches caused by accounts state updates.
   useEffect(() => {
-    if (accounts.length > 0 && selectedOption) {
-      setBlockingModalVisible(true);
-
-      ledgerLogicToRunRef
-        .current(async () => {
-          try {
-            const refreshedAccounts = await getLedgerAccountsByOperation(
-              PAGINATION_OPERATIONS.GET_FIRST_PAGE,
-            );
-            setAccounts(refreshedAccounts);
-          } catch (error) {
-            setErrorMsg(getDisplayErrorMessage((error as Error).message));
-          }
-        })
-        .finally(() => {
-          setBlockingModalVisible(false);
-        });
+    if (pathChangeCount === 0) {
+      return;
     }
-  }, [accounts.length, selectedOption]);
+
+    setBlockingModalVisible(true);
+
+    ledgerLogicToRun(async () => {
+      try {
+        const refreshedAccounts = await getLedgerAccountsByOperation(
+          PAGINATION_OPERATIONS.GET_FIRST_PAGE,
+        );
+        setAccounts(refreshedAccounts);
+      } catch (error) {
+        setErrorMsg(getDisplayErrorMessage((error as Error).message));
+      }
+    }).finally(() => {
+      setBlockingModalVisible(false);
+    });
+  }, [pathChangeCount, ledgerLogicToRun]);
 
   const nextPage = useCallback(async () => {
     setBlockingModalVisible(true);
@@ -385,13 +426,11 @@ const LedgerDiscoveryAccountSelection = ({
     }
 
     if (forgetDevice) {
-      await onForget();
-      setBlockingModalVisible(false);
       setForgetDevice(false);
+      await onForget();
     } else if (unlockAccounts.trigger) {
-      await onUnlock(unlockAccounts.accountIndexes);
-      setBlockingModalVisible(false);
       setUnlockAccounts({ trigger: false, accountIndexes: [] });
+      await onUnlock(unlockAccounts.accountIndexes);
     }
   }, [
     blockingModalVisible,
@@ -413,6 +452,7 @@ const LedgerDiscoveryAccountSelection = ({
 
       setSelectedOption(option);
       await setHDPath(path);
+      setPathChangeCount((prev) => prev + 1);
     },
     [ledgerPathOptions],
   );
@@ -427,7 +467,7 @@ const LedgerDiscoveryAccountSelection = ({
 
   return (
     <>
-      <View style={styles.container}>
+      <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
         <View style={styles.header}>
           <Image
             source={ledgerThemedImage}
@@ -477,11 +517,11 @@ const LedgerDiscoveryAccountSelection = ({
             setBlockingModalVisible(true);
           }}
         />
-      </View>
+      </SafeAreaView>
       <BlockingActionModal
         modalVisible={blockingModalVisible}
         isLoadingAction={
-          isSendingLedgerCommands || isAppLaunchConfirmationNeeded
+          isSendingLedgerCommands
         }
         onAnimationCompleted={onAnimationCompleted}
       >
