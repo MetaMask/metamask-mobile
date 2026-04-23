@@ -30,7 +30,7 @@ export async function connectWithWC({
       '[wc][connectWithWC] rejected wc connection due to internal channelId',
       { channelId: params.channelId },
     );
-    return;
+    throw new Error('External transactions cannot use internal origins');
   }
 
   try {

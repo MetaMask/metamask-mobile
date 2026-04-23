@@ -64,14 +64,14 @@ const sendTransaction = async ({
 }: {
   caip2ChainId: CaipChainId;
   requestEvent: WalletKitTypes.SessionRequest;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  methodParams: any;
+  methodParams: unknown[];
   unverifiedOrigin: string;
   host: RoutingHostContext;
 }): Promise<void> => {
+  const txParams = methodParams[0] as Record<string, unknown>;
   try {
     const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
-    const trx = await addTransaction(methodParams[0], {
+    const trx = await addTransaction(txParams, {
       deviceConfirmedOn: WalletDevice.MM_MOBILE,
       networkClientId,
       origin: unverifiedOrigin,
@@ -85,10 +85,10 @@ const sendTransaction = async ({
       origin: unverifiedOrigin,
       params: [
         {
-          from: methodParams[0].from,
-          to: methodParams[0].to,
-          value: methodParams[0]?.value,
-          data: methodParams[0]?.data,
+          from: txParams.from,
+          to: txParams.to,
+          value: txParams.value,
+          data: txParams.data,
         },
       ],
     };

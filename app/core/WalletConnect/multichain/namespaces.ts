@@ -1,5 +1,6 @@
 import { KnownCaipNamespace } from '@metamask/utils';
 
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { getAdapter, getAllAdapters } from './registry';
 import type { NamespaceConfig, ProposalLike } from './types';
 
@@ -95,7 +96,11 @@ export const buildApprovedNamespaces = async ({
       } catch (err) {
         // Side-effect errors must not block namespace building — if the
         // adapter still returns a valid NamespaceConfig the session can
-        // proceed. We swallow silently here; adapters should log internally.
+        // proceed.
+        DevLogger.log(
+          `[wc][multichain] onBeforeApprove failed for ${adapter.namespace}`,
+          err,
+        );
       }
     }
   }
