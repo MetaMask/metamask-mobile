@@ -226,6 +226,46 @@ describe('CardAuthentication Component', () => {
       });
     });
 
+    it('clears oauth and mutation state when pressing log in after a prior error', async () => {
+      mockUseCardOAuth2Authentication.mockReturnValue({
+        login: mockOAuthLogin,
+        loading: false,
+        isReady: true,
+        error: 'OAuth redirect failed',
+        clearError: mockOAuthClearError,
+      });
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          initiate: {
+            mutateAsync: mockInitiateMutateAsync,
+            isPending: false,
+            error: new Error('prior initiate'),
+            reset: mockInitiateReset,
+          },
+          submit: {
+            mutateAsync: mockSubmitMutateAsync,
+            isPending: false,
+            error: new Error('submit failed'),
+            reset: mockSubmitReset,
+          },
+        } as Record<string, unknown>),
+      );
+
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockOAuthClearError).toHaveBeenCalled();
+        expect(mockInitiateReset).toHaveBeenCalled();
+        expect(mockSubmitReset).toHaveBeenCalled();
+        expect(mockInitiateMutateAsync).toHaveBeenCalled();
+        expect(mockOAuthLogin).toHaveBeenCalled();
+      });
+    });
+
     it('clears oauth errors and resets mutations when changing location', () => {
       render();
 

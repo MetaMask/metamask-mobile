@@ -92,6 +92,10 @@ const CardAuthentication = () => {
   }, [trackEvent, createEventBuilder]);
 
   const performOAuthLogin = useCallback(async () => {
+    oauth.clearError();
+    initiate.reset();
+    submit.reset();
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
@@ -137,12 +141,10 @@ const CardAuthentication = () => {
     dispatch,
     trackEvent,
     createEventBuilder,
+    submit,
   ]);
 
-  const isLoginDisabled = useMemo(
-    () => !!displayError || !oauth.isReady,
-    [displayError, oauth.isReady],
-  );
+  const isLoginDisabled = useMemo(() => !oauth.isReady, [oauth.isReady]);
 
   const title = strings('card.card_authentication.title');
   const description = strings('card.card_authentication.oauth_description');
