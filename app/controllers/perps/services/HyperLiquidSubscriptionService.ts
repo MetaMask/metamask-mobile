@@ -1153,8 +1153,21 @@ export class HyperLiquidSubscriptionService {
         (event: SpotStateWsEvent) => {
           try {
             if (event.user.toLowerCase() !== userAddress.toLowerCase()) {
+              this.#deps.debugLogger.log(
+                '[TAT-3016] spotState push ignored (user mismatch)',
+                { eventUser: event.user, subscribedUser: userAddress },
+              );
               return;
             }
+            const balances = event.spotState?.balances ?? [];
+            const usdc = balances.find((b) => b.coin === 'USDC');
+            this.#deps.debugLogger.log('[TAT-3016] spotState push received', {
+              user: event.user,
+              balanceCount: balances.length,
+              usdcTotal: usdc?.total,
+              usdcHold: usdc?.hold,
+              dexAccountCacheSize: this.#dexAccountCache.size,
+            });
             // Bump generation so any in-flight REST #refreshSpotState drops
             // its result instead of overwriting our fresh WS snapshot.
             this.#spotStateGeneration += 1;
@@ -1168,6 +1181,10 @@ export class HyperLiquidSubscriptionService {
             // if we skip here.
             if (this.#dexAccountCache.size > 0) {
               this.#aggregateAndNotifySubscribers();
+            } else {
+              this.#deps.debugLogger.log(
+                '[TAT-3016] spotState push deferred: no perps data in #dexAccountCache yet',
+              );
             }
           } catch (error) {
             this.#logErrorUnlessClearing(
@@ -2015,6 +2032,15 @@ export class HyperLiquidSubscriptionService {
     const aggregatedOrders = [...mainDexOrders, ...hip3DexOrders];
 
     const aggregatedAccount = this.#aggregateAccountStates();
+
+    this.#deps.debugLogger.log('[TAT-3016] aggregated account post-notify', {
+      availableBalance: aggregatedAccount.availableBalance,
+      availableToTradeBalance: aggregatedAccount.availableToTradeBalance,
+      totalBalance: aggregatedAccount.totalBalance,
+      marginUsed: aggregatedAccount.marginUsed,
+      dexCount: this.#dexAccountCache.size,
+      spotCached: Boolean(this.#cachedSpotState),
+    });
 
     // Check if aggregated data changed using fast hash comparison
     const positionsHash = this.#hashPositions(aggregatedPositions);

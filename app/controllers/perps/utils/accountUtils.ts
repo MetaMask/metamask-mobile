@@ -4,6 +4,7 @@
  */
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
+import { DevLogger } from '../../../core/SDKConnect/utils/DevLogger';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
 import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
@@ -115,26 +116,81 @@ export function getSpotBalance(
   );
 }
 
+/**
+ * Sum of `hold` across SPOT_COLLATERAL_COINS balances.
+ *
+ * HyperLiquid Unified / Portfolio Margin accounts track margin reservations
+ * for open positions and open orders in the spot clearinghouse state's
+ * `hold` field. Subtracting this from the spot total yields the portion of
+ * spot collateral that is still free to back a new trade.
+ *
+ * @param spotState - Spot clearinghouse state payload (REST or pushed via spotState WS).
+ * @returns Total `hold` across allowlisted collateral coins, or 0 if payload is empty.
+ */
+export function getSpotHold(
+  spotState?: SpotClearinghouseStateResponse | null,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (sum: number, balance: { coin?: string; hold?: string }) => {
+      if (!balance.coin || !SPOT_COLLATERAL_COINS.has(balance.coin)) {
+        return sum;
+      }
+      const value = parseFloat(balance.hold ?? '0');
+      return Number.isFinite(value) ? sum + value : sum;
+    },
+    0,
+  );
+}
+
 export function addSpotBalanceToAccountState(
   accountState: AccountState,
   spotState?: SpotClearinghouseStateResponse | null,
 ): AccountState {
   const spotBalance = getSpotBalance(spotState);
-
-  if (spotBalance === 0) {
-    return accountState;
-  }
+  const spotHold = getSpotHold(spotState);
+  const freeSpot = Math.max(0, spotBalance - spotHold);
 
   const currentTotal = parseFloat(accountState.totalBalance);
+  const currentAvailable = parseFloat(accountState.availableBalance);
+
+  DevLogger.log('[TAT-3016] addSpotBalanceToAccountState', {
+    spotBalance,
+    spotHold,
+    freeSpot,
+    currentTotal,
+    currentAvailable,
+  });
+
   if (!Number.isFinite(currentTotal)) {
     // totalBalance is a non-numeric sentinel (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--').
     // Adding spot would yield 'NaN' — leave the sentinel intact for the UI to render.
     return accountState;
   }
 
+  if (spotBalance === 0) {
+    // No spot collateral held. availableToTradeBalance defaults to the
+    // existing availableBalance (withdrawable) so the order-entry path has
+    // a concrete value to gate on and fall back from.
+    return {
+      ...accountState,
+      availableToTradeBalance: Number.isFinite(currentAvailable)
+        ? currentAvailable.toString()
+        : accountState.availableBalance,
+    };
+  }
+
+  const availableToTrade = Number.isFinite(currentAvailable)
+    ? (currentAvailable + freeSpot).toString()
+    : freeSpot.toString();
+
   return {
     ...accountState,
     totalBalance: (currentTotal + spotBalance).toString(),
+    availableToTradeBalance: availableToTrade,
   };
 }
 
@@ -162,10 +218,25 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
     if (index === 0) {
       return { ...state };
     }
+    const accAvailableToTrade = parseFloat(
+      acc.availableToTradeBalance ?? acc.availableBalance,
+    );
+    const stateAvailableToTrade = parseFloat(
+      state.availableToTradeBalance ?? state.availableBalance,
+    );
+    const availableToTradeSum =
+      Number.isFinite(accAvailableToTrade) &&
+      Number.isFinite(stateAvailableToTrade)
+        ? (accAvailableToTrade + stateAvailableToTrade).toString()
+        : undefined;
+
     return {
       availableBalance: (
         parseFloat(acc.availableBalance) + parseFloat(state.availableBalance)
       ).toString(),
+      ...(availableToTradeSum !== undefined && {
+        availableToTradeBalance: availableToTradeSum,
+      }),
       totalBalance: (
         parseFloat(acc.totalBalance) + parseFloat(state.totalBalance)
       ).toString(),
