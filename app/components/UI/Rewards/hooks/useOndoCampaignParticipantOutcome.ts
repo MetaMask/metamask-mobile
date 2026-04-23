@@ -41,6 +41,7 @@ export function useOndoCampaignParticipantOutcome(
       );
       setOutcome(result);
     } catch {
+      setOutcome(null);
       setHasError(true);
     } finally {
       setIsLoading(false);
