@@ -147,7 +147,6 @@ export function useCardOAuth2Authentication(
         return null;
       }
 
-      Logger.log('OAuth2 result', result.params);
       const { code } = result.params;
       const codeVerifier = request.codeVerifier;
 
