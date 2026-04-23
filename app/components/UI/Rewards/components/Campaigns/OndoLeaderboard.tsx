@@ -23,6 +23,7 @@ import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/contro
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import CrownIcon from '../../../../../images/rewards/crown.svg';
 import { PendingTag } from './CampaignStatsSummary';
 import {
   formatRateOfReturn,
@@ -76,7 +77,8 @@ interface CampaignLeaderboardProps {
 const LeaderboardEntryRow: React.FC<{
   entry: CampaignLeaderboardEntry;
   isCurrentUser?: boolean;
-}> = ({ entry, isCurrentUser = false }) => {
+  showCrown?: boolean;
+}> = ({ entry, isCurrentUser = false, showCrown = false }) => {
   const isPositiveReturn = entry.rateOfReturn >= 0;
   const textColor = isCurrentUser
     ? isPositiveReturn
@@ -106,15 +108,20 @@ const LeaderboardEntryRow: React.FC<{
         twClassName="gap-3"
       >
         <Text variant={TextVariant.BodyMd} color={textColor} twClassName="w-8">
-          {String(entry.rank).padStart(2, '0')}.
+          {String(entry.rank).padStart(2, '0')}
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={textColor}
-        >
-          {entry.referralCode}
-        </Text>
+        <Box twClassName="flex-row items-center gap-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={textColor}
+          >
+            {entry.referralCode}
+          </Text>
+          {showCrown && entry.rank <= 5 && (
+            <CrownIcon name="crown" width={14} height={14} />
+          )}
+        </Box>
         {isCurrentUser && isPending && (
           <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
         )}
@@ -206,6 +213,8 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
 }) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const isPreview = maxEntries != null;
 
   const effectiveMaxEntries =
     maxEntries != null && maxEntries <= MAX_ENTRIES_LIMIT
@@ -344,42 +353,13 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
               {selectedTierLabel}
             </Text>
             <Icon
-              name={IconName.SwapVertical}
+              name={IconName.ArrowDown}
               size={IconSize.Sm}
               color={IconColor.IconAlternative}
             />
           </Box>
         </Pressable>
       ) : null}
-
-      {/* Error banner when has error but no data to display */}
-      {hasError && !isLoading && entries.length === 0 && (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            twClassName="flex-1"
-          >
-            {strings('rewards.ondo_campaign_leaderboard.error_loading')}
-          </Text>
-          {onRetry && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              fontWeight={FontWeight.Medium}
-              onPress={onRetry}
-              twClassName="ml-2"
-            >
-              {strings('rewards.ondo_campaign_leaderboard.retry')}
-            </Text>
-          )}
-        </Box>
-      )}
 
       {/* Leaderboard list */}
       {visibleEntries.length > 0 ? (
@@ -389,6 +369,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
               key={`${entry.rank}-${entry.referralCode}`}
               entry={entry}
               isCurrentUser={isCurrentUser(entry)}
+              showCrown={!isPreview}
             />
           ))}
           {showSplitView && userPosition && (
@@ -399,6 +380,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
                   key={`neighbor-${entry.rank}-${entry.referralCode}`}
                   entry={entry}
                   isCurrentUser={isCurrentUser(entry)}
+                  showCrown={!isPreview}
                 />
               ))}
             </>

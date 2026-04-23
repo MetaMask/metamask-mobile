@@ -136,7 +136,7 @@ const MoneyConvertStablecoins = ({
 
   return (
     <Box testID={MoneyConvertStablecoinsTestIds.CONTAINER}>
-      <Box twClassName="px-4">
+      <Box twClassName="px-4 pt-3">
         {!hasTokens && (
           <Box
             twClassName="mb-4"

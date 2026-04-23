@@ -173,6 +173,7 @@ const BridgeView = () => {
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location = route.params?.location;
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -593,6 +594,7 @@ const BridgeView = () => {
         <BridgeViewFooter
           location={location}
           latestSourceBalance={latestSourceBalance}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         <SwapsKeypad
@@ -606,6 +608,7 @@ const BridgeView = () => {
             <SwapsConfirmButton
               location={location}
               latestSourceBalance={latestSourceBalance}
+              transactionActiveAbTests={transactionActiveAbTests}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
             />
           ) : (

@@ -23,12 +23,21 @@ export const ONDO_PRIZE_POOL_TEST_IDS = {
   ERROR_BANNER: 'ondo-prize-pool-error-banner',
 } as const;
 
-const BREAKPOINTS = [
+export const BREAKPOINTS = [
   { deposit: 0, prize: 25_000 },
   { deposit: 1_500_000, prize: 50_000 },
   { deposit: 3_500_000, prize: 75_000 },
   { deposit: 6_000_000, prize: 100_000 },
 ] as const;
+
+export function getCurrentPrize(totalDeposited: number): number {
+  for (let i = BREAKPOINTS.length - 1; i >= 0; i--) {
+    if (totalDeposited >= BREAKPOINTS[i].deposit) {
+      return BREAKPOINTS[i].prize;
+    }
+  }
+  return BREAKPOINTS[0].prize;
+}
 
 function computeProgress(totalDeposited: number) {
   let currentIndex = 0;

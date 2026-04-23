@@ -795,6 +795,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "SocialController": {
         "followingAddresses": [],
+        "followingProfileIds": [],
         "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
@@ -1614,6 +1615,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "SocialController": {
         "followingAddresses": [],
+        "followingProfileIds": [],
         "leaderboardEntries": [],
       },
       "SubjectMetadataController": {

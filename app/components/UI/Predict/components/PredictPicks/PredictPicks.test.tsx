@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import PredictPicks from './PredictPicks';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import {
   PredictMarketStatus,
   PredictPositionStatus,
@@ -12,15 +11,11 @@ import {
   type PredictMarketGame,
 } from '../../types';
 import { formatPrice } from '../../utils/format';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../constants/eventNames';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
+  useNavigation: () => ({ navigate: jest.fn() }),
 }));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -44,7 +39,12 @@ jest.mock('../PredictPositionDetail', () => {
     ),
   };
 });
-jest.mock('../../hooks/usePredictActionGuard');
+
+const mockOnCashOut = jest.fn();
+jest.mock('../../hooks/usePredictCashOut', () => ({
+  usePredictCashOut: () => ({ onCashOut: mockOnCashOut }),
+}));
+
 jest.mock('../../hooks/usePredictLivePositions', () => ({
   usePredictLivePositions: jest.fn((positions: unknown[]) => ({
     livePositions: positions ?? [],
@@ -55,10 +55,6 @@ jest.mock('../../hooks/usePredictLivePositions', () => ({
 jest.mock('../../utils/format');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
-const mockUsePredictActionGuard = usePredictActionGuard as jest.MockedFunction<
-  typeof usePredictActionGuard
->;
 const mockFormatPrice = formatPrice as jest.MockedFunction<typeof formatPrice>;
 
 const createMockMarket = (
@@ -162,16 +158,9 @@ const createMockPosition = (
 });
 
 describe('PredictPicks', () => {
-  const mockExecuteGuardedAction = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockClear();
     mockUseSelector.mockReturnValue([]);
-    mockUsePredictActionGuard.mockReturnValue({
-      executeGuardedAction: mockExecuteGuardedAction,
-      isEligible: true,
-    });
     mockFormatPrice.mockImplementation(
       (value: number | string, _options?: { maximumDecimals?: number }) => {
         const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -466,7 +455,7 @@ describe('PredictPicks', () => {
   });
 
   describe('cash out functionality', () => {
-    it('calls executeGuardedAction when Cash Out button is pressed', () => {
+    it('calls onCashOut with position when Cash Out button is pressed', () => {
       const position = createMockPosition({ id: 'pos-1', claimable: false });
 
       render(
@@ -480,131 +469,25 @@ describe('PredictPicks', () => {
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
 
-      expect(mockExecuteGuardedAction).toHaveBeenCalledTimes(1);
+      expect(mockOnCashOut).toHaveBeenCalledWith(position);
     });
 
-    it('passes CASHOUT as attemptedAction option to executeGuardedAction', () => {
-      const position = createMockPosition({ id: 'pos-1', claimable: false });
+    it('calls onCashOut with correct position when multiple positions exist', () => {
+      const position1 = createMockPosition({ id: 'pos-1', claimable: false });
+      const position2 = createMockPosition({ id: 'pos-2', claimable: false });
 
       render(
         <PredictPicks
           market={createMockMarket()}
-          positions={[position]}
+          positions={[position1, position2]}
           claimablePositions={[]}
         />,
       );
       fireEvent.press(
-        screen.getByTestId('predict-picks-cash-out-button-pos-1'),
+        screen.getByTestId('predict-picks-cash-out-button-pos-2'),
       );
 
-      expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
-        expect.any(Function),
-        { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
-      );
-    });
-
-    it('navigates to SELL_PREVIEW when guarded action callback executes', () => {
-      const market = createMockMarket();
-      const position = createMockPosition({
-        id: 'pos-1',
-        outcomeId: 'outcome-1',
-        claimable: false,
-      });
-      mockExecuteGuardedAction.mockImplementation((callback) => callback());
-
-      render(
-        <PredictPicks
-          market={market}
-          positions={[position]}
-          claimablePositions={[]}
-        />,
-      );
-      fireEvent.press(
-        screen.getByTestId('predict-picks-cash-out-button-pos-1'),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        expect.objectContaining({
-          market,
-          position,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        }),
-      );
-    });
-
-    it('finds correct outcome from market.outcomes by position.outcomeId', () => {
-      const market = createMockMarket();
-      const position = createMockPosition({
-        id: 'pos-1',
-        outcomeId: 'outcome-2',
-        claimable: false,
-      });
-      mockExecuteGuardedAction.mockImplementation((callback) => callback());
-
-      render(
-        <PredictPicks
-          market={market}
-          positions={[position]}
-          claimablePositions={[]}
-        />,
-      );
-      fireEvent.press(
-        screen.getByTestId('predict-picks-cash-out-button-pos-1'),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        expect.objectContaining({
-          outcome: market.outcomes[1],
-        }),
-      );
-    });
-
-    it('passes undefined outcome when outcomeId not found in market.outcomes', () => {
-      const market = createMockMarket();
-      const position = createMockPosition({
-        id: 'pos-1',
-        outcomeId: 'non-existent-outcome',
-        claimable: false,
-      });
-      mockExecuteGuardedAction.mockImplementation((callback) => callback());
-
-      render(
-        <PredictPicks
-          market={market}
-          positions={[position]}
-          claimablePositions={[]}
-        />,
-      );
-      fireEvent.press(
-        screen.getByTestId('predict-picks-cash-out-button-pos-1'),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        expect.objectContaining({
-          outcome: undefined,
-        }),
-      );
-    });
-
-    it('calls usePredictActionGuard with navigation only', () => {
-      const market = createMockMarket({ providerId: 'custom-provider' });
-
-      render(
-        <PredictPicks
-          market={market}
-          positions={[createMockPosition()]}
-          claimablePositions={[]}
-        />,
-      );
-
-      expect(mockUsePredictActionGuard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          navigation: expect.any(Object),
-        }),
-      );
+      expect(mockOnCashOut).toHaveBeenCalledWith(position2);
     });
   });
 

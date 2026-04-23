@@ -1,5 +1,8 @@
 import { createPlatformAdapter } from './platform-adapter';
-import type { SegmentClient } from '@segment/analytics-react-native';
+import {
+  type SegmentClient,
+  DestinationPlugin,
+} from '@segment/analytics-react-native';
 import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
 
 // Mock Logger (not in global setup)
@@ -31,7 +34,6 @@ jest.mock('../../../../util/analytics/SegmentPersistor', () => ({
   },
 }));
 
-// Segment client is already mocked in testSetup.js via @segment/analytics-react-native
 interface GlobalWithSegmentClient {
   segmentMockClient: SegmentClient;
 }
@@ -138,6 +140,24 @@ describe('createPlatformAdapter', () => {
       expect(segmentMockClient.add).toHaveBeenCalledWith({
         plugin: expect.any(Object),
       });
+    });
+  });
+
+  describe('segmentPlugins parameter', () => {
+    it('adds provided plugins to the Segment client', () => {
+      const mockPlugin = new DestinationPlugin();
+
+      createPlatformAdapter([mockPlugin]);
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
+      expect(segmentMockClient.add).toHaveBeenCalledWith({
+        plugin: mockPlugin,
+      });
+    });
+
+    it('does not throw when no plugins are provided', () => {
+      expect(() => createPlatformAdapter()).not.toThrow();
     });
   });
 

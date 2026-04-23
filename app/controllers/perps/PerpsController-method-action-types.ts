@@ -306,6 +306,9 @@ export type PerpsControllerGetPositionsAction = {
  * Thin delegation to MarketDataService
  *
  * @param params - The operation parameters.
+ * @param options - Optional call modifiers.
+ * @param options.forceRefresh - Bypass the request-coalesce cache
+ * end-to-end (user-initiated refresh).
  * @returns Array of historical trade executions (fills).
  */
 export type PerpsControllerGetOrderFillsAction = {
@@ -318,6 +321,9 @@ export type PerpsControllerGetOrderFillsAction = {
  * Thin delegation to MarketDataService
  *
  * @param params - The operation parameters.
+ * @param options - Optional call modifiers.
+ * @param options.forceRefresh - Bypass the request-coalesce cache
+ * end-to-end (user-initiated refresh).
  * @returns Array of historical orders.
  */
 export type PerpsControllerGetOrdersAction = {
@@ -345,6 +351,9 @@ export type PerpsControllerGetOpenOrdersAction = {
  * Thin delegation to MarketDataService
  *
  * @param params - The operation parameters.
+ * @param options - Optional call modifiers.
+ * @param options.forceRefresh - Bypass the request-coalesce cache
+ * end-to-end (user-initiated refresh).
  * @returns Array of historical funding payments.
  */
 export type PerpsControllerGetFundingAction = {

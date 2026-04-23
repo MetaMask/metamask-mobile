@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import OndoPrizePool, { ONDO_PRIZE_POOL_TEST_IDS } from './OndoPrizePool';
+import OndoPrizePool, {
+  ONDO_PRIZE_POOL_TEST_IDS,
+  getCurrentPrize,
+} from './OndoPrizePool';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -213,5 +216,42 @@ describe('OndoPrizePool', () => {
       getByTestId(`${ONDO_PRIZE_POOL_TEST_IDS.ERROR_BANNER}-retry`),
     );
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getCurrentPrize', () => {
+  it('returns $25,000 for $0 deposits', () => {
+    expect(getCurrentPrize(0)).toBe(25_000);
+  });
+
+  it('returns $25,000 for deposits below $1.5M', () => {
+    expect(getCurrentPrize(500_000)).toBe(25_000);
+    expect(getCurrentPrize(1_499_999)).toBe(25_000);
+  });
+
+  it('returns $50,000 at exactly $1.5M', () => {
+    expect(getCurrentPrize(1_500_000)).toBe(50_000);
+  });
+
+  it('returns $50,000 for deposits between $1.5M and $3.5M', () => {
+    expect(getCurrentPrize(2_000_000)).toBe(50_000);
+    expect(getCurrentPrize(3_499_999)).toBe(50_000);
+  });
+
+  it('returns $75,000 at exactly $3.5M', () => {
+    expect(getCurrentPrize(3_500_000)).toBe(75_000);
+  });
+
+  it('returns $75,000 for deposits between $3.5M and $6M', () => {
+    expect(getCurrentPrize(4_500_000)).toBe(75_000);
+    expect(getCurrentPrize(5_999_999)).toBe(75_000);
+  });
+
+  it('returns $100,000 at exactly $6M', () => {
+    expect(getCurrentPrize(6_000_000)).toBe(100_000);
+  });
+
+  it('returns $100,000 for deposits above $6M', () => {
+    expect(getCurrentPrize(10_000_000)).toBe(100_000);
   });
 });

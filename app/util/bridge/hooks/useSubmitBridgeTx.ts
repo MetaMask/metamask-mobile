@@ -7,6 +7,7 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
+import { selectAbTestContext } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
   NUMPAD_QUICK_ACTIONS_AB_KEY,
@@ -22,9 +23,27 @@ import {
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
 import { useMemo } from 'react';
 
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../transactions/transaction-active-ab-test-attribution-registry';
+
+function mergeTransactionActiveAbTests(
+  ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
+): TransactionActiveAbTestEntry[] | undefined {
+  const merged: TransactionActiveAbTestEntry[] = [];
+  for (const group of groups) {
+    if (group?.length) {
+      merged.push(...group);
+    }
+  }
+  return merged.length > 0 ? merged : undefined;
+}
+
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const abTestContext = useSelector(selectAbTestContext);
   const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
     useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
   const {
@@ -42,6 +61,12 @@ export default function useSubmitBridgeTx() {
     STICKY_FOOTER_SWAP_LABEL_VARIANTS,
   );
 
+  const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
+    ? {
+        assetsASSETS2493AbtestTokenDetailsLayout:
+          abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
+      }
+    : undefined;
   const activeAbTests = useMemo(() => {
     const tests: { key: string; value: string }[] = [];
 
@@ -79,36 +104,48 @@ export default function useSubmitBridgeTx() {
   const submitBridgeTx = async ({
     quoteResponse,
     location,
+    transactionActiveAbTests: transactionActiveAbTestsFromRoute,
   }: {
     quoteResponse: QuoteResponse & QuoteMetadata;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
+    /** Route-carried tests (e.g. homepage trending sections) merged at submit time */
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   }) => {
     if (!walletAddress) {
       throw new Error('Wallet address is not set');
     }
 
-    // check whether quoteResponse is an intent transaction
-    if (quoteResponse.quote.intent) {
-      return Engine.context.BridgeStatusController.submitIntent({
-        quoteResponse,
-        accountAddress: walletAddress,
-        location,
-        abTests: undefined,
-        activeAbTests,
-      });
-    }
-    return Engine.context.BridgeStatusController.submitTx(
-      walletAddress,
-      {
-        ...quoteResponse,
-        approval: quoteResponse.approval ?? undefined,
-      },
-      stxEnabled,
-      undefined, // quotesReceivedContext
-      location,
-      undefined, // abTests
+    const mergedActiveAbTests = mergeTransactionActiveAbTests(
       activeAbTests,
+      transactionActiveAbTestsFromRoute,
+    );
+    return await withPendingTransactionActiveAbTests(
+      mergedActiveAbTests,
+      async () => {
+        // check whether quoteResponse is an intent transaction
+        if (quoteResponse.quote.intent) {
+          return await Engine.context.BridgeStatusController.submitIntent({
+            quoteResponse,
+            accountAddress: walletAddress,
+            location,
+            abTests,
+            activeAbTests: mergedActiveAbTests,
+          });
+        }
+        return await Engine.context.BridgeStatusController.submitTx(
+          walletAddress,
+          {
+            ...quoteResponse,
+            approval: quoteResponse.approval ?? undefined,
+          },
+          stxEnabled,
+          undefined, // quotesReceivedContext
+          location,
+          abTests,
+          mergedActiveAbTests,
+        );
+      },
     );
   };
 

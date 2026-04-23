@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   StackActions,
@@ -20,7 +20,10 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { selectCampaignById } from '../../../../reducers/rewards/selectors';
@@ -88,6 +91,14 @@ const CampaignTourStepView: React.FC = () => {
 
   const renderTabBar = useCallback(() => <View />, []);
 
+  const nextButtonLabel = useMemo(
+    () =>
+      isLastStep
+        ? strings('rewards.onboarding.step_finish')
+        : strings('rewards.onboarding.step_confirm'),
+    [isLastStep],
+  );
+
   useEffect(() => {
     if (!tour?.length) {
       navigateToDetails();
@@ -103,7 +114,8 @@ const CampaignTourStepView: React.FC = () => {
       twClassName="flex-1 bg-default"
       style={{ paddingTop: safeAreaInsets.top }}
     >
-      <Box twClassName="items-center pt-4 pb-2">
+      {/* Progress Dots */}
+      <Box twClassName="flex-row justify-center items-center py-6 px-4">
         <ProgressIndicator
           totalSteps={tour.length}
           currentStep={currentTab + 1}
@@ -111,6 +123,7 @@ const CampaignTourStepView: React.FC = () => {
         />
       </Box>
 
+      {/* Tutorial Content */}
       <Box twClassName="flex-1">
         <ScrollableTabView
           ref={scrollableTabViewRef}
@@ -126,34 +139,39 @@ const CampaignTourStepView: React.FC = () => {
         </ScrollableTabView>
       </Box>
 
-      <Box
-        twClassName="px-4 gap-2 pb-2"
-        style={{ paddingBottom: safeAreaInsets.bottom }}
-      >
-        {showNext && (
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            onPress={handleNext}
-            twClassName="w-full"
-            testID={CAMPAIGN_TOUR_STEP_TEST_IDS.NEXT_BUTTON}
+      {/* Footer */}
+      <Box twClassName="px-4" style={{ paddingBottom: safeAreaInsets.bottom }}>
+        <Box twClassName="mb-4 gap-4">
+          {showNext && (
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              onPress={handleNext}
+              twClassName="w-full"
+              testID={CAMPAIGN_TOUR_STEP_TEST_IDS.NEXT_BUTTON}
+            >
+              {nextButtonLabel}
+            </Button>
+          )}
+          <Box
+            twClassName="self-center px-4"
+            style={tw.style(!showSkip && 'opacity-0')}
           >
-            {strings('rewards.onboarding.step_confirm')}
-          </Button>
-        )}
-        {showSkip && (
-          <Button
-            variant={ButtonVariant.Tertiary}
-            size={ButtonSize.Lg}
-            onPress={navigateToDetails}
-            twClassName="w-full bg-gray-500 border-gray-500"
-            testID={CAMPAIGN_TOUR_STEP_TEST_IDS.SKIP_BUTTON}
-          >
-            <Text twClassName="text-text-default">
-              {strings('rewards.onboarding.step_skip')}
-            </Text>
-          </Button>
-        )}
+            <TouchableOpacity
+              onPress={navigateToDetails}
+              disabled={!showSkip}
+              testID={CAMPAIGN_TOUR_STEP_TEST_IDS.SKIP_BUTTON}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('rewards.onboarding.step_skip')}
+              </Text>
+            </TouchableOpacity>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

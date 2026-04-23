@@ -6,6 +6,8 @@ import OndoLeaderboardView, {
 import { useSelector } from 'react-redux';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
+import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 
 const mockGoBack = jest.fn();
@@ -99,6 +101,8 @@ jest.mock('../components/Campaigns/OndoLeaderboard.utils', () => ({
 
 jest.mock('../hooks/useGetOndoLeaderboard');
 jest.mock('../hooks/useGetOndoLeaderboardPosition');
+jest.mock('../hooks/useGetOndoPortfolioPosition');
+jest.mock('../hooks/useGetOndoCampaignDeposits');
 jest.mock('../hooks/useGetCampaignParticipantStatus');
 
 const mockUseGetOndoLeaderboard = useGetOndoLeaderboard as jest.MockedFunction<
@@ -107,6 +111,14 @@ const mockUseGetOndoLeaderboard = useGetOndoLeaderboard as jest.MockedFunction<
 const mockUseGetOndoLeaderboardPosition =
   useGetOndoLeaderboardPosition as jest.MockedFunction<
     typeof useGetOndoLeaderboardPosition
+  >;
+const mockUseGetOndoPortfolioPosition =
+  useGetOndoPortfolioPosition as jest.MockedFunction<
+    typeof useGetOndoPortfolioPosition
+  >;
+const mockUseGetOndoCampaignDeposits =
+  useGetOndoCampaignDeposits as jest.MockedFunction<
+    typeof useGetOndoCampaignDeposits
   >;
 const mockUseGetCampaignParticipantStatus =
   useGetCampaignParticipantStatus as jest.MockedFunction<
@@ -179,6 +191,19 @@ describe('OndoLeaderboardView', () => {
     });
     mockUseGetOndoLeaderboard.mockReturnValue(hookDefaults);
     mockUseGetOndoLeaderboardPosition.mockReturnValue(positionDefaults);
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      portfolio: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoCampaignDeposits.mockReturnValue({
+      deposits: null,
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
   });
 
   it('renders with the correct container testID', () => {
@@ -209,8 +234,10 @@ describe('OndoLeaderboardView', () => {
       },
     });
     const { getByText } = render(<OndoLeaderboardView />);
-    expect(getByText('Rank')).toBeDefined();
-    expect(getByText('Tier')).toBeDefined();
+    expect(
+      getByText('rewards.ondo_campaign_stats.label_your_rank'),
+    ).toBeDefined();
+    expect(getByText('rewards.ondo_campaign_stats.label_tier')).toBeDefined();
   });
 
   it('calls useGetOndoLeaderboard with the campaign ID from route params', () => {

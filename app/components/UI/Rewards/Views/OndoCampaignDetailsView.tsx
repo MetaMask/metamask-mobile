@@ -5,10 +5,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
+
 import { Pressable, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -53,12 +59,11 @@ import {
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
 import {
-  ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
+  isOndoCampaignWinner,
 } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -69,6 +74,23 @@ type OndoCampaignDetailsRouteParams = {
 export const CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'campaign-details-container',
 } as const;
+
+/**
+ * Session-only guards for one-shot auto-navigation (cleared on cold start).
+ * Survives component remount within the same JS runtime so we do not bounce
+ * the user again when the screen unmounts/remounts.
+ */
+const sessionUpcomingRedirectCampaignIds = new Set<string>();
+const sessionWinningViewAutoNavCampaignIds = new Set<string>();
+
+/**
+ * Clears session auto-navigation flags. Exported for unit tests (Jest keeps one
+ * module instance across cases).
+ */
+export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
+  sessionUpcomingRedirectCampaignIds.clear();
+  sessionWinningViewAutoNavCampaignIds.clear();
+}
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
@@ -140,9 +162,14 @@ const OndoCampaignDetailsView: React.FC = () => {
   });
 
   useEffect(() => {
-    if (campaign && getCampaignStatus(campaign) === 'upcoming') {
-      navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
+    if (!campaign || getCampaignStatus(campaign) !== 'upcoming') {
+      return;
     }
+    if (sessionUpcomingRedirectCampaignIds.has(campaign.id)) {
+      return;
+    }
+    sessionUpcomingRedirectCampaignIds.add(campaign.id);
+    navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
   }, [campaign, navigation]);
 
   const isOptedIn = participantStatusData?.optedIn === true;
@@ -166,6 +193,36 @@ const OndoCampaignDetailsView: React.FC = () => {
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(
     isOptedIn && hasPositions ? effectiveCampaignId || undefined : undefined,
+  );
+
+  const isWinner = useMemo(
+    () => isOndoCampaignWinner(campaign, leaderboardPosition),
+    [campaign, leaderboardPosition],
+  );
+
+  const navigateToWinningView = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
+      campaignId: effectiveCampaignId,
+      campaignName: campaign?.name ?? '',
+    });
+  }, [navigation, effectiveCampaignId, campaign]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !campaign ||
+        getCampaignStatus(campaign) !== 'complete' ||
+        !isWinner ||
+        !effectiveCampaignId
+      ) {
+        return;
+      }
+      if (sessionWinningViewAutoNavCampaignIds.has(effectiveCampaignId)) {
+        return;
+      }
+      sessionWinningViewAutoNavCampaignIds.add(effectiveCampaignId);
+      navigateToWinningView();
+    }, [campaign, isWinner, effectiveCampaignId, navigateToWinningView]),
   );
 
   const {
@@ -317,10 +374,14 @@ const OndoCampaignDetailsView: React.FC = () => {
                 <>
                   <Box twClassName="p-4">
                     <Pressable
+                      testID="ondo-campaign-details-stats-pressable"
                       onPress={() =>
                         navigation.navigate(
                           Routes.REWARDS_ONDO_CAMPAIGN_STATS,
-                          { campaignId: effectiveCampaignId },
+                          {
+                            campaignId: effectiveCampaignId,
+                            campaignName: campaign?.name ?? '',
+                          },
                         )
                       }
                     >
@@ -352,9 +413,11 @@ const OndoCampaignDetailsView: React.FC = () => {
                         hasError: hasPortfolioError,
                         refetch: refetchPortfolio,
                       }}
-                      showHeader={false}
                       tierMinDeposit={tierMinDeposit}
                       isIneligible={notEligibleForCampaign}
+                      isWinner={isWinner}
+                      campaignName={campaign?.name ?? ''}
+                      onWinnerBannerPress={navigateToWinningView}
                     />
                   </Box>
                 </>

@@ -18,6 +18,7 @@ jest.mock('../../../../core/Engine', () => ({
     PerpsController: {
       getActiveProvider: jest.fn(),
       getActiveProviderOrNull: jest.fn(),
+      getOrderFills: jest.fn(),
     },
   },
 }));
@@ -79,7 +80,16 @@ const mockHypeFill = createMockFill({
 
 describe('usePerpsMarketFills', () => {
   let mockProvider: {
-    getOrderFills: jest.MockedFunction<() => Promise<OrderFill[]>>;
+    getOrderFills: jest.MockedFunction<
+      (
+        params?: Parameters<
+          typeof Engine.context.PerpsController.getOrderFills
+        >[0],
+        options?: Parameters<
+          typeof Engine.context.PerpsController.getOrderFills
+        >[1],
+      ) => Promise<OrderFill[]>
+    >;
   };
 
   beforeEach(() => {
@@ -95,6 +105,12 @@ describe('usePerpsMarketFills', () => {
         typeof Engine.context.PerpsController.getActiveProvider
       >,
     );
+
+    // Controller delegates to provider — matches the post-coalesce path
+    // (MarketDataService is mocked away here and covered in its own suite).
+    (
+      Engine.context.PerpsController.getOrderFills as jest.Mock
+    ).mockImplementation((params) => mockProvider.getOrderFills(params));
 
     // Default WebSocket mock - not loading, empty fills
     mockUsePerpsLiveFills.mockReturnValue({

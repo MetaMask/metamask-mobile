@@ -54,6 +54,7 @@ export enum DeepLinkRoute {
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   NFT = 'nft',
+  MMC_MWP = 'mmc-mwp',
   INVALID = 'invalid',
 }
 

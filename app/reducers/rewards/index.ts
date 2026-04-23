@@ -133,7 +133,7 @@ export interface RewardsState {
   campaignsError: boolean;
   campaignsHasLoaded: boolean;
 
-  // Campaign participant status (keyed by campaignId)
+  // Campaign participant status (keyed by `${subscriptionId}:${campaignId}`)
   campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
 
   // Version guard state
@@ -554,12 +554,13 @@ const rewardsSlice = createSlice({
     setCampaignParticipantStatus: (
       state,
       action: PayloadAction<{
+        subscriptionId: string;
         campaignId: string;
         status: CampaignParticipantStatusDto;
       }>,
     ) => {
-      state.campaignParticipantStatuses[action.payload.campaignId] =
-        action.payload.status;
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      state.campaignParticipantStatuses[key] = action.payload.status;
     },
 
     // Version guard reducers

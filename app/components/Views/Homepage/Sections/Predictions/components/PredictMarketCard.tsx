@@ -18,9 +18,11 @@ import type {
   PredictOutcome,
 } from '../../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../../UI/Predict/types/navigation';
+import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface PredictMarketCardProps {
   market: PredictMarket;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const MAX_OUTCOMES_DISPLAYED = 2;
@@ -83,16 +85,22 @@ const OutcomeRow: React.FC<{
  * Compact prediction market card for homepage carousel.
  * Shows title and top 2 outcomes with prices.
  */
-const PredictMarketCard: React.FC<PredictMarketCardProps> = ({ market }) => {
+const PredictMarketCard: React.FC<PredictMarketCardProps> = ({
+  market,
+  transactionActiveAbTests,
+}) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
-      params: { marketId: market.id },
+      params: {
+        marketId: market.id,
+        ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
+      },
     });
-  }, [navigation, market.id]);
+  }, [navigation, market.id, transactionActiveAbTests]);
 
   // Get top outcomes to display
   const displayOutcomes = useMemo(() => {

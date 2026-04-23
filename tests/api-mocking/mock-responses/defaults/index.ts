@@ -30,6 +30,7 @@ import { PERPS_HYPERLIQUID_MOCKS } from './perps-hyperliquid.ts';
 import { TRENDING_API_MOCKS } from '../trending-api-mocks.ts';
 import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.ts';
 import { DIGEST_API_MOCKS } from './digest-api.ts';
+import { MONEY_ACCOUNT_MOCKS } from './money-account.ts';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -57,6 +58,7 @@ export const DEFAULT_MOCKS = {
     ...(CONTENTFUL_BANNERS_MOCKS.GET || []),
     ...(TRENDING_API_MOCKS.GET || []),
     ...(DIGEST_API_MOCKS.GET || []),
+    ...(MONEY_ACCOUNT_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
       urlEndpoint: 'https://chainid.network/chains.json',

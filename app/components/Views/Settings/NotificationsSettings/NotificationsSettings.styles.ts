@@ -5,9 +5,11 @@ import { Theme } from '../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
+      flex: 1,
       paddingLeft: 16,
       paddingRight: 16,
       paddingBottom: 48,
+      backgroundColor: params.theme.colors.background.default,
     },
     line: {
       borderTopWidth: 1,
