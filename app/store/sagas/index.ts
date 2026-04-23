@@ -262,14 +262,15 @@ export function* handleDeeplinkSaga() {
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
-        // setTimeout with 0ms yields one macrotask so any in-flight navigation
-        // event can flush before we show the interstitial modal. Previously
-        // 200ms — dropped because the real delay was unnecessary.
-        setTimeout(() => {
+        // requestAnimationFrame ensures React Native has committed at least one
+        // render frame before we navigate. This gives the post-login navigation
+        // stack time to mount so the navigator that owns the target route is
+        // ready to receive the deeplink navigate call.
+        requestAnimationFrame(() => {
           SharedDeeplinkManager.parse(url.href, {
             origin: storedSource,
           });
-        }, 0);
+        });
         AppStateEventProcessor.clearPendingDeeplink();
         continue;
       }
@@ -289,14 +290,16 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
-      // setTimeout with 0ms yields one macrotask so any in-flight navigation
-      // event can flush before we show the interstitial modal. Previously
-      // 200ms — dropped because the real delay was unnecessary.
-      setTimeout(() => {
+      // requestAnimationFrame ensures React Native has committed at least one
+      // render frame before we navigate. This gives the post-login navigation
+      // stack time to mount so the navigator that owns the target route is
+      // ready to receive the deeplink navigate call. Previously setTimeout(200)
+      // then setTimeout(0) — rAF is both faster and correct here.
+      requestAnimationFrame(() => {
         SharedDeeplinkManager.parse(deeplink, {
           origin: deeplinkSource,
         });
-      }, 0);
+      });
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }
