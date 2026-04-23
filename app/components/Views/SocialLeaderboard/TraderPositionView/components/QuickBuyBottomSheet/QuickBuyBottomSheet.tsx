@@ -149,6 +149,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   return (
     <BottomSheet
       ref={bottomSheetRef}
+      shouldNavigateBack={false}
       isInteractable={!isSubmittingTx}
       onClose={onClose}
     >

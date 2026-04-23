@@ -1,6 +1,5 @@
 import React from 'react';
-import { InteractionManager } from 'react-native';
-import { screen } from '@testing-library/react-native';
+import { act, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { Position } from '@metamask/social-controllers';
 import QuickBuyBottomSheet from './QuickBuyBottomSheet';
@@ -19,6 +18,11 @@ jest.mock('./useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
+// Captures the onOpenBottomSheet callback registered by QuickBuyBottomSheetInner.
+// Call storedOnOpenCallback() inside act() after render to simulate the sheet
+// finishing its open animation and make isContentReady become true.
+let storedOnOpenCallback: (() => void) | undefined;
+
 // Render children directly so inner component content is visible
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -36,13 +40,19 @@ jest.mock('@metamask/design-system-react-native', () => {
           children: unknown;
           onClose?: () => void;
         },
-        _ref: unknown,
-      ) =>
-        ReactMock.createElement(
+        ref: unknown,
+      ) => {
+        ReactMock.useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: (cb: () => void) => {
+            storedOnOpenCallback = cb;
+          },
+        }));
+        return ReactMock.createElement(
           View,
           { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
           children,
-        ),
+        );
+      },
     ),
   };
 });
@@ -175,15 +185,7 @@ const createPosition = (overrides: Partial<Position> = {}): Position =>
 describe('QuickBuyBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // The shell defers content mount behind InteractionManager.runAfterInteractions;
-    // the global test setup stubs it as a no-op, so run the callback synchronously
-    // here to make the content observable.
-    (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
-      (cb: () => void) => {
-        cb();
-        return { cancel: jest.fn() };
-      },
-    );
+    storedOnOpenCallback = undefined;
     (useQuickBuyBottomSheet as jest.Mock).mockReturnValue(buildHookResult());
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
@@ -238,10 +240,6 @@ describe('QuickBuyBottomSheet', () => {
     });
 
     it('renders the skeleton body before deferred content becomes ready', () => {
-      (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
-        () => ({ cancel: jest.fn() }),
-      );
-
       renderWithProvider(
         <QuickBuyBottomSheet
           isVisible
@@ -250,6 +248,7 @@ describe('QuickBuyBottomSheet', () => {
         />,
       );
 
+      // storedOnOpenCallback is not called — isContentReady stays false
       expect(screen.getByTestId('mock-header')).toBeOnTheScreen();
       expect(screen.getByTestId('mock-skeleton')).toBeOnTheScreen();
       expect(screen.queryByTestId('mock-amount-input')).not.toBeOnTheScreen();
@@ -268,6 +267,9 @@ describe('QuickBuyBottomSheet', () => {
           onClose={jest.fn()}
         />,
       );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
 
       expect(
         screen.getByText('social_leaderboard.quick_buy.unsupported_chain'),
@@ -288,6 +290,9 @@ describe('QuickBuyBottomSheet', () => {
           onClose={jest.fn()}
         />,
       );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
 
       expect(screen.getByTestId('mock-amount-input')).toBeOnTheScreen();
       expect(screen.getByTestId('mock-footer')).toBeOnTheScreen();

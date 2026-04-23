@@ -365,19 +365,12 @@ export function useQuickBuyBottomSheet(
     (isQuoteLoading && !activeQuote && hasCompleteQuoteInputs);
 
   const getButtonLabel = useCallback(() => {
-    if (isSetupLoading) return strings('social_leaderboard.quick_buy.loading');
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (hasSufficientGas === false) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     if (hasError) return strings('social_leaderboard.quick_buy.unavailable');
     return strings('social_leaderboard.trader_position.buy');
-  }, [
-    isSetupLoading,
-    hasInsufficientBalance,
-    hasSufficientGas,
-    isSubmittingTx,
-    hasError,
-  ]);
+  }, [hasInsufficientBalance, hasSufficientGas, isSubmittingTx, hasError]);
 
   return {
     hiddenInputRef,
