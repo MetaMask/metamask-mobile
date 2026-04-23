@@ -138,7 +138,11 @@ export const handleEvmRequest = async ({
       ? requestEvent.params.request.params[0].chainId
       : getChainIdForCaipChainId(requestEvent.params.chainId as CaipChainId);
     caip2ChainId = `eip155:${parseInt(hexChainId, 16)}` as CaipChainId;
-  } catch {
+  } catch (err) {
+    DevLogger.log(
+      `WC::handleEvmRequest chain ID parsing failed for chainId=${requestEvent.params.chainId}`,
+      err,
+    );
     host.setHandlingRequest(false);
     await host.respondSessionError(
       requestEvent.id,
@@ -182,7 +186,11 @@ export const handleEvmRequest = async ({
         id: requestEvent.id + '',
         result: true,
       });
-    } catch {
+    } catch (err) {
+      DevLogger.log(
+        `WC::handleEvmRequest switchToChain failed for chainId=${caip2ChainId}`,
+        err,
+      );
       host.setHandlingRequest(false);
       await host.respondSessionError(
         requestEvent.id,
