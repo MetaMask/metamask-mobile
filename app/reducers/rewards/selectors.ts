@@ -301,7 +301,7 @@ export const selectOndoCampaignParticipantOutcomeById =
   (subscriptionId: string | undefined, campaignId: string | undefined) =>
   (state: RootState) =>
     subscriptionId && campaignId
-      ? (state.rewards.ondoCampaignParticipantOutcome[
+      ? (state.rewards.ondoCampaignParticipantOutcome?.[
           `${subscriptionId}:${campaignId}`
         ] ?? null)
       : null;
@@ -311,9 +311,9 @@ export const selectIsCampaignOutcomeToastDismissed =
   (state: RootState) =>
     !subscriptionId || !campaignId
       ? true
-      : state.rewards.dismissedCampaignOutcomeToasts[
+      : (state.rewards.dismissedCampaignOutcomeToasts?.[
           `${subscriptionId}:${campaignId}`
-        ] === true;
+        ] === true);
 
 export const selectPendingDeeplink = (state: RootState) =>
   state.rewards.pendingDeeplink;
