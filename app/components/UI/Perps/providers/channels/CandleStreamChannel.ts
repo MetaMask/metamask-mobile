@@ -5,6 +5,7 @@ import {
   calculateCandleCount,
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
+  isAbortError,
   type CandleData,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -29,6 +30,15 @@ abstract class StreamChannel<T> {
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscriptions = new Map<string, () => void>();
   protected isPaused = false;
+  readonly #onDataPersist?: () => void;
+
+  constructor(onDataPersist?: () => void) {
+    this.#onDataPersist = onDataPersist;
+  }
+
+  protected triggerPersist(): void {
+    this.#onDataPersist?.();
+  }
 
   protected notifySubscribers(cacheKey: string, updates: T) {
     if (this.isPaused) {
@@ -108,6 +118,12 @@ abstract class StreamChannel<T> {
 export class CandleStreamChannel extends StreamChannel<CandleData> {
   // Timer handles for deferred connect so they can be cancelled on disconnect
   private deferConnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  // Timer handles for deferred WS teardown; a resubscribe inside the window
+  // cancels the teardown instead of churning the connection.
+  private pendingTeardownTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
   private connectRetryCounts = new Map<string, number>();
   private static readonly MAX_CONNECT_RETRIES = 50;
   private readonly getIsInitialized: () => boolean;
@@ -117,16 +133,34 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Injected to avoid circular dependency:
    * CandleStreamChannel → PerpsConnectionManager → PerpsStreamManager → CandleStreamChannel
    */
-  constructor(getIsInitialized: () => boolean) {
-    super();
+  constructor(getIsInitialized: () => boolean, onDataPersist?: () => void) {
+    super(onDataPersist);
     this.getIsInitialized = getIsInitialized;
   }
 
   public override clearCache(): void {
     this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
     this.deferConnectTimers.clear();
+    this.pendingTeardownTimers.forEach((timer) => clearTimeout(timer));
+    this.pendingTeardownTimers.clear();
     this.connectRetryCounts.clear();
     super.clearCache();
+  }
+
+  /**
+   * Cancel a pending deferred teardown for a cacheKey if one is scheduled.
+   * Called when a new subscriber arrives for a cacheKey whose WS is still
+   * alive in the teardown window — avoids unsubscribe/resubscribe churn
+   * during rapid market switching.
+   */
+  private cancelPendingTeardown(cacheKey: string): boolean {
+    const timer = this.pendingTeardownTimers.get(cacheKey);
+    if (!timer) {
+      return false;
+    }
+    clearTimeout(timer);
+    this.pendingTeardownTimers.delete(cacheKey);
+    return true;
   }
 
   /**
@@ -205,6 +239,16 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     };
     this.subscribers.set(id, subscription);
 
+    // A pending teardown for this cacheKey means the WS is still alive from
+    // the previous subscriber — cancel the scheduled disconnect and reuse it.
+    const cancelled = this.cancelPendingTeardown(cacheKey);
+    if (cancelled) {
+      DevLogger.log(
+        'CandleStreamChannel: Cancelled pending teardown (resubscribe within window)',
+        { cacheKey },
+      );
+    }
+
     // Give immediate cached data if available
     const cached = this.cache.get(cacheKey);
     if (cached) {
@@ -229,13 +273,31 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         (s) => s.cacheKey === cacheKey,
       ).length;
 
-      // Disconnect WebSocket if no subscribers remain for this symbol+interval
+      // Defer WS teardown so a rapid resubscribe (e.g. back-and-forth market
+      // switch) reuses the connection instead of tearing it down and redialing.
       if (remainingForThisKey === 0) {
-        DevLogger.log(
-          'CandleStreamChannel: Disconnecting WebSocket (no subscribers)',
-          { cacheKey },
+        // Idempotent: clear any prior teardown for this cacheKey first
+        this.cancelPendingTeardown(cacheKey);
+        this.pendingTeardownTimers.set(
+          cacheKey,
+          setTimeout(() => {
+            this.pendingTeardownTimers.delete(cacheKey);
+            // Re-check subscriber count at teardown time — a resubscribe
+            // during the window may have re-added subscribers without
+            // cancelling the teardown (defensive).
+            const stillRemaining = Array.from(this.subscribers.values()).filter(
+              (s) => s.cacheKey === cacheKey,
+            ).length;
+            if (stillRemaining > 0) {
+              return;
+            }
+            DevLogger.log(
+              'CandleStreamChannel: Disconnecting WebSocket (deferred teardown elapsed, no subscribers)',
+              { cacheKey },
+            );
+            this.disconnect(cacheKey);
+          }, PERFORMANCE_CONFIG.CandleTeardownDelayMs),
         );
-        this.disconnect(cacheKey);
       }
     };
   }
@@ -364,6 +426,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       clearTimeout(timer);
       this.deferConnectTimers.delete(cacheKey);
     }
+    // Cancel any pending deferred teardown — explicit disconnect supersedes it
+    this.cancelPendingTeardown(cacheKey);
     this.connectRetryCounts.delete(cacheKey);
     // Disconnect specific subscription
     const unsubscribe = this.wsSubscriptions.get(cacheKey);
@@ -519,6 +583,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         },
       );
     } catch (error) {
+      // Expected cancellation — skip Sentry to avoid noisy abort reports
+      if (isAbortError(error)) {
+        throw error;
+      }
+
       const errorInstance = ensureError(
         error,
         'CandleStreamChannel.fetchHistoricalCandles',
@@ -553,6 +622,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     // Cancel all deferred connect timers
     this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
     this.deferConnectTimers.clear();
+    // Cancel all deferred teardown timers — explicit disconnect supersedes them
+    this.pendingTeardownTimers.forEach((timer) => clearTimeout(timer));
+    this.pendingTeardownTimers.clear();
     this.connectRetryCounts.clear();
 
     this.subscribers.forEach((subscriber) => {

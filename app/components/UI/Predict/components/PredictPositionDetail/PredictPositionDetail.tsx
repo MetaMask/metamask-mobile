@@ -5,11 +5,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  NavigationProp,
-  useIsFocused,
-  useNavigation,
-} from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -29,18 +25,15 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import {
   PredictMarket,
   PredictMarketStatus,
   PredictPosition as PredictPositionType,
   Side,
 } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
+import { usePredictCashOut } from '../../hooks/usePredictCashOut';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -59,11 +52,9 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   const privacyMode = useSelector(selectPrivacyMode);
 
   const { icon, initialValue, outcome, title, optimistic, size } = position;
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigate } = navigation;
-  const { executeGuardedAction } = usePredictActionGuard({
-    navigation,
+  const { onCashOut } = usePredictCashOut({
+    market,
+    callerName: 'PredictPositionDetail',
   });
 
   // Only auto-refresh when the screen is focused to avoid duplicate fetches
@@ -110,23 +101,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         o.tokens.find((t) => t.id === position.outcomeTokenId),
     )
     ?.tokens.find((t) => t.id === position.outcomeTokenId);
-
-  const onCashOut = () => {
-    executeGuardedAction(
-      () => {
-        const _outcome = market?.outcomes.find(
-          (o) => o.id === position.outcomeId,
-        );
-        navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
-          market,
-          position,
-          outcome: _outcome,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        });
-      },
-      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
-    );
-  };
 
   const renderValueText = () => {
     if (marketStatus === PredictMarketStatus.OPEN) {
@@ -241,7 +215,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label={strings('predict.cash_out')}
-            onPress={onCashOut}
+            onPress={() => onCashOut(position)}
             isDisabled={optimistic}
           />
         </Box>

@@ -132,6 +132,13 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
     enabled: false,
     minimumVersion: '7.60.0',
   },
+  // Exclude 'nba' — NBA markets render PredictGameDetailsContent which uses a different cash-out testID not yet supported by E2E page objects
+  predictLiveSports: {
+    versions: {
+      '7.67.0': { enabled: true, leagues: ['nfl'] },
+      '7.70.0': { enabled: true, leagues: ['nfl'] },
+    },
+  },
 });
 
 export const remoteFeatureFlagHomepageSectionsV1Enabled = (enabled = true) => ({
@@ -184,10 +191,6 @@ export const remoteFeatureFlagRampsUnifiedMatrixForE2E = (
 
 export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
   trendingTokens: enabled,
-});
-
-export const remoteFeatureFlagExtensionUxPna25 = (enabled = true) => ({
-  extensionUxPna25: enabled,
 });
 
 export const remoteFeatureFlagTronAccounts = (enabled = true) => ({

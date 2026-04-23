@@ -18,7 +18,9 @@ import {
   PredictActivity,
   Result,
   PredictOutcome,
+  PredictOutcomeGroup,
   PredictOutcomeToken,
+  PredictMarketGame,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import {
@@ -39,15 +41,20 @@ import type {
 } from '../types';
 import {
   ClobAuthDomain,
+  DEFAULT_CLOB_BASE_URL,
+  DEFAULT_GROUP_KEY,
   EIP712Domain,
+  GROUP_ORDER,
+  SPORTS_MARKET_TYPE_PRIORITIES,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
-  POLYMARKET_PROVIDER_ID,
+  SPORTS_MARKET_TYPE_TO_GROUP,
 } from './constants';
 import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
@@ -71,10 +78,13 @@ import {
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
 
+export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
+
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
-  CLOB_ENDPOINT: 'https://clob.polymarket.com',
+  CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
+  CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
   HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
@@ -192,13 +202,39 @@ export const getL2Headers = async ({
   return headers;
 };
 
-export const deriveApiKey = async ({ address }: { address: string }) => {
+function getClobEndpoint({
+  clobVersion = 'v1',
+  clobBaseUrl,
+}: {
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
+}): string {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+  if (clobVersion === 'v2') {
+    return clobBaseUrl ?? CLOB_ENDPOINT;
+  }
+
+  return CLOB_ENDPOINT;
+}
+
+export const deriveApiKey = async ({
+  address,
+  clobVersion = 'v1',
+  clobBaseUrl,
+}: {
+  address: string;
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
+}) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(`${CLOB_ENDPOINT}/auth/derive-api-key`, {
-    method: 'GET',
-    headers,
-  });
+  const response = await fetch(
+    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/derive-api-key`,
+    {
+      method: 'GET',
+      headers,
+    },
+  );
   if (!response.ok) {
     throw new Error('Failed to derive API key');
   }
@@ -206,16 +242,26 @@ export const deriveApiKey = async ({ address }: { address: string }) => {
   return apiKeyRaw as ApiKeyCreds;
 };
 
-export const createApiKey = async ({ address }: { address: string }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+export const createApiKey = async ({
+  address,
+  clobVersion = 'v1',
+  clobBaseUrl,
+}: {
+  address: string;
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
+}) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(`${CLOB_ENDPOINT}/auth/api-key`, {
-    method: 'POST',
-    headers,
-    body: '',
-  });
+  const response = await fetch(
+    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/api-key`,
+    {
+      method: 'POST',
+      headers,
+      body: '',
+    },
+  );
   if (response.status === 400) {
-    return await deriveApiKey({ address });
+    return await deriveApiKey({ address, clobVersion, clobBaseUrl });
   }
   const apiKeyRaw = await response.json();
   return apiKeyRaw as ApiKeyCreds;
@@ -224,12 +270,21 @@ export const createApiKey = async ({ address }: { address: string }) => {
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
 
-export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-
-  const response = await fetch(`${CLOB_ENDPOINT}/book?token_id=${tokenId}`, {
-    method: 'GET',
-  });
+export const getOrderBook = async ({
+  tokenId,
+  clobVersion = 'v1',
+  clobBaseUrl,
+}: {
+  tokenId: string;
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
+}) => {
+  const response = await fetch(
+    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/book?token_id=${tokenId}`,
+    {
+      method: 'GET',
+    },
+  );
   if (!response.ok) {
     const responseData = (await response.json()) as { error: string };
     if (
@@ -471,10 +526,103 @@ export const submitClobOrder = async ({
   }
 };
 
-export const isSportEvent = (event: PolymarketApiEvent): boolean =>
-  (Array.isArray(event.tags) ? event.tags : []).some(
-    (tag) => tag.slug === 'sports',
-  );
+const normalizeSportsMarketType = (type: string): string => {
+  const lower = type.toLowerCase();
+  if (lower.startsWith('first_half_')) {
+    return lower.slice('first_half_'.length);
+  }
+  return lower;
+};
+
+const getSportsMarketTypePriority = (type: string): number =>
+  SPORTS_MARKET_TYPE_PRIORITIES[type.toLowerCase()] ?? 3;
+
+export function buildOutcomeGroups(
+  outcomes: PredictOutcome[],
+): PredictOutcomeGroup[] {
+  if (outcomes.length === 0) {
+    return [];
+  }
+
+  const groupMap = new Map<string, PredictOutcome[]>();
+
+  for (const outcome of outcomes) {
+    const groupKey =
+      (outcome.sportsMarketType &&
+        SPORTS_MARKET_TYPE_TO_GROUP[outcome.sportsMarketType]) ||
+      DEFAULT_GROUP_KEY;
+
+    const bucket = groupMap.get(groupKey);
+    if (bucket) {
+      bucket.push(outcome);
+    } else {
+      groupMap.set(groupKey, [outcome]);
+    }
+  }
+
+  for (const [, groupOutcomes] of groupMap) {
+    groupOutcomes.sort((a, b) => {
+      const priorityDiff =
+        getSportsMarketTypePriority(
+          normalizeSportsMarketType(a.sportsMarketType ?? ''),
+        ) -
+        getSportsMarketTypePriority(
+          normalizeSportsMarketType(b.sportsMarketType ?? ''),
+        );
+      if (priorityDiff !== 0) {
+        return priorityDiff;
+      }
+      const volumeDiff = b.volume - a.volume;
+      if (volumeDiff !== 0) return volumeDiff;
+      return (b.liquidity ?? 0) - (a.liquidity ?? 0);
+    });
+  }
+
+  const groupEntries = [...groupMap.entries()];
+  groupEntries.sort((a, b) => {
+    const aIndex = GROUP_ORDER.indexOf(a[0]);
+    const bIndex = GROUP_ORDER.indexOf(b[0]);
+    const aPriority = aIndex === -1 ? GROUP_ORDER.length : aIndex;
+    const bPriority = bIndex === -1 ? GROUP_ORDER.length : bIndex;
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority;
+    }
+    return a[0].localeCompare(b[0]);
+  });
+
+  return groupEntries.map(([key, groupOutcomes]) => {
+    const typeMap = new Map<string, PredictOutcome[]>();
+    for (const outcome of groupOutcomes) {
+      const type = outcome.sportsMarketType ?? key;
+      const bucket = typeMap.get(type);
+      if (bucket) {
+        bucket.push(outcome);
+      } else {
+        typeMap.set(type, [outcome]);
+      }
+    }
+
+    if (typeMap.size < 2) {
+      return { key, outcomes: groupOutcomes };
+    }
+
+    const subgroupEntries = [...typeMap.entries()];
+    subgroupEntries.sort(
+      (a, b) =>
+        getSportsMarketTypePriority(normalizeSportsMarketType(a[0])) -
+        getSportsMarketTypePriority(normalizeSportsMarketType(b[0])),
+    );
+
+    return {
+      key,
+      outcomes: [],
+      subgroups: subgroupEntries.map(([subKey, subOutcomes]) => ({
+        key: subKey,
+        outcomes: subOutcomes,
+      })),
+    };
+  });
+}
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
@@ -493,19 +641,6 @@ const sortByLiquidityAndVolume = (
     return bScore - aScore;
   });
 
-/**
- * Get the sort priority for a sports market type
- * moneyline: 0, spreads: 1, totals: 2, others: 3 (then alphabetically)
- */
-const getSportsMarketTypePriority = (type: string): number => {
-  const priorities: Record<string, number> = {
-    moneyline: 0,
-    spreads: 1,
-    totals: 2,
-  };
-  return priorities[type.toLowerCase()] ?? 3;
-};
-
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   if (isSpreadMarket(market)) {
     // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
@@ -519,6 +654,14 @@ const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   return market.groupItemTitle;
 };
 
+const YES_NO_TO_OVER_UNDER: Record<string, string> = {
+  Yes: 'Over',
+  No: 'Under',
+};
+
+const isOverUnderMarket = (market: PolymarketApiMarket): boolean =>
+  market.groupItemTitle?.includes('O/U') ?? false;
+
 const formatOutcomeTitles = (market: PolymarketApiMarket): string[] => {
   const outcomes = market.outcomes ? JSON.parse(market.outcomes) : [];
   if (isSpreadMarket(market)) {
@@ -527,7 +670,59 @@ const formatOutcomeTitles = (market: PolymarketApiMarket): string[] => {
       line ? `${outcome} ${index > 0 ? `+${line}` : `-${line}`}` : outcome,
     );
   }
+  if (isOverUnderMarket(market)) {
+    return outcomes.map(
+      (outcome: string) => YES_NO_TO_OVER_UNDER[outcome] ?? outcome,
+    );
+  }
   return outcomes;
+};
+
+const OVER_UNDER_SHORT: Record<string, string> = {
+  Over: 'O',
+  Under: 'U',
+  Yes: 'O',
+  No: 'U',
+};
+
+const buildNameToAbbreviation = (
+  game: PredictMarketGame,
+): Record<string, string> => ({
+  [game.homeTeam.name]: game.homeTeam.abbreviation,
+  ...(game.homeTeam.alias && {
+    [game.homeTeam.alias]: game.homeTeam.abbreviation,
+  }),
+  [game.awayTeam.name]: game.awayTeam.abbreviation,
+  ...(game.awayTeam.alias && {
+    [game.awayTeam.alias]: game.awayTeam.abbreviation,
+  }),
+});
+
+const formatOutcomeShortTitles = (
+  market: PolymarketApiMarket,
+  game: PredictMarketGame,
+): (string | undefined)[] => {
+  const outcomes: string[] = market.outcomes ? JSON.parse(market.outcomes) : [];
+  const nameToAbbr = buildNameToAbbreviation(game);
+
+  if (isSpreadMarket(market)) {
+    const line = market.line ? Math.abs(market.line) : 0;
+    return outcomes.map((outcome: string, index: number) => {
+      const abbr = nameToAbbr[outcome];
+      if (!abbr) return undefined;
+      return line ? `${abbr} ${index > 0 ? `+${line}` : `-${line}`}` : abbr;
+    });
+  }
+
+  return outcomes.map((outcome: string) => {
+    const shortOU = OVER_UNDER_SHORT[outcome];
+    if (shortOU && market.line != null) {
+      return `${shortOU} ${market.line}`;
+    }
+
+    const abbr = nameToAbbr[outcome];
+    return abbr ?? undefined;
+  });
 };
 
 const sortOutcomeTokens = (
@@ -563,29 +758,71 @@ const getNegRiskYesTokenTitle = (
     : market.groupItemTitle;
 };
 
+const resolveNegRiskShortTitles = (
+  market: PolymarketApiMarket,
+  game: PredictMarketGame,
+): { yesShort?: string; noShort?: string } => {
+  if (!market.negRisk || !isMoneylineMarket(market) || !market.groupItemTitle) {
+    return {};
+  }
+
+  if (market.groupItemTitle.toLowerCase().startsWith('draw')) {
+    return {};
+  }
+
+  const nameToAbbr = buildNameToAbbreviation(game);
+  const yesAbbr = nameToAbbr[market.groupItemTitle];
+  if (!yesAbbr) return {};
+
+  const isHome = yesAbbr === game.homeTeam.abbreviation;
+  const noAbbr = isHome
+    ? game.awayTeam.abbreviation
+    : game.homeTeam.abbreviation;
+
+  return { yesShort: yesAbbr, noShort: noAbbr };
+};
+
 const parsePolymarketMarketOutcomes = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
+  game?: PredictMarketGame,
 ): PredictOutcomeToken[] => {
   const outcomeTokensIds = market.clobTokenIds
     ? JSON.parse(market.clobTokenIds)
     : [];
   const outcomes = formatOutcomeTitles(market);
+  const shortTitles = game ? formatOutcomeShortTitles(market, game) : [];
   const outcomePrices = market.outcomePrices
     ? JSON.parse(market.outcomePrices)
     : [];
 
   const negRiskYesTitle = getNegRiskYesTokenTitle(market);
+  const negRiskShort = game ? resolveNegRiskShortTitles(market, game) : {};
 
   const outcomeTokens = outcomeTokensIds.map(
-    (tokenId: string, index: number) => ({
-      id: tokenId,
-      title:
-        negRiskYesTitle && outcomes[index] === 'Yes'
-          ? negRiskYesTitle
-          : outcomes[index],
-      price: parseFloat(outcomePrices[index]),
-    }),
+    (tokenId: string, index: number) => {
+      const isYes = outcomes[index] === 'Yes';
+      const isNo = outcomes[index] === 'No';
+
+      let title = outcomes[index];
+      if (negRiskYesTitle && isYes) {
+        title = negRiskYesTitle;
+      }
+
+      let shortTitle: string | undefined = shortTitles[index];
+      if (negRiskYesTitle && isYes && negRiskShort.yesShort) {
+        shortTitle = negRiskShort.yesShort;
+      } else if (negRiskYesTitle && isNo && negRiskShort.noShort) {
+        shortTitle = negRiskShort.noShort;
+      }
+
+      return {
+        id: tokenId,
+        title,
+        ...(shortTitle && { shortTitle }),
+        price: parseFloat(outcomePrices[index]),
+      };
+    },
   );
   return sortOutcomeTokens(outcomeTokens, market, event);
 };
@@ -597,7 +834,7 @@ const parsePolymarketMarketOutcomes = (
  * 3. Within each group, sort by liquidity + volume (descending)
  * 4. Return flattened array of all groups in order
  */
-export const sortSportMarkets = (
+export const sortGameMarkets = (
   markets: PolymarketApiMarket[],
 ): PolymarketApiMarket[] => {
   // Group markets by sportsMarketType
@@ -663,15 +900,20 @@ export const sortMarketsByField = (
   });
 };
 
-export const sortMarkets = (
-  event: PolymarketApiEvent,
-  sortBy?: 'price' | 'ascending' | 'descending',
-): PolymarketApiMarket[] => {
+export const sortMarkets = ({
+  event,
+  sortBy,
+  isGameEvent,
+}: {
+  event: PolymarketApiEvent;
+  sortBy?: 'price' | 'ascending' | 'descending';
+  isGameEvent?: boolean;
+}): PolymarketApiMarket[] => {
   const markets = Array.isArray(event.markets) ? event.markets : [];
   const eventSortBy = event.sortBy;
 
-  if (isSportEvent(event)) {
-    return sortSportMarkets(markets);
+  if (isGameEvent) {
+    return sortGameMarkets(markets);
   }
 
   if (sortBy) {
@@ -688,6 +930,7 @@ export const sortMarkets = (
 export const parsePolymarketMarket = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
+  game?: PredictMarketGame,
 ): PredictOutcome => ({
   id: market.conditionId,
   providerId: POLYMARKET_PROVIDER_ID,
@@ -702,7 +945,10 @@ export const parsePolymarketMarket = (
       : undefined,
   status: market.closed ? PredictMarketStatus.CLOSED : PredictMarketStatus.OPEN,
   volume: market.volumeNum ?? 0,
-  tokens: parsePolymarketMarketOutcomes(market, event),
+  liquidity: market.liquidity ?? 0,
+  tokens: parsePolymarketMarketOutcomes(market, event, game),
+  sportsMarketType: market.sportsMarketType,
+  line: market.line,
   negRisk: market.negRisk,
   tickSize: market.orderPriceMinTickSize.toString(),
   resolvedBy: market.resolvedBy,
@@ -718,6 +964,7 @@ export interface ParsePolymarketEventsOptions {
   category: PredictCategory;
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
   teamLookup?: PolymarketTeamLookupFn;
+  extendedSportsMarketsLeagues?: string[];
 }
 
 export const parsePolymarketEvents = (
@@ -730,17 +977,13 @@ export const parsePolymarketEvents = (
       ? { category: categoryOrOptions, sortMarketsBy }
       : categoryOrOptions;
 
-  const { category, teamLookup } = options;
+  const { category, teamLookup, extendedSportsMarketsLeagues } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
   const parsedMarkets: PredictMarket[] = events.map(
     (event: PolymarketApiEvent) => {
       const tags = Array.isArray(event.tags) ? event.tags : [];
       const eventLeague = getEventLeague(event);
-
-      const markets = sortMarkets(event, sortBy).filter(
-        (market: PolymarketApiMarket) => market?.active !== false,
-      );
 
       const predictTeamLookup: TeamLookup | undefined = teamLookup
         ? (league, abbr) => {
@@ -753,6 +996,12 @@ export const parsePolymarketEvents = (
         eventLeague && predictTeamLookup
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
+
+      const markets = sortMarkets({
+        event,
+        sortBy,
+        isGameEvent: !!game,
+      }).filter((market: PolymarketApiMarket) => market?.active !== false);
 
       // As per Polymarket's team, we should use the first market's description
       // rather than the event's description. The event's description is not
@@ -773,6 +1022,19 @@ export const parsePolymarketEvents = (
             }
           : undefined;
 
+      const outcomes = markets.map((market: PolymarketApiMarket) =>
+        parsePolymarketMarket(market, event, game),
+      );
+
+      const outcomeGroupingEnabled =
+        game &&
+        eventLeague &&
+        extendedSportsMarketsLeagues?.includes(eventLeague);
+
+      const outcomeGroups = outcomeGroupingEnabled
+        ? buildOutcomeGroups(outcomes)
+        : undefined;
+
       return {
         id: event.id,
         slug: event.slug,
@@ -787,9 +1049,8 @@ export const parsePolymarketEvents = (
         endDate: event.endDate,
         category,
         tags: tags.map((t) => t.slug),
-        outcomes: markets.map((market: PolymarketApiMarket) =>
-          parsePolymarketMarket(market, event),
-        ),
+        outcomes,
+        ...(outcomeGroups && { outcomeGroups }),
         liquidity: event.liquidity,
         volume: event.volume,
         game,
@@ -1388,9 +1649,11 @@ export const getAllowance = async ({
 };
 
 export const getIsApprovedForAll = async ({
+  tokenAddress,
   owner,
   operator,
 }: {
+  tokenAddress: string;
   owner: string;
   operator: string;
 }): Promise<boolean> => {
@@ -1402,9 +1665,6 @@ export const getIsApprovedForAll = async ({
     NetworkController.getNetworkClientById(networkClientId).provider,
   );
 
-  // Get the conditional tokens contract address
-  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
-
   // Encode the isApprovedForAll function call
   const data = new Interface([
     'function isApprovedForAll(address owner, address operator) external view returns (bool)',
@@ -1413,7 +1673,7 @@ export const getIsApprovedForAll = async ({
   // Make the contract call
   const res = await query(ethQuery, 'call', [
     {
-      to: contractConfig.conditionalTokens,
+      to: tokenAddress,
       data,
     },
   ]);
@@ -1444,11 +1704,13 @@ export const getMarketPositions = async ({
   return parsedPositions;
 };
 
-export const getBalance = async ({
+export const getRawBalance = async ({
   address,
+  tokenAddress,
 }: {
   address: string;
-}): Promise<number> => {
+  tokenAddress: string;
+}): Promise<bigint> => {
   const { NetworkController } = Engine.context;
   const networkClientId = NetworkController.findNetworkClientIdByChainId(
     numberToHex(POLYGON_MAINNET_CHAIN_ID),
@@ -1457,25 +1719,34 @@ export const getBalance = async ({
     NetworkController.getNetworkClientById(networkClientId).provider,
   );
 
-  // Get the collateral token contract address
-  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
-
-  // Encode the balanceOf function call
   const data = new Interface([
     'function balanceOf(address account) external view returns (uint256)',
   ]).encodeFunctionData('balanceOf', [address]);
 
-  // Make the contract call
   const res = await query(ethQuery, 'call', [
     {
-      to: contractConfig.collateral,
+      to: tokenAddress,
       data,
     },
   ]);
 
-  // Decode the result and convert to USDC (6 decimals)
-  const balance = Number(BigInt(res)) / 10 ** COLLATERAL_TOKEN_DECIMALS;
-  return balance;
+  return BigInt(res);
+};
+
+export const getBalance = async ({
+  address,
+  tokenAddress,
+}: {
+  address: string;
+  tokenAddress?: string;
+}): Promise<number> => {
+  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
+  const balance = await getRawBalance({
+    address,
+    tokenAddress: tokenAddress ?? contractConfig.collateral,
+  });
+
+  return Number(balance) / 10 ** COLLATERAL_TOKEN_DECIMALS;
 };
 
 const matchBuyOrder = ({
@@ -1615,13 +1886,27 @@ export const roundOrderAmount = ({
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
+    isV2?: boolean;
+    clobBaseUrl?: string;
   },
 ): Promise<OrderPreview> => {
-  const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
-    params;
+  const {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    side,
+    size,
+    feeCollection,
+    isV2,
+    clobBaseUrl,
+  } = params;
   const [book, feeRateBps] = await Promise.all([
-    getOrderBook({ tokenId: outcomeTokenId }),
-    getFeeRateBps({ tokenId: outcomeTokenId }),
+    getOrderBook({
+      tokenId: outcomeTokenId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
+    isV2 ? Promise.resolve('0') : getFeeRateBps({ tokenId: outcomeTokenId }),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);

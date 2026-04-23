@@ -20,6 +20,7 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    HEADLESS_PLAYGROUND: 'RampHeadlessPlayground',
     AMOUNT_INPUT: 'RampAmountInput',
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',
@@ -30,6 +31,7 @@ const Routes = {
     BANK_DETAILS: 'RampBankDetails',
     BANK_DETAILS_STANDALONE: 'RampBankDetailsStandalone',
     ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
+    KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
     MODALS: {
       ID: 'RampModals',
@@ -48,6 +50,8 @@ const Routes = {
       ERROR_DETAILS: 'RampErrorDetailsModal',
       PROCESSING_INFO: 'RampProcessingInfoModal',
       SSN_INFO: 'RampSsnInfoModal',
+      STATE_SELECTOR: 'RampStateSelectorModal',
+      UNSUPPORTED_STATE: 'RampUnsupportedStateModal',
     },
   },
   DEPOSIT: {
@@ -102,11 +106,13 @@ const Routes = {
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
   REWARDS_MUSD_CALCULATOR_VIEW: 'RewardsMusdCalculatorView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
+  REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
   REWARDS_CAMPAIGN_MECHANICS: 'RewardsCampaignMechanics',
   REWARDS_ONDO_CAMPAIGN_LEADERBOARD: 'RewardsOndoCampaignLeaderboard',
   REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR: 'RewardsOndoRwaAssetSelector',
   REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW: 'RewardsOndoCampaignPortfolioView',
+  REWARDS_ONDO_CAMPAIGN_STATS: 'RewardsOndoCampaignStats',
   REWARDS_CAMPAIGN_TOUR_STEP: 'RewardsCampaignTourStep',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
@@ -120,6 +126,8 @@ const Routes = {
   REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
   REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
   REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
+  REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
+  REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -149,6 +157,7 @@ const Routes = {
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
+    REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -206,6 +215,7 @@ const Routes = {
     ACCOUNT_SELECTOR: 'AccountSelector',
     ADDRESS_SELECTOR: 'AddressSelector',
     ADD_ACCOUNT: 'AddAccount',
+    ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
@@ -345,6 +355,9 @@ const Routes = {
   SOCIAL_LEADERBOARD: {
     ROOT: 'SocialLeaderboard',
     VIEW: 'TopTradersView',
+    PROFILE: 'TraderProfileView',
+    POSITION: 'TraderPositionView',
+    NOTIFICATION_PREFERENCES: 'NotificationPreferencesView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -403,9 +416,8 @@ const Routes = {
   MONEY: {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
-  },
-  MONEY_ACCOUNT: {
-    ROOT: 'MoneyAccountScreens',
+    ACTIVITY: 'MoneyActivity',
+    HOW_IT_WORKS: 'MoneyHowItWorks',
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
@@ -417,6 +429,7 @@ const Routes = {
   MULTI_SRP: {
     IMPORT: 'ImportSRPView',
   },
+  IMPORT_PRIVATE_KEY_VIEW: 'ImportPrivateKeyView',
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',

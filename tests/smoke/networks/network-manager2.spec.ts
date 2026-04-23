@@ -24,6 +24,8 @@ const isMultichainAccountsState2Enabled =
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     carouselBanners: false,
+    homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
+    homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
   });
 };
 

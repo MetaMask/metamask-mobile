@@ -5,6 +5,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
+import { resetPerpsRestCacheForTests } from '@metamask/perps-controller/utils/coalescePerpsRestRequest';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
@@ -73,6 +74,11 @@ describe('usePerpsTransactionHistory', () => {
   let mockController: {
     getActiveProvider: jest.MockedFunction<() => unknown>;
     getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
+    getOrderFills: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    getOrders: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+    getFunding: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
   };
   let mockProvider: {
     getOrderFills: jest.MockedFunction<
@@ -174,6 +180,7 @@ describe('usePerpsTransactionHistory', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPerpsRestCacheForTests();
 
     // Mock Redux selectors: first call = wallet transactions, second = selected address
     mockUseSelector.mockImplementation(() => {
@@ -188,10 +195,29 @@ describe('usePerpsTransactionHistory', () => {
       getFunding: jest.fn().mockResolvedValue(mockFunding),
     };
 
-    // Mock controller
+    // Mock controller — delegates read-only data-fetching methods to the
+    // provider mock so existing tests that assert on `mockProvider.*` keep
+    // passing. Real controller routes through MarketDataService (coalesce
+    // layer) → provider; this mock collapses that hop but preserves the
+    // provider-facing contract the tests exercise.
     mockController = {
       getActiveProvider: jest.fn().mockReturnValue(mockProvider),
       getActiveProviderOrNull: jest.fn().mockReturnValue(mockProvider),
+      getOrderFills: jest.fn((params, options) =>
+        mockProvider.getOrderFills(params, options),
+      ),
+      getOrders: jest.fn((params, options) =>
+        mockProvider.getOrders(params, options),
+      ),
+      getFunding: jest.fn((params, options) =>
+        mockProvider.getFunding(params, options),
+      ),
+    } as typeof mockController & {
+      getOrderFills: jest.MockedFunction<
+        (...args: unknown[]) => Promise<unknown>
+      >;
+      getOrders: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+      getFunding: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
     };
 
     // Mock Engine context
@@ -555,19 +581,28 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
-        accountId: undefined,
-        aggregateByTime: false,
-      });
-      expect(mockProvider.getOrders).toHaveBeenCalledWith({
-        accountId: undefined,
-      });
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+          aggregateByTime: false,
+        },
+        { forceRefresh: true },
+      );
+      expect(mockProvider.getOrders).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+        },
+        { forceRefresh: true },
+      );
       // startTime default is handled in HyperLiquidProvider, not here
-      expect(mockProvider.getFunding).toHaveBeenCalledWith({
-        accountId: undefined,
-        startTime: undefined,
-        endTime: undefined,
-      });
+      expect(mockProvider.getFunding).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+          startTime: undefined,
+          endTime: undefined,
+        },
+        { forceRefresh: true },
+      );
 
       // Fills are enriched with detailedOrderType from matching orders
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
@@ -642,19 +677,28 @@ describe('usePerpsTransactionHistory', () => {
       });
 
       // Verify all methods are called with undefined accountId
-      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
-        accountId: undefined,
-        aggregateByTime: false,
-      });
-      expect(mockProvider.getOrders).toHaveBeenCalledWith({
-        accountId: undefined,
-      });
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+          aggregateByTime: false,
+        },
+        { forceRefresh: true },
+      );
+      expect(mockProvider.getOrders).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+        },
+        { forceRefresh: true },
+      );
       // startTime default is handled in HyperLiquidProvider, not here
-      expect(mockProvider.getFunding).toHaveBeenCalledWith({
-        accountId: undefined,
-        startTime: undefined,
-        endTime: undefined,
-      });
+      expect(mockProvider.getFunding).toHaveBeenCalledWith(
+        {
+          accountId: undefined,
+          startTime: undefined,
+          endTime: undefined,
+        },
+        { forceRefresh: true },
+      );
       expect(mockUseUserHistory).toHaveBeenCalledWith({
         startTime: undefined,
         endTime: undefined,
@@ -984,27 +1028,38 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockRefetchUserHistory).toHaveBeenCalled();
       expect(mockProvider.getOrderFills).toHaveBeenCalled();
     });
-  });
 
-  describe('logging', () => {
-    it('logs transaction data fetching', async () => {
+    it('initial mount load force-refreshes past the coalesce cache', async () => {
+      // Activity-screen orders/funding have no WS backfill, so mount
+      // must fetch fresh — the coalesce cache would otherwise hide
+      // state changes that happened while the screen was closed.
       renderHook(() => usePerpsTransactionHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await Promise.resolve();
       });
 
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Fetching comprehensive transaction history...',
-      );
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Transaction data fetched:',
-        { fills: mockFills, orders: mockOrders, funding: mockFunding },
-      );
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Combined transactions:',
-        expect.any(Array),
-      );
+      expect(mockController.getOrderFills).toHaveBeenCalled();
+      const [, options] = mockController.getOrderFills.mock.calls[0];
+      expect(options).toEqual({ forceRefresh: true });
+    });
+
+    it('user-initiated refetch forces a fresh fetch past the coalesce cache', async () => {
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      mockController.getOrderFills.mockClear();
+
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      expect(mockController.getOrderFills).toHaveBeenCalled();
+      const [, options] = mockController.getOrderFills.mock.calls[0];
+      expect(options).toEqual({ forceRefresh: true });
     });
   });
 

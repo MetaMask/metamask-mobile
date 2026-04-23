@@ -63,6 +63,7 @@ export type {
   RewardsControllerGetGeoRewardsMetadataAction,
   RewardsControllerGetHasAccountOptedInAction,
   RewardsControllerGetOffDeviceSubscriptionAccountsAction,
+  RewardsControllerGetOndoCampaignDepositsAction,
   RewardsControllerGetOndoCampaignLeaderboardAction,
   RewardsControllerGetOndoCampaignLeaderboardPositionAction,
   RewardsControllerGetOndoCampaignPortfolioPositionAction,

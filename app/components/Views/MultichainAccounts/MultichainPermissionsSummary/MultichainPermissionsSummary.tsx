@@ -1,10 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import {
-  ImageSourcePropType,
-  SafeAreaView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../UI/StyledButton';

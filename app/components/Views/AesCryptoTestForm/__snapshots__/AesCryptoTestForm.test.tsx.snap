@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AesCryptoTestForm renders correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -197,7 +194,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         }
         testID="account-address"
       />
-      <RCTSafeAreaView
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -282,8 +279,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Generate
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -393,8 +390,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Generate
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -504,8 +501,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Encrypt
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -590,8 +587,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Decrypt
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -701,8 +698,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Encrypt
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -787,8 +784,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Decrypt
           </Text>
         </TouchableOpacity>
-      </RCTSafeAreaView>
+      </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;

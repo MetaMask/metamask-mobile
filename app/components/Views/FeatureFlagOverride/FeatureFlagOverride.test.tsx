@@ -514,17 +514,22 @@ describe('FeatureFlagOverride', () => {
       expect(numberInput).toBeTruthy();
     });
 
-    it('renders View/Edit button for array flags', () => {
+    it('renders JSON TextInput for array flags', () => {
       renderWithProviders();
 
-      expect(screen.getByText('View/Edit')).toBeTruthy();
+      expect(
+        screen.getByDisplayValue(JSON.stringify(['item1', 'item2'], null, 2)),
+      ).toBeTruthy();
     });
 
-    it('renders object properties for object flags', () => {
+    it('renders JSON TextInput for object flags', () => {
       renderWithProviders();
 
-      expect(screen.getByText('key: "value"')).toBeTruthy();
-      expect(screen.getByText('nested: {"prop":"data"}')).toBeTruthy();
+      expect(
+        screen.getByDisplayValue(
+          JSON.stringify({ key: 'value', nested: { prop: 'data' } }, null, 2),
+        ),
+      ).toBeTruthy();
     });
 
     it('renders minimum version info for version-gated flags', () => {
@@ -596,6 +601,77 @@ describe('FeatureFlagOverride', () => {
       fireEvent.press(resetButton);
 
       expect(mockRemoveFlagOverride).toHaveBeenCalledWith('testFlag');
+    });
+
+    it('handles valid JSON input for object flags', () => {
+      renderWithProviders({ objFlag: { key: 'value' } }, {});
+
+      const jsonInput = screen.getByDisplayValue(
+        JSON.stringify({ key: 'value' }, null, 2),
+      );
+      fireEvent.changeText(jsonInput, '{"key":"updated"}');
+      fireEvent(jsonInput, 'endEditing');
+
+      expect(mockSetFlagOverride).toHaveBeenCalledWith('objFlag', {
+        key: 'updated',
+      });
+    });
+
+    it('handles valid JSON input for array flags', () => {
+      renderWithProviders({ arrFlag: ['a', 'b'] }, {});
+
+      const jsonInput = screen.getByDisplayValue(
+        JSON.stringify(['a', 'b'], null, 2),
+      );
+      fireEvent.changeText(jsonInput, '["a","b","c"]');
+      fireEvent(jsonInput, 'endEditing');
+
+      expect(mockSetFlagOverride).toHaveBeenCalledWith('arrFlag', [
+        'a',
+        'b',
+        'c',
+      ]);
+    });
+
+    it('shows error for invalid JSON input', () => {
+      renderWithProviders({ objFlag: { key: 'value' } }, {});
+
+      const jsonInput = screen.getByDisplayValue(
+        JSON.stringify({ key: 'value' }, null, 2),
+      );
+      fireEvent.changeText(jsonInput, '{invalid json}');
+      fireEvent(jsonInput, 'endEditing');
+
+      expect(screen.getByText('Invalid JSON')).toBeTruthy();
+      expect(mockSetFlagOverride).not.toHaveBeenCalled();
+    });
+
+    it('clears JSON error when user types new input', () => {
+      renderWithProviders({ objFlag: { key: 'value' } }, {});
+
+      const jsonInput = screen.getByDisplayValue(
+        JSON.stringify({ key: 'value' }, null, 2),
+      );
+      // First trigger an error
+      fireEvent.changeText(jsonInput, '{invalid}');
+      fireEvent(jsonInput, 'endEditing');
+      expect(screen.getByText('Invalid JSON')).toBeTruthy();
+
+      // Then type new input — error should clear
+      fireEvent.changeText(jsonInput, '{"key":"new"}');
+      expect(screen.queryByText('Invalid JSON')).toBeNull();
+    });
+
+    it('handles reset override for object flags', () => {
+      renderWithProviders(
+        { objFlag: { key: 'original' } },
+        { objFlag: { key: 'overridden' } },
+      );
+
+      const resetButton = screen.getByText('Reset');
+      fireEvent.press(resetButton);
+
+      expect(mockRemoveFlagOverride).toHaveBeenCalledWith('objFlag');
     });
   });
 
@@ -841,15 +917,19 @@ describe('FeatureFlagOverride', () => {
 
       expect(screen.getByText('nestedObj')).toBeTruthy();
       expect(
-        screen.getByText('level1: {"level2":{"deep":"value"}}'),
+        screen.getByDisplayValue(
+          JSON.stringify({ level1: { level2: { deep: 'value' } } }, null, 2),
+        ),
       ).toBeTruthy();
     });
 
-    it('renders array flag with correct label', () => {
+    it('renders array flag with JSON TextInput', () => {
       renderWithProviders({ myArray: [1, 2, 3, 4, 5] }, {});
 
       expect(screen.getByText('myArray')).toBeTruthy();
-      expect(screen.getByText('View/Edit')).toBeTruthy();
+      expect(
+        screen.getByDisplayValue(JSON.stringify([1, 2, 3, 4, 5], null, 2)),
+      ).toBeTruthy();
     });
   });
 

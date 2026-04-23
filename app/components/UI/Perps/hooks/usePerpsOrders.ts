@@ -67,7 +67,12 @@ export const usePerpsOrders = (
         DevLogger.log('Perps: Fetching orders from controller...');
 
         const controller = Engine.context.PerpsController;
-        const ordersData = await controller.getOrders(params);
+        // Explicit refresh (pull-to-refresh) bypasses the MarketDataService
+        // request-coalesce cache so a fresh provider call runs instead of
+        // returning a still-hot cached payload.
+        const ordersData = await controller.getOrders(params, {
+          forceRefresh: isRefresh,
+        });
 
         setOrders(ordersData || []);
 

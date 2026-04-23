@@ -11,6 +11,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -20,26 +21,44 @@ import Icon, {
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { TokenIcon } from '../../../../../../Views/confirmations/components/token-icon';
+import { hasTransactionType } from '../../../../../../Views/confirmations/utils/transaction';
+import {
+  TokenIcon,
+  TokenIconVariant,
+} from '../../../../../../Views/confirmations/components/token-icon';
 import { isHardwareAccount } from '../../../../../../../util/address';
 import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/predict';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
 
+type PredictPayWithRowVariant = 'pill' | 'row';
+
 interface PredictPayWithRowProps {
   disabled?: boolean;
+  chevronRight?: boolean;
+  variant?: PredictPayWithRowVariant;
+  availableBalance?: string;
 }
 
 export function PredictPayWithRow({
   disabled = false,
+  chevronRight = false,
+  variant = 'pill',
+  availableBalance,
 }: PredictPayWithRowProps) {
   usePredictDefaultPaymentToken();
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from;
-  const canEdit = !isHardwareAccount((from as string) ?? '') && !disabled;
+  const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
+    TransactionType.predictDepositAndOrder,
+  ]);
+  const canEdit =
+    !isHardwareAccount((from as string) ?? '') &&
+    !disabled &&
+    isPredictDepositAndOrder;
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 
@@ -61,6 +80,58 @@ export function PredictPayWithRow({
     ? PREDICT_BALANCE_CHAIN_ID
     : (payToken?.chainId as Hex | undefined);
 
+  if (variant === 'row') {
+    return (
+      <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4 pt-4 pb-2"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="font-medium"
+          >
+            {label}
+          </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            {tokenIconAddress && tokenIconChainId && (
+              <TokenIcon
+                address={tokenIconAddress}
+                chainId={tokenIconChainId}
+                variant={TokenIconVariant.Row}
+              />
+            )}
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+              {displaySymbol}
+            </Text>
+            {availableBalance && (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                ({availableBalance})
+              </Text>
+            )}
+            {canEdit && (
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.Alternative}
+              />
+            )}
+          </Box>
+        </Box>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
@@ -72,7 +143,7 @@ export function PredictPayWithRow({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${disabled ? '' : 'bg-muted'} mx-auto`}
+          twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${!canEdit ? '' : 'bg-muted'} mx-auto`}
           gap={3}
         >
           {tokenIconAddress && tokenIconChainId && (
@@ -83,7 +154,7 @@ export function PredictPayWithRow({
           </Text>
           {canEdit && (
             <Icon
-              name={IconName.ArrowDown}
+              name={chevronRight ? IconName.ArrowRight : IconName.ArrowDown}
               size={IconSize.Sm}
               color={IconColor.Alternative}
             />

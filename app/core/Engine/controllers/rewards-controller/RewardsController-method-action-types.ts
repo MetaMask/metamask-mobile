@@ -502,6 +502,19 @@ export type RewardsControllerGetOndoCampaignLeaderboardAction = {
 };
 
 /**
+ * Get campaign-wide total deposits.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ *
+ * @param campaignId - The campaign ID to get deposits for.
+ * @returns The total USD deposited across all participants.
+ */
+export type RewardsControllerGetOndoCampaignDepositsAction = {
+  type: `RewardsController:getOndoCampaignDeposits`;
+  handler: RewardsController['getOndoCampaignDeposits'];
+};
+
+/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes.
@@ -513,6 +526,18 @@ export type RewardsControllerGetOndoCampaignLeaderboardAction = {
 export type RewardsControllerGetOndoCampaignLeaderboardPositionAction = {
   type: `RewardsController:getOndoCampaignLeaderboardPosition`;
   handler: RewardsController['getOndoCampaignLeaderboardPosition'];
+};
+
+/**
+ * Fetch the winning code for the current user in a completed Ondo GM campaign.
+ * This is an authenticated, no-cache endpoint — called only when the winner
+ * screen is shown, so freshness is guaranteed.
+ * Returns null when rewards are disabled; otherwise propagates request failures
+ * so callers can surface retry UI (unlike a silent null on errors).
+ */
+export type RewardsControllerGetOndoCampaignWinnerCodeAction = {
+  type: `RewardsController:getOndoCampaignWinnerCode`;
+  handler: RewardsController['getOndoCampaignWinnerCode'];
 };
 
 /**
@@ -599,6 +624,31 @@ export type RewardsControllerClaimRewardAction = {
 export type RewardsControllerGetSeasonOneLineaRewardTokensAction = {
   type: `RewardsController:getSeasonOneLineaRewardTokens`;
   handler: RewardsController['getSeasonOneLineaRewardTokens'];
+};
+
+/**
+ * Get benefits details with caching
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @param limit - The maximum number of items requested
+ * @returns Promise<SubscriptionBenefitsState> - The benefits data
+ */
+export type RewardsControllerGetBenefitsAction = {
+  type: `RewardsController:getBenefits`;
+  handler: RewardsController['getBenefits'];
+};
+
+/**
+ * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @param benefitId - The specific benefit ID that was impressed
+ * @param benefitType - The type of the benefit that was impressed
+ * @returns Promise<SubscriptionBenefitsState> - The benefits data
+ */
+export type RewardsControllerPostBenefitImpressionAction = {
+  type: `RewardsController:postBenefitImpression`;
+  handler: RewardsController['postBenefitImpression'];
 };
 
 /**
@@ -712,7 +762,9 @@ export type RewardsControllerMethodActions =
   | RewardsControllerOptInToCampaignAction
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
+  | RewardsControllerGetOndoCampaignDepositsAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
+  | RewardsControllerGetOndoCampaignWinnerCodeAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
   | RewardsControllerGetOndoCampaignActivityAction
   | RewardsControllerGetActivityIfChangedAction
@@ -720,6 +772,8 @@ export type RewardsControllerMethodActions =
   | RewardsControllerHasActivityChangedAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
+  | RewardsControllerGetBenefitsAction
+  | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction

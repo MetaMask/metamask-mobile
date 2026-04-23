@@ -28,6 +28,12 @@ import {
   withPerpsConnectionAttemptContext,
   type ReconnectOptions,
 } from '@metamask/perps-controller';
+import StorageWrapper from '../../../../store/storage-wrapper';
+import {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_CONNECTION_SOURCE,
+} from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
@@ -35,7 +41,6 @@ import {
 } from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 interface ConnectOptions {
   source?: string;
@@ -179,6 +184,23 @@ class PerpsConnectionManagerClass {
         streamManager.fills.clearCache();
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
+
+        // Reset throttle so the next data arrival persists immediately
+        streamManager.resetDiskCacheThrottles();
+
+        // Invalidate disk-persisted cold-start cache (fire-and-forget)
+        if (accountOnly) {
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA).catch(
+            () => undefined,
+          );
+        } else {
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_MARKETS).catch(
+            () => undefined,
+          );
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA).catch(
+            () => undefined,
+          );
+        }
 
         // Store flag so performReconnection can thread it into the second clearCache call.
         // AND with current value when a debounce timer is pending so that any

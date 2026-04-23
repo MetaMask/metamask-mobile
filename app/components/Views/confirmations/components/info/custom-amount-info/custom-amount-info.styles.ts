@@ -23,10 +23,6 @@ const styleSheet = (_params: { theme: Theme }) =>
     footerText: {
       alignSelf: 'center',
     },
-
-    noFundsText: {
-      alignSelf: 'center',
-    },
   });
 
 export default styleSheet;

@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
-import { SafeAreaView, View } from 'react-native';
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 

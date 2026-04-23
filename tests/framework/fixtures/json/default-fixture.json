@@ -133,8 +133,6 @@
           "selectedCountry": null
         },
         "ComplianceController": {
-          "blockedWallets": null,
-          "blockedWalletsLastFetched": 0,
           "lastCheckedAt": null,
           "walletComplianceStatusMap": {}
         },
@@ -362,10 +360,7 @@
           },
           "activeProvider": "hyperliquid",
           "cachedMarketDataByProvider": {},
-          "cachedMarketDataTimestamp": 0,
-          "cachedUserDataAddress": null,
           "cachedUserDataByProvider": {},
-          "cachedUserDataTimestamp": 0,
           "depositInProgress": false,
           "depositRequests": [],
           "hasPlacedFirstOrder": {
@@ -711,7 +706,8 @@
       "accountType": "metamask",
       "completedOnboarding": true,
       "events": [],
-      "onboardingVersion": "7.74.0 (4138)"
+      "onboardingVersion": "7.74.0 (4138)",
+      "pendingSocialLoginMarketingConsentBackfill": null
     },
     "originThrottling": {
       "origins": {}
@@ -766,6 +762,7 @@
       "nextTierPointsNeeded": null,
       "onboardingActiveStep": "INTRO",
       "onboardingReferralCode": null,
+      "ondoCampaignActivity": {},
       "ondoCampaignLeaderboard": null,
       "ondoCampaignLeaderboardError": false,
       "ondoCampaignLeaderboardLoading": false,
@@ -785,7 +782,6 @@
       "seasonEndDate": null,
       "seasonId": null,
       "seasonName": null,
-      "seasonShouldInstallNewVersion": null,
       "seasonStartDate": null,
       "seasonStatusError": null,
       "seasonStatusLoading": false,
@@ -857,6 +853,7 @@
       "passwordSet": true,
       "protectWalletModalVisible": false,
       "seedphraseBackedUp": true,
+      "tokenOverviewChartType": 2,
       "userLoggedIn": true
     }
   }
