@@ -857,4 +857,59 @@ describe('OndoCampaignStatsView', () => {
       ).toBeNull();
     });
   });
+
+  it('uses routeCampaignName as fallback when campaign has no name', () => {
+    globalThis.__ONDO_CAMPAIGN_STATS_TEST_ROUTE__ = {
+      campaignId: 'campaign-ondo-123',
+      campaignName: 'Route Only Name',
+    };
+    mockGetCampaignStatus.mockReturnValue('complete');
+    mockRewardsState.campaigns = [
+      createTestCampaign({ name: undefined as unknown as string }),
+    ];
+    mockUseGetCampaignParticipantStatus.mockReturnValue({
+      status: { optedIn: true, participantCount: 1 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+      outcome: {
+        subscriptionId: 'sub-1',
+        outcomeStatus: 'pending',
+        winnerVerificationCode: 'LVL346',
+      },
+      isLoading: false,
+      hasError: false,
+    });
+    const { getByText } = render(<OndoCampaignStatsView />);
+    const title = getByText('rewards.ondo_outcome_banner.winner_pending.title');
+    fireEvent.press(title);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
+      expect.objectContaining({ campaignName: 'Route Only Name' }),
+    );
+  });
+
+  it('shows qualify card with tierMinDeposit fallback when tierMinDeposit is null', () => {
+    mockGetCampaignStatus.mockReturnValue('active');
+    mockRewardsState.campaigns = [createTestCampaign()];
+    mockUseGetCampaignParticipantStatus.mockReturnValue({
+      status: { optedIn: true, participantCount: 1 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: makePendingPosition({
+        projectedTier: 'STARTER',
+        qualifiedDays: 3,
+      }),
+    });
+    const { getByText } = render(<OndoCampaignStatsView />);
+    expect(
+      getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
+    ).toBeDefined();
+  });
 });

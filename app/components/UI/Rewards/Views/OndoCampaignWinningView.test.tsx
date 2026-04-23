@@ -371,5 +371,42 @@ describe('OndoCampaignWinningView', () => {
       );
       openSpy.mockRestore();
     });
+
+    it('uses base subject without code when winningCode is null', async () => {
+      mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+        outcome: {
+          subscriptionId: 'sub-1',
+          outcomeStatus: 'pending',
+          winnerVerificationCode: null,
+        },
+        isLoading: false,
+        hasError: false,
+      });
+      const openSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      const { getByText } = render(<OndoCampaignWinningView />);
+      fireEvent.press(getByText('Open mail'));
+      const url = openSpy.mock.calls[0][0] as string;
+      expect(url).toContain(encodeURIComponent('Ondo campaign prize claim'));
+      expect(url).not.toContain(' - ');
+      openSpy.mockRestore();
+    });
+  });
+
+  it('does not copy to clipboard when winning code is null', () => {
+    mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+      outcome: {
+        subscriptionId: 'sub-1',
+        outcomeStatus: 'pending',
+        winnerVerificationCode: null,
+      },
+      isLoading: false,
+      hasError: false,
+    });
+    const setStringSpy = jest.spyOn(Clipboard, 'setString');
+    const { getByTestId } = render(<OndoCampaignWinningView />);
+    fireEvent.press(getByTestId('copyable-trigger'));
+    expect(setStringSpy).not.toHaveBeenCalled();
   });
 });
