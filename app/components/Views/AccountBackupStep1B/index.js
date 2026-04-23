@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import {
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Image,
   useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -37,6 +37,7 @@ import Device from '../../../util/device';
 import ActionModal from '../../UI/ActionModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
+import { LEARN_MORE_URL } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { useTheme } from '../../../util/theme';
@@ -117,7 +118,7 @@ const AccountBackupStep1B = (props) => {
     props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+        url: LEARN_MORE_URL,
         title: strings('drawer.metamask_support'),
       },
     });

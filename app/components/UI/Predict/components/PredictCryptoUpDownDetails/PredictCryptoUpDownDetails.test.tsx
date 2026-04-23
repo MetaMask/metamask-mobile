@@ -31,6 +31,18 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+jest.mock('react-native-reanimated', () => {
+  const { ScrollView } = jest.requireActual('react-native');
+  return {
+    ...jest.requireActual('react-native-reanimated'),
+    Animated: { ScrollView },
+    useSharedValue: jest.fn((initialValue: number) => ({
+      value: initialValue,
+    })),
+    useAnimatedScrollHandler: jest.fn(() => jest.fn()),
+  };
+});
+
 jest.mock(
   '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => {

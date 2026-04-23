@@ -124,4 +124,58 @@ describe('useHasInsufficientBalance', () => {
     const { result } = renderHook(() => useHasInsufficientBalance());
     expect(result.current.nativeCurrency).toBe('ETH');
   });
+
+  it('returns insufficient = true for Tempo if `excludeNativeTokenForFee` is true', () => {
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0xC',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...baseTx,
+      chainId: '0x1079',
+      excludeNativeTokenForFee: true,
+    } as unknown as TransactionMeta);
+    const { result } = renderHook(() => useHasInsufficientBalance());
+    expect(result.current.hasInsufficientBalance).toBe(true);
+    expect(result.current.nativeCurrency).toBe('pathUSD');
+  });
+
+  it('returns insufficient = false for Tempo if `excludeNativeTokenForFee` is unset', () => {
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0xC',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...baseTx,
+      chainId: '0x1079',
+    } as unknown as TransactionMeta);
+    const { result } = renderHook(() => useHasInsufficientBalance());
+    expect(result.current.hasInsufficientBalance).toBe(false);
+    expect(result.current.nativeCurrency).toBe('pathUSD');
+  });
+
+  it('returns insufficient = true for Tempo Testnet if `excludeNativeTokenForFee` is true', () => {
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0xC',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...baseTx,
+      chainId: '0xa5bf',
+      excludeNativeTokenForFee: true,
+    } as unknown as TransactionMeta);
+    const { result } = renderHook(() => useHasInsufficientBalance());
+    expect(result.current.hasInsufficientBalance).toBe(true);
+    expect(result.current.nativeCurrency).toBe('pathUSD');
+  });
+
+  it('returns insufficient = false for Tempo Testnet if `excludeNativeTokenForFee` is unset', () => {
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0xC',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...baseTx,
+      chainId: '0xa5bf',
+    } as unknown as TransactionMeta);
+    const { result } = renderHook(() => useHasInsufficientBalance());
+    expect(result.current.hasInsufficientBalance).toBe(false);
+    expect(result.current.nativeCurrency).toBe('pathUSD');
+  });
 });

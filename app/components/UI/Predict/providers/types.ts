@@ -8,6 +8,7 @@ import {
   GeoBlockResponse,
   GetBalanceParams,
   GetCryptoPriceHistoryParams,
+  GetCryptoTargetPriceParams,
   GetMarketsParams,
   GetPositionsParams,
   GetPriceHistoryParams,
@@ -136,6 +137,9 @@ export interface PredictProvider {
   getCryptoPriceHistory?(
     params: GetCryptoPriceHistoryParams,
   ): Promise<CryptoPriceHistoryPoint[]>;
+  getCryptoTargetPrice?(
+    params: GetCryptoTargetPriceParams,
+  ): Promise<number | null>;
   getPrices(params: GetPriceParams): Promise<GetPriceResponse>;
 
   getPositions(

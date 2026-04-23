@@ -29,13 +29,21 @@ export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
   const { throttleMs = 1000 } = options;
-  const [account, setAccount] = useState<AccountState | null>(() =>
-    getPreloadedData<AccountState>('cachedAccountState'),
-  );
-  const [isInitialLoading, setIsInitialLoading] = useState(
-    () => !hasPreloadedData('cachedAccountState'),
-  );
   const streamManager = usePerpsStream();
+  const initialChannelAccount = streamManager.account.getSnapshot();
+  const [account, setAccount] = useState<AccountState | null>(() => {
+    const cached =
+      initialChannelAccount ??
+      getPreloadedData<AccountState>('cachedAccountState');
+    return cached;
+  });
+  const [isInitialLoading, setIsInitialLoading] = useState(() => {
+    if (initialChannelAccount !== null && initialChannelAccount !== undefined) {
+      return false;
+    }
+    const hasCached = hasPreloadedData('cachedAccountState');
+    return !hasCached;
+  });
 
   useEffect(() => {
     if (!streamManager) return;

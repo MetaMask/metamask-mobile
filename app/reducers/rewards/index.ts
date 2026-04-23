@@ -7,13 +7,16 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
+  SubscriptionBenefitDto,
   SeasonWayToEarnDto,
   CampaignDto,
   CampaignParticipantStatusDto,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
+  SubscriptionBenefitsState,
   OndoGmPortfolioDto,
   OndoGmActivityEntryDto,
+  OndoGmCampaignDepositsDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -68,7 +71,6 @@ export interface RewardsState {
   seasonTiers: SeasonTierDto[];
   seasonActivityTypes: SeasonActivityTypeDto[];
   seasonWaysToEarn: SeasonWayToEarnDto[];
-  seasonShouldInstallNewVersion: string | null;
 
   // Subscription Referral state
   referralDetailsLoading: boolean;
@@ -120,13 +122,18 @@ export interface RewardsState {
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
 
+  // Benefits state
+  benefits: SubscriptionBenefitDto[];
+  benefitsLoading: boolean;
+  benefitsError: boolean;
+
   // Campaigns state
   campaigns: CampaignDto[];
   campaignsLoading: boolean;
   campaignsError: boolean;
   campaignsHasLoaded: boolean;
 
-  // Campaign participant status (keyed by campaignId)
+  // Campaign participant status (keyed by `${subscriptionId}:${campaignId}`)
   campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
 
   // Version guard state
@@ -152,6 +159,24 @@ export interface RewardsState {
 
   // Ondo GM activity (keyed by composite key `${subscriptionId}:${campaignId}`)
   ondoCampaignActivity: Record<string, OndoGmActivityEntryDto[] | null>;
+
+  // Ondo campaign deposits (public, campaign-wide total)
+  ondoCampaignDeposits: OndoGmCampaignDepositsDto | null;
+  ondoCampaignDepositsLoading: boolean;
+  ondoCampaignDepositsError: boolean;
+
+  // Pending deeplink navigation intent, stored in Redux so it survives the
+  // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
+  pendingDeeplink: PendingDeeplink | null;
+}
+
+/**
+ * Typed deeplink navigation parameters for the Rewards feature.
+ * Stored in Redux so the intent is available when RewardsNavigator mounts.
+ */
+export interface PendingDeeplink {
+  page?: 'campaigns' | 'musd' | 'benefits';
+  campaign?: 'ondo' | 'season1';
 }
 
 export const initialState: RewardsState = {
@@ -180,9 +205,6 @@ export const initialState: RewardsState = {
   balanceTotal: 0,
   balanceRefereePortion: 0,
   balanceUpdatedAt: null,
-
-  // Should install new version state
-  seasonShouldInstallNewVersion: null,
 
   onboardingActiveStep: OnboardingStep.INTRO,
   onboardingReferralCode: null,
@@ -214,6 +236,11 @@ export const initialState: RewardsState = {
     initialSubscriptionId: null,
   },
 
+  // Benefits initial state
+  benefits: [],
+  benefitsLoading: false,
+  benefitsError: false,
+
   // Campaigns initial state
   campaigns: [],
   campaignsLoading: false,
@@ -242,6 +269,13 @@ export const initialState: RewardsState = {
 
   // Ondo GM activity initial state
   ondoCampaignActivity: {},
+
+  // Ondo campaign deposits initial state
+  ondoCampaignDeposits: null,
+  ondoCampaignDepositsLoading: false,
+  ondoCampaignDepositsError: false,
+
+  pendingDeeplink: null,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -280,8 +314,6 @@ const rewardsSlice = createSlice({
       state.seasonTiers = action.payload?.season.tiers || [];
       state.seasonActivityTypes = action.payload?.season.activityTypes || [];
       state.seasonWaysToEarn = action.payload?.season.waysToEarn || [];
-      state.seasonShouldInstallNewVersion =
-        action.payload?.season?.shouldInstallNewVersion || null;
 
       // Season Balance state
       state.balanceTotal =
@@ -354,6 +386,9 @@ const rewardsSlice = createSlice({
       state.ondoCampaignLeaderboardPositions = {};
       state.ondoCampaignPortfolio = {};
       state.ondoCampaignActivity = {};
+      state.ondoCampaignDeposits = null;
+      state.ondoCampaignDepositsLoading = false;
+      state.ondoCampaignDepositsError = false;
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -519,12 +554,13 @@ const rewardsSlice = createSlice({
     setCampaignParticipantStatus: (
       state,
       action: PayloadAction<{
+        subscriptionId: string;
         campaignId: string;
         status: CampaignParticipantStatusDto;
       }>,
     ) => {
-      state.campaignParticipantStatuses[action.payload.campaignId] =
-        action.payload.status;
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      state.campaignParticipantStatuses[key] = action.payload.status;
     },
 
     // Version guard reducers
@@ -616,6 +652,18 @@ const rewardsSlice = createSlice({
       }
     },
 
+    setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
+      state.benefits = action.payload.benefits;
+    },
+
+    setBenefitsLoading: (state, action: PayloadAction<boolean>) => {
+      state.benefitsLoading = action.payload;
+    },
+
+    setBenefitsError: (state, action: PayloadAction<boolean>) => {
+      state.benefitsError = action.payload;
+    },
+
     setOndoCampaignActivity: (
       state,
       action: PayloadAction<{
@@ -626,6 +674,24 @@ const rewardsSlice = createSlice({
     ) => {
       const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
       state.ondoCampaignActivity[key] = action.payload.entries;
+    },
+
+    // Campaign deposits reducers
+    setOndoCampaignDeposits: (
+      state,
+      action: PayloadAction<OndoGmCampaignDepositsDto | null>,
+    ) => {
+      state.ondoCampaignDeposits = action.payload;
+      state.ondoCampaignDepositsError = false;
+    },
+    setOndoCampaignDepositsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.ondoCampaignDeposits) {
+        return;
+      }
+      state.ondoCampaignDepositsLoading = action.payload;
+    },
+    setOndoCampaignDepositsError: (state, action: PayloadAction<boolean>) => {
+      state.ondoCampaignDepositsError = action.payload;
     },
 
     // Bulk link reducers
@@ -688,6 +754,12 @@ const rewardsSlice = createSlice({
       state.bulkLink.wasInterrupted = false;
       // Note: We don't reset counts here - the saga will recalculate based on current opt-in status
     },
+    setPendingDeeplink: (
+      state,
+      action: PayloadAction<PendingDeeplink | null>,
+    ) => {
+      state.pendingDeeplink = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -716,8 +788,6 @@ const rewardsSlice = createSlice({
               seasonTiers: action.payload.rewards.seasonTiers,
               seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
               seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn,
-              seasonShouldInstallNewVersion:
-                action.payload.rewards.seasonShouldInstallNewVersion,
               referralCode: action.payload.rewards.referralCode,
               refereeCount: action.payload.rewards.refereeCount,
               currentTier: action.payload.rewards.currentTier,
@@ -793,6 +863,10 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  // Benefits actions
+  setBenefits,
+  setBenefitsError,
+  setBenefitsLoading,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,
@@ -810,6 +884,10 @@ export const {
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,
   setOndoCampaignActivity,
+  // Campaign deposits actions
+  setOndoCampaignDeposits,
+  setOndoCampaignDepositsLoading,
+  setOndoCampaignDepositsError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,
@@ -818,6 +896,7 @@ export const {
   bulkLinkSubscriptionChanged,
   bulkLinkReset,
   bulkLinkResumed,
+  setPendingDeeplink,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

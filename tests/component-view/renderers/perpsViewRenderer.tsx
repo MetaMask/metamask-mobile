@@ -85,12 +85,14 @@ function channelWithInitialValue<T>(initialValue: T) {
       }
       return noopUnsubscribe;
     },
+    getSnapshot: () => null,
   };
 }
 
 /** No-op channel for streams not needed by view tests */
 const noopChannel = () => ({
   subscribe: (): (() => void) => noopUnsubscribe,
+  getSnapshot: () => null,
 });
 
 /** Top-of-book channel: usePerpsTopOfBook calls subscribeToSymbol (e.g. PerpsClosePositionView, PerpsOrderBookView) */
@@ -106,6 +108,7 @@ function topOfBookChannel() {
       }
       return noopUnsubscribe;
     },
+    getSnapshot: () => null,
   };
 }
 
@@ -113,6 +116,7 @@ function topOfBookChannel() {
 const pricesChannel = () => ({
   subscribe: (): (() => void) => noopUnsubscribe,
   subscribeToSymbols: (): (() => void) => noopUnsubscribe,
+  getSnapshot: () => null,
 });
 
 /** Optional stream data overrides for view tests (e.g. initial positions for Market Details Close/Modify). */
@@ -164,7 +168,7 @@ interface RenderPerpsViewOptions {
 }
 
 const DefaultRouteProbe =
-  (routeName: string): React.FC =>
+  (routeName: string): React.ComponentType<unknown> =>
   () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
 
 /**
@@ -197,6 +201,21 @@ export function renderPerpsView(
     </AccessRestrictedProvider>
   );
 
+  const wrapRouteWithPerpsProviders = (
+    RouteComponent: React.ComponentType<unknown>,
+  ) => {
+    const WrappedRoute = (props: Record<string, unknown>) => (
+      <AccessRestrictedProvider>
+        <PerpsConnectionContext.Provider value={testConnectionValue}>
+          <PerpsStreamProvider testStreamManager={testStreamManager}>
+            <RouteComponent {...props} />
+          </PerpsStreamProvider>
+        </PerpsConnectionContext.Provider>
+      </AccessRestrictedProvider>
+    );
+    return WrappedRoute as unknown as React.ComponentType;
+  };
+
   if (extraRoutes?.length) {
     const Stack = createStackNavigator();
     const InnerStack = createStackNavigator();
@@ -212,10 +231,13 @@ export function renderPerpsView(
     const nestedScreens = (
       <>
         {nestedPerpsRoutes.map(({ name, Component: Extra }) => (
+          // Extra routes can render real views (not only probes), so keep provider parity.
           <InnerStack.Screen
             key={name}
             name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            component={wrapRouteWithPerpsProviders(
+              Extra ?? DefaultRouteProbe(name),
+            )}
           />
         ))}
       </>
@@ -234,7 +256,9 @@ export function renderPerpsView(
           <Stack.Screen
             key={`root-${name}`}
             name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            component={wrapRouteWithPerpsProviders(
+              Extra ?? DefaultRouteProbe(name),
+            )}
           />
         ))}
         {nestedPerpsRoutes.length ? (

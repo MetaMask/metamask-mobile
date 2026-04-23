@@ -4,6 +4,8 @@ import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBa
 import { usePerpsHardwareAccountAlert } from './usePerpsHardwareAccountAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
+import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
+import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 
 export function usePendingAmountAlerts({
   pendingTokenAmount,
@@ -24,18 +26,29 @@ export function usePendingAmountAlerts({
     pendingAmount: pendingTokenAmount ?? '0',
   });
 
+  const insufficientMoneyAccountBalanceAlert =
+    useInsufficientMoneyAccountBalanceAlert({
+      pendingAmount: pendingTokenAmount ?? '0',
+    });
+
+  const accountNoFundsAlert = useAccountNoFundsAlert();
+
   return useMemo(
     () => [
       ...perpsHardwareAccountAlert,
       ...insufficientTokenFundsAlert,
       ...insufficientPredictBalanceAlert,
       ...insufficientPerpsBalanceAlert,
+      ...insufficientMoneyAccountBalanceAlert,
+      ...accountNoFundsAlert,
     ],
     [
       insufficientTokenFundsAlert,
       perpsHardwareAccountAlert,
       insufficientPredictBalanceAlert,
       insufficientPerpsBalanceAlert,
+      insufficientMoneyAccountBalanceAlert,
+      accountNoFundsAlert,
     ],
   );
 }

@@ -8,8 +8,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -415,8 +414,8 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   "overflow": "hidden",
                                 },
                                 {
-                                  "height": 1334,
-                                  "maxHeight": 1334,
+                                  "height": 0,
+                                  "maxHeight": 0,
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
                                   "shadowOffset": {
@@ -430,7 +429,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 {
                                   "transform": [
                                     {
-                                      "translateY": 1334,
+                                      "translateY": 0,
                                     },
                                   ],
                                 },
@@ -2052,6 +2051,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

@@ -7,6 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
 import RewardsInfoBanner from '../components/RewardsInfoBanner';
@@ -24,6 +25,8 @@ const RewardsSettingsView: React.FC = () => {
 
   // Computes off-device accounts; internally fetches subscription accounts from the backend
   const offDeviceAccounts = useLinkedOffDeviceAccounts();
+
+  useTrackRewardsPageView({ page_type: 'settings' });
 
   const handleOpenOffDeviceSheet = useCallback(() => {
     setIsOffDeviceSheetOpen(true);

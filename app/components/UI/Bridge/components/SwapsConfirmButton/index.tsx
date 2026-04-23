@@ -36,23 +36,27 @@ import {
 } from '../../utils/getPriceImpactViewData';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
   testID?: string;
   location: MetaMetricsSwapsEventSource;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export const SwapsConfirmButton = ({
   latestSourceBalance,
   testID,
   location,
+  transactionActiveAbTests,
 }: Props) => {
   const navigation = useNavigation();
   const handleConfirm = useBridgeConfirm({
     latestSourceBalance,
     location,
+    transactionActiveAbTests,
   });
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
@@ -83,6 +87,7 @@ export const SwapsConfirmButton = ({
     blockaidError,
     quoteFetchError,
     isNoQuotesAvailable,
+    isActiveQuoteForCurrentTokenPair,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -143,6 +148,7 @@ export const SwapsConfirmButton = ({
   const isSubmitDisabled =
     !hasNonZeroSourceAmount ||
     isAwaitingQuote ||
+    (activeQuote && !isActiveQuoteForCurrentTokenPair) ||
     isPendingQuoteRefresh ||
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||

@@ -24,6 +24,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
+import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
 
 const FIXED_NOW_MS = 1730000000000;
 const mockTrackEvent = jest.fn();
@@ -782,6 +783,65 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockInitiateConversion).not.toHaveBeenCalled();
       });
     });
+
+    it('navigates to returnTo.screen when returnTo is provided, without initiating conversion', async () => {
+      mockUseParams.mockReturnValue({
+        returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+          undefined,
+        );
+      });
+      expect(mockInitiateConversion).not.toHaveBeenCalled();
+    });
+
+    it("forwards caller's navigationOverride (CUSTOM) to initiateCustomConversion instead of hardcoding QUICK_CONVERT", async () => {
+      mockUseParams.mockReturnValue({
+        preferredPaymentToken: {
+          address: '0xabc' as Hex,
+          chainId: '0x1' as Hex,
+        },
+        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith(
+          expect.objectContaining({
+            navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
+            skipEducationCheck: true,
+          }),
+        );
+      });
+    });
   });
 
   describe('MetaMetrics', () => {
@@ -934,6 +994,44 @@ describe('EarnMusdConversionEducationView', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks money_hub redirect when continue is pressed with returnTo', async () => {
+      mockUseParams.mockReturnValue({
+        returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
+        );
+
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          location:
+            MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          button_type: 'primary',
+          button_text: strings('earn.musd_conversion.education.primary_button'),
+          redirects_to: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+        });
+      });
     });
 
     it('tracks buy button text and buy_screen redirect when deeplink triggers buy flow', async () => {

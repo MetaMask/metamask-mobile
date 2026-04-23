@@ -1,6 +1,6 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
+import { Platform, TouchableOpacity } from 'react-native';
 import {
   Box,
   FontWeight,
@@ -13,39 +13,51 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import { useTheme } from '../../../../../util/theme';
 import { useCardAuth } from '../../hooks/useCardAuth';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
-import Engine from '../../../../../core/Engine';
+import { CardMessageBoxType, type CardLocation } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+const autoComplete = Platform.select({
   android: 'sms-otp',
   default: 'one-time-code',
 });
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type CardAuthenticationParams = {
+  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
+};
 
 const CardAuthentication = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
+  const route =
+    useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
+  const showAuthPrompt = route.params?.showAuthPrompt ?? false;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const location = useSelector(selectCardUserLocation);
+  const persistedLocation = useSelector(selectCardUserLocation);
+  const [selectedLocation, setSelectedLocation] = useState<CardLocation>(
+    persistedLocation ?? 'international',
+  );
   const [confirmCode, setConfirmCode] = useState('');
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -167,7 +179,7 @@ const CardAuthentication = () => {
 
       try {
         if (!isOtpStep) {
-          await initiate.mutateAsync(location ?? 'international');
+          await initiate.mutateAsync(selectedLocation);
         }
         const result = await submit.mutateAsync({
           type: 'email_password',
@@ -210,7 +222,7 @@ const CardAuthentication = () => {
       initiate,
       submit,
       isOtpStep,
-      location,
+      selectedLocation,
       password,
       navigation,
       dispatch,
@@ -271,7 +283,7 @@ const CardAuthentication = () => {
           : strings(
               'card.card_otp_authentication.description_without_phone_number',
             )
-        : '',
+        : undefined,
     [maskedPhoneNumber, isOtpStep],
   );
 
@@ -287,6 +299,7 @@ const CardAuthentication = () => {
               value={confirmCode}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
+              // @ts-expect-error - autoComplete is not typed correctly
               autoComplete={autoComplete}
               maxLength={CODE_LENGTH}
               accessibilityLabel={strings(
@@ -347,13 +360,14 @@ const CardAuthentication = () => {
         </>
       ) : (
         <>
+          {showAuthPrompt && (
+            <CardMessageBox messageType={CardMessageBoxType.AuthPrompt} />
+          )}
           <Box twClassName="flex-row justify-between gap-2">
             <TouchableOpacity
-              onPress={() =>
-                Engine.context.CardController.setUserLocation('international')
-              }
+              onPress={() => setSelectedLocation('international')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'international' ? 'border border-text-default' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'international' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
@@ -370,11 +384,9 @@ const CardAuthentication = () => {
               </Box>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() =>
-                Engine.context.CardController.setUserLocation('us')
-              }
+              onPress={() => setSelectedLocation('us')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'us' ? 'border border-text-default' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'us' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
@@ -396,7 +408,7 @@ const CardAuthentication = () => {
             <Label>{strings('card.card_authentication.email_label')}</Label>
             <TextField
               autoCapitalize={'none'}
-              autoComplete="one-time-code"
+              autoComplete="username"
               onChangeText={handleEmailChange}
               numberOfLines={1}
               value={email}
@@ -414,7 +426,7 @@ const CardAuthentication = () => {
             <TextField
               autoCapitalize={'none'}
               onChangeText={handlePasswordChange}
-              autoComplete="one-time-code"
+              autoComplete="password"
               numberOfLines={1}
               value={password}
               maxLength={255}
@@ -455,8 +467,9 @@ const CardAuthentication = () => {
       password,
       performLogin,
       resendCooldown,
+      showAuthPrompt,
       tw,
-      location,
+      selectedLocation,
     ],
   );
 

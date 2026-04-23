@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.73.1]
+
+### Fixed
+
+- Fixed google and Apple login issue
+
+## [7.73.0]
+
+### Added
+
+- Added runway production workflows (#27887)
+- Added feature-flagged "withdraw to any token" flow for Perps, allowing users to withdraw Perps funds to any supported token via MetaMask Pay (#28265)
+- Added a token safety banner and warning modal in Swaps that alerts users when the destination token is flagged as suspicious or malicious before proceeding with a swap (#27834)
+- Added trending stocks deep link routing (#27869)
+- Added Perps withdraw confirmation flow (#28236)
+- Added UCL soccer league support with 3-way draw predictions (#28121)
+- Added Google Wallet in-app provisioning for MetaMask Card on Android (#25742)
+- Added a Claim bonus action on the home Cash section when users have no mUSD but have a claimable Merkl bonus, with the amount shown in the selected fiat currency (#27909)
+- Added verified badges to swap asset picker tokens (#27878)
+- Added a success confirmation toast when users opt in to a rewards campaign (#28033)
+- Added Perps withdraw transaction display and activity support (#28026)
+- Added unrealized P&L summary on the wallet homepage for Perpetuals and Predictions, and aligned the Perps home “Your positions” subtitle with the same layout (#27844)
+- Import SRP screens always show BIP39 word suggestions when the keyboard is open, with no remote feature flag (#28139)
+
+### Changed
+
+- Updated Swaps and Bridge error messaging with specific, actionable error banners when a quote stream ends with a known failure reason (#28127)
+- Updated how the ramp provider is selected (#27942)
+- Improved analytics consistency during social login onboarding (#28015)
+
+### Fixed
+
+- Fixed Transaction Finalized tracking by deriving mm_pay metrics from controller state (#28164)
+- Fixed Bitcoin PSBT build errors to include the underlying cause for better diagnostics (#28282)
+- Fixed stuck pending withdraw (#26537)
+- Fixed duplicate WalletConnect relay messages when switching chains (#27978)
+- Fixed the bridge keypad staying open when no amount was entered (#28325)
+- Fixed abrupt navigation transition to Swaps and Bridge screens by adding smooth slide-from-right animation (#28347)
+- Fixed white header and footer on Ramp buy/sell screens in dark mode (#28267)
+- Fixed a bug that caused Perps to reconnect too aggressively and surface intermittent websocket connection errors (#28258)
+- Fixed navigation screens flashing incorrect background color during transitions (#28307)
+- Fixed frequent "insufficient funds" errors in perps pay-with-any-token flow by validating relay quote totals before allowing order submission (#28318)
+- Fixed scroll in the "Private Key" list for Android devices (#27891)
+- Fixed OAuth rehydration so the post-unlock device authentication prompt completes before navigating to the wallet home screen (#27960)
+- Fixed bottom disclaimer text overflowing on the Predict Buy Preview screen (#28212)
+- Fixed hardware wallet infinite loop when Ledger disconnects or the Ethereum app is closed during transaction signing (#28163)
+- Fixed homepage Predictions section so open positions and claim amounts respect privacy mode (#28203)
+- Fixed cancel and speed up initial gas readiness (#27905)
+- Fixed an issue where opening Market Insights could pause audio already playing on the device (#28148)
+- Fixed bridge zero-state trending scrolling when dragging from the amount area (#28103)
+- Fixed a bug where depositing into Perps from Token Details could fail if the Arbitrum network had not been added to the wallet (#27484)
+- Fixed flip position fee estimate being ~2x lower than actual fee charged (#28013)
+- Fixed payment methods and provider availability for newly added tokens by refreshing providers via react-query (15min TTL) on mount and separating the provider list by token support (#27958)
+- Fixed a bug that kept the swap screen scrolled down after opening Swap from a trending token details page (#27928)
+- Fixed custom slippage input so keypad edits respect cursor placement and trailing decimals are sanitized before saving (#27920)
+- Fixed alert when device biometrics change (#25423)
+- Fixed limit price preset buttons (Mid, Bid, Ask, percentage) truncating one decimal place for low-price assets like XRP (#27907)
+- Fixed a bug that was causing issues with TRC20 token transfers (#27922)
+- Fixed Ondo campaign opt-in to respect cutoff date (#28000)
+
+## [7.72.1]
+
+### Fixed
+
+- Fixed a bug where users in restricted regions could open perps positions from the Market Insights page (#28688)
+
 ## [7.72.0]
 
 ### Added
@@ -11156,7 +11222,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.1...HEAD
+[7.73.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.0...v7.73.1
+[7.73.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...v7.73.0
+[7.72.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...v7.72.1
 [7.72.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.1...v7.72.0
 [7.71.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.0...v7.71.1
 [7.71.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.1...v7.71.0

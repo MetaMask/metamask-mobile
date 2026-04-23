@@ -2,7 +2,7 @@ import { WebViewExecutionService } from '@metamask/snaps-controllers/react-nativ
 import { MessengerClientInitRequest } from '../../types';
 import { getExecutionServiceMessenger } from '../../messengers/snaps';
 import { executionServiceInit } from './execution-service-init';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
@@ -22,7 +22,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getExecutionServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };

@@ -15,7 +15,7 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useCardSDK } from '../sdk';
-import { CardNetwork, CardTokenAllowance } from '../types';
+import { CardNetwork, CardFundingToken } from '../types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -75,7 +75,7 @@ interface SignCardMessageResult {
  * Hook to handle the complete delegation flow for spending limit increases
  * Flow: Token -> Signature -> Approval Transaction -> Completion
  */
-export const useCardDelegation = (token?: CardTokenAllowance | null) => {
+export const useCardDelegation = (token?: CardFundingToken | null) => {
   const { sdk } = useCardSDK();
   const { KeyringController, TransactionController } = Engine.context;
   const { ensureNetworkExists } = useEnsureCardNetworkExists();

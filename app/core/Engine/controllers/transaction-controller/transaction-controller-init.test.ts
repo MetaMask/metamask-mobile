@@ -25,7 +25,7 @@ import { isSendBundleSupported } from '../../../../util/transactions/sentinel-ap
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   handleTransactionAddedEventForMetrics,
   handleTransactionApprovedEventForMetrics,
@@ -115,7 +115,7 @@ function buildInitRequestMock(
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     initMessenger:
       initMessenger as unknown as TransactionControllerInitMessenger,
     controllerMessenger:
@@ -123,8 +123,8 @@ function buildInitRequestMock(
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getController) {
-    requestMock.getController.mockReturnValue(buildControllerMock());
+  if (!initRequestProperties.getMessengerClient) {
+    requestMock.getMessengerClient.mockReturnValue(buildControllerMock());
   }
 
   return requestMock;
@@ -176,7 +176,7 @@ describe('Transaction Controller Init', () => {
   ): TransactionControllerOptions[T] {
     const requestMock = buildInitRequestMock(initRequestProperties);
 
-    requestMock.getController.mockReturnValue(
+    requestMock.getMessengerClient.mockReturnValue(
       buildControllerMock(dependencyProperties),
     );
 
@@ -232,7 +232,7 @@ describe('Transaction Controller Init', () => {
   describe('throws error', () => {
     it('if requested controller is not found', () => {
       const requestMock = buildInitRequestMock({
-        getController: () => {
+        getMessengerClient: () => {
           throw new Error('Controller not found');
         },
       });
