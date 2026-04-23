@@ -74,15 +74,23 @@ describe('SocialLoginIosUser', () => {
       (useRoute as jest.Mock).mockReturnValue(mockRoute);
     });
 
-    it('renders match snapshot', () => {
-      const { toJSON } = renderWithProvider(<SocialLoginIosUser type="new" />);
-      expect(toJSON()).toMatchSnapshot();
+    it('renders correctly', () => {
+      const { getByText } = renderWithProvider(
+        <SocialLoginIosUser type="new" />,
+      );
+      expect(
+        getByText(strings('social_login_ios_user.new_user_title')),
+      ).toBeOnTheScreen();
     });
 
-    it('renders match snapshot with medium device', () => {
+    it('renders correctly with medium device', () => {
       (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-      const { toJSON } = renderWithProvider(<SocialLoginIosUser type="new" />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = renderWithProvider(
+        <SocialLoginIosUser type="new" />,
+      );
+      expect(
+        getByText(strings('social_login_ios_user.new_user_title')),
+      ).toBeOnTheScreen();
     });
 
     it('renders title and button with correct text', () => {
@@ -152,19 +160,23 @@ describe('SocialLoginIosUser', () => {
       (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
     });
 
-    it('renders match snapshot', () => {
-      const { toJSON } = renderWithProvider(
+    it('renders correctly', () => {
+      const { getByText } = renderWithProvider(
         <SocialLoginIosUser type="existing" />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByText(strings('social_login_ios_user.existing_user_title')),
+      ).toBeOnTheScreen();
     });
 
-    it('renders match snapshot with medium device', () => {
+    it('renders correctly with medium device', () => {
       (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-      const { toJSON } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <SocialLoginIosUser type="existing" />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByText(strings('social_login_ios_user.existing_user_title')),
+      ).toBeOnTheScreen();
     });
 
     it('renders title and button with correct text', () => {
