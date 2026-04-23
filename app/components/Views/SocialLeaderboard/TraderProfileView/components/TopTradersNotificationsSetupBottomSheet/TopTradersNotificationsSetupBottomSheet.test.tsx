@@ -7,7 +7,7 @@ import TopTradersNotificationsSetupBottomSheet, {
 import { TopTradersNotificationsSetupBottomSheetSelectorsIDs } from './TopTradersNotificationsSetupBottomSheet.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import type {
-  NotificationPreferences,
+  SocialAIPreference,
   TxAmountThreshold,
 } from '../../../NotificationPreferencesView/hooks';
 
@@ -57,16 +57,16 @@ jest.mock(
 );
 
 const makePreferences = (
-  overrides: Partial<NotificationPreferences> = {},
-): NotificationPreferences => ({
+  overrides: Partial<SocialAIPreference> = {},
+): SocialAIPreference => ({
   enabled: false,
   txAmountLimit: 500 as TxAmountThreshold,
-  traderNotifications: {},
+  mutedTraderProfileIds: [],
   ...overrides,
 });
 
 interface OpenedSheetProps {
-  preferences?: NotificationPreferences;
+  preferences?: SocialAIPreference;
   onDismiss?: () => void;
 }
 

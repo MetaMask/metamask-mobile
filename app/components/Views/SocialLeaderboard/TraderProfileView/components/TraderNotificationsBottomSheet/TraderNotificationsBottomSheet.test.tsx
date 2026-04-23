@@ -7,10 +7,11 @@ import TraderNotificationsBottomSheet, {
 import { TraderNotificationsBottomSheetSelectorsIDs } from './TraderNotificationsBottomSheet.testIds';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import type { NotificationPreferences } from '../../../NotificationPreferencesView/hooks';
+import type { SocialAIPreference } from '../../../NotificationPreferencesView/hooks';
 
 const mockNavigate = jest.fn();
 const mockToggleTraderNotification = jest.fn();
+const mockIsTraderNotificationEnabled = jest.fn().mockReturnValue(true);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -59,18 +60,19 @@ jest.mock(
 );
 
 const makePreferences = (
-  overrides: Partial<NotificationPreferences> = {},
-): NotificationPreferences => ({
+  overrides: Partial<SocialAIPreference> = {},
+): SocialAIPreference => ({
   enabled: true,
   txAmountLimit: 500,
-  traderNotifications: { 'trader-1': false },
+  mutedTraderProfileIds: [],
   ...overrides,
 });
 
 interface OpenedSheetProps {
   traderId?: string;
   traderName?: string;
-  preferences?: NotificationPreferences;
+  preferences?: SocialAIPreference;
+  isTraderNotificationEnabled?: (id: string) => boolean;
   onDismiss?: () => void;
 }
 
@@ -78,6 +80,7 @@ const OpenedSheet: React.FC<OpenedSheetProps> = ({
   traderId = 'trader-1',
   traderName = 'dutchiono',
   preferences = makePreferences(),
+  isTraderNotificationEnabled = mockIsTraderNotificationEnabled,
   onDismiss,
 }) => {
   const ref = useRef<TraderNotificationsBottomSheetRef>(null);
@@ -92,6 +95,7 @@ const OpenedSheet: React.FC<OpenedSheetProps> = ({
       traderId={traderId}
       traderName={traderName}
       preferences={preferences}
+      isTraderNotificationEnabled={isTraderNotificationEnabled}
       toggleTraderNotification={mockToggleTraderNotification}
       onDismiss={onDismiss}
     />
@@ -101,6 +105,7 @@ const OpenedSheet: React.FC<OpenedSheetProps> = ({
 describe('TraderNotificationsBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsTraderNotificationEnabled.mockReturnValue(true);
   });
 
   describe('rendering', () => {
@@ -112,6 +117,7 @@ describe('TraderNotificationsBottomSheet', () => {
           traderId="trader-1"
           traderName="dutchiono"
           preferences={makePreferences()}
+          isTraderNotificationEnabled={mockIsTraderNotificationEnabled}
           toggleTraderNotification={mockToggleTraderNotification}
         />,
       );
@@ -180,13 +186,11 @@ describe('TraderNotificationsBottomSheet', () => {
   });
 
   describe('toggle', () => {
-    it('renders the toggle reflecting per-trader notification enabled state', () => {
+    it('renders the toggle as on when isTraderNotificationEnabled returns true', () => {
       renderWithProvider(
         <OpenedSheet
           traderId="trader-1"
-          preferences={makePreferences({
-            traderNotifications: { 'trader-1': true },
-          })}
+          isTraderNotificationEnabled={() => true}
         />,
       );
 
@@ -197,11 +201,11 @@ describe('TraderNotificationsBottomSheet', () => {
       expect(toggle.props.value).toBe(true);
     });
 
-    it('renders the toggle as off when no explicit preference has been set for the trader', () => {
+    it('renders the toggle as off when isTraderNotificationEnabled returns false', () => {
       renderWithProvider(
         <OpenedSheet
           traderId="trader-1"
-          preferences={makePreferences({ traderNotifications: {} })}
+          isTraderNotificationEnabled={() => false}
         />,
       );
 

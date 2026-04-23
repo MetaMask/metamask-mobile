@@ -23,7 +23,7 @@ import { ButtonVariants } from '../../../../../../component-library/components/B
 import { strings } from '../../../../../../../locales/i18n';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import type {
-  NotificationPreferences,
+  SocialAIPreference,
   TxAmountThreshold,
 } from '../../../NotificationPreferencesView/hooks';
 import AllowPushNotificationsRow from '../../../NotificationPreferencesView/components/AllowPushNotificationsRow';
@@ -36,9 +36,9 @@ export interface TopTradersNotificationsSetupBottomSheetRef {
 }
 
 interface TopTradersNotificationsSetupBottomSheetProps {
-  preferences: NotificationPreferences;
-  setEnabled: (value: boolean) => void;
-  setTxAmountLimit: (value: TxAmountThreshold) => void;
+  preferences: SocialAIPreference;
+  setEnabled: (value: boolean) => void | Promise<void>;
+  setTxAmountLimit: (value: TxAmountThreshold) => void | Promise<void>;
   onDismiss?: () => void;
 }
 
@@ -141,7 +141,7 @@ const TopTradersNotificationsSetupBottomSheet = forwardRef<
       <View style={tw.style('h-px bg-muted mx-4')} />
 
       <ThresholdRadioList
-        selected={preferences.txAmountLimit}
+        selected={(preferences.txAmountLimit ?? 500) as TxAmountThreshold}
         onChange={setTxAmountLimit}
         isDisabled={!preferences.enabled}
         currency={currentCurrency}

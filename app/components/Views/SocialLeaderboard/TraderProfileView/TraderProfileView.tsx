@@ -7,7 +7,6 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -40,8 +39,6 @@ import {
   PositionRowSkeleton,
 } from './components/Skeletons';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
 import TraderNotificationsBottomSheet, {
   type TraderNotificationsBottomSheetRef,
@@ -90,8 +87,6 @@ const TraderProfileView = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
-  const isFeatureEnabled = useSelector(selectSocialLeaderboardEnabled);
-
   const { traderId, traderName } = route.params;
 
   const {
@@ -105,15 +100,13 @@ const TraderProfileView = () => {
   const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
     useTraderPositions(traderId, { refetchInterval: 30_000 });
 
-  const { traders } = useTopTraders({ enabled: isFeatureEnabled });
-  const followedTraders = traders.filter((t) => t.isFollowing);
-
   const {
     preferences,
     setEnabled,
     setTxAmountLimit,
     toggleTraderNotification,
-  } = useNotificationPreferences(followedTraders);
+    isTraderNotificationEnabled,
+  } = useNotificationPreferences();
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
 
@@ -304,6 +297,7 @@ const TraderProfileView = () => {
         traderId={traderId}
         traderName={profile?.profile.name ?? traderName}
         preferences={preferences}
+        isTraderNotificationEnabled={isTraderNotificationEnabled}
         toggleTraderNotification={toggleTraderNotification}
       />
     </SafeAreaView>

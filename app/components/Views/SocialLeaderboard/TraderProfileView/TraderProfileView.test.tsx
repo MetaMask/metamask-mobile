@@ -27,32 +27,26 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../Views/Homepage/Sections/TopTraders/hooks', () => ({
-  useTopTraders: () => ({
-    traders: [],
-    isLoading: false,
-    error: null,
-    refresh: jest.fn(),
-    toggleFollow: jest.fn(),
-  }),
-}));
-
 let mockNotificationPreferences = {
   enabled: false,
   txAmountLimit: 500 as const,
-  traderNotifications: {} as Record<string, boolean>,
+  mutedTraderProfileIds: [] as string[],
 };
 const mockSetEnabled = jest.fn();
 const mockSetTxAmountLimit = jest.fn();
 const mockToggleTraderNotification = jest.fn();
+const mockIsTraderNotificationEnabled = jest.fn().mockReturnValue(true);
 
 jest.mock('../NotificationPreferencesView/hooks', () => ({
   ...jest.requireActual('../NotificationPreferencesView/hooks'),
   useNotificationPreferences: () => ({
     preferences: mockNotificationPreferences,
+    isLoading: false,
+    error: null,
     setEnabled: mockSetEnabled,
     setTxAmountLimit: mockSetTxAmountLimit,
     toggleTraderNotification: mockToggleTraderNotification,
+    isTraderNotificationEnabled: mockIsTraderNotificationEnabled,
   }),
 }));
 
@@ -229,8 +223,9 @@ describe('TraderProfileView', () => {
     mockNotificationPreferences = {
       enabled: false,
       txAmountLimit: 500 as const,
-      traderNotifications: {},
+      mutedTraderProfileIds: [],
     };
+    mockIsTraderNotificationEnabled.mockReturnValue(true);
   });
 
   it('renders the container', () => {
@@ -343,8 +338,9 @@ describe('TraderProfileView', () => {
   describe('notification bell routing', () => {
     it('opens the setup sheet when global notifications are off', () => {
       mockNotificationPreferences = {
-        ...mockNotificationPreferences,
         enabled: false,
+        txAmountLimit: 500 as const,
+        mutedTraderProfileIds: [],
       };
 
       renderWithProvider(<TraderProfileView />);
@@ -362,8 +358,9 @@ describe('TraderProfileView', () => {
 
     it('opens the per-trader sheet when global notifications are on', () => {
       mockNotificationPreferences = {
-        ...mockNotificationPreferences,
         enabled: true,
+        txAmountLimit: 500 as const,
+        mutedTraderProfileIds: [],
       };
 
       renderWithProvider(<TraderProfileView />);

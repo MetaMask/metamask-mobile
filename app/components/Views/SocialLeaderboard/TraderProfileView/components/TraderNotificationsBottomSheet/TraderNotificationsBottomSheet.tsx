@@ -30,7 +30,7 @@ import HeaderCompactStandard from '../../../../../../component-library/component
 import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
-import type { NotificationPreferences } from '../../../NotificationPreferencesView/hooks';
+import type { SocialAIPreference } from '../../../NotificationPreferencesView/hooks';
 import AllowPushNotificationsRow from '../../../NotificationPreferencesView/components/AllowPushNotificationsRow';
 import { TraderNotificationsBottomSheetSelectorsIDs } from './TraderNotificationsBottomSheet.testIds';
 
@@ -42,8 +42,9 @@ export interface TraderNotificationsBottomSheetRef {
 interface TraderNotificationsBottomSheetProps {
   traderId: string;
   traderName: string;
-  preferences: NotificationPreferences;
-  toggleTraderNotification: (traderId: string) => void;
+  preferences: SocialAIPreference;
+  isTraderNotificationEnabled: (traderId: string) => boolean;
+  toggleTraderNotification: (traderId: string) => void | Promise<void>;
   onDismiss?: () => void;
 }
 
@@ -52,7 +53,14 @@ const TraderNotificationsBottomSheet = forwardRef<
   TraderNotificationsBottomSheetProps
 >(
   (
-    { traderId, traderName, preferences, toggleTraderNotification, onDismiss },
+    {
+      traderId,
+      traderName,
+      preferences,
+      isTraderNotificationEnabled,
+      toggleTraderNotification,
+      onDismiss,
+    },
     ref,
   ) => {
     const sheetRef = useRef<BottomSheetRef>(null);
@@ -61,8 +69,7 @@ const TraderNotificationsBottomSheet = forwardRef<
     const navigation = useNavigation();
 
     const globalOff = !preferences.enabled;
-    const isTraderNotificationEnabled =
-      preferences.traderNotifications[traderId] ?? false;
+    const traderNotificationEnabled = isTraderNotificationEnabled(traderId);
 
     const handleSheetClosed = useCallback(() => {
       setIsVisible(false);
@@ -147,7 +154,7 @@ const TraderNotificationsBottomSheet = forwardRef<
             'social_leaderboard.trader_notifications.allow_push_notifications_desc',
             { traderName },
           )}
-          value={isTraderNotificationEnabled}
+          value={traderNotificationEnabled}
           onValueChange={() => {
             if (!globalOff) {
               toggleTraderNotification(traderId);

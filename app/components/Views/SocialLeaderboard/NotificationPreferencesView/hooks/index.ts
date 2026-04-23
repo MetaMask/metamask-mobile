@@ -1,6 +1,5 @@
 export { default as useNotificationPreferences } from './useNotificationPreferences';
 export type {
-  NotificationPreferences,
   SocialAIPreference,
   UseNotificationPreferencesResult,
   TxAmountThreshold,
