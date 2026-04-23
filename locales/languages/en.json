@@ -5571,7 +5571,7 @@
     "more_to_complete": "more to complete this swap.",
     "more_gas_to_complete": "more for gas to complete this swap.",
     "token_marketplace": "Token marketplace",
-    "market_price_unavailable_title": "Check your rate before proceeding",
+    "market_price_unavailable_title": "No price information",
     "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "Price difference of {{amount}}",
     "price_difference_title": "Price difference",

@@ -559,7 +559,6 @@ const BridgeView = () => {
             {contentMode === 'quote' && hasMissingPriceData(activeQuote) ? (
               <BannerAlert
                 severity={BannerAlertSeverity.Danger}
-                title={strings('swaps.market_price_unavailable_title')}
                 description={strings('swaps.market_price_unavailable')}
                 testID={BridgeViewSelectorsIDs.MISSING_PRICE_BANNER}
               />

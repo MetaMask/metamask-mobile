@@ -9,8 +9,7 @@ interface QuoteLike {
 export const hasMissingPriceData = (quote?: QuoteLike | null) => {
   const priceData = quote?.quote?.priceData;
 
-  // return (
-  //   !priceData || priceData.priceImpact == null || priceData.priceImpact === ''
-  // );
-  return true;
+  return (
+    !priceData || priceData.priceImpact == null || priceData.priceImpact === ''
+  );
 };
