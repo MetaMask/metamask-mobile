@@ -251,7 +251,7 @@ describe('useNetworkOperations', () => {
 
     const { result } = renderHook(() => useNetworkOperations());
 
-    let saved: boolean;
+    let saved = false;
     await act(async () => {
       saved = await result.current.saveNetwork(baseForm, {
         ...defaultSaveOpts(),
@@ -285,7 +285,7 @@ describe('useNetworkOperations', () => {
 
     const { result } = renderHook(() => useNetworkOperations());
 
-    let saved: boolean;
+    let saved = false;
     await act(async () => {
       saved = await result.current.saveNetwork(
         {
