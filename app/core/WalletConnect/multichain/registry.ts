@@ -7,6 +7,9 @@
 import { KnownCaipNamespace } from '@metamask/utils';
 
 import { eip155Adapter } from './eip155';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { tronAdapter, tronRequestMapper, tronResponseMapper } from './tron';
+///: END:ONLY_INCLUDE_IF
 import type {
   ChainAdapter,
   RequestMapper,
@@ -25,7 +28,16 @@ interface ChainRegistration {
   responseMapper?: ResponseMapper;
 }
 
-const registrations: ChainRegistration[] = [{ adapter: eip155Adapter }];
+const registrations: ChainRegistration[] = [
+  { adapter: eip155Adapter },
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  {
+    adapter: tronAdapter,
+    requestMapper: tronRequestMapper,
+    responseMapper: tronResponseMapper,
+  },
+  ///: END:ONLY_INCLUDE_IF
+];
 
 const byNamespace = new Map<string, ChainRegistration>(
   registrations.map((r) => [r.adapter.namespace, r]),
