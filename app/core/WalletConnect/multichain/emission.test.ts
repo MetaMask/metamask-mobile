@@ -28,6 +28,28 @@ describe('getChainChangedEmission', () => {
     ).toEqual({ chainId: 'eip155:1', data: '0x1' });
   });
 
+  it('prefers tron (priority 10) over eip155 (priority 0)', () => {
+    expect(
+      getChainChangedEmission({
+        namespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: [],
+            events: [],
+            accounts: [],
+          },
+          tron: {
+            chains: ['tron:0x2b6653dc'],
+            methods: [],
+            events: [],
+            accounts: [],
+          },
+        },
+        ...fallback,
+      }),
+    ).toEqual({ chainId: 'tron:0x2b6653dc', data: 'tron:0x2b6653dc' });
+  });
+
   it('falls back to the first eip155 chain when no non-EVM namespace is present', () => {
     expect(
       getChainChangedEmission({
