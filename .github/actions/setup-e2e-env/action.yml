@@ -125,6 +125,7 @@ runs:
         retry_wait_seconds: 30
         on_retry_command: sudo apt-get clean
         command: |
+          set -euo pipefail
           sudo apt-get -o DPkg::Lock::Timeout=120 update
           sudo apt-get -o DPkg::Lock::Timeout=120 install -y \
             libpulse0 \
