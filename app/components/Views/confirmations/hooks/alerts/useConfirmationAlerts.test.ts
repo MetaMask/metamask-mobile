@@ -158,6 +158,14 @@ describe('useConfirmationAlerts', () => {
       severity: Severity.Danger,
     },
   ];
+  const mockBurnAddressAlert: Alert[] = [
+    {
+      key: 'BurnAddressAlert',
+      title: 'Test Burn Address Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
 
   const mockTokenTrustSignalAlerts: Alert[] = [
     {
