@@ -220,7 +220,7 @@ jobs:
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 56
 
       - name: Post iOS JS bundle size to commit status
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ !github.event.pull_request || !github.event.pull_request.head.repo.fork }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
