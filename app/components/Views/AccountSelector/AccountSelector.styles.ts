@@ -31,8 +31,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     accountSelectorFooter: {
       flexDirection: 'row',
-      paddingVertical: 4,
-      paddingHorizontal: 8,
     },
     footerButton: {
       flex: 1,
