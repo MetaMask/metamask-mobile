@@ -487,6 +487,10 @@
     "title_select_hardware": "Verbinden Sie eine Hardware-Wallet",
     "select_hardware": "Wählen Sie eine Hardware-Wallet aus, die Sie verwenden möchten"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Verbinden Sie eine Hardware-Wallet",
+    "select_hardware": "Wählen Sie eine Hardware-Wallet aus, die Sie verwenden möchten"
+  },
   "enter_password": {
     "title": "Passwort eingeben",
     "desc": "Bitte geben Sie Ihr Passwort ein, um fortzufahren.",
@@ -2931,7 +2935,6 @@
     "import_account": "Ein Konto importieren",
     "connect_hardware": "Hardware-Wallet verknüpfen",
     "imported": "Importiert",
-    "qr_hardware": "QR-Hardware",
     "remove_account_title": "Kontoentfernung",
     "remove_account_message": "Möchten Sie dieses Konto wirklich entfernen?",
     "no": "Nein",

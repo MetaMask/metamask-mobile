@@ -487,6 +487,10 @@
     "title_select_hardware": "Magkonekta ng wallet na hardware",
     "select_hardware": "Pumili ng wallet na hardware na gusto mong gamitin"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Magkonekta ng wallet na hardware",
+    "select_hardware": "Pumili ng wallet na hardware na gusto mong gamitin"
+  },
   "enter_password": {
     "title": "Ilagay ang iyong password",
     "desc": "Pakilagay ang iyong password para magpatuloy",
@@ -2931,7 +2935,6 @@
     "import_account": "Mag-import ng account",
     "connect_hardware": "Ikonekta ang wallet na hardware",
     "imported": "Na-import",
-    "qr_hardware": "QR hardware",
     "remove_account_title": "Pag-alis ng account",
     "remove_account_message": "Gusto mo ba talagang alisin ang account na ito?",
     "no": "Hindi",

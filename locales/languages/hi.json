@@ -487,6 +487,10 @@
     "title_select_hardware": "किसी hardware wallet को कनेक्ट करें",
     "select_hardware": "किसी hardware wallet को चुनें जिसे आप इस्तेमाल करना चाहेंगे"
   },
+  "connect_hardware": {
+    "title_select_hardware": "किसी hardware wallet को कनेक्ट करें",
+    "select_hardware": "किसी hardware wallet को चुनें जिसे आप इस्तेमाल करना चाहेंगे"
+  },
   "enter_password": {
     "title": "अपना पासवर्ड दर्ज करें",
     "desc": "जारी रखने के लिए कृपया अपना पासवर्ड दर्ज करें",
@@ -2931,7 +2935,6 @@
     "import_account": "एक खाता इम्पोर्ट करें",
     "connect_hardware": "हार्डवेयर वॉलेट कनेक्ट करें",
     "imported": "इम्पोर्ट किया गया",
-    "qr_hardware": "QR हार्डवेयर",
     "remove_account_title": "अकाउंट हटाया जाना",
     "remove_account_message": "क्या आप वास्तव में इस अकाउंट को हटाना चाहते हैं?",
     "no": "नहीं",
