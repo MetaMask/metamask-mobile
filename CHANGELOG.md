@@ -5820,6 +5820,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix: capture exception with Sentry instead throwing the error (#15469)
 
+## [7.46.1]
+
+### Fixed 
+- fix: capture exception with Sentry instead throwing the error ([#15469](https://github.com/MetaMask/metamask-mobile/pull/15469))
+
 ## [7.46.0]
 
 ### Added
