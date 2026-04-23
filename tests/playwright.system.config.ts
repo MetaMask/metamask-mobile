@@ -30,8 +30,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
         },
         app: {
           packageName: 'io.metamask',
@@ -48,8 +48,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
         },
         app: {
           packageName: 'io.metamask',

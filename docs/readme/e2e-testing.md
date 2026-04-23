@@ -581,8 +581,8 @@ Add it to the config file by replacing `process.env.BROWSERSTACK_ANDROID_APP_URL
     platform: Platform.ANDROID,
     device: {
       provider: 'browserstack',
-      name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can be changed
-      osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can be changed
+      name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra', // this can be changed
+      osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0', // this can be changed
     },
     buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to BrowserStack URL bs:// link
   },

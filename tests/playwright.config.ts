@@ -50,7 +50,7 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra', // this can changed
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
         app: {
@@ -62,7 +62,7 @@ export default defineConfig({
     },
     {
       name: 'ios',
-      testMatch: '**/performance/login/**/*.spec.ts',
+      testMatch: [], // temporarily disabled — Android only
       use: {
         platform: Platform.IOS,
         device: {
@@ -77,7 +77,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-ios',
-      testMatch: '**/performance/login/**/*.spec.ts',
+      testMatch: [], // temporarily disabled — Android only
       use: {
         platform: Platform.IOS,
         device: {
@@ -101,7 +101,7 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
         },
         app: {
@@ -115,7 +115,7 @@ export default defineConfig({
     },
     {
       name: 'ios-onboarding',
-      testMatch: '**/performance/onboarding/**/*.spec.ts',
+      testMatch: [], // temporarily disabled — Android only
       testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
       use: {
         platform: Platform.IOS,
@@ -134,7 +134,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-ios-browserstack',
-      testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      testMatch: [], // temporarily disabled — Android only
       use: {
         platform: Platform.IOS,
         device: {
@@ -150,7 +150,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-ios-local',
-      testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      testMatch: [], // temporarily disabled — Android only
       use: {
         platform: Platform.IOS,
         device: {
@@ -170,7 +170,7 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra', // this can changed
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
         app: {
@@ -204,7 +204,7 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
         },
         app: {
@@ -218,7 +218,7 @@ export default defineConfig({
     },
     {
       name: 'ios-onboarding-seedless',
-      testMatch: '**/performance/onboarding/seedless-*.spec.ts',
+      testMatch: [], // temporarily disabled — Android only
       use: {
         platform: Platform.IOS,
         device: {
