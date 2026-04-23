@@ -24,6 +24,7 @@ import {
 } from '../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
+import { useOndoCampaignEndedOutcomeToast } from './hooks/useOndoCampaignEndedOutcomeToast';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
@@ -54,6 +55,8 @@ const RewardsNavigator: React.FC = () => {
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
+
+  useOndoCampaignEndedOutcomeToast();
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {

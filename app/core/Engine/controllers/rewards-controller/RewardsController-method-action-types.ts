@@ -515,15 +515,15 @@ export type RewardsControllerGetOndoCampaignDepositsAction = {
 };
 
 /**
- * Fetch the winning code for the current user in a completed Ondo GM campaign.
+ * Fetch the participant outcome for the current user in a completed Ondo GM campaign.
  *
  * @param campaignId - The campaign ID.
  * @param subscriptionId - The subscription ID for authentication.
- * @returns The winner's claim code, or null if unavailable.
+ * @returns The participant outcome DTO, or null if unavailable.
  */
-export type RewardsControllerGetOndoCampaignWinnerCodeAction = {
-  type: `RewardsController:getOndoCampaignWinnerCode`;
-  handler: RewardsController['getOndoCampaignWinnerCode'];
+export type RewardsControllerGetOndoCampaignParticipantOutcomeAction = {
+  type: `RewardsController:getOndoCampaignParticipantOutcome`;
+  handler: RewardsController['getOndoCampaignParticipantOutcome'];
 };
 
 /**
@@ -763,7 +763,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction
-  | RewardsControllerGetOndoCampaignWinnerCodeAction
+  | RewardsControllerGetOndoCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
   | RewardsControllerGetOndoCampaignActivityAction

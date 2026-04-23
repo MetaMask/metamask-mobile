@@ -16,6 +16,7 @@ import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
@@ -191,6 +192,21 @@ jest.mock('../components/Campaigns/CampaignOptInSheet', () => {
   };
 });
 
+jest.mock('../components/RewardsInfoBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ title, description }: { title: string; description: string }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-info-banner' },
+        ReactActual.createElement(Text, null, title),
+        ReactActual.createElement(Text, null, description),
+      ),
+  };
+});
+
 jest.mock('../components/RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
@@ -252,6 +268,20 @@ jest.mock('../hooks/useGetOndoCampaignDeposits');
 const mockUseGetOndoCampaignDeposits =
   useGetOndoCampaignDeposits as jest.MockedFunction<
     typeof useGetOndoCampaignDeposits
+  >;
+
+jest.mock('../hooks/useOndoCampaignParticipantOutcome', () => ({
+  __esModule: true,
+  useOndoCampaignParticipantOutcome: jest.fn(() => ({
+    outcome: null,
+    isLoading: false,
+    hasError: false,
+  })),
+}));
+
+const mockUseOndoCampaignParticipantOutcome =
+  useOndoCampaignParticipantOutcome as jest.MockedFunction<
+    typeof useOndoCampaignParticipantOutcome
   >;
 
 const mockOndoPrizePool = jest.fn();
@@ -550,6 +580,11 @@ describe('OndoCampaignDetailsView', () => {
       isLoading: false,
       hasError: false,
       refetch: jest.fn(),
+    });
+    mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+      outcome: null,
+      isLoading: false,
+      hasError: false,
     });
     mockOndoPrizePool.mockReset();
   });
@@ -1273,6 +1308,15 @@ describe('OndoCampaignDetailsView', () => {
         hasFetched: true,
         refetch: jest.fn(),
       });
+      mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+        outcome: {
+          subscriptionId: 'sub-1',
+          outcomeStatus: 'pending',
+          winnerVerificationCode: 'LVL346',
+        },
+        isLoading: false,
+        hasError: false,
+      });
     };
 
     it('auto-navigates to winning view on focus when user is a winner and campaign is complete', () => {
@@ -1339,7 +1383,7 @@ describe('OndoCampaignDetailsView', () => {
       setupWinner();
       const { getByText } = render(<OndoCampaignDetailsView />);
       expect(
-        getByText('rewards.ondo_winning_banner.title'),
+        getByText('rewards.ondo_outcome_banner.winner_pending.title'),
       ).toBeDefined();
     });
 
@@ -1370,7 +1414,7 @@ describe('OndoCampaignDetailsView', () => {
       });
       const { queryByText } = render(<OndoCampaignDetailsView />);
       expect(
-        queryByText('rewards.ondo_winning_banner.title'),
+        queryByText('rewards.ondo_outcome_banner.winner_pending.title'),
       ).toBeNull();
     });
 
@@ -1378,7 +1422,9 @@ describe('OndoCampaignDetailsView', () => {
       setupWinner();
       mockNavigate.mockClear();
       const { getByLabelText } = render(<OndoCampaignDetailsView />);
-      fireEvent.press(getByLabelText('rewards.ondo_winning_banner.a11y'));
+      fireEvent.press(
+        getByLabelText('rewards.ondo_outcome_banner.winner_pending.a11y'),
+      );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
         { campaignId: 'campaign-1', campaignName: 'Test Campaign' },
