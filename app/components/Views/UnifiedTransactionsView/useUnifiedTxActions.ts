@@ -12,7 +12,6 @@ import { useSelector } from 'react-redux';
 import { ToastContext } from '../../../component-library/components/Toast';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
-import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
@@ -20,6 +19,7 @@ import { isHardwareAccount } from '../../../util/address';
 import {
   getGasValuesForReplacement,
   getMediumGasPriceHex,
+  normalizeReplacementGasFeeParams,
 } from '../../../util/confirmation/gas';
 import {
   getPreviousGasFromController,
@@ -27,11 +27,14 @@ import {
 } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import {
-  createLedgerTransactionModalNavDetails,
   LedgerReplacementTxTypes,
   type ReplacementTxParams,
 } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import {
+  useHardwareWallet,
+  executeHardwareWalletOperation,
+} from '../../../core/HardwareWallet';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 type Maybe<T> = T | null | undefined;
@@ -73,6 +76,13 @@ export type SpeedUpCancelModalState =
 
 export function useUnifiedTxActions() {
   const navigation = useNavigation();
+  const {
+    ensureDeviceReady,
+    setTargetWalletType,
+    showAwaitingConfirmation,
+    hideAwaitingConfirmation,
+    showHardwareWalletError,
+  } = useHardwareWallet();
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
 
@@ -115,23 +125,68 @@ export function useUnifiedTxActions() {
 
   const signLedgerTransaction = useCallback(
     async (transaction: LedgerSignRequest) => {
-      const deviceId = await getDeviceId();
-      const onConfirmation = (_isComplete: boolean) => {
-        // Clean up modal state regardless of whether the user confirmed or rejected.
-        // Without this, rejecting on the Ledger modal leaves stale state that can
-        // cause the speed up/cancel modal to reappear unexpectedly.
-        onSpeedUpCancelCompleted();
-      };
-      navigation.navigate(
-        ...createLedgerTransactionModalNavDetails({
-          transactionId: transaction.id,
-          deviceId,
-          onConfirmationComplete: onConfirmation,
-          replacementParams: transaction?.replacementParams,
-        }),
+      if (!selectedAddress) {
+        throw new Error(
+          'Missing selected address for hardware wallet operation',
+        );
+      }
+
+      const gasFeeParams = normalizeReplacementGasFeeParams(
+        transaction?.replacementParams,
       );
+
+      const didComplete = await executeHardwareWalletOperation({
+        address: selectedAddress,
+        operationType: 'transaction',
+        ensureDeviceReady,
+        setTargetWalletType,
+        showAwaitingConfirmation,
+        hideAwaitingConfirmation,
+        showHardwareWalletError,
+        execute: async () => {
+          if (
+            transaction?.replacementParams?.type ===
+            LedgerReplacementTxTypes.SPEED_UP
+          ) {
+            await speedUpTx(transaction.id, gasFeeParams);
+            return;
+          }
+
+          if (
+            transaction?.replacementParams?.type ===
+            LedgerReplacementTxTypes.CANCEL
+          ) {
+            await Engine.context.TransactionController.stopTransaction(
+              transaction.id,
+              gasFeeParams,
+            );
+            return;
+          }
+
+          await Engine.context.ApprovalController.acceptRequest(
+            transaction.id,
+            undefined,
+            {
+              waitForResult: true,
+            },
+          );
+        },
+        onRejected: onSpeedUpCancelCompleted,
+      });
+
+      if (didComplete) {
+        onSpeedUpCancelCompleted();
+      }
     },
-    [navigation, onSpeedUpCancelCompleted],
+    [
+      selectedAddress,
+      ensureDeviceReady,
+      setTargetWalletType,
+      showAwaitingConfirmation,
+      hideAwaitingConfirmation,
+      showHardwareWalletError,
+      onSpeedUpCancelCompleted,
+    ],
   );
 
   const getGasPriceEstimate = () => getMediumGasPriceHex(gasFeeEstimates);

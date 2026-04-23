@@ -117,6 +117,7 @@ export const useDeviceConnectionFlow = ({
   const tryEnsureReady = useCallback(
     async (
       adapter: {
+        walletType?: HardwareWalletType | null;
         ensureDeviceReady: (id: string) => Promise<boolean>;
         markFlowComplete: () => void;
       },
@@ -125,10 +126,23 @@ export const useDeviceConnectionFlow = ({
       const isReady = await adapter.ensureDeviceReady(targetDeviceId);
       if (isReady) {
         adapter.markFlowComplete();
-        updateConnectionState({
-          status: ConnectionStatus.Ready,
-          deviceId: targetDeviceId,
-        });
+        // QR submit flow should not show the intermediate "connected/success"
+        // modal before awaiting-confirmation. For QR, readiness still happens
+        // first, but the caller (executeHardwareWalletOperation) immediately
+        // transitions to AwaitingConfirmation after this promise resolves.
+        if (adapter.walletType === HardwareWalletType.Qr) {
+          const resolvePending = pendingReadyResolveRef.current;
+          if (resolvePending) {
+            pendingReadyResolveRef.current = null;
+            connectionSuccessCallbackRef.current = null;
+            resolvePending(true);
+          }
+        } else {
+          updateConnectionState({
+            status: ConnectionStatus.Ready,
+            deviceId: targetDeviceId,
+          });
+        }
       } else {
         DevLogger.log(
           '[HardwareWallet] Device not ready — adapter event already handled state transition',
@@ -224,6 +238,32 @@ export const useDeviceConnectionFlow = ({
 
       return createBlockingPromise(() => {
         if (!targetDeviceId) {
+          // For wallets that don't require device discovery (e.g., QR),
+          // we can skip device selection and go straight to connecting
+          if (!adapter.requiresDeviceDiscovery) {
+            DevLogger.log(
+              '[HardwareWallet] No device ID but discovery not required - checking readiness',
+            );
+            updateConnectionState({ status: ConnectionStatus.Connecting });
+
+            (async () => {
+              try {
+                refs.abortControllerRef.current = new AbortController();
+                // Use a default device ID for wallets without real device IDs
+                await tryEnsureReady(adapter, 'default');
+              } catch (error) {
+                DevLogger.log(
+                  '[HardwareWallet] ensureDeviceReady error:',
+                  error,
+                );
+                handleError(error);
+              } finally {
+                refs.abortControllerRef.current = null;
+              }
+            })();
+            return;
+          }
+
           DevLogger.log(
             '[HardwareWallet] No device ID - starting device selection',
           );
