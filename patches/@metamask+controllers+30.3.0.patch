@@ -1,0 +1,15 @@
+diff --git a/node_modules/@metamask/controllers/dist/keyring/KeyringController.js b/node_modules/@metamask/controllers/dist/keyring/KeyringController.js
+index 8b9d1ba..d342d7c 100644
+--- a/node_modules/@metamask/controllers/dist/keyring/KeyringController.js
++++ b/node_modules/@metamask/controllers/dist/keyring/KeyringController.js
+@@ -307,8 +307,8 @@ class KeyringController extends BaseController_1.BaseController {
+             const accounts = yield newKeyring.getAccounts();
+             const allAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+             this.updateIdentities(allAccounts);
+-            this.setSelectedAddress(accounts[0]);
+-            return this.fullUpdate();
++            const importedAccountAddress = accounts[0];
++            return { importedAccountAddress, keyringState: this.fullUpdate() };
+         });
+     }
+     /**
