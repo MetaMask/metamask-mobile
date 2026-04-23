@@ -22,6 +22,20 @@ export interface BridgeTokenSecurityConfig {
 }
 
 /**
+ * Returns true for security types that require the user to acknowledge before
+ * proceeding (Warning, Malicious, Spam).
+ */
+export const isNegativeSecurityType = (
+  type: SecurityDataType | undefined,
+): type is
+  | SecurityDataType.Warning
+  | SecurityDataType.Malicious
+  | SecurityDataType.Spam =>
+  type === SecurityDataType.Warning ||
+  type === SecurityDataType.Malicious ||
+  type === SecurityDataType.Spam;
+
+/**
  * Returns Bridge-specific icon, color, severity and label for a token's
  * security type. Used by the token selector tag, warning banner, and
  * warning modal.

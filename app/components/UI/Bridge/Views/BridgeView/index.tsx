@@ -23,7 +23,10 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { getBridgeTokenSecurityConfig } from '../../utils/tokenSecurityUtils';
+import {
+  getBridgeTokenSecurityConfig,
+  isNegativeSecurityType,
+} from '../../utils/tokenSecurityUtils';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -152,11 +155,9 @@ const BridgeView = () => {
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const destTokenSecurityData = destToken?.securityData;
-  const tokenWarning =
-    destTokenSecurityData?.type === SecurityDataType.Warning ||
-    destTokenSecurityData?.type === SecurityDataType.Malicious
-      ? destTokenSecurityData
-      : undefined;
+  const tokenWarning = isNegativeSecurityType(destTokenSecurityData?.type)
+    ? destTokenSecurityData
+    : undefined;
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const handleSourceAmountChange = useCallback(

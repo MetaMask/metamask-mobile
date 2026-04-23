@@ -52,14 +52,20 @@ import {
 } from '@metamask/design-system-react-native';
 
 export interface TokenWarningModalParams {
-  warningType: SecurityDataType.Warning | SecurityDataType.Malicious;
+  warningType:
+    | SecurityDataType.Warning
+    | SecurityDataType.Malicious
+    | SecurityDataType.Spam;
   features: SecurityFeature[];
   mode: TokenWarningModalMode;
   location: MetaMetricsSwapsEventSource;
 }
 
 export const getTokenWarningContent = (
-  warningType: SecurityDataType.Warning | SecurityDataType.Malicious,
+  warningType:
+    | SecurityDataType.Warning
+    | SecurityDataType.Malicious
+    | SecurityDataType.Spam,
   destTokenSymbol: string,
 ) => {
   const isMalicious = warningType === SecurityDataType.Malicious;

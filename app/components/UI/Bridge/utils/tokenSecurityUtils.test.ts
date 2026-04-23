@@ -6,6 +6,7 @@ import { createMockToken } from '../testUtils/fixtures';
 import {
   getBridgeTokenSecurityConfig,
   getSecurityWarnings,
+  isNegativeSecurityType,
 } from './tokenSecurityUtils';
 
 describe('tokenSecurityUtils', () => {
@@ -56,6 +57,23 @@ describe('tokenSecurityUtils', () => {
     it('returns empty array for undefined token', () => {
       expect(getSecurityWarnings(undefined)).toEqual([]);
     });
+  });
+
+  describe('isNegativeSecurityType', () => {
+    it.each([
+      SecurityDataType.Warning,
+      SecurityDataType.Malicious,
+      SecurityDataType.Spam,
+    ])('returns true for %s', (type) => {
+      expect(isNegativeSecurityType(type)).toBe(true);
+    });
+
+    it.each([SecurityDataType.Benign, SecurityDataType.Info, undefined])(
+      'returns false for %s',
+      (type) => {
+        expect(isNegativeSecurityType(type)).toBe(false);
+      },
+    );
   });
 
   describe('getBridgeTokenSecurityConfig', () => {

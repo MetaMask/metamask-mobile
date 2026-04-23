@@ -15,7 +15,7 @@ import {
   selectSourceToken,
   selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
-import { SecurityDataType } from '../../hooks/usePopularTokens';
+import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
@@ -162,10 +162,7 @@ export const SwapsConfirmButton = ({
 
   const handleContinue = async () => {
     const securityData = destToken?.securityData;
-    if (
-      securityData?.type === SecurityDataType.Warning ||
-      securityData?.type === SecurityDataType.Malicious
-    ) {
+    if (isNegativeSecurityType(securityData?.type)) {
       const params: TokenWarningModalParams = {
         warningType: securityData.type,
         features: securityData.metadata?.features ?? [],
