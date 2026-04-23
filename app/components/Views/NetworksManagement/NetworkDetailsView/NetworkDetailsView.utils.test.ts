@@ -194,6 +194,26 @@ describe('NetworkDetailsView.utils', () => {
       expect(next.rpcUrl).toBe('https://a.com');
       expect(next.rpcName).toBe('A');
     });
+
+    it('clears rpcUrl and rpcName when deleting the last endpoint while it was selected', () => {
+      const prev = {
+        rpcUrl: 'https://only.com',
+        rpcName: 'Only',
+        failoverRpcUrls: ['https://fail.com'],
+        rpcUrls: [
+          {
+            url: 'https://only.com',
+            name: 'Only',
+            type: RpcEndpointType.Custom,
+          },
+        ],
+      } as NetworkFormState;
+      const next = removeRpcUrlFromFormState(prev, 'https://only.com');
+      expect(next.rpcUrls).toEqual([]);
+      expect(next.rpcUrl).toBeUndefined();
+      expect(next.rpcName).toBeUndefined();
+      expect(next.failoverRpcUrls).toBeUndefined();
+    });
   });
 
   describe('appendBlockExplorerItemToFormState', () => {
@@ -308,6 +328,15 @@ describe('NetworkDetailsView.utils', () => {
         blockExplorerUrls: ['https://b.io'],
         blockExplorerUrl: 'https://a.io',
       });
+
+      expect(networkFormBaselineSnapshot(a)).not.toBe(
+        networkFormBaselineSnapshot(b),
+      );
+    });
+
+    it('differs when nickname and ticker shift across former string boundary', () => {
+      const a = minimalForm({ nickname: 'Net', ticker: 'ABC' });
+      const b = minimalForm({ nickname: 'NetA', ticker: 'BC' });
 
       expect(networkFormBaselineSnapshot(a)).not.toBe(
         networkFormBaselineSnapshot(b),

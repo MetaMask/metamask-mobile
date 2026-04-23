@@ -12,25 +12,21 @@ export const formatNetworkRpcUrl = (rpcUrl: string): string =>
 
 /**
  * Stable snapshot of form fields for dirty detection vs the last committed baseline.
- * Uses `JSON.stringify` for `rpcUrls`, `blockExplorerUrls`, and `failoverRpcUrls` so
- * in-place content changes register (not `String([object])` collisions).
+ * One `JSON.stringify` over a fixed-order tuple so field boundaries cannot alias (e.g.
+ * nickname+ticker edits that would collide when naive-concatenating strings).
  */
 export function networkFormBaselineSnapshot(prev: NetworkFormState): string {
-  const failoverKey =
-    prev.failoverRpcUrls === undefined
-      ? ''
-      : JSON.stringify(prev.failoverRpcUrls);
-  return (
-    (prev.rpcUrl ?? '') +
-    failoverKey +
-    (prev.blockExplorerUrl ?? '') +
-    (prev.nickname ?? '') +
-    (prev.chainId ?? '') +
-    (prev.ticker ?? '') +
-    String(prev.editable) +
-    JSON.stringify(prev.rpcUrls ?? []) +
-    JSON.stringify(prev.blockExplorerUrls ?? [])
-  );
+  return JSON.stringify([
+    prev.rpcUrl ?? null,
+    prev.failoverRpcUrls ?? null,
+    prev.blockExplorerUrl ?? null,
+    prev.nickname ?? null,
+    prev.chainId ?? null,
+    prev.ticker ?? null,
+    prev.editable ?? null,
+    prev.rpcUrls ?? [],
+    prev.blockExplorerUrls ?? [],
+  ]);
 }
 
 /** Next form state after appending a custom RPC (same transform as `onRpcItemAdd`). */
@@ -82,16 +78,27 @@ export function removeRpcUrlFromFormState(
 ): NetworkFormState {
   const updated = prev.rpcUrls.filter((rpc) => rpc.url !== url);
   const isCurrentRpc = prev.rpcUrl === url;
+  if (isCurrentRpc && updated.length > 0) {
+    return {
+      ...prev,
+      rpcUrls: updated,
+      rpcUrl: updated[0].url,
+      failoverRpcUrls: updated[0].failoverUrls,
+      rpcName: updated[0].name,
+    };
+  }
+  if (isCurrentRpc && updated.length === 0) {
+    return {
+      ...prev,
+      rpcUrls: updated,
+      rpcUrl: undefined,
+      rpcName: undefined,
+      failoverRpcUrls: undefined,
+    };
+  }
   return {
     ...prev,
     rpcUrls: updated,
-    ...(isCurrentRpc && updated.length > 0
-      ? {
-          rpcUrl: updated[0].url,
-          failoverRpcUrls: updated[0].failoverUrls,
-          rpcName: updated[0].name,
-        }
-      : {}),
   };
 }
 
