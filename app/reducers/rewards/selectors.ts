@@ -307,10 +307,13 @@ export const selectOndoCampaignParticipantOutcomeById =
       : null;
 
 export const selectIsCampaignOutcomeToastDismissed =
-  (subscriptionId: string, campaignId: string) => (state: RootState) =>
-    state.rewards.dismissedCampaignOutcomeToasts[
-      `${subscriptionId}:${campaignId}`
-    ] === true;
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    !subscriptionId || !campaignId
+      ? true
+      : state.rewards.dismissedCampaignOutcomeToasts[
+          `${subscriptionId}:${campaignId}`
+        ] === true;
 
 export const selectPendingDeeplink = (state: RootState) =>
   state.rewards.pendingDeeplink;

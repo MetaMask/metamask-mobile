@@ -36,10 +36,7 @@ export function useOndoCampaignEndedOutcomeToast(
   const toastKey =
     subscriptionId && campaignId ? `${subscriptionId}:${campaignId}` : '';
   const isDismissed = useSelector(
-    selectIsCampaignOutcomeToastDismissed(
-      subscriptionId ?? '',
-      campaignId ?? '',
-    ),
+    selectIsCampaignOutcomeToastDismissed(subscriptionId ?? undefined, campaignId),
   );
 
   const hasShownRef = useRef(false);
