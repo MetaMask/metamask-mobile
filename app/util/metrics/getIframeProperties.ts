@@ -6,9 +6,9 @@
  * path or query) can be compared for equality without false positives.
  *
  * Callers historically pass a mix of:
- *   - scheme + host (e.g. `https://example.com`)
- *   - bare hostname (e.g. `example.com`)
- *   - full URL (e.g. `https://example.com/swap?chain=1`)
+ * - scheme + host (e.g. `https://example.com`)
+ * - bare hostname (e.g. `example.com`)
+ * - full URL (e.g. `https://example.com/swap?chain=1`)
  *
  * Without normalization, strict string equality flags these as different
  * origins even when they refer to the same site. We default bare hostnames

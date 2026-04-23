@@ -669,10 +669,17 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
+    const {
+      pageMeta: _pageMetaFromHostInfo,
+      metadata: hostInfoMetadata,
+      ...hostInfoRest
+    } = hostInfo;
+    const { pageMeta: _pageMetaFromMetadata, ...metadataWithoutPageMeta } =
+      hostInfoMetadata;
     const request: PermissionsRequest = {
-      ...hostInfo,
+      ...hostInfoRest,
       metadata: {
-        ...hostInfo.metadata,
+        ...metadataWithoutPageMeta,
         origin: channelIdOrHostname,
       },
       permissions: {

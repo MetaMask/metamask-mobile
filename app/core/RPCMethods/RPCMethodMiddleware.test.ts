@@ -980,6 +980,14 @@ describe('getRpcMethodMiddleware', () => {
         {
           metadata: {
             isEip1193Request: true,
+            pageMeta: {
+              url: '',
+              title: '',
+              icon: undefined,
+              channelId: undefined,
+              isIframe: false,
+              iframeOrigin: undefined,
+            },
           },
         },
       );

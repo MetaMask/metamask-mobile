@@ -107,6 +107,8 @@ export const setupBridge = ({
     isMainFrame: true,
     isWalletConnect: false,
     wcRequestActions: undefined,
+    // Iframe context does not apply for SDK connections (no WebView).
+    iframeOrigin: undefined,
   });
 
   return backgroundBridge;
