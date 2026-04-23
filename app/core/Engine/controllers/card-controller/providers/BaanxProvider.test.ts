@@ -1306,7 +1306,7 @@ describe('BaanxProvider', () => {
   });
 
   describe('logout', () => {
-    it('revokes access and refresh via oauth2/revoke and skips legacy logout when both succeed', async () => {
+    it('revokes access and refresh via oauth2/revoke in parallel', async () => {
       service.request.mockResolvedValue({});
 
       await provider.logout(AUTH_TOKENS);
@@ -1332,7 +1332,7 @@ describe('BaanxProvider', () => {
       expect(service.post).not.toHaveBeenCalled();
     });
 
-    it('revokes only access when there is no refresh token and skips legacy logout', async () => {
+    it('revokes only access when there is no refresh token', async () => {
       service.request.mockResolvedValue({});
       const accessOnly = { ...AUTH_TOKENS, refreshToken: undefined };
 
@@ -1351,54 +1351,27 @@ describe('BaanxProvider', () => {
       expect(service.post).not.toHaveBeenCalled();
     });
 
-    it('calls legacy logout when access revoke fails', async () => {
+    it('resolves without calling legacy logout when revoke requests fail', async () => {
       service.request.mockRejectedValue(
         new CardApiError(400, '/v1/auth/oauth2/revoke', 'Bad request'),
       );
-      service.post.mockResolvedValue({});
 
-      await provider.logout(AUTH_TOKENS);
+      await expect(provider.logout(AUTH_TOKENS)).resolves.toBeUndefined();
 
-      expect(service.post).toHaveBeenCalledWith(
-        '/v1/auth/logout',
-        {},
-        AUTH_TOKENS,
-      );
+      expect(service.post).not.toHaveBeenCalled();
     });
 
-    it('calls legacy logout when refresh revoke fails', async () => {
+    it('resolves when refresh revoke fails after access revoke succeeds', async () => {
       service.request
         .mockResolvedValueOnce({})
         .mockRejectedValueOnce(
           new CardApiError(400, '/v1/auth/oauth2/revoke', 'Bad request'),
         );
-      service.post.mockResolvedValue({});
 
-      await provider.logout(AUTH_TOKENS);
+      await expect(provider.logout(AUTH_TOKENS)).resolves.toBeUndefined();
 
       expect(service.request).toHaveBeenCalledTimes(2);
-      expect(service.post).toHaveBeenCalledWith(
-        '/v1/auth/logout',
-        {},
-        AUTH_TOKENS,
-      );
-    });
-
-    it('propagates error when fallback legacy logout fails', async () => {
-      service.request.mockRejectedValue(
-        new CardApiError(400, '/v1/auth/oauth2/revoke', 'Bad request'),
-      );
-      service.post.mockRejectedValue(
-        new CardApiError(500, '/v1/auth/logout', 'Internal server error'),
-      );
-
-      await expect(provider.logout(AUTH_TOKENS)).rejects.toThrow();
-
-      expect(service.post).toHaveBeenCalledWith(
-        '/v1/auth/logout',
-        {},
-        AUTH_TOKENS,
-      );
+      expect(service.post).not.toHaveBeenCalled();
     });
   });
 

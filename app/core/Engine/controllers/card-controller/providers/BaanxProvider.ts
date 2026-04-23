@@ -272,21 +272,18 @@ export class BaanxProvider implements ICardProvider {
   }
 
   async logout(tokens: CardAuthTokens): Promise<void> {
-    const allRevokedOk = await this.#tryRevokeAllOAuth2Tokens(tokens);
-    if (!allRevokedOk) {
-      await this.service.post('/v1/auth/logout', {}, tokens);
-    }
+    await this.#revokeAllOAuth2Tokens(tokens);
   }
 
   /**
    * Best-effort OAuth2 token revocation (RFC 7009-style). No bearer; uses
-   * `location` for `x-us-env`. Returns false on network/API failure.
+   * `location` for `x-us-env`. Swallows errors so local logout always completes.
    */
   async #revokeOAuth2Token(options: {
     token: string;
     tokenHint: 'access_token' | 'refresh_token';
     location: CardLocation;
-  }): Promise<boolean> {
+  }): Promise<void> {
     const { token, tokenHint, location } = options;
     try {
       await this.service.request<unknown>('/v1/auth/oauth2/revoke', {
@@ -295,7 +292,6 @@ export class BaanxProvider implements ICardProvider {
         location,
         timeout: OAUTH2_TOKEN_TIMEOUT_MS,
       });
-      return true;
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'card', operation: 'revokeOAuth2Token' },
@@ -304,34 +300,29 @@ export class BaanxProvider implements ICardProvider {
           data: { method: 'logout', tokenHint },
         },
       });
-      return false;
     }
   }
 
   /**
-   * Revokes access and refresh (if present) in parallel. True only when every
-   * attempted revocation succeeds.
+   * Revokes access and refresh (if present) in parallel. OAuth2 and legacy
+   * sessions both use this endpoint; failures are logged only.
    */
-  async #tryRevokeAllOAuth2Tokens(tokens: CardAuthTokens): Promise<boolean> {
+  async #revokeAllOAuth2Tokens(tokens: CardAuthTokens): Promise<void> {
     const location = tokens.location as CardLocation;
-    const accessRevoked = this.#revokeOAuth2Token({
-      token: tokens.accessToken,
-      tokenHint: 'access_token',
-      location,
-    });
-    const refreshRevoked = tokens.refreshToken
-      ? this.#revokeOAuth2Token({
-          token: tokens.refreshToken,
-          tokenHint: 'refresh_token',
-          location,
-        })
-      : Promise.resolve(true);
-
-    const [accessOk, refreshOk] = await Promise.all([
-      accessRevoked,
-      refreshRevoked,
+    await Promise.all([
+      this.#revokeOAuth2Token({
+        token: tokens.accessToken,
+        tokenHint: 'access_token',
+        location,
+      }),
+      tokens.refreshToken
+        ? this.#revokeOAuth2Token({
+            token: tokens.refreshToken,
+            tokenHint: 'refresh_token',
+            location,
+          })
+        : Promise.resolve(),
     ]);
-    return accessOk && refreshOk;
   }
 
   // -- Card Home Data --
