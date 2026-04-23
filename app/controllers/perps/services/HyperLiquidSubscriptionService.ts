@@ -14,6 +14,7 @@ import type {
   FrontendOpenOrdersResponse,
   ClearinghouseStateWsEvent,
   OpenOrdersWsEvent,
+  SpotStateWsEvent,
 } from '@nktkas/hyperliquid';
 
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
@@ -136,6 +137,15 @@ export class HyperLiquidSubscriptionService {
 
   // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
   readonly #orderFillSubscriptions = new Map<string, ISubscription>();
+
+  readonly #spotStateSubscriptions = new Map<string, ISubscription>();
+
+  readonly #spotStateSubscriptionPromises = new Map<string, Promise<void>>();
+
+  // Bumped on cleanup so in-flight #ensureSpotStateSubscription
+  // continuations discard their subscription instead of rehydrating
+  // #spotStateSubscriptions after clearAll/cleanupSharedWebData3.
+  #spotStateSubscriptionGeneration = 0;
 
   readonly #symbolSubscriberCounts = new Map<string, number>();
 
@@ -1098,6 +1108,83 @@ export class HyperLiquidSubscriptionService {
     }
   }
 
+  async #ensureSpotStateSubscription(accountId?: CaipAccountId): Promise<void> {
+    const userAddress =
+      await this.#walletService.getUserAddressWithDefault(accountId);
+
+    if (this.#spotStateSubscriptions.has(userAddress)) {
+      return;
+    }
+
+    const inFlight = this.#spotStateSubscriptionPromises.get(userAddress);
+    if (inFlight) {
+      await inFlight;
+      return;
+    }
+
+    const startGeneration = this.#spotStateSubscriptionGeneration;
+
+    const promise = (async (): Promise<void> => {
+      await this.#clientService.ensureSubscriptionClient(
+        this.#walletService.createWalletAdapter(),
+      );
+      const subscriptionClient = this.#clientService.getSubscriptionClient();
+      if (!subscriptionClient) {
+        throw new Error('SubscriptionClient not available');
+      }
+
+      const subscription = await subscriptionClient.spotState(
+        { user: userAddress as `0x${string}` },
+        (event: SpotStateWsEvent) => {
+          try {
+            if (event.user.toLowerCase() !== userAddress.toLowerCase()) {
+              return;
+            }
+            // Invalidate any in-flight REST refreshSpotState so it drops
+            // its result instead of overwriting this fresher WS snapshot.
+            this.#spotStateGeneration += 1;
+            this.#cachedSpotState = event.spotState;
+            // Normalize to match REST path (stores lowercase) so the
+            // #ensureSpotState strict-equal check hits the cache regardless
+            // of whether HL returns a checksummed or lowercase user field.
+            this.#cachedSpotStateUserAddress = event.user.toLowerCase();
+
+            if (this.#dexAccountCache.size > 0) {
+              this.#aggregateAndNotifySubscribers();
+            }
+          } catch (error) {
+            this.#logErrorUnlessClearing(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.ensureSpotStateSubscription',
+              ),
+              this.#getErrorContext('spotState callback error', {
+                user: userAddress,
+              }),
+            );
+          }
+        },
+      );
+
+      // Discard if cleanup ran while we were awaiting the subscription
+      // handshake; rehydrating #spotStateSubscriptions here would leave
+      // a stale entry that short-circuits future resubscribe attempts.
+      if (startGeneration !== this.#spotStateSubscriptionGeneration) {
+        await subscription.unsubscribe().catch(() => undefined);
+        return;
+      }
+
+      this.#spotStateSubscriptions.set(userAddress, subscription);
+    })();
+
+    this.#spotStateSubscriptionPromises.set(userAddress, promise);
+    try {
+      await promise;
+    } finally {
+      this.#spotStateSubscriptionPromises.delete(userAddress);
+    }
+  }
+
   /**
    * Subscribe to live price updates with singleton subscription architecture
    * Uses allMids for fast price updates and predictedFundings for accurate funding rates
@@ -1511,7 +1598,6 @@ export class HyperLiquidSubscriptionService {
               // Extract account data (webData2 provides clearinghouseState)
               const accountState: AccountState = adaptAccountStateFromSDK(
                 data.clearinghouseState,
-                undefined, // webData2 doesn't include spotState
               );
 
               // Store in caches (main DEX only)
@@ -1716,7 +1802,6 @@ export class HyperLiquidSubscriptionService {
             // Update account state
             const accountState: AccountState = adaptAccountStateFromSDK(
               data.clearinghouseState,
-              undefined,
             );
 
             // Update caches
@@ -1988,6 +2073,30 @@ export class HyperLiquidSubscriptionService {
         });
         this.#webData3Subscriptions.clear();
         this.#webData3SubscriptionPromise = undefined;
+      }
+
+      // Cleanup spotState subscriptions (per-user). Bump generation +
+      // drop in-flight promises so a racing #ensureSpotStateSubscription
+      // continuation discards its subscription rather than rehydrating
+      // #spotStateSubscriptions after this clear.
+      this.#spotStateSubscriptionGeneration += 1;
+      this.#spotStateSubscriptionPromises.clear();
+      if (this.#spotStateSubscriptions.size > 0) {
+        this.#spotStateSubscriptions.forEach((subscription, user) => {
+          subscription.unsubscribe().catch((error: Error) => {
+            this.#logErrorUnlessClearing(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+              ),
+              this.#getErrorContext(
+                'cleanupSharedWebData3ISubscription.spotState',
+                { user },
+              ),
+            );
+          });
+        });
+        this.#spotStateSubscriptions.clear();
       }
 
       // Cleanup individual subscriptions (clearinghouseState + openOrders)
@@ -2385,6 +2494,13 @@ export class HyperLiquidSubscriptionService {
       this.#logErrorUnlessClearing(
         ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
         this.#getErrorContext('subscribeToAccount.ensureSpotState'),
+      );
+    });
+
+    this.#ensureSpotStateSubscription(accountId).catch((error) => {
+      this.#logErrorUnlessClearing(
+        ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
+        this.#getErrorContext('subscribeToAccount.ensureSpotStateSubscription'),
       );
     });
 
@@ -3778,6 +3894,18 @@ export class HyperLiquidSubscriptionService {
       });
     });
     this.#orderFillSubscriptions.clear();
+
+    // Clear spotState subscriptions. Bump generation + drop in-flight
+    // promises so any racing #ensureSpotStateSubscription continuation
+    // unsubscribes its fresh sub instead of rehydrating the cleared map.
+    this.#spotStateSubscriptionGeneration += 1;
+    this.#spotStateSubscriptionPromises.clear();
+    this.#spotStateSubscriptions.forEach((subscription) => {
+      subscription.unsubscribe().catch(() => {
+        // Ignore errors during cleanup
+      });
+    });
+    this.#spotStateSubscriptions.clear();
 
     // Clear cached data
     this.#cachedPriceData = null;
