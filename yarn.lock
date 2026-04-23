@@ -36371,7 +36371,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"metro-core@npm:0.81.1, metro-core@npm:^0.81.0":
+"metro-core@npm:0.81.1":
   version: 0.81.1
   resolution: "metro-core@npm:0.81.1"
   dependencies:
@@ -36382,7 +36382,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"metro-core@npm:0.81.5":
+"metro-core@npm:0.81.5, metro-core@npm:^0.81.0":
   version: 0.81.5
   resolution: "metro-core@npm:0.81.5"
   dependencies:
