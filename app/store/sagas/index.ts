@@ -1,4 +1,14 @@
-import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
+import {
+  fork,
+  take,
+  cancel,
+  put,
+  call,
+  all,
+  select,
+  race,
+  delay,
+} from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -7,7 +17,11 @@ import {
   LoginAction,
   CheckForDeeplinkAction,
 } from '../../actions/user';
-import { NavigationActionType } from '../../actions/navigation';
+import {
+  NavigationActionType,
+  SetCurrentRouteAction,
+} from '../../actions/navigation';
+import { selectCurrentRoute } from '../../reducers/navigation/selectors';
 import { EventChannel, Task, eventChannel } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
@@ -37,6 +51,74 @@ import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAna
 import { providerErrors } from '@metamask/rpc-errors';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
+
+/**
+ * Route names that indicate the user is still on a pre-login auth screen.
+ * While the current route is one of these, the post-login navigator tree has
+ * not mounted yet and `navigate(Routes.<post-login>)` will silently no-op
+ * because the target screen is not registered in the active tree.
+ */
+const POST_LOGIN_AUTH_ROUTES: ReadonlySet<string> = new Set<string>([
+  Routes.LOCK_SCREEN,
+  Routes.ONBOARDING.LOGIN,
+  Routes.ONBOARDING.REHYDRATE,
+]);
+
+/**
+ * Safety ceiling for how long we will wait for the navigation stack to leave
+ * the auth screens before parsing the deeplink anyway. A delayed deeplink is
+ * always better than a silently dropped one, so we fall through on timeout.
+ */
+const POST_LOGIN_NAV_WAIT_TIMEOUT_MS = 3000;
+
+/**
+ * Blocks until the navigation state has transitioned off the pre-login auth
+ * screens (see {@link POST_LOGIN_AUTH_ROUTES}), then parses the deeplink.
+ *
+ * Event-driven via `SET_CURRENT_ROUTE` — which {@link NavigationProvider}
+ * dispatches from React Navigation's `onStateChange` — instead of polling
+ * `NavigationContainerRef.getCurrentRoute()`. Warm starts where the current
+ * route is already off-auth parse immediately; cold starts wait for the
+ * first `SET_CURRENT_ROUTE` action reporting a non-auth route, with a
+ * {@link POST_LOGIN_NAV_WAIT_TIMEOUT_MS} safety cap.
+ *
+ * Called as a non-blocking `yield fork(...)` from `handleDeeplinkSaga` so
+ * the parent saga loop continues listening for new deeplink events while
+ * this one waits for navigation to settle.
+ */
+export function* parseDeeplinkAfterNavReady(
+  deeplink: string,
+  origin: string,
+) {
+  const currentRoute: string | undefined = yield select(selectCurrentRoute);
+
+  if (!currentRoute || !POST_LOGIN_AUTH_ROUTES.has(currentRoute)) {
+    SharedDeeplinkManager.parse(deeplink, { origin });
+    return;
+  }
+
+  const { timedOut } = yield race({
+    navSettled: call(function* waitForNonAuthRoute() {
+      while (true) {
+        const action: SetCurrentRouteAction = yield take(
+          NavigationActionType.SET_CURRENT_ROUTE,
+        );
+        if (!POST_LOGIN_AUTH_ROUTES.has(action.payload.route)) {
+          return;
+        }
+      }
+    }),
+    timedOut: delay(POST_LOGIN_NAV_WAIT_TIMEOUT_MS),
+  });
+
+  if (timedOut) {
+    Logger.log(
+      'parseDeeplinkAfterNavReady: timed out waiting for navigation to leave auth screens, parsing anyway',
+    );
+  }
+
+  SharedDeeplinkManager.parse(deeplink, { origin });
+}
 
 /**
  * Creates a channel to listen to app state changes.
@@ -262,15 +344,10 @@ export function* handleDeeplinkSaga() {
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
-        // requestAnimationFrame ensures React Native has committed at least one
-        // render frame before we navigate. This gives the post-login navigation
-        // stack time to mount so the navigator that owns the target route is
-        // ready to receive the deeplink navigate call.
-        requestAnimationFrame(() => {
-          SharedDeeplinkManager.parse(url.href, {
-            origin: storedSource,
-          });
-        });
+        // Defer parse until navigation leaves the auth screens so the
+        // deeplink's target route is registered by the time we navigate.
+        // Forked so the saga loop keeps listening for new deeplink events.
+        yield fork(parseDeeplinkAfterNavReady, url.href, storedSource);
         AppStateEventProcessor.clearPendingDeeplink();
         continue;
       }
@@ -290,16 +367,10 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
-      // requestAnimationFrame ensures React Native has committed at least one
-      // render frame before we navigate. This gives the post-login navigation
-      // stack time to mount so the navigator that owns the target route is
-      // ready to receive the deeplink navigate call. Previously setTimeout(200)
-      // then setTimeout(0) — rAF is both faster and correct here.
-      requestAnimationFrame(() => {
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: deeplinkSource,
-        });
-      });
+      // Defer parse until navigation leaves the auth screens so the
+      // deeplink's target route is registered by the time we navigate.
+      // Forked so the saga loop keeps listening for new deeplink events.
+      yield fork(parseDeeplinkAfterNavReady, deeplink, deeplinkSource);
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }
