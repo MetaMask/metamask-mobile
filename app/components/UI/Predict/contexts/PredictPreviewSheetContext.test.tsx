@@ -478,6 +478,34 @@ describe('PredictPreviewSheetContext', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('does not auto-reopen when user dismisses while error is showing', () => {
+      mockActiveOrder = { error: 'order/failed' };
+
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
     it('does not auto-reopen if no buy was previously opened', () => {
       const { rerender } = render(
         <PredictPreviewSheetProvider>

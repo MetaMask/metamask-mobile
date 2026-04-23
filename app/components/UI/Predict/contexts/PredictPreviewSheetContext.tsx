@@ -174,6 +174,13 @@ export const PredictPreviewSheetProvider: React.FC<
    * dismissed (e.g. closed during DEPOSITING).
    */
   const lastBuyParamsRef = useRef<PredictBuyPreviewParams | null>(null);
+  /**
+   * Set when the user dismisses the sheet while an error is already visible.
+   * Prevents the auto-reopen effect from re-triggering the sheet before
+   * `clearOrderError` has propagated through Redux. Reset once the error
+   * becomes falsy (i.e. the clear has landed).
+   */
+  const dismissedWithErrorRef = useRef(false);
 
   useEffect(() => {
     _providerMounted = true;
@@ -224,11 +231,16 @@ export const PredictPreviewSheetProvider: React.FC<
   // Auto-reopen the buy sheet when a background order fails so the user can
   // see the inline error banner and retry instead of getting a toast.
   useEffect(() => {
+    if (!activeOrder?.error) {
+      dismissedWithErrorRef.current = false;
+    }
+
     if (
       bottomSheetEnabled &&
       activeOrder?.error &&
       !buyParams &&
-      lastBuyParamsRef.current
+      lastBuyParamsRef.current &&
+      !dismissedWithErrorRef.current
     ) {
       const savedParams = lastBuyParamsRef.current;
       lastBuyParamsRef.current = null;
@@ -244,9 +256,12 @@ export const PredictPreviewSheetProvider: React.FC<
   );
 
   const onBuyDismiss = useCallback(() => {
+    if (activeOrder?.error) {
+      dismissedWithErrorRef.current = true;
+    }
     setBuyParams(null);
     clearOrderError();
-  }, [clearOrderError]);
+  }, [clearOrderError, activeOrder?.error]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(
