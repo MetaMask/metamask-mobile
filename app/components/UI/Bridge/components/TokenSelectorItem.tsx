@@ -62,6 +62,8 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 
+const SHOW_TOKEN_WARNINGS = false;
+
 const createStyles = ({
   theme,
   vars,
@@ -331,7 +333,9 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     ? ACCOUNT_TYPE_LABELS[token.accountType]
     : undefined;
 
-  const securityTag = getSecurityTag(token.securityData?.type);
+  const securityTag = SHOW_TOKEN_WARNINGS
+    ? getSecurityTag(token.securityData?.type)
+    : null;
 
   return (
     <Box
