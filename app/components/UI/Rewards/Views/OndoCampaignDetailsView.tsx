@@ -82,12 +82,11 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 } as const;
 
 interface WinnerPendingBannerProps {
-  campaignName: string;
   onPress: () => void;
 }
 
 const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
-  ({ campaignName, onPress }) => (
+  ({ onPress }) => (
     <Pressable
       accessibilityLabel={strings('rewards.ondo_outcome_banner.winner_pending.a11y')}
       onPress={onPress}
@@ -100,7 +99,7 @@ const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
         <TrophyIcon width={20} height={20} />
         <Box twClassName="flex-1 gap-0.5">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('rewards.ondo_outcome_banner.winner_pending.title', { campaignName })}
+            {strings('rewards.ondo_outcome_banner.winner_pending.title')}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('rewards.ondo_outcome_banner.winner_pending.description')}
@@ -358,7 +357,6 @@ const OndoCampaignDetailsView: React.FC = () => {
     if (hasCode && !isFinalized) {
       return (
         <WinnerPendingBanner
-          campaignName={campaign.name ?? ''}
           onPress={() =>
             navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
               campaignId: effectiveCampaignId,

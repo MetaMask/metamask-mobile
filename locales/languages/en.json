@@ -8288,7 +8288,7 @@
     },
     "ondo_outcome_banner": {
       "winner_pending": {
-        "title": "You won the {{campaignName}}",
+        "title": "You won",
         "description": "Claim your prize today.",
         "a11y": "Open winner details"
       },
