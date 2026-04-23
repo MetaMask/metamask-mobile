@@ -47,6 +47,7 @@ import {
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
+import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -179,7 +180,9 @@ const EarnMusdConversionEducationView = () => {
     return strings('earn.musd_conversion.education.primary_button');
   }, [deeplinkState]);
 
-  const { BUTTON_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+  const { BUTTON_TYPES, EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } =
+    MUSD_EVENTS_CONSTANTS;
+  const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
 
   const submitScreenViewedEvent = useCallback(() => {
     trackEvent(
@@ -187,12 +190,12 @@ const EarnMusdConversionEducationView = () => {
         MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED,
       )
         .addProperties({
-          location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          location: MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
         })
         .build(),
     );
   }, [
-    EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+    MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
     createEventBuilder,
     trackEvent,
   ]);
@@ -209,14 +212,14 @@ const EarnMusdConversionEducationView = () => {
 
   const submitContinuePressedEvent = useCallback(() => {
     let redirectsTo = isQuickConvertEnabled
-      ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-      : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+      ? MUSD_EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+      : MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     if (returnTo) {
-      redirectsTo = EVENT_LOCATIONS.MONEY_HUB;
+      redirectsTo = MONEY_EVENT_LOCATIONS.MONEY_HUB;
     } else if (deeplinkState?.action === 'navigate_home') {
-      redirectsTo = EVENT_LOCATIONS.HOME_SCREEN;
+      redirectsTo = MUSD_EVENT_LOCATIONS.HOME_SCREEN;
     } else if (deeplinkState?.action === 'buy') {
-      redirectsTo = EVENT_LOCATIONS.BUY_SCREEN;
+      redirectsTo = MUSD_EVENT_LOCATIONS.BUY_SCREEN;
     }
 
     trackEvent(
@@ -224,7 +227,7 @@ const EarnMusdConversionEducationView = () => {
         MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
       )
         .addProperties({
-          location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          location: MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
           button_type: BUTTON_TYPES.PRIMARY,
           button_text: primaryButtonText,
           redirects_to: redirectsTo,
@@ -234,12 +237,12 @@ const EarnMusdConversionEducationView = () => {
   }, [
     isQuickConvertEnabled,
     returnTo,
-    EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
-    EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
-    EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-    EVENT_LOCATIONS.HOME_SCREEN,
-    EVENT_LOCATIONS.BUY_SCREEN,
-    EVENT_LOCATIONS.MONEY_HUB,
+    MUSD_EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+    MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+    MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+    MUSD_EVENT_LOCATIONS.HOME_SCREEN,
+    MUSD_EVENT_LOCATIONS.BUY_SCREEN,
+    MONEY_EVENT_LOCATIONS.MONEY_HUB,
     deeplinkState?.action,
     trackEvent,
     createEventBuilder,
@@ -253,7 +256,7 @@ const EarnMusdConversionEducationView = () => {
         MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
       )
         .addProperties({
-          location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          location: MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
           button_type: BUTTON_TYPES.SECONDARY,
           button_text: strings(
             'earn.musd_conversion.education.secondary_button',
@@ -269,10 +272,13 @@ const EarnMusdConversionEducationView = () => {
       // Mark education as seen so it won't show again
       dispatch(setMusdConversionEducationSeen(true));
 
-      // returnTo wins: pure navigation, no conversion.
-      // Use navigate (not replace) because returnTo targets a screen outside
-      // the Earn stack — replace only works within the current navigator.
+      // Pop the education screen from the Earn stack before navigating to
+      // returnTo, so the stale screen doesn't flash when the Earn stack is
+      // re-entered later (e.g., for conversion confirmation).
       if (returnTo) {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
         navigation.navigate(returnTo.screen, returnTo.params);
         return;
       }
@@ -357,7 +363,7 @@ const EarnMusdConversionEducationView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
         .addProperties({
-          location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          location: MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
           url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
         })
         .build(),
