@@ -3200,6 +3200,8 @@
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
     "networks_default_cta": "Use this network",
     "add_rpc_url": "Add RPC URL",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "Add block explorer URL",
     "networks_desc": "Add and edit custom RPC networks",
     "networks_enabled": "Enabled Networks",
