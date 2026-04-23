@@ -487,7 +487,9 @@ export class HyperLiquidClientService {
     this.ensureInitialized();
 
     if (signal?.aborted) {
-      throw new DOMException('Aborted', 'AbortError');
+      const abortError = new Error('Aborted');
+      abortError.name = 'AbortError';
+      throw abortError;
     }
 
     // Explicit endTime is a paging call — the caller owns that exact window
@@ -496,7 +498,13 @@ export class HyperLiquidClientService {
     // re-access with the same key), so route paging straight to the SDK and
     // only coalesce the live-snapshot path where all callers share 'now'.
     if (endTime !== undefined) {
-      return this.#runCandleSnapshotFetch({ symbol, interval, limit, endTime });
+      return this.#runCandleSnapshotFetch({
+        symbol,
+        interval,
+        limit,
+        endTime,
+        signal,
+      });
     }
 
     // Live snapshot: coalesce across rapid market switches (pass 1 → pass 2
@@ -528,8 +536,9 @@ export class HyperLiquidClientService {
     interval: ValidCandleInterval;
     limit: number;
     endTime?: number;
+    signal?: AbortSignal;
   }): Promise<CandleData | null> {
-    const { symbol, interval, limit, endTime } = options;
+    const { symbol, interval, limit, endTime, signal } = options;
     try {
       const now = endTime ?? Date.now();
       const intervalMs = this.#getIntervalMilliseconds(interval);
@@ -539,12 +548,15 @@ export class HyperLiquidClientService {
       // This avoids the WebSocket abort race condition that causes 429s
       // during rapid market switching on extension (#TAT-2954).
       const infoClient = this.getInfoClient({ useHttp: true });
-      const data = await infoClient.candleSnapshot({
+      const request = {
         coin: symbol, // Map to HyperLiquid SDK's 'coin' parameter
         interval,
         startTime,
         endTime: now,
-      });
+      };
+      const data = signal
+        ? await infoClient.candleSnapshot(request, signal)
+        : await infoClient.candleSnapshot(request);
 
       if (Array.isArray(data) && data.length > 0) {
         const candles = data.map((candle) => ({

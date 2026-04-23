@@ -606,6 +606,30 @@ describe('HyperLiquidClientService', () => {
       expect(mockInfoClientHttp.candleSnapshot).not.toHaveBeenCalled();
     });
 
+    it('forwards AbortSignal for non-coalesced paginated fetches', async () => {
+      const abortController = new AbortController();
+      const endTime = 1700000000000;
+      mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      await service.fetchHistoricalCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        limit: 10,
+        endTime,
+        signal: abortController.signal,
+      });
+
+      expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'BTC',
+          interval: '1h',
+          startTime: endTime - 10 * 60 * 60 * 1000,
+          endTime,
+        },
+        abortController.signal,
+      );
+    });
+
     it('coalesces concurrent identical fetches into one REST call', async () => {
       mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
 
