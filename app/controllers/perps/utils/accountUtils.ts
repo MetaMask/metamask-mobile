@@ -187,9 +187,22 @@ export function addSpotBalanceToAccountState(
     ? (currentAvailable + freeSpot).toString()
     : freeSpot.toString();
 
+  // totalBalance composition:
+  //   perpsBalance (= marginSummary.accountValue = marginUsed + unrealizedPnl + withdrawable_perps)
+  //   + spotBalance (total across SPOT_COLLATERAL_COINS)
+  //   - spotHold    (subtracted because on Unified/PM the margin already
+  //                  counted in perpsBalance.accountValue is reserved out
+  //                  of the same spot balance — adding both double-counts
+  //                  the held portion; on Standard mode spotHold == 0 so
+  //                  this is a no-op).
+  // Without this correction, opening a position on a Unified-mode account
+  // inflates totalBalance by the position margin even though no wealth
+  // changed hands.
+  const nextTotal = currentTotal + spotBalance - spotHold;
+
   return {
     ...accountState,
-    totalBalance: (currentTotal + spotBalance).toString(),
+    totalBalance: nextTotal.toString(),
     availableToTradeBalance: availableToTrade,
   };
 }
