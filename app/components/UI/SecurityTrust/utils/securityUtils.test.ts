@@ -73,7 +73,7 @@ describe('securityUtils', () => {
       expect(config.subtitle).toBe(
         strings('security_trust.subtitle_malicious'),
       );
-      expect(config.icon).toBe(IconName.Danger);
+      expect(config.icon).toBe(IconName.Error);
       expect(config.iconColor).toBe(IconColor.ErrorDefault);
     });
 
