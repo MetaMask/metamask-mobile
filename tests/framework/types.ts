@@ -34,6 +34,12 @@ import CommandQueueServer from './fixtures/CommandQueueServer.ts';
 /*
  * WDIO PLAYWRIGHT TESTS
  */
+export enum ProviderName {
+  EMULATOR = 'emulator',
+  SIMULATOR = 'simulator',
+  BROWSERSTACK = 'browserstack',
+}
+
 export enum Platform {
   ANDROID = 'android',
   IOS = 'ios',
@@ -45,7 +51,7 @@ export enum DeviceOrientation {
 }
 
 export interface EmulatorConfig {
-  provider: 'emulator';
+  provider: ProviderName;
   name?: string;
   osVersion?: string;
   udid?: string;
@@ -53,7 +59,7 @@ export interface EmulatorConfig {
 }
 
 export interface BrowserStackConfig {
-  provider: 'browserstack';
+  provider: ProviderName;
   name: string;
   osVersion: string;
   orientation?: DeviceOrientation;
@@ -64,6 +70,7 @@ export interface AppConfig {
   appId?: string;
   packageName?: string;
   launchableActivity?: string;
+  buildPath?: string;
 }
 
 export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
@@ -78,7 +85,6 @@ export interface TimeoutOptions {
 export interface WebDriverConfig {
   platform: Platform;
   device: DeviceConfig;
-  buildPath: string;
   appBundleId: string;
   expectTimeout: number;
   app: AppConfig;
