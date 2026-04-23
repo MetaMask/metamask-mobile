@@ -178,8 +178,7 @@ class TestableRewardsController extends RewardsController {
   }
 
   public testUpdate(callback: (state: RewardsControllerState) => void) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.update(callback as any);
+    this.update(callback);
   }
 }
 

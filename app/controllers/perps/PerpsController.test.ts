@@ -291,8 +291,7 @@ class TestablePerpsController extends PerpsController {
    * @param callback
    */
   public testUpdate(callback: (state: PerpsControllerState) => void) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.update(callback as any);
+    this.update(callback);
   }
 
   /**
