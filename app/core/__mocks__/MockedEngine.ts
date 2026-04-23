@@ -31,10 +31,6 @@ export const mockedEngine = {
       getSelectedAccount: jest.fn(),
       getAccountByAddress: jest.fn(),
     },
-    AccountTreeController: {
-      getAccountContext: jest.fn(),
-      getAccountGroupObject: jest.fn(),
-    },
     AccountTrackerController: {
       state: {
         accounts: {},
