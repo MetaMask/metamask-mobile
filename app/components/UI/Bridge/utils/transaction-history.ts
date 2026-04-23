@@ -140,12 +140,15 @@ export const decodeSwapsTx = (args: {
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
   const destTokenSymbol = quote.destAsset?.symbol;
-  const rawSourceAmount = parseFloat(
-    ethers.utils.formatUnits(
-      bridgeTxHistoryItem.quote.srcTokenAmount,
-      quote.srcAsset.decimals,
-    ),
-  );
+  const rawSourceAmount =
+    quote.gasSponsored && bridgeTxHistoryItem.pricingData?.amountSent
+      ? parseFloat(bridgeTxHistoryItem.pricingData.amountSent)
+      : parseFloat(
+          ethers.utils.formatUnits(
+            bridgeTxHistoryItem.quote.srcTokenAmount,
+            quote.srcAsset.decimals,
+          ),
+        );
   const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
 
   const renderTo = tx.txParams.to;

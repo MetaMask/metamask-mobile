@@ -22,6 +22,7 @@ import type {
   DiscoverSeasonsDto,
   SeasonMetadataDto,
   SeasonStateDto,
+  SubscriptionBenefitDto,
   LineaTokenRewardDto,
   ApplyReferralDto,
   ApplyBonusCodeDto,
@@ -115,6 +116,7 @@ export interface RewardsDataServiceGetPerpsDiscountAction {
   type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
   handler: RewardsDataService['getPerpsDiscount'];
 }
+
 export interface RewardsDataServiceMobileOptinAction {
   type: `${typeof SERVICE_NAME}:mobileOptin`;
   handler: RewardsDataService['mobileOptin'];
@@ -255,6 +257,11 @@ export interface RewardsDataServiceGetOndoCampaignDepositsAction {
   handler: RewardsDataService['getOndoCampaignDeposits'];
 }
 
+export interface RewardsDataServiceGetOndoCampaignWinnerCodeAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignWinnerCode`;
+  handler: RewardsDataService['getOndoCampaignWinnerCode'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -273,6 +280,16 @@ export interface RewardsDataServiceSetRewardsEnvUrlAction {
 export interface RewardsDataServiceGetDefaultRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getDefaultRewardsEnvUrl`;
   handler: RewardsDataService['getDefaultRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceGetBenefitsAction {
+  type: `${typeof SERVICE_NAME}:getBenefits`;
+  handler: RewardsDataService['getBenefits'];
+}
+
+export interface RewardsDataServicePostBenefitImpressionAction {
+  type: `${typeof SERVICE_NAME}:postBenefitImpression`;
+  handler: RewardsDataService['postBenefitImpression'];
 }
 
 export type RewardsDataServiceActions =
@@ -306,6 +323,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
+  | RewardsDataServiceGetBenefitsAction
+  | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
@@ -313,7 +332,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
-  | RewardsDataServiceGetOndoCampaignDepositsAction;
+  | RewardsDataServiceGetOndoCampaignDepositsAction
+  | RewardsDataServiceGetOndoCampaignWinnerCodeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -485,6 +505,10 @@ export class RewardsDataService {
       this.getOndoCampaignDeposits.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignWinnerCode`,
+      this.getOndoCampaignWinnerCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
       this.getRewardsEnvUrl.bind(this),
     );
@@ -499,6 +523,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
       this.getDefaultRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getBenefits`,
+      this.getBenefits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:postBenefitImpression`,
+      this.postBenefitImpression.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClientVersionRequirements`,
@@ -1457,6 +1489,58 @@ export class RewardsDataService {
   }
 
   /**
+   * Get benefits for a specific subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The benefits paged array.
+   */
+  async getBenefits(
+    subscriptionId: string,
+    limit: number,
+  ): Promise<SubscriptionBenefitDto[]> {
+    const response = await this.makeRequest(
+      `/benefits?limit=${limit}&offset=0`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get benefits failed: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.results as SubscriptionBenefitDto[];
+  }
+
+  /**
+   * Record an impression for a specific benefit. This is used to track when users have viewed a benefit in the UI.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param benefitId - The benefit ID to record impression for.
+   * @param benefitType - The benefit type to record impression for.
+   * @returns Promise that resolves when the impression is recorded successfully.
+   */
+  async postBenefitImpression(
+    subscriptionId: string,
+    benefitId: number,
+    benefitType: number,
+  ): Promise<void> {
+    const response = await this.makeRequest(
+      `/benefits/impression`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          benefitId,
+          benefitType,
+        }),
+      },
+      subscriptionId,
+    );
+    if (!response.ok) {
+      throw new Error(`Post benefit impression failed: ${response.status}`);
+    }
+  }
+
+  /**
    * Get the campaign leaderboard showing top 20 participants per tier.
    * This is a public endpoint - no authentication required.
    * @param campaignId - The campaign ID to get leaderboard for.
@@ -1615,5 +1699,34 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as OndoGmCampaignDepositsDto;
+  }
+
+  /**
+   * Get the current user's winner code for an ended Ondo GM campaign.
+   * Authenticated endpoint: GET /ondo-gm/:campaignId/winner-code/me
+   * Returns plain text (`text/plain`). The API responds with 400 when the
+   * campaign is ineligible (e.g. not ended, wrong type, or user not top 5 in
+   * tier) and 404 when the user is eligible but no code row exists yet.
+   * @param campaignId - The campaign ID (UUID).
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The trimmed winner code from the response body.
+   */
+  async getOndoCampaignWinnerCode(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<string> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/winner-code/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Ondo GM campaign winner code failed: ${response.status}`,
+      );
+    }
+
+    return (await response.text()).trim();
   }
 }

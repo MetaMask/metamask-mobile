@@ -149,6 +149,22 @@ describe('ConnectQRInstruction', () => {
     expect(getByText('connect_qr_hardware.button_continue')).toBeTruthy();
   });
 
+  it('hides vendor marketing content when requested', () => {
+    const { queryByText } = renderWithProvider(
+      <ConnectQRInstruction
+        navigation={mockNavigation}
+        onConnect={mockOnConnect}
+        renderAlert={mockRenderAlert}
+        hideMarketingContent
+      />,
+      { state: initialState },
+    );
+
+    expect(queryByText('connect_qr_hardware.description2')).toBeNull();
+    expect(queryByText('connect_qr_hardware.keystone')).toBeNull();
+    expect(queryByText('connect_qr_hardware.ngravezero')).toBeNull();
+  });
+
   it('calls onConnect when continue button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <ConnectQRInstruction

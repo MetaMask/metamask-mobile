@@ -43,26 +43,28 @@ function getInitRequestMock(): jest.Mocked<
     initMessenger: undefined,
   };
 
-  // @ts-expect-error: Partial implementation.
-  requestMock.getController.mockImplementation((controllerName: string) => {
-    if (controllerName === 'SnapKeyringBuilder') {
-      return jest.fn();
-    }
+  requestMock.getMessengerClient.mockImplementation(
+    // @ts-expect-error: Partial implementation.
+    (controllerName: string) => {
+      if (controllerName === 'SnapKeyringBuilder') {
+        return jest.fn();
+      }
 
-    if (controllerName === 'PreferencesController') {
-      return jest.fn();
-    }
+      if (controllerName === 'PreferencesController') {
+        return jest.fn();
+      }
 
-    if (controllerName === 'KeyringController') {
-      return { withKeyringUnsafe: mockWithKeyringUnsafe };
-    }
+      if (controllerName === 'KeyringController') {
+        return { withKeyringUnsafe: mockWithKeyringUnsafe };
+      }
 
-    if (controllerName === 'RemoteFeatureFlagController') {
-      return { state: { remoteFeatureFlags: {} } };
-    }
+      if (controllerName === 'RemoteFeatureFlagController') {
+        return { state: { remoteFeatureFlags: {} } };
+      }
 
-    throw new Error(`Controller "${controllerName}" not found.`);
-  });
+      throw new Error(`Controller "${controllerName}" not found.`);
+    },
+  );
 
   return requestMock;
 }

@@ -36,6 +36,8 @@ interface ManageCardOptionsProps {
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
   onNavigateToCardPage: () => void;
+  onChangeAsset: () => void;
+  hasPriorityTokenBalance: boolean;
   onCashback: () => void;
   onTravel: () => void;
 }
@@ -61,6 +63,8 @@ const ManageCardOptions = ({
   onManageSpendingLimit,
   onOrderMetalCard,
   isSpendingLimitActive,
+  onChangeAsset,
+  hasPriorityTokenBalance,
   onNavigateToCardPage,
   onCashback,
   onTravel,
@@ -85,6 +89,8 @@ const ManageCardOptions = ({
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;
 
+  const hideManageOptions = isAuthenticated && !hasPriorityTokenBalance;
+
   const showSpendingLimitDescription = isSpendingLimitActive
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
     : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
@@ -92,7 +98,7 @@ const ManageCardOptions = ({
   return (
     <>
       <Box style={tw.style((hasSetupActions || hasAlertOnlyState) && 'hidden')}>
-        {isEligibleForMetalCard && (
+        {isEligibleForMetalCard && !hideManageOptions && (
           <ManageCardListItem
             title={strings(
               'card.card_home.manage_card_options.order_metal_card',
@@ -106,6 +112,18 @@ const ManageCardOptions = ({
           />
         )}
         {((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.change_asset')}
+            description={strings(
+              'card.card_home.manage_card_options.change_asset_description',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={onChangeAsset}
+            testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
+          />
+        )}
+        {((isAuthenticated && !isLoading && card && !hideManageOptions) ||
+          showTeaserOptions) && (
           <ManageCardListItem
             title={strings(
               cardDetailsImageUrl && isAuthenticated
@@ -122,7 +140,8 @@ const ManageCardOptions = ({
         {((isAuthenticated &&
           !isLoading &&
           card &&
-          capabilities?.supportsPinView) ||
+          capabilities?.supportsPinView &&
+          !hideManageOptions) ||
           (showTeaserOptions && capabilities?.supportsPinView)) && (
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.view_pin')}
@@ -137,7 +156,8 @@ const ManageCardOptions = ({
         {((isAuthenticated &&
           !isLoading &&
           card?.isFreezable &&
-          card?.status !== CardStatus.BLOCKED) ||
+          card?.status !== CardStatus.BLOCKED &&
+          !hideManageOptions) ||
           showTeaserOptions) && (
           <ManageCardListItem
             title={
@@ -162,7 +182,7 @@ const ManageCardOptions = ({
             testID="freeze-card-list-item"
           />
         )}
-        {!isLoading && (
+        {!isLoading && !hideManageOptions && (
           <ManageCardListItem
             title={strings(
               'card.card_home.manage_card_options.manage_spending_limit',
@@ -174,7 +194,7 @@ const ManageCardOptions = ({
           />
         )}
       </Box>
-      {(isFullySetUp || showTeaserOptions) && (
+      {((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
         <>
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.manage_card')}

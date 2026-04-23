@@ -25,6 +25,15 @@ export enum AccountType {
   ImportedApple = 'imported_apple',
 }
 
+export const WalletCreationErrorCtaType = {
+  Retry: 'retry',
+  SendErrorReport: 'send_error_report',
+  ContactSupport: 'contact_support',
+} as const;
+
+export type WalletCreationErrorCtaTypeValue =
+  (typeof WalletCreationErrorCtaType)[keyof typeof WalletCreationErrorCtaType];
+
 const socialAccountTypeMap: Record<
   string,
   { new: AccountType; existing: AccountType }

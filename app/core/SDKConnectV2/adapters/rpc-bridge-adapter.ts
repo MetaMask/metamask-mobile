@@ -158,6 +158,8 @@ export class RPCBridgeAdapter
             platform:
               this.connInfo.metadata.sdk.platform ??
               AppConstants.MM_SDK.UNKNOWN_PARAM,
+            remote_session_id:
+              this.connInfo.metadata.analytics?.remote_session_id ?? '',
           },
         }),
       isMainFrame: true,

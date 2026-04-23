@@ -1,12 +1,6 @@
-import React, {
-  useCallback,
-  useRef,
-  useMemo,
-  useEffect,
-  useState,
-} from 'react';
+import React, { useCallback, useRef, useMemo, useEffect } from 'react';
 import { DeviceEventEmitter, RefreshControl } from 'react-native';
-import { FlashList, FlashListRef, ViewToken } from '@shopify/flash-list';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -47,6 +41,12 @@ interface TokenListProps {
   maxItems?: number;
   isFullView?: boolean;
   listFooterComponent?: React.ReactElement;
+  /**
+   * Optional external RefreshControl. When provided, overrides the internal
+   * one wired via `refreshing` + `onRefresh` so callers can compose their own
+   * refresh orchestrator (e.g. Money Hub).
+   */
+  refreshControl?: React.ReactElement;
 }
 
 const TokenListComponent = ({
@@ -59,6 +59,7 @@ const TokenListComponent = ({
   maxItems,
   isFullView = false,
   listFooterComponent,
+  refreshControl,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -144,18 +145,6 @@ const TokenListComponent = ({
     [],
   );
 
-  // Track which items are currently visible in the viewport.
-  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
-
-  const handleViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<FlashListAssetKey>[] }) => {
-      setVisibleKeys(
-        new Set(viewableItems.map(({ item }) => getTokenKey(item))),
-      );
-    },
-    [getTokenKey],
-  );
-
   const renderTokenListItem = useCallback(
     ({ item }: { item: FlashListAssetKey }) => (
       <TokenListItem
@@ -166,7 +155,6 @@ const TokenListComponent = ({
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
         shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-        isVisible={visibleKeys.has(getTokenKey(item))}
       />
     ),
     [
@@ -176,8 +164,6 @@ const TokenListComponent = ({
       showPercentageChange,
       isFullView,
       shouldShowTokenListItemCta,
-      visibleKeys,
-      getTokenKey,
     ],
   );
 
@@ -196,7 +182,6 @@ const TokenListComponent = ({
           showPercentageChange={showPercentageChange}
           isFullView={isFullView}
           shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-          isVisible
         />
       ))}
       {shouldShowViewAllButton && (
@@ -219,22 +204,19 @@ const TokenListComponent = ({
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
         data={displayTokenKeys}
         removeClippedSubviews={false}
-        viewabilityConfig={{
-          itemVisiblePercentThreshold: 50,
-          minimumViewTime: 1000,
-        }}
-        onViewableItemsChanged={handleViewableItemsChanged}
         renderItem={renderTokenListItem}
         keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
         refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
+          refreshControl ?? (
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
+          )
         }
-        extraData={{ isTokenNetworkFilterEqualCurrentNetwork, visibleKeys }}
+        extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
         ListFooterComponent={
           isFullView && listFooterComponent ? (

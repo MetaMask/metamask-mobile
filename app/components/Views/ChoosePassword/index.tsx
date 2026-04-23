@@ -74,6 +74,7 @@ import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
 import {
@@ -515,19 +516,16 @@ const ChoosePassword = () => {
   );
 
   const learnMore = useCallback(() => {
-    const learnMoreUrl =
-      'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
-
     track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
-      url: learnMoreUrl,
+      url: RESET_PASSWORD_GUIDE_URL,
     });
 
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: learnMoreUrl,
+        url: RESET_PASSWORD_GUIDE_URL,
         title: 'support.metamask.io',
       },
     });

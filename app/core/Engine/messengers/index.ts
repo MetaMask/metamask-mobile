@@ -111,11 +111,9 @@ import {
   getUserStorageControllerInitMessenger,
 } from './identity/user-storage-controller-messenger';
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
-import {
-  getEarnControllerInitMessenger,
-  getEarnControllerMessenger,
-} from './earn-controller-messenger';
+import { getEarnControllerMessenger } from './earn-controller-messenger';
 import { getMoneyAccountControllerMessenger } from './money-account-controller-messenger';
+import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
@@ -153,6 +151,7 @@ import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
+import { getClientControllerMessenger } from './client-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 
@@ -194,7 +193,7 @@ export const MESSENGER_FACTORIES = {
   },
   EarnController: {
     getMessenger: getEarnControllerMessenger,
-    getInitMessenger: getEarnControllerInitMessenger,
+    getInitMessenger: noop,
   },
   GeolocationApiService: {
     getMessenger: getGeolocationApiServiceMessenger,
@@ -470,6 +469,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getAiDigestControllerMessenger,
     getInitMessenger: noop,
   },
+  MoneyAccountBalanceService: {
+    getMessenger: getMoneyAccountBalanceServiceMessenger,
+    getInitMessenger: noop,
+  },
   SocialService: {
     getMessenger: getSocialServiceMessenger,
     getInitMessenger: noop,
@@ -480,6 +483,10 @@ export const MESSENGER_FACTORIES = {
   },
   CardController: {
     getMessenger: getCardControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ClientController: {
+    getMessenger: getClientControllerMessenger,
     getInitMessenger: noop,
   },
   ComplianceService: {

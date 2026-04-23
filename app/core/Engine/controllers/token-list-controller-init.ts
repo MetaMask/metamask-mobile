@@ -17,8 +17,13 @@ export const tokenListControllerInit: MessengerClientInitFunction<
   TokenListController,
   TokenListControllerMessenger,
   TokenListControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController, persistedState }) => {
-  const networkController = getController('NetworkController');
+> = ({
+  controllerMessenger,
+  initMessenger,
+  getMessengerClient,
+  persistedState,
+}) => {
+  const networkController = getMessengerClient('NetworkController');
 
   const controller = new TokenListController({
     messenger: controllerMessenger,

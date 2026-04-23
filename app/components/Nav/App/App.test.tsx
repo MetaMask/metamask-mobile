@@ -511,7 +511,7 @@ describe('App', () => {
       await waitFor(() => {
         expect(
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -534,12 +534,14 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Account Group')).toBeTruthy();
-        expect(getByText('Account name')).toBeTruthy();
+        expect(getByText('Account Group')).toBeOnTheScreen();
+        expect(getByText('Account name')).toBeOnTheScreen();
       });
     });
 
     it('renders the multichain account share address screen when navigated to', async () => {
+      jest.useRealTimers();
+
       const routeState = {
         index: 0,
         routes: [
@@ -558,8 +560,10 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Share address')).toBeTruthy();
+        expect(getByText('Share address')).toBeOnTheScreen();
       });
+
+      jest.useFakeTimers();
     });
   });
 
