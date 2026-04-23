@@ -419,9 +419,61 @@ jest.mock(
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
-jest.mock('react-native-worklets', () =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('react-native-worklets/src/mock'),
+/**
+ * Inline Jest mock for `react-native-worklets` when the package is not installed
+ * (e.g. older RN/reanimated stacks). Mirrors the critical behavior from the
+ * upstream package mock — especially `runOnJS` scheduling via `queueMicrotask`.
+ * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
+ */
+jest.mock(
+  'react-native-worklets',
+  () => {
+    const RuntimeKind = { ReactNative: 0 };
+    const NOOP = () => {};
+    const identity = (value) => value;
+
+    const runOnJS =
+      (fun) =>
+      (...args) =>
+        queueMicrotask(() => (args.length ? fun(...args) : fun()));
+
+    return {
+      __esModule: true,
+      RuntimeKind,
+      isShareableRef: () => true,
+      makeShareable: identity,
+      makeShareableCloneOnUIRecursive: identity,
+      makeShareableCloneRecursive: identity,
+      shareableMappingCache: new Map(),
+      getStaticFeatureFlag: () => false,
+      setDynamicFeatureFlag: NOOP,
+      isSynchronizable: () => false,
+      getRuntimeKind: () => RuntimeKind.ReactNative,
+      createWorkletRuntime: () => NOOP,
+      runOnRuntime: identity,
+      runOnRuntimeAsync: async (_runtime, worklet, ...args) => worklet(...args),
+      scheduleOnRuntime: (callback) => callback(),
+      createSerializable: identity,
+      isSerializableRef: identity,
+      serializableMappingCache: new Map(),
+      createSynchronizable: identity,
+      callMicrotasks: NOOP,
+      executeOnUIRuntimeSync: identity,
+      runOnJS,
+      runOnUI:
+        (worklet) =>
+        (...args) => {
+          worklet(...args);
+        },
+      runOnUIAsync: async (worklet, ...args) => worklet(...args),
+      runOnUISync: (callback) => callback(),
+      scheduleOnRN: (fun, ...args) => runOnJS(fun)(...args),
+      scheduleOnUI: (worklet, ...args) => worklet(...args),
+      isWorkletFunction: () => false,
+      WorkletsModule: {},
+    };
+  },
+  { virtual: true },
 );
 
 jest.mock('react-native-mmkv', () => {
