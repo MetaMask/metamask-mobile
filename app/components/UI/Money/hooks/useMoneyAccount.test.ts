@@ -13,6 +13,8 @@ import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdraw,
@@ -100,11 +102,6 @@ const MOCK_MONEY_ACCOUNT = {
 
 const MOCK_PROVIDER = {} as ReturnType<typeof getProviderByChainId>;
 
-// useMoneyAccountContext calls useSelector twice per render in order:
-//   odd calls  → selectMoneyAccountVaultConfig
-//   even calls → selectPrimaryMoneyAccount
-// useConfirmNavigation is fully mocked so it never calls useSelector.
-//
 // 'key' in options is used instead of destructuring defaults so that
 // an explicit { vaultConfig: undefined } is treated as "use undefined",
 // not "use the default" (JS destructuring defaults apply for undefined values).
@@ -120,10 +117,10 @@ function setupSelectors(options: SelectorOptions = {}) {
     'primaryMoneyAccount' in options
       ? options.primaryMoneyAccount
       : MOCK_MONEY_ACCOUNT;
-  let callCount = 0;
-  mockUseSelector.mockImplementation(() => {
-    callCount++;
-    return callCount % 2 === 1 ? vaultConfig : primaryMoneyAccount;
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectMoneyAccountVaultConfig) return vaultConfig;
+    if (selector === selectPrimaryMoneyAccount) return primaryMoneyAccount;
+    return undefined;
   });
 }
 
@@ -154,33 +151,32 @@ describe('useMoneyAccountDeposit', () => {
     mockAddTransactionBatch.mockResolvedValue({} as never);
   });
 
-  it('does not build transaction when vault config is missing', async () => {
+  it('throws when vault config is missing', async () => {
     setupSelectors({ vaultConfig: undefined });
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
-    await act(async () => {
-      await result.current.initiateDeposit(BigInt(1_000_000));
-    });
+    await expect(
+      act(async () => {
+        await result.current.initiateDeposit(BigInt(1_000_000));
+      }),
+    ).rejects.toThrow('Missing vault config');
 
     expect(mockBuildDepositBatch).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
   });
 
-  it('logs error and returns when provider is unavailable', async () => {
+  it('throws when provider is unavailable', async () => {
     mockGetProviderByChainId.mockReturnValue(undefined as never);
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
-    await act(async () => {
-      await result.current.initiateDeposit(BigInt(1_000_000));
-    });
-
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: expect.stringContaining('No provider available'),
+    await expect(
+      act(async () => {
+        await result.current.initiateDeposit(BigInt(1_000_000));
       }),
-    );
+    ).rejects.toThrow('No provider available');
+
     expect(mockBuildDepositBatch).not.toHaveBeenCalled();
   });
 
@@ -215,20 +211,43 @@ describe('useMoneyAccountDeposit', () => {
     );
   });
 
-  it('logs error when addTransactionBatch fails', async () => {
+  it('logs and rethrows when addTransactionBatch fails', async () => {
     const txError = new Error('batch submission failed');
     mockAddTransactionBatch.mockRejectedValue(txError);
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
+    let caught: Error | undefined;
     await act(async () => {
-      await result.current.initiateDeposit(BigInt(1_000_000));
+      try {
+        await result.current.initiateDeposit(BigInt(1_000_000));
+      } catch (error) {
+        caught = error as Error;
+      }
     });
 
+    expect(caught).toBe(txError);
     expect(Logger.error).toHaveBeenCalledWith(
       txError,
       '[Money Account] Deposit transaction failed',
     );
+  });
+
+  it('throws when networkClientId cannot be resolved', async () => {
+    mockFindNetworkClientIdByChainId.mockReturnValue(
+      undefined as unknown as string,
+    );
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateDeposit(BigInt(1_000_000));
+      }),
+    ).rejects.toThrow('Network client not found');
+
+    expect(mockBuildDepositBatch).not.toHaveBeenCalled();
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
   });
 });
 
@@ -253,33 +272,32 @@ describe('useMoneyAccountWithdrawal', () => {
     mockAddTransaction.mockResolvedValue({} as never);
   });
 
-  it('does not build transaction when vault config is missing', async () => {
+  it('throws when vault config is missing', async () => {
     setupSelectors({ vaultConfig: undefined });
 
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
-    await act(async () => {
-      await result.current.initiateWithdrawal(BigInt(1_000_000));
-    });
+    await expect(
+      act(async () => {
+        await result.current.initiateWithdrawal(BigInt(1_000_000));
+      }),
+    ).rejects.toThrow('Missing vault config');
 
     expect(mockBuildWithdraw).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
   });
 
-  it('logs error and returns when provider is unavailable', async () => {
+  it('throws when provider is unavailable', async () => {
     mockGetProviderByChainId.mockReturnValue(undefined as never);
 
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
-    await act(async () => {
-      await result.current.initiateWithdrawal(BigInt(1_000_000));
-    });
-
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: expect.stringContaining('No provider available'),
+    await expect(
+      act(async () => {
+        await result.current.initiateWithdrawal(BigInt(1_000_000));
       }),
-    );
+    ).rejects.toThrow('No provider available');
+
     expect(mockBuildWithdraw).not.toHaveBeenCalled();
   });
 
@@ -318,19 +336,42 @@ describe('useMoneyAccountWithdrawal', () => {
     );
   });
 
-  it('logs error when addTransaction fails', async () => {
+  it('logs and rethrows when addTransaction fails', async () => {
     const txError = new Error('withdraw failed');
     mockAddTransaction.mockRejectedValue(txError);
 
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
+    let caught: Error | undefined;
     await act(async () => {
-      await result.current.initiateWithdrawal(BigInt(500_000));
+      try {
+        await result.current.initiateWithdrawal(BigInt(500_000));
+      } catch (error) {
+        caught = error as Error;
+      }
     });
 
+    expect(caught).toBe(txError);
     expect(Logger.error).toHaveBeenCalledWith(
       txError,
       '[Money Account] Withdrawal transaction failed',
     );
+  });
+
+  it('throws when networkClientId cannot be resolved', async () => {
+    mockFindNetworkClientIdByChainId.mockReturnValue(
+      undefined as unknown as string,
+    );
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateWithdrawal(BigInt(500_000));
+      }),
+    ).rejects.toThrow('Network client not found');
+
+    expect(mockBuildWithdraw).not.toHaveBeenCalled();
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
   });
 });

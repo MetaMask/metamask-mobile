@@ -22,15 +22,18 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 
 const LOG_TAG = '[Money Account]';
 
-function useMoneyAccountContext() {
-  const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-
-  return { primaryMoneyAccount, vaultConfig };
+function resolveNetworkClientId(chainId: Hex): string {
+  const networkClientId =
+    Engine.context.NetworkController.findNetworkClientIdByChainId(chainId);
+  if (!networkClientId) {
+    throw new Error(`${LOG_TAG} Network client not found for chain ${chainId}`);
+  }
+  return networkClientId;
 }
 
 export function useMoneyAccountDeposit() {
-  const { primaryMoneyAccount, vaultConfig } = useMoneyAccountContext();
+  const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const initiateDeposit = useCallback(
@@ -62,10 +65,7 @@ export function useMoneyAccountDeposit() {
         );
       }
 
-      const networkClientId =
-        Engine.context.NetworkController.findNetworkClientIdByChainId(
-          chainIdHex,
-        );
+      const networkClientId = resolveNetworkClientId(chainIdHex);
 
       // TODO: as mentioned above this should move into hook from `addTransactionBatch`.
       const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
@@ -98,6 +98,8 @@ export function useMoneyAccountDeposit() {
         });
       } catch (error) {
         Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
+        // Rethrow so the caller can roll back navigation / surface a toast.
+        throw error;
       }
     },
     [navigateToConfirmation, primaryMoneyAccount, vaultConfig],
@@ -107,7 +109,8 @@ export function useMoneyAccountDeposit() {
 }
 
 export function useMoneyAccountWithdrawal() {
-  const { primaryMoneyAccount, vaultConfig } = useMoneyAccountContext();
+  const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const initiateWithdrawal = useCallback(
@@ -129,10 +132,7 @@ export function useMoneyAccountWithdrawal() {
         );
       }
 
-      const networkClientId =
-        Engine.context.NetworkController.findNetworkClientIdByChainId(
-          chainIdHex,
-        );
+      const networkClientId = resolveNetworkClientId(chainIdHex);
 
       const { params, options } = await buildMoneyAccountWithdraw({
         amount,
@@ -163,6 +163,8 @@ export function useMoneyAccountWithdrawal() {
           error as Error,
           `${LOG_TAG} Withdrawal transaction failed`,
         );
+        // Rethrow so the caller can roll back navigation / surface a toast.
+        throw error;
       }
     },
     [navigateToConfirmation, primaryMoneyAccount, vaultConfig],
