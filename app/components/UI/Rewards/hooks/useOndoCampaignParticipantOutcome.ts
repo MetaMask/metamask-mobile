@@ -3,11 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectOndoCampaignParticipantOutcomeById } from '../../../../reducers/rewards/selectors';
-import {
-  setOndoCampaignParticipantOutcome,
-  setOndoCampaignParticipantOutcomeLoading,
-  setOndoCampaignParticipantOutcomeError,
-} from '../../../../reducers/rewards';
+import { setOndoCampaignParticipantOutcome } from '../../../../reducers/rewards';
 import type { OndoGmCampaignParticipantOutcomeDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseOndoCampaignParticipantOutcomeResult {
@@ -22,7 +18,10 @@ export function useOndoCampaignParticipantOutcome(
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const outcome = useSelector(
-    selectOndoCampaignParticipantOutcomeById(campaignId ?? ''),
+    selectOndoCampaignParticipantOutcomeById(
+      subscriptionId ?? undefined,
+      campaignId,
+    ),
   );
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -31,16 +30,12 @@ export function useOndoCampaignParticipantOutcome(
     if (!subscriptionId || !campaignId) {
       setIsLoading(false);
       setHasError(false);
-      dispatch(setOndoCampaignParticipantOutcomeLoading(false));
-      dispatch(setOndoCampaignParticipantOutcomeError(false));
       return;
     }
 
     try {
       setIsLoading(true);
       setHasError(false);
-      dispatch(setOndoCampaignParticipantOutcomeLoading(true));
-      dispatch(setOndoCampaignParticipantOutcomeError(false));
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getOndoCampaignParticipantOutcome',
         campaignId,
@@ -49,17 +44,15 @@ export function useOndoCampaignParticipantOutcome(
       if (result) {
         dispatch(
           setOndoCampaignParticipantOutcome({
-            campaignId,
+            key: `${subscriptionId}:${campaignId}`,
             outcome: result,
           }),
         );
       }
     } catch {
       setHasError(true);
-      dispatch(setOndoCampaignParticipantOutcomeError(true));
     } finally {
       setIsLoading(false);
-      dispatch(setOndoCampaignParticipantOutcomeLoading(false));
     }
   }, [dispatch, campaignId, subscriptionId]);
 

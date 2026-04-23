@@ -167,12 +167,11 @@ export interface RewardsState {
   ondoCampaignDepositsError: boolean;
 
   // Ondo campaign participant outcome (keyed by campaignId)
+  // keyed by `${subscriptionId}:${campaignId}`
   ondoCampaignParticipantOutcome: Record<
     string,
     OndoGmCampaignParticipantOutcomeDto
   >;
-  ondoCampaignParticipantOutcomeLoading: boolean;
-  ondoCampaignParticipantOutcomeError: boolean;
 
   // General dismissed campaign outcome toasts (keyed by `${subscriptionId}:${campaignId}`)
   dismissedCampaignOutcomeToasts: Record<string, true>;
@@ -180,7 +179,6 @@ export interface RewardsState {
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
-
 }
 
 /**
@@ -290,8 +288,6 @@ export const initialState: RewardsState = {
 
   // Ondo campaign participant outcome initial state
   ondoCampaignParticipantOutcome: {},
-  ondoCampaignParticipantOutcomeLoading: false,
-  ondoCampaignParticipantOutcomeError: false,
 
   // Dismissed campaign outcome toasts
   dismissedCampaignOutcomeToasts: {},
@@ -411,8 +407,6 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDepositsLoading = false;
       state.ondoCampaignDepositsError = false;
       state.ondoCampaignParticipantOutcome = {};
-      state.ondoCampaignParticipantOutcomeLoading = false;
-      state.ondoCampaignParticipantOutcomeError = false;
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -720,25 +714,12 @@ const rewardsSlice = createSlice({
     setOndoCampaignParticipantOutcome: (
       state,
       action: PayloadAction<{
-        campaignId: string;
+        key: string;
         outcome: OndoGmCampaignParticipantOutcomeDto;
       }>,
     ) => {
-      state.ondoCampaignParticipantOutcome[action.payload.campaignId] =
+      state.ondoCampaignParticipantOutcome[action.payload.key] =
         action.payload.outcome;
-      state.ondoCampaignParticipantOutcomeError = false;
-    },
-    setOndoCampaignParticipantOutcomeLoading: (
-      state,
-      action: PayloadAction<boolean>,
-    ) => {
-      state.ondoCampaignParticipantOutcomeLoading = action.payload;
-    },
-    setOndoCampaignParticipantOutcomeError: (
-      state,
-      action: PayloadAction<boolean>,
-    ) => {
-      state.ondoCampaignParticipantOutcomeError = action.payload;
     },
     dismissCampaignOutcomeToast: (state, action: PayloadAction<string>) => {
       state.dismissedCampaignOutcomeToasts[action.payload] = true;
@@ -940,8 +921,6 @@ export const {
   setOndoCampaignDepositsError,
   // Campaign participant outcome actions
   setOndoCampaignParticipantOutcome,
-  setOndoCampaignParticipantOutcomeLoading,
-  setOndoCampaignParticipantOutcomeError,
   dismissCampaignOutcomeToast,
   // Bulk link actions
   bulkLinkStarted,

@@ -36,7 +36,10 @@ export function useOndoCampaignEndedOutcomeToast(
 
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const outcome = useSelector(
-    selectOndoCampaignParticipantOutcomeById(campaignId ?? ''),
+    selectOndoCampaignParticipantOutcomeById(
+      subscriptionId ?? undefined,
+      campaignId,
+    ),
   );
   const toastKey =
     subscriptionId && campaignId ? `${subscriptionId}:${campaignId}` : '';

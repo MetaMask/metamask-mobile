@@ -26,6 +26,7 @@ import {
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectOndoCampaignParticipantOutcomeById } from '../../../../reducers/rewards/selectors';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { strings } from '../../../../../locales/i18n';
 import CopyableField from '../components/ReferralDetails/CopyableField';
 import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
@@ -67,9 +68,14 @@ const OndoCampaignWinningView: React.FC = () => {
   const { position, isLoading: positionLoading } =
     useGetOndoLeaderboardPosition(campaignId);
 
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const winningCode =
-    useSelector(selectOndoCampaignParticipantOutcomeById(campaignId))
-      ?.winnerVerificationCode ?? null;
+    useSelector(
+      selectOndoCampaignParticipantOutcomeById(
+        subscriptionId ?? undefined,
+        campaignId,
+      ),
+    )?.winnerVerificationCode ?? null;
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_winning',
