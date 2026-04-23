@@ -88,6 +88,16 @@ export default class DappServer implements Resource {
           request: http.IncomingMessage,
           response: http.ServerResponse,
         ) => {
+          response.setHeader('Access-Control-Allow-Origin', '*');
+
+          if (request.method === 'OPTIONS') {
+            response.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+            response.setHeader('Access-Control-Allow-Headers', '*');
+            response.writeHead(204);
+            response.end();
+            return;
+          }
+
           if (!request.url) {
             response.statusCode = 404;
             response.end('Not Found');

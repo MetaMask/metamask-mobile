@@ -5,6 +5,7 @@ import { FlaskBuildTests } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import { Assertions, Matchers } from '../../framework';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -12,6 +13,7 @@ describe(FlaskBuildTests('UI Links Snap Test'), () => {
   it('displays a link in the UI', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,

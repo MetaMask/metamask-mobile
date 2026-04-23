@@ -26,7 +26,7 @@ export const ALLOWLISTED_HOSTS = [
   'polygon-mainnet.infura.io',
   'linea-sepolia.infura.io',
   'linea-mainnet.infura.io',
-  'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
+  'metamask.github.io', // Multichain test-dapp, AppConfig, dapp-scanning mocks, and fixture origins
 ];
 
 export const ALLOWLISTED_URLS = [

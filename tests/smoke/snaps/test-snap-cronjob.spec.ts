@@ -5,6 +5,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { Assertions } from '../../framework';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -12,6 +13,7 @@ describe(FlaskBuildTests('Cronjob Snap Tests'), () => {
   it('can connect to the Cronjob Snap which triggers a dialog', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,

@@ -7,13 +7,22 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { getAnvilPortForTest } from '../../framework/fixtures/FixtureUtils';
 import { LocalNodeType } from '../../framework';
 import { defaultOptions } from '../../seeder/anvil-manager';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
+
+// The snap execution WebView uses baseUrl 'https://localhost', so fetching from
+// an HTTP DappServer URL triggers mixed-content blocking on iOS WKWebView.
+// Use an HTTPS URL for the fetch test. This was the default behavior on main
+// (window.location.href pointed to GitHub Pages HTTPS).
+const FETCH_TEST_URL =
+  'https://metamask.github.io/snaps/test-snaps/3.4.2/test-data.json';
 
 describe(FlaskBuildTests('Network Access Snap Tests'), () => {
   it('can use fetch and WebSockets', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
@@ -34,7 +43,9 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
 
         await TestSnaps.installSnap('connectNetworkAccessButton');
 
-        // Use fetch
+        // Use fetch — override the default URL (derived from window.location.href)
+        // with an HTTPS endpoint to avoid iOS WKWebView mixed-content blocking
+        await TestSnaps.fillMessage('fetchUrlInput', FETCH_TEST_URL);
         await TestSnaps.tapButton('sendNetworkAccessTestButton');
         await TestSnaps.checkResultSpanIncludes(
           'networkAccessResultSpan',

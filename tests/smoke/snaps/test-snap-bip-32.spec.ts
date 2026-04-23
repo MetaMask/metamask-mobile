@@ -5,6 +5,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -12,6 +13,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
   it('can connect to BIP-32 snap', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,

@@ -7,6 +7,7 @@ import Gestures from '../../framework/Gestures';
 import { Matchers } from '../../framework';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -14,6 +15,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
   it('connects to the Dialog Snap', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,

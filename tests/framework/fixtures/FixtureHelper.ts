@@ -125,6 +125,16 @@ async function handleDapps(
           }),
         );
         break;
+      case DappVariants.TEST_SNAPS:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath || TestDapps[DappVariants.TEST_SNAPS].dappPath,
+            dappVariant: DappVariants.TEST_SNAPS,
+          }),
+        );
+        break;
       default:
         throw new Error(
           `Unsupported dapp variant: '${dapp.dappVariant}'. Cannot start the server.`,
