@@ -279,26 +279,63 @@ class WalletConnect2Session {
     );
     if (!isPermitted) return;
 
-    this.refreshMultichainNamespaces().catch((err) => {
-      DevLogger.log(
-        '[wc][WC2Session] multichain account change update failed',
-        err,
-      );
-    });
+    this.refreshMultichainNamespaces(account.address, namespace).catch(
+      (err) => {
+        DevLogger.log(
+          '[wc][WC2Session] multichain account change update failed',
+          err,
+        );
+      },
+    );
   }
 
   /**
-   * Rebuild the approved namespaces from all registered adapters and push
-   * the updated session to the dapp. Used when a non-EVM account changes
-   * and the dapp needs to see the updated account list.
+   * Reorder the namespace accounts so the selected address comes first,
+   * then push the updated session to the dapp. This mirrors what the EVM
+   * flow achieves via `sortEvmAccountsByLastSelected` — WalletConnect
+   * dapps treat the first account in the namespace as the active one, so
+   * changing the order triggers a visible account switch on the dapp side.
+   *
+   * @param selectedAddress - The address the user just switched to.
+   * @param namespace - The CAIP-2 namespace (e.g. `'tron'`, `'solana'`).
    */
-  private async refreshMultichainNamespaces() {
-    const mergedNamespaces = await this.computeMergedNamespaces();
-    if (!mergedNamespaces) return;
+  private async refreshMultichainNamespaces(
+    selectedAddress: string,
+    namespace: string,
+  ) {
+    const nsConfig = this.session.namespaces?.[namespace];
+    if (!nsConfig?.accounts) return;
+
+    // Move every CAIP-10 entry whose address matches the selected one to
+    // the front of the array so the dapp sees it as the active account.
+    const accounts = [...nsConfig.accounts];
+    const selected: string[] = [];
+    const rest: string[] = [];
+    for (const caip10 of accounts) {
+      if (caip10.split(':').slice(2).join(':') === selectedAddress) {
+        selected.push(caip10);
+      } else {
+        rest.push(caip10);
+      }
+    }
+    const reordered = [...selected, ...rest];
+
+    // Skip the update if the order hasn't actually changed.
+    if (
+      reordered.length === accounts.length &&
+      reordered.every((v, i) => v === accounts[i])
+    ) {
+      return;
+    }
+
+    const updatedNamespaces = {
+      ...this.session.namespaces,
+      [namespace]: { ...nsConfig, accounts: reordered },
+    };
 
     await this.web3Wallet.updateSession({
       topic: this.session.topic,
-      namespaces: mergedNamespaces,
+      namespaces: updatedNamespaces,
     });
 
     // Sync local session state from WalletConnect's canonical copy.
