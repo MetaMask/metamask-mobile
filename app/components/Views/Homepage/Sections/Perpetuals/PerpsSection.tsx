@@ -114,9 +114,11 @@ const usePerpsNavigationHandlers = ({
         market,
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
         ...(isDedicatedTrendingSection &&
-          trendingTransactionActiveAbTests?.length && {
-            transactionActiveAbTests: trendingTransactionActiveAbTests,
-          }),
+        trendingTransactionActiveAbTests?.length
+          ? {
+              transactionActiveAbTests: trendingTransactionActiveAbTests,
+            }
+          : {}),
       });
     },
     [

@@ -5,5 +5,5 @@ export const MoneyOnboardingCardTestIds = {
   COIN_ILLUSTRATION: 'money-onboarding-card-coin-illustration',
   TITLE: 'money-onboarding-card-title',
   DESCRIPTION: 'money-onboarding-card-description',
-  ADD_BUTTON: 'money-onboarding-card-add-button',
+  CTA_BUTTON: 'money-onboarding-card-cta-button',
 } as const;
