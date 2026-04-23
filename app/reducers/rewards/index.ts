@@ -165,9 +165,6 @@ export interface RewardsState {
   ondoCampaignDepositsLoading: boolean;
   ondoCampaignDepositsError: boolean;
 
-  // General dismissed campaign outcome toasts (keyed by `${subscriptionId}:${campaignId}`)
-  dismissedCampaignOutcomeToasts: Record<string, true>;
-
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
@@ -277,9 +274,6 @@ export const initialState: RewardsState = {
   ondoCampaignDeposits: null,
   ondoCampaignDepositsLoading: false,
   ondoCampaignDepositsError: false,
-
-  // Dismissed campaign outcome toasts
-  dismissedCampaignOutcomeToasts: {},
 
   pendingDeeplink: null,
 };
@@ -700,10 +694,6 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDepositsError = action.payload;
     },
 
-    dismissCampaignOutcomeToast: (state, action: PayloadAction<string>) => {
-      state.dismissedCampaignOutcomeToasts[action.payload] = true;
-    },
-
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -819,8 +809,6 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.ondoCampaignPortfolio ?? {},
               ondoCampaignActivity:
                 action.payload.rewards.ondoCampaignActivity ?? {},
-              dismissedCampaignOutcomeToasts:
-                action.payload.rewards.dismissedCampaignOutcomeToasts ?? {},
               hideUnlinkedAccountsBanner:
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:

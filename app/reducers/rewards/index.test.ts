@@ -2077,7 +2077,6 @@ describe('rewardsReducer', () => {
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
-        dismissedCampaignOutcomeToasts: {},
         pendingDeeplink: null,
       };
       const action = resetRewardsState();
@@ -2199,7 +2198,6 @@ describe('rewardsReducer', () => {
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
-        dismissedCampaignOutcomeToasts: {},
         pendingDeeplink: null,
       };
       const rehydrateAction = {
@@ -2377,10 +2375,6 @@ describe('rewardsReducer', () => {
             hide: true,
           },
         ],
-        dismissedCampaignOutcomeToasts: {
-          'campaign-1': true,
-          'campaign-2': true,
-        },
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2418,9 +2412,6 @@ describe('rewardsReducer', () => {
       );
       expect(state.hideCurrentAccountNotOptedInBanner).toEqual(
         persistedRewardsState.hideCurrentAccountNotOptedInBanner,
-      );
-      expect(state.dismissedCampaignOutcomeToasts).toEqual(
-        persistedRewardsState.dismissedCampaignOutcomeToasts,
       );
 
       // Non-persistent state should remain from current state
