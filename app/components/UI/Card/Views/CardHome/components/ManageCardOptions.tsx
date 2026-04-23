@@ -115,11 +115,27 @@ const ManageCardOptions = ({
             description={strings(
               'card.card_home.manage_card_options.change_asset_description',
             )}
-            rightIcon={IconName.ArrowRight}
             onPress={onChangeAsset}
             testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
           />
         )}
+        {((isFullySetUp && !hideManageOptions) || showTeaserOptions) &&
+          ((isAuthenticated &&
+            capabilities?.supportsCashback &&
+            account?.verificationStatus === 'VERIFIED') ||
+            (showTeaserOptions && capabilities?.supportsCashback)) && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.cashback')}
+              description={strings(
+                card?.type === CardType.METAL
+                  ? 'card.card_home.manage_card_options.cashback_description_metal'
+                  : 'card.card_home.manage_card_options.cashback_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onCashback}
+              testID={CardHomeSelectors.CASHBACK_ITEM}
+            />
+          )}
         {((isAuthenticated && !isLoading && card && !hideManageOptions) ||
           showTeaserOptions) && (
           <ManageCardListItem
@@ -194,22 +210,6 @@ const ManageCardOptions = ({
       </Box>
       {((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
         <>
-          {((isAuthenticated &&
-            capabilities?.supportsCashback &&
-            account?.verificationStatus === 'VERIFIED') ||
-            (showTeaserOptions && capabilities?.supportsCashback)) && (
-            <ManageCardListItem
-              title={strings('card.card_home.manage_card_options.cashback')}
-              description={strings(
-                card?.type === CardType.METAL
-                  ? 'card.card_home.manage_card_options.cashback_description_metal'
-                  : 'card.card_home.manage_card_options.cashback_description',
-              )}
-              rightIcon={IconName.ArrowRight}
-              onPress={onCashback}
-              testID={CardHomeSelectors.CASHBACK_ITEM}
-            />
-          )}
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.travel_title')}
             description={strings(

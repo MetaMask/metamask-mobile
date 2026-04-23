@@ -351,7 +351,7 @@ yarn test:e2e:android:flask:run
 
 ~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
 
-**Current approach**: Performance testing is now handled by [Appwright](https://github.com/nickmaxwell10/appwright), a Playwright-based mobile testing framework. See the `tests/performance` directory for performance tests including app launch times and feature-specific performance measurements.
+**Current approach**: Performance testing is now handled by a Playwright-based mobile testing framework. See the `tests/performance` directory for performance tests including app launch times and feature-specific performance measurements.
 
 **Test Location**: `tests/performance/`
 
@@ -548,10 +548,6 @@ The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from
    yarn test:api-specs
    ```
 
-### Appwright
-
-This is a recent mobile framework which was built using appium and playwright. We adopted it to meet our need for running performance focused end to end tests on real iOS and Android devices through BrowserStack.
-
 #### Running Tests Against BrowserStack Devices
 
 You can get your BrowserStack username and access key from the Access key dropdown on the app automate screen in BrowserStack.
@@ -561,6 +557,7 @@ You can get your BrowserStack username and access key from the Access key dropdo
 ```bash
 export BROWSERSTACK_USERNAME='your_username'
 export BROWSERSTACK_ACCESS_KEY='your_access_key'
+export BROWSERSTACK_LOCAL='true'
 ```
 
 Update the config file with the appropriate BrowserStack app URL. You’ll need a BrowserStack URL first. To get it:
@@ -594,18 +591,20 @@ You can repeat the same for iOS builds by replacing `process.env.BROWSERSTACK_IO
 ##### Run Android Tests on BrowserStack
 
 ```bash
-yarn run-appwright:android-bs
+yarn run-playwright:android-bs
 ```
 
 ##### Run iOS Tests on BrowserStack
 
 ```bash
-yarn run-appwright:ios-bs
+yarn run-playwright:ios-bs
 ```
 
 #### Testing Locally (Simulators/Emulators)
 
-You need to make sure that the artifact is created. Download the binary from the [runway](https://github.com/MetaMask/metamask-mobile/tree/MMQA-521-part-2?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Appwright.
+_Important Note:_ We strongly advise the use of Browserstack for this as we're still going through the migration and the amulator interface isn't yet fully ready.
+
+You need to make sure that the artifact is created. Download the binary from the [runway](https://github.com/MetaMask/metamask-mobile/tree/main?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Playwright.
 
 Then update the build path in the `ios` or `android` config:
 
@@ -626,13 +625,13 @@ Then update the build path in the `ios` or `android` config:
 ##### Test on Your Local Android Emulator
 
 ```bash
-yarn run-appwright:android
+yarn run-playwright:android
 ```
 
 ##### Test on Your Local iOS Simulator
 
 ```bash
-yarn run-appwright:ios
+yarn run-playwright:ios
 ```
 
 **Important**: If the test fail to start, double check the OS version your simulator/emulator is running and make sure the config has the correct version.
