@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -146,17 +146,20 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
     });
   }, []);
 
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      shouldNavigateBack={false}
       isInteractable={!isSubmittingTx}
       onClose={onClose}
     >
       <QuickBuyHeader
         position={position}
         destToken={destToken}
-        onClose={onClose}
+        onClose={handleClose}
       />
       {isContentReady ? (
         <QuickBuyBottomSheetContent position={position} onClose={onClose} />
