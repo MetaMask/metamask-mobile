@@ -14,7 +14,8 @@ jobs:
     if: >-
       github.event.label.name == 'skip-smart-e2e-selection' ||
       github.event.label.name == 'skip-e2e' ||
-      github.event.label.name == 'skip-e2e-quality-gate'
+      github.event.label.name == 'skip-e2e-quality-gate' ||
+      github.event.label.name == 'PR-not-ready-for-E2E'
     runs-on: ubuntu-latest
     permissions:
       actions: write

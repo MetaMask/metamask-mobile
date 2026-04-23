@@ -867,6 +867,11 @@ jobs:
     env:
       SKIPPED: ${{ needs.check-skip-merge-queue.outputs.skip-merge-queue == 'true' }}
     steps:
+      - name: Block merge while PR-not-ready-for-E2E label is applied
+        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'PR-not-ready-for-E2E') }}
+        run: |
+          echo "::error::The 'PR-not-ready-for-E2E' label is still applied. Remove it to trigger E2E tests before merging."
+          exit 1
       - run: |
           # If the merge queue was skipped, consider all jobs as passed
           if [[ "$SKIPPED" == "true" ]]; then

@@ -59,9 +59,13 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           echo "SKIP=false" >> "$GITHUB_OUTPUT"
-          if gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' | grep -qx "skip-e2e"; then
+          LABELS=$(gh pr view "${{ github.event.pull_request.number }}" --json labels --jq '.labels[].name')
+          if echo "$LABELS" | grep -qx "skip-e2e"; then
             echo "SKIP=true" >> "$GITHUB_OUTPUT"
             echo "-> SKIP=true due to 'skip-e2e' label on PR"
+          elif echo "$LABELS" | grep -qx "PR-not-ready-for-E2E"; then
+            echo "SKIP=true" >> "$GITHUB_OUTPUT"
+            echo "-> SKIP=true due to 'PR-not-ready-for-E2E' label on PR"
           fi
         env:
           GH_TOKEN: ${{ github.token }}
