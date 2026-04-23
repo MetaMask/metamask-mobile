@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deeplinks Architecture"
+  short_description: "Map of the MetaMask Mobile deeplink pipeline — native, Branch, saga, signature, modal, and workarounds."
+  default_prompt: "Use $deeplinks-architecture to orient on the deeplink pipeline before touching DeeplinkManager, the root saga, or native intent handling."

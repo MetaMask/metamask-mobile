@@ -13,7 +13,7 @@ import handleRampUrl from './handleRampUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { INTERNAL_ORIGINS } from '../../../../constants/transaction';
 
-export function handleMetaMaskDeeplink({
+export async function handleMetaMaskDeeplink({
   handled,
   wcURL,
   origin,
@@ -31,6 +31,21 @@ export function handleMetaMaskDeeplink({
   const channelId = params?.channelId;
   if (channelId && INTERNAL_ORIGINS.includes(channelId)) {
     throw new Error('External transactions cannot use internal origins');
+  }
+
+  // Ensure SDKConnect is initialised before touching `deeplinkingService` /
+  // `.state.navigation` on the instance. `SDKConnect.init` is idempotent —
+  // if it is already in flight (fired from `initializeSDKServicesSaga` on
+  // LOGIN) this awaits the shared promise; if it already completed, this
+  // returns immediately. Only the handlers that need SDKConnect wait,
+  // non-SDK deeplinks are not blocked.
+  try {
+    await SDKConnect.init({ context: 'deeplink' });
+  } catch (err) {
+    Logger.error(
+      err as Error,
+      'handleMetaMaskDeeplink: SDKConnect.init failed',
+    );
   }
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {

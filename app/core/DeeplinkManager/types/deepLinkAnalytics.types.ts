@@ -89,8 +89,22 @@ export interface DeepLinkAnalyticsContext {
   /** Extracted route from the URL */
   route: DeepLinkRoute;
 
-  /** Branch.io parameters for app installation detection */
+  /**
+   * Branch.io parameters for app installation detection.
+   * Set by `createDeepLinkUsedEventBuilder` after awaiting
+   * `branchParamsPromise`; callers may set it directly for MWP and
+   * push-notification paths that resolve the params eagerly.
+   */
   branchParams?: BranchParams;
+
+  /**
+   * Fire-and-forget Promise that resolves to the Branch.io params (or
+   * undefined on timeout / error). Allows `handleUniversalLink` to kick
+   * off the fetch without blocking the interstitial / handler flow on
+   * it; `createDeepLinkUsedEventBuilder` awaits this later when building
+   * the analytics event.
+   */
+  branchParamsPromise?: Promise<BranchParams | undefined>;
 
   /** URL parameters */
   urlParams: Partial<DeeplinkUrlParams>;

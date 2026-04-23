@@ -677,8 +677,15 @@ export const createDeepLinkUsedEventBuilder = async (
 ): Promise<ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>> => {
   const { url, route, signatureStatus } = context;
 
+  // Resolve branch params lazily if a promise was provided. This lets
+  // `handleUniversalLink` start the Branch fetch without blocking the
+  // interstitial / handler flow; we only await here, when building the
+  // analytics event itself (which is already fire-and-forget).
+  const branchParams: BranchParams | undefined =
+    context.branchParams ?? (await (context.branchParamsPromise ?? undefined));
+
   // Pass branchParams to avoid duplicate fetch
-  const wasAppInstalled = await detectAppInstallation(context.branchParams);
+  const wasAppInstalled = await detectAppInstallation(branchParams);
 
   // Extract sensitive properties
   const sensitiveProperties = extractSensitiveProperties(
@@ -686,8 +693,13 @@ export const createDeepLinkUsedEventBuilder = async (
     context.urlParams,
   );
 
-  // Determine interstitial state
-  const interstitial = determineInterstitialState(context);
+  // Determine interstitial state using the resolved branchParams so the
+  // deferred-deeplink branch in `determineInterstitialState` behaves the
+  // same as it did with the previous eager-fetch implementation.
+  const interstitial = determineInterstitialState({
+    ...context,
+    branchParams,
+  });
 
   // Create the AnalyticsEventBuilder with all deep link properties
   const eventBuilder = AnalyticsEventBuilder.createEventBuilder(

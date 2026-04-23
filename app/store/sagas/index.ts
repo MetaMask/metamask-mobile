@@ -189,22 +189,53 @@ export function* basicFunctionalityToggle() {
   }
 }
 
-export function* initializeSDKServices() {
-  try {
-    // Initialize WalletConnect
-    yield call(() => WC2Manager.init({}));
-    // Initialize SDKConnect
-    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
-  } catch (e) {
-    Logger.log('Failed to initialize services', e);
+/**
+ * Initializes WalletConnect v2 and SDKConnect (SDKv1) once the user is
+ * authenticated and onboarded. Runs the two init calls in parallel; the
+ * previous implementation chained them serially inside `handleDeeplinkSaga`
+ * which blocked every post-login deeplink on 3-5 s of init work even for
+ * deeplinks that don't need these services.
+ *
+ * Handlers that need these services already wait for them on their own.
+ * `connectWithWC` and the `/wc` branch of `handleMetaMaskDeeplink` use
+ * `WC2Manager.getInstance()`, which polls until the instance exists.
+ * The `connect` / `mmsdk` branches of `handleMetaMaskDeeplink` call
+ * `SDKConnect.init(...)` at entry; since init is idempotent and returns
+ * the in-flight promise, they naturally wait for this saga.
+ */
+export function* initializeSDKServicesSaga() {
+  while (true) {
+    const value = (yield take([
+      UserActionType.LOGIN,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | SetCompletedOnboardingAction;
+
+    const completedOnboarding: boolean =
+      value.type === SET_COMPLETED_ONBOARDING
+        ? value.completedOnboarding
+        : yield select(selectCompletedOnboarding);
+
+    const { KeyringController } = Engine.context;
+    const isUnlocked = KeyringController.isUnlocked();
+
+    if (!completedOnboarding || !isUnlocked) {
+      continue;
+    }
+
+    try {
+      yield all([
+        call(() => WC2Manager.init({})),
+        call(() => SDKConnect.init({ context: 'Nav/App' })),
+      ]);
+    } catch (e) {
+      Logger.log('Failed to initialize SDK services', e);
+    }
+    // Initialise only once per app session.
+    return;
   }
 }
 
 export function* handleDeeplinkSaga() {
-  // TODO: This is only needed because SDKConnect does some weird stuff when it's initialized.
-  // Once that's refactored and the singleton is simply initialized, we should be able to remove this.
-  let hasInitializedSDKServices = false;
-
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
     const value = (yield take([
@@ -231,11 +262,14 @@ export function* handleDeeplinkSaga() {
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
+        // setTimeout with 0ms yields one macrotask so any in-flight navigation
+        // event can flush before we show the interstitial modal. Previously
+        // 200ms — dropped because the real delay was unnecessary.
         setTimeout(() => {
           SharedDeeplinkManager.parse(url.href, {
             origin: storedSource,
           });
-        }, 200);
+        }, 0);
         AppStateEventProcessor.clearPendingDeeplink();
         continue;
       }
@@ -249,24 +283,20 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
-    // Initialize SDK services
-    if (!hasInitializedSDKServices) {
-      yield call(initializeSDKServices);
-      hasInitializedSDKServices = true;
-    }
-
     const deeplink = AppStateEventProcessor.pendingDeeplink;
     const deeplinkSource =
       AppStateEventProcessor.pendingDeeplinkSource ??
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
-      // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
+      // setTimeout with 0ms yields one macrotask so any in-flight navigation
+      // event can flush before we show the interstitial modal. Previously
+      // 200ms — dropped because the real delay was unnecessary.
       setTimeout(() => {
         SharedDeeplinkManager.parse(deeplink, {
           origin: deeplinkSource,
         });
-      }, 200);
+      }, 0);
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }
@@ -343,6 +373,7 @@ export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
+  yield fork(initializeSDKServicesSaga);
   yield fork(rewardsBulkLinkSaga);
 
   // Send one-time analytics backfill for migrated social login users after
