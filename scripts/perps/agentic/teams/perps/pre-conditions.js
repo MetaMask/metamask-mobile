@@ -84,14 +84,9 @@ const REGISTRY = {
   },
 
   'perps.sufficient_balance': {
-    description: 'Perps account has a non-zero tradeable balance',
+    description: 'Perps account has a non-zero available balance',
     async: true,
-    // availableToTradeBalance reflects withdrawable + unreserved spot
-    // collateral on HL Unified/PM accounts; falls back to availableBalance
-    // for providers/modes that do not compute the fold. availableBalance
-    // alone is 0 on Unified mode even when the account has tradeable spot.
-    expression:
-      'Engine.context.PerpsController.getAccountState().then(function(r){ var t = r.availableToTradeBalance != null ? r.availableToTradeBalance : r.availableBalance; return JSON.stringify({balance: parseFloat(t||"0")}); })',
+    expression: 'Engine.context.PerpsController.getAccountState().then(function(r){ return JSON.stringify({balance: parseFloat(r.availableBalance||"0")}); })',
     assert: { operator: 'gt', field: 'balance', value: 0 },
     hint: 'Deposit funds into your Perps account before placing orders.',
     fixtures: {
