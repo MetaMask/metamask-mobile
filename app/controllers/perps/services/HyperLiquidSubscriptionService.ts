@@ -1144,7 +1144,10 @@ export class HyperLiquidSubscriptionService {
             // its result instead of overwriting this fresher WS snapshot.
             this.#spotStateGeneration += 1;
             this.#cachedSpotState = event.spotState;
-            this.#cachedSpotStateUserAddress = event.user;
+            // Normalize to match REST path (stores lowercase) so the
+            // #ensureSpotState strict-equal check hits the cache regardless
+            // of whether HL returns a checksummed or lowercase user field.
+            this.#cachedSpotStateUserAddress = event.user.toLowerCase();
 
             if (this.#dexAccountCache.size > 0) {
               this.#aggregateAndNotifySubscribers();
@@ -1595,7 +1598,6 @@ export class HyperLiquidSubscriptionService {
               // Extract account data (webData2 provides clearinghouseState)
               const accountState: AccountState = adaptAccountStateFromSDK(
                 data.clearinghouseState,
-                undefined, // webData2 doesn't include spotState
               );
 
               // Store in caches (main DEX only)
@@ -1800,7 +1802,6 @@ export class HyperLiquidSubscriptionService {
             // Update account state
             const accountState: AccountState = adaptAccountStateFromSDK(
               data.clearinghouseState,
-              undefined,
             );
 
             // Update caches

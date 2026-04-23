@@ -1021,7 +1021,7 @@
       }
     },
     "notification_preferences": {
-      "title": "Top traders",
+      "title": "Top Traders",
       "allow_push_notifications": "Allow push notifications",
       "trades_over_label": "Get notified of trades over:",
       "traders_you_follow": "Traders you follow",
@@ -1052,7 +1052,9 @@
       "trades": "Trades",
       "buy": "Buy",
       "bought": "{{name}} bought",
-      "sold": "{{name}} sold"
+      "sold": "{{name}} sold",
+      "no_trades": "No trades for this interval",
+      "closed_position": "Closed position"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
