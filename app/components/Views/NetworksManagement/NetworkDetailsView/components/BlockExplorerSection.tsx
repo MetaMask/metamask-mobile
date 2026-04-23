@@ -33,7 +33,15 @@ import {
   applyBlockExplorerSelectionToFormState,
   removeBlockExplorerUrlFromFormState,
 } from '../NetworkDetailsView.utils';
-import type { UrlSheetMutationCommittedHandler } from '../NetworkDetailsView.types';
+import type {
+  UrlSheetMutationCommittedHandler,
+  UrlSheetPersistOptions,
+} from '../NetworkDetailsView.types';
+
+/** Block explorer list edits do not change RPC / chain-id pairing — skip eth_chainId on persist. */
+const BLOCK_EXPLORER_SHEET_PERSIST_OPTS: UrlSheetPersistOptions = {
+  skipChainIdSubmitValidation: true,
+};
 import type { UseNetworkFormReturn } from '../hooks/useNetworkForm';
 import type { NetworkDetailsStyles } from '../NetworkDetailsView.styles';
 
@@ -203,7 +211,10 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
         latestFormRef.current,
         url,
       );
-      const persisted = await onUrlSheetMutationCommitted?.(nextForm);
+      const persisted = await onUrlSheetMutationCommitted?.(
+        nextForm,
+        BLOCK_EXPLORER_SHEET_PERSIST_OPTS,
+      );
       if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
         setBlockExplorerSheetError(
           strings('app_settings.url_sheet_network_update_failed'),
@@ -223,7 +234,10 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
         latestFormRef.current,
         url,
       );
-      const persisted = await onUrlSheetMutationCommitted?.(nextForm);
+      const persisted = await onUrlSheetMutationCommitted?.(
+        nextForm,
+        BLOCK_EXPLORER_SHEET_PERSIST_OPTS,
+      );
       if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
         setBlockExplorerSheetError(
           strings('app_settings.url_sheet_network_update_failed'),
@@ -259,7 +273,10 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
         latestFormRef.current,
         blockExplorerUrlForm,
       );
-      const persisted = await onUrlSheetMutationCommitted?.(nextForm);
+      const persisted = await onUrlSheetMutationCommitted?.(
+        nextForm,
+        BLOCK_EXPLORER_SHEET_PERSIST_OPTS,
+      );
       if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
         setBlockExplorerSheetError(
           strings('app_settings.url_sheet_network_update_failed'),

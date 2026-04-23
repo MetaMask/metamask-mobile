@@ -218,6 +218,10 @@ describe('BlockExplorerModals', () => {
     await waitFor(() => {
       expect(onUrlSheetMutationCommitted).toHaveBeenCalled();
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
     expect(formHook.onBlockExplorerItemAdd).toHaveBeenCalledWith(
       'https://new-scan.example.com',
     );
@@ -252,6 +256,10 @@ describe('BlockExplorerModals', () => {
         strings('app_settings.url_sheet_network_update_failed'),
       );
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
     expect(formHook.onBlockExplorerItemAdd).not.toHaveBeenCalled();
   });
 
@@ -292,13 +300,15 @@ describe('BlockExplorerModals', () => {
       },
     });
 
+    const onUrlSheetMutationCommitted = jest.fn().mockResolvedValue(true);
+
     const { getByText } = render(
       <BlockExplorerModals
         formHook={formHook}
         styles={styles}
         themeAppearance="light"
         placeholderTextColor={placeholderTextColor}
-        onUrlSheetMutationCommitted={jest.fn().mockResolvedValue(true)}
+        onUrlSheetMutationCommitted={onUrlSheetMutationCommitted}
       />,
     );
 
@@ -311,6 +321,10 @@ describe('BlockExplorerModals', () => {
         'https://scan2.example.com',
       );
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
   });
 
   it('shows sheet error and skips onBlockExplorerSelect when persist returns false', async () => {
@@ -325,13 +339,15 @@ describe('BlockExplorerModals', () => {
       },
     });
 
+    const onUrlSheetMutationCommitted = jest.fn().mockResolvedValue(false);
+
     const { getByText, getByTestId } = render(
       <BlockExplorerModals
         formHook={formHook}
         styles={styles}
         themeAppearance="light"
         placeholderTextColor={placeholderTextColor}
-        onUrlSheetMutationCommitted={jest.fn().mockResolvedValue(false)}
+        onUrlSheetMutationCommitted={onUrlSheetMutationCommitted}
       />,
     );
 
@@ -346,6 +362,10 @@ describe('BlockExplorerModals', () => {
         ),
       ).toBeOnTheScreen();
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
     expect(formHook.onBlockExplorerSelect).not.toHaveBeenCalled();
   });
 
@@ -361,13 +381,15 @@ describe('BlockExplorerModals', () => {
       },
     });
 
+    const onUrlSheetMutationCommitted = jest.fn().mockResolvedValue(false);
+
     const { getAllByTestId, getByTestId } = render(
       <BlockExplorerModals
         formHook={formHook}
         styles={styles}
         themeAppearance="light"
         placeholderTextColor={placeholderTextColor}
-        onUrlSheetMutationCommitted={jest.fn().mockResolvedValue(false)}
+        onUrlSheetMutationCommitted={onUrlSheetMutationCommitted}
       />,
     );
 
@@ -382,6 +404,10 @@ describe('BlockExplorerModals', () => {
         ),
       ).toBeOnTheScreen();
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
     expect(formHook.onBlockExplorerUrlDelete).not.toHaveBeenCalled();
   });
 });

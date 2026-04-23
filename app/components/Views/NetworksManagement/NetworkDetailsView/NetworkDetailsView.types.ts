@@ -53,7 +53,11 @@ export interface NetworkFormState {
 
 /** Options when auto-persisting after RPC / block explorer sheet commits. */
 export interface UrlSheetPersistOptions {
-  /** Skip redundant eth_chainId check (e.g. RPC sheet add after sheet validation). */
+  /**
+   * Skip `eth_chainId` vs form chain-id check on save.
+   * Use after RPC-sheet validation already proved the endpoint, or for block-explorer-only
+   * edits where RPC / chain-id correctness is unchanged.
+   */
   skipChainIdSubmitValidation?: boolean;
 }
 

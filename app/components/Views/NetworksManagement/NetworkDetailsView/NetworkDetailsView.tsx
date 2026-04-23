@@ -119,7 +119,7 @@ const NetworkDetailsView = () => {
     validation.disabledBySymbol(formHook.form);
 
   // Latest form + deps for sheet persist. Reassigned every render; async persist reads
-  // `persistSheetCtxRef.current` inside `runPersist` so data is never "initial render" stale.
+  // `persistSheetCtxRef.current` at invoke time so data is never "initial render" stale.
   const persistSheetCtxRef = useRef({
     form: formHook.form,
     enableAction: formHook.enableAction,
