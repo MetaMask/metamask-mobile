@@ -97,7 +97,7 @@ describe('SecurityBadgeBottomSheet', () => {
 
     const { getByText, queryByText } = render(<SecurityBadgeBottomSheet />);
 
-    expect(getByText(strings('security_trust.proceed'))).toBeTruthy();
+    expect(getByText(strings('security_trust.continue_anyway'))).toBeTruthy();
     expect(getByText(strings('security_trust.cancel'))).toBeTruthy();
     expect(queryByText(strings('security_trust.got_it'))).toBeNull();
   });
@@ -114,7 +114,7 @@ describe('SecurityBadgeBottomSheet', () => {
 
     const { getByText } = render(<SecurityBadgeBottomSheet />);
 
-    fireEvent.press(getByText(strings('security_trust.proceed')));
+    fireEvent.press(getByText(strings('security_trust.continue_anyway')));
 
     expect(mockOnProceed).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
