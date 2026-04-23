@@ -8275,11 +8275,6 @@
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
     },
-    "ondo_winning_banner": {
-      "title": "You won the {{campaignName}}",
-      "description": "Claim your prize today.",
-      "a11y": "Open winner details"
-    },
     "ondo_campaign_winning": {
       "you_won": "You won",
       "rank_label": "{{place}} place",
@@ -8292,6 +8287,11 @@
       "close_a11y": "Close"
     },
     "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won the {{campaignName}}",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
       "participant_pending": {
         "title": "Determining winners",
         "description": "We're still determining the winners."

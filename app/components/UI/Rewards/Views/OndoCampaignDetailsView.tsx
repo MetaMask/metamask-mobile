@@ -89,7 +89,7 @@ interface WinnerPendingBannerProps {
 const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
   ({ campaignName, onPress }) => (
     <Pressable
-      accessibilityLabel={strings('rewards.ondo_winning_banner.a11y')}
+      accessibilityLabel={strings('rewards.ondo_outcome_banner.winner_pending.a11y')}
       onPress={onPress}
     >
       <Box
@@ -100,10 +100,10 @@ const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
         <TrophyIcon width={20} height={20} />
         <Box twClassName="flex-1 gap-0.5">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('rewards.ondo_winning_banner.title', { campaignName })}
+            {strings('rewards.ondo_outcome_banner.winner_pending.title', { campaignName })}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('rewards.ondo_winning_banner.description')}
+            {strings('rewards.ondo_outcome_banner.winner_pending.description')}
           </Text>
         </Box>
         <Icon
