@@ -141,6 +141,7 @@ describe('CashSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      undefined,
     );
   });
 
@@ -155,7 +156,9 @@ describe('CashSection', () => {
 
     fireEvent.press(screen.getByText('Money'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT, {
+      screen: Routes.MONEY.HOME,
+    });
   });
 
   it('shows Get mUSD empty state when user has no mUSD balance', () => {

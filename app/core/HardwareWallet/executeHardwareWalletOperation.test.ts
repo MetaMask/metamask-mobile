@@ -205,6 +205,26 @@ describe('executeHardwareWalletOperation', () => {
     expect(execute).not.toHaveBeenCalled();
   });
 
+  it('does not call hideAwaitingConfirmation when the error occurs before showAwaitingConfirmation', async () => {
+    const error = new Error('device lookup failed');
+    mockGetDeviceIdForAddress.mockRejectedValueOnce(error);
+
+    await executeHardwareWalletOperation(baseOptions);
+
+    expect(showAwaitingConfirmation).not.toHaveBeenCalled();
+    expect(hideAwaitingConfirmation).not.toHaveBeenCalled();
+  });
+
+  it('does not call hideAwaitingConfirmation when ensureDeviceReady throws before showAwaitingConfirmation', async () => {
+    const error = new Error('BLE connection failed');
+    ensureDeviceReady.mockRejectedValueOnce(error);
+
+    await executeHardwareWalletOperation(baseOptions);
+
+    expect(showAwaitingConfirmation).not.toHaveBeenCalled();
+    expect(hideAwaitingConfirmation).not.toHaveBeenCalled();
+  });
+
   it('clears pending operation address in finally block even on error', async () => {
     execute.mockRejectedValueOnce(new Error('fail'));
 
