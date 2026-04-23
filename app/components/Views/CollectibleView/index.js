@@ -94,10 +94,12 @@ class CollectibleView extends PureComponent {
     const styles = createStyles(colors);
 
     const lowerAddress = collectible.address.toLowerCase();
-    const tradable =
-      lowerAddress in collectiblesTransferInformation
+    const isTradable = () => {
+      if (!isIOSNftTradable()) return false;
+      return lowerAddress in collectiblesTransferInformation
         ? collectiblesTransferInformation[lowerAddress].tradable
         : true;
+    };
 
     return (
       <SafeAreaView style={styles.root}>
@@ -109,7 +111,7 @@ class CollectibleView extends PureComponent {
             />
           </View>
         </ScrollView>
-        {tradable && (
+        {isTradable() && (
           <View style={styles.buttons}>
             <StyledButton
               type={'confirm'}
