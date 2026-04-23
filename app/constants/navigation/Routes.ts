@@ -91,6 +91,7 @@ const Routes = {
     CONNECT_LEDGER: 'ConnectLedgerFlow',
     LEDGER_DISCOVERY: 'LedgerDiscoveryFlow',
     LEDGER_CONNECT: 'LedgerConnect',
+    HARDWARE_WALLET_DISCOVERY: 'HardwareWalletDiscoveryFlow',
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',

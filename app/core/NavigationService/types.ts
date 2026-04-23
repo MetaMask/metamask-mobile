@@ -308,6 +308,9 @@ export interface RootStackParamList extends ParamListBase {
   ConnectLedgerFlow: undefined;
   LedgerDiscoveryFlow: undefined;
   LedgerConnect: undefined;
+  HardwareWalletDiscoveryFlow:
+    | { walletType: import('@metamask/hw-wallet-sdk').HardwareWalletType }
+    | undefined;
   LedgerMessageSignModal: LedgerMessageSignModalParams | undefined;
   LedgerTransactionModal: LedgerTransactionModalParams | undefined;
   QRSigningTransactionModal: undefined;

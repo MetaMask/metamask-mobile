@@ -58,6 +58,7 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import LedgerDiscoveryFlow from '../../Views/ConnectHardware/LedgerDiscoveryFlow/LedgerDiscoveryFlow';
+import HardwareWalletDiscoveryFlow from '../../Views/ConnectHardware/HardwareWalletDiscoveryFlow';
 import SearchingForDevice from '../../Views/ConnectHardware/SearchingForDevice';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
@@ -1044,6 +1045,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.HW.LEDGER_DISCOVERY}
         component={LedgerDiscoveryFlow}
+      />
+      <Stack.Screen
+        name={Routes.HW.HARDWARE_WALLET_DISCOVERY}
+        component={HardwareWalletDiscoveryFlow}
       />
       <Stack.Screen
         name={Routes.HW.CONNECT}
