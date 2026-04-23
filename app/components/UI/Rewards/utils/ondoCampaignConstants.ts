@@ -1,7 +1,4 @@
-import type {
-  CampaignDto,
-  CampaignLeaderboardPositionDto,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 
 /**
@@ -10,26 +7,6 @@ import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
  * minimum — days do not need to be consecutive.
  */
 export const ONDO_GM_REQUIRED_QUALIFIED_DAYS = 10;
-
-/**
- * Returns true when the active campaign no longer has enough calendar days
- * remaining for the required qualifying-day count to be accumulated.
- *
- * The backend counts calendar days (UTC): opening a position today counts as
- * day 1, every subsequent day until endDate inclusive counts as well.
- * daysAvailable = floor((endDate - startOfTodayUTC) / 24h) + 1
- *
- * Pass `qualified` from the user's leaderboard position to short-circuit for
- * participants who have already qualified.
- */
-export function isOndoCampaignWinner(
-  position: CampaignLeaderboardPositionDto | null,
-): boolean {
-  if (!position) {
-    return false;
-  }
-  return position.rank <= 5 && position.qualified === true;
-}
 
 export function isCampaignIneligible(
   campaign: CampaignDto | null,

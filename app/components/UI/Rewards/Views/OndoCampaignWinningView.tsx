@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Image, Linking, ScrollView, useWindowDimensions } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -24,7 +24,8 @@ import {
 } from '@metamask/design-system-react-native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { useOndoCampaignWinnerCode } from '../hooks/useOndoCampaignWinnerCode';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
+import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import CopyableField from '../components/ReferralDetails/CopyableField';
 import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
@@ -66,8 +67,17 @@ const OndoCampaignWinningView: React.FC = () => {
   const { position, isLoading: positionLoading } =
     useGetOndoLeaderboardPosition(campaignId);
 
-  const { code: winningCode, isLoading: winningCodeLoading } =
-    useOndoCampaignWinnerCode(campaignId);
+  const { outcome, isLoading: isOutcomeLoading } =
+    useOndoCampaignParticipantOutcome(campaignId);
+  const winningCode = outcome?.winnerVerificationCode ?? null;
+
+  useEffect(() => {
+    if (!isOutcomeLoading && outcome && !winningCode) {
+      navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId,
+      });
+    }
+  }, [isOutcomeLoading, outcome, winningCode, campaignId, navigation]);
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_winning',
@@ -214,8 +224,8 @@ const OndoCampaignWinningView: React.FC = () => {
               <CopyableField
                 label={strings('rewards.ondo_campaign_winning.winning_code')}
                 value={winningCode}
+                valueLoading={isOutcomeLoading}
                 onCopy={handleCopyWinningCode}
-                valueLoading={winningCodeLoading}
               />
             </Box>
 

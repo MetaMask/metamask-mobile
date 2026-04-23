@@ -6,7 +6,7 @@ import OndoCampaignWinningView, {
   ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS,
 } from './OndoCampaignWinningView';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
-import { useOndoCampaignWinnerCode } from '../hooks/useOndoCampaignWinnerCode';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 
 jest.mock('../../../../images/rewards/campaign_winning.png', () => ({
   __esModule: true,
@@ -15,8 +15,10 @@ jest.mock('../../../../images/rewards/campaign_winning.png', () => ({
 
 const mockGoBack = jest.fn();
 
+const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({
     params: { campaignId: 'campaign-ondo-1', campaignName: 'Ondo Campaign' },
   }),
@@ -36,10 +38,14 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-  useDispatch: jest.fn(() => jest.fn()),
+jest.mock('../hooks/useOndoCampaignParticipantOutcome', () => ({
+  useOndoCampaignParticipantOutcome: jest.fn(),
 }));
+
+const mockUseOndoCampaignParticipantOutcome =
+  useOndoCampaignParticipantOutcome as jest.MockedFunction<
+    typeof useOndoCampaignParticipantOutcome
+  >;
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -66,10 +72,6 @@ jest.mock('../utils', () => ({
   RewardsMetricsButtons: {
     COPY_REFERRAL_CODE: 'copy_referral_code',
   },
-}));
-
-jest.mock('../hooks/useOndoCampaignWinnerCode', () => ({
-  useOndoCampaignWinnerCode: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -104,11 +106,6 @@ jest.mock('../hooks/useGetOndoLeaderboardPosition', () => ({
 const mockUseGetOndoLeaderboardPosition =
   useGetOndoLeaderboardPosition as jest.MockedFunction<
     typeof useGetOndoLeaderboardPosition
-  >;
-
-const mockUseOndoCampaignWinnerCode =
-  useOndoCampaignWinnerCode as jest.MockedFunction<
-    typeof useOndoCampaignWinnerCode
   >;
 
 jest.mock('../components/ReferralDetails/CopyableField', () => {
@@ -175,9 +172,14 @@ describe('OndoCampaignWinningView', () => {
       hasFetched: true,
       refetch: jest.fn(),
     });
-    mockUseOndoCampaignWinnerCode.mockReturnValue({
-      code: 'LVL346',
+    mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+      outcome: {
+        subscriptionId: 'sub-1',
+        outcomeStatus: 'pending',
+        winnerVerificationCode: 'LVL346',
+      },
       isLoading: false,
+      hasError: false,
     });
   });
 

@@ -54,6 +54,7 @@ import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPositio
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -64,8 +65,8 @@ import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.ut
 import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
-  isOndoCampaignWinner,
 } from '../utils/ondoCampaignConstants';
+import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -79,6 +80,69 @@ type OndoCampaignDetailsRouteParams = {
 export const CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'campaign-details-container',
 } as const;
+
+interface WinnerPendingBannerProps {
+  onPress: () => void;
+}
+
+const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
+  ({ onPress }) => (
+    <Pressable
+      accessibilityLabel={strings(
+        'rewards.ondo_outcome_banner.winner_pending.a11y',
+      )}
+      onPress={onPress}
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="bg-muted rounded-xl p-4 gap-3"
+      >
+        <TrophyIcon width={20} height={20} />
+        <Box twClassName="flex-1 gap-0.5">
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {strings('rewards.ondo_outcome_banner.winner_pending.title')}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('rewards.ondo_outcome_banner.winner_pending.description')}
+          </Text>
+        </Box>
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      </Box>
+    </Pressable>
+  ),
+);
+
+const WinnerFinalizedBanner = React.memo(() => (
+  <RewardsInfoBanner
+    title={strings('rewards.ondo_outcome_banner.winner_finalized.title')}
+    description={strings(
+      'rewards.ondo_outcome_banner.winner_finalized.description',
+    )}
+  />
+));
+
+const ParticipantFinalizedBanner = React.memo(() => (
+  <RewardsInfoBanner
+    title={strings('rewards.ondo_outcome_banner.participant_finalized.title')}
+    description={strings(
+      'rewards.ondo_outcome_banner.participant_finalized.description',
+    )}
+  />
+));
+
+const ParticipantPendingBanner = React.memo(() => (
+  <RewardsInfoBanner
+    title={strings('rewards.ondo_outcome_banner.participant_pending.title')}
+    description={strings(
+      'rewards.ondo_outcome_banner.participant_pending.description',
+    )}
+  />
+));
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
@@ -157,6 +221,12 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const isOptedIn = participantStatusData?.optedIn === true;
 
+  const { outcome: participantOutcome } = useOndoCampaignParticipantOutcome(
+    campaign && getCampaignStatus(campaign) === 'complete' && isOptedIn
+      ? effectiveCampaignId || undefined
+      : undefined,
+  );
+
   // Single fetch point for portfolio — only fetches when opted in
   const {
     portfolio: portfolioData,
@@ -186,7 +256,8 @@ const OndoCampaignDetailsView: React.FC = () => {
         !hasPresentedWinningViewRef.current &&
         campaign &&
         getCampaignStatus(campaign) === 'complete' &&
-        isOndoCampaignWinner(leaderboardPosition) &&
+        participantOutcome?.winnerVerificationCode &&
+        participantOutcome?.outcomeStatus === 'pending' &&
         effectiveCampaignId
       ) {
         hasPresentedWinningViewRef.current = true;
@@ -198,7 +269,7 @@ const OndoCampaignDetailsView: React.FC = () => {
       return () => {
         hasPresentedWinningViewRef.current = false;
       };
-    }, [campaign, leaderboardPosition, effectiveCampaignId, navigation]),
+    }, [campaign, participantOutcome, effectiveCampaignId, navigation]),
   );
 
   const {
@@ -274,6 +345,33 @@ const OndoCampaignDetailsView: React.FC = () => {
       showLeaderboardSection: true,
     };
   }, [campaign, isOptedIn, hasPositions]);
+
+  const outcomeBanner = useMemo(() => {
+    if (
+      !campaign ||
+      getCampaignStatus(campaign) !== 'complete' ||
+      !participantOutcome
+    ) {
+      return null;
+    }
+    const hasCode = Boolean(participantOutcome.winnerVerificationCode);
+    const isFinalized = participantOutcome.outcomeStatus === 'finalized';
+    if (hasCode && !isFinalized) {
+      return (
+        <WinnerPendingBanner
+          onPress={() =>
+            navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
+              campaignId: effectiveCampaignId,
+              campaignName: campaign.name ?? '',
+            })
+          }
+        />
+      );
+    }
+    if (hasCode && isFinalized) return <WinnerFinalizedBanner />;
+    if (isFinalized) return <ParticipantFinalizedBanner />;
+    return <ParticipantPendingBanner />;
+  }, [campaign, participantOutcome, effectiveCampaignId, navigation]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
@@ -389,54 +487,9 @@ const OndoCampaignDetailsView: React.FC = () => {
                       tierMinDeposit={tierMinDeposit}
                       isIneligible={notEligibleForCampaign}
                     />
-                    {getCampaignStatus(campaign) === 'complete' &&
-                      isOndoCampaignWinner(leaderboardPosition) && (
-                        <Pressable
-                          accessibilityLabel={strings(
-                            'rewards.ondo_winning_banner.a11y',
-                          )}
-                          onPress={() =>
-                            navigation.navigate(
-                              Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
-                              {
-                                campaignId: effectiveCampaignId,
-                                campaignName: campaign.name ?? '',
-                              },
-                            )
-                          }
-                        >
-                          <Box
-                            flexDirection={BoxFlexDirection.Row}
-                            alignItems={BoxAlignItems.Center}
-                            twClassName="bg-muted rounded-xl p-4 mt-3 gap-3"
-                          >
-                            <TrophyIcon width={20} height={20} />
-                            <Box twClassName="flex-1 gap-0.5">
-                              <Text
-                                variant={TextVariant.BodyMd}
-                                fontWeight={FontWeight.Medium}
-                              >
-                                {strings('rewards.ondo_winning_banner.title', {
-                                  campaignName: campaign.name ?? '',
-                                })}
-                              </Text>
-                              <Text
-                                variant={TextVariant.BodySm}
-                                color={TextColor.TextAlternative}
-                              >
-                                {strings(
-                                  'rewards.ondo_winning_banner.description',
-                                )}
-                              </Text>
-                            </Box>
-                            <Icon
-                              name={IconName.ArrowRight}
-                              size={IconSize.Sm}
-                              color={IconColor.IconAlternative}
-                            />
-                          </Box>
-                        </Pressable>
-                      )}
+                    {outcomeBanner && (
+                      <Box twClassName="mt-3">{outcomeBanner}</Box>
+                    )}
                   </Box>
                 </>
               )}
