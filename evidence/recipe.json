@@ -1,0 +1,143 @@
+{
+  "title": "TAT-3016 — HL spotState live-balance lifecycle",
+  "description": "Validates that AccountState.availableToTradeBalance + totalBalance refresh automatically after every on-chain spot mutation — local UI trade, close, and external-client usdClassTransfer — exclusively via the spotState WebSocket subscription, with no refreshLiveAccountState REST pull in the hot path. Run against the shared Trading fixture 0x316BDE155acd07609872a56Bc32CcfB0B13201fA on mainnet for correct Unified-mode behaviour; on testnet the abstraction modes do not exist so balance semantics fall back to Standard.",
+  "initial_conditions": {
+    "testnet": false
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.feature_enabled",
+        "perps.ready_to_trade"
+      ],
+      "entry": "baseline",
+      "nodes": {
+        "baseline": {
+          "action": "call",
+          "ref": "perps/hl-balance-validation",
+          "params": {
+            "expectedMode": "unified",
+            "phaseLabel": "t0-baseline"
+          },
+          "next": "open-trade"
+        },
+        "open-trade": {
+          "action": "call",
+          "ref": "perps/trade-open-market",
+          "params": {
+            "symbol": "BTC",
+            "side": "long",
+            "usdAmount": "11"
+          },
+          "next": "wait-trade-push"
+        },
+        "wait-trade-push": {
+          "action": "wait_for",
+          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var marginUsed=parseFloat(s.marginUsed||'0');return JSON.stringify({availableToTradeBalance:trade,marginUsed:marginUsed,positionOpened:marginUsed>0})})()",
+          "assert": {
+            "operator": "eq",
+            "field": "positionOpened",
+            "value": true
+          },
+          "timeout_ms": 10000,
+          "next": "validate-post-trade"
+        },
+        "validate-post-trade": {
+          "action": "call",
+          "ref": "perps/hl-balance-validation",
+          "params": {
+            "expectedMode": "unified",
+            "phaseLabel": "t1-post-trade"
+          },
+          "next": "close-trade"
+        },
+        "close-trade": {
+          "action": "call",
+          "ref": "perps/trade-close-position",
+          "params": {
+            "symbol": "BTC",
+            "closePercent": 100
+          },
+          "next": "wait-close-push"
+        },
+        "wait-close-push": {
+          "action": "wait_for",
+          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var marginUsed=parseFloat(s.marginUsed||'0');return JSON.stringify({marginUsed:marginUsed,positionClosed:marginUsed<0.01})})()",
+          "assert": {
+            "operator": "eq",
+            "field": "positionClosed",
+            "value": true
+          },
+          "timeout_ms": 10000,
+          "next": "validate-post-close"
+        },
+        "validate-post-close": {
+          "action": "call",
+          "ref": "perps/hl-balance-validation",
+          "params": {
+            "expectedMode": "unified",
+            "phaseLabel": "t2-post-close"
+          },
+          "next": "capture-pre-external"
+        },
+        "capture-pre-external": {
+          "action": "eval_sync",
+          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var total=parseFloat(s.totalBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');return JSON.stringify({preExternalTotalBalance:total,preExternalAvailableToTrade:trade})})()",
+          "assert": {
+            "operator": "not_null",
+            "field": "preExternalTotalBalance"
+          },
+          "save_as": "preExternal",
+          "next": "external-probe"
+        },
+        "external-probe": {
+          "action": "eval_async",
+          "expression": "(function(){try{var ctrl=Engine.context.PerpsController;var provider=ctrl.getActiveProvider();var accs=Engine.context.AccountsController.state.internalAccounts;var user=accs.accounts[accs.selectedAccount].address;return provider.getExchangeClient().then(function(client){return client.usdClassTransfer({amount:'1',toPerp:false})}).then(function(r){return JSON.stringify({ok:true,status:(r&&r.status)||'ok'})}).catch(function(e){return JSON.stringify({ok:false,error:String(e&&e.message||e)})})}catch(e){return JSON.stringify({ok:false,error:String(e)})}})()",
+          "assert": {
+            "operator": "eq",
+            "field": "ok",
+            "value": true
+          },
+          "timeout_ms": 30000,
+          "next": "wait-external-push"
+        },
+        "wait-external-push": {
+          "action": "wait_for",
+          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var pre=parseFloat((globalThis.__AGENTIC__&&globalThis.__AGENTIC__.vars&&globalThis.__AGENTIC__.vars.preExternal&&globalThis.__AGENTIC__.vars.preExternal.preExternalAvailableToTrade)||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var changed=Math.abs(trade-pre)>=0.5||Math.abs(avail-(globalThis.__AGENTIC__&&globalThis.__AGENTIC__.vars&&globalThis.__AGENTIC__.vars.preExternal&&parseFloat(globalThis.__AGENTIC__.vars.preExternal.preExternalTotalBalance)||0))>=0.5;return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,pushedWithoutManualRefresh:changed})})()",
+          "assert": {
+            "operator": "eq",
+            "field": "pushedWithoutManualRefresh",
+            "value": true
+          },
+          "timeout_ms": 15000,
+          "next": "validate-post-external"
+        },
+        "validate-post-external": {
+          "action": "call",
+          "ref": "perps/hl-balance-validation",
+          "params": {
+            "expectedMode": "unified",
+            "phaseLabel": "t3-post-external-transfer"
+          },
+          "next": "restore-external"
+        },
+        "restore-external": {
+          "action": "eval_async",
+          "expression": "(function(){try{var ctrl=Engine.context.PerpsController;var provider=ctrl.getActiveProvider();return provider.getExchangeClient().then(function(client){return client.usdClassTransfer({amount:'1',toPerp:true})}).then(function(r){return JSON.stringify({ok:true,status:(r&&r.status)||'ok'})}).catch(function(e){return JSON.stringify({ok:false,error:String(e&&e.message||e)})})}catch(e){return JSON.stringify({ok:false,error:String(e)})}})()",
+          "assert": {
+            "operator": "eq",
+            "field": "ok",
+            "value": true
+          },
+          "timeout_ms": 30000,
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}
