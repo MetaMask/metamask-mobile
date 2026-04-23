@@ -16,7 +16,7 @@ describe('CashTokensFullViewSkeleton', () => {
   it('renders the skeleton container', () => {
     render(
       <CashTokensFullViewSkeleton
-        hasMusdBalance={false}
+        numChainsWithMusdBalance={0}
         isMoneyHubEnabled={false}
         conversionTokenCount={0}
       />,
@@ -24,10 +24,10 @@ describe('CashTokensFullViewSkeleton', () => {
     expect(screen.getByTestId(CONTAINER)).toBeOnTheScreen();
   });
 
-  it('renders token row skeletons when user has mUSD balance', () => {
+  it('renders one token row skeleton per chain with mUSD balance', () => {
     render(
       <CashTokensFullViewSkeleton
-        hasMusdBalance
+        numChainsWithMusdBalance={2}
         isMoneyHubEnabled={false}
         conversionTokenCount={0}
       />,
@@ -36,10 +36,22 @@ describe('CashTokensFullViewSkeleton', () => {
     expect(screen.queryByTestId(EMPTY_STATE_ROW)).not.toBeOnTheScreen();
   });
 
+  it('renders a single token row skeleton when user has mUSD on one chain', () => {
+    render(
+      <CashTokensFullViewSkeleton
+        numChainsWithMusdBalance={1}
+        isMoneyHubEnabled={false}
+        conversionTokenCount={0}
+      />,
+    );
+    expect(screen.getAllByTestId(TOKEN_ROW)).toHaveLength(1);
+    expect(screen.queryByTestId(EMPTY_STATE_ROW)).not.toBeOnTheScreen();
+  });
+
   it('renders empty state row skeleton when user has no mUSD balance', () => {
     render(
       <CashTokensFullViewSkeleton
-        hasMusdBalance={false}
+        numChainsWithMusdBalance={0}
         isMoneyHubEnabled={false}
         conversionTokenCount={0}
       />,
@@ -51,7 +63,7 @@ describe('CashTokensFullViewSkeleton', () => {
   it('renders bonus and convert sections when MoneyHub is enabled', () => {
     render(
       <CashTokensFullViewSkeleton
-        hasMusdBalance={false}
+        numChainsWithMusdBalance={0}
         isMoneyHubEnabled
         conversionTokenCount={2}
       />,
@@ -63,7 +75,7 @@ describe('CashTokensFullViewSkeleton', () => {
   it('omits bonus and convert sections when MoneyHub is disabled', () => {
     render(
       <CashTokensFullViewSkeleton
-        hasMusdBalance
+        numChainsWithMusdBalance={2}
         isMoneyHubEnabled={false}
         conversionTokenCount={0}
       />,

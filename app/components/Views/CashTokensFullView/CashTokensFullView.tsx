@@ -70,26 +70,30 @@ const CashTokensFullView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { hasMusdBalanceOnAnyChain } = useMusdBalance();
+  const { hasMusdBalanceOnAnyChain, tokenBalanceByChain } = useMusdBalance();
+
+  const numChainsWithMusdBalance = Object.keys(tokenBalanceByChain).length;
+
   const { tokens: conversionTokens } = useMusdConversionTokens();
 
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const hasConversionTokens = conversionTokens.length > 0;
 
-  const [isContentReady, setIsContentReady] = useState(false);
+  const [isTokenListReady, setIsTokenListReady] = useState(false);
   useEffect(() => {
     const handle = InteractionManager.runAfterInteractions(() => {
-      setIsContentReady(true);
+      setIsTokenListReady(true);
     });
     return () => handle.cancel();
   }, []);
 
   const screenViewedRef = useRef(false);
 
+  const isScreenReady = !hasMusdBalanceOnAnyChain || isTokenListReady;
+
   useEffect(() => {
-    if (!isContentReady || screenViewedRef.current || !isMoneyHubEnabled)
-      return;
+    if (!isScreenReady || screenViewedRef.current || !isMoneyHubEnabled) return;
     screenViewedRef.current = true;
 
     const hasConvertibleTokens = conversionTokens.length > 0;
@@ -121,7 +125,7 @@ const CashTokensFullView = () => {
     createEventBuilder,
     trackEvent,
     isMoneyHubEnabled,
-    isContentReady,
+    isScreenReady,
   ]);
 
   const merklRefetchRef = useRef<(() => void) | null>(null);
@@ -330,42 +334,44 @@ const CashTokensFullView = () => {
       >
         {strings('homepage.sections.cash')}
       </HeaderBase>
-      {isContentReady ? (
-        <>
-          {hasMusdBalanceOnAnyChain ? (
-            <Tokens
-              isFullView
-              showOnlyMusd
-              hideLoadingSkeleton
-              hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
-              listFooterComponent={
-                isMoneyHubEnabled ? bonusAndConvertSections : undefined
-              }
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-            />
-          ) : (
-            <ScrollView
-              style={tw`flex-1`}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-            >
-              <SectionRow>
-                <CashGetMusdEmptyState isFullView />
-              </SectionRow>
-              {isMoneyHubEnabled ? bonusAndConvertSections : undefined}
-            </ScrollView>
-          )}
-        </>
+      {hasMusdBalanceOnAnyChain ? (
+        isTokenListReady ? (
+          <Tokens
+            isFullView
+            showOnlyMusd
+            hideLoadingSkeleton
+            hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+            listFooterComponent={
+              isMoneyHubEnabled ? bonusAndConvertSections : undefined
+            }
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          />
+        ) : (
+          <CashTokensFullViewSkeleton
+            numChainsWithMusdBalance={numChainsWithMusdBalance}
+            hasMusdBalance={hasMusdBalanceOnAnyChain}
+            isMoneyHubEnabled={isMoneyHubEnabled}
+            conversionTokenCount={conversionTokens.length}
+          />
+        )
       ) : (
-        <CashTokensFullViewSkeleton
-          hasMusdBalance={hasMusdBalanceOnAnyChain}
-          isMoneyHubEnabled={isMoneyHubEnabled}
-          conversionTokenCount={conversionTokens.length}
-        />
+        <ScrollView
+          style={tw`flex-1`}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <SectionRow>
+            <CashGetMusdEmptyState
+              isFullView
+              hideClaimButton={isMoneyHubEnabled}
+            />
+          </SectionRow>
+          {isMoneyHubEnabled ? bonusAndConvertSections : undefined}
+        </ScrollView>
       )}
       {isMoneyHubEnabled &&
         (hasConversionTokens ? (

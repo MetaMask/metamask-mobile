@@ -18,7 +18,7 @@ export const CashTokensFullViewSkeletonTestIds = {
 };
 
 interface CashTokensFullViewSkeletonProps {
-  hasMusdBalance: boolean;
+  numChainsWithMusdBalance: number;
   isMoneyHubEnabled: boolean;
   conversionTokenCount: number;
 }
@@ -190,7 +190,7 @@ const ConvertSectionSkeleton = ({ tokenCount }: { tokenCount: number }) => (
  * the MoneyHub bonus/convert sections appear.
  */
 const CashTokensFullViewSkeleton = ({
-  hasMusdBalance,
+  numChainsWithMusdBalance,
   isMoneyHubEnabled,
   conversionTokenCount,
 }: CashTokensFullViewSkeletonProps) => {
@@ -202,10 +202,11 @@ const CashTokensFullViewSkeleton = ({
       showsVerticalScrollIndicator={false}
       testID={CashTokensFullViewSkeletonTestIds.CONTAINER}
     >
-      {hasMusdBalance ? (
+      {numChainsWithMusdBalance > 0 ? (
         <>
-          <TokenRowSkeleton />
-          <TokenRowSkeleton />
+          {Array.from({ length: numChainsWithMusdBalance }, (_, index) => (
+            <TokenRowSkeleton key={`token-row-${index}`} />
+          ))}
         </>
       ) : (
         <EmptyStateRowSkeleton />
