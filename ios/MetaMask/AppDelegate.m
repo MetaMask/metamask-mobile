@@ -26,11 +26,13 @@ static Braze *_braze = nil;
   self.moduleName = @"MetaMask";
   [FIRApp configure];
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
+  NSString *mixPanelTokenFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"mixpanel_token"];
 
   NSString *foxCode;
 
   if(foxCodeFromBundle != nil){
     foxCode = foxCodeFromBundle;
+    [Mixpanel sharedInstanceWithToken:mixPanelTokenFromBundle];
   } else {
     foxCode = @"debug";
   }
