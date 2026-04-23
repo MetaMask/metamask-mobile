@@ -44,7 +44,7 @@ export const selectMoneyAccountVaultConfig = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): MoneyAccountVaultConfig | undefined => {
     const remoteConfig =
-      remoteFeatureFlags?.moneyAccountDepositConfig as unknown as
+      remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
         | MoneyAccountVaultConfig
         | undefined;
     if (remoteConfig) {
