@@ -223,6 +223,54 @@ describe('PermissionApproval', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
+  it('generates analytics with iframe properties when request originates from a cross-origin iframe', async () => {
+    const navigationMock = {
+      navigate: jest.fn(),
+    };
+
+    mockApprovalRequest({
+      type: ApprovalTypes.REQUEST_PERMISSIONS,
+      requestData: {
+        ...HOST_INFO_MOCK,
+        metadata: {
+          ...HOST_INFO_MOCK.metadata,
+          isEip1193Request: true,
+          pageMeta: {
+            isIframe: true,
+            iframeOrigin: 'https://iframe.example.com',
+            url: 'https://toplevel.example.com/some/path',
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+
+    mockAccountsLength(2);
+
+    render(<PermissionApproval navigation={navigationMock} />);
+
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.CONNECT_REQUEST_STARTED,
+    )
+      .addProperties({
+        number_of_accounts: 2,
+        source: 'IN_APP_BROWSER',
+        chain_id_list: [],
+        method: MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS,
+        api_source: MetaMetricsRequestedThrough.EthereumProvider,
+        is_iframe: true,
+        is_cross_origin_iframe: true,
+        iframe_origin: 'https://iframe.example.com',
+        top_level_origin: 'https://toplevel.example.com',
+      })
+      .build();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
+  });
+
   it('does not navigate if no approval request', async () => {
     const navigationMock = {
       navigate: jest.fn(),
