@@ -1,5 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { waitFor } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
@@ -18,9 +17,11 @@ jest.mock('../../../../core/Engine', () => ({
 // Mock PerpsStreamManager
 const mockSubscribe = jest.fn();
 const mockRefresh = jest.fn();
+let mockChannelMarketsSnapshot: PerpsMarketData[] | null | undefined;
 const mockMarketData = {
   subscribe: mockSubscribe,
   refresh: mockRefresh,
+  getSnapshot: () => mockChannelMarketsSnapshot,
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -56,6 +57,7 @@ describe('usePerpsMarkets', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockChannelMarketsSnapshot = undefined;
 
     // Set up default mock behavior
     mockSubscribe.mockImplementation(({ callback }) => {
@@ -72,6 +74,18 @@ describe('usePerpsMarkets', () => {
   });
 
   describe('Initial state', () => {
+    it('returns channel snapshot immediately when available', () => {
+      mockChannelMarketsSnapshot = mockMarketDataArray;
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.markets).toHaveLength(2);
+      expect(result.current.markets[0].symbol).toBe('BTC');
+      expect(result.current.markets[1].symbol).toBe('ETH');
+    });
+
     it('returns initial state with empty markets and loading true', () => {
       // Setup to not call the callback immediately
       mockSubscribe.mockImplementation(() => jest.fn());
@@ -227,11 +241,13 @@ describe('usePerpsMarkets', () => {
 
     it('sets isRefreshing state during refresh', async () => {
       // Arrange
-      let resolveRefresh: () => void;
-      const refreshPromise = new Promise<void>((resolve) => {
-        resolveRefresh = resolve;
-      });
-      mockRefresh.mockReturnValue(refreshPromise);
+      let resolveRefresh!: () => void;
+      mockRefresh.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
 
       const { result } = renderHook(() => usePerpsMarkets());
 
@@ -239,16 +255,19 @@ describe('usePerpsMarkets', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Act - start refresh
-      const refreshCall = act(() => result.current.refresh());
+      // Act - start refresh and wait for state to flush
+      let refreshPromise: Promise<void>;
+      await act(async () => {
+        refreshPromise = result.current.refresh();
+      });
 
       // Assert - should be refreshing
       expect(result.current.isRefreshing).toBe(true);
 
       // Complete refresh
       await act(async () => {
-        resolveRefresh?.();
-        await refreshCall;
+        resolveRefresh();
+        await refreshPromise!;
       });
 
       // Assert - no longer refreshing

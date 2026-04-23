@@ -32,15 +32,6 @@ import {
 } from '@metamask/perps-controller';
 
 // Mock react-native-safe-area-context first
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  }),
-}));
-
 // Mock BottomSheet components
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',

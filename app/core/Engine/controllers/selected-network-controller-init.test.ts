@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getSelectedNetworkControllerMessenger } from '../messengers/selected-network-controller-messenger';
 import { MessengerClientInitRequest } from '../types';
@@ -20,7 +20,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getSelectedNetworkControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

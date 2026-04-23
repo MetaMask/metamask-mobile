@@ -9,7 +9,7 @@ import {
   SnapControllerInitMessenger,
 } from '../../messengers/snaps';
 import { snapControllerInit } from './snap-controller-init';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   KeyringControllerLockEvent,
@@ -45,7 +45,7 @@ function getInitRequestMock(
   >
 > {
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getSnapControllerMessenger(baseMessenger),
     initMessenger: getSnapControllerInitMessenger(baseMessenger),
   };
@@ -184,7 +184,7 @@ describe('SnapControllerInit', () => {
       } as unknown as SnapControllerInitMessenger;
 
       const requestMock = {
-        ...buildControllerInitRequestMock(baseMessenger),
+        ...buildMessengerClientInitRequestMock(baseMessenger),
         controllerMessenger: getSnapControllerMessenger(baseMessenger),
         initMessenger: mockInitMessenger,
       };
@@ -224,7 +224,7 @@ describe('SnapControllerInit', () => {
       } as unknown as SnapControllerInitMessenger;
 
       const requestMock = {
-        ...buildControllerInitRequestMock(baseMessenger),
+        ...buildMessengerClientInitRequestMock(baseMessenger),
         controllerMessenger: getSnapControllerMessenger(baseMessenger),
         initMessenger: mockInitMessenger,
       };

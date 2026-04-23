@@ -285,7 +285,6 @@ describe('Remote Feature Flags Helper', () => {
               response: expect.any(Array),
               responseCode: 200,
             },
-            undefined,
           );
           callIndex++;
         });
