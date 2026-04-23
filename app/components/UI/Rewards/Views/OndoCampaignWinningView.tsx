@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Image, Linking, ScrollView, useWindowDimensions } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -25,6 +25,7 @@ import {
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
+import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import CopyableField from '../components/ReferralDetails/CopyableField';
 import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
@@ -69,6 +70,14 @@ const OndoCampaignWinningView: React.FC = () => {
   const { outcome, isLoading: isOutcomeLoading } =
     useOndoCampaignParticipantOutcome(campaignId);
   const winningCode = outcome?.winnerVerificationCode ?? null;
+
+  useEffect(() => {
+    if (!isOutcomeLoading && outcome && !winningCode) {
+      navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId,
+      });
+    }
+  }, [isOutcomeLoading, outcome, winningCode, campaignId, navigation]);
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_winning',
