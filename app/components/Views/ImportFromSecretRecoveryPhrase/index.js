@@ -1,13 +1,7 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-  useContext,
-  useMemo,
-} from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
+  ActivityIndicator,
   Alert,
   TouchableOpacity,
   Animated,
@@ -36,6 +30,7 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import { useTheme } from '../../../util/theme';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -45,6 +40,8 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
 import TermsAndConditions from '../TermsAndConditions';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import StyledButton from '../../UI/StyledButton';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
 import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
@@ -127,7 +124,9 @@ const ImportFromSecretRecoveryPhrase = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [biometryType, setBiometryType] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
+  const [seedphraseInputFocused, setSeedphraseInputFocused] = useState(false);
+  const [inputWidth, setInputWidth] = useState({ width: '99%' });
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState(['']);
   const [currentStep, setCurrentStep] = useState(0);
@@ -265,21 +264,12 @@ const ImportFromSecretRecoveryPhrase = ({
     );
 
   const updateNavBar = () => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft,
-          headerRight,
-        },
-        colors,
-        false,
-      ),
-    );
+    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   };
 
   useEffect(() => {
     updateNavBar();
+
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
@@ -290,9 +280,12 @@ const ImportFromSecretRecoveryPhrase = ({
     };
 
     setBiometricsOption();
-
+    // Workaround https://github.com/facebook/react-native/issues/9958
+    setTimeout(() => {
+      setInputWidth({ width: '100%' });
+    }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep]);
+  }, []);
 
   useEffect(
     () => () => {
@@ -569,7 +562,7 @@ const ImportFromSecretRecoveryPhrase = ({
         title: 'support.metamask.io',
       },
     });
-  };
+  }, [hideSeedPhraseInput, navigation]);
 
   const uniqueId = useMemo(() => uuidv4(), []);
 
@@ -612,7 +605,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     color={TextColor.TextAlternative}
                   >
                     {strings(
-                      'import_from_seed.enter_your_secret_recovery_phrase',
+                      `choose_password.${secureTextEntry ? 'show' : 'hide'}`,
                     )}
                   </Text>
                   <TouchableOpacity

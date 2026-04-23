@@ -391,14 +391,10 @@ export function getModalNavbarOptions(title) {
  */
 export function getOnboardingNavbarOptions(
   route,
-  { headerLeft, headerRight },
+  { headerLeft } = {},
   themeColors,
-  showLogo = true,
 ) {
-  const headerLeftHide =
-    headerLeft || route.params?.headerLeft || (() => <View />);
-  const headerRightHide =
-    headerRight || route.params?.headerRight || (() => <View />);
+  const headerLeftHide = headerLeft || route.params?.headerLeft;
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -435,17 +431,8 @@ export function getOnboardingNavbarOptions(
  * Function that returns a transparent navigation options for our onboarding screens.
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle
- * @param {Object} themeColors - The theme colors object
- * @param {string} backgroundColor - The color to overwrite the background color
- * @param {boolean} showLogo - Whether to show the logo
- * @param {string} logoColor - The color to overwrite the logo color
  */
-export function getTransparentOnboardingNavbarOptions(
-  themeColors,
-  backgroundColor = undefined,
-  showLogo = true,
-  logoColor = undefined,
-) {
+export function getTransparentOnboardingNavbarOptions(themeColors) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: backgroundColor || themeColors.background.default,
@@ -479,7 +466,6 @@ export function getTransparentOnboardingNavbarOptions(
  * Function that returns a transparent navigation options for our onboarding screens.
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and a back button
- * @param {Object} themeColors - The theme colors object
  */
 export function getTransparentBackOnboardingNavbarOptions(themeColors) {
   const innerStyles = StyleSheet.create({
@@ -517,7 +503,7 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
  *
  * @returns {Object} - Corresponding navbar options containing headerLeft
  */
-export function getOptinMetricsNavbarOptions(themeColors, showLogo = true) {
+export function getOptinMetricsNavbarOptions(themeColors) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -531,19 +517,17 @@ export function getOptinMetricsNavbarOptions(themeColors, showLogo = true) {
     },
   });
   return {
-    headerTitle: () =>
-      showLogo ? (
-        <View style={styles.metamaskNameTransparentWrapper}>
-          <Image
-            source={metamask_name}
-            style={innerStyles.metamaskName}
-            resizeMethod={'auto'}
-          />
-        </View>
-      ) : null,
+    headerTitle: () => (
+      <View style={styles.metamaskNameTransparentWrapper}>
+        <Image
+          source={metamask_name}
+          style={innerStyles.metamaskName}
+          resizeMethod={'auto'}
+        />
+      </View>
+    ),
     headerBackTitle: strings('navigation.back'),
     headerRight: () => <View />,
-    headerLeft: () => <View />,
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };

@@ -906,8 +906,7 @@ export class Engine {
       }
 
       const conversionRate =
-        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
-        0;
+        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ?? 0;
 
       if (conversionRate === 0) {
         return;

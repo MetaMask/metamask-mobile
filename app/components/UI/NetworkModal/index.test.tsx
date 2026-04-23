@@ -23,6 +23,12 @@ jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   }),
 }));
 
+jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
+  addItemToChainIdList: jest.fn().mockReturnValue({
+    chain_id_list: ['eip155:1', 'eip155:137'],
+  }),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     PreferencesController: {

@@ -290,7 +290,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 />
                               </View>
                               <Text
-                                accessibilityRole="text"
                                 style={
                                   [
                                     {
@@ -309,7 +308,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 Improve MetaMask
                               </Text>
                               <Text
-                                accessibilityRole="text"
                                 style={
                                   [
                                     {
@@ -551,6 +549,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "paddingTop": 16,
                                     }
                                   }
+                                  suppressHighlighting={true}
                                 >
                                   <View
                                     style={

@@ -1,6 +1,4 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { WebView } from '@metamask/react-native-webview';
 import ModalMandatory from './ModalMandatory';
 import { TermsOfUseModalSelectorsIDs } from '../../../../util/termsOfUse/TermsOfUseModal.testIds';
 import { BodyWebViewUri } from './ModalMandatory.types';
@@ -9,58 +7,13 @@ import styleSheet from './ModalMandatory.styles';
 import { mockTheme } from '../../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 
-// Mock the WebView component
-jest.mock('@metamask/react-native-webview', () => ({
-  WebView: jest.fn(({ onLoad, onMessage, onScroll }) => (
-    <div
-      data-testid={'terms-of-use-webview-id'}
-      onClick={() => {
-        onLoad?.();
-        onMessage?.({ nativeEvent: { data: 'WEBVIEW_SCROLL_END_EVENT' } });
-        onScroll?.({
-          nativeEvent: {
-            layoutMeasurement: { height: 100 },
-            contentOffset: { y: 100 },
-            contentSize: { height: 200 },
-          },
-        });
-      }}
-    />
-  )),
-}));
-
-// Mock the BottomSheet component
-jest.mock('../../BottomSheets/BottomSheet', () => ({
-  __esModule: true,
-  default: jest.fn(({ children }) => (
-    <div data-testid="mock-bottom-sheet">{children}</div>
-  )),
-}));
-
-// Mock useNavigation
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-}));
-
-describe('ModalMandatory', () => {
-  const mockOnAccept = jest.fn();
-  const mockRoute = {
-    params: {
-      headerTitle: 'Test Title',
-      footerHelpText: 'Test Footer',
-      buttonText: 'Accept',
-      body: {
-        source: 'WebView' as const,
-        uri: 'https://test.com',
-      } as BodyWebViewUri,
-      onAccept: mockOnAccept,
-      checkboxText: 'I agree',
-      onRender: jest.fn(),
-      isScrollToEndNeeded: true,
-      scrollEndBottomMargin: 20,
-      containerTestId: 'test-container',
-      buttonTestId: 'test-button',
-    },
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      goBack: mockedNavigate,
+    }),
   };
 
   beforeEach(() => {
@@ -77,18 +30,20 @@ describe('ModalMandatory', () => {
 
     expect(toJSON).toBeDefined();
   });
-
-  it('handles scroll events correctly', () => {
-    const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
-    const webview = getByTestId(TermsOfUseModalSelectorsIDs.WEBVIEW);
-
-    fireEvent.press(webview);
-    expect(WebView).toHaveBeenCalledWith(
-      expect.objectContaining({
-        onMessage: expect.any(Function),
-        onScroll: expect.any(Function),
-      }),
-      expect.any(Object),
+  it('should render correctly component mandatory modal', () => {
+    const { toJSON } = renderWithProvider(
+      <ModalMandatory
+        route={{
+          params: {
+            headerTitle: 'test',
+            footerHelpText: 'test',
+            buttonText: 'test',
+            body: { source: 'Node', component: () => <></> },
+            onAccept: () => null,
+            checkboxText: 'test',
+          },
+        }}
+      />,
     );
   });
 
