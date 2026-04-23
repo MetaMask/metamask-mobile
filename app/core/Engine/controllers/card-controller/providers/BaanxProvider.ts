@@ -272,7 +272,66 @@ export class BaanxProvider implements ICardProvider {
   }
 
   async logout(tokens: CardAuthTokens): Promise<void> {
-    await this.service.post('/v1/auth/logout', {}, tokens);
+    const allRevokedOk = await this.#tryRevokeAllOAuth2Tokens(tokens);
+    if (!allRevokedOk) {
+      await this.service.post('/v1/auth/logout', {}, tokens);
+    }
+  }
+
+  /**
+   * Best-effort OAuth2 token revocation (RFC 7009-style). No bearer; uses
+   * `location` for `x-us-env`. Returns false on network/API failure.
+   */
+  async #revokeOAuth2Token(options: {
+    token: string;
+    tokenHint: 'access_token' | 'refresh_token';
+    location: CardLocation;
+  }): Promise<boolean> {
+    const { token, tokenHint, location } = options;
+    try {
+      await this.service.request<unknown>('/v1/auth/oauth2/revoke', {
+        method: 'POST',
+        body: { token, token_hint: tokenHint },
+        location,
+        timeout: OAUTH2_TOKEN_TIMEOUT_MS,
+      });
+      return true;
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card', operation: 'revokeOAuth2Token' },
+        context: {
+          name: 'BaanxProvider',
+          data: { method: 'logout', tokenHint },
+        },
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Revokes access and refresh (if present) in parallel. True only when every
+   * attempted revocation succeeds.
+   */
+  async #tryRevokeAllOAuth2Tokens(tokens: CardAuthTokens): Promise<boolean> {
+    const location = tokens.location as CardLocation;
+    const accessRevoked = this.#revokeOAuth2Token({
+      token: tokens.accessToken,
+      tokenHint: 'access_token',
+      location,
+    });
+    const refreshRevoked = tokens.refreshToken
+      ? this.#revokeOAuth2Token({
+          token: tokens.refreshToken,
+          tokenHint: 'refresh_token',
+          location,
+        })
+      : Promise.resolve(true);
+
+    const [accessOk, refreshOk] = await Promise.all([
+      accessRevoked,
+      refreshRevoked,
+    ]);
+    return accessOk && refreshOk;
   }
 
   // -- Card Home Data --
