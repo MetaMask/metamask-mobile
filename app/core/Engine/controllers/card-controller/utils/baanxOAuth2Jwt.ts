@@ -46,3 +46,19 @@ export function cardLocationFromBaanxAccessToken(
   }
   return null;
 }
+
+/**
+ * True when the JWT payload includes a non-empty `app_id` that is not FOX / FOX_US.
+ * False when the token is unparseable, or `app_id` is absent, so callers can fall back to session location.
+ */
+export function hasUnknownBaanxOAuthAppId(accessToken: string): boolean {
+  const payload = decodeJwtPayloadUnsafe(accessToken);
+  if (!payload || !Object.prototype.hasOwnProperty.call(payload, 'app_id')) {
+    return false;
+  }
+  const appId = payload.app_id;
+  if (typeof appId !== 'string' || appId.length === 0) {
+    return false;
+  }
+  return appId !== APP_ID_US && appId !== APP_ID_INTL;
+}

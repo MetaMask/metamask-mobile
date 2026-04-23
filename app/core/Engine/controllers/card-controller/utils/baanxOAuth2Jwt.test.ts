@@ -1,6 +1,7 @@
 import {
   cardLocationFromBaanxAccessToken,
   decodeJwtPayloadUnsafe,
+  hasUnknownBaanxOAuthAppId,
 } from './baanxOAuth2Jwt';
 
 interface BufferFromUtf8 {
@@ -88,5 +89,31 @@ describe('cardLocationFromBaanxAccessToken', () => {
     const result = cardLocationFromBaanxAccessToken('x.y.z');
 
     expect(result).toBeNull();
+  });
+});
+
+describe('hasUnknownBaanxOAuthAppId', () => {
+  it('returns false when app_id is FOX', () => {
+    const token = buildUnsignedJwt({ app_id: 'FOX' });
+
+    expect(hasUnknownBaanxOAuthAppId(token)).toBe(false);
+  });
+
+  it('returns false when app_id is FOX_US', () => {
+    const token = buildUnsignedJwt({ app_id: 'FOX_US' });
+
+    expect(hasUnknownBaanxOAuthAppId(token)).toBe(false);
+  });
+
+  it('returns true when app_id is present but not FOX or FOX_US', () => {
+    const token = buildUnsignedJwt({ app_id: 'OTHER' });
+
+    expect(hasUnknownBaanxOAuthAppId(token)).toBe(true);
+  });
+
+  it('returns false when app_id is absent', () => {
+    const token = buildUnsignedJwt({ sub: 'x' });
+
+    expect(hasUnknownBaanxOAuthAppId(token)).toBe(false);
   });
 });

@@ -30,7 +30,10 @@ import { isAccountEligibleForProvisioning } from '../../../../../components/UI/C
 import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
 import { DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS } from '../../../../../components/UI/Card/util/mapBaanxApiUrl';
 import { CardApiError, type BaanxService } from '../services/BaanxService';
-import { cardLocationFromBaanxAccessToken } from '../utils/baanxOAuth2Jwt';
+import {
+  cardLocationFromBaanxAccessToken,
+  hasUnknownBaanxOAuthAppId,
+} from '../utils/baanxOAuth2Jwt';
 import {
   CardAccountStatus,
   CardAction,
@@ -1116,6 +1119,13 @@ export class BaanxProvider implements ICardProvider {
       throw new CardProviderError(
         CardProviderErrorCode.InvalidCredentials,
         'OAuth2 token exchange returned no access token',
+      );
+    }
+
+    if (hasUnknownBaanxOAuthAppId(tokenResponse.access_token)) {
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'Invalid or missing app_id in access token',
       );
     }
 
