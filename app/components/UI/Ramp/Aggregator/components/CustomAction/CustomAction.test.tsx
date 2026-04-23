@@ -84,7 +84,7 @@ describe('CustomAction Component', () => {
   });
 
   it('shows loading indicator when isLoading is true', () => {
-    const { toJSON } = renderWithProvider(
+    const { queryByText } = renderWithProvider(
       <CustomAction
         customAction={mockCustomAction}
         showInfo={jest.fn()}
@@ -93,7 +93,7 @@ describe('CustomAction Component', () => {
       { state: defaultState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(queryByText('Continue with Paypal (Staging)')).not.toBeOnTheScreen();
   });
 
   it('displays previously used provider tag', () => {

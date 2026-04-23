@@ -7,7 +7,6 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
-import { selectAbTestContext } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
   NUMPAD_QUICK_ACTIONS_AB_KEY,
@@ -17,12 +16,15 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
 } from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
+import {
+  STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
+} from '../../../components/UI/TokenDetails/components/abTestConfig';
 import { useMemo } from 'react';
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
-  const abTestContext = useSelector(selectAbTestContext);
   const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
     useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
   const {
@@ -32,13 +34,14 @@ export default function useSubmitBridgeTx() {
     TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
   );
+  const {
+    variantName: stickyFooterVariantName,
+    isActive: isStickyFooterAbActive,
+  } = useABTest(
+    STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+    STICKY_FOOTER_SWAP_LABEL_VARIANTS,
+  );
 
-  const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
-    ? {
-        assetsASSETS2493AbtestTokenDetailsLayout:
-          abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
-      }
-    : undefined;
   const activeAbTests = useMemo(() => {
     const tests: { key: string; value: string }[] = [];
 
@@ -56,12 +59,21 @@ export default function useSubmitBridgeTx() {
       });
     }
 
+    if (isStickyFooterAbActive) {
+      tests.push({
+        key: STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+        value: stickyFooterVariantName,
+      });
+    }
+
     return tests.length > 0 ? tests : undefined;
   }, [
     isNumpadAbActive,
     numpadVariantName,
     isTokenSelectorAbActive,
     tokenSelectorVariantName,
+    isStickyFooterAbActive,
+    stickyFooterVariantName,
   ]);
 
   const submitBridgeTx = async ({
@@ -82,7 +94,7 @@ export default function useSubmitBridgeTx() {
         quoteResponse,
         accountAddress: walletAddress,
         location,
-        abTests,
+        abTests: undefined,
         activeAbTests,
       });
     }
@@ -95,7 +107,7 @@ export default function useSubmitBridgeTx() {
       stxEnabled,
       undefined, // quotesReceivedContext
       location,
-      abTests,
+      undefined, // abTests
       activeAbTests,
     );
   };

@@ -6,14 +6,20 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import { MoneyHeaderTestIds } from '../../components/MoneyHeader/MoneyHeader.testIds';
 import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
-import { MoneyYourPositionTestIds } from '../../components/MoneyYourPosition/MoneyYourPosition.testIds';
+import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
+import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
-import { MoneyWhyMetaMaskMoneyTestIds } from '../../components/MoneyWhyMetaMaskMoney/MoneyWhyMetaMaskMoney.testIds';
+import { MoneyWhatYouGetTestIds } from '../../components/MoneyWhatYouGet/MoneyWhatYouGet.testIds';
 import { MoneyFooterTestIds } from '../../components/MoneyFooter/MoneyFooter.testIds';
+import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/MoneyActivityList.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
+import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -21,24 +27,10 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
-
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) => {
-    const { View } = jest.requireActual('react-native');
-    return <View {...props}>{children}</View>;
-  },
-  useSafeAreaInsets: () => ({ top: 0, bottom: 34, left: 0, right: 0 }),
-}));
 
 const mockConversionTokens = [
   {
@@ -48,12 +40,24 @@ const mockConversionTokens = [
     chainId: '0x1',
     decimals: 6,
     balanceInSelectedCurrency: '$5,000.00',
+    fiat: { balance: 5000 },
   },
 ];
 
 jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
   useMusdConversionTokens: () => ({ tokens: mockConversionTokens }),
+  STABLECOIN_SYMBOLS: new Set(['USDC', 'USDT', 'DAI']),
+  tokenFiatValue: (token: { fiat?: { balance?: number } }) =>
+    token?.fiat?.balance ?? 0,
 }));
+
+jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
+  useMoneyAccountTransactions: jest.fn(),
+}));
+
+const mockUseMoneyAccountTransactions = jest.mocked(
+  useMoneyAccountTransactions,
+);
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -72,6 +76,20 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
   default: 'Badge',
   BadgeVariant: { Network: 'Network' },
 }));
+
+jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ tx }: { tx: { id: string } }) => (
+      <View testID={`money-activity-item-${tx.id}`}>
+        <Text>{tx.id}</Text>
+      </View>
+    ),
+  };
+});
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
 jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => null),
 }));
@@ -79,6 +97,19 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Activity list renders when there are at least 10 transactions; pad the
+    // mock set so the activity-related assertions below find the View all button.
+    const paddedTransactions = Array.from({ length: 10 }, (_, index) => ({
+      ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
+      id: `padded-${index}`,
+    }));
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: paddedTransactions,
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+    });
   });
 
   it('renders the main container', () => {
@@ -113,10 +144,16 @@ describe('MoneyHomeView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the your position section', () => {
+  it('renders the onboarding card', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-    expect(getByTestId(MoneyYourPositionTestIds.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('renders the earnings section', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('renders the how it works section', () => {
@@ -142,9 +179,7 @@ describe('MoneyHomeView', () => {
   it('renders the why MetaMask Money section', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-    expect(
-      getByTestId(MoneyWhyMetaMaskMoneyTestIds.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('renders the footer', () => {
@@ -159,5 +194,13 @@ describe('MoneyHomeView', () => {
     fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to the Money activity screen when View all is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
   });
 });

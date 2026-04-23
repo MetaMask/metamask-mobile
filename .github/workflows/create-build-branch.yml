@@ -1,0 +1,44 @@
+name: Create Build Branch
+
+# Reusable workflow that creates an ephemeral build/<source>-<timestamp> branch
+# from a source ref. This avoids pushing version-bump commits directly to
+# protected branches (e.g. main).
+#
+# The caller is responsible for deleting the branch after use.
+
+on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to branch from'
+        required: true
+        type: string
+    outputs:
+      build_branch:
+        description: 'Name of the created ephemeral build branch'
+        value: ${{ jobs.create.outputs.branch_name }}
+
+jobs:
+  create:
+    name: Create build branch
+    runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.create-branch.outputs.branch_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.source_branch }}
+          token: ${{ secrets.PR_TOKEN || github.token }}
+      - name: Create temporary build branch
+        id: create-branch
+        env:
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
+        run: |
+          TIMESTAMP=$(date +%s%3N)
+          SANITIZED=$(echo "$SOURCE_BRANCH" | tr '/' '-')
+          BRANCH_NAME="build/${SANITIZED}-${TIMESTAMP}"
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+          echo "✅ Created build branch: $BRANCH_NAME"

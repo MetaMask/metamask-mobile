@@ -1,11 +1,17 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import Text, {
+import {
+  Box,
+  BoxAlignItems,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/OtpCode/OtpCode.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
@@ -21,21 +27,15 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import Row from '../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { trace, TraceName } from '../../../../../util/trace';
-import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
@@ -76,7 +76,7 @@ const ResendButton: FC<{
 
 const V2OtpCode = () => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const { email, stateToken, amount, currency, assetId } =
     useParams<V2OtpCodeParams>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -106,25 +106,17 @@ const V2OtpCode = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [resetAttemptCount, setResetAttemptCount] = useState(0);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.otp_code.navbar_title') },
-        theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'OTP Code',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
-      ),
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'OTP Code',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
     );
-  }, [navigation, theme, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -257,15 +249,12 @@ const V2OtpCode = () => {
             );
             await routeAfterAuthentication(quote);
           } catch (routeError) {
-            navigation.navigate(
-              Routes.RAMP.AMOUNT_INPUT as never,
-              {
-                nativeFlowError: parseUserFacingError(
-                  routeError,
-                  strings('deposit.otp_code.error'),
-                ),
-              } as never,
-            );
+            navigation.navigate(Routes.RAMP.AMOUNT_INPUT, {
+              nativeFlowError: parseUserFacingError(
+                routeError,
+                strings('deposit.otp_code.error'),
+              ),
+            });
           }
         } else {
           navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
@@ -305,11 +294,15 @@ const V2OtpCode = () => {
     routeAfterAuthentication,
   ]);
 
-  const handleValueChange = useCallback((text: string) => {
-    setValue(text);
-    setError(null);
-    setLatestValueSubmitted(null);
-  }, []);
+  const handleValueChange = useCallback(
+    (text: string) => {
+      if (isLoading) return;
+      setValue(text);
+      setError(null);
+      setLatestValueSubmitted(null);
+    },
+    [isLoading],
+  );
 
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString();
@@ -334,9 +327,15 @@ const V2OtpCode = () => {
   return (
     <ScreenLayout testID={OtpCodeSelectorsIDs.OTP_CODE_SCREEN}>
       <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={strings('deposit.otp_code.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={1} />
-          <Text variant={TextVariant.HeadingLG} style={styles.title}>
+          <Text variant={TextVariant.HeadingLg} style={styles.title}>
             {strings('deposit.otp_code.title')}
           </Text>
           <Text style={styles.description}>
@@ -345,8 +344,8 @@ const V2OtpCode = () => {
 
           <Box alignItems={BoxAlignItems.End}>
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Primary}
+              variant={TextVariant.BodyMd}
+              color={TextColor.PrimaryDefault}
               onPress={handlePaste}
               testID={OtpCodeSelectorsIDs.PASTE_BUTTON}
             >
@@ -364,6 +363,7 @@ const V2OtpCode = () => {
             rootStyle={styles.codeFieldRoot}
             keyboardType="number-pad"
             textContentType="oneTimeCode"
+            editable={!isLoading}
             renderCell={({ index, symbol, isFocused }) => (
               <View
                 onLayout={getCellOnLayoutHandler(index)}
@@ -380,7 +380,9 @@ const V2OtpCode = () => {
           />
 
           {error && (
-            <Text style={{ color: theme.colors.error.default }}>{error}</Text>
+            <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
+              {error}
+            </Text>
           )}
 
           <Row style={styles.resendButtonContainer}>
@@ -414,13 +416,14 @@ const V2OtpCode = () => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.otp_code.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading || value.length !== CELL_COUNT}
             testID={OtpCodeSelectorsIDs.SUBMIT_BUTTON}
-          />
+          >
+            {strings('deposit.otp_code.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

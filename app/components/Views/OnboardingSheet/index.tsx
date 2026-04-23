@@ -1,7 +1,4 @@
 import React, { useRef } from 'react';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -9,7 +6,7 @@ import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
 import {
   Box,
@@ -23,6 +20,8 @@ import {
   Text,
   TextColor,
   TextVariant,
+  BottomSheet,
+  BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -34,22 +33,22 @@ export interface OnboardingSheetParams {
   createWallet?: boolean;
 }
 
-export interface OnboardingSheetProps {
-  route: {
-    params: OnboardingSheetParams;
-  };
-}
+type OnboardingSheetRouteProp = RouteProp<
+  { OnboardingSheet: OnboardingSheetParams },
+  'OnboardingSheet'
+>;
 
-const OnboardingSheet = (props: OnboardingSheetProps) => {
+const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const { params } = useRoute<OnboardingSheetRouteProp>();
   const {
     onPressCreate,
     onPressImport,
     onPressContinueWithGoogle,
     onPressContinueWithApple,
     createWallet = false,
-  } = props.route.params ?? {};
+  } = params ?? {};
   const { colors } = useTheme();
   const tw = useTailwind();
 
@@ -101,7 +100,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
   const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet goBack={navigation.goBack} ref={sheetRef}>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

@@ -4,7 +4,7 @@ import {
   UNKNOWN_LOCATION,
   type GeolocationControllerMessenger,
 } from '@metamask/geolocation-controller';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 
 /**
  * Initialize the GeolocationController.
@@ -14,7 +14,7 @@ import type { ControllerInitFunction } from '../../types';
  * @param request.persistedState - The persisted state to hydrate from.
  * @returns The initialized controller.
  */
-export const geolocationControllerInit: ControllerInitFunction<
+export const geolocationControllerInit: MessengerClientInitFunction<
   GeolocationController,
   GeolocationControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

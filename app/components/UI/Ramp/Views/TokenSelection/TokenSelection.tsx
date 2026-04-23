@@ -1,7 +1,6 @@
 import React, {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -13,14 +12,17 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TokenNetworkFilterBar from '../../components/TokenNetworkFilterBar';
 import TokenListItem from '../../components/TokenListItem';
 import { createUnsupportedTokenModalNavigationDetails } from '../Modals/UnsupportedTokenModal/UnsupportedTokenModal';
 
-import { Box } from '@metamask/design-system-react-native';
-import Text, {
+import {
+  Box,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
@@ -31,7 +33,6 @@ import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
-import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
@@ -214,7 +215,7 @@ function TokenSelection() {
         setSelectedToken(assetId);
         navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });
       } else {
-        navigation.dangerouslyGetParent()?.goBack();
+        navigation.getParent()?.goBack();
         goToBuy({ assetId });
       }
     },
@@ -298,7 +299,7 @@ function TokenSelection() {
   const renderEmptyList = useCallback(
     () => (
       <ListItemSelect isSelected={false} isDisabled>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
           {strings('deposit.token_modal.no_tokens_found', {
             searchString,
           })}
@@ -320,33 +321,28 @@ function TokenSelection() {
     return Array.from(uniqueNetworksSet);
   }, [supportedTokens]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings('deposit.token_modal.select_token'),
-          showBack: false,
-        },
-        theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Token Selection',
-                ramp_type: rampType,
-              })
-              .build(),
-          );
-        },
-      ),
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Token Selection',
+          ramp_type: rampType,
+        })
+        .build(),
     );
-  }, [navigation, theme, createEventBuilder, trackEvent, rampType]);
+  }, [navigation, trackEvent, createEventBuilder, rampType]);
 
   if (isLoading) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderCompactStandard
+            title={strings('deposit.token_modal.select_token')}
+            onBack={handleHeaderBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <Box twClassName="flex-1 items-center justify-center">
             <ActivityIndicator
               size="large"
@@ -363,12 +359,18 @@ function TokenSelection() {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderCompactStandard
+            title={strings('deposit.token_modal.select_token')}
+            onBack={handleHeaderBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <Box twClassName="flex-1 items-center justify-center px-4">
             <Box twClassName="text-center">
-              <Text variant={TextVariant.BodyMD}>
+              <Text variant={TextVariant.BodyMd}>
                 {strings('deposit.token_modal.error_loading_tokens')}
               </Text>
-              <Text variant={TextVariant.BodyMD}>
+              <Text variant={TextVariant.BodyMd}>
                 {parseUserFacingError(
                   error,
                   strings('deposit.token_modal.error_loading_tokens'),
@@ -384,14 +386,13 @@ function TokenSelection() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <Box twClassName="py-2">
-          <TokenNetworkFilterBar
-            networks={uniqueNetworks}
-            networkFilter={networkFilter}
-            setNetworkFilter={handleNetworkFilterChange}
-          />
-        </Box>
-        <Box twClassName="px-4 py-3">
+        <HeaderCompactStandard
+          title={strings('deposit.token_modal.select_token')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
+        <Box twClassName="px-4 pb-3">
           <TextFieldSearch
             testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
@@ -401,6 +402,13 @@ function TokenSelection() {
             placeholder={strings(
               'deposit.token_modal.search_by_name_or_address',
             )}
+          />
+        </Box>
+        <Box twClassName="pt-2 pb-4 pl-4">
+          <TokenNetworkFilterBar
+            networks={uniqueNetworks}
+            networkFilter={networkFilter}
+            setNetworkFilter={handleNetworkFilterChange}
           />
         </Box>
         <FlatList

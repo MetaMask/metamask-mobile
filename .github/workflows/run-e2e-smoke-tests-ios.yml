@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: ''
+      use_bitrise_runner:
+        description: 'Route iOS E2E jobs to Bitrise self-hosted runner group.'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -35,6 +40,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   trade-ios-smoke:
@@ -53,6 +59,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   perps-ios-smoke:
@@ -71,6 +78,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   wallet-platform-ios-smoke:
@@ -89,6 +97,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   identity-ios-smoke:
@@ -107,6 +116,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   accounts-ios-smoke:
@@ -125,6 +135,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   network-abstraction-ios-smoke:
@@ -143,6 +154,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   network-expansion-ios-smoke:
@@ -161,6 +173,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   prediction-market-ios-smoke:
@@ -179,6 +192,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   card-ios-smoke:
@@ -197,6 +211,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   ramps-ios-smoke:
@@ -215,6 +230,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   multichain-api-ios-smoke:
@@ -233,6 +249,26 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
+    secrets: inherit
+
+  seedless-onboarding-ios-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding')
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: seedless-onboarding-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'SmokeSeedlessOnboarding'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      changed_files: ${{ inputs.changed_files }}
+      build_type: 'main'
+      metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   report-ios-smoke-tests:
@@ -252,6 +288,7 @@ jobs:
       - card-ios-smoke
       - ramps-ios-smoke
       - multichain-api-ios-smoke
+      - seedless-onboarding-ios-smoke
     steps:
       - name: Checkout
         uses: actions/checkout@v4

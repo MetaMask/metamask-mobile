@@ -134,11 +134,14 @@ describe('SocialLoginIosUser', () => {
         OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
       );
       fireEvent.press(secureWalletButton);
-      expect(mockNavigation.replace).toHaveBeenCalledWith('Rehydrate', {
-        previous_screen: 'onboarding',
-        oauthLoginSuccess: true,
-        onboardingTraceCtx: { traceId: 'test-trace' },
-      });
+      expect(mockNavigation.replace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+        {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: { traceId: 'test-trace' },
+        },
+      );
     });
   });
 });

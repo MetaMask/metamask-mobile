@@ -63,21 +63,14 @@ const SCAN_ANALYTICS_EXPECTATIONS_DIR = 'tests/helpers/analytics/expectations';
  * Remove paths here when migrated to the expectations folder so the slim parser is enough.
  */
 const LEGACY_INLINE_METAMETRICS_PATHS = [
-  'tests/smoke/card/card-button.spec.ts',
-  'tests/smoke/card/card-home-add-funds.spec.ts',
-  'tests/smoke/card/card-home-manage-card.spec.ts',
   'tests/smoke/confirmations/send/metricsValidationHelper.ts',
   'tests/smoke/confirmations/transactions/dapp-initiated-transfer.spec.ts',
   'tests/smoke/predict/predict-cash-out.spec.ts',
   'tests/smoke/predict/predict-claim-positions.spec.ts',
   'tests/smoke/predict/predict-geo-restriction.spec.ts',
   'tests/smoke/predict/predict-open-position.spec.ts',
-  'tests/smoke/ramps/onramp-unified-buy.spec.ts',
   'tests/smoke/snaps/test-snap-preinstalled.spec.ts',
   'tests/smoke/swap/bridge-action-smoke.spec.ts',
-  'tests/smoke/swap/swap-action-smoke.spec.ts',
-  'tests/smoke/wallet/analytics/import-wallet.spec.ts',
-  'tests/smoke/wallet/analytics/new-wallet.spec.ts',
   'tests/regression/ramps/onramp-parameters.spec.ts',
   'tests/regression/wallet/analytics/opt-out.ts',
 ];
@@ -982,6 +975,35 @@ async function collectPerformanceTestCounts() {
 }
 
 // ---------------------------------------------------------------------------
+// Feature flag E2E coverage
+// Delegates to tests/feature-flags/feature-flag-coverage-report.ts (single source of truth).
+// Requires `yarn install` in the workflow so ts-node is available.
+// ---------------------------------------------------------------------------
+
+const FF_REPORT_PATH = 'tests/artifacts/feature-flag-coverage-report.json';
+
+async function collectFeatureFlagCoverage() {
+  console.log('[feature_flags] running coverage report via ts-node...');
+  execSync('yarn ts-node tests/feature-flags/feature-flag-coverage-report.ts', { stdio: 'pipe' });
+
+  const report = JSON.parse(await readFile(FF_REPORT_PATH, 'utf8'));
+  const { summary } = report;
+
+  console.log(`[feature_flags] total: ${summary.totalFlags}, active: ${summary.activeFlags}, coverage: ${summary.coveragePercentage}%`);
+
+  return {
+    total_flags: summary.totalFlags,
+    active_flags: summary.activeFlags,
+    deprecated_flags: summary.deprecatedFlags,
+    in_prod_flags: summary.inProdFlags,
+    full_coverage_flags: summary.fullCoverage,
+    partial_coverage_flags: summary.partialCoverage,
+    default_only_flags: summary.defaultOnlyCoverage,
+    coverage_percentage: summary.coveragePercentage,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -994,6 +1016,7 @@ async function main() {
     { namespace: 'e2e', collect: collectE2ECounts },
     { namespace: 'metametrics', collect: collectMetametricsQaStats },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
+    { namespace: 'feature_flags', collect: collectFeatureFlagCoverage },
   ];
 
   for (const { namespace, collect } of collectors) {

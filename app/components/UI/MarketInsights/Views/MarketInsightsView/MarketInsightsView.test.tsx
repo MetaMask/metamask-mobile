@@ -9,8 +9,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockGoToSwaps = jest.fn();
-const mockGoToBuy = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockTrendSourcesBottomSheet = jest.fn();
 const mockFeedbackBottomSheet = jest.fn();
@@ -23,9 +21,7 @@ const mockCreateEventBuilder = jest.fn(
       }),
     }) as const,
 );
-const mockUseSwapBridgeNavigation = jest.fn((_options: unknown) => ({
-  goToSwaps: mockGoToSwaps,
-}));
+const mockGate = jest.fn((fn: () => Promise<void>) => fn());
 const mockPerpsTrack = jest.fn();
 let mockIsEligible = true;
 
@@ -33,19 +29,24 @@ let mockRouteParams: {
   assetSymbol: string;
   assetIdentifier: string;
   tokenImageUrl?: string;
-  tokenAddress?: string;
-  tokenDecimals?: number;
-  tokenName?: string;
-  tokenChainId?: string;
+  token?: Record<string, unknown>;
   isPerps?: boolean;
+  hasPerpsPosition?: boolean;
 } = {
   assetSymbol: 'ETH',
   assetIdentifier: 'eip155:1/erc20:0x123',
   tokenImageUrl: 'https://example.com/eth.png',
-  tokenAddress: '0x123',
-  tokenDecimals: 18,
-  tokenName: 'Ethereum',
-  tokenChainId: '0x1',
+  token: {
+    address: '0x123',
+    symbol: 'ETH',
+    decimals: 18,
+    name: 'Ethereum',
+    chainId: '0x1',
+    image: 'https://example.com/eth.png',
+    balance: '0',
+    isETH: undefined,
+    logo: undefined,
+  },
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -63,10 +64,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-}));
-
 jest.mock('../../hooks/useMarketInsights', () => ({
   useMarketInsights: (assetIdentifier: string) => {
     const result = mockUseMarketInsights(assetIdentifier);
@@ -76,25 +73,6 @@ jest.mock('../../hooks/useMarketInsights', () => ({
         result?.reportAssetId ?? (result?.report ? assetIdentifier : null),
     };
   },
-}));
-
-jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
-  SwapBridgeNavigationLocation: {
-    TokenView: 'TokenView',
-  },
-  useSwapBridgeNavigation: (options: unknown) =>
-    mockUseSwapBridgeNavigation(options),
-}));
-
-jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
-}));
-
-jest.mock('../../../Ramp/utils/parseRampIntent', () => ({
-  __esModule: true,
-  default: ({ chainId, address }: { chainId: string; address: string }) => ({
-    assetId: `eip155:${chainId}/erc20:${address}`,
-  }),
 }));
 
 jest.mock(
@@ -230,6 +208,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({ gate: mockGate }),
+}));
+
 jest.mock('../../../Perps/selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => mockIsEligible),
 }));
@@ -250,6 +232,32 @@ jest.mock('../../../Perps/components/PerpsBottomSheetTooltip', () => {
 jest.mock('../../../Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockPerpsTrack }),
 }));
+
+jest.mock('../../../TokenDetails/components/TokenDetailsStickyFooter', () => {
+  const { View: MockView, Pressable: MockPressable } =
+    jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onSwapPress,
+      onBuyPress,
+      swapTestID,
+      buyTestID,
+    }: {
+      onSwapPress?: () => void;
+      onBuyPress?: () => void;
+      swapTestID?: string;
+      buyTestID?: string;
+    }) => (
+      <MockView testID="token-details-sticky-footer">
+        {swapTestID && (
+          <MockPressable testID={swapTestID} onPress={onSwapPress} />
+        )}
+        {buyTestID && <MockPressable testID={buyTestID} onPress={onBuyPress} />}
+      </MockView>
+    ),
+  };
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -287,10 +295,17 @@ describe('MarketInsightsView', () => {
       assetSymbol: 'ETH',
       assetIdentifier: 'eip155:1/erc20:0x123',
       tokenImageUrl: 'https://example.com/eth.png',
-      tokenAddress: '0x123',
-      tokenDecimals: 18,
-      tokenName: 'Ethereum',
-      tokenChainId: '0x1',
+      token: {
+        address: '0x123',
+        symbol: 'ETH',
+        decimals: 18,
+        name: 'Ethereum',
+        chainId: '0x1',
+        image: 'https://example.com/eth.png',
+        balance: '0',
+        isETH: undefined,
+        logo: undefined,
+      },
     };
   });
 
@@ -369,6 +384,24 @@ describe('MarketInsightsView', () => {
     expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
   });
 
+  it('configures background video to mix with other audio', () => {
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport(),
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    const backgroundVideo = getByTestId(
+      MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION,
+    );
+
+    expect(backgroundVideo.props.ignoreSilentSwitch).toBe('obey');
+    expect(backgroundVideo.props.mixWithOthers).toBe('mix');
+  });
+
   it('renders report content and handles tweet/swap/buy actions', () => {
     mockUseMarketInsights.mockReturnValue({
       report: {
@@ -442,30 +475,16 @@ describe('MarketInsightsView', () => {
       getByTestId(MarketInsightsSelectorsIDs.SOURCES_FOOTER),
     ).toBeOnTheScreen();
     expect(getByText('Was this helpful?')).toBeOnTheScreen();
-    expect(getByText('AI summary for information only')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TWEET_CARD}-0`));
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://x.com/user/status/100',
     );
 
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SWAP_BUTTON));
-    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sourcePage: 'MarketInsightsView',
-        sourceToken: expect.objectContaining({
-          address: '0x123',
-          symbol: 'ETH',
-          name: 'Ethereum',
-          decimals: 18,
-          chainId: '0x1',
-        }),
-      }),
-    );
+    expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
 
+    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SWAP_BUTTON));
     fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.BUY_BUTTON));
-    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
 
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`));
     expect(
@@ -500,28 +519,6 @@ describe('MarketInsightsView', () => {
       expect.objectContaining({
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
-          caip19: 'eip155:1/erc20:0x123',
-          asset_symbol: 'eth',
-          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
-          interaction_type: 'swap',
-        }),
-      }),
-    );
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-        properties: expect.objectContaining({
-          caip19: 'eip155:1/erc20:0x123',
-          asset_symbol: 'eth',
-          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
-          interaction_type: 'buy',
-        }),
-      }),
-    );
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-        properties: expect.objectContaining({
           asset_symbol: 'eth',
           interaction_type: 'thumbs_up',
         }),
@@ -545,6 +542,28 @@ describe('MarketInsightsView', () => {
           asset_symbol: 'eth',
           interaction_type: 'source_click',
           source: 'https://www.coindesk.com/article',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x123',
+          asset_symbol: 'eth',
+          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
+          interaction_type: 'swap',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x123',
+          asset_symbol: 'eth',
+          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
+          interaction_type: 'buy',
         }),
       }),
     );
@@ -702,8 +721,6 @@ describe('MarketInsightsView', () => {
       ...mockRouteParams,
       assetSymbol: 'USDC',
       assetIdentifier: 'eip155:1/erc20:0x456',
-      tokenAddress: '0x456',
-      tokenName: 'USD Coin',
     };
 
     rerender(<MarketInsightsView />);
@@ -749,8 +766,7 @@ describe('MarketInsightsView', () => {
     expect(
       getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
     ).toBeOnTheScreen();
-    expect(queryByTestId(MarketInsightsSelectorsIDs.SWAP_BUTTON)).toBeNull();
-    expect(queryByTestId(MarketInsightsSelectorsIDs.BUY_BUTTON)).toBeNull();
+    expect(queryByTestId('token-details-sticky-footer')).toBeNull();
   });
 
   it('navigates to PerpsOrderRedirect with long direction when Long button is pressed', async () => {
@@ -786,7 +802,6 @@ describe('MarketInsightsView', () => {
         params: { direction: 'long', asset: 'ETH' },
       }),
     );
-    expect(mockGoToSwaps).not.toHaveBeenCalled();
   });
 
   it('navigates to PerpsOrderRedirect with short direction when Short button is pressed', async () => {
@@ -822,7 +837,6 @@ describe('MarketInsightsView', () => {
         params: { direction: 'short', asset: 'ETH' },
       }),
     );
-    expect(mockGoToSwaps).not.toHaveBeenCalled();
   });
 
   it('shows geo-block modal instead of navigating when user is not eligible', async () => {
@@ -866,21 +880,14 @@ describe('MarketInsightsView', () => {
     expect(mockPerpsTrack).toHaveBeenCalled();
   });
 
-  it('navigates to swaps when swap button is pressed in token context', () => {
+  it('renders TokenDetailsStickyFooter in token context instead of perps buttons', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <MarketInsightsView />,
     );
 
     expect(queryByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON)).toBeNull();
     expect(queryByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON)).toBeNull();
-
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SWAP_BUTTON));
-
-    expect(mockGoToSwaps).toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.ROOT,
-      expect.anything(),
-    );
+    expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
   });
 
   it('sends perps_market analytics property (not caip19) in perps context', async () => {
@@ -1199,8 +1206,6 @@ describe('MarketInsightsView', () => {
       ...mockRouteParams,
       assetSymbol: 'USDC',
       assetIdentifier: 'eip155:1/erc20:0x456',
-      tokenAddress: '0x456',
-      tokenName: 'USD Coin',
     };
 
     mockUseMarketInsights.mockReturnValue({

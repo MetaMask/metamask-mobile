@@ -57,6 +57,9 @@ export const PredictEventProperties = {
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
 
+  // Payment token (buy-with-any-token flow only)
+  PREDICT_TOKEN_ADDRESS: 'predict_token_address',
+
   // Market slug and game properties (for live sports markets)
   MARKET_SLUG: 'market_slug',
   GAME_ID: 'game_id',

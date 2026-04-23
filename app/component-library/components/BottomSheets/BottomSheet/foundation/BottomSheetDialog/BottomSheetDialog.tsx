@@ -30,8 +30,6 @@ import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { debounce } from 'lodash';
-
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 
@@ -65,6 +63,7 @@ const BottomSheetDialog = forwardRef<
       keyboardAvoidingViewEnabled = true,
       onClose,
       onOpen,
+      panGestureHandlerProps,
       style,
       ...props
     },
@@ -87,6 +86,7 @@ const BottomSheetDialog = forwardRef<
     const topOfDialogYValue = useSharedValue(0);
     const bottomOfDialogYValue = useSharedValue(screenHeight);
     const isMounted = useRef(false);
+    const isClosingRef = useRef(false);
 
     const onOpenCB = useCallback(() => {
       onOpen?.();
@@ -96,6 +96,8 @@ const BottomSheetDialog = forwardRef<
     }, [onClose]);
 
     const onCloseDialog = useCallback(() => {
+      if (isClosingRef.current) return;
+      isClosingRef.current = true;
       currentYOffset.value = withTiming(
         bottomOfDialogYValue.value,
         { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
@@ -176,6 +178,7 @@ const BottomSheetDialog = forwardRef<
 
     // Animate in sheet on initial render.
     const onOpenDialog = () => {
+      isClosingRef.current = false;
       // Starts setting the Y position of the dialog to the bottom of the dialog
       currentYOffset.value = bottomOfDialogYValue.value;
       // Animate the Y position to the top of the dialog, then call onOpenCB
@@ -187,21 +190,6 @@ const BottomSheetDialog = forwardRef<
         () => runOnJS(onOpenCB)(),
       );
     };
-
-    const onDebouncedCloseDialog = useMemo(
-      // Prevent hide from being called multiple times. Potentially caused by taps in quick succession.
-      () => debounce(onCloseDialog, 2000, { leading: true }),
-      [onCloseDialog],
-    );
-
-    useEffect(
-      () =>
-        // Automatically handles animation when content changes
-        // Disable for now since network switches causes the screen to hang with this on.
-        // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        onDebouncedCloseDialog.cancel(),
-      [children, onDebouncedCloseDialog],
-    );
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
@@ -245,6 +233,7 @@ const BottomSheetDialog = forwardRef<
         <PanGestureHandler
           enabled={isInteractable}
           onGestureEvent={gestureHandler}
+          {...panGestureHandlerProps}
         >
           <Animated.View
             onLayout={updateSheetHeight}

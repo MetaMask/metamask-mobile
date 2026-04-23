@@ -25,7 +25,7 @@ import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
 import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './LearnMoreBottomSheet.testIds';
 
 interface LearnMoreBottomSheetProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({

@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsTutorialCarousel, {
   PERPS_RIVE_ARTBOARD_NAMES,
@@ -63,10 +62,6 @@ jest.mock('@react-navigation/native', () => ({
       payload: { name, params },
     }),
   },
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(),
 }));
 
 // Mock NavigationService
@@ -183,7 +178,6 @@ describe('PerpsTutorialCarousel', () => {
     mockNavigationServiceMethods.setParams.mockClear();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useRoute as jest.Mock).mockReturnValue({ params: {} });
-    (useSafeAreaInsets as jest.Mock).mockReturnValue({ top: 0, bottom: 0 });
 
     // Default to eligible user
     const { useSelector } = jest.requireMock('react-redux');

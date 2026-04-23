@@ -1,6 +1,13 @@
-import React, { useCallback, useMemo } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import type { Hex } from '@metamask/utils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -28,12 +35,11 @@ import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../../UI/Earn/types/m
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { selectMusdQuickConvertEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
-import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
-import NavigationService from '../../../../../core/NavigationService';
 import { RootState } from '../../../../../reducers';
 import {
   selectConversionRateByChainId,
@@ -41,8 +47,15 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../../../selectors/currencyRateController';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { formatWithThreshold } from '../../../../../util/assets';
+import { getLocaleLanguageCode } from '../../../../hooks/useFormatters';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
-import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
+import { LINEA_MUSD_ASSET_FOR_MERKL } from './CashGetMusdEmptyState.constants';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { useCashNavigation } from './useCashNavigation';
 
 interface CashGetMusdEmptyStateProps {
   isFullView?: boolean;
@@ -52,11 +65,47 @@ interface CashGetMusdEmptyStateProps {
  * Empty state for the Cash (mUSD) full view when the user has no mUSD.
  * Shows a "Get mUSD" card: token row (navigates to Mainnet mUSD Asset Details) + Get mUSD button.
  * Button routes to Buy flow (empty wallet + mUSD buyable) or Convert flow (non-empty + has convertible tokens).
+ * When the user has a claimable Merkl bonus but no mUSD balance, shows a secondary "Claim bonus" button.
  */
 const CashGetMusdEmptyState = ({
   isFullView = false,
 }: CashGetMusdEmptyStateProps) => {
   const tw = useTailwind();
+  const { toastRef } = useContext(ToastContext);
+  const lastMerklClaimErrorToastRef = useRef<string | null>(null);
+  const claimBonusAnalyticsLocation = isFullView
+    ? MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MOBILE_TOKEN_LIST_PAGE
+    : MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION;
+  const {
+    claimableReward,
+    hasPendingClaim,
+    claimRewards,
+    isClaiming,
+    error: merklClaimError,
+  } = useMerklBonusClaim(
+    LINEA_MUSD_ASSET_FOR_MERKL,
+    claimBonusAnalyticsLocation,
+  );
+  const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
+  const lineaNetworkName = useNetworkName(
+    LINEA_MUSD_ASSET_FOR_MERKL.chainId as Hex,
+  );
+
+  useEffect(() => {
+    if (!merklClaimError) {
+      lastMerklClaimErrorToastRef.current = null;
+      return;
+    }
+    if (merklClaimError === lastMerklClaimErrorToastRef.current) {
+      return;
+    }
+    lastMerklClaimErrorToastRef.current = merklClaimError;
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: merklClaimError, isBold: false }],
+      hasNoTimeout: false,
+    });
+  }, [merklClaimError, toastRef]);
   const { goToBuy } = useRampNavigation();
   const {
     hasConvertibleTokens,
@@ -76,16 +125,23 @@ const CashGetMusdEmptyState = ({
   const mainnetUsdConversionRate = useSelector((state: RootState) =>
     selectUSDConversionRateByChainId(state, MUSD_CONVERSION_DEFAULT_CHAIN_ID),
   );
+  const { navigateToCash } = useCashNavigation();
 
-  const musdPriceFormatted = useMemo(() => {
-    const currency = currentCurrency ?? 'usd';
-    const oneUsdInUserCurrency =
+  /** USD → selected fiat (same basis as aggregated mUSD balance / price row). */
+  const oneUsdInUserFiat = useMemo(() => {
+    if (
       mainnetConversionRate != null &&
       mainnetUsdConversionRate != null &&
       mainnetUsdConversionRate > 0
-        ? mainnetConversionRate / mainnetUsdConversionRate
-        : 1;
-    const value = Number(Number(oneUsdInUserCurrency).toFixed(2));
+    ) {
+      return mainnetConversionRate / mainnetUsdConversionRate;
+    }
+    return 1;
+  }, [mainnetConversionRate, mainnetUsdConversionRate]);
+
+  const musdPriceFormatted = useMemo(() => {
+    const currency = currentCurrency ?? 'usd';
+    const value = Number(Number(oneUsdInUserFiat).toFixed(2));
     return getIntlNumberFormatter(I18n.locale, {
       style: 'currency',
       currency,
@@ -93,19 +149,55 @@ const CashGetMusdEmptyState = ({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
-  }, [currentCurrency, mainnetConversionRate, mainnetUsdConversionRate]);
+  }, [currentCurrency, oneUsdInUserFiat]);
+
+  const claimBonusButtonLabel = useMemo(() => {
+    if (!claimableReward) {
+      return strings('earn.claim_bonus');
+    }
+    if (claimableReward.trimStart().startsWith('<')) {
+      return strings('earn.claim_bonus');
+    }
+    const usdAmount = parseFloat(claimableReward);
+    if (!Number.isFinite(usdAmount)) {
+      return strings('earn.claim_bonus');
+    }
+    const currency = (currentCurrency ?? 'usd').toUpperCase();
+    const amountInUserFiat = usdAmount * oneUsdInUserFiat;
+    const formattedAmount = formatWithThreshold(
+      amountInUserFiat,
+      0.01,
+      getLocaleLanguageCode(),
+      {
+        style: 'currency',
+        currency,
+      },
+    );
+    return strings('earn.claim_bonus_with_fiat', { amount: formattedAmount });
+  }, [claimableReward, currentCurrency, oneUsdInUserFiat]);
 
   const canGetMusd = hasConvertibleTokens || isMusdBuyableOnAnyChain;
 
-  const handleTokenRowPress = useCallback(() => {
-    NavigationService.navigation.navigate(
-      'Asset' as never,
-      {
-        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.MobileTokenListPage,
-      } as never,
+  const handleClaimBonusPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+        .addProperties({
+          action_type: 'claim_bonus',
+          location: claimBonusAnalyticsLocation,
+          network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
+          network_name: lineaNetworkName ?? undefined,
+          asset_symbol: LINEA_MUSD_ASSET_FOR_MERKL.symbol,
+        })
+        .build(),
     );
-  }, []);
+    claimRewards();
+  }, [
+    trackEvent,
+    createEventBuilder,
+    claimBonusAnalyticsLocation,
+    lineaNetworkName,
+    claimRewards,
+  ]);
 
   const handleGetMusdPress = useCallback(async () => {
     const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
@@ -190,7 +282,7 @@ const CashGetMusdEmptyState = ({
       <View style={tw.style('flex-row items-center justify-between py-1')}>
         <Pressable
           testID={CashGetMusdEmptyStateSelectors.ROW}
-          onPress={handleTokenRowPress}
+          onPress={navigateToCash}
           style={({ pressed }) =>
             tw.style(
               'flex-row items-center gap-5 flex-1',
@@ -247,6 +339,25 @@ const CashGetMusdEmptyState = ({
           </Button>
         )}
       </View>
+      {hasClaimableBonus ? (
+        <Button
+          testID={CashGetMusdEmptyStateSelectors.CLAIM_BONUS_BUTTON}
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          twClassName="w-full"
+          onPress={handleClaimBonusPress}
+          isDisabled={isClaiming || hasPendingClaim}
+          isLoading={isClaiming}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
+            {claimBonusButtonLabel}
+          </Text>
+        </Button>
+      ) : null}
     </Box>
   );
 };

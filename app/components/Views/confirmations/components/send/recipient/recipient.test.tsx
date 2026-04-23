@@ -14,7 +14,7 @@ import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientType } from '../../UI/recipient';
 import { Recipient } from './recipient';
 
-jest.mock('../../../../../../component-library/components/Skeleton');
+jest.mock('../../../../../../component-library/components-temp/Skeleton');
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -222,7 +222,7 @@ describe('Recipient', () => {
       updateTo: mockUpdateTo,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       asset: {} as any,
-      chainId: '1',
+      chainId: '0x1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
@@ -287,7 +287,7 @@ describe('Recipient', () => {
       updateTo: mockUpdateTo,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       asset: {} as any,
-      chainId: '1',
+      chainId: '0x1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
@@ -352,7 +352,7 @@ describe('Recipient', () => {
       updateTo: mockUpdateTo,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       asset: {} as any,
-      chainId: '1',
+      chainId: '0x1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
@@ -405,7 +405,7 @@ describe('Recipient', () => {
       updateTo: mockUpdateTo,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       asset: {} as any,
-      chainId: '1',
+      chainId: '0x1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
@@ -546,7 +546,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       updateTo: jest.fn(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       asset: {} as any,
-      chainId: '1',
+      chainId: '0x1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
@@ -643,7 +643,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       to: '0x1234567890123456789012345678901234567890',
       updateTo: jest.fn(),
       asset: undefined,
-      chainId: '1',
+      chainId: '0x1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',

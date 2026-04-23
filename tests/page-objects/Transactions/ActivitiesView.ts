@@ -149,6 +149,7 @@ class ActivitiesView {
     });
     await Gestures.waitAndTap(this.predictionsTab, {
       elemDescription: 'Predictions Tab in Activity View',
+      timeout: 3500,
     });
   }
 

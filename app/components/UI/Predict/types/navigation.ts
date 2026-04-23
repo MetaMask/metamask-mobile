@@ -4,7 +4,6 @@
 
 import { ParamListBase } from '@react-navigation/native';
 import {
-  OrderPreview,
   PredictActivityItem,
   PredictCategory,
   PredictMarket,
@@ -56,11 +55,6 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
-  batchId?: string;
-  animationEnabled?: boolean;
-  isConfirmation?: boolean;
-  isConfirming?: boolean;
-  preview?: OrderPreview;
 }
 
 /** Predict sell preview parameters */
@@ -70,6 +64,27 @@ export interface PredictSellPreviewParams {
   outcome: PredictOutcome;
   entryPoint?: PredictEntryPoint;
 }
+
+/** Props for rendering PredictBuyPreview inside a BottomSheet */
+export interface PredictBuyPreviewContentProps extends PredictBuyPreviewParams {
+  onClose: () => void;
+}
+
+/** Props for rendering PredictSellPreview inside a BottomSheet */
+export interface PredictSellPreviewContentProps
+  extends PredictSellPreviewParams {
+  onClose: () => void;
+}
+
+/** Discriminated union props for PredictBuyPreview / PredictBuyWithAnyToken */
+export type PredictBuyPreviewProps =
+  | ({ mode: 'sheet' } & PredictBuyPreviewContentProps)
+  | { mode?: never };
+
+/** Discriminated union props for PredictSellPreview */
+export type PredictSellPreviewProps =
+  | ({ mode: 'sheet' } & PredictSellPreviewContentProps)
+  | { mode?: never };
 
 export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;

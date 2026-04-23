@@ -1,14 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -16,7 +14,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
-      "paddingTop": 24,
+      "paddingTop": 42,
     }
   }
 >
@@ -32,7 +30,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
         "flexBasis": "0%",
         "flexGrow": 1,
         "flexShrink": 1,
-        "paddingTop": 24,
+        "paddingTop": 42,
       }
     }
     testID="protect-your-account-screen"
@@ -61,7 +59,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                 "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -93,9 +90,8 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,
@@ -139,7 +135,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -158,7 +153,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                       "color": "#4459ff",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -181,7 +175,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -278,7 +271,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -365,7 +357,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -381,18 +372,16 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountBackupStep1 Snapshots android render matches snapshot with status bar height to zero 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -445,7 +434,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                 "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -477,9 +465,8 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,
@@ -523,7 +510,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -542,7 +528,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                       "color": "#4459ff",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -565,7 +550,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -662,7 +646,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -749,7 +732,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -765,18 +747,16 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -829,7 +809,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                 "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -861,9 +840,8 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,
@@ -907,7 +885,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -926,7 +903,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                       "color": "#4459ff",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -949,7 +925,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -1046,7 +1021,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1133,7 +1107,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1149,18 +1122,16 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by default (dark theme) 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -1168,7 +1139,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
-      "paddingTop": 24,
+      "paddingTop": 42,
     }
   }
 >
@@ -1184,7 +1155,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
         "flexBasis": "0%",
         "flexGrow": 1,
         "flexShrink": 1,
-        "paddingTop": 24,
+        "paddingTop": 42,
       }
     }
     testID="protect-your-account-screen"
@@ -1213,7 +1184,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                 "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1245,9 +1215,8 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,
@@ -1291,7 +1260,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -1310,7 +1278,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                       "color": "#4459ff",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -1333,7 +1300,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -1430,7 +1396,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1517,7 +1482,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1533,18 +1497,16 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;
 
 exports[`AccountBackupStep1 Theme appearance renders light SRP design image for light theme 1`] = `
-<RNCSafeAreaView
+<View
   edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "additive",
-    }
+    [
+      "top",
+      "bottom",
+    ]
   }
   style={
     {
@@ -1552,7 +1514,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
-      "paddingTop": 24,
+      "paddingTop": 42,
     }
   }
 >
@@ -1568,7 +1530,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
         "flexBasis": "0%",
         "flexGrow": 1,
         "flexShrink": 1,
-        "paddingTop": 24,
+        "paddingTop": 42,
       }
     }
     testID="protect-your-account-screen"
@@ -1597,7 +1559,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                 "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1629,9 +1590,8 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,
@@ -1675,7 +1635,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -1694,7 +1653,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                       "color": "#4459ff",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -1717,7 +1675,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                     "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   },
@@ -1814,7 +1771,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1901,7 +1857,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                     "flexWrap": "wrap",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
-                    "fontWeight": 400,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1917,5 +1872,5 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;

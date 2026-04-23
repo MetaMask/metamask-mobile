@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import {
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Image,
   useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {

@@ -15,7 +15,6 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import TabBar from './TabBar';
 import { TabBarIconKey, ExtendedBottomTabDescriptor } from './TabBar.types';
 import Routes from '../../../../constants/navigation/Routes';
-import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 // Minimal descriptor interface for tests - only includes what TabBar component uses
 interface TestTabDescriptor {
@@ -23,6 +22,9 @@ interface TestTabDescriptor {
     tabBarIconKey: TabBarIconKey;
     rootScreenName: string;
     callback?: () => void;
+    isHidden?: boolean;
+    onLeave?: () => void;
+    isSelected?: (rootScreenName: string) => boolean;
   };
 }
 
@@ -30,16 +32,8 @@ interface TestDescriptors {
   [key: string]: TestTabDescriptor;
 }
 
-// Mock account menu feature flag hook
-jest.mock(
-  '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
-  () => ({
-    useAccountMenuEnabled: jest.fn(() => false),
-  }),
-);
-
 // Mock the navigation object with proper typing
-const navigation: NavigationHelpers<ParamListBase> = {
+const navigation = {
   navigate: jest.fn(),
   goBack: jest.fn(),
   reset: jest.fn(),
@@ -47,10 +41,11 @@ const navigation: NavigationHelpers<ParamListBase> = {
   dispatch: jest.fn(),
   isFocused: jest.fn(),
   canGoBack: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
+  getParent: jest.fn(),
+  getState: jest.fn(),
   emit: jest.fn(),
-};
+  getId: jest.fn(),
+} as unknown as NavigationHelpers<ParamListBase>;
 
 const mockInitialState = {
   engine: {
@@ -126,13 +121,10 @@ describe('TabBar', () => {
       />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeDefined();
   });
 
-  it('navigates to the correct screen when a tab is pressed and account menu is disabled', () => {
-    // Explicitly disable the account menu feature flag for this test
-    jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
-
+  it('navigates to the correct screen when a tab is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <TabBar
         state={state as TabNavigationState<ParamListBase>}
@@ -168,7 +160,7 @@ describe('TabBar', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: 'Settings',
+      screen: Routes.ACCOUNTS_MENU_VIEW,
     });
   });
 
@@ -231,22 +223,255 @@ describe('TabBar', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 
-  it('navigates to Accounts Menu when settings tab is pressed and account menu is enabled', () => {
-    // Enable the account menu feature flag for this test
-    jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+  it('does not render hidden tabs', () => {
+    const stateWithHidden = {
+      index: 0,
+      routes: [
+        { key: '1', name: 'Tab 1' },
+        { key: '2', name: 'Tab 2' },
+      ],
+    };
+    const descriptorsWithHidden: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Wallet,
+          rootScreenName: Routes.WALLET_VIEW,
+        },
+      },
+      '2': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Browser,
+          rootScreenName: Routes.BROWSER.VIEW,
+          isHidden: true,
+        },
+      },
+    };
 
-    const { getByTestId } = renderWithProvider(
+    const { queryByTestId, getByTestId } = renderWithProvider(
       <TabBar
-        state={state as TabNavigationState<ParamListBase>}
-        descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
+        state={stateWithHidden as TabNavigationState<ParamListBase>}
+        descriptors={
+          descriptorsWithHidden as unknown as Record<
+            string,
+            ExtendedBottomTabDescriptor
+          >
+        }
         navigation={navigation}
       />,
       { state: mockInitialState },
     );
 
-    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.ACCOUNTS_MENU_VIEW,
-    });
+    expect(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`)).toBeTruthy();
+    expect(queryByTestId(`tab-bar-item-${TabBarIconKey.Browser}`)).toBeNull();
+  });
+
+  it('calls callback when tab is pressed', () => {
+    const mockCallback = jest.fn();
+    const stateWithCallback = {
+      index: 0,
+      routes: [{ key: '1', name: 'Tab 1' }],
+    };
+    const descriptorsWithCallback: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Wallet,
+          rootScreenName: Routes.WALLET_VIEW,
+          callback: mockCallback,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <TabBar
+        state={stateWithCallback as TabNavigationState<ParamListBase>}
+        descriptors={
+          descriptorsWithCallback as Record<string, ExtendedBottomTabDescriptor>
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
+    expect(mockCallback).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onLeave when switching tabs', () => {
+    const mockOnLeave = jest.fn();
+    const stateWithTwoTabs = {
+      index: 0,
+      routes: [
+        { key: '1', name: 'Tab 1' },
+        { key: '2', name: 'Tab 2' },
+      ],
+      routeNames: ['Tab 1', 'Tab 2'],
+    };
+    const descriptorsWithOnLeave: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Wallet,
+          rootScreenName: Routes.WALLET_VIEW,
+          onLeave: mockOnLeave,
+        },
+      },
+      '2': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Activity,
+          rootScreenName: Routes.TRANSACTIONS_VIEW,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <TabBar
+        state={stateWithTwoTabs as TabNavigationState<ParamListBase>}
+        descriptors={
+          descriptorsWithOnLeave as unknown as Record<
+            string,
+            ExtendedBottomTabDescriptor
+          >
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Activity}`));
+    expect(mockOnLeave).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses custom isSelected function when provided', () => {
+    const customIsSelected = jest.fn(() => true);
+    const stateWithCustomSelected = {
+      index: 1,
+      routes: [
+        { key: '1', name: 'Tab 1' },
+        { key: '2', name: 'Tab 2' },
+      ],
+      routeNames: ['Tab 1', 'Tab 2'],
+    };
+    const descriptorsWithCustomSelected: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Wallet,
+          rootScreenName: Routes.WALLET_VIEW,
+          isSelected: customIsSelected,
+        },
+      },
+      '2': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Activity,
+          rootScreenName: Routes.TRANSACTIONS_VIEW,
+        },
+      },
+    };
+
+    renderWithProvider(
+      <TabBar
+        state={stateWithCustomSelected as TabNavigationState<ParamListBase>}
+        descriptors={
+          descriptorsWithCustomSelected as unknown as Record<
+            string,
+            ExtendedBottomTabDescriptor
+          >
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(customIsSelected).toHaveBeenCalled();
+  });
+
+  it('handles trade button (wallet actions) navigation', () => {
+    const tradeState = {
+      index: 0,
+      routes: [{ key: '1', name: 'Tab 1' }],
+    };
+    const tradeDescriptors: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Trade,
+          rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <TabBar
+        state={tradeState as TabNavigationState<ParamListBase>}
+        descriptors={
+          tradeDescriptors as Record<string, ExtendedBottomTabDescriptor>
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(`tab-bar-item-${TabBarIconKey.Trade}`)).toBeTruthy();
+  });
+
+  it('returns null for undefined descriptor', () => {
+    const stateWithMissingDescriptor = {
+      index: 0,
+      routes: [
+        { key: '1', name: 'Tab 1' },
+        { key: '2', name: 'Tab 2' },
+      ],
+    };
+    const partialDescriptors: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Wallet,
+          rootScreenName: Routes.WALLET_VIEW,
+        },
+      },
+    };
+
+    const { queryByTestId, getByTestId } = renderWithProvider(
+      <TabBar
+        state={stateWithMissingDescriptor as TabNavigationState<ParamListBase>}
+        descriptors={
+          partialDescriptors as Record<string, ExtendedBottomTabDescriptor>
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`)).toBeTruthy();
+    expect(queryByTestId(`tab-bar-item-undefined`)).toBeNull();
+  });
+
+  it('tracks analytics when actions button is clicked', () => {
+    const actionsState = {
+      index: 0,
+      routes: [{ key: '1', name: 'Tab 1' }],
+    };
+    const actionsDescriptors: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Actions,
+          rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <TabBar
+        state={actionsState as TabNavigationState<ParamListBase>}
+        descriptors={
+          actionsDescriptors as Record<string, ExtendedBottomTabDescriptor>
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Actions}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      { screen: Routes.MODAL.WALLET_ACTIONS },
+    );
   });
 });

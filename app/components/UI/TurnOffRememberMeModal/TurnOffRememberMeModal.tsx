@@ -3,9 +3,9 @@ import {
   View,
   TouchableWithoutFeedback,
   Keyboard,
-  SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';

@@ -25,25 +25,6 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    SafeAreaView: jest
-      .fn()
-      .mockImplementation(({ children, ...props }) => (
-        <View {...props}>{children}</View>
-      )),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
@@ -489,15 +470,20 @@ describe('PerpsTPSLView', () => {
         fireEvent.press(setButton);
       });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00', {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
-      });
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        '3150.00',
+        '2850.00',
+        {
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        },
+      );
     });
 
     it('calls onConfirm with undefined when values are empty', async () => {
@@ -510,15 +496,20 @@ describe('PerpsTPSLView', () => {
         fireEvent.press(setButton);
       });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined, {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
-      });
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        undefined,
+        {
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        },
+      );
     });
 
     it('dismisses keypad before confirming when input is focused', async () => {

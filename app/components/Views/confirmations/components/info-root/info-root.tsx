@@ -27,6 +27,8 @@ import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { PerpsWithdrawInfo } from '../info/perps-withdraw-info';
 import { MusdClaimInfo } from '../info/musd-claim-info';
 import { MusdConversionInfoRoot } from '../info/musd-conversion-info-root';
+import { MoneyAccountDepositInfo } from '../info/money-account-deposit-info';
+import { MoneyAccountWithdrawInfo } from '../info/money-account-withdraw-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
 
@@ -121,6 +123,24 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
   ) {
     return <PredictDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountDeposit,
+    ])
+  ) {
+    return <MoneyAccountDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountWithdraw,
+    ])
+  ) {
+    return <MoneyAccountWithdrawInfo />;
   }
 
   if (

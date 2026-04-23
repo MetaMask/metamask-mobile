@@ -79,52 +79,17 @@ const mockSelectSelectedAccountGroup =
   >;
 
 // Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
-});
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
-// Mock useMetrics hook
+// Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-    isEnabled: jest.fn().mockReturnValue(true),
-    enable: jest.fn(),
-    addTraitsToUser: jest.fn(),
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getMetaMetricsId: jest.fn(),
-    isDataRecorded: jest.fn().mockReturnValue(true),
-    getDeleteRegulationId: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-  })),
-  MetaMetricsEvents: {
-    REWARDS_DASHBOARD_VIEWED: 'rewards_dashboard_viewed',
-    REWARDS_DASHBOARD_TAB_VIEWED: 'rewards_dashboard_tab_viewed',
-  },
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 // Mock Toast component
 jest.mock('../../../../component-library/components/Toast', () => {
@@ -195,6 +160,19 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => ({
   },
 }));
 
+jest.mock('../components/Benefits/BenefitsPreview', () => ({
+  __esModule: true,
+  default: function MockBenefitsPreview() {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text } = jest.requireActual('react-native');
+    return ReactActual.createElement(
+      View,
+      { testID: 'benefits-preview' },
+      ReactActual.createElement(Text, null, 'Benefits Preview'),
+    );
+  },
+}));
+
 // Mock hooks
 jest.mock('../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
@@ -238,6 +216,7 @@ describe('RewardsDashboard', () => {
       name: 'Account Group 1',
       pinned: false,
       hidden: false,
+      lastSelected: 0,
     },
     accounts: ['account-1'] as [string],
     type: AccountGroupType.SingleAccount as const,
@@ -290,23 +269,22 @@ describe('RewardsDashboard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockShowUnlinkedAccountsModal.mockClear();
-    mockShowNotOptedInModal.mockClear();
-    mockShowNotSupportedModal.mockClear();
-    mockHasShownModal.mockClear();
-    mockResumeBulkLink.mockClear();
-    mockTrackEvent.mockClear();
-    mockCreateEventBuilder.mockClear();
-    mockBuild.mockClear();
-    mockAddProperties.mockClear();
 
-    // Setup metrics mocks
+    // Configure mocks before passing them to the mock hook factory
+    // so the hook receives already-configured references
     mockBuild.mockReturnValue({ event: 'mock-event' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
       addProperties: mockAddProperties,
       build: mockBuild,
     });
+
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Setup selector mocks
     mockSelectActiveTab.mockReturnValue(defaultSelectorValues.activeTab);
@@ -367,6 +345,7 @@ describe('RewardsDashboard', () => {
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
       expect(getByTestId('campaigns-preview')).toBeTruthy();
       expect(getByTestId('earn-rewards-preview')).toBeTruthy();
+      expect(getByTestId('benefits-preview')).toBeTruthy();
     });
 
     it('calls modal hooks when component is rendered', () => {
@@ -419,6 +398,46 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
+    });
+
+    it('navigates to referral view when referral button is pressed', () => {
+      // Act
+      const { getByTestId } = render(<RewardsDashboard />);
+      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+    });
+  });
+
+  describe('referral button state', () => {
+    it('always renders the referral button as enabled regardless of subscription state', () => {
+      // Arrange - no subscriptionId
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId) return null;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        return undefined;
+      });
+
+      // Act
+      const { getByTestId } = render(<RewardsDashboard />);
+      const referralButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
+      );
+
+      // Assert - referral button is never disabled
+      const isDisabled =
+        referralButton.props.disabled === true ||
+        referralButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(false);
     });
   });
 
@@ -936,7 +955,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'rewards_dashboard_viewed',
+        MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED,
       );
       expect(mockBuild).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
@@ -987,7 +1006,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'rewards_dashboard_tab_viewed',
+        MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'activity' });
       expect(mockBuild).toHaveBeenCalled();

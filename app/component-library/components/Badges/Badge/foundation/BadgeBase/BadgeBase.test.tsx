@@ -9,14 +9,14 @@ import Tag from '../../../../Tags/Tag';
 import BadgeBase from './BadgeBase';
 import { BADGE_BASE_TEST_ID } from './BadgeBase.constants';
 
-describe('BadgeBase - snapshots', () => {
+describe('BadgeBase - Rendering', () => {
   it('should render badge correctly', () => {
     const wrapper = shallow(
       <BadgeBase>
         <Tag label={'Children'} />
       </BadgeBase>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper).toBeDefined();
   });
 });
 

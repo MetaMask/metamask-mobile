@@ -25,9 +25,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { useNetworkName } from '../../../Views/confirmations/hooks/useNetworkName';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
+import { resolveNetworkDisplayName } from '../../NetworkMultiSelector/NetworkMultiSelectorUtils';
 import type { TokenDetailsRouteParams } from '../../TokenDetails/constants/constants';
 import {
   getFeatureTags,
@@ -38,7 +40,7 @@ import {
 } from '../utils/securityUtils';
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import { useTokenActions } from '../../TokenDetails/hooks/useTokenActions';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
@@ -60,14 +62,23 @@ const SecurityTrustScreen: React.FC = () => {
   const params = route.params as TokenDetailsRouteParams;
   const securityData = params?.securityData ?? null;
   const explorer = useBlockExplorer(params?.chainId);
-  const networkName = useNetworkName(params?.chainId as Hex);
-
-  // Get action handlers from hook (single source of truth)
-  const { onBuy, handleStickySwapPress, hasEligibleSwapTokens, networkModal } =
-    useTokenActions({
-      token: params,
-      networkName,
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const nonEvmNetworkConfigurations = useSelector(
+    selectNonEvmNetworkConfigurationsByChainId,
+  );
+  const networkName = React.useMemo(() => {
+    const chainId = params?.chainId;
+    if (!chainId) {
+      return undefined;
+    }
+    return resolveNetworkDisplayName({
+      chainId,
+      evmNetworkConfigurations,
+      nonEvmNetworkConfigurations,
     });
+  }, [params?.chainId, evmNetworkConfigurations, nonEvmNetworkConfigurations]);
 
   const fees = securityData?.fees ?? null;
   const features = securityData?.features ?? [];
@@ -139,7 +150,6 @@ const SecurityTrustScreen: React.FC = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')} testID="security-trust-screen">
-      {networkModal}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -265,7 +275,10 @@ const SecurityTrustScreen: React.FC = () => {
                   : 'bg-[rgba(133,139,154,0.77)]'
               }`}
             >
-              <Box twClassName="h-full bg-[#6B7FFF]" style={barFillStyle} />
+              <Box
+                twClassName="h-full bg-primary-default"
+                style={barFillStyle}
+              />
             </Box>
           </Box>
         )}
@@ -282,7 +295,7 @@ const SecurityTrustScreen: React.FC = () => {
               gap={2}
               twClassName="flex-1"
             >
-              <Box twClassName="w-3 h-3 rounded-full bg-[#6B7FFF]" />
+              <Box twClassName="w-3 h-3 rounded-full bg-primary-default" />
               <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
                 {strings('security_trust.top_10_holders')}
               </Text>
@@ -563,8 +576,11 @@ const SecurityTrustScreen: React.FC = () => {
               )}
               {Boolean(params?.address && !params.isNative) &&
                 (() => {
+                  const tokenAddress = isCaipAssetType(params.address)
+                    ? parseCaipAssetType(params.address).assetReference
+                    : params.address;
                   const blockExplorerUrl = explorer.getBlockExplorerTokenUrl(
-                    params.address,
+                    tokenAddress,
                     params.chainId,
                   );
                   const blockExplorerName = explorer.getBlockExplorerName(
@@ -615,9 +631,8 @@ const SecurityTrustScreen: React.FC = () => {
       <TokenDetailsStickyFooter
         token={params}
         securityData={securityData}
-        onBuy={onBuy}
-        onSwap={handleStickySwapPress}
-        hasEligibleSwapTokens={hasEligibleSwapTokens}
+        networkName={networkName}
+        sourcePage="SecurityTrustView"
       />
     </View>
   );

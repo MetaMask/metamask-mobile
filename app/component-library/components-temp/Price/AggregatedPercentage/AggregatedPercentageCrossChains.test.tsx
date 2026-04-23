@@ -262,8 +262,8 @@ describe('AggregatedPercentageCrossChains', () => {
     },
   };
 
-  it('should match snapshot', () => {
-    const { toJSON } = render(
+  it('renders price and percentage elements', () => {
+    const { getByTestId } = render(
       <Provider store={store}>
         <AggregatedPercentageCrossChains
           privacyMode={false}
@@ -283,7 +283,8 @@ describe('AggregatedPercentageCrossChains', () => {
       </Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(FORMATTED_VALUE_PRICE_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(FORMATTED_PERCENTAGE_TEST_ID)).toBeOnTheScreen();
   });
 
   it('should return positive amount change if market data is all positive', () => {
@@ -353,8 +354,6 @@ describe('AggregatedPercentageCrossChains', () => {
       FORMATTED_PERCENTAGE_TEST_ID,
     );
 
-    expect(formattedValuePriceElement).toBeDefined();
-    expect(formattedValuePercentageElement).toBeDefined();
     expect(formattedValuePriceElement.props.children).toBe('+0.77 USD ');
     expect(formattedValuePercentageElement.props.children).toBe('(+0.72%)');
   });
@@ -426,8 +425,6 @@ describe('AggregatedPercentageCrossChains', () => {
       FORMATTED_PERCENTAGE_TEST_ID,
     );
 
-    expect(formattedValuePriceElement).toBeDefined();
-    expect(formattedValuePercentageElement).toBeDefined();
     expect(formattedValuePriceElement.props.children).toBe('-0.85 USD ');
     expect(formattedValuePercentageElement.props.children).toBe('(-0.77%)');
   });

@@ -484,11 +484,11 @@ export const initialState = {
       },
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0`,
           wallets: {
             [`${AccountWalletType.Entropy}:wallet1`]: {
               id: `${AccountWalletType.Entropy}:wallet1`,
               type: AccountWalletType.Entropy,
+              status: 'ready' as const,
               metadata: {
                 name: 'Test Wallet 1',
                 entropy: {
@@ -503,6 +503,7 @@ export const initialState = {
                     name: 'Test Group 1',
                     pinned: false,
                     hidden: false,
+                    lastSelected: 0,
                     entropy: {
                       groupIndex: 0,
                     },
@@ -517,7 +518,8 @@ export const initialState = {
               },
             },
           },
-        } as AccountTreeControllerState['accountTree']['wallets'],
+        } as AccountTreeControllerState['accountTree'],
+        selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0` as const,
       },
       SmartTransactionsController: {
         smartTransactionsState: {
@@ -670,6 +672,59 @@ export const initialState = {
             },
             startTime: Date.now(),
             estimatedProcessingTimeInSeconds: 300,
+          },
+          'gas-sponsored-tx-id': {
+            txMetaId: 'gas-sponsored-tx-id',
+            account: evmAccountAddress,
+            quote: {
+              requestId: 'test-request-id',
+              srcChainId: 1329,
+              srcAsset: {
+                chainId: 1329,
+                address: '0x0000000000000000000000000000000000000000',
+                decimals: 18,
+                symbol: 'SEI',
+                name: 'Sei',
+              },
+              destChainId: 1329,
+              destAsset: {
+                chainId: 1329,
+                address: '0xe15fc38f6d8c56af07bbcbe3baf5708a2bf42392',
+                decimals: 6,
+                symbol: 'USDC',
+                name: 'USDC',
+              },
+              // srcTokenAmount has metabridge fee deducted (0.99125 SEI)
+              srcTokenAmount: '991250000000000000',
+              destTokenAmount: '55320',
+              feeData: {
+                metabridge: {
+                  amount: '8750000000000000',
+                  asset: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    chainId: 1329,
+                    symbol: 'SEI',
+                    decimals: 18,
+                    name: 'Sei',
+                  },
+                },
+              },
+              gasSponsored: true,
+              gasIncluded7702: true,
+            },
+            // pricingData.amountSent is the full user amount (1.0 SEI)
+            pricingData: {
+              amountSent: '1',
+              amountSentInUsd: '0.055909',
+            },
+            status: {
+              srcChain: {
+                txHash: '0xgas123',
+              },
+              status: StatusTypes.COMPLETE,
+            },
+            startTime: Date.now(),
+            estimatedProcessingTimeInSeconds: 0,
           },
           'solana-swap-tx': {
             quote: {

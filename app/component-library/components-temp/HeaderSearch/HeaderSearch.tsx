@@ -23,6 +23,10 @@ import {
 } from './HeaderSearch.types';
 
 /**
+ * @deprecated Please update your code to use `HeaderSearch` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/HeaderSearch/README.md}
+ *
  * HeaderSearch is a header component that combines a search field
  * with either a back button (screen variant) or cancel button (inline variant).
  *

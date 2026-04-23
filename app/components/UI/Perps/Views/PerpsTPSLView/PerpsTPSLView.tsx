@@ -400,7 +400,13 @@ const PerpsTPSLView: React.FC = () => {
         isEditingExistingPosition,
         entryPrice: effectiveEntryPrice,
       };
-      await onConfirm(parseTakeProfitPrice, parseStopLossPrice, trackingData);
+      // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
+      await onConfirm(
+        position,
+        parseTakeProfitPrice,
+        parseStopLossPrice,
+        trackingData,
+      );
       navigation.goBack();
     } finally {
       setIsUpdating(false);
@@ -439,7 +445,11 @@ const PerpsTPSLView: React.FC = () => {
   }, [focusedInput, dismissKeypad, handleStopLossOff]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['top', 'bottom']}
+      testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
+    >
       {/* Simple header with back button and title */}
       <View style={styles.header}>
         <View style={styles.headerBackButton}>
@@ -912,7 +922,7 @@ const PerpsTPSLView: React.FC = () => {
                 onPress={handleConfirm}
                 isDisabled={confirmDisabled}
                 loading={isUpdating}
-                testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
+                testID={PerpsTPSLViewSelectorsIDs.SET_BUTTON}
               />
             </View>
           </View>

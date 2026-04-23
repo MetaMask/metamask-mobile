@@ -3,6 +3,7 @@ import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   RPCMethodsMiddleParameters,
 } from '../../RPCMethods/RPCMethodMiddleware';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -96,6 +97,7 @@ export const setupBridge = ({
         isWalletConnect: false,
         analytics: {
           isRemoteConn: true,
+          transport: TransportType.SOCKET_RELAY,
           platform:
             originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
         },

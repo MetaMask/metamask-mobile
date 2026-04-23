@@ -7,7 +7,10 @@
  * apply production code standards (strict types, full error handling,
  * abstraction layers) here; keep it pragmatic and easy to change.
  */
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
@@ -18,12 +21,14 @@ import {
   setExistingUser,
   logIn,
   seedphraseBackedUp,
+  setMultichainAccountsIntroModalSeen,
 } from '../../actions/user';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
+  OPTIN_META_METRICS_UI_SEEN,
   PERPS_GTM_MODAL_SHOWN,
   PREDICT_GTM_MODAL_SHOWN,
   REWARDS_GTM_MODAL_SHOWN,
@@ -277,15 +282,22 @@ const AgenticService = {
    * @param navRef  - Raw (unwrapped) navigation container ref
    * @param deferredNav - The requestAnimationFrame-deferred proxy
    */
-  install(navRef: NavigationContainerRef, deferredNav: NavigationContainerRef) {
+  install(
+    navRef: NavigationContainerRef<ParamListBase>,
+    deferredNav: NavigationContainerRef<ParamListBase>,
+  ) {
     Logger.log('[AgenticService] __AGENTIC__ bridge installed');
 
     globalThis.__AGENTIC__ = {
       platform: Platform.OS,
       navigate: (name: string, params?: object) =>
-        deferredNav.navigate(name as never, params as never),
+        (
+          deferredNav as unknown as {
+            navigate: (name: string, params?: object) => void;
+          }
+        ).navigate(name, params),
       getRoute: () => navRef.getCurrentRoute(),
-      getState: () => navRef.dangerouslyGetState(),
+      getState: () => navRef.getState(),
       canGoBack: () => navRef.canGoBack(),
       goBack: () => deferredNav.goBack(),
       listAccounts: () =>
@@ -478,6 +490,15 @@ const AgenticService = {
             // Suppress ExperienceEnhancer (marketing consent) modal
             store.dispatch(setDataCollectionForMarketing(false));
           }
+
+          // 5b. Set metrics UI as seen (prevents Authentication.unlockWallet
+          // from navigating to OptinMetrics after setupWallet resets to Wallet)
+          if (settings.metametrics !== undefined) {
+            await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, 'true');
+          }
+
+          // 5c. Mark multichain accounts intro modal as seen
+          store.dispatch(setMultichainAccountsIntroModalSeen(true));
 
           // 6. Skip perps tutorial onboarding if requested
           if (settings.skipPerpsTutorial === true) {

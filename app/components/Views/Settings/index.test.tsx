@@ -22,10 +22,7 @@ jest.mock('../../../util/analytics/whenEngineReady', () => ({
   getEngine: jest.fn(() => ({})),
 }));
 
-// Import the mocked Authentication
-import { Authentication } from '../../../core';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
-import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
@@ -64,13 +61,6 @@ jest.mock('../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
-  () => ({
-    useAccountMenuEnabled: jest.fn(() => false),
-  }),
-);
-
 describe('Settings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -83,10 +73,10 @@ describe('Settings', () => {
   });
 
   it('renders settings component with all sections', () => {
-    const { toJSON } = renderWithProvider(<Settings />, {
+    const { getByText } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('app_settings.title'))).toBeOnTheScreen();
   });
 
   it('renders header with correct title', () => {
@@ -129,13 +119,13 @@ describe('Settings', () => {
     const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
-  it('renders contacts settings button when account menu is disabled', () => {
-    jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render contacts (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const contactsSettings = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
-    expect(contactsSettings).toBeDefined();
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.CONTACTS),
+    ).not.toBeOnTheScreen();
   });
   it('render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
@@ -153,43 +143,43 @@ describe('Settings', () => {
     );
     expect(experimentalSettings).toBeDefined();
   });
-  it('renders about metamask button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render about metamask (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const aboutMetamask = getByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK);
-    expect(aboutMetamask).toBeDefined();
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK),
+    ).not.toBeOnTheScreen();
   });
-  it('renders request feature button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render request feature (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const requestFeature = getByTestId(SettingsViewSelectorsIDs.REQUEST);
-    expect(requestFeature).toBeDefined();
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.REQUEST),
+    ).not.toBeOnTheScreen();
   });
-  it('renders contact support button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render contact support (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const contactSupport = getByTestId(SettingsViewSelectorsIDs.CONTACT);
-    expect(contactSupport).toBeDefined();
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.CONTACT),
+    ).not.toBeOnTheScreen();
   });
-  it('renders lock button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render lock button (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const lock = getByTestId(SettingsViewSelectorsIDs.LOCK);
-    expect(lock).toBeDefined();
+    expect(queryByTestId(SettingsViewSelectorsIDs.LOCK)).not.toBeOnTheScreen();
   });
-  it('renders permissions settings button when enabled and account menu is disabled', () => {
-    jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render permissions (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const permissionsSettings = getByTestId(
-      SettingsViewSelectorsIDs.PERMISSIONS,
-    );
-    expect(permissionsSettings).toBeDefined();
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.PERMISSIONS),
+    ).not.toBeOnTheScreen();
   });
   it('renders backup and sync settings button and navigates to correct page on press', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
@@ -202,18 +192,6 @@ describe('Settings', () => {
 
     fireEvent.press(backupAndSyncSettings);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.BACKUP_AND_SYNC);
-  });
-
-  it('calls Authentication.lockApp with correct parameters when onPressLock is called', async () => {
-    // Test the Authentication.lockApp function directly with the expected parameters
-    await Authentication.lockApp({ reset: false, locked: false });
-
-    // Verify that Authentication.lockApp was called with the correct parameters
-    expect(Authentication.lockApp).toHaveBeenCalledWith({
-      reset: false,
-      locked: false,
-    });
-    expect(Authentication.lockApp).toHaveBeenCalledTimes(1);
   });
 
   describe('Feature Flag Override', () => {
@@ -249,81 +227,6 @@ describe('Settings', () => {
       );
 
       expect(featureFlagOverrideTitle).toBeDefined();
-    });
-  });
-
-  describe('Account Menu Feature Flag', () => {
-    it('hides contacts when account menu is enabled', () => {
-      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
-
-      const { queryByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      expect(queryByTestId(SettingsViewSelectorsIDs.CONTACTS)).toBeNull();
-    });
-
-    it('hides permissions when account menu is enabled', () => {
-      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
-
-      const { queryByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      expect(queryByTestId(SettingsViewSelectorsIDs.PERMISSIONS)).toBeNull();
-    });
-
-    it('hides about metamask when account menu is enabled', () => {
-      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
-
-      const { queryByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      expect(queryByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK)).toBeNull();
-    });
-
-    it('hides request feature when account menu is enabled', () => {
-      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
-
-      const { queryByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      expect(queryByTestId(SettingsViewSelectorsIDs.REQUEST)).toBeNull();
-    });
-
-    it('hides contact support when account menu is enabled', () => {
-      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
-
-      const { queryByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      expect(queryByTestId(SettingsViewSelectorsIDs.CONTACT)).toBeNull();
-    });
-
-    it('hides lock button when account menu is enabled', () => {
-      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
-
-      const { queryByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      expect(queryByTestId(SettingsViewSelectorsIDs.LOCK)).toBeNull();
-    });
-
-    it('still renders core settings sections when account menu is enabled', () => {
-      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
-
-      const { getByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      expect(getByTestId(SettingsViewSelectorsIDs.GENERAL)).toBeDefined();
-      expect(getByTestId(SettingsViewSelectorsIDs.SECURITY)).toBeDefined();
-      expect(getByTestId(SettingsViewSelectorsIDs.ADVANCED)).toBeDefined();
-      expect(getByTestId(SettingsViewSelectorsIDs.EXPERIMENTAL)).toBeDefined();
     });
   });
 });

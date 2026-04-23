@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { addBreadcrumb } from '@sentry/react-native';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import {
@@ -52,6 +53,7 @@ export const PerpsConnectionProvider: React.FC<
   );
   const [retryAttempts, setRetryAttempts] = useState(0);
   const pollIntervalRef = useRef<NodeJS.Timeout>();
+  const lastErrorBreadcrumbRef = useRef<string | null>(null);
 
   // Poll connection state to sync with singleton
   useEffect(() => {
@@ -97,10 +99,56 @@ export const PerpsConnectionProvider: React.FC<
     };
   }, []);
 
+  useEffect(() => {
+    if (isE2E || suppressErrorView) {
+      return;
+    }
+
+    if (
+      connectionState.isConnected ||
+      connectionState.isConnecting ||
+      connectionState.isDisconnecting ||
+      connectionState.isInGracePeriod ||
+      connectionState.error
+    ) {
+      return;
+    }
+
+    PerpsConnectionManager.ensureConnected({
+      source: PERPS_CONNECTION_SOURCE.PERPS_FULLSCREEN_ENTRY,
+    }).catch((err) => {
+      const providerName = PerpsConnectionManager.getActiveProviderName();
+      Logger.error(
+        ensureError(err, 'PerpsConnectionProvider.ensureConnectedOnEntry'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'PerpsConnectionManager',
+            action: 'connection_ensure_connected_on_entry',
+            ...(providerName && { provider: providerName }),
+          },
+          context: {
+            name: 'PerpsConnectionProvider.ensureConnectedOnEntry',
+            data: {},
+          },
+        },
+      );
+    });
+  }, [
+    connectionState.error,
+    connectionState.isConnected,
+    connectionState.isConnecting,
+    connectionState.isDisconnecting,
+    connectionState.isInGracePeriod,
+    suppressErrorView,
+  ]);
+
   // Stable connect function that uses the singleton
   const connect = useCallback(async () => {
     try {
-      await PerpsConnectionManager.connect();
+      await PerpsConnectionManager.connect({
+        source: PERPS_CONNECTION_SOURCE.PERPS_CONNECTION_PROVIDER,
+      });
     } catch (err) {
       const providerName = PerpsConnectionManager.getActiveProviderName();
       Logger.error(ensureError(err, 'PerpsConnectionProvider.connect'), {
@@ -228,24 +276,27 @@ export const PerpsConnectionProvider: React.FC<
     ],
   );
 
-  // Sentry breadcrumb: makes error screen appearance visible in issue timelines
-  // Placed in useEffect to avoid firing on every re-render (polling is 100ms)
-  // retryAttempts intentionally excluded — breadcrumb should fire once per error
-  // appearance, not on every retry (retries are tracked in handleRetry breadcrumb)
   useEffect(() => {
-    if (connectionState.error) {
-      addBreadcrumb({
-        category: 'perps.connection',
-        message: 'PerpsConnectionErrorView shown',
-        level: 'error',
-        data: {
-          errorCode: connectionState.error,
-          retryAttempts,
-        },
-      });
+    if (!connectionState.error) {
+      lastErrorBreadcrumbRef.current = null;
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectionState.error]);
+
+    if (lastErrorBreadcrumbRef.current === connectionState.error) {
+      return;
+    }
+
+    addBreadcrumb({
+      category: 'perps.connection',
+      message: 'PerpsConnectionErrorView shown',
+      level: 'error',
+      data: {
+        errorCode: connectionState.error,
+        retryAttempts,
+      },
+    });
+    lastErrorBreadcrumbRef.current = connectionState.error;
+  }, [connectionState.error, retryAttempts]);
 
   // Environment-level error handling - show error screen if connection failed
   // This ensures NO Perps screen can render when there's a connection error

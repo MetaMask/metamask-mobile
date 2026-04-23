@@ -1,4 +1,4 @@
-import { Hex, isHexString } from '@metamask/utils';
+import { hasProperty, Hex, isHexString } from '@metamask/utils';
 
 import {
   countSignificantFigures,
@@ -438,10 +438,13 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
       let amount = '0';
       let asset = 'USDC';
 
-      if ('usdc' in update.delta && update.delta.usdc) {
+      if (hasProperty(update.delta, 'usdc') && update.delta.usdc) {
         amount = Math.abs(parseFloat(update.delta.usdc)).toString();
       }
-      if ('coin' in update.delta && typeof update.delta.coin === 'string') {
+      if (
+        hasProperty(update.delta, 'coin') &&
+        typeof update.delta.coin === 'string'
+      ) {
         asset = update.delta.coin;
       }
 

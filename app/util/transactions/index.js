@@ -235,6 +235,9 @@ const actionKeys = {
   [TransactionType.predictWithdraw]: strings(
     'transactions.tx_review_predict_withdraw',
   ),
+  [TransactionType.perpsWithdraw]: strings(
+    'transactions.tx_review_perps_withdraw',
+  ),
   [TransactionType.musdConversion]: strings(
     'transactions.tx_review_musd_conversion',
   ),
@@ -612,6 +615,10 @@ export async function getTransactionActionKey(transaction, chainId) {
     return TransactionType.predictWithdraw;
   }
 
+  if (hasTransactionType(transaction, [TransactionType.perpsWithdraw])) {
+    return TransactionType.perpsWithdraw;
+  }
+
   if (!to) {
     return CONTRACT_METHOD_DEPLOY;
   }
@@ -638,6 +645,10 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   if (type === TransactionType.contractInteraction) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
+  }
+
+  if (type === TransactionType.simpleSend) {
+    return SEND_ETHER_ACTION_KEY;
   }
 
   const toSmartContract =

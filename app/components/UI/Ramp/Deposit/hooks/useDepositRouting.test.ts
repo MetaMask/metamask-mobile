@@ -7,10 +7,6 @@ import useHandleNewOrder from './useHandleNewOrder';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { endTrace } from '../../../../../util/trace';
 
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-}));
-
 const mockUseDepositSdkMethodInitialState = {
   data: null,
   error: null as string | null,

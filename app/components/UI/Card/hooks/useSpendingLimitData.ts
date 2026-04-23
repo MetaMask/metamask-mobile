@@ -2,12 +2,12 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import useGetDelegationSettings from './useGetDelegationSettings';
-import { CardTokenAllowance, DelegationSettingsResponse } from '../types';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
-import { buildTokenListFromSettings } from '../util/buildTokenList';
+import { CardFundingToken, DelegationSettingsResponse } from '../types';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
+import { buildDelegationTokenList } from '../util/buildTokenList';
 
 interface UseSpendingLimitDataReturn {
-  availableTokens: CardTokenAllowance[];
+  availableTokens: CardFundingToken[];
   delegationSettings: DelegationSettingsResponse | null;
   isLoading: boolean;
   error: Error | null;
@@ -17,11 +17,11 @@ interface UseSpendingLimitDataReturn {
 /**
  * Hook to fetch and prepare data needed for the SpendingLimit screen.
  * Builds the list of available tokens for delegation from delegation settings.
- * Uses the shared buildTokenListFromSettings utility.
+ * Uses the shared buildDelegationTokenList utility.
  */
 const useSpendingLimitData = (): UseSpendingLimitDataReturn => {
   const { sdk } = useCardSDK();
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
 
   const {
     data: delegationSettings,
@@ -30,9 +30,9 @@ const useSpendingLimitData = (): UseSpendingLimitDataReturn => {
     fetchData: fetchDelegationSettings,
   } = useGetDelegationSettings();
 
-  const availableTokens = useMemo<CardTokenAllowance[]>(
+  const availableTokens = useMemo<CardFundingToken[]>(
     () =>
-      buildTokenListFromSettings({
+      buildDelegationTokenList({
         delegationSettings,
         getSupportedTokensByChainId: sdk
           ? (chainId) =>

@@ -39,7 +39,6 @@ import {
   selectUnlockedRewardError,
   selectSeasonRewardById,
   selectPointsEvents,
-  selectSeasonShouldInstallNewVersion,
   selectBulkLinkState,
   selectBulkLinkIsRunning,
   selectBulkLinkTotalAccounts,
@@ -70,6 +69,7 @@ import {
   selectOndoCampaignLeaderboardPositionById,
   selectOndoCampaignPortfolio,
   selectOndoCampaignPortfolioById,
+  selectOndoCampaignActivityById,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
@@ -82,6 +82,7 @@ import {
   CampaignType,
   SeasonWayToEarnDto,
   PointsEventDto,
+  OndoGmActivityEntryDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -2510,46 +2511,6 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectSeasonShouldInstallNewVersion', () => {
-    it('returns null when season should install new version is not set', () => {
-      const mockState = { rewards: { seasonShouldInstallNewVersion: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectSeasonShouldInstallNewVersion),
-      );
-      expect(result.current).toBeNull();
-    });
-
-    it('returns version string when set', () => {
-      const mockState = {
-        rewards: { seasonShouldInstallNewVersion: '1.2.3' },
-      };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectSeasonShouldInstallNewVersion),
-      );
-      expect(result.current).toBe('1.2.3');
-    });
-
-    describe('Direct selector calls', () => {
-      it('returns null when season should install new version is null', () => {
-        const state = createMockRootState({
-          seasonShouldInstallNewVersion: null,
-        });
-        expect(selectSeasonShouldInstallNewVersion(state)).toBeNull();
-      });
-
-      it('returns version string when set', () => {
-        const state = createMockRootState({
-          seasonShouldInstallNewVersion: '2.0.0',
-        });
-        expect(selectSeasonShouldInstallNewVersion(state)).toBe('2.0.0');
-      });
-    });
-  });
-
   describe('selectBulkLinkState', () => {
     it('returns bulk link state when set', () => {
       const mockState = {
@@ -3404,13 +3365,33 @@ describe('Rewards selectors', () => {
     tiers: {
       STARTER: {
         entries: [
-          { rank: 1, referralCode: 'ABC123', rateOfReturn: 0.15 },
-          { rank: 2, referralCode: 'DEF456', rateOfReturn: 0.1 },
+          {
+            rank: 1,
+            referralCode: 'ABC123',
+            rateOfReturn: 0.15,
+            qualifiedDays: 10,
+            qualified: true,
+          },
+          {
+            rank: 2,
+            referralCode: 'DEF456',
+            rateOfReturn: 0.1,
+            qualifiedDays: 10,
+            qualified: true,
+          },
         ],
         totalParticipants: 50,
       },
       MID: {
-        entries: [{ rank: 1, referralCode: 'GHI789', rateOfReturn: 0.2 }],
+        entries: [
+          {
+            rank: 1,
+            referralCode: 'GHI789',
+            rateOfReturn: 0.2,
+            qualifiedDays: 10,
+            qualified: true,
+          },
+        ],
         totalParticipants: 30,
       },
     },
@@ -3424,6 +3405,9 @@ describe('Rewards selectors', () => {
     currentUsdValue: 1000,
     totalUsdDeposited: 900,
     netDeposit: 800,
+    qualifiedDays: 10,
+    qualified: true,
+    neighbors: [],
     computedAt: '2024-03-20T12:00:00.000Z',
   };
 
@@ -3433,8 +3417,8 @@ describe('Rewards selectors', () => {
       tokenName: string;
       tokenAsset: string;
       units: string;
-      costBasis: string;
-      avgCostPerUnit: string;
+      bookPrice: string;
+      bookValue: string;
       currentPrice: string;
       currentValue: string;
       unrealizedPnl: string;
@@ -3442,9 +3426,10 @@ describe('Rewards selectors', () => {
     }[],
     summary: {
       totalCurrentValue: '1000',
-      totalCostBasis: '900',
+      totalBookValue: '900',
       totalUsdDeposited: '900',
       netDeposit: '800',
+      totalCashedOut: '0',
       portfolioPnl: '100',
       portfolioPnlPercent: '0.1',
     },
@@ -3738,6 +3723,58 @@ describe('Rewards selectors', () => {
       expect(
         selectOndoCampaignPortfolioById('sub-1', 'campaign-1')(state),
       ).toEqual(mockPortfolio);
+    });
+  });
+
+  describe('selectOndoCampaignActivityById', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': [] },
+      });
+      expect(
+        selectOndoCampaignActivityById(undefined, 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': [] },
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when activity does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: {},
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns activity entries for specified subscription and campaign', () => {
+      const mockEntries: OndoGmActivityEntryDto[] = [
+        {
+          type: 'DEPOSIT',
+          srcToken: {
+            tokenAsset: 'eip155:59144/erc20:0xabc',
+            tokenSymbol: 'USDC',
+            tokenName: 'USD Coin',
+          },
+          destToken: null,
+          destAddress: null,
+          usdAmount: '5000.000000',
+          timestamp: '2026-03-28T14:30:00.000Z',
+        },
+      ];
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': mockEntries },
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
+      ).toEqual(mockEntries);
     });
   });
 });

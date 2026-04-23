@@ -111,7 +111,6 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
             description={blockaidError}
           />
         )}
-
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}

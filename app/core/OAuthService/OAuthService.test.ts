@@ -16,6 +16,8 @@ const mockDeviceIsAndroid = jest.fn();
 jest.mock('./OAuthLoginHandlers/constants', () => ({
   web3AuthNetwork: 'sapphire_mainnet',
   AuthServerUrl: 'https://auth.example.com',
+  E2E_QA_MOCK_OAUTH_TOKEN_URL:
+    'https://auth-service.uat-api.cx.metamask.io/api/v1/qa/mock/oauth/token',
   AUTH_SERVER_MARKETING_OPT_IN_PATH: '/api/v1/oauth/marketing_opt_in_status',
   SupportedPlatforms: {
     Android: 'android',
@@ -84,6 +86,19 @@ jest.mock('../../util/device', () => ({
   },
 }));
 
+const mockIsE2EMockOAuth = jest.fn().mockReturnValue(false);
+const mockGetE2EByoaAuthSecret = jest.fn<string | undefined, []>(
+  () => undefined,
+);
+
+jest.mock('../../util/environment', () => ({
+  ...jest.requireActual('../../util/environment'),
+  isE2EMockOAuth: () => mockIsE2EMockOAuth(),
+  getE2EByoaAuthSecret: () => mockGetE2EByoaAuthSecret(),
+}));
+
+import { analytics } from '../../util/analytics/analytics';
+import { AccountType } from '../../constants/onboarding';
 import OAuthLoginService from './OAuthService';
 const defaultLoginHandlerResponse = () => ({
   idToken: MOCK_JWT_TOKEN,
@@ -107,6 +122,11 @@ const mockGetAuthTokens = jest.fn().mockImplementation(() => ({
 
 const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
   authConnection: AuthConnection.Google,
+  options: {
+    clientId: 'e2e-mock-google-client-id',
+    authServerUrl: 'https://auth.example.com',
+    web3AuthNetwork: 'sapphire_mainnet',
+  },
   login: () => mockLoginHandlerResponse(),
   getAuthTokens: () => mockGetAuthTokens(),
   decodeIdToken: () =>
@@ -366,6 +386,50 @@ describe('OAuth login service', () => {
     expect(mockAuthenticate).toHaveBeenCalledTimes(0);
   });
 
+  it('SOCIAL_LOGIN_FAILED uses new-user account_type when not rehydrating', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login error', OAuthErrorType.LoginError);
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+    ).rejects.toMatchObject({ code: OAuthErrorType.LoginError });
+
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
+        properties: expect.objectContaining({
+          account_type: AccountType.MetamaskGoogle,
+          is_rehydration: 'false',
+        }),
+      }),
+    );
+  });
+
+  it('SOCIAL_LOGIN_FAILED uses existing-user account_type when rehydrating', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login error', OAuthErrorType.LoginError);
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, true),
+    ).rejects.toMatchObject({ code: OAuthErrorType.LoginError });
+
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
+        properties: expect.objectContaining({
+          account_type: AccountType.ImportedGoogle,
+          is_rehydration: 'true',
+        }),
+      }),
+    );
+  });
+
   // use for loop to test undefine and null cases
   for (const value of [undefined, null]) {
     it(`throws error when login handler returns ${value}`, async () => {
@@ -574,6 +638,143 @@ describe('OAuth login service', () => {
     expect(OAuthLoginService.localState.loginInProgress).toBe(false);
     expect(OAuthLoginService.localState.oauthLoginSuccess).toBe(false);
     expect(OAuthLoginService.localState.oauthLoginError).toBeNull();
+  });
+
+  describe('E2E_MOCK_OAUTH mode', () => {
+    let fetchSpy: jest.SpiedFunction<typeof fetch>;
+
+    const qaMockTokenEnvelope = () => ({
+      success: true,
+      data: {
+        tokens: {
+          jwt_token: MOCK_JWT_TOKEN,
+          access_token: 'mock-access-token',
+          metadata_access_token: 'mock-metadata-access-token',
+          refresh_token: 'mock-refresh-token',
+          revoke_token: 'mock-revoke-token',
+          indexes: [1, 2, 3],
+          endpoints: { endpoint1: 'value1' },
+        },
+      },
+    });
+
+    beforeEach(() => {
+      mockIsE2EMockOAuth.mockReturnValue(true);
+      mockGetE2EByoaAuthSecret.mockReturnValue('test-byoa-secret');
+      fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(qaMockTokenEnvelope()),
+      } as Response);
+    });
+
+    afterEach(() => {
+      fetchSpy.mockRestore();
+      mockIsE2EMockOAuth.mockReturnValue(false);
+      mockGetE2EByoaAuthSecret.mockReturnValue(undefined);
+      delete process.env.E2E_MOCK_OAUTH_EMAIL;
+    });
+
+    it('exchanges QA mock tokens and returns mock success without seedless authenticate', async () => {
+      const loginHandler = mockCreateLoginHandler();
+
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+        false,
+      );
+
+      expect(result.type).toBe('success');
+      expect(result.existingUser).toBe(false);
+      expect(result.accountName).toBe('swnam909@gmail.com');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://auth-service.uat-api.cx.metamask.io/api/v1/qa/mock/oauth/token',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'byoa-auth-secret': 'test-byoa-secret',
+          },
+        }),
+      );
+      const body = JSON.parse(
+        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(body).toMatchObject({
+        email_id: 'newuser+e2e@web3auth.io',
+        client_id: 'e2e-mock-google-client-id',
+        login_provider: AuthConnection.Google,
+        access_type: 'offline',
+      });
+      expect(mockAuthenticate).not.toHaveBeenCalled();
+      expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
+      expect(mockGetAuthTokens).not.toHaveBeenCalled();
+    });
+
+    it('uses E2E_MOCK_OAUTH_EMAIL for email_id when set', async () => {
+      process.env.E2E_MOCK_OAUTH_EMAIL = 'custom+e2e@web3auth.io';
+      const loginHandler = mockCreateLoginHandler();
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      const body = JSON.parse(
+        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(body.email_id).toBe('custom+e2e@web3auth.io');
+    });
+
+    it('rejects when QA mock token response is non-OK', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: () => Promise.resolve({}),
+      } as Response);
+      const loginHandler = mockCreateLoginHandler();
+
+      await expectOAuthError(
+        OAuthLoginService.handleOAuthLogin(loginHandler, false),
+        OAuthErrorType.LoginError,
+      );
+
+      expect(mockAuthenticate).not.toHaveBeenCalled();
+    });
+
+    it('succeeds when QA mock response omits refresh_token', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: {
+              tokens: {
+                jwt_token: MOCK_JWT_TOKEN,
+                access_token: 'mock-access-token',
+                metadata_access_token: 'mock-metadata-access-token',
+              },
+            },
+          }),
+      } as Response);
+      const loginHandler = mockCreateLoginHandler();
+
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+        false,
+      );
+
+      expect(result.type).toBe('success');
+      expect(mockAuthenticate).not.toHaveBeenCalled();
+    });
+
+    it('does not call provider login, getAuthTokens, or seedless authenticate', async () => {
+      const loginHandler = mockCreateLoginHandler();
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
+      expect(mockGetAuthTokens).not.toHaveBeenCalled();
+      expect(mockAuthenticate).not.toHaveBeenCalled();
+    });
   });
 });
 

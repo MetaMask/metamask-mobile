@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   getSmartTransactionMetricsProperties,
   SmartTransactionsController,
@@ -21,7 +21,7 @@ import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const smartTransactionsControllerInit: ControllerInitFunction<
+export const smartTransactionsControllerInit: MessengerClientInitFunction<
   SmartTransactionsController,
   SmartTransactionsControllerMessenger,
   SmartTransactionsControllerInitMessenger

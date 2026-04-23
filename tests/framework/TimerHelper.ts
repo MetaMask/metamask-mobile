@@ -22,11 +22,15 @@ class TimerHelper {
    * Creates a new TimerHelper and registers a timer in the store.
    * @param id - Timer description/identifier
    * @param threshold - Platform-specific thresholds in ms (effective threshold = base + 10%)
-   * @param testDevice - The device instance used to determine the current platform
+   * @param currentPlatform - The current platform of the device being tested
    */
-  constructor(id: string, threshold?: PlatformThreshold, testDevice?: Device) {
+  constructor(
+    id: string,
+    threshold?: PlatformThreshold,
+    currentPlatform?: 'android' | 'ios',
+  ) {
     this._id = id;
-    this._baseThreshold = this._resolveThreshold(threshold, testDevice);
+    this._baseThreshold = this._resolveThreshold(threshold, currentPlatform);
     TimerStore.createTimer(this.id);
   }
 
@@ -38,20 +42,20 @@ class TimerHelper {
    */
   private _resolveThreshold(
     threshold?: PlatformThreshold,
-    testDevice?: Device,
+    currentPlatform?: 'android' | 'ios',
   ): number | null {
     if (!threshold) {
       return null;
     }
 
-    if (!testDevice) {
+    if (!currentPlatform) {
       console.warn(
         'TimerHelper: device not provided, cannot determine platform for threshold',
       );
       return null;
     }
 
-    if (AppwrightSelectors.isAndroid(testDevice)) {
+    if (currentPlatform === 'android') {
       return threshold.android;
     }
 

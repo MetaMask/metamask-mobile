@@ -74,21 +74,6 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   ),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    SafeAreaView: View,
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 const mockRejectPermissionsRequest = jest.fn();
 const mockAcceptPermissionsRequest = jest.fn().mockResolvedValue(undefined);
 const mockRemoveChannel = jest.fn();
@@ -411,6 +396,7 @@ const createMockState = (): DeepPartial<RootState> => ({
         MOCK_ADDRESS_1,
       ),
       AccountTreeController: {
+        selectedAccountGroup: MOCK_ACCOUNT_GROUP_1_ID,
         accountTree: {
           wallets: {
             [MOCK_WALLET_ID]: {
@@ -430,7 +416,6 @@ const createMockState = (): DeepPartial<RootState> => ({
               },
             },
           },
-          selectedAccountGroup: MOCK_ACCOUNT_GROUP_1_ID,
         },
       },
       NetworkController: {

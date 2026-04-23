@@ -458,15 +458,14 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
     );
   });
 
-  it('returns updating account settings text when accounts are being updated', () => {
+  it('returns undefined when accounts are being updated (no modal for account updates)', () => {
     const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotificationsAccount.mockReturnValue([
         '0xAddr1',
       ]);
     });
-    expect(hook.result.current).toBe(
-      strings('app_settings.updating_account_settings'),
-    );
+    // Account loading is now handled inline per-toggle, not in a modal
+    expect(hook.result.current).toBeUndefined();
   });
 
   it('returns undefined when no loading state is active', () => {

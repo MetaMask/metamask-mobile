@@ -31,7 +31,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import Checkbox from '../../../component-library/components/Checkbox';
@@ -48,7 +50,6 @@ import {
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
-import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import Device from '../../../util/device';
 import type { OptinMetricsRouteParams } from './OptinMetrics.types';
 import {
@@ -73,11 +74,10 @@ const OptinMetrics = () => {
       >
     >();
   const tw = useTailwind();
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
 
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
-  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const reduxAccountType = useSelector(selectOnboardingAccountType);
 
   // State
@@ -198,7 +198,7 @@ const OptinMetrics = () => {
         .build(),
     );
 
-    await metrics.addTraitsToUser({
+    await metrics.identify({
       ...generateDeviceAnalyticsMetaData(),
       ...generateUserSettingsAnalyticsMetaData(),
       [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
@@ -217,7 +217,10 @@ const OptinMetrics = () => {
         // as precision is only to the milisecond
         // and loop seems to runs faster than that
         setTimeout(() => {
-          metrics.trackEvent(...eventArgs);
+          const event = AnalyticsEventBuilder.createEventBuilder(
+            eventArgs[0],
+          ).build();
+          metrics.trackEvent(event);
         }, delay);
         delay += eventTrackingDelay;
       });
@@ -432,12 +435,7 @@ const OptinMetrics = () => {
                 color={TextColor.TextAlternative}
                 twClassName="mt-1"
               >
-                {isPna25FlagEnabled
-                  ? strings(
-                      'privacy_policy.gather_basic_usage_description_updated',
-                    ) + ' '
-                  : strings('privacy_policy.gather_basic_usage_description') +
-                    ' '}
+                {strings('privacy_policy.gather_basic_usage_description') + ' '}
                 <Text
                   color={TextColor.PrimaryDefault}
                   variant={TextVariant.BodySm}
