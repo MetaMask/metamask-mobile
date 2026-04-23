@@ -117,13 +117,13 @@ const DiscoverySelectDeviceScreen: React.FC<DiscoverySelectDeviceScreenProps> = 
           </Box>
 
           <View style={tw.style('bg-muted')}>
-            {devices.map((device) => {
-              const isSelected = device.id === selectedDeviceId;
+            {devices.map((hwDevice) => {
+              const isSelected = hwDevice.id === selectedDeviceId;
               return (
                 <TouchableOpacity
-                  key={device.id}
-                  onPress={() => onSelectDevice(device)}
-                  testID={`discovery-device-option-${device.name
+                  key={hwDevice.id}
+                  onPress={() => onSelectDevice(hwDevice)}
+                  testID={`discovery-device-option-${hwDevice.name
                     .toLowerCase()
                     .replace(/\s+/g, '-')}`}
                 >

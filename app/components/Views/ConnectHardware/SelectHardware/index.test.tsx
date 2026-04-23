@@ -80,7 +80,7 @@ describe('SelectHardwareWallet', () => {
     ).toBeTruthy();
     expect(screen.getByText('Keystone')).toBeTruthy();
     expect(screen.getByText('OneKey')).toBeTruthy();
-    expect(screen.getByText('Other QR wallet')).toBeTruthy();
+    expect(screen.getByText('connect_hardware.other_qr_wallet')).toBeTruthy();
   });
 
   it('sets navigation options on mount', () => {

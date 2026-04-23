@@ -80,7 +80,7 @@ describe('Ledger config', () => {
     it('exposes getHDPathOptions with ledger paths', () => {
       const options = config.accountManager.getHDPathOptions?.();
       expect(options).toBeDefined();
-      expect(options!.length).toBe(3);
+      expect(options).toHaveLength(3);
     });
 
     it('delegates getAccounts to getLedgerAccountsByOperation', async () => {

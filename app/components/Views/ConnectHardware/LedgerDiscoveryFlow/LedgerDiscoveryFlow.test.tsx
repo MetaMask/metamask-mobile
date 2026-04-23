@@ -62,6 +62,16 @@ jest.mock(
   }),
 );
 
+jest.mock('rive-react-native', () => ({
+  __esModule: true,
+  default: () => null,
+  Fit: { Contain: 1 },
+  Alignment: { Center: 1 },
+  AutoBind: () => () => null,
+  useRive: () => [jest.fn(), null],
+  RiveRef: jest.fn(),
+}));
+
 // ─── Child component stubs ──────────────────────────────────────────────────────
 
 jest.mock('./LedgerDiscoveryAccountSelection', () => {
@@ -142,17 +152,14 @@ describe('LedgerDiscoveryFlow', () => {
       ).toBeOnTheScreen();
     });
 
-    it('immediately shows not-found with troubleshooting tips when bluetooth is off', () => {
+    it('shows bluetooth-off screen when bluetooth is off', () => {
       renderFlow();
 
-      // Adapter is created, transport callback fires with false (BT off)
       act(() => {
         capturedTransportCallback?.(false);
       });
 
-      // Should transition directly to not-found; "Enable Bluetooth" is in the tips
-      expect(screen.getByText('Device not found')).toBeOnTheScreen();
-      expect(screen.getByText('Enable Bluetooth')).toBeOnTheScreen();
+      expect(screen.getByText('Bluetooth is turned off')).toBeOnTheScreen();
     });
 
     it('does not start scanning until bluetooth is on', async () => {
@@ -213,12 +220,12 @@ describe('LedgerDiscoveryFlow', () => {
       expect(screen.getByText('Device not found')).toBeOnTheScreen();
     });
 
-    it('shows not-found view immediately on scan error', async () => {
+    it('shows bluetooth-connection-failed screen immediately on scan error', async () => {
       renderFlow();
       await simulateBluetoothOn();
       simulateScanError(new Error('BLE scan failed'));
 
-      expect(screen.getByText('Device not found')).toBeOnTheScreen();
+      expect(screen.getByText('Bluetooth connection failed')).toBeOnTheScreen();
     });
 
     it('shows a Try Again button on the not-found screen', async () => {

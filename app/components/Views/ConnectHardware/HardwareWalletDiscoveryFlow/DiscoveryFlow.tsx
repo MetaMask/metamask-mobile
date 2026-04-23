@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { createAdapter } from '../../../../core/HardwareWallet/adapters/factory';
 import useBluetoothPermissions from '../../../hooks/useBluetoothPermissions';
 import { BluetoothPermissionErrors } from '../../../../core/Ledger/ledgerErrors';
@@ -63,13 +63,13 @@ const DiscoveryFlow: React.FC = () => {
     if (!bluetoothPermissionError) return;
     switch (bluetoothPermissionError) {
       case BluetoothPermissionErrors.BluetoothAccessBlocked:
-        send({ type: 'PERMISSIONS_DENIED', errorCode: 7000 as any });
+        send({ type: 'PERMISSIONS_DENIED', errorCode: ErrorCode.PermissionBluetoothDenied });
         break;
       case BluetoothPermissionErrors.LocationAccessBlocked:
-        send({ type: 'PERMISSIONS_DENIED', errorCode: 7001 as any });
+        send({ type: 'PERMISSIONS_DENIED', errorCode: ErrorCode.PermissionLocationDenied });
         break;
       case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
-        send({ type: 'PERMISSIONS_DENIED', errorCode: 7002 as any });
+        send({ type: 'PERMISSIONS_DENIED', errorCode: ErrorCode.PermissionNearbyDevicesDenied });
         break;
     }
   }, [bluetoothPermissionError, send]);

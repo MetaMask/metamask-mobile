@@ -18,6 +18,7 @@ export function createLedgerConfig(): DeviceUIConfig {
   return {
     walletType: HardwareWalletType.Ledger,
     discoveryTimeoutMs: 15000,
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     animationSource: require('../../../../../animations/hardware_wallet.riv'),
     artboardName: 'Ledger',
     stateMachineName: 'Ledger_states',

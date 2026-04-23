@@ -118,12 +118,13 @@ const simulateBluetoothOn = async () => {
   act(() => {
     capturedTransportCallback?.(true);
   });
+  // eslint-disable-next-line no-empty-function
   await act(async () => {});
 };
 
-const simulateDeviceFound = (device: DiscoveredDevice) => {
+const simulateDeviceFound = (foundDevice: DiscoveredDevice) => {
   act(() => {
-    capturedDeviceFoundCallback?.(device);
+    capturedDeviceFoundCallback?.(foundDevice);
   });
 };
 

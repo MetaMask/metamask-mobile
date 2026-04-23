@@ -145,7 +145,7 @@ const DiscoveryAccountSelectionScreen: React.FC<
         setIsSendingCommands(false);
       }
     },
-    [selectedDevice?.id, config.walletType],
+    [selectedDevice?.id],
   );
 
   const onConnectHardware = useCallback(async () => {
