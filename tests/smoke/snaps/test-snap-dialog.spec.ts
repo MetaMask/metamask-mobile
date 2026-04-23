@@ -7,6 +7,8 @@ import Gestures from '../../framework/Gestures';
 import { Matchers } from '../../framework';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { Mockttp } from 'mockttp';
+import { mockDialogSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -17,6 +19,9 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockDialogSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

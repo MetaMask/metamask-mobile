@@ -4,6 +4,8 @@ import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import { Mockttp } from 'mockttp';
+import { mockGetFileSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -14,6 +16,9 @@ describe(FlaskBuildTests('Get File Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockGetFileSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

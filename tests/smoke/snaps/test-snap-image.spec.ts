@@ -5,6 +5,8 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { Assertions, Matchers } from '../../framework';
+import { Mockttp } from 'mockttp';
+import { mockImagesSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -15,6 +17,9 @@ describe(FlaskBuildTests('Image Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockImagesSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

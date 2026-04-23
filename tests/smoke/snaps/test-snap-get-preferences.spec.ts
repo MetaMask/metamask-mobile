@@ -4,6 +4,8 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { FlaskBuildTests } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
+import { Mockttp } from 'mockttp';
+import { mockPreferencesSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -19,6 +21,9 @@ describe(FlaskBuildTests('Get Preferences Snap Tests'), () => {
           .build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockPreferencesSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

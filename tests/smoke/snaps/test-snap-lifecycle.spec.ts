@@ -5,6 +5,8 @@ import { FlaskBuildTests } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
+import { Mockttp } from 'mockttp';
+import { mockLifecycleHooksSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -15,6 +17,9 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockLifecycleHooksSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

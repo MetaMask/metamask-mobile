@@ -8,6 +8,8 @@ import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { TestSnapResultSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors';
+import { Mockttp } from 'mockttp';
+import { mockBackgroundEventsSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -18,6 +20,9 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockBackgroundEventsSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

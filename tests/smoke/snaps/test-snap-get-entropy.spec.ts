@@ -5,6 +5,8 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
+import { Mockttp } from 'mockttp';
+import { mockGetEntropySnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -36,6 +38,9 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockGetEntropySnap(mockServer);
+        },
       },
       async () => {
         await withIosDetoxSyncDisabledForAccountActivityWs(async () => {

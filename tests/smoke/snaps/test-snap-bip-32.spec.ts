@@ -5,6 +5,8 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import { Mockttp } from 'mockttp';
+import { mockBip32Snap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -15,6 +17,9 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockBip32Snap(mockServer);
+        },
       },
       async () => {
         await loginToApp();
