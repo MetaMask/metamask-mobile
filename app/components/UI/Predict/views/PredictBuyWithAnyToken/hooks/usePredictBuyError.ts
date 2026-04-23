@@ -154,7 +154,7 @@ export const usePredictBuyError = ({
       return null;
     }
 
-    if (blockingPayAlertMessage) {
+    if (blockingPayAlertMessage && !isPredictBalanceSelected) {
       return null;
     }
 
@@ -194,6 +194,7 @@ export const usePredictBuyError = ({
     isPlacingOrder,
     isConfirming,
     blockingPayAlertMessage,
+    isPredictBalanceSelected,
     isSheetMode,
   ]);
 
