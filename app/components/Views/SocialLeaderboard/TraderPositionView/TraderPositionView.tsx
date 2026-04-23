@@ -41,7 +41,6 @@ const TraderPositionView = () => {
 
   const {
     symbol,
-    tokenImageUrl,
     marketCap,
     historicalPrices,
     priceDiff,
@@ -91,7 +90,7 @@ const TraderPositionView = () => {
       >
         <TraderTokenInfoRow
           symbol={symbol}
-          tokenImageUrl={tokenImageUrl}
+          position={positionParam}
           marketCap={marketCap}
           pricePercentChange={pricePercentChange}
           activeTimePeriodLabel={activeTimePeriod}
