@@ -108,31 +108,32 @@ describe('keyringControllerInit', () => {
       return builder;
     }
 
-    it('includes a MoneyKeyring builder when the flag is enabled', () => {
-      mockIsMoneyAccountEnabled.mockReturnValue(true);
+    it('always includes a MoneyKeyring builder regardless of the flag', () => {
+      mockIsMoneyAccountEnabled.mockReturnValue(false);
 
       const builder = getMoneyKeyringBuilder();
 
       expect(builder).toBeDefined();
     });
 
-    it('does not include a MoneyKeyring builder when the flag is disabled', () => {
-      mockIsMoneyAccountEnabled.mockReturnValue(false);
+    it('creates a MoneyKeyring instance when invoked and the flag is enabled', () => {
+      mockIsMoneyAccountEnabled.mockReturnValue(true);
 
-      keyringControllerInit(getInitRequestMock());
-
-      const { keyringBuilders } = jest.mocked(KeyringController).mock
-        .calls[0][0] as { keyringBuilders: KeyringBuilder[] };
-
-      const builder = keyringBuilders.find((b) => b.type === MoneyKeyring.type);
-      expect(builder).toBeUndefined();
-    });
-
-    it('creates a MoneyKeyring instance when invoked', () => {
       const builder = getMoneyKeyringBuilder();
 
       builder();
       expect(MoneyKeyring).toHaveBeenCalled();
+    });
+
+    it('throws when invoked and the flag is disabled', () => {
+      mockIsMoneyAccountEnabled.mockReturnValue(true);
+      const builder = getMoneyKeyringBuilder();
+
+      mockIsMoneyAccountEnabled.mockReturnValue(false);
+
+      expect(() => builder()).toThrow(
+        'MoneyKeyring is not supported: Money accounts feature is disabled',
+      );
     });
 
     describe('getMnemonic', () => {

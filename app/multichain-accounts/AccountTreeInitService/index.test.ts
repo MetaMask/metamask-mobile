@@ -15,6 +15,7 @@ const mockAccountTreeGetSelectedAccountGroup = jest.fn();
 const mockMoneyAccountInit = jest.fn();
 const mockMoneyAccountClearState = jest.fn();
 const mockForwardSelectedAccountGroupToSnapKeyring = jest.fn();
+const mockControllerMessengerSubscribe = jest.fn();
 
 jest.mock('../../core/Engine', () => ({
   __esModule: true,
@@ -43,6 +44,13 @@ jest.mock('../../core/Engine', () => ({
       RemoteFeatureFlagController: {
         state: { remoteFeatureFlags: {} },
       },
+    },
+    controllerMessenger: {
+      subscribe: jest
+        .fn()
+        .mockImplementation((...args) =>
+          mockControllerMessengerSubscribe(...args),
+        ),
     },
   },
 }));
@@ -92,6 +100,47 @@ describe('AccountTreeInitService', () => {
       expect(mockMoneyAccountInit).not.toHaveBeenCalled();
     });
 
+    it('subscribes to RemoteFeatureFlagController:stateChange', async () => {
+      await service.initializeAccountTree();
+
+      expect(mockControllerMessengerSubscribe).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:stateChange',
+        expect.any(Function),
+      );
+    });
+
+    it('only subscribes once even when called multiple times', async () => {
+      await service.initializeAccountTree();
+      await service.initializeAccountTree();
+
+      expect(mockControllerMessengerSubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls MoneyAccountController.init when flag becomes enabled via stateChange', async () => {
+      mockIsMoneyAccountEnabled.mockReturnValue(false);
+      await service.initializeAccountTree();
+
+      const stateChangeCallback =
+        mockControllerMessengerSubscribe.mock.calls[0][1];
+
+      mockIsMoneyAccountEnabled.mockReturnValue(true);
+      stateChangeCallback({ remoteFeatureFlags: {} });
+
+      expect(mockMoneyAccountInit).toHaveBeenCalled();
+    });
+
+    it('does not call MoneyAccountController.init via stateChange when flag remains disabled', async () => {
+      mockIsMoneyAccountEnabled.mockReturnValue(false);
+      await service.initializeAccountTree();
+
+      const stateChangeCallback =
+        mockControllerMessengerSubscribe.mock.calls[0][1];
+
+      stateChangeCallback({ remoteFeatureFlags: {} });
+
+      expect(mockMoneyAccountInit).not.toHaveBeenCalled();
+    });
+
     it('forwards the selected account group to the Snap keyring', async () => {
       await service.initializeAccountTree();
       expect(mockForwardSelectedAccountGroupToSnapKeyring).toHaveBeenCalled();
@@ -118,7 +167,14 @@ describe('AccountTreeInitService', () => {
       expect(mockAccountTreeClearState).toHaveBeenCalled();
     });
 
-    it('calls MoneyAccountController.clearState', async () => {
+    it('calls MoneyAccountController.clearState when the flag is enabled', async () => {
+      mockIsMoneyAccountEnabled.mockReturnValue(true);
+      await service.clearState();
+      expect(mockMoneyAccountClearState).toHaveBeenCalled();
+    });
+
+    it('calls MoneyAccountController.clearState even when the flag is disabled', async () => {
+      mockIsMoneyAccountEnabled.mockReturnValue(false);
       await service.clearState();
       expect(mockMoneyAccountClearState).toHaveBeenCalled();
     });

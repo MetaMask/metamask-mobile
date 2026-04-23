@@ -3,6 +3,8 @@ import { forwardSelectedAccountGroupToSnapKeyring } from '../../core/SnapKeyring
 import { isMoneyAccountEnabled } from '../../lib/Money/feature-flags';
 
 export class AccountTreeInitService {
+  #moneyAccountInitSubscribed = false;
+
   initializeAccountTree = async (): Promise<void> => {
     const {
       AccountTreeController,
@@ -22,6 +24,23 @@ export class AccountTreeInitService {
       await MoneyAccountController.init();
     }
 
+    // Remote flags may be empty on first init and populate once fetched;
+    // re-check so MoneyAccountController.init() runs when the flag becomes enabled.
+    if (!this.#moneyAccountInitSubscribed) {
+      this.#moneyAccountInitSubscribed = true;
+
+      Engine.controllerMessenger.subscribe(
+        'RemoteFeatureFlagController:stateChange',
+        ({ remoteFeatureFlags: newRemoteFeatureFlags }) => {
+          if (isMoneyAccountEnabled(newRemoteFeatureFlags)) {
+            // This call is idempotent, so it will not cause issues if the controller is
+            // already initialized.
+            MoneyAccountController.init();
+          }
+        },
+      );
+    }
+
     // Forward initial selected accounts.
     await forwardSelectedAccountGroupToSnapKeyring(
       AccountTreeController.getSelectedAccountGroup(),
@@ -29,18 +48,10 @@ export class AccountTreeInitService {
   };
 
   clearState = async (): Promise<void> => {
-    const {
-      AccountTreeController,
-      MoneyAccountController,
-      RemoteFeatureFlagController,
-    } = Engine.context;
-    const { remoteFeatureFlags } = RemoteFeatureFlagController.state;
+    const { AccountTreeController, MoneyAccountController } = Engine.context;
 
     AccountTreeController.clearState();
-
-    if (isMoneyAccountEnabled(remoteFeatureFlags)) {
-      MoneyAccountController.clearState();
-    }
+    MoneyAccountController.clearState();
   };
 }
 
