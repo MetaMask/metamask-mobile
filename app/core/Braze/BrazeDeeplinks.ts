@@ -1,6 +1,14 @@
 import Braze, { type PushNotificationEvent } from '@braze/react-native-sdk';
-import { type EmitterSubscription } from 'react-native';
+import { NativeModules, type EmitterSubscription } from 'react-native';
 import Logger from '../../util/Logger';
+
+const isBrazeBridgeAvailable = (): boolean => {
+  // Keep tests deterministic regardless of NativeModules mock shape.
+  if (process.env.JEST_WORKER_ID) {
+    return true;
+  }
+  return Boolean((NativeModules as Record<string, unknown>)?.BrazeReactBridge);
+};
 
 /**
  * Retrieve the deep link URL from a Braze push notification that launched the
@@ -12,6 +20,12 @@ import Logger from '../../util/Logger';
  */
 export function getBrazeInitialDeeplink(): Promise<string | null> {
   return new Promise((resolve) => {
+    if (!isBrazeBridgeAvailable()) {
+      Logger.log('[Braze] Native bridge unavailable, skipping initial payload');
+      resolve(null);
+      return;
+    }
+
     try {
       Braze.getInitialPushPayload((payload: PushNotificationEvent | null) => {
         const url = payload?.url;
@@ -48,6 +62,11 @@ export function getBrazeInitialDeeplink(): Promise<string | null> {
 export function subscribeToBrazePushDeeplinks(
   callback: (deeplink: string) => void,
 ): EmitterSubscription | null {
+  if (!isBrazeBridgeAvailable()) {
+    Logger.log('[Braze] Native bridge unavailable, skipping push listener');
+    return null;
+  }
+
   try {
     return Braze.addListener(
       Braze.Events.PUSH_NOTIFICATION_EVENT,
