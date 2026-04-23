@@ -67,6 +67,7 @@ enum EVENT_NAME {
 
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
+  REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
   SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
@@ -98,6 +99,11 @@ enum EVENT_NAME {
   CHART_EMPTY_DISPLAYED = 'chart_empty_displayed',
   SECURITY_TRUST_BOTTOM_SHEET_OPENED = 'Security Trust BottomSheet Opened',
   SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN = 'Security Trust BottomSheet Action Taken',
+  TOKEN_DETAILS_SECURITY_SECTION_VIEWED = 'token_details_security_section_viewed',
+  TOKEN_DETAILS_SECURITY_SECTION_CLICKED = 'token_details_security_section_clicked',
+  SECURITY_PAGE_VIEWED = 'security_page_viewed',
+  SECURITY_PAGE_CTA_CLICKED = 'security_page_cta_clicked',
+  SECURITY_PAGE_DISMISSED = 'security_page_dismissed',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -173,6 +179,8 @@ enum EVENT_NAME {
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
   SOCIAL_LOGIN_FAILED = 'Social Login Failed',
+  SOCIAL_LOGIN_IOS_SUCCESS_VIEWED = 'Social Login iOS Success Viewed',
+  SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED = 'Social Login iOS Success CTA Clicked',
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
   ACCOUNT_NOT_FOUND_PAGE_VIEWED = 'Account Not Found Page Viewed',
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
@@ -680,7 +688,16 @@ enum EVENT_NAME {
   MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
   MUSD_QUICK_CONVERT_SCREEN_VIEWED = 'mUSD Quick Convert Screen Viewed',
   MUSD_BONUS_TERMS_OF_USE_PRESSED = 'mUSD Bonus Terms of Use Pressed',
+  MUSD_BONUS_LEARN_MORE_PRESSED = 'mUSD Bonus Learn More Pressed',
   MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED = 'mUSD Quick Convert Token Row Button Clicked',
+
+  // Money Hub
+  MONEY_HUB_SCREEN_VIEWED = 'Money Hub Screen Viewed',
+  MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED = 'Money Hub Token Row Convert Clicked',
+  MONEY_HUB_CONVERT_BUTTON_CLICKED = 'Money Hub Convert Button Clicked',
+  MONEY_HUB_LEARN_MORE_PRESSED = 'Money Hub Learn More Pressed',
+  MONEY_HUB_SWAP_BUTTON_CLICKED = 'Money Hub Swap Button Clicked',
+  MONEY_HUB_BUY_BUTTON_CLICKED = 'Money Hub Buy Button Clicked',
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
@@ -797,6 +814,9 @@ const events = {
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED: generateOpt(
     EVENT_NAME.REMOTE_CONNECTION_REQUEST_RECEIVED,
+  ),
+  REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
   ),
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
@@ -922,6 +942,12 @@ const events = {
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
   SOCIAL_LOGIN_FAILED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_FAILED),
+  SOCIAL_LOGIN_IOS_SUCCESS_VIEWED: generateOpt(
+    EVENT_NAME.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED,
+  ),
+  SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED: generateOpt(
+    EVENT_NAME.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED,
+  ),
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED: generateOpt(
     EVENT_NAME.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
   ),
@@ -1544,6 +1570,15 @@ const events = {
   SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN: generateOpt(
     EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
   ),
+  TOKEN_DETAILS_SECURITY_SECTION_VIEWED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_SECURITY_SECTION_VIEWED,
+  ),
+  TOKEN_DETAILS_SECURITY_SECTION_CLICKED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_SECURITY_SECTION_CLICKED,
+  ),
+  SECURITY_PAGE_VIEWED: generateOpt(EVENT_NAME.SECURITY_PAGE_VIEWED),
+  SECURITY_PAGE_CTA_CLICKED: generateOpt(EVENT_NAME.SECURITY_PAGE_CTA_CLICKED),
+  SECURITY_PAGE_DISMISSED: generateOpt(EVENT_NAME.SECURITY_PAGE_DISMISSED),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
@@ -1772,8 +1807,27 @@ const events = {
   MUSD_BONUS_TERMS_OF_USE_PRESSED: generateOpt(
     EVENT_NAME.MUSD_BONUS_TERMS_OF_USE_PRESSED,
   ),
+  MUSD_BONUS_LEARN_MORE_PRESSED: generateOpt(
+    EVENT_NAME.MUSD_BONUS_LEARN_MORE_PRESSED,
+  ),
   MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
+  ),
+  MONEY_HUB_SCREEN_VIEWED: generateOpt(EVENT_NAME.MONEY_HUB_SCREEN_VIEWED),
+  MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED: generateOpt(
+    EVENT_NAME.MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED,
+  ),
+  MONEY_HUB_CONVERT_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MONEY_HUB_CONVERT_BUTTON_CLICKED,
+  ),
+  MONEY_HUB_LEARN_MORE_PRESSED: generateOpt(
+    EVENT_NAME.MONEY_HUB_LEARN_MORE_PRESSED,
+  ),
+  MONEY_HUB_SWAP_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MONEY_HUB_SWAP_BUTTON_CLICKED,
+  ),
+  MONEY_HUB_BUY_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MONEY_HUB_BUY_BUTTON_CLICKED,
   ),
 };
 

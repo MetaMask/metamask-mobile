@@ -1,6 +1,6 @@
 // eslint-disable-next-line import-x/no-nodejs-modules
 import path from 'path';
-import { SmokeWalletPlatform } from '../../../tags.js';
+import { SmokeBrowser } from '../../../tags.js';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../flows/browser.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -40,7 +40,7 @@ async function testDownloadFile(filename: string) {
   );
 }
 
-describe(SmokeWalletPlatform('Browser File Download'), () => {
+describe(SmokeBrowser('Browser File Download'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

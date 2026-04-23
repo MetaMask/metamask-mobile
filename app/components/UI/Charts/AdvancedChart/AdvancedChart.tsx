@@ -184,7 +184,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setWebViewLoaded(false);
       setLayoutSettling(false);
       clearLayoutSettleTimeout();
-      ohlcvSeriesStaleSnapshotRef.current = null;
+      ohlcvSeriesStaleSnapshotRef.current =
+        prevOhlcvSeriesKeyRef.current !== undefined
+          ? prevOhlcvDataRef.current
+          : null;
       activeIndicatorsRef.current.clear();
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
@@ -431,13 +434,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         ohlcvSeriesKey !== undefined &&
         ohlcvSeriesKey !== prevOhlcvSeriesKeyRef.current
       ) {
-        if (prevOhlcvSeriesKeyRef.current !== undefined) {
-          beginFullOhlcvLayoutSettle();
-          ohlcvSeriesStaleSnapshotRef.current = ohlcvData;
-          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
-          prevOhlcvDataRef.current = [];
-          return;
-        }
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;

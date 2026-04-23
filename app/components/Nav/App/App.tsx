@@ -728,7 +728,11 @@ const ImportSRPView = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => {
+const ConnectQRHardwareFlow = ({
+  route,
+}: {
+  route: { params?: { hideMarketingContent?: boolean } };
+}) => {
   const { colors } = useTheme();
   return (
     <Stack.Navigator
@@ -737,7 +741,11 @@ const ConnectQRHardwareFlow = () => {
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+      <Stack.Screen
+        name="ConnectQRHardware"
+        component={ConnectQRHardware}
+        initialParams={route?.params}
+      />
     </Stack.Navigator>
   );
 };

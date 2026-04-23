@@ -80,9 +80,13 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const isSheetMode = props.mode === 'sheet';
-  const { market, outcome, outcomeToken, entryPoint } = isSheetMode
-    ? props
-    : route.params;
+  const {
+    market,
+    outcome,
+    outcomeToken,
+    entryPoint,
+    transactionActiveAbTests,
+  } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
   const ActiveScrollView = isSheetMode ? GHScrollView : ScrollView;
 
@@ -98,7 +102,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     result,
     isOrderNotFilled,
     resetOrderNotFilled,
-  } = usePredictPlaceOrder();
+  } = usePredictPlaceOrder({ transactionActiveAbTests });
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();

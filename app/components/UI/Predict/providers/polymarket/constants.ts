@@ -4,6 +4,9 @@ export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
 export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
 
+export const DEFAULT_CLOB_BASE_URL = 'https://clob.polymarket.com';
+export const LEGACY_V2_CLOB_BASE_URL = 'https://clob-v2.polymarket.com';
+
 /**
  * Default slippage for market orders.
  */
@@ -81,14 +84,36 @@ export const MATIC_CONTRACTS: ContractConfig = {
   conditionalTokens: '0x4D97DCd97eC945f40cF65F87097ACe5EA0476045',
 };
 
+export const MATIC_CONTRACTS_V2: ContractConfig = {
+  exchange: '0xE111180000d2663C0091e4f400237545B87B996B',
+  negRiskAdapter: '0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296',
+  negRiskExchange: '0xe2222d279d744050d28e00520010520000310F59',
+  collateral: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+  conditionalTokens: '0x4D97DCd97eC945f40cF65F87097ACe5EA0476045',
+};
+
+export const USDC_E_ADDRESS = MATIC_CONTRACTS.collateral;
+
+export const COLLATERAL_ONRAMP_ADDRESS =
+  '0x93070a847efEf7F70739046A929D47a521F5B8ee';
+
+export const COLLATERAL_OFFRAMP_ADDRESS =
+  '0x2957922Eb93258b93368531d39fAcCA3B4dC5854';
+
+export const CTF_COLLATERAL_ADAPTER_ADDRESS =
+  '0xADa100874d00e3331D00F2007a9c336a65009718';
+
+export const NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS =
+  '0xAdA200001000ef00D07553cEE7006808F895c6F1';
+
 export const POLYGON_USDC_CAIP_ASSET_ID =
   `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS.collateral}` as const;
 
 export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
-  first_half_moneyline: 'first-half',
-  first_half_spreads: 'first-half',
-  first_half_totals: 'first-half',
-  team_totals: 'team-totals',
+  first_half_moneyline: 'first_half',
+  first_half_spreads: 'first_half',
+  first_half_totals: 'first_half',
+  team_totals: 'team_totals',
   anytime_touchdowns: 'touchdowns',
   first_touchdowns: 'touchdowns',
   rushing_yards: 'rushing',
@@ -97,15 +122,15 @@ export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   assists: 'assists',
   rebounds: 'rebounds',
   soccer_anytime_goalscorer: 'goalscorers',
-  soccer_exact_score: 'exact-score',
+  soccer_exact_score: 'exact_score',
   soccer_halftime_result: 'halftime',
   total_corners: 'corners',
 };
 
 export const GROUP_ORDER: string[] = [
-  'game-lines',
-  'first-half',
-  'team-totals',
+  'game_lines',
+  'first_half',
+  'team_totals',
   'touchdowns',
   'rushing',
   'receiving',
@@ -113,12 +138,12 @@ export const GROUP_ORDER: string[] = [
   'assists',
   'rebounds',
   'goalscorers',
-  'exact-score',
+  'exact_score',
   'halftime',
   'corners',
 ];
 
-export const DEFAULT_GROUP_KEY = 'game-lines';
+export const DEFAULT_GROUP_KEY = 'game_lines';
 
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   moneyline: 0,
