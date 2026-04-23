@@ -351,7 +351,6 @@ const CashTokensFullView = () => {
         ) : (
           <CashTokensFullViewSkeleton
             numChainsWithMusdBalance={numChainsWithMusdBalance}
-            hasMusdBalance={hasMusdBalanceOnAnyChain}
             isMoneyHubEnabled={isMoneyHubEnabled}
             conversionTokenCount={conversionTokens.length}
           />
