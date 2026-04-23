@@ -80,7 +80,7 @@ const InfoRow = ({
         style={{ ...styles.container, ...style }}
         testID={testID ?? 'info-row'}
       >
-        {Boolean(label) && (
+        {hasLabel && (
           <View style={styles.labelContainer}>
             <Text variant={labelVariant} color={variant} onPress={onLabelClick}>
               {label}

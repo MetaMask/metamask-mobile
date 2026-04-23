@@ -2268,14 +2268,6 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      # Note - This step will fail if stack is not Linux
-      - script@1:
-          title: Install ICU libraries for Hermes
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                sudo apt update
-                sudo apt install libicu-dev -y
       - script@1:
           title: "[Phase 1.5] Verify builds.yml config"
           is_skippable: true
@@ -2476,12 +2468,12 @@ workflows:
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       # Note - This step will fail if stack is not Linux
       - script@1:
-          title: Install CCache, ICU libraries & symlink
+          title: Install CCache & symlink
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 sudo apt update
-                sudo apt install ccache libicu-dev -y
+                sudo apt install ccache -y
       - restore-cache@2:
           title: Restore CCache
           inputs:
