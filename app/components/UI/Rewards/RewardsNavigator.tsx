@@ -31,7 +31,6 @@ import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpd
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from './hooks/useReferralDetails';
-import { useRewardCampaigns } from './hooks/useRewardCampaigns';
 
 const Stack = createStackNavigator();
 
