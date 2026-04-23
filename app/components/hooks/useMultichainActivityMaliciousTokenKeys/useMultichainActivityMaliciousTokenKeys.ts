@@ -10,6 +10,24 @@ import {
 
 const BATCH_SIZE = 100;
 
+/** Stable empty set so `Object.is` can skip redundant state updates when scan result is still “no malicious keys”. */
+const EMPTY_MALICIOUS_TOKEN_KEYS = new Set<MultichainTokenScanKey>();
+
+function areMaliciousTokenScanKeySetsEqual(
+  a: Set<MultichainTokenScanKey>,
+  b: Set<MultichainTokenScanKey>,
+): boolean {
+  if (a.size !== b.size) {
+    return false;
+  }
+  for (const key of a) {
+    if (!b.has(key)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Scans fungible token mints appearing in multichain activity using the same
  * {@link PhishingController.bulkScanTokens} path as {@link MultichainAssetsController}
@@ -31,7 +49,7 @@ export function useMultichainActivityMaliciousTokenKeys(
 
   const [maliciousTokenKeys, setMaliciousTokenKeys] = useState<
     Set<MultichainTokenScanKey>
-  >(() => new Set());
+  >(() => EMPTY_MALICIOUS_TOKEN_KEYS);
   const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
@@ -42,7 +60,9 @@ export function useMultichainActivityMaliciousTokenKeys(
 
       if (!phishing?.bulkScanTokens) {
         if (!cancelled) {
-          setMaliciousTokenKeys(new Set());
+          setMaliciousTokenKeys((prev) =>
+            prev.size === 0 ? prev : EMPTY_MALICIOUS_TOKEN_KEYS,
+          );
           setIsScanning(false);
         }
         return;
@@ -50,7 +70,9 @@ export function useMultichainActivityMaliciousTokenKeys(
 
       if (fingerprint.length === 0) {
         if (!cancelled) {
-          setMaliciousTokenKeys(new Set());
+          setMaliciousTokenKeys((prev) =>
+            prev.size === 0 ? prev : EMPTY_MALICIOUS_TOKEN_KEYS,
+          );
           setIsScanning(false);
         }
         return;
@@ -102,11 +124,20 @@ export function useMultichainActivityMaliciousTokenKeys(
         }
 
         if (!cancelled) {
-          setMaliciousTokenKeys(malicious);
+          setMaliciousTokenKeys((prev) => {
+            if (areMaliciousTokenScanKeySetsEqual(prev, malicious)) {
+              return prev;
+            }
+            return malicious.size === 0
+              ? EMPTY_MALICIOUS_TOKEN_KEYS
+              : malicious;
+          });
         }
       } catch {
         if (!cancelled) {
-          setMaliciousTokenKeys(new Set());
+          setMaliciousTokenKeys((prev) =>
+            prev.size === 0 ? prev : EMPTY_MALICIOUS_TOKEN_KEYS,
+          );
         }
       } finally {
         if (!cancelled) {
@@ -117,7 +148,9 @@ export function useMultichainActivityMaliciousTokenKeys(
 
     run().catch((error: unknown) => {
       if (!cancelled) {
-        setMaliciousTokenKeys(new Set());
+        setMaliciousTokenKeys((prev) =>
+          prev.size === 0 ? prev : EMPTY_MALICIOUS_TOKEN_KEYS,
+        );
         setIsScanning(false);
       }
       console.warn('Multichain activity token scan failed:', error);
