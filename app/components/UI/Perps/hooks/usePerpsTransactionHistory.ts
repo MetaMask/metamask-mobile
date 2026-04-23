@@ -170,112 +170,120 @@ export const usePerpsTransactionHistory = ({
     userHistoryRef.current = userHistory;
   }, [userHistory]);
 
-  const fetchAllTransactions = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  // force is passed by the caller (runFetch) rather than via a ref so the
+  // flag can't be stolen by an interleaved mount-path fetch that resolves
+  // first — each call owns its own forceRefresh end-to-end.
+  const fetchAllTransactions = useCallback(
+    async (fetchOptions: { force?: boolean } = {}) => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      const controller = Engine.context.PerpsController;
-      if (!controller) {
-        throw new Error('PerpsController not available');
-      }
-
-      const provider = controller.getActiveProviderOrNull();
-      if (!provider) {
-        setIsLoading(false);
-        return;
-      }
-
-      DevLogger.log('Fetching comprehensive transaction history...');
-
-      const fetchEndTime = Date.now();
-
-      // Fetch all transaction data in parallel
-      const [fills, orders, funding] = await Promise.all([
-        provider.getOrderFills({
-          accountId,
-          aggregateByTime: false,
-        }),
-        provider.getOrders({ accountId }),
-        provider.getFunding({ accountId }),
-      ]);
-
-      DevLogger.log('Transaction data fetched:', { fills, orders, funding });
-
-      const orderMap = new Map(orders.map((order) => [order.orderId, order]));
-
-      // Attaching detailedOrderType allows us to display the TP/SL pill in the trades history list.
-      const enrichedFills = fills.map((fill) => ({
-        ...fill,
-        detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
-      }));
-
-      // Build fill size map: orderId -> total filled size
-      // This allows accurate filled percentage calculation for historical orders,
-      // since HyperLiquid's historical orders API returns sz=0 for all completed orders
-      const fillSizeByOrderId = new Map<string, BigNumber>();
-      for (const fill of fills) {
-        if (fill.orderId) {
-          const current = fillSizeByOrderId.get(fill.orderId) || BigNumber(0);
-          fillSizeByOrderId.set(fill.orderId, current.plus(fill.size || '0'));
+        const controller = Engine.context.PerpsController;
+        if (!controller) {
+          throw new Error('PerpsController not available');
         }
+
+        const provider = controller.getActiveProviderOrNull();
+        if (!provider) {
+          setIsLoading(false);
+          return;
+        }
+
+        const fetchEndTime = Date.now();
+        const forceRefresh = fetchOptions.force === true;
+
+        // Route through the controller so the MarketDataService request-coalesce
+        // layer absorbs the activity-page REST burst under rapid market
+        // switching. forceRefresh bypasses the cache for pull-to-refresh.
+        const [fills, orders, funding] = await Promise.all([
+          controller.getOrderFills(
+            { accountId, aggregateByTime: false },
+            { forceRefresh },
+          ),
+          controller.getOrders({ accountId }, { forceRefresh }),
+          controller.getFunding({ accountId }, { forceRefresh }),
+        ]);
+
+        const orderMap = new Map(orders.map((order) => [order.orderId, order]));
+
+        // Attaching detailedOrderType allows us to display the TP/SL pill in the trades history list.
+        const enrichedFills = fills.map((fill) => ({
+          ...fill,
+          detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
+        }));
+
+        // Build fill size map: orderId -> total filled size
+        // This allows accurate filled percentage calculation for historical orders,
+        // since HyperLiquid's historical orders API returns sz=0 for all completed orders
+        const fillSizeByOrderId = new Map<string, BigNumber>();
+        for (const fill of fills) {
+          if (fill.orderId) {
+            const current = fillSizeByOrderId.get(fill.orderId) || BigNumber(0);
+            fillSizeByOrderId.set(fill.orderId, current.plus(fill.size || '0'));
+          }
+        }
+
+        // Store raw enriched fills so mergedTransactions can merge at fill level
+        // (prevents WS partial-snapshot from overwriting correctly aggregated REST data)
+        setRestFills(enrichedFills);
+
+        // Transform each data type to PerpsTransaction format
+        // Note: fill transactions are derived in mergedTransactions from restFills,
+        // so we only need orders, funding, and user history here.
+        const orderTransactions = transformOrdersToTransactions(
+          orders,
+          fillSizeByOrderId,
+        );
+        const fundingTransactions = transformFundingToTransactions(funding);
+        const userHistoryTransactions = transformUserHistoryToTransactions(
+          userHistoryRef.current,
+        );
+
+        // Combine all non-trade transactions (no Arbitrum withdrawals - using user history as single source of truth)
+        const allTransactions = [
+          ...orderTransactions,
+          ...fundingTransactions,
+          ...userHistoryTransactions,
+        ];
+
+        // Dedup only — final sort happens in mergedTransactions memo
+        const uniqueTransactions = deduplicateById(allTransactions);
+
+        setTransactions(uniqueTransactions);
+
+        // Reset funding pagination cursor and bump generation to invalidate
+        // any in-flight loadMoreFunding calls from a previous scroll.
+        fundingCursorRef.current = fetchEndTime - PAGE_WINDOW_MS;
+        fetchGenerationRef.current += 1;
+        setHasFundingMore(true);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Failed to fetch transaction history';
+        DevLogger.log('Error fetching transaction history:', errorMessage);
+        // Preserve existing transactions on error so a transient API failure
+        // (rate limit, network hiccup) during pull-to-refresh does not wipe
+        // the user's already-loaded funding history with an empty state.
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [accountId],
+  );
 
-      // Store raw enriched fills so mergedTransactions can merge at fill level
-      // (prevents WS partial-snapshot from overwriting correctly aggregated REST data)
-      setRestFills(enrichedFills);
+  const runFetch = useCallback(
+    async (options: { force: boolean }) => {
+      const freshUserHistory = await refetchUserHistory();
+      userHistoryRef.current = freshUserHistory;
+      await fetchAllTransactions({ force: options.force });
+    },
+    [fetchAllTransactions, refetchUserHistory],
+  );
 
-      // Transform each data type to PerpsTransaction format
-      // Note: fill transactions are derived in mergedTransactions from restFills,
-      // so we only need orders, funding, and user history here.
-      const orderTransactions = transformOrdersToTransactions(
-        orders,
-        fillSizeByOrderId,
-      );
-      const fundingTransactions = transformFundingToTransactions(funding);
-      const userHistoryTransactions = transformUserHistoryToTransactions(
-        userHistoryRef.current,
-      );
-
-      // Combine all non-trade transactions (no Arbitrum withdrawals - using user history as single source of truth)
-      const allTransactions = [
-        ...orderTransactions,
-        ...fundingTransactions,
-        ...userHistoryTransactions,
-      ];
-
-      // Dedup only — final sort happens in mergedTransactions memo
-      const uniqueTransactions = deduplicateById(allTransactions);
-
-      DevLogger.log('Combined transactions:', uniqueTransactions);
-      setTransactions(uniqueTransactions);
-
-      // Reset funding pagination cursor and bump generation to invalidate
-      // any in-flight loadMoreFunding calls from a previous scroll.
-      fundingCursorRef.current = fetchEndTime - PAGE_WINDOW_MS;
-      fetchGenerationRef.current += 1;
-      setHasFundingMore(true);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'Failed to fetch transaction history';
-      DevLogger.log('Error fetching transaction history:', errorMessage);
-      // Preserve existing transactions on error so a transient API failure
-      // (rate limit, network hiccup) during pull-to-refresh does not wipe
-      // the user's already-loaded funding history with an empty state.
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [accountId]);
-
-  const refetch = useCallback(async () => {
-    // Fetch user history first, then fetch all transactions
-    const freshUserHistory = await refetchUserHistory();
-    userHistoryRef.current = freshUserHistory;
-    await fetchAllTransactions();
-  }, [fetchAllTransactions, refetchUserHistory]);
+  const refetch = useCallback(() => runFetch({ force: true }), [runFetch]);
 
   const loadMoreFunding = useCallback(async () => {
     if (!hasFundingMore || isFetchingMoreFundingRef.current) return;
@@ -362,9 +370,14 @@ export const usePerpsTransactionHistory = ({
       (!initialFetchDone.current || justBecameConnected)
     ) {
       initialFetchDone.current = true;
-      refetch();
+      // Activity-screen orders and funding have no WebSocket backfill, so
+      // reusing a cached payload on remount hides changes that happened while
+      // the screen was closed. Force a fresh fetch on mount / reconnect;
+      // rate-limit burst absorption comes from the market-switch hooks, not
+      // from activity-screen opens.
+      runFetch({ force: true });
     }
-  }, [skipInitialFetch, prevSkipInitialFetch, refetch]);
+  }, [skipInitialFetch, prevSkipInitialFetch, runFetch]);
 
   // Combine loading states
   const combinedIsLoading = useMemo(

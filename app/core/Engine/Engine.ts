@@ -162,6 +162,7 @@ import { userStorageControllerInit } from './controllers/identity/user-storage-c
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
+import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
@@ -179,6 +180,7 @@ import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-i
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { socialServiceInit } from './controllers/social-service-init';
+import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { clientControllerInit } from './controllers/client-controller-init';
@@ -318,6 +320,7 @@ export class Engine {
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
         MoneyAccountController: moneyAccountControllerInit,
+        MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
         GeolocationApiService: geolocationApiServiceInit,
         GeolocationController: geolocationControllerInit,
         TokensController: tokensControllerInit,
@@ -384,6 +387,7 @@ export class Engine {
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
         SocialController: socialControllerInit,
+        AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
@@ -434,6 +438,8 @@ export class Engine {
     const aiDigestController = messengerClientsByName.AiDigestController;
     const socialService = messengerClientsByName.SocialService;
     const socialController = messengerClientsByName.SocialController;
+    const authenticatedUserStorageService =
+      messengerClientsByName.AuthenticatedUserStorageService;
     const cardController = messengerClientsByName.CardController;
     const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
@@ -591,6 +597,8 @@ export class Engine {
       BridgeStatusController: messengerClientsByName.BridgeStatusController,
       EarnController: earnController,
       MoneyAccountController: moneyAccountController,
+      MoneyAccountBalanceService:
+        messengerClientsByName.MoneyAccountBalanceService,
       GeolocationController: geolocationController,
       DeFiPositionsController: messengerClientsByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
@@ -610,6 +618,7 @@ export class Engine {
       AiDigestController: aiDigestController,
       SocialService: socialService,
       SocialController: socialController,
+      AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
       ClientController: clientController,
       ComplianceService: complianceService,

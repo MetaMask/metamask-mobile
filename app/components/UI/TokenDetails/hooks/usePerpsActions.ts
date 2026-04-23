@@ -64,7 +64,9 @@ export const usePerpsActions = ({
           direction,
           asset: marketData.symbol,
           fromTokenDetails,
-          ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
         },
       });
     },

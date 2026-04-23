@@ -57,6 +57,18 @@ interface TokensProps {
    */
   hasMusdBalanceOnAnyChain?: boolean;
   listFooterComponent?: React.ReactElement;
+  /**
+   * Optional external RefreshControl. When provided, overrides the internal
+   * refresh wiring so callers (e.g. the Money Hub) can compose their own
+   * refreshers. Applied to both the FlashList-backed list and the empty-state
+   * ScrollView.
+   */
+  refreshControl?: React.ReactElement;
+  /**
+   * When true, suppress the internal TokenListSkeleton. Useful when the parent
+   * already handles its own loading state (e.g. CashTokensFullView).
+   */
+  hideLoadingSkeleton?: boolean;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -66,6 +78,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
       listFooterComponent,
+      refreshControl,
+      hideLoadingSkeleton = false,
     },
     ref,
   ) => {
@@ -229,6 +243,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
       if (!hasInitialLoad) {
+        if (hideLoadingSkeleton) {
+          return null;
+        }
         return (
           <Box twClassName={isFullView ? 'px-4' : undefined}>
             <TokenListSkeleton />
@@ -253,6 +270,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               maxItems={maxItems}
               isFullView={isFullView}
               listFooterComponent={listFooterComponent}
+              refreshControl={refreshControl}
             />
           </>
         );
@@ -275,9 +293,13 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         </Box>
       );
 
-      if (listFooterComponent) {
+      if (listFooterComponent || refreshControl) {
         return (
-          <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={tw`flex-1`}
+            showsVerticalScrollIndicator={false}
+            refreshControl={refreshControl}
+          >
             {emptyState}
             {listFooterComponent}
           </ScrollView>
@@ -287,6 +309,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       return emptyState;
     }, [
       hasInitialLoad,
+      hideLoadingSkeleton,
       isFullView,
       tokenKeysForList,
       showOnlyMusd,
@@ -300,6 +323,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       maxItems,
       isGeoEligible,
       listFooterComponent,
+      refreshControl,
     ]);
 
     return (
