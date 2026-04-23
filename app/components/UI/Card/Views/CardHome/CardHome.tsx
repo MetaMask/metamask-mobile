@@ -391,7 +391,6 @@ const CardHome = () => {
         onOrderMetalCard={actions.orderMetalCardAction}
         onChangeAsset={actions.changeAssetAction}
         hasPriorityTokenBalance={hasPriorityTokenBalance}
-        onNavigateToCardPage={actions.navigateToCardPage}
         onCashback={actions.cashbackAction}
         onTravel={actions.navigateToTravelPage}
       />

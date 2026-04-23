@@ -6,7 +6,7 @@ import {
   useNavigateToInternalBrowserPage,
   CardInternalBrowserPage,
 } from './useNavigateToCardPage';
-import { isCardUrl, isCardTravelUrl } from '../../../../util/url';
+import { isCardTravelUrl } from '../../../../util/url';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -23,7 +23,6 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../../../util/url', () => ({
-  isCardUrl: jest.fn(),
   isCardTravelUrl: jest.fn(),
   isCardTosUrl: jest.fn(),
 }));
@@ -44,13 +43,6 @@ jest.mock('react-native', () => ({
 
 // Browser navigation test config (excludes TOS which uses Linking)
 const BROWSER_PAGE_CONFIG = [
-  {
-    page: CardInternalBrowserPage.CARD,
-    url: 'https://card.metamask.io',
-    urlCheckFn: isCardUrl,
-    action: CardActions.NAVIGATE_TO_CARD_PAGE,
-    tabId: 'card-tab-id',
-  },
   {
     page: CardInternalBrowserPage.TRAVEL,
     url: 'https://travel.metamask.io/access',
@@ -106,7 +98,6 @@ const setupMocks = (
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   });
-  (isCardUrl as jest.Mock).mockReturnValue(false);
   (isCardTravelUrl as jest.Mock).mockReturnValue(false);
   mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 };
@@ -263,7 +254,7 @@ describe('useNavigateToInternalBrowserPage', () => {
         expect(() => {
           act(() => {
             result.current.navigateToInternalBrowserPage(
-              CardInternalBrowserPage.CARD,
+              CardInternalBrowserPage.TRAVEL,
             );
           });
         }).not.toThrow();
@@ -274,15 +265,15 @@ describe('useNavigateToInternalBrowserPage', () => {
       const tabs = [
         createMockBrowserTab({
           id: 'first-tab',
-          url: 'https://card.metamask.io/page1',
+          url: 'https://travel.metamask.io/access/page1',
         }),
         createMockBrowserTab({
           id: 'second-tab',
-          url: 'https://card.metamask.io/page2',
+          url: 'https://travel.metamask.io/access/page2',
         }),
       ];
       (useSelector as jest.Mock).mockReturnValue(tabs);
-      (isCardUrl as jest.Mock).mockReturnValue(true);
+      (isCardTravelUrl as jest.Mock).mockReturnValue(true);
 
       const { result } = renderHook(() =>
         useNavigateToInternalBrowserPage(mockNavigation),
@@ -290,7 +281,7 @@ describe('useNavigateToInternalBrowserPage', () => {
 
       act(() => {
         result.current.navigateToInternalBrowserPage(
-          CardInternalBrowserPage.CARD,
+          CardInternalBrowserPage.TRAVEL,
         );
       });
 
@@ -322,56 +313,11 @@ describe('useNavigateToCardPage', () => {
     jest.resetAllMocks();
   });
 
-  it('returns all three navigation functions', () => {
+  it('returns travel and TOS navigation functions', () => {
     const { result } = renderHook(() => useNavigateToCardPage(mockNavigation));
 
-    expect(typeof result.current.navigateToCardPage).toBe('function');
     expect(typeof result.current.navigateToTravelPage).toBe('function');
     expect(typeof result.current.navigateToCardTosPage).toBe('function');
-  });
-
-  describe('navigateToCardPage', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockNavigation = createMockNavigation();
-      mockEventBuilder = createMockEventBuilder();
-      setupMocks(mockEventBuilder);
-    });
-
-    it('navigates to card URL in browser', () => {
-      const { result } = renderHook(() =>
-        useNavigateToCardPage(mockNavigation),
-      );
-
-      act(() => {
-        result.current.navigateToCardPage();
-      });
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.BROWSER.HOME,
-        expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-          params: expect.objectContaining({
-            newTabUrl: 'https://card.metamask.io',
-            fromCard: true,
-          }),
-        }),
-      );
-    });
-
-    it('tracks CARD_BUTTON_CLICKED with NAVIGATE_TO_CARD_PAGE action', () => {
-      const { result } = renderHook(() =>
-        useNavigateToCardPage(mockNavigation),
-      );
-
-      act(() => {
-        result.current.navigateToCardPage();
-      });
-
-      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
-        action: CardActions.NAVIGATE_TO_CARD_PAGE,
-      });
-    });
   });
 
   describe('navigateToTravelPage', () => {
@@ -461,9 +407,6 @@ describe('useNavigateToCardPage', () => {
     const initialFunctions = { ...result.current };
     rerender();
 
-    expect(result.current.navigateToCardPage).toBe(
-      initialFunctions.navigateToCardPage,
-    );
     expect(result.current.navigateToTravelPage).toBe(
       initialFunctions.navigateToTravelPage,
     );

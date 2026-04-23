@@ -7565,8 +7565,6 @@
         "manage_spending_limit": "Administrar límite",
         "manage_spending_limit_description_restricted": "Hay un gasto limitado",
         "manage_spending_limit_description_full": "El acceso completo está activado",
-        "manage_card": "Administrar tarjeta",
-        "advanced_card_management_description": "Ver actividad, cashback, congelar tarjeta y más",
         "travel_title": "MetaMask Travel",
         "travel_description": "Reserva hoteles con hasta un 70 % de descuento",
         "card_tos_title": "Términos y condiciones",

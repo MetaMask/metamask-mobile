@@ -7565,8 +7565,6 @@
         "manage_spending_limit": "Limiti yönet",
         "manage_spending_limit_description_restricted": "Sınırlı harcama açık",
         "manage_spending_limit_description_full": "Tam erişim açık",
-        "manage_card": "Kartı yönet",
-        "advanced_card_management_description": "Faaliyetleri, para iadelerini görün, kartı dondurun ve daha fazlasını yapın",
         "travel_title": "MetaMask Travel",
         "travel_description": "%70'e varan indirimlerle otel rezervasyonu yapın",
         "card_tos_title": "Şart ve koşullar",

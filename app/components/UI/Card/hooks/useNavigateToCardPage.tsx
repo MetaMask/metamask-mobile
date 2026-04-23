@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { BrowserTab } from '../../Tokens/types';
-import { isCardUrl, isCardTravelUrl, isCardTosUrl } from '../../../../util/url';
+import { isCardTravelUrl, isCardTosUrl } from '../../../../util/url';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -14,7 +14,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 export enum CardInternalBrowserPage {
   TRAVEL = 'travel',
   TOS = 'tos',
-  CARD = 'card',
 }
 
 const PAGE_CONFIG: Record<
@@ -25,11 +24,6 @@ const PAGE_CONFIG: Record<
     action: CardActions;
   }
 > = {
-  [CardInternalBrowserPage.CARD]: {
-    urlCheck: isCardUrl,
-    getUrl: () => AppConstants.CARD.URL,
-    action: CardActions.NAVIGATE_TO_CARD_PAGE,
-  },
   [CardInternalBrowserPage.TRAVEL]: {
     urlCheck: isCardTravelUrl,
     getUrl: () => AppConstants.CARD.TRAVEL_URL,
@@ -105,16 +99,12 @@ export const useNavigateToInternalBrowserPage = (
 };
 
 /**
- * Hook that provides navigation functions for Card-related internal browser pages.
- * Returns convenience methods for navigating to Card, Travel, and TOS pages.
+ * Hook that provides navigation functions for Card-related internal browser flows.
+ * Returns convenience methods for Travel (in-app browser) and TOS (external link).
  */
 export const useNavigateToCardPage = (navigation: AppNavigationProp) => {
   const { navigateToInternalBrowserPage } =
     useNavigateToInternalBrowserPage(navigation);
-
-  const navigateToCardPage = useCallback(() => {
-    navigateToInternalBrowserPage(CardInternalBrowserPage.CARD);
-  }, [navigateToInternalBrowserPage]);
 
   const navigateToTravelPage = useCallback(() => {
     navigateToInternalBrowserPage(CardInternalBrowserPage.TRAVEL);
@@ -125,7 +115,6 @@ export const useNavigateToCardPage = (navigation: AppNavigationProp) => {
   }, [navigateToInternalBrowserPage]);
 
   return {
-    navigateToCardPage,
     navigateToTravelPage,
     navigateToCardTosPage,
   };

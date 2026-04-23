@@ -7565,8 +7565,6 @@
         "manage_spending_limit": "한도 관리",
         "manage_spending_limit_description_restricted": "사용 한도가 설정되어 있습니다",
         "manage_spending_limit_description_full": "제한 없이 사용할 수 있습니다",
-        "manage_card": "카드 관리",
-        "advanced_card_management_description": "사용 내역, 캐시백 확인, 카드 일시 중지 등 확인",
         "travel_title": "MetaMask Travel",
         "travel_description": "최대 70% 할인된 가격으로 호텔을 예약하세요",
         "card_tos_title": "이용약관",
