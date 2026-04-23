@@ -361,7 +361,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         }),
       },
       Warning: {
-        icon: IconName.Warning,
+        icon: IconName.Danger,
         iconColor: IconColor.WarningDefault,
         title: strings('security_trust.risky_token_title'),
         description: strings('security_trust.risky_token_description', {
@@ -369,7 +369,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         }),
       },
       Spam: {
-        icon: IconName.Warning,
+        icon: IconName.Danger,
         iconColor: IconColor.WarningDefault,
         title: strings('security_trust.risky_token_title'),
         description: strings('security_trust.risky_token_description', {
@@ -398,11 +398,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           tokenAddress: token.address,
           tokenSymbol: token.symbol,
           chainId: token.chainId,
+          features: securityData.features,
         },
       });
     }
   }, [
     securityData?.resultType,
+    securityData?.features,
     token.symbol,
     token.address,
     token.chainId,
@@ -579,6 +581,67 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         renderWarning()
       ) : (
         <View>
+          {(securityData?.resultType === 'Malicious' ||
+            securityData?.resultType === 'Warning') && (
+            <TouchableOpacity
+              onPress={handleSecurityBadgePress}
+              testID={
+                securityData?.resultType === 'Malicious'
+                  ? 'security-banner-malicious'
+                  : 'security-banner-warning'
+              }
+            >
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Start}
+                twClassName={`self-stretch mx-4 mb-3 py-3 pl-6 pr-4 gap-4 rounded-2xl ${
+                  securityData?.resultType === 'Malicious'
+                    ? 'bg-error-muted'
+                    : 'bg-warning-muted'
+                }`}
+              >
+                <Box twClassName="pt-[2px]">
+                  <Icon
+                    name={IconName.Danger} // once this PR is merged https://github.com/MetaMask/metamask-mobile/pull/29149 need to use new IconAlert for all security badges
+                    size={IconSize.Md}
+                    color={
+                      securityData?.resultType === 'Malicious'
+                        ? IconColor.ErrorDefault
+                        : IconColor.WarningDefault
+                    }
+                  />
+                </Box>
+                <Box twClassName="flex-1">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    fontWeight={
+                      securityData?.resultType === 'Malicious'
+                        ? FontWeight.Bold
+                        : FontWeight.Medium
+                    }
+                  >
+                    {securityData?.resultType === 'Malicious'
+                      ? strings('security_trust.malicious_token_title')
+                      : strings('security_trust.suspicious_token_description', {
+                          symbol: token.symbol,
+                        })}
+                  </Text>
+                  {securityData?.resultType === 'Malicious' && (
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {strings('security_trust.malicious_token_description', {
+                        symbol: token.symbol,
+                      })}
+                    </Text>
+                  )}
+                </Box>
+              </Box>
+            </TouchableOpacity>
+          )}
+
           {/* Token icon + name row */}
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -629,39 +692,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     </TouchableOpacity>
                   </Box>
                 )}
-                {securityBadge && securityBadge.label !== null && (
-                  <Box twClassName="shrink-0 pb-[2px]">
-                    <TouchableOpacity
-                      onPress={handleSecurityBadgePress}
-                      testID={
-                        securityData?.resultType === 'Malicious'
-                          ? 'security-badge-malicious'
-                          : 'security-badge-warning'
-                      }
-                    >
-                      <Box
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
-                      >
-                        <Icon
-                          name={securityBadge.icon}
-                          size={IconSize.Sm}
-                          color={securityBadge.iconColor}
-                        />
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={securityBadge.textColor}
-                          fontWeight={FontWeight.Medium}
-                          numberOfLines={1}
-                          twClassName="overflow-hidden text-center"
-                        >
-                          {securityBadge.label}
-                        </Text>
-                      </Box>
-                    </TouchableOpacity>
-                  </Box>
-                )}
                 {!token.name && isStockToken(token as BridgeToken) && (
                   <Box twClassName="shrink-0">
                     <StockBadge token={token as BridgeToken} />
@@ -689,43 +719,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               ) : null}
             </Box>
           </Box>
-
-          {securityData?.resultType === 'Malicious' && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Start}
-              twClassName="self-stretch mx-4 mt-3 min-h-[100px] min-w-[280px] py-3 pl-6 pr-4 gap-4 rounded-2xl bg-error-muted"
-            >
-              <Box twClassName="pt-[2px]">
-                <Icon
-                  name={IconName.Danger}
-                  size={IconSize.Md}
-                  color={IconColor.ErrorDefault}
-                />
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                alignItems={BoxAlignItems.Start}
-                twClassName="flex-1"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('security_trust.malicious_token_title')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('security_trust.malicious_token_description', {
-                    symbol: token.symbol,
-                  })}
-                </Text>
-              </Box>
-            </Box>
-          )}
 
           <Price
             asset={token}

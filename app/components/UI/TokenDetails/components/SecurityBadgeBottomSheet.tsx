@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -23,6 +23,11 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import {
+  getFeatureTags,
+  getResultTypeConfig,
+} from '../../SecurityTrust/utils/securityUtils';
+import type { TokenSecurityFeature } from '../../SecurityTrust/types';
 
 export interface SecurityBadgeBottomSheetParams {
   icon: IconName;
@@ -35,6 +40,7 @@ export interface SecurityBadgeBottomSheetParams {
   tokenAddress?: string;
   tokenSymbol?: string;
   chainId?: string;
+  features?: TokenSecurityFeature[];
 }
 
 type SecurityBadgeBottomSheetRouteProp = RouteProp<
@@ -58,7 +64,32 @@ const SecurityBadgeBottomSheet = () => {
     tokenAddress,
     tokenSymbol,
     chainId,
+    features,
   } = route.params;
+
+  // Get feature tags for Malicious and Warning types only (max 5)
+  const { tags: featureTags, remainingCount } = useMemo(() => {
+    if (
+      features &&
+      features.length > 0 &&
+      (severity === 'Malicious' || severity === 'Warning')
+    ) {
+      // Use showAll=true to get all tags, then manually slice to 5
+      const result = getFeatureTags(features, severity, true);
+      const maxTags = 5;
+      return {
+        tags: result.tags.slice(0, maxTags),
+        remainingCount: Math.max(0, result.tags.length - maxTags),
+      };
+    }
+    return { tags: [], remainingCount: 0 };
+  }, [features, severity]);
+
+  // Get icon and color for feature tags
+  const { icon: tagIcon, iconColor: tagIconColor } = useMemo(
+    () => getResultTypeConfig(severity),
+    [severity],
+  );
 
   useEffect(() => {
     trackEvent(
@@ -127,7 +158,7 @@ const SecurityBadgeBottomSheet = () => {
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ size: ButtonIconSize.Lg }}
+        closeButtonProps={{ size: ButtonIconSize.Sm }}
       />
       <Box
         flexDirection={BoxFlexDirection.Column}
@@ -148,7 +179,7 @@ const SecurityBadgeBottomSheet = () => {
             twClassName="self-stretch"
           >
             <DSText
-              variant={DSTextVariant.HeadingLg}
+              variant={DSTextVariant.HeadingMd}
               color={DSTextColor.TextDefault}
               fontWeight={FontWeight.Medium}
               twClassName="text-center"
@@ -164,6 +195,38 @@ const SecurityBadgeBottomSheet = () => {
             </DSText>
           </Box>
         </Box>
+        {featureTags.length > 0 && (
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Start}
+            twClassName="self-stretch mb-4"
+            gap={4}
+          >
+            {featureTags.map((tag) => (
+              <Box
+                key={tag.label}
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="w-full"
+                gap={3}
+              >
+                {tagIcon && tagIconColor && (
+                  <Icon
+                    name={tagIcon}
+                    size={IconSize.Md}
+                    color={tagIconColor}
+                  />
+                )}
+                <DSText
+                  variant={DSTextVariant.BodyMd}
+                  color={DSTextColor.TextDefault}
+                >
+                  {tag.label}
+                </DSText>
+              </Box>
+            ))}
+          </Box>
+        )}
         {onProceed ? (
           <Box
             flexDirection={BoxFlexDirection.Row}

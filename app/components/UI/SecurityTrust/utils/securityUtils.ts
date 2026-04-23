@@ -327,6 +327,10 @@ export const getSecurityBadgeConfig = (
         textColor: TextColor.ErrorDefault,
       };
     default:
+      console.warn(
+        '[getSecurityBadgeConfig] Unknown resultType:',
+        securityData?.resultType,
+      );
       return null;
   }
 };
