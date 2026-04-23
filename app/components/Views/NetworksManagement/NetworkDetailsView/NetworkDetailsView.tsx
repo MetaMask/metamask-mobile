@@ -163,9 +163,8 @@ const NetworkDetailsView = () => {
   ]);
 
   /**
-   * Persist after RPC / block-explorer sheet mutations.
-   * Default path uses double rAF until React commits setState. When passing
-   * committedFormSnapshot (RPC sheet add after async validation), persist runs immediately.
+   * Persist after RPC / block-explorer sheet mutations. Callers pass the committed
+   * `NetworkFormState` snapshot produced by the same pure transforms as the form hook.
    *
    * Intentionally `[]` deps: the callback must stay referentially stable for sheet children,
    * and always reads fresh `form` / `operations` / `validation` via `persistSheetCtxRef.current`
@@ -173,23 +172,23 @@ const NetworkDetailsView = () => {
    */
   const schedulePersistAfterUrlSheetMutation = useCallback(
     async (
-      committedFormSnapshot?: NetworkFormState,
+      committedFormSnapshot: NetworkFormState,
       persistOptions?: UrlSheetPersistOptions,
     ): Promise<boolean> => {
-      const runPersist = async (
-        snapshot?: NetworkFormState,
-        opts?: UrlSheetPersistOptions,
-      ): Promise<boolean> => {
-        const ctx = persistSheetCtxRef.current;
-        const formSnapshot = snapshot ?? ctx.form;
-        if (formSnapshot.addMode) {
-          return false;
-        }
-        const saved = await ctx.operations.saveNetwork(formSnapshot, {
+      const ctx = persistSheetCtxRef.current;
+      if (committedFormSnapshot.addMode) {
+        return false;
+      }
+      try {
+        const saved = await ctx.operations.saveNetwork(committedFormSnapshot, {
           enableAction: ctx.enableAction,
-          disabledByChainId: ctx.validation.disabledByChainId(formSnapshot),
-          disabledByName: ctx.validation.disabledByName(formSnapshot),
-          disabledBySymbol: ctx.validation.disabledBySymbol(formSnapshot),
+          disabledByChainId: ctx.validation.disabledByChainId(
+            committedFormSnapshot,
+          ),
+          disabledByName: ctx.validation.disabledByName(committedFormSnapshot),
+          disabledBySymbol: ctx.validation.disabledBySymbol(
+            committedFormSnapshot,
+          ),
           isCustomMainnet: ctx.isCustomMainnet,
           shouldNetworkSwitchPopToWallet: ctx.shouldNetworkSwitchPopToWallet,
           trackRpcUpdateFromBanner: ctx.trackRpcUpdateFromBanner,
@@ -198,31 +197,15 @@ const NetworkDetailsView = () => {
           bypassEnableActionGuard: true,
           bypassFormDisabledGuards: true,
           skipChainIdSubmitValidation:
-            opts?.skipChainIdSubmitValidation === true,
+            persistOptions?.skipChainIdSubmitValidation === true,
         });
         if (saved === true) {
-          ctx.commitBaselineFromFormState(formSnapshot);
+          ctx.commitBaselineFromFormState(committedFormSnapshot);
         }
         return saved === true;
-      };
-
-      if (committedFormSnapshot !== undefined) {
-        return runPersist(committedFormSnapshot, persistOptions).catch(
-          () => false,
-        );
+      } catch {
+        return false;
       }
-
-      return new Promise<boolean>((resolve) => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            runPersist(undefined, persistOptions)
-              .then(resolve)
-              .catch(() => {
-                resolve(false);
-              });
-          });
-        });
-      });
     },
     [],
   );

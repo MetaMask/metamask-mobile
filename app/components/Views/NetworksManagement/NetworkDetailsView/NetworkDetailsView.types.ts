@@ -59,12 +59,13 @@ export interface UrlSheetPersistOptions {
 
 /**
  * Persists RPC / block explorer sheet mutations to the network store.
+ * `committedFormSnapshot` is the post-mutation form state (same pure transforms as the hook).
  * Return `true` so the sheet applies the local form mutation; return `false` to show an
  * error and leave the form unchanged. Must be a boolean (sync or async) — not `void`, so
  * callers cannot accidentally hit the failure path by omitting a return value.
  */
 export type UrlSheetMutationCommittedHandler = (
-  committedFormSnapshot?: NetworkFormState,
+  committedFormSnapshot: NetworkFormState,
   persistOptions?: UrlSheetPersistOptions,
 ) => boolean | Promise<boolean>;
 

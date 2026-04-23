@@ -231,6 +231,26 @@ describe('NetworkDetailsView.utils', () => {
           .blockExplorerUrls,
       ).toEqual(['https://b.com']);
     });
+
+    it('repoints blockExplorerUrl when deleted url was selected', () => {
+      const prev = {
+        blockExplorerUrls: ['https://a.com', 'https://b.com'],
+        blockExplorerUrl: 'https://a.com',
+      } as NetworkFormState;
+      const next = removeBlockExplorerUrlFromFormState(prev, 'https://a.com');
+      expect(next.blockExplorerUrls).toEqual(['https://b.com']);
+      expect(next.blockExplorerUrl).toBe('https://b.com');
+    });
+
+    it('clears blockExplorerUrl when deleting the last explorer', () => {
+      const prev = {
+        blockExplorerUrls: ['https://a.com'],
+        blockExplorerUrl: 'https://a.com',
+      } as NetworkFormState;
+      const next = removeBlockExplorerUrlFromFormState(prev, 'https://a.com');
+      expect(next.blockExplorerUrls).toEqual([]);
+      expect(next.blockExplorerUrl).toBeUndefined();
+    });
   });
 
   describe('networkFormBaselineSnapshot', () => {

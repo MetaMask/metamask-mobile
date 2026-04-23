@@ -130,9 +130,16 @@ export function removeBlockExplorerUrlFromFormState(
   prev: NetworkFormState,
   url: string,
 ): NetworkFormState {
+  const updated = prev.blockExplorerUrls.filter((u) => u !== url);
+  const wasSelected = prev.blockExplorerUrl === url;
   return {
     ...prev,
-    blockExplorerUrls: prev.blockExplorerUrls.filter((u) => u !== url),
+    blockExplorerUrls: updated,
+    ...(wasSelected
+      ? {
+          blockExplorerUrl: updated.length > 0 ? updated[0] : undefined,
+        }
+      : {}),
   };
 }
 
