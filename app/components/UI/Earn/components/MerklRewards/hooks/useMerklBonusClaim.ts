@@ -16,7 +16,6 @@ import { RootState } from '../../../../../../reducers';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { getUsdAmountRange } from '../../../../../../util/analytics/usdAmountRange';
-
 export interface MerklClaimData {
   /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
   claimableReward: string | null;
@@ -33,6 +32,8 @@ export interface MerklClaimData {
       }
     | undefined
   >;
+  /** Manually re-fetches the Merkl rewards data. No-op for ineligible assets. */
+  refetch: () => void;
 }
 
 const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
@@ -42,6 +43,7 @@ const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   isClaiming: false,
   error: null,
   claimRewards: async () => undefined,
+  refetch: () => undefined,
 };
 
 /**
@@ -69,6 +71,7 @@ export const useMerklBonusClaim = (
   );
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
   const { trackEvent, createEventBuilder } = useAnalytics();
+
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
   );
@@ -98,6 +101,7 @@ export const useMerklBonusClaim = (
     lifetimeBonusClaimed,
     hasClaimedBefore,
     rewardsFetchVersion,
+    refetch,
   } = useMerklRewards({
     asset: eligibleAsset,
   });
@@ -174,7 +178,7 @@ export const useMerklBonusClaim = (
 
   return useMemo(() => {
     if (!isEligible) {
-      return DEFAULT_MERKL_CLAIM_DATA;
+      return { ...DEFAULT_MERKL_CLAIM_DATA, refetch };
     }
 
     return {
@@ -187,6 +191,7 @@ export const useMerklBonusClaim = (
       claimRewards: claimRewardsWithSessionLock,
       isClaiming,
       error: claimError,
+      refetch,
     };
   }, [
     isEligible,
@@ -197,5 +202,6 @@ export const useMerklBonusClaim = (
     isClaiming,
     claimError,
     isClaimLocked,
+    refetch,
   ]);
 };

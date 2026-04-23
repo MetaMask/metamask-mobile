@@ -15,6 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
+import { isPositiveNumber } from '../../utils/number';
 
 const DEFAULT_BALANCE = '$0.00';
 
@@ -24,9 +25,9 @@ interface MoneyBalanceSummaryProps {
    */
   balance?: string;
   /**
-   * APY percentage string (e.g. "4")
+   * APY expressed as a percentage (e.g. 3 for 3%).
    */
-  apy: string;
+  apy: number | undefined;
   /**
    * Render a loading skeleton in place of the balance value.
    */
@@ -59,7 +60,7 @@ const MoneyBalanceSummary = ({
         <Skeleton
           height={48}
           width={160}
-          twClassName="mb-2"
+          twClassName="mb-2 rounded-md"
           testID={MoneyBalanceSummaryTestIds.BALANCE_SKELETON}
         />
       ) : (
@@ -77,20 +78,31 @@ const MoneyBalanceSummary = ({
         alignItems={BoxAlignItems.Center}
         twClassName="gap-1"
       >
-        <Box
-          twClassName="self-start rounded-md bg-success-muted px-2 py-0.5"
-          testID={MoneyBalanceSummaryTestIds.APY_TAG}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-            testID={MoneyBalanceSummaryTestIds.APY}
-          >
-            {strings('money.apy_label', { percentage: apy })}
-          </Text>
-        </Box>
-        {onApyInfoPress && (
+        {isLoading ? (
+          <Skeleton
+            height={24}
+            width={94}
+            twClassName="rounded-md"
+            testID={MoneyBalanceSummaryTestIds.APY_SKELETON}
+          />
+        ) : (
+          isPositiveNumber(apy) && (
+            <Box
+              twClassName="self-start rounded-md bg-success-muted px-2 py-0.5"
+              testID={MoneyBalanceSummaryTestIds.APY_TAG}
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+                testID={MoneyBalanceSummaryTestIds.APY}
+              >
+                {strings('money.apy_label', { percentage: apy })}
+              </Text>
+            </Box>
+          )
+        )}
+        {onApyInfoPress && isPositiveNumber(apy) && !isLoading && (
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative }}
