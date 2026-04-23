@@ -127,6 +127,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: (...args: unknown[]) => mockGetAssetImageUrl(...args),
   toAssetId: (address: string, chainId: string) =>
