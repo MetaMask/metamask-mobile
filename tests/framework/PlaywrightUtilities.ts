@@ -1,7 +1,9 @@
 import test from '@playwright/test';
 import type { DeviceMatrix } from './types';
 import { PlaywrightElement } from './PlaywrightAdapter';
-import { DEFAULT_IMPLICIT_WAIT_MS } from './Constants';
+import { CHROME_PACKAGE, DEFAULT_IMPLICIT_WAIT_MS } from './Constants';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { execSync } from 'child_process';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
@@ -35,6 +37,30 @@ export async function withImplicitWait<T>(
   } finally {
     await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
   }
+}
+
+/**
+ * Run an async step with a timeout. Rejects after ms so callers can catch
+ * and continue.
+ * @param promise - The promise to run with a timeout
+ * @param ms - The timeout in milliseconds
+ * @param label - The label of the operation (default: 'operation')
+ * @returns The result of the promise
+ */
+export function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label = 'operation',
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`${label} timed out after ${ms}ms`)),
+        ms,
+      ),
+    ),
+  ]);
 }
 
 /**
@@ -167,6 +193,57 @@ class PlaywrightUtilities {
     timeout = 5000,
   ): Promise<void> {
     await element.waitForDisplayed({ reverse: true, timeout });
+  }
+
+  static setupChromeDisableFre(): void {
+    try {
+      execSync(`adb shell am set-debug-app --persistent ${CHROME_PACKAGE}`, {
+        stdio: 'pipe',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `Could not set Chrome as debug app (FRE may show): ${message}`,
+      );
+    }
+
+    try {
+      execSync(
+        `adb shell "echo 'chrome --disable-fre --no-default-browser-check --no-first-run' > /data/local/tmp/chrome-command-line"`,
+        { stdio: 'pipe' },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `Could not write Chrome command-line (FRE may show): ${message}`,
+      );
+    }
+  }
+
+  static clearChromeData(): void {
+    try {
+      execSync(`adb shell pm clear ${CHROME_PACKAGE}`, { stdio: 'pipe' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `Could not clear Chrome data (Chrome may open with existing tabs): ${message}`,
+      );
+    }
+  }
+
+  static async launchApp({
+    packageName,
+    appId,
+  }: {
+    packageName?: string;
+    appId?: string;
+  }): Promise<void> {
+    const drv = getDriver();
+    if (!packageName && !appId) {
+      throw new Error('Package name or app id is not available');
+    }
+    await drv.activateApp(packageName ?? appId);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 }
 
