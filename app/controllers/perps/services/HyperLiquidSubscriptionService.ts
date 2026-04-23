@@ -142,6 +142,11 @@ export class HyperLiquidSubscriptionService {
 
   readonly #spotStateSubscriptionPromises = new Map<string, Promise<void>>();
 
+  // Bumped on cleanup so in-flight #ensureSpotStateSubscription
+  // continuations discard their subscription instead of rehydrating
+  // #spotStateSubscriptions after clearAll/cleanupSharedWebData3.
+  #spotStateSubscriptionGeneration = 0;
+
   readonly #symbolSubscriberCounts = new Map<string, number>();
 
   readonly #dexSubscriberCounts = new Map<string, number>(); // Track subscribers per DEX for assetCtxs
@@ -1117,6 +1122,8 @@ export class HyperLiquidSubscriptionService {
       return;
     }
 
+    const startGeneration = this.#spotStateSubscriptionGeneration;
+
     const promise = (async (): Promise<void> => {
       await this.#clientService.ensureSubscriptionClient(
         this.#walletService.createWalletAdapter(),
@@ -1155,6 +1162,14 @@ export class HyperLiquidSubscriptionService {
           }
         },
       );
+
+      // Discard if cleanup ran while we were awaiting the subscription
+      // handshake; rehydrating #spotStateSubscriptions here would leave
+      // a stale entry that short-circuits future resubscribe attempts.
+      if (startGeneration !== this.#spotStateSubscriptionGeneration) {
+        await subscription.unsubscribe().catch(() => undefined);
+        return;
+      }
 
       this.#spotStateSubscriptions.set(userAddress, subscription);
     })();
@@ -2059,7 +2074,12 @@ export class HyperLiquidSubscriptionService {
         this.#webData3SubscriptionPromise = undefined;
       }
 
-      // Cleanup spotState subscriptions (per-user)
+      // Cleanup spotState subscriptions (per-user). Bump generation +
+      // drop in-flight promises so a racing #ensureSpotStateSubscription
+      // continuation discards its subscription rather than rehydrating
+      // #spotStateSubscriptions after this clear.
+      this.#spotStateSubscriptionGeneration += 1;
+      this.#spotStateSubscriptionPromises.clear();
       if (this.#spotStateSubscriptions.size > 0) {
         this.#spotStateSubscriptions.forEach((subscription, user) => {
           subscription.unsubscribe().catch((error: Error) => {
@@ -3874,7 +3894,11 @@ export class HyperLiquidSubscriptionService {
     });
     this.#orderFillSubscriptions.clear();
 
-    // Clear spotState subscriptions
+    // Clear spotState subscriptions. Bump generation + drop in-flight
+    // promises so any racing #ensureSpotStateSubscription continuation
+    // unsubscribes its fresh sub instead of rehydrating the cleared map.
+    this.#spotStateSubscriptionGeneration += 1;
+    this.#spotStateSubscriptionPromises.clear();
     this.#spotStateSubscriptions.forEach((subscription) => {
       subscription.unsubscribe().catch(() => {
         // Ignore errors during cleanup
