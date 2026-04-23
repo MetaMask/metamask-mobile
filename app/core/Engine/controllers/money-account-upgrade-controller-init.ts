@@ -3,14 +3,17 @@ import {
   type MoneyAccountUpgradeControllerMessenger,
 } from '@metamask/money-account-upgrade-controller';
 import { type Hex, hexToNumber } from '@metamask/utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import type { MessengerClientInitFunction } from '../types';
 import type { MoneyAccountUpgradeControllerInitMessenger } from '../messengers/money-account-upgrade-controller-messenger';
 import { getDeleGatorEnvironment } from '../../Delegation/environment';
 import Logger from '../../../util/Logger';
+
 const LOG_PREFIX = '[MoneyAccountUpgradeControllerInit]';
 
-const ZERO_ADDRESS: Hex = '0x0000000000000000000000000000000000000000';
-const DEFAULT_CHAIN_ID: Hex = '0xa4b1';
+// TODO: source this from a feature flag (parallel to ChompApiConfig.baseUrl)
+// so we can add/swap MUSD chains without a code deploy.
+const MUSD_CHAIN_ID: Hex = CHAIN_IDS.ARBITRUM;
 
 /**
  * Initialize the MoneyAccountUpgradeController.
@@ -38,22 +41,27 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
   const bootstrap = async () => {
     const serviceDetails = await controllerMessenger.call(
       'ChompApiService:getServiceDetails',
-      [DEFAULT_CHAIN_ID],
+      [MUSD_CHAIN_ID],
     );
 
     if (!serviceDetails) {
-      // TODO: throw an error here
-      return;
+      throw new Error(
+        `Missing CHOMP service details for chain ${MUSD_CHAIN_ID}`,
+      );
     }
 
-    const chain = serviceDetails.chains[DEFAULT_CHAIN_ID];
+    const chain = serviceDetails.chains[MUSD_CHAIN_ID];
     const musdTokenAddress =
-      chain?.protocol.vedaProtocol?.supportedTokens[0]?.tokenAddress ??
-      ZERO_ADDRESS;
+      chain?.protocol.vedaProtocol?.supportedTokens[0]?.tokenAddress;
+    if (!musdTokenAddress) {
+      throw new Error(
+        `Missing MUSD token address for chain ${MUSD_CHAIN_ID} in CHOMP service details`,
+      );
+    }
 
-    const environment = getDeleGatorEnvironment(hexToNumber(DEFAULT_CHAIN_ID));
+    const environment = getDeleGatorEnvironment(hexToNumber(MUSD_CHAIN_ID));
 
-    await controller.init(DEFAULT_CHAIN_ID, {
+    await controller.init(MUSD_CHAIN_ID, {
       musdTokenAddress,
       delegatorImplAddress: environment.EIP7702StatelessDeleGatorImpl,
       redeemerEnforcer: environment.caveatEnforcers.RedeemerEnforcer,

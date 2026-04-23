@@ -66,7 +66,7 @@ const DeveloperOptions = () => {
       {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
       <CardDeveloperOptionsSection />
       <HapticsDeveloperOptionsSection />
-      <ChompApiTest />
+      {isMusdConversionEnabled && <ChompApiTest />}
     </ScrollView>
   );
 };
