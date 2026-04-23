@@ -6,6 +6,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
+import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
 
 const EVM_ACCOUNT_TYPES = new Set(['eip155:eoa', 'eip155:erc4337']);
 
@@ -87,6 +88,54 @@ export function calculateWeightedReturnOnEquity(
 
   const weightedROE = (totalWeightedROE / totalMarginUsed) * 100;
   return weightedROE.toString();
+}
+
+// Spot coins counted toward currently supported funded-state gating.
+// Today the in-app HyperLiquid market surface is USDC-collateralized only,
+// so USDH must not inflate the shared funded-state path that hides Add Funds.
+// Non-stablecoin spot assets (HYPE, PURR, …) also remain excluded.
+const SPOT_COLLATERAL_COINS = new Set<string>(['USDC']);
+
+export function getSpotBalance(
+  spotState?: SpotClearinghouseStateResponse | null,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (sum: number, balance: { coin?: string; total?: string }) => {
+      if (!balance.coin || !SPOT_COLLATERAL_COINS.has(balance.coin)) {
+        return sum;
+      }
+      const value = parseFloat(balance.total ?? '0');
+      return Number.isFinite(value) ? sum + value : sum;
+    },
+    0,
+  );
+}
+
+export function addSpotBalanceToAccountState(
+  accountState: AccountState,
+  spotState?: SpotClearinghouseStateResponse | null,
+): AccountState {
+  const spotBalance = getSpotBalance(spotState);
+
+  if (spotBalance === 0) {
+    return accountState;
+  }
+
+  const currentTotal = parseFloat(accountState.totalBalance);
+  if (!Number.isFinite(currentTotal)) {
+    // totalBalance is a non-numeric sentinel (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--').
+    // Adding spot would yield 'NaN' — leave the sentinel intact for the UI to render.
+    return accountState;
+  }
+
+  return {
+    ...accountState,
+    totalBalance: (currentTotal + spotBalance).toString(),
+  };
 }
 
 /**

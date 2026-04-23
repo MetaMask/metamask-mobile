@@ -35,7 +35,10 @@ const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
 
 const MainRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.RAMP.TOKEN_SELECTION}>
+  <Stack.Navigator
+    initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+    screenOptions={{ headerShown: false }}
+  >
     <Stack.Screen
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}

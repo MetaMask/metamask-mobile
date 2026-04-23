@@ -94,6 +94,14 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }
 
+  /**
+   * The "Earn" CTA on the USDC token row's secondary balance area.
+   * Index 2 = USDC (third token: ETH → mUSD → USDC) in the standard lending fixture.
+   */
+  get lendingEarnCta(): DetoxElement {
+    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 2);
+  }
+
   get stakedEthereumLabel(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.STAKED_ETHEREUM);
   }

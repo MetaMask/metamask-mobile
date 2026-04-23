@@ -397,4 +397,34 @@ describe('useHomeSessionSummary', () => {
       jest.useRealTimers();
     });
   });
+
+  describe('re-render does not trigger blur cleanup', () => {
+    it('does not fire session_summary on re-render while focused', () => {
+      let cleanup: (() => void) | undefined;
+      let lastCallback: unknown;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        if (lastCallback !== callback) {
+          cleanup?.();
+          cleanup = (callback as () => (() => void) | undefined)();
+          lastCallback = callback;
+        }
+      });
+
+      const { rerender } = renderHook(() =>
+        useHomeSessionSummary({ totalSectionsLoaded: 5 }),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      rerender();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      act(() => {
+        cleanup?.();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+  });
 });

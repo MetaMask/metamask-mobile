@@ -10,7 +10,7 @@ import {
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/AdditionalVerification/AdditionalVerification.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import additionalVerificationImage from '../../Deposit/assets/additional-verification.png';
@@ -35,21 +35,15 @@ const V2AdditionalVerification = () => {
     amount: userEnteredAmount,
   } = useParams<V2AdditionalVerificationParams>();
 
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const { navigateToKycWebview } = useTransakRouting({
     screenLocation: 'V2 AdditionalVerification Screen',
   });
 
-  React.useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.additional_verification.title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleContinuePress = useCallback(() => {
     navigateToKycWebview({
@@ -63,6 +57,12 @@ const V2AdditionalVerification = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={strings('deposit.additional_verification.title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <Image
             source={additionalVerificationImage}

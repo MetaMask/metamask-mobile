@@ -47,7 +47,7 @@ connect-monorepo release. You can download it automatically or build locally.
 
 ```bash
 # From the metamask-mobile root
-./scripts/fetch-rn-playground-apk.sh
+./tests/scripts/fetch-rn-playground-apk.sh
 ```
 
 This downloads the latest `rn-playground-<version>.apk` to `./tmp/rn-playground.apk`.
@@ -56,14 +56,14 @@ The test's `beforeAll` hook automatically finds APKs in this location.
 To pin a specific version:
 
 ```bash
-./scripts/fetch-rn-playground-apk.sh --version 17.0.0
+./tests/scripts/fetch-rn-playground-apk.sh --version 17.0.0
 ```
 
 Or set the environment variable:
 
 ```bash
 export RN_PLAYGROUND_APK_VERSION=17.0.0
-./scripts/fetch-rn-playground-apk.sh
+./tests/scripts/fetch-rn-playground-apk.sh
 ```
 
 You can also point to any APK directly:

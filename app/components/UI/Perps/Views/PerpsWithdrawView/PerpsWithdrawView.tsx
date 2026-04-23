@@ -497,11 +497,15 @@ const PerpsWithdrawView: React.FC = () => {
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.networkFee || '$1.00',
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.FEE_VALUE}
+                >
+                  {formattedQuoteData?.networkFee || '$1.00'}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -526,11 +530,15 @@ const PerpsWithdrawView: React.FC = () => {
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.estimatedTime,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.TIME_VALUE}
+                >
+                  {formattedQuoteData?.estimatedTime}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -545,10 +553,14 @@ const PerpsWithdrawView: React.FC = () => {
               },
             }}
             value={{
-              label: {
-                text: formatReceiveAmount,
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  testID={PerpsWithdrawViewSelectorsIDs.RECEIVE_VALUE}
+                >
+                  {formatReceiveAmount}
+                </Text>
+              ),
             }}
           />
         </Box>

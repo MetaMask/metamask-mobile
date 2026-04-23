@@ -71,6 +71,11 @@ const smokeTags = {
     description:
       'Tests seedless onboarding flows using social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, lock and unlock after social login onboarding, wallet reset from the login screen, and importing an additional SRP after seedless onboarding. Tests the SeedlessOnboardingController mock integration, OAuth token exchange, and the full onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, or the onboarding sheet, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeIdentity for account sync after social login.',
   },
+  smokeBrowser: {
+    tag: 'SmokeBrowser:',
+    description:
+      'Tests the in-app browser (BrowserTab/BrowserUrlBar WebView). Covers browser navigation: visiting invalid URLs and returning home, ENS domain resolution via mocked IPFS gateway, and cross-origin redirect URL bar updates. Tests browser security: camera permission prompts within WebView and history disclosure prevention. Tests file download handling from web pages. Tests phishing detection via mocked dapp-scanning API responses. Browser tests use local HTML fixture servers (DappServer) and testSpecificMock for API mocking rather than live external websites. When changes touch BrowserTab, BrowserUrlBar, WebView configuration, or dapp-scanning integration, select this tag. Related to SmokeWalletPlatform for Trending browser navigation integration.',
+  },
 };
 
 const flaskTags = {
@@ -120,6 +125,7 @@ const SmokePredictions = (testName) =>
   `${smokeTags.smokePredictions.tag} ${testName}`;
 const SmokeSeedlessOnboarding = (testName) =>
   `${smokeTags.smokeSeedlessOnboarding.tag} ${testName}`;
+const SmokeBrowser = (testName) => `${smokeTags.smokeBrowser.tag} ${testName}`;
 // Other test tags functions.
 const RegressionAccounts = (testName) =>
   `${otherTags.regressionAccounts} ${testName}`;
@@ -163,6 +169,7 @@ export {
   SmokeMultiChainAPI,
   SmokePredictions,
   SmokeSeedlessOnboarding,
+  SmokeBrowser,
   RegressionAccounts,
   RegressionConfirmations,
   RegressionIdentity,

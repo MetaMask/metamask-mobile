@@ -65,6 +65,7 @@ import {
   RewardsDataServiceGetOndoCampaignActivityAction,
   RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction,
   RewardsDataServiceGetOndoCampaignDepositsAction,
+  RewardsDataServiceGetOndoCampaignWinnerCodeAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -116,7 +117,8 @@ type AllowedActions =
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
-  | RewardsDataServiceGetOndoCampaignDepositsAction;
+  | RewardsDataServiceGetOndoCampaignDepositsAction
+  | RewardsDataServiceGetOndoCampaignWinnerCodeAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -190,6 +192,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getOndoCampaignActivity',
       'RewardsDataService:getOndoCampaignActivityLastUpdated',
       'RewardsDataService:getOndoCampaignDeposits',
+      'RewardsDataService:getOndoCampaignWinnerCode',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

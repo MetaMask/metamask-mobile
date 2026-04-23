@@ -55,6 +55,6 @@ export const GasFeeControllerInit: MessengerClientInitFunction<
 
 function getControllers(request: MessengerClientInitRequest<GasFeeMessenger>) {
   return {
-    networkController: request.getController('NetworkController'),
+    networkController: request.getMessengerClient('NetworkController'),
   };
 }

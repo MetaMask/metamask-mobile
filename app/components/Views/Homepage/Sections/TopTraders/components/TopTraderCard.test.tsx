@@ -11,6 +11,7 @@ const baseTrader: TopTrader = {
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
   pnlValue: 963146.8,
+  pnlPerChain: { base: 963146.8 },
   isFollowing: false,
 };
 

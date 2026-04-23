@@ -9,7 +9,7 @@ import { SolScope } from '@metamask/keyring-api';
 import useSpendingLimit, { UseSpendingLimitParams } from './useSpendingLimit';
 import { useCardDelegation } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
-import { AllowanceState, CardTokenAllowance } from '../types';
+import { FundingStatus, CardFundingToken } from '../types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -131,15 +131,15 @@ const mockUseSelector = useSelector as jest.Mock;
 
 // Helper functions
 const createMockToken = (
-  overrides: Partial<CardTokenAllowance> = {},
-): CardTokenAllowance => ({
+  overrides: Partial<CardFundingToken> = {},
+): CardFundingToken => ({
   address: '0x1234567890123456789012345678901234567890',
   caipChainId: LINEA_CAIP_CHAIN_ID,
   decimals: 18,
   symbol: 'USDC',
   name: 'USD Coin',
-  allowanceState: AllowanceState.Enabled,
-  allowance: '1000',
+  fundingStatus: FundingStatus.Enabled,
+  spendableBalance: '1000',
   walletAddress: '0xwallet1',
   delegationContract: '0xdelegation123',
   ...overrides,
@@ -331,17 +331,17 @@ describe('useSpendingLimit', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const musdToken = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const enabledToken = createMockToken({
         symbol: 'DAI',
         address: '0xdai',
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([
@@ -365,12 +365,12 @@ describe('useSpendingLimit', () => {
       const enabledToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       });
       const notEnabledToken = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([
@@ -392,12 +392,12 @@ describe('useSpendingLimit', () => {
         symbol: 'mUSD',
         address: '0xmusd',
         caipChainId: LINEA_CAIP_CHAIN_ID,
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([]);
@@ -415,7 +415,7 @@ describe('useSpendingLimit', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([]);
@@ -430,7 +430,7 @@ describe('useSpendingLimit', () => {
     it('uses initialToken when provided, bypassing balance logic', () => {
       const initialToken = createMockToken({
         symbol: 'USDC',
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       });
 
       const { result } = renderHook(() =>
@@ -606,12 +606,12 @@ describe('useSpendingLimit', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const musdToken = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       // USDC has highest balance → becomes selectedToken by default

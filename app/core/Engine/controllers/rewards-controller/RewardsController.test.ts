@@ -19553,7 +19553,7 @@ describe('RewardsController', () => {
     });
 
     it('returns cached position when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000;
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
         messenger: mockMessenger,
@@ -19609,7 +19609,7 @@ describe('RewardsController', () => {
           ondoCampaignLeaderboardPositions: {
             [cacheKey]: {
               notFound: true as const,
-              lastFetched: Date.now() - 60000,
+              lastFetched: Date.now() - 30000, // 30 seconds ago (within 1 minute threshold)
             },
           },
         },
@@ -19640,6 +19640,94 @@ describe('RewardsController', () => {
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching fresh campaign leaderboard position via API call',
+      );
+    });
+  });
+
+  describe('getOndoCampaignWinnerCode', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-ondo-winner';
+    const mockSubscriptionId = 'sub-winner-1';
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns null when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.getOndoCampaignWinnerCode(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches winner code from API and returns the value', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue('WINNER-CODE-ABC');
+
+      const result = await ctrl.getOndoCampaignWinnerCode(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignWinnerCode',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toBe('WINNER-CODE-ABC');
+    });
+
+    it('propagates errors from the data service', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockRejectedValue(
+        new Error('Get winner code failed: 500'),
+      );
+
+      await expect(
+        ctrl.getOndoCampaignWinnerCode(mockCampaignId, mockSubscriptionId),
+      ).rejects.toThrow('Get winner code failed: 500');
+    });
+
+    it('logs when fetching winner code', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue('');
+      mockLogger.log.mockClear();
+
+      await ctrl.getOndoCampaignWinnerCode(mockCampaignId, mockSubscriptionId);
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching Ondo campaign winner code',
       );
     });
   });
@@ -19730,7 +19818,7 @@ describe('RewardsController', () => {
     });
 
     it('returns cached portfolio when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000;
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
         messenger: mockMessenger,
@@ -20059,7 +20147,7 @@ describe('RewardsController', () => {
     });
 
     it('returns cached deposits when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000;
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const state = {
         ...getRewardsControllerDefaultState(),
         ondoCampaignDeposits: {

@@ -39,6 +39,10 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
     if (!featureEnabled) {
       return null;
     }
+    // Gate on availableBalance (spendable): order-form pay-token preselection
+    // must fire when withdrawable is 0 but totalBalance > 0 (spot-funded or
+    // margin-locked). The CTA consumer layers its own totalBalance guard on
+    // top of this hook's result to hide "Add Funds" for spot-funded accounts.
     const availableBalance = Number.parseFloat(
       perpsAccount?.availableBalance?.toString() ?? '0',
     );

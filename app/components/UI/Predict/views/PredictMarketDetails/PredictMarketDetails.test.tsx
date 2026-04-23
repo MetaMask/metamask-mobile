@@ -126,6 +126,15 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
+const mockOpenBuySheet = jest.fn();
+const mockOpenSellSheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: mockOpenSellSheet,
+  }),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
     if (key === 'predict.position_info' && vars) {
@@ -1428,7 +1437,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
     });
 
-    it('handles cash out button press', () => {
+    it('cash out uses context sell sheet instead of navigation', () => {
       const mockPosition = {
         id: 'position-1',
         outcomeId: 'outcome-1',
@@ -1441,13 +1450,12 @@ describe('PredictMarketDetails', () => {
         icon: 'https://example.com/icon.png',
       };
 
-      const { mockNavigate } = setupPredictMarketDetailsTest(
+      setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
         { positions: { data: [mockPosition] } },
       );
 
-      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
         getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
@@ -1456,18 +1464,15 @@ describe('PredictMarketDetails', () => {
       const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        {
+      expect(mockOpenSellSheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           position: mockPosition,
-          outcome: expect.any(Object),
-          market: expect.any(Object),
           entryPoint: 'predict_market_details',
-        },
+        }),
       );
     });
 
-    it('handles Yes button press for betting', () => {
+    it('calls openBuySheet via context when Yes button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1483,25 +1488,23 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const yesButton = findActionButtonByPrice(65);
       expect(yesButton).toBeDefined();
       fireEvent.press(yesButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
     });
 
-    it('handles No button press for betting', () => {
+    it('calls openBuySheet via context when No button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1517,21 +1520,19 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const noButton = findActionButtonByPrice(35);
       expect(noButton).toBeDefined();
       fireEvent.press(noButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
     });
 

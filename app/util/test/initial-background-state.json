@@ -394,6 +394,7 @@
   },
   "SocialController": {
     "followingAddresses": [],
+    "followingProfileIds": [],
     "leaderboardEntries": []
   },
   "SubjectMetadataController": {
@@ -643,6 +644,9 @@
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
+  },
+  "ClientController": {
+    "isUiOpen": false
   },
   "ComplianceController": {},
   "ConnectivityController": {

@@ -23,6 +23,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import {
   StackActions,
+  useFocusEffect,
   useNavigation,
   useRoute,
   RouteProp,
@@ -54,6 +55,7 @@ import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterren
 import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
+import { isEvmChain, isSpendingLimitSupportedToken } from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
@@ -73,15 +75,7 @@ const SETUP_ALERT_TYPES = new Set(['kyc_pending', 'card_provisioning']);
 
 const CardHome = () => {
   // --- Data ---
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    primaryAsset,
-    supportedAssets,
-    assetTokens,
-  } = useCardHomeData();
+  const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const userLocation = useSelector(selectCardUserLocation);
@@ -97,7 +91,7 @@ const CardHome = () => {
   const { toastRef } = useContext(ToastContext);
 
   const isSwapEnabled = useIsSwapEnabledForPriorityToken(
-    data?.primaryAsset?.walletAddress,
+    data?.primaryFundingAsset?.walletAddress,
   );
 
   const isFrozen = data?.card?.status === CardStatus.FROZEN;
@@ -109,9 +103,7 @@ const CardHome = () => {
   // --- Extracted hooks ---
   const actions = useCardHomeActions({
     data,
-    primaryAsset,
-    supportedAssets,
-    assetTokens,
+    primaryToken,
     isFrozen,
   });
 
@@ -122,9 +114,9 @@ const CardHome = () => {
     data,
     isLoading,
     hasSetupActions,
-    balanceFormatted: primaryAsset?.balanceFormatted,
-    rawTokenBalance: primaryAsset?.rawTokenBalance,
-    rawFiatNumber: primaryAsset?.rawFiatNumber,
+    balanceFormatted: primaryToken?.balanceFormatted,
+    rawTokenBalance: primaryToken?.rawTokenBalance,
+    rawFiatNumber: primaryToken?.rawFiatNumber,
   });
 
   const [isSpendingLimitWarningDismissed, setIsSpendingLimitWarningDismissed] =
@@ -144,6 +136,17 @@ const CardHome = () => {
       setIsRefreshing(false);
     }
   }, [refetch]);
+
+  // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
+  const refetched = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!refetched.current) {
+        refetched.current = true;
+        refetch();
+      }
+    }, [refetch]),
+  );
 
   // --- Auth state transition: navigate to auth screen on logout ---
   const wasAuthenticated = useRef(isAuthenticated);
@@ -193,12 +196,12 @@ const CardHome = () => {
 
   // --- Derived state ---
   const balanceAmount = useMemo(() => {
-    const { balanceFiat, balanceFormatted } = primaryAsset ?? {};
+    const { balanceFiat, balanceFormatted } = primaryToken ?? {};
     if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
       return balanceFormatted;
     }
     return balanceFiat;
-  }, [primaryAsset]);
+  }, [primaryToken]);
 
   const hasSetupAlerts = (data?.alerts ?? []).some((a) =>
     SETUP_ALERT_TYPES.has(a.type),
@@ -209,11 +212,15 @@ const CardHome = () => {
 
   const showSpendingLimitProgress =
     isAuthenticated &&
-    data?.primaryAsset?.status === FundingAssetStatus.Limited &&
+    data?.primaryFundingAsset?.status === FundingAssetStatus.Limited &&
+    isEvmChain(data?.primaryFundingAsset?.chainId) &&
+    isSpendingLimitSupportedToken(data?.primaryFundingAsset?.symbol) &&
     !hasSetupActions;
 
   const isSpendingLimitActive =
-    data?.primaryAsset?.status === FundingAssetStatus.Active;
+    data?.primaryFundingAsset?.status === FundingAssetStatus.Active;
+
+  const hasPriorityTokenBalance = (primaryToken?.rawTokenBalance ?? 0) > 0;
 
   // --- Error state ---
   if (isError) {
@@ -299,7 +306,9 @@ const CardHome = () => {
             cardType={data?.card?.type}
             cardStatus={data?.card?.status}
             walletAddress={
-              isAuthenticated ? data?.primaryAsset?.walletAddress : undefined
+              isAuthenticated
+                ? data?.primaryFundingAsset?.walletAddress
+                : undefined
             }
           />
         </Box>
@@ -309,18 +318,23 @@ const CardHome = () => {
             isLoading={isLoading}
             balanceAmount={balanceAmount}
             privacyMode={privacyMode}
-            assetBalance={primaryAsset ?? undefined}
+            assetBalance={primaryToken ?? undefined}
             onTogglePrivacy={handleTogglePrivacy}
           />
         )}
 
-        {showSpendingLimitProgress && data?.primaryAsset && (
+        {showSpendingLimitProgress && data?.primaryFundingAsset && (
           <SpendingLimitProgressBar
             isLoading={isLoading}
-            decimals={data.primaryAsset.decimals ?? 6}
-            totalAllowance={data.primaryAsset.allowance ?? '0'}
-            remainingAllowance={data.primaryAsset.balance ?? '0'}
-            symbol={data.primaryAsset.symbol ?? ''}
+            decimals={data.primaryFundingAsset.decimals ?? 6}
+            totalAllowance={
+              data.primaryFundingAsset.originalSpendingCap ??
+              data.primaryFundingAsset.spendingCap ??
+              '0'
+            }
+            remainingAllowance={data.primaryFundingAsset.spendingCap ?? '0'}
+            symbol={data.primaryFundingAsset.symbol ?? ''}
+            privacyMode={privacyMode}
           />
         )}
 
@@ -331,7 +345,6 @@ const CardHome = () => {
               isLoading={isLoading}
               isSwapEnabled={isSwapEnabled}
               onAddFunds={actions.addFundsAction}
-              onChangeAsset={actions.changeAssetAction}
               onEnableCard={actions.enableCardAction}
             />
           </Box>
@@ -376,6 +389,8 @@ const CardHome = () => {
         onToggleFreeze={actions.handleToggleFreeze}
         onManageSpendingLimit={actions.manageSpendingLimitAction}
         onOrderMetalCard={actions.orderMetalCardAction}
+        onChangeAsset={actions.changeAssetAction}
+        hasPriorityTokenBalance={hasPriorityTokenBalance}
         onNavigateToCardPage={actions.navigateToCardPage}
         onCashback={actions.cashbackAction}
         onTravel={actions.navigateToTravelPage}

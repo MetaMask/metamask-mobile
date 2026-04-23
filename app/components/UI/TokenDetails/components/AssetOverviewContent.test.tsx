@@ -20,12 +20,22 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 // eslint-disable-next-line import-x/no-namespace
 import * as TokenDetailsActionsModule from './TokenDetailsActions';
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      state: {
+        selectedNetworkClientId: 'mainnet',
+      },
+    },
+  },
+}));
+
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockAddProperties = jest.fn();
-const mockBuild = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockCreateEventBuilder = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn(() => true);
@@ -60,10 +70,13 @@ jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+  useAnalytics: jest.fn(() => ({
     trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
+    createEventBuilder: mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    }),
+  })),
 }));
 
 // Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
@@ -356,8 +369,10 @@ describe('AssetOverviewContent', () => {
         Routes.MARKET_INSIGHTS.VIEW,
         expect.objectContaining({
           assetSymbol: 'ETH',
-          tokenAddress: '0x123',
-          tokenChainId: '0x1',
+          token: expect.objectContaining({
+            address: '0x123',
+            chainId: '0x1',
+          }),
         }),
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(

@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { useMemo, useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { AllowanceState, CardTokenAllowance } from '../types';
+import { FundingStatus, CardFundingToken } from '../types';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
@@ -82,7 +82,7 @@ export interface AssetBalanceInfo {
  * - For non-enabled tokens: shows the user's actual wallet balance from their wallet
  */
 export const useAssetBalances = (
-  tokens: CardTokenAllowance[],
+  tokens: CardFundingToken[],
 ): Map<string, AssetBalanceInfo> => {
   const { MultichainAssetsRatesController, TokenRatesController } =
     Engine.context;
@@ -210,7 +210,7 @@ export const useAssetBalances = (
   // Helper: Determine which balance to use based on token state
   const determineBalanceToUse = useCallback(
     (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       filteredToken: TokenI | undefined,
       walletAsset: TokenI | undefined,
     ): {
@@ -218,14 +218,14 @@ export const useAssetBalances = (
       source: 'availableBalance' | 'filteredToken' | 'walletAsset';
     } => {
       const isEnabled =
-        token.allowanceState === AllowanceState.Enabled ||
-        token.allowanceState === AllowanceState.Limited;
+        token.fundingStatus === FundingStatus.Enabled ||
+        token.fundingStatus === FundingStatus.Limited;
 
       if (isEnabled) {
         // Token is enabled/delegated - use availableBalance
-        if (token.availableBalance) {
+        if (token.spendableBalance) {
           return {
-            balance: token.availableBalance,
+            balance: token.spendableBalance,
             source: 'availableBalance',
           };
         }
@@ -253,7 +253,7 @@ export const useAssetBalances = (
   // Helper: Calculate fiat for Solana tokens
   const calculateSolanaFiat = useCallback(
     (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       balanceToUse: string,
     ): { balanceFiat: string; rawFiatNumber: number | undefined } => {
       const conversionRates =
@@ -376,7 +376,7 @@ export const useAssetBalances = (
   // Helper: Calculate fiat for EVM tokens
   const calculateEvmFiat = useCallback(
     (
-      _token: CardTokenAllowance,
+      _token: CardFundingToken,
       balanceToUse: string,
       balanceSource: 'availableBalance' | 'filteredToken' | 'walletAsset',
       chainId: Hex,
@@ -613,7 +613,7 @@ export const useAssetBalances = (
   // Helper: Build asset object
   const buildAssetObject = useCallback(
     (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       balanceToUse: string,
       balanceFiat: string,
       assetChainId: string,

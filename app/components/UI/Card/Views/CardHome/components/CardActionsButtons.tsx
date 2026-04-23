@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Box,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -16,7 +15,6 @@ interface CardActionsButtonsProps {
   isLoading: boolean;
   isSwapEnabled: boolean;
   onAddFunds: () => void;
-  onChangeAsset: () => void;
   onEnableCard: () => void;
 }
 
@@ -25,7 +23,6 @@ const CardActionsButtons = ({
   isLoading,
   isSwapEnabled,
   onAddFunds,
-  onChangeAsset,
   onEnableCard,
 }: CardActionsButtonsProps) => {
   const tw = useTailwind();
@@ -58,44 +55,20 @@ const CardActionsButtons = ({
     );
   }
 
+  const addFundsAction = actions.find((a) => a.type === 'add_funds');
+  if (!addFundsAction) return null;
+
   return (
-    <Box twClassName="w-full gap-2 flex-row justify-between items-center">
-      {actions.map((action) => {
-        switch (action.type) {
-          case 'add_funds':
-            return (
-              <Button
-                key="add_funds"
-                variant={ButtonVariant.Primary}
-                style={tw.style('w-1/2', !isSwapEnabled && 'opacity-50')}
-                size={ButtonSize.Lg}
-                onPress={onAddFunds}
-                isFullWidth
-                isDisabled={!isSwapEnabled}
-                testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-              >
-                {strings('card.card_home.add_funds')}
-              </Button>
-            );
-          case 'change_asset':
-            return (
-              <Button
-                key="change_asset"
-                variant={ButtonVariant.Primary}
-                style={tw.style('w-1/2')}
-                size={ButtonSize.Lg}
-                onPress={onChangeAsset}
-                isFullWidth
-                testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
-              >
-                {strings('card.card_home.change_asset')}
-              </Button>
-            );
-          default:
-            return null;
-        }
-      })}
-    </Box>
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      onPress={onAddFunds}
+      isFullWidth
+      isDisabled={!isSwapEnabled}
+      testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+    >
+      {strings('card.card_home.add_funds')}
+    </Button>
   );
 };
 

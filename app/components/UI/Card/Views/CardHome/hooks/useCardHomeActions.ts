@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -15,7 +15,7 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { CardActions } from '../../../util/metrics';
-import { DEPOSIT_SUPPORTED_TOKENS } from '../../../constants';
+import { DEPOSIT_SUPPORTED_TOKENS, cardNetworkInfos } from '../../../constants';
 import { withBiometricAuth } from '../../../util/withBiometricAuth';
 import { createAddFundsModalNavigationDetails } from '../../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
@@ -27,43 +27,19 @@ import useCardDetailsToken from '../../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../../hooks/useCardPinToken';
 import { useOpenSwaps } from '../../../hooks/useOpenSwaps';
 import { useNavigateToCardPage } from '../../../hooks/useNavigateToCardPage';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
-import type {
-  CardAssetWithBalance,
-  DelegationSettingsResponse,
-} from '../../../types';
-
-function buildSpendingLimitParams(
-  primaryAsset: CardAssetWithBalance | null,
-  supportedAssets: CardAssetWithBalance[],
-  assetTokens: CardAssetWithBalance[],
-  delegationSettings: DelegationSettingsResponse | null,
-) {
-  return {
-    allTokens: supportedAssets,
-    priorityToken: primaryAsset,
-    delegationSettings,
-    externalWalletDetailsData: {
-      walletDetails: [] as never[],
-      mappedWalletDetails: assetTokens,
-      priorityWalletDetail: primaryAsset ?? undefined,
-    },
-  };
-}
+import type { CardFundingTokenWithBalance } from '../../../types';
 
 interface UseCardHomeActionsParams {
   data: CardHomeData | null | undefined;
-  primaryAsset: CardAssetWithBalance | null;
-  supportedAssets: CardAssetWithBalance[];
-  assetTokens: CardAssetWithBalance[];
+  primaryToken: CardFundingTokenWithBalance | null;
   isFrozen: boolean;
 }
 
 export function useCardHomeActions({
   data,
-  primaryAsset,
-  supportedAssets,
-  assetTokens,
+  primaryToken,
   isFrozen,
 }: UseCardHomeActionsParams) {
   const navigation = useNavigation();
@@ -89,17 +65,14 @@ export function useCardHomeActions({
     isLoading: isPinLoading,
     reset: resetPinToken,
   } = useCardPinToken();
-  const { openSwaps } = useOpenSwaps({ priorityToken: primaryAsset });
+  const { openSwaps } = useOpenSwaps({ priorityToken: primaryToken });
 
-  const spendingLimitParams = useMemo(
-    () =>
-      buildSpendingLimitParams(
-        primaryAsset,
-        supportedAssets,
-        assetTokens,
-        data?.delegationSettings ?? null,
-      ),
-    [primaryAsset, supportedAssets, assetTokens, data?.delegationSettings],
+  const selectAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+  const evmAccount = selectAccountByScope('eip155:0');
+  const solanaAccount = selectAccountByScope(
+    cardNetworkInfos.solana.caipChainId,
   );
 
   // --- Freeze ---
@@ -319,30 +292,52 @@ export function useCardHomeActions({
 
   // --- Navigation actions ---
 
+  const switchToFundingAccountIfNeeded = useCallback(() => {
+    const walletAddress = data?.primaryFundingAsset?.walletAddress;
+    if (!walletAddress) return;
+
+    const isAlreadySelected =
+      walletAddress.toLowerCase() === evmAccount?.address?.toLowerCase() ||
+      walletAddress === solanaAccount?.address;
+
+    if (isAlreadySelected) return;
+
+    Engine.setSelectedAddress(walletAddress);
+  }, [
+    data?.primaryFundingAsset?.walletAddress,
+    evmAccount?.address,
+    solanaAccount?.address,
+  ]);
+
   const addFundsAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
+
     const isPriorityTokenSupportedDeposit = !!DEPOSIT_SUPPORTED_TOKENS.find(
-      (t) => t.toLowerCase() === data?.primaryAsset?.symbol?.toLowerCase(),
+      (t) =>
+        t.toLowerCase() === data?.primaryFundingAsset?.symbol?.toLowerCase(),
     );
 
     if (isPriorityTokenSupportedDeposit) {
+      switchToFundingAccountIfNeeded();
       navigation.navigate(
         ...createAddFundsModalNavigationDetails({
-          priorityToken: primaryAsset ?? undefined,
+          priorityToken: primaryToken ?? undefined,
         }),
       );
-    } else if (data?.primaryAsset) {
+    } else if (data?.primaryFundingAsset) {
+      switchToFundingAccountIfNeeded();
       openSwaps({});
     }
   }, [
     trackEvent,
     createEventBuilder,
-    data?.primaryAsset,
-    primaryAsset,
+    data?.primaryFundingAsset,
+    primaryToken,
     openSwaps,
     navigation,
+    switchToFundingAccountIfNeeded,
   ]);
 
   const changeAssetAction = useCallback(() => {
@@ -352,24 +347,11 @@ export function useCardHomeActions({
         .build(),
     );
     if (isAuthenticated) {
-      navigation.navigate(
-        ...createAssetSelectionModalNavigationDetails({
-          tokensWithAllowances: spendingLimitParams.allTokens,
-          delegationSettings: spendingLimitParams.delegationSettings,
-          cardExternalWalletDetails:
-            spendingLimitParams.externalWalletDetailsData,
-        }),
-      );
+      navigation.navigate(...createAssetSelectionModalNavigationDetails({}));
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [
-    isAuthenticated,
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    spendingLimitParams,
-  ]);
+  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
   const enableCardAction = useCallback(() => {
     trackEvent(
@@ -379,12 +361,8 @@ export function useCardHomeActions({
     );
     navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
       flow: 'manage',
-      priorityToken: spendingLimitParams.priorityToken,
-      allTokens: spendingLimitParams.allTokens,
-      delegationSettings: spendingLimitParams.delegationSettings,
-      externalWalletDetailsData: spendingLimitParams.externalWalletDetailsData,
     });
-  }, [navigation, trackEvent, createEventBuilder, spendingLimitParams]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const manageSpendingLimitAction = useCallback(() => {
     trackEvent(
@@ -395,22 +373,11 @@ export function useCardHomeActions({
     if (isAuthenticated) {
       navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
         flow: 'enable',
-        priorityToken: spendingLimitParams.priorityToken,
-        allTokens: spendingLimitParams.allTokens,
-        delegationSettings: spendingLimitParams.delegationSettings,
-        externalWalletDetailsData:
-          spendingLimitParams.externalWalletDetailsData,
       });
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [
-    isAuthenticated,
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    spendingLimitParams,
-  ]);
+  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
   const logoutAction = useCallback(() => {
     Alert.alert(

@@ -5,7 +5,7 @@ import { useCardSDK } from '../sdk';
 import { useNeedsGasFaucet } from './useNeedsGasFaucet';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { CardSDK } from '../sdk/CardSDK';
-import { CardTokenAllowance, AllowanceState } from '../types';
+import { CardFundingToken, FundingStatus } from '../types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -114,16 +114,15 @@ const mockSafeToChecksumAddress = safeToChecksumAddress as jest.MockedFunction<
 
 // Helper functions
 const createMockToken = (
-  overrides: Partial<CardTokenAllowance> = {},
-): CardTokenAllowance => ({
+  overrides: Partial<CardFundingToken> = {},
+): CardFundingToken => ({
   address: '0x1234567890123456789012345678901234567890',
   caipChainId: 'eip155:59144',
   decimals: 18,
   symbol: 'USDC',
   name: 'USD Coin',
-  allowanceState: AllowanceState.Enabled,
-  allowance: '1000',
-  availableBalance: '500',
+  fundingStatus: FundingStatus.Enabled,
+  spendableBalance: '500',
   walletAddress: '0xwallet1',
   delegationContract: '0xdelegation123',
   ...overrides,

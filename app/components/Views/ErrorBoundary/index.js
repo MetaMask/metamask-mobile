@@ -37,6 +37,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../core/AppConstants';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { useSelector } from 'react-redux';
 import { isTest } from '../../../util/test/utils';
 import Button, {
@@ -472,7 +473,7 @@ class ErrorBoundary extends Component {
   };
 
   openTicket = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     Linking.openURL(url);
   };
 

@@ -15,23 +15,30 @@ export interface UsePredictMarketsForHomepageResult {
   refetch: () => Promise<unknown>;
 }
 
+interface UsePredictMarketsForHomepageOptions {
+  enabled?: boolean;
+}
+
 /**
  * Lightweight wrapper around the Predict team's usePredictMarketData hook,
  * adapted for homepage display with trending markets.
  *
- * The feature flag check is handled at the UI level (Homepage conditionally
- * renders the Predictions section), so this hook assumes it is only called
- * when predictions are enabled.
+ * Pass `enabled: false` when the Predict feature flag is off so the parent can
+ * keep `PredictionsSection` mounted without triggering market fetches.
  *
  * @param limit - Maximum number of markets to return (default: 5)
+ * @param options - Optional `enabled` gate (default true)
  * @returns Object with markets, isLoading, error, refetch
  */
 export const usePredictMarketsForHomepage = (
   limit = 5,
+  options: UsePredictMarketsForHomepageOptions = {},
 ): UsePredictMarketsForHomepageResult => {
+  const { enabled = true } = options;
   const { marketData, isFetching, error, refetch } = usePredictMarketData({
     category: 'trending',
     pageSize: limit,
+    enabled,
   });
 
   return {

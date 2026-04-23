@@ -109,7 +109,7 @@ export function cleanupAdbReverse(port) {
 
 // Candidate paths for the playground release APK, checked in priority order:
 // 1. Explicitly set via RN_PLAYGROUND_APK_PATH env var
-// 2. Downloaded by scripts/fetch-rn-playground-apk.sh
+// 2. Downloaded by tests/scripts/fetch-rn-playground-apk.sh
 // 3. Locally built in sibling connect-monorepo
 const PLAYGROUND_APK_CANDIDATES = [
   process.env.RN_PLAYGROUND_APK_PATH,
@@ -136,7 +136,7 @@ function resolvePlaygroundApkPath() {
         (p) => `  - ${path.resolve(process.cwd(), p)}`,
       ).join('\n') +
       '\n\nTo fix this, either:\n' +
-      '  1. Run: ./scripts/fetch-rn-playground-apk.sh\n' +
+      '  1. Run: ./tests/scripts/fetch-rn-playground-apk.sh\n' +
       '     (downloads the latest APK from connect-monorepo GitHub Releases)\n' +
       '  2. Build locally:\n' +
       '     cd connect-monorepo && yarn install && yarn build\n' +

@@ -12,17 +12,25 @@ import { useRampsController } from '../../hooks/useRampsController';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
-const mockGoBack = jest.fn();
+const mockHeaderGoBack = jest.fn();
 const mockParentGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
-    goBack: mockGoBack,
+    goBack: mockHeaderGoBack,
     getParent: () => ({
       goBack: mockParentGoBack,
+    }),
+  }),
+}));
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: () => ({ build: () => ({}) }),
     }),
   }),
 }));
@@ -206,6 +214,60 @@ describe('TokenSelection Component', () => {
     expect(
       getByPlaceholderText('Search token by name or address'),
     ).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back is pressed (V2 loaded list)', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockHeaderGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('calls navigation.goBack when header back is pressed while tokens are loading (V2)', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    mockUseRampsController.mockReturnValue({
+      tokens: null,
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
+      tokensLoading: true,
+      tokensError: null,
+      userRegion: null,
+      setUserRegion: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
+      providers: [],
+      providersLoading: false,
+      providersError: null,
+      countries: [],
+      countriesLoading: false,
+      countriesError: null,
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
+      getQuotes: jest.fn(),
+      getBuyWidgetData: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
+    });
+
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockHeaderGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('displays empty state when no tokens match search', async () => {
