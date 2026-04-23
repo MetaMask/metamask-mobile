@@ -3,13 +3,17 @@ import { useNavigation } from '@react-navigation/native';
 import { CaipChainId } from '@metamask/utils';
 
 import ReduxService from '../../../../core/redux';
+import Routes from '../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
 import useRampsController from '../hooks/useRampsController';
-import { createBuildQuoteNavDetails } from '../Views/BuildQuote/BuildQuote';
 
-import { createSession, endSession, setStatus } from './sessionRegistry';
+import {
+  closeSession,
+  createSession,
+  getActiveSessionId,
+} from './sessionRegistry';
 import type {
   HeadlessBuyCallbacks,
   HeadlessBuyParams,
@@ -113,30 +117,49 @@ export function useHeadlessBuy(): HeadlessBuyResult {
       params: HeadlessBuyParams,
       callbacks: HeadlessBuyCallbacks,
     ): StartHeadlessBuyResult => {
-      // Inputs live on the session only — no controller writes from here.
-      // `paymentMethodId` and `providerId` are ids, but the controller setters
-      // (`setSelectedPaymentMethod`, `setSelectedProvider`) take full objects
-      // from a catalog that may still be loading at this point. Resolving and
-      // applying those selections is the destination screen's job (BuildQuote
-      // today, Headless Host in Phase 4b), where the catalog is guaranteed
-      // hydrated. Keeps this hook free of controller side-effects and avoids
-      // the catalog-hydration race.
+      // Quote-first start: callers must hand us a single quote (typically
+      // one of the entries returned by `getQuotes(...)`). The Host derives
+      // every downstream value (asset, chain, payment method, provider…)
+      // from that quote, so we don't write anything to the RampsController
+      // here. Avoids the catalog-hydration race that an id-based seed had.
+      //
+      // Single-live-session policy: only one headless session may be
+      // active at a time. Starting a new one auto-cancels the previous,
+      // matching the playground UX where tapping "Start" on a different
+      // quote should swap the active flow.
+      const previousId = getActiveSessionId();
+      if (previousId) {
+        closeSession(previousId, { reason: 'consumer_cancelled' });
+      }
+
       const session = createSession(params, callbacks);
 
-      navigation.navigate(
-        ...createBuildQuoteNavDetails({
-          assetId: params.assetId,
-          amount: params.amount,
-          headlessSessionId: session.id,
-        }),
-      );
+      // The Headless Host is registered inside the Unified Buy v2 stack
+      // (`app/components/UI/Ramp/routes.tsx` → `MainRoutes`) so it lives
+      // next to every post-auth reset target (`Checkout`, `BasicInfo`,
+      // `KycWebview`, …). From outside that stack we have to enter the
+      // V2 stack via its outer mount point (`RAMP.TOKEN_SELECTION` in
+      // `MainNavigator.js`, which renders `TokenListRoutes`) and hand
+      // React Navigation a nested-screen descriptor:
+      //   RAMP.TOKEN_SELECTION (outer)
+      //     → RAMP.TOKEN_SELECTION (RootStack slot wrapping `MainRoutes`)
+      //       → RAMP.HEADLESS_HOST (target screen on the inner stack)
+      // Resetting the Host's nearest navigator (the `MainRoutes` inner
+      // stack) then resolves all the `useTransakRouting` targets.
+      navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+        params: {
+          screen: Routes.RAMP.HEADLESS_HOST,
+          params: {
+            headlessSessionId: session.id,
+          },
+        },
+      });
 
       return {
         sessionId: session.id,
         cancel: () => {
-          setStatus(session.id, 'cancelled');
-          endSession(session.id);
-          callbacks.onClose({ reason: 'consumer_cancelled' });
+          closeSession(session.id, { reason: 'consumer_cancelled' });
         },
       };
     },

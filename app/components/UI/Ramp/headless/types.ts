@@ -7,6 +7,7 @@ import type {
   TokensResponse,
   UserRegion,
 } from '@metamask/ramps-controller';
+import type { Quote } from '../types';
 
 /**
  * Public input for {@link useHeadlessBuy}'s `getQuotes`.
@@ -79,22 +80,54 @@ export interface HeadlessBuyResult {
 }
 
 /**
- * Inputs for {@link HeadlessBuyResult.startHeadlessBuy}. The headless flow
- * pre-seeds the controller with these values and navigates into the existing
- * Ramp v2 stack with a `headlessSessionId` so downstream screens can detect
- * the session.
+ * Inputs for {@link HeadlessBuyResult.startHeadlessBuy}.
+ *
+ * Phase 5 made the headless API quote-first: callers must `getQuotes(...)`
+ * themselves, pick one quote, and hand it back here. The Host then drives
+ * the rest of the flow off that single quote — no extra controller seeding
+ * is needed.
+ *
+ * @see HeadlessBuyResult.getQuotes for fetching candidate quotes.
  */
 export interface HeadlessBuyParams {
-  /** CAIP-19 asset id (e.g. `eip155:1/erc20:0x…`). */
+  /**
+   * The quote returned by `getQuotes(...)` that the consumer wants to
+   * continue with. The Host hands this to `useContinueWithQuote` so the
+   * provider/payment-method selection comes straight from the quote rather
+   * than from the RampsController.
+   */
+  quote: Quote;
+  /**
+   * CAIP-19 asset id originally used to request the quote. Re-supplied
+   * here because `Quote` itself doesn't carry the asset id, and the Host
+   * needs the matching `chainId` to resolve the wallet address.
+   */
   assetId: string;
-  /** Fiat amount the user wants to spend. */
+  /**
+   * Fiat amount the user is spending. Re-supplied for the same reason as
+   * `assetId` — `quote.quote.amountIn` exists but it's typed loosely
+   * (`number | string`), and we want a sharp `number` for the
+   * `ContinueWithQuoteContext`.
+   */
   amount: number;
-  /** The single payment method id to commit to for this attempt. */
-  paymentMethodId: string;
-  /** Optionally pin the flow to a single provider id. */
-  providerId?: string;
-  /** Optionally override the active region (otherwise the current user region is used). */
-  regionCode?: string;
+  /**
+   * Fiat currency code (e.g. `'USD'`). When omitted, the Host falls back
+   * to the active user region's currency — same default BuildQuote uses.
+   */
+  currency?: string;
+  /**
+   * Optional payment method id from the catalog. When omitted, the Host
+   * derives it from `quote.quote.paymentMethod` if a match exists in the
+   * loaded payment-methods catalog.
+   */
+  paymentMethodId?: string;
+  /**
+   * Override the redirect URL injected into provider widget URLs. Defaults
+   * to the same `getRampCallbackBaseUrl()` value that BuildQuote uses, so
+   * the in-app Checkout WebView can detect "completed" / "fallback" routes
+   * the way it does today.
+   */
+  redirectUrl?: string;
 }
 
 /**

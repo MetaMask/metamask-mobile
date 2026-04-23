@@ -1,0 +1,264 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Button,
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import type { CaipChainId } from '@metamask/utils';
+
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
+import { useStyles } from '../../../../hooks/useStyles';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import Logger from '../../../../../util/Logger';
+
+// Imported from concrete files instead of `../../headless` to avoid a
+// circular import: `../../headless/index.ts` re-exports `useHeadlessBuy`,
+// which in turn imports this Host (for `createHeadlessHostNavDetails`).
+// Going through the barrel would leave the registry exports `undefined`
+// at evaluation time inside this module.
+import {
+  closeSession,
+  getSession,
+  setStatus,
+} from '../../headless/sessionRegistry';
+import { getChainIdFromAssetId } from '../../headless/useHeadlessBuy';
+import useContinueWithQuote, {
+  type ContinueWithQuoteContext,
+} from '../../hooks/useContinueWithQuote';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
+import { useRampsPaymentMethods } from '../../hooks/useRampsPaymentMethods';
+import { getQuoteProviderName } from '../../types';
+
+import styleSheet from './HeadlessHost.styles';
+
+export const HEADLESS_HOST_HEADER_TEST_ID = 'headless-host-header';
+export const HEADLESS_HOST_BACK_BUTTON_TEST_ID = 'headless-host-back-button';
+export const HEADLESS_HOST_LOADER_TEST_ID = 'headless-host-loader';
+export const HEADLESS_HOST_NO_SESSION_TEST_ID = 'headless-host-no-session';
+export const HEADLESS_HOST_CANCEL_BUTTON_TEST_ID = 'headless-host-cancel';
+
+export interface HeadlessHostParams {
+  /** Session id created by `useHeadlessBuy().startHeadlessBuy(...)`. */
+  headlessSessionId: string;
+  /**
+   * When the OTP/auth loop fails, OtpCode resets back to this Host with
+   * `nativeFlowError` set. The Host turns it into an
+   * `onError('AUTH_FAILED', ...)` callback for the headless consumer and
+   * then closes the session.
+   */
+  nativeFlowError?: string;
+}
+
+/**
+ * Navigation helper for jumping to the Headless Host screen. The Host is
+ * the stack base for the headless buy flow — `useTransakRouting` resets
+ * land back here so post-auth navigation has somewhere to root.
+ */
+export const createHeadlessHostNavDetails =
+  createNavigationDetails<HeadlessHostParams>(Routes.RAMP.HEADLESS_HOST);
+
+/**
+ * Headless Host screen.
+ *
+ * Acts as the (stable) stack base for the headless buy flow:
+ * - On focus, picks up the live session by `headlessSessionId`.
+ * - Derives a `ContinueWithQuoteContext` directly from `session.params.quote` (no controller selections needed).
+ * - Calls `useContinueWithQuote().continueWithQuote(...)` exactly once, using the session status as a guard so re-focuses caused by the Transak auth loop don't re-trigger the flow.
+ * - Surfaces `nativeFlowError` (set by OtpCode on routing failure) as `onError('AUTH_FAILED', ...)` and closes the session.
+ * - When no session is found (e.g. consumer cancelled meanwhile), shows a passive "no session" message with a cancel/back affordance.
+ */
+function HeadlessHost() {
+  const navigation = useNavigation();
+  const { styles } = useStyles(styleSheet, {});
+  const { headlessSessionId, nativeFlowError } =
+    useParams<HeadlessHostParams>();
+  const session = getSession(headlessSessionId);
+
+  const { userRegion } = useRampsUserRegion();
+  const { paymentMethods } = useRampsPaymentMethods();
+
+  // For headless flows, post-auth resets must land back here (not on
+  // BuildQuote). We pin the routing base to the Host and re-supply the
+  // session id so the Host can resume tracking on re-focus.
+  const { continueWithQuote } = useContinueWithQuote({
+    transakRouting: {
+      baseRoute: Routes.RAMP.HEADLESS_HOST,
+      baseRouteParams: { headlessSessionId },
+    },
+  });
+
+  const chainId = session
+    ? (getChainIdFromAssetId(session.params.assetId) as CaipChainId | null)
+    : null;
+  const walletAddress = useRampAccountAddress(chainId ?? ('' as CaipChainId));
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // useFocusEffect runs the cleanup on blur; we use a ref instead of state
+  // so the in-flight guard survives across focus/blur cycles caused by
+  // the Transak auth loop without forcing re-renders.
+  const hasContinuedRef = useRef(false);
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  // Auth-loop error path: OtpCode resets back to the Host with
+  // `nativeFlowError` set when post-OTP routing fails. Forward to the
+  // consumer once and close the session.
+  useEffect(() => {
+    if (!nativeFlowError || !session) {
+      return;
+    }
+    setErrorMessage(nativeFlowError);
+    try {
+      session.callbacks.onError({
+        code: 'AUTH_FAILED',
+        message: nativeFlowError,
+      });
+    } catch (e) {
+      Logger.error(e as Error, 'HeadlessHost: onError callback threw');
+    }
+    closeSession(headlessSessionId, { reason: 'unknown' });
+  }, [nativeFlowError, session, headlessSessionId]);
+
+  // Continue-once on focus. Wrapped in `useFocusEffect` so the auth loop
+  // (which navigates Host → EnterEmail → … → Host) doesn't re-trigger the
+  // flow — `hasContinuedRef` already guards that, and `session.status`
+  // catches the cross-component case (e.g. the user already cancelled).
+  useFocusEffect(
+    useCallback(() => {
+      if (hasContinuedRef.current || !session || nativeFlowError) {
+        return;
+      }
+      if (session.status !== 'pending') {
+        return;
+      }
+      if (!chainId) {
+        const message = `HeadlessHost: invalid assetId "${session.params.assetId}"`;
+        Logger.error(new Error(message));
+        try {
+          session.callbacks.onError({
+            code: 'UNKNOWN',
+            message,
+          });
+        } catch (e) {
+          Logger.error(e as Error, 'HeadlessHost: onError callback threw');
+        }
+        closeSession(headlessSessionId, { reason: 'unknown' });
+        return;
+      }
+
+      hasContinuedRef.current = true;
+      setStatus(headlessSessionId, 'continued');
+
+      const { quote, amount, assetId, currency, paymentMethodId } =
+        session.params;
+      // Resolve the catalog id for the quote's payment method when the
+      // caller didn't pin one explicitly. The native (Transak) path needs
+      // a catalog id to look up `selectedPaymentMethod.isManualBankTransfer`.
+      const resolvedPaymentMethodId =
+        paymentMethodId ??
+        paymentMethods?.find((pm) => pm.id === quote.quote.paymentMethod)?.id;
+
+      const ctx: ContinueWithQuoteContext = {
+        amount,
+        assetId,
+        chainId,
+        walletAddress: walletAddress ?? undefined,
+        currency: currency ?? userRegion?.country?.currency,
+        cryptoSymbol: quote.quote.cryptoTranslation?.symbol,
+        paymentMethodId: resolvedPaymentMethodId,
+        providerName: getQuoteProviderName(quote),
+        headlessSessionId,
+      };
+
+      continueWithQuote(quote, ctx).catch((error: Error) => {
+        const message =
+          error?.message ?? strings('deposit.buildQuote.unexpectedError');
+        setErrorMessage(message);
+        try {
+          session.callbacks.onError({
+            code: 'UNKNOWN',
+            message,
+          });
+        } catch (e) {
+          Logger.error(e as Error, 'HeadlessHost: onError callback threw');
+        }
+        closeSession(headlessSessionId, { reason: 'unknown' });
+      });
+    }, [
+      session,
+      nativeFlowError,
+      chainId,
+      headlessSessionId,
+      paymentMethods,
+      walletAddress,
+      userRegion?.country?.currency,
+      continueWithQuote,
+    ]),
+  );
+
+  return (
+    <SafeAreaView edges={['top']} style={styles.container}>
+      <HeaderCompactStandard
+        testID={HEADLESS_HOST_HEADER_TEST_ID}
+        title={strings('app_settings.fiat_on_ramp.headless_host.title')}
+        onBack={handleBack}
+        backButtonProps={{ testID: HEADLESS_HOST_BACK_BUTTON_TEST_ID }}
+      />
+      <View style={styles.body}>
+        {errorMessage ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
+            style={styles.text}
+          >
+            {errorMessage}
+          </Text>
+        ) : session ? (
+          <>
+            <ActivityIndicator
+              size="large"
+              style={styles.spinner}
+              testID={HEADLESS_HOST_LOADER_TEST_ID}
+            />
+            <Text variant={TextVariant.BodyMd} style={styles.text}>
+              {strings('app_settings.fiat_on_ramp.headless_host.loading')}
+            </Text>
+          </>
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            style={styles.text}
+            testID={HEADLESS_HOST_NO_SESSION_TEST_ID}
+          >
+            {strings('app_settings.fiat_on_ramp.headless_host.no_session')}
+          </Text>
+        )}
+        <View style={styles.cancelRow}>
+          <Button
+            variant={ButtonVariant.Tertiary}
+            onPress={handleBack}
+            testID={HEADLESS_HOST_CANCEL_BUTTON_TEST_ID}
+          >
+            {strings('app_settings.fiat_on_ramp.headless_host.cancel')}
+          </Button>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+export default HeadlessHost;

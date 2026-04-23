@@ -1,5 +1,6 @@
 import type {
   HeadlessBuyCallbacks,
+  HeadlessBuyCloseInfo,
   HeadlessBuyParams,
   HeadlessSession,
   HeadlessSessionStatus,
@@ -88,6 +89,58 @@ export function setStatus(id: string, status: HeadlessSessionStatus): void {
 
 export function endSession(id: string): void {
   sessions.delete(id);
+}
+
+/**
+ * Returns the id of the first non-terminal session, if any. Used by
+ * `startHeadlessBuy` to enforce a "single live session at a time" policy:
+ * starting a new session auto-cancels the previous one (Phase 5).
+ *
+ * Sessions are iterated in insertion order, but the registry only ever
+ * carries one live session under correct usage, so this is effectively
+ * O(1) in practice.
+ */
+export function getActiveSessionId(): string | undefined {
+  for (const [id, session] of sessions) {
+    if (session.status !== 'completed' && session.status !== 'cancelled') {
+      return id;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Idempotent "stop and notify" used by both consumer-driven cancellation
+ * and the auto-cancel path of `startHeadlessBuy`.
+ *
+ * - Marks the session `cancelled` (if it isn't already terminal).
+ * - Removes it from the registry so subsequent `getSession(id)` returns `undefined` and lookups in downstream screens become no-ops.
+ * - Fires `onClose(info)` exactly once.
+ *
+ * Safe to call with an unknown id — does nothing in that case so callers
+ * don't have to null-check.
+ */
+export function closeSession(
+  id: string | undefined,
+  info: HeadlessBuyCloseInfo,
+): void {
+  if (!id) {
+    return;
+  }
+  const session = sessions.get(id);
+  if (!session) {
+    return;
+  }
+  if (session.status !== 'completed' && session.status !== 'cancelled') {
+    session.status = 'cancelled';
+  }
+  sessions.delete(id);
+  try {
+    session.callbacks.onClose(info);
+  } catch {
+    // Consumer callback errors must never break the flow — the session
+    // is already gone from the registry by this point.
+  }
 }
 
 /**

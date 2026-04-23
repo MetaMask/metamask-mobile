@@ -3417,6 +3417,7 @@
         "start_headless_buy_disabled_hint": "Enter a valid amount to enable",
         "start_headless_buy_pending": "Headless session active — open BuildQuote",
         "cancel_headless_buy": "Cancel headless session",
+        "active_session_hint": "Active session: {{sessionId}} — starting another quote will cancel it.",
         "event_log_title": "Event log",
         "event_log_empty": "No events yet — start a headless session and watch this space.",
         "event_log_started": "started session {{sessionId}} (asset={{assetId}}, amount={{amount}}, payment={{paymentMethodId}}{{providerSuffix}})",
@@ -3424,6 +3425,12 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "consumer-cancelled session {{sessionId}}"
+      },
+      "headless_host": {
+        "title": "Headless buy",
+        "loading": "Preparing the buy flow…",
+        "no_session": "Headless session is no longer active.",
+        "cancel": "Cancel"
       }
     },
     "request_feature": "Request a feature",

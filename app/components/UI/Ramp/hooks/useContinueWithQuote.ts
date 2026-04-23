@@ -37,6 +37,43 @@ import useRampAccountAddress from './useRampAccountAddress';
 export interface ContinueWithQuoteContext {
   amount: number;
   assetId: string;
+  /**
+   * Optional overrides for callers that don't seed the controller (e.g. the
+   * headless flow's Host screen). When omitted, each field falls back to the
+   * value derived from `useRampsController` selections — so BuildQuote
+   * keeps its existing behavior unchanged. When supplied, the override
+   * wins for the duration of this call only.
+   */
+  chainId?: CaipChainId;
+  walletAddress?: string;
+  /** Fiat currency code, e.g. `'USD'`. */
+  currency?: string;
+  /** Crypto symbol used for Checkout WebView's display label. */
+  cryptoSymbol?: string;
+  /** Payment method id used for the native Transak quote fetch. */
+  paymentMethodId?: string;
+  /** Provider display name used for Checkout WebView's `providerName`. */
+  providerName?: string;
+  /**
+   * When set, the native (Transak) auth-loop screens (VerifyIdentity →
+   * EnterEmail → OtpCode) will carry this id and route post-auth resets
+   * back to `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote. Ignored
+   * by the widget branch (no auth loop there).
+   */
+  headlessSessionId?: string;
+}
+
+export interface UseContinueWithQuoteOptions {
+  /**
+   * Forwarded to the inner `useTransakRouting` instance. Lets the headless
+   * Host pin the stack base for post-auth resets onto
+   * `Routes.RAMP.HEADLESS_HOST` so the auth loop returns to the Host
+   * instead of BuildQuote (which a headless caller never opened).
+   */
+  transakRouting?: {
+    baseRoute?: string;
+    baseRouteParams?: Record<string, unknown>;
+  };
 }
 
 export interface UseContinueWithQuoteResult {
@@ -62,7 +99,9 @@ export interface UseContinueWithQuoteResult {
   ) => Promise<void>;
 }
 
-export function useContinueWithQuote(): UseContinueWithQuoteResult {
+export function useContinueWithQuote(
+  options?: UseContinueWithQuoteOptions,
+): UseContinueWithQuoteResult {
   const navigation = useNavigation();
   const {
     selectedToken,
@@ -76,8 +115,9 @@ export function useContinueWithQuote(): UseContinueWithQuoteResult {
     checkExistingToken: transakCheckExistingToken,
     getBuyQuote: transakGetBuyQuote,
   } = useTransakController();
-  const { routeAfterAuthentication: transakRouteAfterAuth } =
-    useTransakRouting();
+  const { routeAfterAuthentication: transakRouteAfterAuth } = useTransakRouting(
+    options?.transakRouting,
+  );
   const walletAddress = useRampAccountAddress(
     selectedToken?.chainId as CaipChainId,
   );
@@ -97,25 +137,28 @@ export function useContinueWithQuote(): UseContinueWithQuoteResult {
     [navigation],
   );
 
-  // TODO(phase-5): controller reads (currency, selectedToken.chainId,
-  // selectedPaymentMethod.id, selectedProvider.name) assume a BuildQuote
-  // caller that has seeded the controller. Headless callers (Phase 5) do not
-  // seed the controller — add quote-derived fallbacks or an explicit context
-  // extension when the headless quote-first path lands.
   // The aggregator-format `_quote` is used only by the caller to dispatch
   // to this branch via `isNativeProvider`. The native (Transak) path fetches
   // its own `TransakBuyQuote` via `transakGetBuyQuote` below.
   const continueNative = useCallback(
-    async (_quote: Quote, { amount, assetId }: ContinueWithQuoteContext) => {
+    async (_quote: Quote, ctx: ContinueWithQuoteContext) => {
+      const { amount, assetId } = ctx;
+      // Resolve every controller-coupled value through the override-first
+      // ladder so headless callers (Phase 5) can drive this hook without
+      // pre-seeding the RampsController.
+      const effectiveCurrency = ctx.currency ?? currency;
+      const effectiveChainId = ctx.chainId ?? selectedToken?.chainId ?? '';
+      const effectivePaymentMethodId =
+        ctx.paymentMethodId ?? selectedPaymentMethod?.id ?? '';
       try {
         const hasToken = await transakCheckExistingToken();
 
         if (hasToken) {
           const transakQuote = await transakGetBuyQuote(
-            currency,
+            effectiveCurrency,
             assetId,
-            selectedToken?.chainId || '',
-            selectedPaymentMethod?.id || '',
+            effectiveChainId,
+            effectivePaymentMethodId,
             String(amount),
           );
           if (!transakQuote) {
@@ -126,16 +169,18 @@ export function useContinueWithQuote(): UseContinueWithQuoteResult {
           navigation.navigate(
             ...createV2EnterEmailNavDetails({
               amount: String(amount),
-              currency,
+              currency: effectiveCurrency,
               assetId,
+              headlessSessionId: ctx.headlessSessionId,
             }),
           );
         } else {
           navigation.navigate(
             ...createV2VerifyIdentityNavDetails({
               amount: String(amount),
-              currency,
+              currency: effectiveCurrency,
               assetId,
+              headlessSessionId: ctx.headlessSessionId,
             }),
           );
         }
@@ -162,7 +207,20 @@ export function useContinueWithQuote(): UseContinueWithQuoteResult {
   );
 
   const continueWidget = useCallback(
-    async (quote: Quote, _ctx: ContinueWithQuoteContext) => {
+    async (quote: Quote, ctx: ContinueWithQuoteContext) => {
+      // See `continueNative` — every controller-coupled value resolves
+      // through the override-first ladder so headless callers can drive the
+      // widget branch without touching the controller.
+      const effectiveCurrency = ctx.currency ?? currency;
+      const effectiveWalletAddress = ctx.walletAddress ?? walletAddress;
+      const effectiveCryptoSymbol =
+        ctx.cryptoSymbol ?? selectedToken?.symbol ?? '';
+      const effectiveChainId = ctx.chainId ?? selectedToken?.chainId;
+      const effectiveProviderName =
+        ctx.providerName ??
+        selectedProvider?.name ??
+        getQuoteProviderName(quote);
+
       let providerCode: string;
       let useExternalBrowser: boolean;
       let redirectUrl: string;
@@ -204,7 +262,11 @@ export function useContinueWithQuote(): UseContinueWithQuoteResult {
 
       try {
         const { network, effectiveWallet, effectiveOrderId } =
-          getCheckoutContext(selectedToken, walletAddress, buyWidget.orderId);
+          getCheckoutContext(
+            { chainId: effectiveChainId },
+            effectiveWalletAddress,
+            buyWidget.orderId,
+          );
 
         if (useExternalBrowser) {
           if (effectiveOrderId && effectiveWallet) {
@@ -257,14 +319,14 @@ export function useContinueWithQuote(): UseContinueWithQuoteResult {
         navigation.navigate(
           ...createCheckoutNavDetails({
             url: buyWidget.url,
-            providerName: selectedProvider?.name || getQuoteProviderName(quote),
+            providerName: effectiveProviderName,
             userAgent: getQuoteBuyUserAgent(quote),
             providerCode,
             providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
             walletAddress: effectiveWallet || undefined,
             network,
-            currency,
-            cryptocurrency: selectedToken?.symbol || '',
+            currency: effectiveCurrency,
+            cryptocurrency: effectiveCryptoSymbol,
             orderId: buyWidget.orderId?.trim() || undefined,
           }),
         );
