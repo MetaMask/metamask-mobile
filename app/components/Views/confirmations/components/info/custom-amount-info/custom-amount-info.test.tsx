@@ -551,8 +551,8 @@ describe('CustomAmountInfo', () => {
     it('renders Max when hasMax=true and pay token is non-native', () => {
       const { getByText, queryByText } = render({ hasMax: true });
 
-      expect(getByText('Max')).toBeDefined();
-      expect(queryByText('90%')).toBeNull();
+      expect(getByText('Max')).toBeOnTheScreen();
+      expect(queryByText('90%')).not.toBeOnTheScreen();
     });
 
     it('falls back to 90% when pay token is native and the flow is not a withdraw (safeguard against sending entire native balance with no gas reserve)', () => {
@@ -573,8 +573,8 @@ describe('CustomAmountInfo', () => {
 
       const { getByText, queryByText } = render({ hasMax: true });
 
-      expect(getByText('90%')).toBeDefined();
-      expect(queryByText('Max')).toBeNull();
+      expect(getByText('90%')).toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
     });
 
     it.each([
@@ -608,16 +608,16 @@ describe('CustomAmountInfo', () => {
           transactionType,
         });
 
-        expect(getByText('Max')).toBeDefined();
-        expect(queryByText('90%')).toBeNull();
+        expect(getByText('Max')).toBeOnTheScreen();
+        expect(queryByText('90%')).not.toBeOnTheScreen();
       },
     );
 
     it('renders 90% when hasMax is not provided', () => {
       const { getByText, queryByText } = render();
 
-      expect(getByText('90%')).toBeDefined();
-      expect(queryByText('Max')).toBeNull();
+      expect(getByText('90%')).toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
     });
   });
 
