@@ -16,7 +16,7 @@ type ImageSource = 'clicker' | 'metamask' | 'none';
 
 /**
  * Renders the token avatar with a three-step fallback chain:
- * 1. Clicker/Daylight-hosted URL (`position.tokenImageUrl`)
+ * 1. Social API-provided URL (`position.tokenImageUrl`)
  * 2. MetaMask static CDN URL (derived from tokenAddress + chain)
  * 3. AvatarToken text monogram (first letter of tokenSymbol)
  */
