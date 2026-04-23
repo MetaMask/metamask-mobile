@@ -4,9 +4,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
 import type { Mockttp } from 'mockttp';
-import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers';
 
 const SNAP_BINARIES_DIR = path.resolve(__dirname, 'snap-binaries-and-headers');
+
+const getDecodedProxiedURL = (url: string) =>
+  decodeURIComponent(String(new URL(url).searchParams.get('url')));
 
 /**
  * Scans the binaries directory for files matching `<snapNamePrefix>@<version>.txt`
@@ -67,6 +69,13 @@ export async function createSnapMock(
   if (!fs.existsSync(binaryPath)) {
     throw new Error(
       `Snap binary not found: ${binaryPath}. ` +
+        `Run: yarn update-snap-binary --${snapNamePrefix}@${version}`,
+    );
+  }
+
+  if (!fs.existsSync(headersPath)) {
+    throw new Error(
+      `Snap headers not found: ${headersPath}. ` +
         `Run: yarn update-snap-binary --${snapNamePrefix}@${version}`,
     );
   }
