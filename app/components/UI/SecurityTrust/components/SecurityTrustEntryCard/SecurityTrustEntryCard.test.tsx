@@ -252,16 +252,16 @@ describe('SecurityTrustEntryCard', () => {
     ).toBeTruthy();
   });
 
-  describe('IconAlert rendering', () => {
-    it('renders IconAlert for Warning/Spam tokens with features', () => {
+  describe('Feature tag rendering', () => {
+    it('renders feature tags for Warning tokens with features', () => {
       const warningData: TokenSecurityData = {
         resultType: 'Warning',
         maliciousScore: '50',
         features: [
           {
-            featureId: 'high_tax',
+            featureId: 'AIRDROP_PATTERN',
             type: 'negative',
-            description: 'High tax detected',
+            description: 'Suspicious airdrop',
           },
         ],
         fees: {
@@ -288,7 +288,7 @@ describe('SecurityTrustEntryCard', () => {
         created: '2023-01-01T00:00:00Z',
       };
 
-      const { getAllByTestId } = render(
+      const { getByText } = render(
         <SecurityTrustEntryCard
           securityData={warningData}
           isLoading={false}
@@ -296,25 +296,24 @@ describe('SecurityTrustEntryCard', () => {
         />,
       );
 
-      // IconAlert should be rendered for Warning severity
-      const iconAlerts = getAllByTestId('icon-alert');
-      expect(iconAlerts.length).toBeGreaterThan(0);
+      // Feature tag should be rendered for Warning severity
+      expect(getByText('Suspicious airdrop')).toBeTruthy();
     });
 
-    it('renders IconAlert for Malicious tokens with features', () => {
+    it('renders feature tags for Malicious tokens with features', () => {
       const maliciousData: TokenSecurityData = {
         resultType: 'Malicious',
         maliciousScore: '95',
         features: [
           {
-            featureId: 'honeypot',
+            featureId: 'KNOWN_MALICIOUS',
             type: 'negative',
-            description: 'Honeypot detected',
+            description: 'Known malicious',
           },
           {
-            featureId: 'fake_token',
+            featureId: 'RUGPULL',
             type: 'negative',
-            description: 'Fake token',
+            description: 'Rugpull risk',
           },
         ],
         fees: {
@@ -341,7 +340,7 @@ describe('SecurityTrustEntryCard', () => {
         created: '2023-01-01T00:00:00Z',
       };
 
-      const { getAllByTestId } = render(
+      const { getByText } = render(
         <SecurityTrustEntryCard
           securityData={maliciousData}
           isLoading={false}
@@ -349,24 +348,24 @@ describe('SecurityTrustEntryCard', () => {
         />,
       );
 
-      // IconAlert should be rendered for Error severity (Malicious)
-      const iconAlerts = getAllByTestId('icon-alert');
-      expect(iconAlerts.length).toBeGreaterThan(0);
+      // Feature tags should be rendered for Malicious severity
+      expect(getByText('Known malicious')).toBeTruthy();
+      expect(getByText('Rugpull risk')).toBeTruthy();
     });
 
-    it('renders IconAlert for Verified tokens with features', () => {
+    it('renders feature tags for Verified tokens with features', () => {
       const verifiedDataWithFeatures: TokenSecurityData = {
         ...mockSecurityData,
         features: [
           {
-            featureId: 'verified_contract',
+            featureId: 'VERIFIED_CONTRACT',
             type: 'info',
             description: 'Contract is verified',
           },
         ],
       };
 
-      const { getAllByTestId } = render(
+      const { getByText } = render(
         <SecurityTrustEntryCard
           securityData={verifiedDataWithFeatures}
           isLoading={false}
@@ -374,20 +373,19 @@ describe('SecurityTrustEntryCard', () => {
         />,
       );
 
-      // IconAlert should be rendered for Success severity (Verified)
-      const iconAlerts = getAllByTestId('icon-alert');
-      expect(iconAlerts.length).toBeGreaterThan(0);
+      // Feature tag should be rendered for Verified severity
+      expect(getByText('Published contract')).toBeTruthy();
     });
 
-    it('does not render IconAlert for Benign tokens', () => {
+    it('renders positive feature tags for Benign tokens', () => {
       const benignData: TokenSecurityData = {
         resultType: 'Benign',
         maliciousScore: '0',
         features: [
           {
-            featureId: 'standard_erc20',
+            featureId: 'HIGH_REPUTATION_TOKEN',
             type: 'info',
-            description: 'Standard ERC20',
+            description: 'High reputation',
           },
         ],
         fees: {
@@ -414,7 +412,7 @@ describe('SecurityTrustEntryCard', () => {
         created: '2023-01-01T00:00:00Z',
       };
 
-      const { queryAllByTestId } = render(
+      const { getByText } = render(
         <SecurityTrustEntryCard
           securityData={benignData}
           isLoading={false}
@@ -422,18 +420,17 @@ describe('SecurityTrustEntryCard', () => {
         />,
       );
 
-      // IconAlert should NOT be rendered for Benign (no iconAlertSeverity)
-      const iconAlerts = queryAllByTestId('icon-alert');
-      expect(iconAlerts).toHaveLength(0);
+      // Positive feature tag should be rendered for Benign
+      expect(getByText('Established reputation')).toBeTruthy();
     });
 
-    it('does not render IconAlert when there are no features', () => {
+    it('does not render feature tags when there are no recognized features', () => {
       const verifiedNoFeatures: TokenSecurityData = {
         ...mockSecurityData,
         features: [],
       };
 
-      const { queryAllByTestId } = render(
+      const { queryByText } = render(
         <SecurityTrustEntryCard
           securityData={verifiedNoFeatures}
           isLoading={false}
@@ -441,9 +438,9 @@ describe('SecurityTrustEntryCard', () => {
         />,
       );
 
-      // IconAlert should NOT be rendered when there are no feature tags
-      const iconAlerts = queryAllByTestId('icon-alert');
-      expect(iconAlerts).toHaveLength(0);
+      // No feature tags should be rendered when features array is empty
+      expect(queryByText('Published contract')).toBeNull();
+      expect(queryByText('Honeypot risk')).toBeNull();
     });
   });
 });

@@ -141,50 +141,49 @@ describe('SecurityBadgeBottomSheet', () => {
     );
   });
 
-  describe('IconAlert rendering for feature tags', () => {
-    it('renders IconAlert for each feature tag when severity is Malicious', () => {
+  describe('Feature tag rendering', () => {
+    it('renders feature tags for Malicious severity', () => {
       mockUseRouteImpl = jest.fn(() => ({
         params: {
           ...mockRouteParams,
           severity: 'Malicious',
           features: [
             {
-              featureId: 'honeypot',
+              featureId: 'KNOWN_MALICIOUS',
               type: 'negative',
-              description: 'Honeypot',
+              description: 'Malicious',
             },
-            { featureId: 'fake_token', type: 'negative', description: 'Fake' },
+            { featureId: 'RUGPULL', type: 'negative', description: 'Rugpull' },
           ],
         },
       }));
 
-      const { getAllByTestId } = render(<SecurityBadgeBottomSheet />);
+      const { getByText } = render(<SecurityBadgeBottomSheet />);
 
-      // Should render IconAlert for each feature tag (2) + banner (1) + header (1) = 4 total
-      const iconAlerts = getAllByTestId('icon-alert');
-      expect(iconAlerts.length).toBeGreaterThanOrEqual(2);
+      // Both feature tag labels should be rendered
+      expect(getByText('Known malicious')).toBeTruthy();
+      expect(getByText('Rugpull risk')).toBeTruthy();
     });
 
-    it('renders IconAlert for each feature tag when severity is Warning', () => {
+    it('renders feature tags for Warning severity', () => {
       mockUseRouteImpl = jest.fn(() => ({
         params: {
           ...mockRouteParams,
           severity: 'Warning',
           features: [
             {
-              featureId: 'high_tax',
+              featureId: 'AIRDROP_PATTERN',
               type: 'negative',
-              description: 'High Tax',
+              description: 'Airdrop',
             },
           ],
         },
       }));
 
-      const { getAllByTestId } = render(<SecurityBadgeBottomSheet />);
+      const { getByText } = render(<SecurityBadgeBottomSheet />);
 
-      // Should render IconAlert for feature tag + header
-      const iconAlerts = getAllByTestId('icon-alert');
-      expect(iconAlerts.length).toBeGreaterThanOrEqual(1);
+      // Feature tag label should be rendered
+      expect(getByText('Suspicious airdrop')).toBeTruthy();
     });
 
     it('renders feature tags for Spam severity', () => {
@@ -226,11 +225,35 @@ describe('SecurityBadgeBottomSheet', () => {
     });
 
     it('limits feature tags to maximum of 5', () => {
-      const manyFeatures = Array.from({ length: 10 }, (_, i) => ({
-        featureId: `feature_${i}`,
-        type: 'negative' as const,
-        description: `Feature ${i}`,
-      }));
+      const manyFeatures = [
+        { featureId: 'RUGPULL', type: 'negative' as const, description: 'A' },
+        {
+          featureId: 'KNOWN_MALICIOUS',
+          type: 'negative' as const,
+          description: 'B',
+        },
+        {
+          featureId: 'HIGH_TRANSFER_FEE',
+          type: 'negative' as const,
+          description: 'C',
+        },
+        {
+          featureId: 'UNSELLABLE_TOKEN',
+          type: 'negative' as const,
+          description: 'D',
+        },
+        {
+          featureId: 'TOKEN_BACKDOOR',
+          type: 'negative' as const,
+          description: 'E',
+        },
+        { featureId: 'POST_DUMP', type: 'negative' as const, description: 'F' },
+        {
+          featureId: 'HIGH_BUY_FEE',
+          type: 'negative' as const,
+          description: 'G',
+        },
+      ];
 
       mockUseRouteImpl = jest.fn(() => ({
         params: {
@@ -240,11 +263,18 @@ describe('SecurityBadgeBottomSheet', () => {
         },
       }));
 
-      const { getAllByTestId } = render(<SecurityBadgeBottomSheet />);
+      const { getByText, queryByText } = render(<SecurityBadgeBottomSheet />);
 
-      // Should render max 5 feature tag IconAlerts + 1 banner + 1 header = 7 total
-      const iconAlerts = getAllByTestId('icon-alert');
-      expect(iconAlerts.length).toBeLessThanOrEqual(7);
+      // Should render first 5 feature tags
+      expect(getByText('Rugpull risk')).toBeTruthy();
+      expect(getByText('Known malicious')).toBeTruthy();
+      expect(getByText('High transfer fee')).toBeTruthy();
+      expect(getByText('Unsellable token')).toBeTruthy();
+      expect(getByText('Token backdoor')).toBeTruthy();
+
+      // Should NOT render 6th and 7th tags
+      expect(queryByText('Possible price manipulation')).toBeNull();
+      expect(queryByText('High buy fee')).toBeNull();
     });
   });
 
@@ -274,7 +304,7 @@ describe('SecurityBadgeBottomSheet', () => {
       expect(queryByText('This should not appear')).toBeNull();
     });
 
-    it('renders malicious banner with IconAlert', () => {
+    it('renders malicious banner with error styling', () => {
       mockUseRouteImpl = jest.fn(() => ({
         params: {
           ...mockRouteParams,
@@ -283,11 +313,16 @@ describe('SecurityBadgeBottomSheet', () => {
         },
       }));
 
-      const { getAllByTestId } = render(<SecurityBadgeBottomSheet />);
+      const { getByText } = render(<SecurityBadgeBottomSheet />);
 
-      // Should include banner IconAlert + header IconAlert
-      const iconAlerts = getAllByTestId('icon-alert');
-      expect(iconAlerts.length).toBeGreaterThanOrEqual(2);
+      // Should render the malicious banner text
+      const bannerText = strings(
+        'security_trust.malicious_token_banner_description',
+        {
+          symbol: 'TEST',
+        },
+      );
+      expect(getByText(bannerText)).toBeTruthy();
     });
 
     it('does not render malicious banner for Warning severity', () => {
@@ -359,57 +394,53 @@ describe('SecurityBadgeBottomSheet', () => {
     });
   });
 
-  describe('Header icon rendering', () => {
-    it('renders IconAlert for Warning severity in header', () => {
+  describe('Header display', () => {
+    it('renders title for Warning severity', () => {
       mockUseRouteImpl = jest.fn(() => ({
         params: {
           ...mockRouteParams,
           severity: 'Warning',
+          title: 'Risky Token',
         },
       }));
 
-      const { getAllByTestId } = render(<SecurityBadgeBottomSheet />);
+      const { getByText } = render(<SecurityBadgeBottomSheet />);
 
-      // Should have at least one IconAlert in header
-      const iconAlerts = getAllByTestId('icon-alert');
-      expect(iconAlerts.length).toBeGreaterThanOrEqual(1);
+      // Should render the title
+      expect(getByText('Risky Token')).toBeTruthy();
     });
 
-    it('renders IconAlert for Malicious severity in header', () => {
+    it('renders title for Malicious severity', () => {
       mockUseRouteImpl = jest.fn(() => ({
         params: {
           ...mockRouteParams,
           severity: 'Malicious',
+          title: 'Malicious Token',
         },
       }));
 
-      const { getAllByTestId } = render(<SecurityBadgeBottomSheet />);
+      const { getByText } = render(<SecurityBadgeBottomSheet />);
 
-      // Should have at least one IconAlert in header
-      const iconAlerts = getAllByTestId('icon-alert');
-      expect(iconAlerts.length).toBeGreaterThanOrEqual(1);
+      // Should render the title
+      expect(getByText('Malicious Token')).toBeTruthy();
     });
 
-    it('renders regular Icon for Verified severity in header', () => {
+    it('renders title and description for Verified severity', () => {
       mockUseRouteImpl = jest.fn(() => ({
         params: {
           ...mockRouteParams,
           severity: 'Verified',
           icon: IconName.SecurityTick,
+          title: 'Verified Token',
+          description: 'This token has been verified',
         },
       }));
 
-      const { getByTestId, queryAllByTestId } = render(
-        <SecurityBadgeBottomSheet />,
-      );
+      const { getByText } = render(<SecurityBadgeBottomSheet />);
 
-      // Should render regular icon (not IconAlert) for Verified
-      expect(getByTestId('icon')).toBeTruthy();
-
-      // IconAlert might still appear but regular icon should be primary
-      const iconAlerts = queryAllByTestId('icon-alert');
-      // For Verified, if there are IconAlerts, they would be minimal
-      expect(iconAlerts.length).toBeLessThan(2);
+      // Should render title and description for Verified
+      expect(getByText('Verified Token')).toBeTruthy();
+      expect(getByText('This token has been verified')).toBeTruthy();
     });
   });
 });
