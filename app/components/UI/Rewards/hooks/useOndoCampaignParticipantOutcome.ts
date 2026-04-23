@@ -25,6 +25,7 @@ export function useOndoCampaignParticipantOutcome(
 
   const fetchOutcome = useCallback(async (): Promise<void> => {
     if (!subscriptionId || !campaignId || !isOptedIn) {
+      setOutcome(null);
       setIsLoading(false);
       setHasError(false);
       return;
