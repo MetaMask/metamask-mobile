@@ -8403,10 +8403,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ens-resolver-snap@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/ens-resolver-snap@npm:1.1.0"
-  checksum: 10/e7d636ae8934aa31e0b0ee916557e1911b37147d7a6eca74fbe3581df3652162104f190eddba6c5ae100166e79168855ac364393b57abfbc6f8bc82047d71082
+"@metamask/ens-resolver-snap@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@metamask/ens-resolver-snap@npm:1.2.0"
+  checksum: 10/abe07b3eaac4fa4daf5cf24041467183cc3d65975c77e80045e0eeb92c5bc78cd4c47c3980a35d33ed33dea92545ed3df5d7de387ee4bd7062848ccad30fd3db
   languageName: node
   linkType: hard
 
@@ -8504,9 +8504,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-json-rpc-middleware@npm:^23.1.0, @metamask/eth-json-rpc-middleware@npm:^23.1.1":
-  version: 23.1.1
-  resolution: "@metamask/eth-json-rpc-middleware@npm:23.1.1"
+"@metamask/eth-json-rpc-middleware@npm:^23.1.1, @metamask/eth-json-rpc-middleware@npm:^23.1.2":
+  version: 23.1.2
+  resolution: "@metamask/eth-json-rpc-middleware@npm:23.1.2"
   dependencies:
     "@metamask/eth-block-tracker": "npm:^15.0.1"
     "@metamask/eth-json-rpc-provider": "npm:^6.0.1"
@@ -8519,7 +8519,7 @@ __metadata:
     klona: "npm:^2.0.6"
     pify: "npm:^5.0.0"
     safe-stable-stringify: "npm:^2.4.3"
-  checksum: 10/229859120744e22cd0da50e3af316521ddb1f470dd4e2ae9797145d7694d0355d847f1453a1280788359d5cb5ba78bdfc6b038be85287918e7a530cbaf24d1d4
+  checksum: 10/394cd692f76d28133f4956956e4c8e3b97f3b6c98f461e223c6a1f35b4a174d207bc9806bc834d7090501192a4055b08ecb4a114158c637fb8826ba34d274b81
   languageName: node
   linkType: hard
 
@@ -29427,6 +29427,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-splash-screen@npm:~0.29.0":
+  version: 0.29.24
+  resolution: "expo-splash-screen@npm:0.29.24"
+  dependencies:
+    "@expo/prebuild-config": "npm:~8.2.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/ccb8ead5d69484cf7b219758043c5d724e4ed9784d01ed05fbf43d583b7687024012172af5186b9ad31a80dda06808e6b7936b364571e6fa95564466308cff18
+  languageName: node
+  linkType: hard
+
 "expo-structured-headers@npm:~4.0.0":
   version: 4.0.0
   resolution: "expo-structured-headers@npm:4.0.0"
@@ -35855,12 +35866,12 @@ __metadata:
     "@metamask/earn-controller": "npm:^12.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
-    "@metamask/ens-resolver-snap": "npm:^1.1.0"
+    "@metamask/ens-resolver-snap": "npm:^1.2.0"
     "@metamask/eslint-config-typescript": "npm:^13.0.0"
     "@metamask/eslint-plugin-design-tokens": "npm:^1.0.0"
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
     "@metamask/eth-json-rpc-filters": "npm:^9.0.0"
-    "@metamask/eth-json-rpc-middleware": "npm:^23.1.0"
+    "@metamask/eth-json-rpc-middleware": "npm:^23.1.2"
     "@metamask/eth-ledger-bridge-keyring": "npm:^11.4.0"
     "@metamask/eth-money-keyring": "npm:^2.0.0"
     "@metamask/eth-qr-keyring": "npm:^1.1.0"
@@ -36123,6 +36134,7 @@ __metadata:
     expo-local-authentication: "npm:~15.0.2"
     expo-screen-orientation: "npm:~8.0.4"
     expo-sensors: "npm:~14.0.2"
+    expo-splash-screen: "npm:~0.29.0"
     expo-updates: "patch:expo-updates@npm%3A0.27.4#~/.yarn/patches/expo-updates-npm-0.27.4-2a215516d7.patch"
     fast-equals: "npm:^5.2.2"
     fuse.js: "npm:3.4.4"
