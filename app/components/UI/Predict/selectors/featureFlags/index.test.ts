@@ -1,4 +1,6 @@
 import {
+  selectPredictClobV2EnabledFlag,
+  selectPredictClobV2ClobBaseUrlFlag,
   selectPredictEnabledFlag,
   selectPredictFakOrdersEnabledFlag,
   selectPredictFeeCollectionFlag,
@@ -7,6 +9,7 @@ import {
   selectPredictHotTabFlag,
   selectPredictWithAnyTokenEnabledFlag,
 } from '.';
+import { LEGACY_V2_CLOB_BASE_URL } from '../../providers/polymarket/constants';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
@@ -1072,6 +1075,172 @@ describe('Predict Feature Flag Selectors', () => {
       const result = selectPredictHomeFeaturedVariant(stateWithNullFlag);
 
       expect(result).toBe('carousel');
+    });
+  });
+
+  describe('selectPredictClobV2EnabledFlag', () => {
+    it('returns true when flag is enabled and version requirement is met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictClobV2: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictClobV2EnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictClobV2: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictClobV2EnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when app version is below minimum required version', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictClobV2: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictClobV2EnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote feature flags are empty', () => {
+      const result = selectPredictClobV2EnabledFlag(mockedEmptyFlagsState);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictClobV2ClobBaseUrlFlag', () => {
+    it('returns undefined when predictClobV2 is disabled even if legacy host flag is enabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictClobV2: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+                predictClobV2UseLegacyClobHost: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictClobV2ClobBaseUrlFlag(state);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns legacy host URL when both predictClobV2 and legacy host flag are enabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictClobV2: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+                predictClobV2UseLegacyClobHost: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictClobV2ClobBaseUrlFlag(state);
+
+      expect(result).toBe(LEGACY_V2_CLOB_BASE_URL);
+    });
+
+    it('returns undefined when predictClobV2 is enabled but legacy host flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictClobV2: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+                predictClobV2UseLegacyClobHost: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictClobV2ClobBaseUrlFlag(state);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when remote feature flags are empty', () => {
+      const result = selectPredictClobV2ClobBaseUrlFlag(mockedEmptyFlagsState);
+
+      expect(result).toBeUndefined();
     });
   });
 });
