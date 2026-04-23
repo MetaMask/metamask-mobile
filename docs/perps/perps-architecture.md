@@ -16,6 +16,7 @@ The Perps feature enables perpetual futures trading in MetaMask Mobile. This doc
 - **[Sentry Integration](./perps-sentry-reference.md)** - Error tracking and monitoring
 - **[MetaMetrics Events](./perps-metametrics-reference.md)** - Analytics events
 - **[Protocol Documentation](./hyperliquid/)** - HyperLiquid protocol specifics
+- **[Account Modes & Portfolio Margin (ELI5)](./hyperliquid/account-modes-and-portfolio-margin.md)** - HL's three collateral modes and how they map to our USDC-only mobile flows
 
 ## Layer Architecture
 
