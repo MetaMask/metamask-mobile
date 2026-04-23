@@ -81,6 +81,68 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'campaign-details-container',
 } as const;
 
+interface WinnerPendingBannerProps {
+  campaignName: string;
+  onPress: () => void;
+}
+
+const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
+  ({ campaignName, onPress }) => (
+    <Pressable
+      accessibilityLabel={strings('rewards.ondo_winning_banner.a11y')}
+      onPress={onPress}
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="bg-muted rounded-xl p-4 gap-3"
+      >
+        <TrophyIcon width={20} height={20} />
+        <Box twClassName="flex-1 gap-0.5">
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {strings('rewards.ondo_winning_banner.title', { campaignName })}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('rewards.ondo_winning_banner.description')}
+          </Text>
+        </Box>
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      </Box>
+    </Pressable>
+  ),
+);
+
+const WinnerFinalizedBanner = React.memo(() => (
+  <RewardsInfoBanner
+    title={strings('rewards.ondo_outcome_banner.winner_finalized.title')}
+    description={strings(
+      'rewards.ondo_outcome_banner.winner_finalized.description',
+    )}
+  />
+));
+
+const LoserFinalizedBanner = React.memo(() => (
+  <RewardsInfoBanner
+    title={strings('rewards.ondo_outcome_banner.loser_finalized.title')}
+    description={strings(
+      'rewards.ondo_outcome_banner.loser_finalized.description',
+    )}
+  />
+));
+
+const LoserPendingBanner = React.memo(() => (
+  <RewardsInfoBanner
+    title={strings('rewards.ondo_outcome_banner.loser_pending.title')}
+    description={strings(
+      'rewards.ondo_outcome_banner.loser_pending.description',
+    )}
+  />
+));
+
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -283,6 +345,34 @@ const OndoCampaignDetailsView: React.FC = () => {
     };
   }, [campaign, isOptedIn, hasPositions]);
 
+  const outcomeBanner = useMemo(() => {
+    if (
+      !campaign ||
+      getCampaignStatus(campaign) !== 'complete' ||
+      !participantOutcome
+    ) {
+      return null;
+    }
+    const hasCode = Boolean(participantOutcome.winnerVerificationCode);
+    const isFinalized = participantOutcome.outcomeStatus === 'finalized';
+    if (hasCode && !isFinalized) {
+      return (
+        <WinnerPendingBanner
+          campaignName={campaign.name ?? ''}
+          onPress={() =>
+            navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
+              campaignId: effectiveCampaignId,
+              campaignName: campaign.name ?? '',
+            })
+          }
+        />
+      );
+    }
+    if (hasCode && isFinalized) return <WinnerFinalizedBanner />;
+    if (isFinalized) return <LoserFinalizedBanner />;
+    return <LoserPendingBanner />;
+  }, [campaign, participantOutcome, effectiveCampaignId, navigation]);
+
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
       <SafeAreaView
@@ -397,92 +487,9 @@ const OndoCampaignDetailsView: React.FC = () => {
                       tierMinDeposit={tierMinDeposit}
                       isIneligible={notEligibleForCampaign}
                     />
-                    {getCampaignStatus(campaign) === 'complete' &&
-                      participantOutcome && (
-                        <Box twClassName="mt-3">
-                          {participantOutcome.winnerVerificationCode &&
-                          participantOutcome.outcomeStatus === 'pending' ? (
-                            <Pressable
-                              accessibilityLabel={strings(
-                                'rewards.ondo_winning_banner.a11y',
-                              )}
-                              onPress={() =>
-                                navigation.navigate(
-                                  Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
-                                  {
-                                    campaignId: effectiveCampaignId,
-                                    campaignName: campaign.name ?? '',
-                                  },
-                                )
-                              }
-                            >
-                              <Box
-                                flexDirection={BoxFlexDirection.Row}
-                                alignItems={BoxAlignItems.Center}
-                                twClassName="bg-muted rounded-xl p-4 gap-3"
-                              >
-                                <TrophyIcon width={20} height={20} />
-                                <Box twClassName="flex-1 gap-0.5">
-                                  <Text
-                                    variant={TextVariant.BodyMd}
-                                    fontWeight={FontWeight.Medium}
-                                  >
-                                    {strings(
-                                      'rewards.ondo_winning_banner.title',
-                                      {
-                                        campaignName: campaign.name ?? '',
-                                      },
-                                    )}
-                                  </Text>
-                                  <Text
-                                    variant={TextVariant.BodySm}
-                                    color={TextColor.TextAlternative}
-                                  >
-                                    {strings(
-                                      'rewards.ondo_winning_banner.description',
-                                    )}
-                                  </Text>
-                                </Box>
-                                <Icon
-                                  name={IconName.ArrowRight}
-                                  size={IconSize.Sm}
-                                  color={IconColor.IconAlternative}
-                                />
-                              </Box>
-                            </Pressable>
-                          ) : participantOutcome.winnerVerificationCode !=
-                              null &&
-                            participantOutcome.outcomeStatus === 'finalized' ? (
-                            <RewardsInfoBanner
-                              title={strings(
-                                'rewards.ondo_outcome_banner.winner_finalized.title',
-                              )}
-                              description={strings(
-                                'rewards.ondo_outcome_banner.winner_finalized.description',
-                              )}
-                            />
-                          ) : participantOutcome.outcomeStatus ===
-                            'finalized' ? (
-                            <RewardsInfoBanner
-                              title={strings(
-                                'rewards.ondo_outcome_banner.loser_finalized.title',
-                              )}
-                              description={strings(
-                                'rewards.ondo_outcome_banner.loser_finalized.description',
-                              )}
-                            />
-                          ) : (
-                            <RewardsInfoBanner
-                              title={strings(
-                                'rewards.ondo_outcome_banner.loser_pending.title',
-                              )}
-                              description={strings(
-                                'rewards.ondo_outcome_banner.loser_pending.description',
-                              )}
-                            />
-                          )}
-                        </Box>
-                      )}
+                    {outcomeBanner && (
+                      <Box twClassName="mt-3">{outcomeBanner}</Box>
+                    )}
                   </Box>
                 </>
               )}
