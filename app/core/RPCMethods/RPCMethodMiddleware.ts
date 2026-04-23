@@ -416,6 +416,7 @@ export const getRpcMethodMiddleware = ({
   icon,
   // For the browser
   tabId,
+  isTabActive,
   // For WalletConnect
   isWalletConnect,
   // For MM SDK
@@ -472,6 +473,13 @@ export const getRpcMethodMiddleware = ({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const setApprovalFlowLoadingText = (opts: SetFlowLoadingTextOptions) => {
       Engine.context.ApprovalController.setFlowLoadingText(opts);
+    };
+
+    const getSource = () => {
+      if (analytics?.isRemoteConn)
+        return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+      if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
+      return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
