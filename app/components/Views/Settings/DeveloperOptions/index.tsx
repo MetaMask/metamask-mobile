@@ -64,7 +64,7 @@ const DeveloperOptions = () => {
       <ConfirmationsDeveloperOptions />
       {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
       <CardDeveloperOptionsSection />
-      <ChompApiTest />
+      {isMusdConversionEnabled && <ChompApiTest />}
     </ScrollView>
   );
 };

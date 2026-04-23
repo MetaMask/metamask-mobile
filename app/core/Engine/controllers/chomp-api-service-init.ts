@@ -4,9 +4,15 @@ import {
 } from '@metamask/chomp-api-service';
 import type { MessengerClientInitFunction } from '../types';
 import type { ChompApiServiceInitMessenger } from '../messengers/chomp-api-service-messenger';
-import type { ChompApiConfig } from '../../../selectors/featureFlagController/chompApi';
+import { parseChompApiConfig } from '../../../selectors/featureFlagController/chompApi';
+import Logger from '../../../util/Logger';
 
-const DEFAULT_CHOMP_API_URL = 'https://chomp.dev-api.cx.metamask.io';
+const LOG_PREFIX = '[ChompApiServiceInit]';
+
+// Fallback used only when the remote feature flag has not hydrated yet (e.g.
+// first launch, offline). Points at dev so unconfigured builds fail fast
+// against a non-prod backend; prod deployments must ship with the flag set.
+const FALLBACK_CHOMP_API_URL = 'https://chomp.dev-api.cx.metamask.io';
 
 /**
  * Initialize the ChompApiService.
@@ -24,9 +30,21 @@ export const chompApiServiceInit: MessengerClientInitFunction<
   const featureState = initMessenger.call(
     'RemoteFeatureFlagController:getState',
   );
-  const chompApiConfig = featureState.remoteFeatureFlags
-    ?.chompApiConfig as unknown as ChompApiConfig | undefined;
-  const baseUrl = chompApiConfig?.baseUrl ?? DEFAULT_CHOMP_API_URL;
+  const chompApiConfig = parseChompApiConfig(
+    featureState.remoteFeatureFlags?.chompApiConfig,
+  );
+
+  let baseUrl: string;
+  if (chompApiConfig) {
+    baseUrl = chompApiConfig.baseUrl;
+  } else {
+    Logger.log(
+      LOG_PREFIX,
+      'chompApiConfig feature flag not set; falling back to dev URL',
+      { fallback: FALLBACK_CHOMP_API_URL },
+    );
+    baseUrl = FALLBACK_CHOMP_API_URL;
+  }
 
   const controller = new ChompApiService({
     messenger: controllerMessenger,

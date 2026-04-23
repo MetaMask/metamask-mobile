@@ -14,13 +14,10 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 import Engine from '../../../../core/Engine';
 import type { ChompApiService as ChompApiServiceType } from '@metamask/chomp-api-service';
-import AppConstants from '../../../../core/AppConstants';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const ZERO_HEX = '0x0' as const;
 const TAG = '[ChompApiTest]';
-
-// Temporarily intercept fetch for CHOMP API requests to log full details
 
 function getService(): ChompApiServiceType {
   const { ChompApiService } = Engine.context;
