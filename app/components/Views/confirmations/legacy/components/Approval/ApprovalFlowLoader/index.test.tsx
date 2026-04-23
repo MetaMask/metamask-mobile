@@ -4,7 +4,9 @@ import ApprovalFlowLoader from '.';
 
 describe('ApprovalFlowLoader', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<ApprovalFlowLoader />);
-    expect(toJSON()).not.toBeNull();
+    const { getByText } = renderWithProvider(
+      <ApprovalFlowLoader loadingText="Loading..." />,
+    );
+    expect(getByText('Loading...')).toBeOnTheScreen();
   });
 });
