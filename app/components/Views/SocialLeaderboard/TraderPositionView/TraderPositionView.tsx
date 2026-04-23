@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
