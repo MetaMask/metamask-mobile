@@ -69,7 +69,7 @@ const SecurityBadgeBottomSheet = () => {
   } = route.params;
 
   // Get feature tags for Malicious and Warning types only (max 5)
-  const { tags: featureTags, remainingCount } = useMemo(() => {
+  const featureTags = useMemo(() => {
     if (
       features &&
       features.length > 0 &&
@@ -78,12 +78,9 @@ const SecurityBadgeBottomSheet = () => {
       // Use showAll=true to get all tags, then manually slice to 5
       const result = getFeatureTags(features, severity, true);
       const maxTags = 5;
-      return {
-        tags: result.tags.slice(0, maxTags),
-        remainingCount: Math.max(0, result.tags.length - maxTags),
-      };
+      return result.tags.slice(0, maxTags);
     }
-    return { tags: [], remainingCount: 0 };
+    return [];
   }, [features, severity]);
 
   // Get icon configuration for feature tags

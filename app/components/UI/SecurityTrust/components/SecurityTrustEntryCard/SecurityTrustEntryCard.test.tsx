@@ -251,4 +251,199 @@ describe('SecurityTrustEntryCard', () => {
       getByText('Security analysis could not be loaded for this token.'),
     ).toBeTruthy();
   });
+
+  describe('IconAlert rendering', () => {
+    it('renders IconAlert for Warning/Spam tokens with features', () => {
+      const warningData: TokenSecurityData = {
+        resultType: 'Warning',
+        maliciousScore: '50',
+        features: [
+          {
+            featureId: 'high_tax',
+            type: 'negative',
+            description: 'High tax detected',
+          },
+        ],
+        fees: {
+          transfer: 0.1,
+          transferFeeMaxAmount: null,
+          buy: 0.05,
+          sell: 0.05,
+        },
+        financialStats: {
+          supply: 1000000,
+          topHolders: [],
+          holdersCount: 100,
+          tradeVolume24h: null,
+          lockedLiquidityPct: null,
+          markets: [],
+        },
+        metadata: {
+          externalLinks: {
+            homepage: null,
+            twitterPage: null,
+            telegramChannelId: null,
+          },
+        },
+        created: '2023-01-01T00:00:00Z',
+      };
+
+      const { getAllByTestId } = render(
+        <SecurityTrustEntryCard
+          securityData={warningData}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // IconAlert should be rendered for Warning severity
+      const iconAlerts = getAllByTestId('icon-alert');
+      expect(iconAlerts.length).toBeGreaterThan(0);
+    });
+
+    it('renders IconAlert for Malicious tokens with features', () => {
+      const maliciousData: TokenSecurityData = {
+        resultType: 'Malicious',
+        maliciousScore: '95',
+        features: [
+          {
+            featureId: 'honeypot',
+            type: 'negative',
+            description: 'Honeypot detected',
+          },
+          {
+            featureId: 'fake_token',
+            type: 'negative',
+            description: 'Fake token',
+          },
+        ],
+        fees: {
+          transfer: 0.99,
+          transferFeeMaxAmount: null,
+          buy: 0,
+          sell: 0.99,
+        },
+        financialStats: {
+          supply: 1000000,
+          topHolders: [],
+          holdersCount: 10,
+          tradeVolume24h: null,
+          lockedLiquidityPct: null,
+          markets: [],
+        },
+        metadata: {
+          externalLinks: {
+            homepage: null,
+            twitterPage: null,
+            telegramChannelId: null,
+          },
+        },
+        created: '2023-01-01T00:00:00Z',
+      };
+
+      const { getAllByTestId } = render(
+        <SecurityTrustEntryCard
+          securityData={maliciousData}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // IconAlert should be rendered for Error severity (Malicious)
+      const iconAlerts = getAllByTestId('icon-alert');
+      expect(iconAlerts.length).toBeGreaterThan(0);
+    });
+
+    it('renders IconAlert for Verified tokens with features', () => {
+      const verifiedDataWithFeatures: TokenSecurityData = {
+        ...mockSecurityData,
+        features: [
+          {
+            featureId: 'verified_contract',
+            type: 'info',
+            description: 'Contract is verified',
+          },
+        ],
+      };
+
+      const { getAllByTestId } = render(
+        <SecurityTrustEntryCard
+          securityData={verifiedDataWithFeatures}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // IconAlert should be rendered for Success severity (Verified)
+      const iconAlerts = getAllByTestId('icon-alert');
+      expect(iconAlerts.length).toBeGreaterThan(0);
+    });
+
+    it('does not render IconAlert for Benign tokens', () => {
+      const benignData: TokenSecurityData = {
+        resultType: 'Benign',
+        maliciousScore: '0',
+        features: [
+          {
+            featureId: 'standard_erc20',
+            type: 'info',
+            description: 'Standard ERC20',
+          },
+        ],
+        fees: {
+          transfer: 0,
+          transferFeeMaxAmount: null,
+          buy: 0,
+          sell: 0,
+        },
+        financialStats: {
+          supply: 1000000,
+          topHolders: [],
+          holdersCount: 5000,
+          tradeVolume24h: null,
+          lockedLiquidityPct: null,
+          markets: [],
+        },
+        metadata: {
+          externalLinks: {
+            homepage: null,
+            twitterPage: null,
+            telegramChannelId: null,
+          },
+        },
+        created: '2023-01-01T00:00:00Z',
+      };
+
+      const { queryAllByTestId } = render(
+        <SecurityTrustEntryCard
+          securityData={benignData}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // IconAlert should NOT be rendered for Benign (no iconAlertSeverity)
+      const iconAlerts = queryAllByTestId('icon-alert');
+      expect(iconAlerts).toHaveLength(0);
+    });
+
+    it('does not render IconAlert when there are no features', () => {
+      const verifiedNoFeatures: TokenSecurityData = {
+        ...mockSecurityData,
+        features: [],
+      };
+
+      const { queryAllByTestId } = render(
+        <SecurityTrustEntryCard
+          securityData={verifiedNoFeatures}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // IconAlert should NOT be rendered when there are no feature tags
+      const iconAlerts = queryAllByTestId('icon-alert');
+      expect(iconAlerts).toHaveLength(0);
+    });
+  });
 });
