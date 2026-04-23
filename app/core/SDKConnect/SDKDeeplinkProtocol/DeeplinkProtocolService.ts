@@ -136,8 +136,6 @@ export default class DeeplinkProtocolService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sendMessage: (msg: any) => this.sendMessage(msg),
-      // Iframe context does not apply for SDK connections (no WebView).
-      iframeOrigin: undefined,
       ...defaultBridgeParams,
     });
 
