@@ -98,8 +98,12 @@ export const TokenWarningModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
 
-  const { warningType, features, mode, location } =
-    useParams<TokenWarningModalParams>();
+  const {
+    warningType,
+    features = [],
+    mode,
+    location,
+  } = useParams<TokenWarningModalParams>();
 
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
