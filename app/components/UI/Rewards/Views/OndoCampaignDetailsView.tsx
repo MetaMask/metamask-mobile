@@ -75,9 +75,11 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 } as const;
 
 const sessionUpcomingRedirectCampaignIds = new Set<string>();
+const sessionWinningViewAutoNavCampaignIds = new Set<string>();
 
 export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
   sessionUpcomingRedirectCampaignIds.clear();
+  sessionWinningViewAutoNavCampaignIds.clear();
 }
 
 const OndoCampaignDetailsView: React.FC = () => {
@@ -117,8 +119,6 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
     useOndoAccountPicker(effectiveCampaignId || undefined);
-
-  const hasPresentedWinningViewRef = useRef(false);
 
   const [portfolioNotEligibleAction, setPortfolioNotEligibleAction] = useState<
     (() => void) | null
@@ -193,22 +193,19 @@ const OndoCampaignDetailsView: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       if (
-        !hasPresentedWinningViewRef.current &&
+        !sessionWinningViewAutoNavCampaignIds.has(effectiveCampaignId) &&
         campaign &&
         getCampaignStatus(campaign) === 'complete' &&
         participantOutcome?.winnerVerificationCode &&
         participantOutcome?.outcomeStatus === 'pending' &&
         effectiveCampaignId
       ) {
-        hasPresentedWinningViewRef.current = true;
+        sessionWinningViewAutoNavCampaignIds.add(effectiveCampaignId);
         navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
           campaignId: effectiveCampaignId,
           campaignName: campaign.name ?? '',
         });
       }
-      return () => {
-        hasPresentedWinningViewRef.current = false;
-      };
     }, [campaign, participantOutcome, effectiveCampaignId, navigation]),
   );
 
