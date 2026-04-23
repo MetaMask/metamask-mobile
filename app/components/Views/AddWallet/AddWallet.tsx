@@ -76,6 +76,7 @@ const AddWallet = () => {
       ...(isAddDeviceSyncEnabled
         ? [
             {
+              // TODO: This is a temporary event for the add device to wallet. Event will be updated after the add device to wallet is implemented.
               analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
               description: strings(
                 'multichain_accounts.link_metamask_extension_description',

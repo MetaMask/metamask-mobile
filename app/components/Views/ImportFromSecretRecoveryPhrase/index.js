@@ -622,7 +622,9 @@ const ImportFromSecretRecoveryPhrase = ({
                           variant={TextVariant.BodyMd}
                           color={TextColor.PrimaryDefault}
                           onPress={() =>
-                            navigation.navigate('AddDeviceToWallet')
+                            navigation.navigate(
+                              Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+                            )
                           }
                         >
                           {strings(

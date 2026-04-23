@@ -74,7 +74,7 @@ const AddDeviceToWallet = () => {
 
   const onScanSuccess = useCallback(
     (_data: ScanSuccess, _content?: string) => {
-      // TODO: replace mock with real scan handling
+      // TODO: replace mock with real scan handling. This is a temporary mock to simulate a scan after delay.
       setTimeout(showVerificationSheet, 300);
     },
     [showVerificationSheet],
@@ -95,6 +95,7 @@ const AddDeviceToWallet = () => {
       }),
     );
 
+    // TODO: uncomment when integrating real scan
     // Mock: simulate a scan after delay (remove when integrating real scan)
     timerRef.current = setTimeout(() => {
       showVerificationSheet();
