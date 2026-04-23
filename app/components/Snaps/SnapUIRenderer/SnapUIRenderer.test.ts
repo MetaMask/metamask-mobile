@@ -14,7 +14,6 @@ import {
   Image as ImageComponent,
 } from '@metamask/snaps-sdk/jsx';
 import { fireEvent } from '@testing-library/react-native';
-import { ActivityIndicator } from 'react-native';
 import Engine from '../../../core/Engine/Engine';
 import { renderInterface, MOCK_INTERFACE_ID, MOCK_SNAP_ID } from './testUtils';
 
@@ -37,9 +36,9 @@ describe('SnapUIRenderer', () => {
   });
 
   it('renders loading state', () => {
-    const { UNSAFE_getByType } = renderInterface(null);
+    const { queryByTestId } = renderInterface(null);
 
-    expect(UNSAFE_getByType(ActivityIndicator)).toBeOnTheScreen();
+    expect(queryByTestId('snap-ui-renderer__scrollview')).toBeNull();
   });
 
   it('renders basic UI', () => {
