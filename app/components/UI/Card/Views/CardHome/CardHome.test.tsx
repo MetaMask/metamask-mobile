@@ -1333,7 +1333,7 @@ describe('CardHome Component', () => {
     setupMockSelectors({ isAuthenticated: true });
     render();
 
-    expect(screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM)).toBeTruthy();
+    expect(screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM)).toBeOnTheScreen();
   });
 
   it('toggles privacy mode when privacy toggle button is pressed', async () => {
