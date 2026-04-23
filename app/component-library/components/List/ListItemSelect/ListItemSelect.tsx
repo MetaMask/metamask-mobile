@@ -18,7 +18,6 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
   isSelected = false,
   isDisabled = false,
   children,
-  onPress,
   onLongPress,
   gap = DEFAULT_SELECTITEM_GAP,
   verticalAlignment,
@@ -33,6 +32,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
       disabled={isDisabled}
       onPress={onPress}
       onLongPress={onLongPress}
+      shouldEnableAndroidPressIn={shouldEnableAndroidPressIn}
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem} {...listItemProps}>

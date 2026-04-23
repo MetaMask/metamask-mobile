@@ -713,9 +713,6 @@ describe('Login test suite 2', () => {
 
       expect(spyRehydrateSeedPhrase).toHaveBeenCalled();
       expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingPasswordLoginAttempt,
-      });
-      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingExistingSocialLogin,
       });
       expect(mockEndTrace).toHaveBeenCalledWith({

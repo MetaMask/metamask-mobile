@@ -763,6 +763,9 @@ class PerpsConnectionManagerClass {
     // Start connection timeout to prevent hanging indefinitely
     this.startConnectionTimeout(suppressError);
 
+    // Start connection timeout to prevent hanging indefinitely
+    this.startConnectionTimeout();
+
     this.initPromise = (async () => {
       const traceId = uuidv4();
       const connectionStartTime = performance.now();
@@ -896,6 +899,11 @@ class PerpsConnectionManagerClass {
         traceData = {
           success: false,
           error: ensureError(error, 'PerpsConnectionManager.connect').message,
+        };
+
+        traceData = {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
 
         // Set error state for UI

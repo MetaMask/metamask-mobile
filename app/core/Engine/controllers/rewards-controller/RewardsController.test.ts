@@ -5124,6 +5124,70 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Attempting reauth with active account after 403',
       );
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'different-active-sub-id',
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {}; // Test empty accounts
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        return Promise.resolve({});
+      });
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+
+      // Verify no calls to listMultichainAccounts when accounts is empty
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+
+      // Verify cache invalidation still happens
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
     });
 
     it('handles 403 error, reauth, and re-throw error if reauth failed', async () => {
@@ -11758,6 +11822,7 @@ describe('RewardsController', () => {
         false,
         false,
       );
+      expect(getSubscriptionToken).toHaveBeenCalledWith('sub-from-sids-123');
     });
 
     it('returns active account subscription ID when available', async () => {

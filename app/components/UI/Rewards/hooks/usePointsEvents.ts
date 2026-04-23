@@ -234,6 +234,13 @@ export const usePointsEvents = (
     refreshWithoutForceFresh,
   );
 
+  useInvalidateByRewardEvents(
+    ['RewardsController:pointsEventsUpdated'],
+    // Don't force fresh when points events are updated; this event is only emitted when we've just fetched new points events
+    // otherwise we'll fetch the same points events again
+    refreshWithoutForceFresh,
+  );
+
   return {
     pointsEvents,
     isLoading,

@@ -1060,6 +1060,17 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
+    // Start trace for first data measurement (before subscription)
+    this.firstDataTraceId = uuidv4();
+    trace({
+      name: TraceName.PerpsWebSocketFirstAccount,
+      id: this.firstDataTraceId,
+      op: TraceOperation.PerpsOperation,
+    });
+
+    // Track WebSocket connection start time for duration calculation
+    this.wsConnectionStartTime = performance.now();
+
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState | null) => {
         // Validate account context

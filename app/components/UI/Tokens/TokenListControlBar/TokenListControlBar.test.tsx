@@ -24,6 +24,13 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
   };
 });
 
+jest.mock(
+  '../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 // Mock the useNetworksByNamespace hooks
 jest.mock(
   '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',

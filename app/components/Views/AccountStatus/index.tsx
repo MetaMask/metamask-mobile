@@ -19,6 +19,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
+  TraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';

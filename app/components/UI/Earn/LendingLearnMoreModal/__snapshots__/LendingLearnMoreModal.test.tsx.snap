@@ -671,7 +671,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
-            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -711,7 +710,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
-            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",

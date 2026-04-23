@@ -17,7 +17,6 @@ import { useLinkedOffDeviceAccounts } from '../hooks/useLinkedOffDeviceAccounts'
 export const REWARDS_SETTINGS_SAFE_AREA_TEST_ID = 'rewards-settings-safe-area';
 
 const RewardsSettingsView: React.FC = () => {
-  const tw = useTailwind();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedSettingsViewed = useRef(false);

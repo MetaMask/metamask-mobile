@@ -39,7 +39,6 @@ import { retryWithExponentialDelay } from '../../util/exponential-retry';
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import {
-  convertEnglishWordlistIndicesToCodepoints,
   convertMnemonicToWordlistIndices,
   uint8ArrayToMnemonic,
 } from '../../util/mnemonic';

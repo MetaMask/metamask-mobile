@@ -50,6 +50,12 @@ import { ReduxStore } from '../../../core/redux/types';
 
 // ─── Mock variables ──────────────────────────────────────────────────────────
 
+// Mock selectors
+jest.mock('../../../selectors/seedlessOnboardingController', () => ({
+  selectIsSeedlessPasswordOutdated: jest.fn(),
+  selectSeedlessOnboardingLoginFlow: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
@@ -1404,6 +1410,62 @@ describe('Login', () => {
       const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 0 });
       expect(scrollView).toBeDefined();
       expect(scrollView.props.extraScrollHeight).toBe(0);
+    });
+  });
+
+  describe('Social Login User Interface', () => {
+    beforeEach(() => {
+      // Platform.OS to default
+      Platform.OS = 'ios';
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should show pin placeholder on iOS for social login users', () => {
+      // Arrange
+      const {
+        selectIsSeedlessPasswordOutdated,
+        selectSeedlessOnboardingLoginFlow,
+      } = jest.requireMock('../../../selectors/seedlessOnboardingController');
+
+      selectIsSeedlessPasswordOutdated.mockReturnValue(false);
+      selectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+
+      // Act
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Assert
+      expect(passwordInput.props.placeholder).toBe(
+        strings('login.pin_placeholder'),
+      );
+    });
+
+    it('should show forgot pin text on iOS for social login users', () => {
+      // Arrange
+      const {
+        selectIsSeedlessPasswordOutdated,
+        selectSeedlessOnboardingLoginFlow,
+      } = jest.requireMock('../../../selectors/seedlessOnboardingController');
+
+      selectIsSeedlessPasswordOutdated.mockReturnValue(false);
+      selectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+
+      // Mock route
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(<Login />);
+
+      // Assert - "Forgot PIN?" appears
+      expect(getByText(strings('login.forgot_pin'))).toBeOnTheScreen();
     });
   });
 });

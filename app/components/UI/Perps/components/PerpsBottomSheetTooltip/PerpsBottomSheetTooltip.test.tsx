@@ -4,10 +4,6 @@ import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsOrderProvider } from '../../contexts/PerpsOrderContext';
-import {
-  PerpsStreamProvider,
-  PerpsStreamManager,
-} from '../../providers/PerpsStreamManager';
 import PerpsBottomSheetTooltip from './PerpsBottomSheetTooltip';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 

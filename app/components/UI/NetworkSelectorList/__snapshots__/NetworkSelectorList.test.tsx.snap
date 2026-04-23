@@ -100,10 +100,13 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "flexDirection": "row",
-                      "height": 24,
-                      "marginRight": -8,
-                      "opacity": 1,
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#121314",
+                      "borderRadius": 4,
+                      "borderWidth": 2,
+                      "height": 20,
+                      "justifyContent": "center",
+                      "width": 20,
                     }
                   }
                 >
@@ -249,24 +252,24 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "flexDirection": "row",
-                      "height": 24,
-                      "marginRight": -8,
-                      "opacity": 1,
+                      "backgroundColor": "#4459ff",
+                      "borderColor": "#4459ff",
+                      "borderRadius": 4,
+                      "borderWidth": 2,
+                      "height": 20,
+                      "justifyContent": "center",
+                      "width": 20,
                     }
                   }
                 >
-                  <View
-                    accessibilityRole="checkbox"
+                  <SvgMock
+                    color="#ffffff"
+                    fill="currentColor"
+                    height={20}
+                    name="CheckBold"
                     style={
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "#4459ff",
-                        "borderColor": "#4459ff",
-                        "borderRadius": 4,
-                        "borderWidth": 2,
                         "height": 20,
-                        "justifyContent": "center",
                         "width": 20,
                       }
                     }

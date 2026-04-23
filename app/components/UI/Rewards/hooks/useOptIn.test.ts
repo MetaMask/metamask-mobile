@@ -386,6 +386,7 @@ describe('useOptIn', () => {
 
       expect(mockEngineCall).not.toHaveBeenCalled();
     });
+  });
 
     it('should skip optin when account group has no id', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
