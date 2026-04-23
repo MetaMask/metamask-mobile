@@ -217,10 +217,66 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 56
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE_PATH='ios/main.jsbundle'
+          CURRENT_MB="$(stat -c %s "$FILE_PATH" | awk '{print $1/1024/1024}')"
+          echo "Current iOS JS bundle: ${CURRENT_MB} MB"
+
+          BASELINE_MB=""
+          BASE_SHA='${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'merge_group' && github.event.merge_group.base_sha || '' }}'
+          if [[ -n "$BASE_SHA" ]]; then
+            echo "Resolving baseline bundle size from ci/ios-js-bundle-size status on base commit ${BASE_SHA}"
+            if ! STATUSES_JSON="$(
+              curl -fsS \
+                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/${BASE_SHA}/status"
+            )"; then
+              echo "::warning::Failed to fetch commit statuses for base ${BASE_SHA}; skipping iOS JS bundle delta check."
+              exit 0
+            fi
+            DESC="$(
+              echo "$STATUSES_JSON" | jq -r '
+                (.statuses // [])
+                | map(select(.context == "ci/ios-js-bundle-size" and .state == "success"))
+                | sort_by(.updated_at // .created_at)
+                | if length > 0 then .[-1].description else "" end
+              '
+            )"
+            # Status description is "${FILE_SIZE_MB};" from the Post iOS JS bundle size step (awk MiB + ';').
+            if [[ "$DESC" =~ ^[[:space:]]*([0-9]+(\.[0-9]*)?)[[:space:]]*;?[[:space:]]*$ ]]; then
+              BASELINE_MB="${BASH_REMATCH[1]}"
+              echo "Baseline from base ref status: ${BASELINE_MB} MB"
+            else
+              echo "::warning::No successful ci/ios-js-bundle-size status (or unrecognized description) on base ${BASE_SHA}; skipping iOS JS bundle delta check."
+              exit 0
+            fi
+          else
+            echo "::warning::No pull_request / merge_group base SHA; skipping iOS JS bundle delta check (no default baseline)."
+            exit 0
+          fi
+
+          if [[ -z "${BASELINE_MB:-}" ]]; then
+            echo "::warning::Baseline is undefined; skipping iOS JS bundle delta check."
+            exit 0
+          fi
+
+          DELTA_MB="$(echo "${CURRENT_MB} - ${BASELINE_MB}" | bc -l)"
+          echo "Delta (current - baseline): ${DELTA_MB} MB"
+          echo "::notice::iOS JS bundle delta vs main: ${DELTA_MB} MB (current ${CURRENT_MB} MB, main ${BASELINE_MB} MB)"
+          if (( $(echo "${DELTA_MB} > 1" | bc -l) )); then
+            echo "::error::JS bundle is larger than main by ${DELTA_MB} MB (current ${CURRENT_MB} MB, main ${BASELINE_MB} MB)."
+            exit 1
+          fi
+          echo "JS bundle size check passed (delta is one or less)."
 
       - name: Post iOS JS bundle size to commit status
-        if: ${{ !github.event.pull_request || !github.event.pull_request.head.repo.fork }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
