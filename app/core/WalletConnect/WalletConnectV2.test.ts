@@ -911,6 +911,143 @@ describe('WC2Manager', () => {
   });
 
   describe('WC2Manager session proposal handling', () => {
+    describe('Tron namespace', () => {
+      it('injects tron namespace with chains requested in optional namespaces', async () => {
+        (
+          Engine.context.AccountsController as unknown as {
+            listAccounts: jest.Mock;
+          }
+        ).listAccounts = jest.fn().mockReturnValue([]);
+
+        const mockSessionProposal = {
+          id: 1,
+          params: {
+            id: 1,
+            pairingTopic: 'test-pairing',
+            proposer: {
+              publicKey: 'test-public-key',
+              metadata: {
+                name: 'Test App',
+                description: 'Test App',
+                url: 'https://example.com',
+                icons: ['https://example.com/icon.png'],
+              },
+            },
+            requiredNamespaces: {
+              eip155: {
+                chains: ['eip155:1'],
+                methods: ['eth_sendTransaction'],
+                events: ['chainChanged'],
+              },
+            },
+            optionalNamespaces: {
+              tron: {
+                chains: ['tron:0x94a9059e'],
+                methods: ['tron_signTransaction'],
+                events: [],
+              },
+            },
+            expiryTimestamp: 10000000,
+            relays: [{ protocol: 'irn' }],
+          },
+        };
+
+        await manager.onSessionProposal(mockSessionProposal as any);
+
+        expect(mockApproveSession).toHaveBeenCalledWith(
+          expect.objectContaining({
+            namespaces: expect.objectContaining({
+              tron: expect.objectContaining({
+                chains: expect.arrayContaining(['tron:0x94a9059e']),
+              }),
+            }),
+          }),
+        );
+      });
+
+      it('preserves tron accounts from scoped permissions when AccountsController filter returns empty', async () => {
+        (
+          Engine.context.AccountsController as unknown as {
+            listAccounts: jest.Mock;
+          }
+        ).listAccounts = jest.fn().mockReturnValue([]);
+
+        // The tron adapter reads permitted Tron accounts directly from the
+        // CAIP-25 caveat. Simulate that a Tron account was previously granted
+        // for this channel even though the AccountsController keyring filter
+        // returns nothing (e.g. keyring not yet re-registered on cold start).
+        (
+          Engine.context.PermissionController.getCaveat as jest.Mock
+        ).mockImplementationOnce(() => ({
+          type: 'caip25',
+          value: {
+            requiredScopes: {},
+            optionalScopes: {
+              'eip155:1': {
+                accounts: [
+                  'eip155:1:0x1234567890abcdef1234567890abcdef12345678',
+                ],
+              },
+              'tron:728126428': {
+                accounts: ['tron:728126428:TENH9XL11i2qyDQUEvXsYf51aY2ALnEXeG'],
+              },
+            },
+            sessionProperties: {},
+            isMultichainOrigin: false,
+          },
+        }));
+
+        const mockSessionProposal = {
+          id: 1,
+          params: {
+            id: 1,
+            pairingTopic: 'test-pairing',
+            proposer: {
+              publicKey: 'test-public-key',
+              metadata: {
+                name: 'Test App',
+                description: 'Test App',
+                url: 'https://example.com',
+                icons: ['https://example.com/icon.png'],
+              },
+            },
+            requiredNamespaces: {
+              eip155: {
+                chains: ['eip155:1'],
+                methods: ['eth_sendTransaction'],
+                events: ['chainChanged'],
+              },
+            },
+            optionalNamespaces: {
+              tron: {
+                chains: ['tron:0x94a9059e'],
+                methods: ['tron_signTransaction'],
+                events: [],
+              },
+            },
+            expiryTimestamp: 10000000,
+            relays: [{ protocol: 'irn' }],
+          },
+        };
+
+        await manager.onSessionProposal(mockSessionProposal as any);
+
+        const approveCall = mockApproveSession.mock.calls.find(
+          (call) => call[0]?.namespaces?.tron,
+        );
+        expect(approveCall).toBeDefined();
+        const approvedTron = approveCall[0].namespaces.tron;
+        expect(approvedTron.accounts).toEqual(
+          expect.arrayContaining([
+            expect.stringMatching(
+              /^tron:[^:]+:TENH9XL11i2qyDQUEvXsYf51aY2ALnEXeG$/,
+            ),
+          ]),
+        );
+        expect(approvedTron.accounts.length).toBeGreaterThan(0);
+      });
+    });
+
     it('adds wallet namespace alias when proposal requests wallet:eip155', async () => {
       const mockSessionProposal = {
         id: 1,
@@ -933,7 +1070,13 @@ describe('WC2Manager', () => {
               events: [],
             },
           },
-          optionalNamespaces: {},
+          optionalNamespaces: {
+            tron: {
+              chains: ['tron:0x94a9059e'],
+              methods: ['tron_signTransaction'],
+              events: [],
+            },
+          },
           expiryTimestamp: 10000000,
           relays: [{ protocol: 'irn' }],
         },
