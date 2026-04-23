@@ -21,7 +21,7 @@ describe('image component', () => {
       }),
     );
 
-    expect(getByTestId('snaps-ui-image')).toBeDefined();
+    expect(getByTestId('snaps-ui-image')).toBeOnTheScreen();
   });
 
   it('renders an external image', () => {
@@ -34,6 +34,6 @@ describe('image component', () => {
       }),
     );
 
-    expect(getByTestId('snap-ui-renderer__scrollview')).toBeDefined();
+    expect(getByTestId('snap-ui-renderer__scrollview')).toBeOnTheScreen();
   });
 });

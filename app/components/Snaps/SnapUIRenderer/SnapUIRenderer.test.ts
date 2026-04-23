@@ -14,6 +14,7 @@ import {
   Image as ImageComponent,
 } from '@metamask/snaps-sdk/jsx';
 import { fireEvent } from '@testing-library/react-native';
+import { ActivityIndicator } from 'react-native';
 import Engine from '../../../core/Engine/Engine';
 import { renderInterface, MOCK_INTERFACE_ID, MOCK_SNAP_ID } from './testUtils';
 
@@ -36,9 +37,9 @@ describe('SnapUIRenderer', () => {
   });
 
   it('renders loading state', () => {
-    const { getByTestId } = renderInterface(null);
+    const { UNSAFE_getByType } = renderInterface(null);
 
-    expect(getByTestId('snap-ui-renderer__scrollview')).toBeDefined();
+    expect(UNSAFE_getByType(ActivityIndicator)).toBeOnTheScreen();
   });
 
   it('renders basic UI', () => {
@@ -46,7 +47,7 @@ describe('SnapUIRenderer', () => {
       Box({ children: Text({ children: 'Hello world!' }) }),
     );
 
-    expect(getByText('Hello world!')).toBeDefined();
+    expect(getByText('Hello world!')).toBeOnTheScreen();
     expect(getRenderCount()).toBe(1);
   });
 
@@ -61,7 +62,7 @@ describe('SnapUIRenderer', () => {
       { useFooter: true },
     );
 
-    expect(getByText('Foo')).toBeDefined();
+    expect(getByText('Foo')).toBeOnTheScreen();
   });
 
   it('adds a footer if required', () => {
@@ -72,7 +73,7 @@ describe('SnapUIRenderer', () => {
       { useFooter: true },
     );
 
-    expect(getByText('Close')).toBeDefined();
+    expect(getByText('Close')).toBeOnTheScreen();
   });
 
   it('supports the onCancel prop', () => {
@@ -153,8 +154,8 @@ describe('SnapUIRenderer', () => {
       }),
     );
 
-    expect(getByTestId('input-snap-ui-input')).toBeDefined();
-    expect(getByTestId('input2-snap-ui-input')).toBeDefined();
+    expect(getByTestId('input-snap-ui-input')).toBeOnTheScreen();
+    expect(getByTestId('input2-snap-ui-input')).toBeOnTheScreen();
 
     expect(getRenderCount()).toBe(2);
   });
@@ -200,9 +201,9 @@ describe('SnapUIRenderer', () => {
       }),
     );
 
-    expect(getByText('My Input')).toBeDefined();
-    expect(getByTestId('input-snap-ui-input')).toBeDefined();
-    expect(getByText('Submit')).toBeDefined();
+    expect(getByText('My Input')).toBeOnTheScreen();
+    expect(getByTestId('input-snap-ui-input')).toBeOnTheScreen();
+    expect(getByText('Submit')).toBeOnTheScreen();
   });
 
   it('renders complex nested components', () => {
@@ -235,7 +236,7 @@ describe('SnapUIRenderer', () => {
     );
 
     expect(getRenderCount()).toBe(1);
-    expect(getByText('CardTitle')).toBeDefined();
-    expect(getByText('Foo')).toBeDefined();
+    expect(getByText('CardTitle')).toBeOnTheScreen();
+    expect(getByText('Foo')).toBeOnTheScreen();
   });
 });

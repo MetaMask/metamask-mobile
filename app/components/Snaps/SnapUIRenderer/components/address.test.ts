@@ -21,7 +21,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withoutBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Ethereum address', () => {
@@ -32,7 +32,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withoutBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders account name', () => {
@@ -44,7 +44,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withoutBlockies },
     );
 
-    expect(getByText('My Account')).toBeDefined();
+    expect(getByText('My Account')).toBeOnTheScreen();
   });
 
   it('renders contact name', () => {
@@ -55,7 +55,7 @@ describe('SnapUIAddress', () => {
       }),
     );
 
-    expect(getByText('Test Contact')).toBeDefined();
+    expect(getByText('Test Contact')).toBeOnTheScreen();
   });
 
   it('renders Ethereum address with blockie', () => {
@@ -66,7 +66,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Bitcoin address', () => {
@@ -78,7 +78,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withoutBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Bitcoin address with blockie', () => {
@@ -90,7 +90,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Cosmos address', () => {
@@ -102,7 +102,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withoutBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Cosmos address with blockie', () => {
@@ -114,7 +114,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Polkadot address', () => {
@@ -126,7 +126,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withoutBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Polkadot address with blockie', () => {
@@ -138,7 +138,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Starknet address', () => {
@@ -150,7 +150,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withoutBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Starknet address with blockie', () => {
@@ -162,7 +162,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Hedera address', () => {
@@ -171,7 +171,7 @@ describe('SnapUIAddress', () => {
       { stateSettings: withoutBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 
   it('renders Hedera address with blockie', () => {
@@ -180,6 +180,6 @@ describe('SnapUIAddress', () => {
       { stateSettings: withBlockies },
     );
 
-    expect(getByTestId('snap-ui-avatar')).toBeDefined();
+    expect(getByTestId('snap-ui-avatar')).toBeOnTheScreen();
   });
 });

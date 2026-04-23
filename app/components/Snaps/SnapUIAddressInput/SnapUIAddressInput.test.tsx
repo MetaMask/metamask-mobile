@@ -195,7 +195,7 @@ describe('SnapUIAddressInput', () => {
       { state: mockInitialState },
     );
 
-    expect(getByTestId('textfield')).toBeDefined();
+    expect(getByTestId('textfield')).toBeOnTheScreen();
   });
 
   it('renders the matched address info in a disabled state', () => {
