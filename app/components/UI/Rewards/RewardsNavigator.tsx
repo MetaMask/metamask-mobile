@@ -24,6 +24,7 @@ import {
 } from '../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
+import { useOndoCampaignEndedOutcomeToast } from './hooks/useOndoCampaignEndedOutcomeToast';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
@@ -31,6 +32,7 @@ import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpd
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from './hooks/useReferralDetails';
+import { useRewardCampaigns } from './hooks/useRewardCampaigns';
 
 const Stack = createStackNavigator();
 
@@ -65,6 +67,11 @@ const RewardsNavigator: React.FC = () => {
 
   // Fetch referral details so referral code is available across all rewards screens
   useReferralDetails();
+
+  useRewardCampaigns();
+
+  // Show toast when Ondo campaign has ended, the user is a participant and all results are finalized
+  useOndoCampaignEndedOutcomeToast();
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
