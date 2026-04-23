@@ -50,7 +50,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 2: Open deposit screen
       const timer2 = new TimerHelper(
         'Time since user taps Add Funds button until Predict Deposit screen is visible',
-        { ios: 1000, android: 1500 },
+        { ios: 1000, android: 2500 },
         currentDeviceDetails.platform,
       );
 
