@@ -1,11 +1,4 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -24,7 +17,6 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
-import { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button/Button.types';
@@ -33,11 +25,12 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import type { SocialAIPreference } from '../../../NotificationPreferencesView/hooks';
 import AllowPushNotificationsRow from '../../../NotificationPreferencesView/components/AllowPushNotificationsRow';
 import { TraderNotificationsBottomSheetSelectorsIDs } from './TraderNotificationsBottomSheet.testIds';
+import {
+  useControllableBottomSheet,
+  type ControllableBottomSheetRef,
+} from '../hooks/useControllableBottomSheet';
 
-export interface TraderNotificationsBottomSheetRef {
-  onOpenBottomSheet: () => void;
-  onCloseBottomSheet: () => void;
-}
+export type TraderNotificationsBottomSheetRef = ControllableBottomSheetRef;
 
 interface TraderNotificationsBottomSheetProps {
   traderId: string;
@@ -63,11 +56,14 @@ const TraderNotificationsBottomSheet = forwardRef<
     },
     ref,
   ) => {
-    const sheetRef = useRef<BottomSheetRef>(null);
-    const [isVisible, setIsVisible] = useState(false);
-    const [localEnabled, setLocalEnabled] = useState(false);
+    const [localEnabled, setLocalEnabled] = useState(() =>
+      isTraderNotificationEnabled(traderId),
+    );
     const tw = useTailwind();
     const navigation = useNavigation();
+
+    const { sheetRef, isVisible, closeSheet, handleSheetClosed } =
+      useControllableBottomSheet({ ref, onDismiss });
 
     const globalOff = !preferences.enabled;
 
@@ -80,50 +76,11 @@ const TraderNotificationsBottomSheet = forwardRef<
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
-    const handleSheetClosed = useCallback(() => {
-      setIsVisible(false);
-      onDismiss?.();
-    }, [onDismiss]);
-
-    const closeSheet = useCallback(() => {
-      if (!sheetRef.current) {
-        setIsVisible(false);
-        onDismiss?.();
-        return;
-      }
-      sheetRef.current.onCloseBottomSheet(() => {
-        setIsVisible(false);
-      });
-    }, [onDismiss]);
-
-    useImperativeHandle(
-      ref,
-      () => ({
-        onOpenBottomSheet: () => {
-          if (!isVisible) {
-            setIsVisible(true);
-            return;
-          }
-          sheetRef.current?.onOpenBottomSheet();
-        },
-        onCloseBottomSheet: () => {
-          closeSheet();
-        },
-      }),
-      [closeSheet, isVisible],
-    );
-
-    useEffect(() => {
-      if (isVisible) {
-        sheetRef.current?.onOpenBottomSheet();
-      }
-    }, [isVisible]);
-
     const handleManageTradersPress = useCallback(() => {
       sheetRef.current?.onCloseBottomSheet(() => {
         navigation.navigate(Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES);
       });
-    }, [navigation]);
+    }, [navigation, sheetRef]);
 
     // Only persist when the user explicitly confirms with Save.
     // If the local draft differs from the remote value, issue one toggle call.

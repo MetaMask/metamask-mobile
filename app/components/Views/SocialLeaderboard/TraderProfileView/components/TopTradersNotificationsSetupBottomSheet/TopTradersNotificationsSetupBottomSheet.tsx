@@ -1,11 +1,4 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useCallback } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -16,7 +9,6 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
-import { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button/Button.types';
@@ -29,11 +21,13 @@ import type {
 import AllowPushNotificationsRow from '../../../NotificationPreferencesView/components/AllowPushNotificationsRow';
 import ThresholdRadioList from '../../../NotificationPreferencesView/components/ThresholdRadioList';
 import { TopTradersNotificationsSetupBottomSheetSelectorsIDs } from './TopTradersNotificationsSetupBottomSheet.testIds';
+import {
+  useControllableBottomSheet,
+  type ControllableBottomSheetRef,
+} from '../hooks/useControllableBottomSheet';
 
-export interface TopTradersNotificationsSetupBottomSheetRef {
-  onOpenBottomSheet: () => void;
-  onCloseBottomSheet: () => void;
-}
+export type TopTradersNotificationsSetupBottomSheetRef =
+  ControllableBottomSheetRef;
 
 interface TopTradersNotificationsSetupBottomSheetProps {
   preferences: SocialAIPreference;
@@ -46,49 +40,11 @@ const TopTradersNotificationsSetupBottomSheet = forwardRef<
   TopTradersNotificationsSetupBottomSheetRef,
   TopTradersNotificationsSetupBottomSheetProps
 >(({ preferences, setEnabled, setTxAmountLimit, onDismiss }, ref) => {
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const [isVisible, setIsVisible] = useState(false);
   const tw = useTailwind();
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const handleSheetClosed = useCallback(() => {
-    setIsVisible(false);
-    onDismiss?.();
-  }, [onDismiss]);
-
-  const closeSheet = useCallback(() => {
-    if (!sheetRef.current) {
-      setIsVisible(false);
-      onDismiss?.();
-      return;
-    }
-    sheetRef.current.onCloseBottomSheet(() => {
-      setIsVisible(false);
-    });
-  }, [onDismiss]);
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      onOpenBottomSheet: () => {
-        if (!isVisible) {
-          setIsVisible(true);
-          return;
-        }
-        sheetRef.current?.onOpenBottomSheet();
-      },
-      onCloseBottomSheet: () => {
-        closeSheet();
-      },
-    }),
-    [closeSheet, isVisible],
-  );
-
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
+  const { sheetRef, isVisible, closeSheet, handleSheetClosed } =
+    useControllableBottomSheet({ ref, onDismiss });
 
   const handleSave = useCallback(() => {
     closeSheet();
