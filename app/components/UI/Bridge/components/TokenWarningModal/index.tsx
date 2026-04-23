@@ -163,6 +163,8 @@ export const TokenWarningModal = () => {
     fallbackFeatureRowTitle,
   } = getTokenWarningContent(warningType, destToken?.symbol ?? '');
 
+  const negativeFeatureLabels = getNegativeFeatureLabels();
+
   return (
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader
@@ -240,7 +242,7 @@ export const TokenWarningModal = () => {
                   />
                   <Box twClassName="flex-1">
                     <Text variant={TextVariant.BodyMd}>
-                      {getNegativeFeatureLabels()[feature.featureId]?.label ??
+                      {negativeFeatureLabels[feature.featureId]?.label ??
                         fallbackFeatureRowTitle}
                     </Text>
                     <Text
