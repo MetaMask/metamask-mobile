@@ -227,15 +227,11 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const isBannerActive = !!buyErrorBanner;
   const previousValueRef = useRef(currentValue);
   useEffect(() => {
-    if (
-      isBannerActive &&
-      previousValueRef.current !== currentValue &&
-      isUserInputChange
-    ) {
+    if (previousValueRef.current !== currentValue && isUserInputChange) {
       clearBuyErrorBanner();
     }
     previousValueRef.current = currentValue;
-  }, [currentValue, isBannerActive, isUserInputChange, clearBuyErrorBanner]);
+  }, [currentValue, isUserInputChange, clearBuyErrorBanner]);
 
   // When the banner appears in sheet mode, blur the amount input so the keypad
   // collapses and the Retry CTA + banner are immediately visible without the

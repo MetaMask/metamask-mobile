@@ -525,6 +525,14 @@ describe('usePredictBuyError', () => {
       expect(mockClearOrderError).toHaveBeenCalledTimes(1);
       expect(result.current.isOrderNotFilled).toBe(false);
     });
+
+    it('is the same reference as resetOrderNotFilled', () => {
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.resetOrderNotFilled).toBe(
+        result.current.clearBuyErrorBanner,
+      );
+    });
   });
 
   describe('legacy mode (isSheetMode: false)', () => {

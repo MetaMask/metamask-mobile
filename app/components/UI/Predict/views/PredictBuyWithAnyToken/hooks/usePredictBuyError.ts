@@ -197,15 +197,12 @@ export const usePredictBuyError = ({
     isSheetMode,
   ]);
 
-  const resetOrderNotFilled = useCallback(() => {
-    clearOrderError();
-    setIsOrderNotFilled(false);
-  }, [clearOrderError]);
-
   const clearBuyErrorBanner = useCallback(() => {
     clearOrderError();
     setIsOrderNotFilled(false);
   }, [clearOrderError]);
+
+  const resetOrderNotFilled = clearBuyErrorBanner;
 
   useEffect(() => {
     if (errorResult?.status === 'order_not_filled') {
