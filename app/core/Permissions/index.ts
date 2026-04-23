@@ -96,13 +96,17 @@ export const sortMultichainAccountsByLastSelected = (
     sortedAddresses.map((address: string, index: number) => [address, index]),
   );
 
+  const getRank = (caipAccountId: CaipAccountId): number => {
+    const address = addressByCaipAccountId.get(caipAccountId);
+    if (address === undefined) {
+      return 0;
+    }
+    return rankByAddress.get(address) ?? 0;
+  };
+
   return [...caipAccountIds].sort(
     (firstCaipAccountId, secondCaipAccountId) =>
-      // Non-null assertion is safe: every caipAccountId was added to
-      // `addressByCaipAccountId` above, and every resulting address was added
-      // to `rankByAddress` via `sortedAddresses`.
-      rankByAddress.get(addressByCaipAccountId.get(firstCaipAccountId)!)! -
-      rankByAddress.get(addressByCaipAccountId.get(secondCaipAccountId)!)!,
+      getRank(firstCaipAccountId) - getRank(secondCaipAccountId),
   );
 };
 
