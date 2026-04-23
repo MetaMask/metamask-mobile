@@ -8,6 +8,7 @@ import {
 } from '../../../../util/conversions';
 import { useAccountNativeBalance } from './useAccountNativeBalance';
 import { useNativeCurrencySymbol } from './useNativeCurrencySymbol';
+import { useTransactionAccountOverride } from './transactions/useTransactionAccountOverride';
 
 const HEX_ZERO = '0x0';
 
@@ -18,9 +19,10 @@ export function useHasInsufficientBalance(): {
   nativeCurrency?: string;
 } {
   const transactionMetadata = useTransactionMetadataRequest();
+  const accountOverride = useTransactionAccountOverride();
   const { balanceWeiInHex } = useAccountNativeBalance(
     transactionMetadata?.chainId as Hex,
-    transactionMetadata?.txParams?.from as string,
+    (accountOverride ?? transactionMetadata?.txParams?.from) as string,
   );
 
   const { txParams, chainId, excludeNativeTokenForFee } =

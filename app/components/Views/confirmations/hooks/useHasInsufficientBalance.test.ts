@@ -5,11 +5,13 @@ import { useHasInsufficientBalance } from './useHasInsufficientBalance';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { useAccountNativeBalance } from './useAccountNativeBalance';
+import { useTransactionAccountOverride } from './transactions/useTransactionAccountOverride';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 jest.mock('./transactions/useTransactionMetadataRequest');
 jest.mock('../../../../selectors/networkController');
 jest.mock('./useAccountNativeBalance');
+jest.mock('./transactions/useTransactionAccountOverride');
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -24,6 +26,9 @@ describe('useHasInsufficientBalance', () => {
     selectNetworkConfigurations,
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
+  const mockUseTransactionAccountOverride = jest.mocked(
+    useTransactionAccountOverride,
+  );
 
   const mockChainId = '0x1' as Hex;
   const mockFromAddress = '0xabc';
@@ -55,6 +60,37 @@ describe('useHasInsufficientBalance', () => {
     mockUseAccountNativeBalance.mockReturnValue({
       balanceWeiInHex: '0xA',
     } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
+    mockUseTransactionAccountOverride.mockReturnValue(undefined);
+  });
+
+  it('uses accountOverride address when defined', () => {
+    const overrideAddress = '0xOverride' as Hex;
+    mockUseTransactionAccountOverride.mockReturnValue(overrideAddress);
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0xC',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
+    renderHook(() => useHasInsufficientBalance());
+
+    expect(mockUseAccountNativeBalance).toHaveBeenCalledWith(
+      mockChainId,
+      overrideAddress,
+    );
+  });
+
+  it('falls back to txParams.from when accountOverride is undefined', () => {
+    mockUseTransactionAccountOverride.mockReturnValue(undefined);
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0xC',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
+    renderHook(() => useHasInsufficientBalance());
+
+    expect(mockUseAccountNativeBalance).toHaveBeenCalledWith(
+      mockChainId,
+      mockFromAddress,
+    );
   });
 
   it('returns insufficient = false when balance is enough', () => {
