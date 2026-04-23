@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Sei Mainnet: replace deprecated Seitrace explorer with Seiscan (`https://seiscan.io`). Existing installs are migrated via migration 132.
+
 ## [7.72.1]
 
 ### Fixed
