@@ -1,82 +1,112 @@
-import React, { useState } from 'react';
-import { StyleSheet } from 'react-native';
-import Braze from '@braze/react-native-sdk';
+import React, { useCallback, useEffect } from 'react';
+import { Pressable, StyleSheet } from 'react-native';
 import {
   Box,
-  ButtonIcon,
-  ButtonIconSize,
+  Icon,
+  IconSize,
   IconName,
   IconColor as MMDSIconColor,
+  Skeleton,
 } from '@metamask/design-system-react-native';
-import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Braze from '@braze/react-native-sdk';
+import { handleDeeplink } from '../../../core/DeeplinkManager/handlers/legacy/handleDeeplink';
+import AppConstants from '../../../core/AppConstants';
+import Logger from '../../../util/Logger';
+import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
+import { useBrazeBanner } from './useBrazeBanner';
+import BrazeBannerWebView from './BrazeBannerWebView';
+import { isAllowedBrazeDeeplink } from './isAllowedBrazeDeeplink';
 
-const DEFAULT_MAX_BANNER_HEIGHT = 200;
+const DEFAULT_BANNER_HEIGHT = 120;
+const MIN_BANNER_HEIGHT = 60;
+const MAX_BANNER_HEIGHT = 240;
 
 interface BrazeBannerProps {
   placementId: string;
-  maxHeight?: number;
 }
 
 /**
- * Renders the Braze Banner for the given placement ID.
+ * Renders a Braze Banner for the given placement ID.
  *
- * `Braze.BrazeBannerView` is fully self-managing on both iOS and Android: the
- * native view registers itself directly with the Braze SDK on init and receives
- * content updates automatically.
+ * Replaces `Braze.BrazeBannerView` with a JS-driven render path that
+ * subscribes to `bannerCardsUpdated`, filters out dismissed banners, and
+ * renders `Banner.html` in a non-interactive `WebView`.
  *
- * Height starts at 0 and is driven entirely by `onHeightChanged` — the
- * container expands to the SDK-reported height, capped at `maxHeight`
- * to prevent an oversized campaign from breaking the layout.
- *
- * On dismissal, a banner click is logged, a data flush is requested, and
- * banners are refreshed so the next campaign can be fetched and cached.
+ * State machine (managed by `useBrazeBanner`):
+ *  - `loading`   → skeleton visible, waits for a non-dismissed banner
+ *  - `visible`   → WebView rendered with actual banner content
+ *  - `empty`     → returns null (no campaign / timeout reached)
+ *  - `dismissed` → returns null immediately, no skeleton shown again
  */
-const BrazeBanner = ({
-  placementId,
-  maxHeight = DEFAULT_MAX_BANNER_HEIGHT,
-}: BrazeBannerProps) => {
+const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
   const tw = useTailwind();
-  const [height, setHeight] = useState(0);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const { status, banner, deeplink, height, dismiss } =
+    useBrazeBanner(placementId);
 
-  const handleHeightChanged = (newHeight: number) => {
-    setHeight(Math.min(newHeight, maxHeight));
-  };
+  useEffect(() => {
+    if (status === 'visible' && banner) {
+      Braze.logBannerImpression(banner.placementId);
+    }
+  }, [status, banner]);
 
-  const handleDismiss = () => {
-    setIsDismissed(true);
-    Braze.logBannerClick(placementId, null);
-    Braze.requestImmediateDataFlush();
-    Braze.requestBannersRefresh([placementId]);
-  };
+  const handlePress = useCallback(() => {
+    if (!banner || !deeplink) return;
+    if (!isAllowedBrazeDeeplink(deeplink)) {
+      Logger.error(
+        new Error('BrazeBanner: deeplink rejected by allowlist'),
+        { placementId, deeplink },
+      );
+      return;
+    }
+    Braze.logBannerClick(banner.placementId, null);
+    handleDeeplink({
+      uri: deeplink,
+      source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+    });
+  }, [banner, deeplink, placementId]);
 
-  if (isDismissed) return null;
+  if (status === 'empty' || status === 'dismissed') return null;
 
-  const isContentReady = height > 0;
+  const containerHeight = Math.min(
+    Math.max(height ?? DEFAULT_BANNER_HEIGHT, MIN_BANNER_HEIGHT),
+    MAX_BANNER_HEIGHT,
+  );
 
   return (
     <Box
-      testID={isContentReady ? BRAZE_BANNER_TEST_IDS.CONTAINER : undefined}
-      style={[tw.style('mx-4 relative'), { height }]}
+      testID={BRAZE_BANNER_TEST_IDS.CONTAINER}
+      style={[tw.style('mx-4 relative'), { height: containerHeight }]}
     >
-      <Braze.BrazeBannerView
-        placementID={placementId}
-        onHeightChanged={handleHeightChanged}
-        style={StyleSheet.absoluteFillObject}
-      />
+      {status === 'loading' && (
+        <Skeleton
+          height={containerHeight}
+          twClassName="rounded-lg"
+          testID={BRAZE_BANNER_TEST_IDS.SKELETON}
+        />
+      )}
 
-      {isContentReady && (
-        <Box style={tw.style('absolute top-2 right-2 z-10')}>
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Sm}
-            iconProps={{ color: MMDSIconColor.IconDefault }}
-            onPress={handleDismiss}
-            testID={BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      {status === 'visible' && banner && (
+        <>
+          <BrazeBannerWebView banner={banner} />
+          <Pressable
+            testID={BRAZE_BANNER_TEST_IDS.PRESSABLE}
+            onPress={handlePress}
+            style={StyleSheet.absoluteFillObject}
           />
-        </Box>
+          <Pressable
+            testID={BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON}
+            onPress={dismiss}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={tw.style('absolute top-2 right-2 z-10 p-1')}
+          >
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Sm}
+              color={MMDSIconColor.IconDefault}
+            />
+          </Pressable>
+        </>
       )}
     </Box>
   );
