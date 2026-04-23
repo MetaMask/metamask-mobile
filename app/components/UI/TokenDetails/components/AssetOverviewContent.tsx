@@ -276,6 +276,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           return;
         }
         handlePerpsAction?.('long');
+      }).finally(() => {
+        // Release the TokenDetailsActions nav lock whenever gate() settles
+        // without navigating (compliance block modal or geo-block tooltip).
+        // Safe no-op if handlePerpsAction navigated since the focus/state
+        // listeners also clear the lock.
+        resetNavigationLockRef.current?.();
       }),
     [gate, isEligible, track, handlePerpsAction],
   );
@@ -294,6 +300,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           return;
         }
         handlePerpsAction?.('short');
+      }).finally(() => {
+        resetNavigationLockRef.current?.();
       }),
     [gate, isEligible, track, handlePerpsAction],
   );
