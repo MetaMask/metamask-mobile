@@ -12,9 +12,9 @@ import {
   MerklClaimData,
 } from '../MerklRewards/hooks/useMerklBonusClaim';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { MetaMetricsEvents, EVENT_NAME } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
+import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
 import AppConstants from '../../../../../core/AppConstants';
 import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from './AssetOverviewClaimBonus.testIds';
 import { TokenI } from '../../../Tokens/types';
@@ -24,9 +24,17 @@ import { MUSD_TOKEN_ADDRESS } from '../../constants/musd';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
+const mockOpenTooltipModal = jest.fn();
+
+jest.mock('../../../../hooks/useTooltipModal', () => ({
+  __esModule: true,
+  default: () => ({
+    openTooltipModal: mockOpenTooltipModal,
+  }),
+}));
+
 jest.mock('../MerklRewards/hooks/useMerklBonusClaim');
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
-jest.mock('../../../../hooks/useTooltipModal');
 jest.mock('../../../TokenDetails/hooks/useTokenBalance');
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
   selectAsset: jest.fn(),
@@ -69,6 +77,7 @@ const createMockMerklClaimData = (
   isClaiming: false,
   error: null,
   claimRewards: jest.fn().mockResolvedValue(undefined),
+  refetch: jest.fn(),
   ...overrides,
 });
 
@@ -81,7 +90,6 @@ describe('AssetOverviewClaimBonus', () => {
   const mockCreateEventBuilder = jest.fn();
   const mockAddProperties = jest.fn();
   const mockBuild = jest.fn();
-  const mockOpenTooltipModal = jest.fn();
   const mockClaimRewards = jest.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
@@ -97,12 +105,6 @@ describe('AssetOverviewClaimBonus', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     } as unknown as ReturnType<typeof useAnalytics>);
-
-    (
-      useTooltipModal as jest.MockedFunction<typeof useTooltipModal>
-    ).mockReturnValue({
-      openTooltipModal: mockOpenTooltipModal,
-    });
 
     (
       useTokenBalance as jest.MockedFunction<typeof useTokenBalance>
@@ -454,10 +456,11 @@ describe('AssetOverviewClaimBonus', () => {
 
       expect(mockOpenTooltipModal).toHaveBeenCalledTimes(1);
 
-      const [title, , footer, buttonText] = mockOpenTooltipModal.mock.calls[0];
+      const [title, , footerText, buttonText] =
+        mockOpenTooltipModal.mock.calls[0];
 
       expect(title).toBe('Your bonus');
-      expect(footer).toBeUndefined();
+      expect(footerText).toBeUndefined();
       expect(buttonText).toBe('Learn more');
     });
 
@@ -481,6 +484,26 @@ describe('AssetOverviewClaimBonus', () => {
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('passes dismissOnButtonPress: false when opening the Learn More tooltip', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON),
+      );
+
+      expect(mockOpenTooltipModal).toHaveBeenCalledWith(
+        'Your bonus',
+        expect.anything(),
+        undefined,
+        'Learn more',
+        expect.any(Function),
+        false,
+      );
     });
   });
 
@@ -690,7 +713,7 @@ describe('AssetOverviewClaimBonus', () => {
   });
 
   describe('terms link', () => {
-    it('opens terms URL and fires analytics when terms link is pressed', () => {
+    it('opens terms URL and fires analytics with BONUS_CLAIM_TOOLTIP location', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewClaimBonus asset={createMockAsset()} />,
         { state: mockInitialState },
@@ -712,6 +735,72 @@ describe('AssetOverviewClaimBonus', () => {
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.BONUS_CLAIM_TOOLTIP,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+        }),
+      );
+    });
+  });
+
+  describe('learn more link', () => {
+    it('fires MUSD_BONUS_LEARN_MORE_PRESSED and opens learn more URL', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON),
+      );
+
+      const learnMoreCallback = mockOpenTooltipModal.mock.calls[0][4];
+      learnMoreCallback();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_BONUS_LEARN_MORE_PRESSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.BONUS_CLAIM_TOOLTIP,
+          url: AppConstants.URLS.MUSD_LEARN_MORE,
+        }),
+      );
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        AppConstants.URLS.MUSD_LEARN_MORE,
+      );
+    });
+  });
+
+  describe('location prop', () => {
+    it('passes location prop to useMerklBonusClaim', () => {
+      const customLocation = MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB;
+
+      renderWithProvider(
+        <AssetOverviewClaimBonus
+          asset={createMockAsset()}
+          location={customLocation}
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
+        expect.anything(),
+        customLocation,
+      );
+    });
+
+    it('defaults location to ASSET_OVERVIEW when not provided', () => {
+      renderWithProvider(
+        <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
+      );
+
+      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
+        expect.anything(),
+        MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
       );
     });
   });

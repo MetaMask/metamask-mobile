@@ -259,6 +259,7 @@ export interface RootStackParamList extends ParamListBase {
   SendTransaction: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
+  RampHeadlessPlayground: undefined;
   RampAmountInput:
     | (SimpleRampBuildQuoteParams & { nativeFlowError?: string })
     | undefined;
@@ -560,6 +561,7 @@ export interface RootStackParamList extends ParamListBase {
   TraderPositionView: {
     traderId: string;
     traderName: string;
+    traderImageUrl?: string;
     tokenSymbol: string;
     position?: Position;
   };

@@ -15,11 +15,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('PerpsDeveloperOptionsSection', () => {
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<PerpsDeveloperOptionsSection />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders the perpetual trading heading', () => {
     const { getByText } = renderWithProvider(<PerpsDeveloperOptionsSection />);
     expect(getByText('Perps trading')).toBeVisible();

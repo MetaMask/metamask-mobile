@@ -16,7 +16,7 @@ Use this order every time:
    - the analytics mapping for business events
 3. In the feature, call `useABTest(flagKey, variants)`.
 4. If the feature sends business events through shared analytics wrappers, register the analytics mapping in `app/util/analytics/abTestAnalyticsRegistry.ts`.
-5. If the feature uses a custom tracker path that bypasses shared wrappers, attach `active_ab_tests` manually on that event.
+5. If the feature uses a custom tracker path that bypasses shared wrappers, attach `active_ab_tests` manually on that event with `createActiveABTestAssignment()`.
 6. Run targeted tests and the compliance check before shipping.
 
 ## What You Need to Touch
@@ -36,7 +36,7 @@ An A/B test is ready when all of these are true:
 - The feature reads assignment through `useABTest`
 - The variants object includes a `control` variant
 - Shared-wrapper events are registered in `app/util/analytics/abTestAnalyticsRegistry.ts`
-- Custom tracker events attach `active_ab_tests` manually when active
+- Custom tracker events attach `active_ab_tests` manually when active via `createActiveABTestAssignment()`
 - Relevant tests were added or updated when behavior or analytics wiring changed
 - The compliance checker passes
 
@@ -121,19 +121,18 @@ trackEvent(createEventBuilder(EVENT_NAME.SWAP_PAGE_VIEWED).build());
 
 ### 4. Handle custom tracker paths manually
 
-If an event bypasses the shared wrappers and calls the analytics controller directly, add `active_ab_tests` yourself:
+If an event bypasses the shared wrappers and calls the analytics controller directly, add `active_ab_tests` yourself with `createActiveABTestAssignment()` so `key_value_pair` stays in sync:
 
 ```typescript
+import { createActiveABTestAssignment } from '../app/util/analytics/activeABTestAssignments';
+
 Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
   UnifiedSwapBridgeEventName.InputChanged,
   {
     input: 'token_amount_source',
     ...(isActive && {
       active_ab_tests: [
-        {
-          key: FEATURE_AB_TEST_KEY,
-          value: variantName,
-        },
+        createActiveABTestAssignment(FEATURE_AB_TEST_KEY, variantName),
       ],
     }),
   },
@@ -204,12 +203,18 @@ active_ab_tests:
         type: string
       value:
         type: string
+      key_value_pair:
+        type: string
 ```
+
+The Segment schema keeps `key_value_pair` optional for backward compatibility, but app-produced assignments should always emit it.
 
 Correct:
 
 ```typescript
-active_ab_tests: [{ key: FEATURE_AB_TEST_KEY, value: variantName }];
+active_ab_tests: [
+  createActiveABTestAssignment(FEATURE_AB_TEST_KEY, variantName),
+];
 ```
 
 Incorrect:
@@ -285,6 +290,7 @@ Helpful existing files:
 
 - `app/hooks/useABTest.ts`
 - `app/hooks/useABTest.test.ts`
+- `app/util/analytics/activeABTestAssignments.ts`
 - `app/util/analytics/abTestAnalyticsRegistry.ts`
 - `app/util/analytics/enrichWithABTests.ts`
 - `app/core/Engine/utils/analytics.ts`
@@ -295,13 +301,13 @@ Helpful existing files:
 No. Not when you use `useABTest`.
 
 **Do I manually attach `active_ab_tests` to every event?**  
-No. Register shared-wrapper events in the analytics registry. Add `active_ab_tests` manually only for custom tracker paths.
+No. Register shared-wrapper events in the analytics registry. Add `active_ab_tests` manually only for custom tracker paths, and use `createActiveABTestAssignment()` when you do.
 
 **What is the fallback variant?**  
 `control`.
 
 **Do I need a per-test Segment schema key?**  
-No. Use the shared `active_ab_tests` array of `{ key, value }`.
+No. Use the shared `active_ab_tests` array of `{ key, value, key_value_pair }`.
 
 **Can multiple tests enrich the same event?**  
 Yes. Multiple mappings can point at the same event name.

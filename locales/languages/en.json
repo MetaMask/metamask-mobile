@@ -1020,6 +1020,15 @@
         "all": "All"
       }
     },
+    "notification_preferences": {
+      "title": "Top Traders",
+      "allow_push_notifications": "Allow push notifications",
+      "trades_over_label": "Get notified of trades over:",
+      "traders_you_follow": "Traders you follow",
+      "traders_you_follow_desc": "Choose who you get notifications about",
+      "traders_you_follow_empty": "You aren't following any traders yet.",
+      "error_loading_followed": "Unable to load the traders you follow."
+    },
     "follow": "Follow",
     "following": "Following",
     "all_networks": "All networks",
@@ -1043,7 +1052,9 @@
       "trades": "Trades",
       "buy": "Buy",
       "bought": "{{name}} bought",
-      "sold": "{{name}} sold"
+      "sold": "{{name}} sold",
+      "no_trades": "No trades for this interval",
+      "closed_position": "Closed position"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -3189,6 +3200,8 @@
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
     "networks_default_cta": "Use this network",
     "add_rpc_url": "Add RPC URL",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "Add block explorer URL",
     "networks_desc": "Add and edit custom RPC networks",
     "networks_enabled": "Enabled Networks",
@@ -3344,7 +3357,74 @@
       "update": "Update",
       "cancel": "Cancel",
       "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
-      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}",
+      "headless_playground": {
+        "title": "Headless Buy playground",
+        "entry_button": "Open Headless Buy playground",
+        "selected_values": "Selected values",
+        "selected_user_region": "User region",
+        "selected_provider": "Selected provider",
+        "selected_token": "Selected token",
+        "selected_payment_method": "Selected payment method",
+        "providers": "Providers",
+        "tokens": "Tokens",
+        "payment_methods": "Payment methods",
+        "countries": "Countries",
+        "no_data": "No data",
+        "none_selected": "None selected",
+        "loading": "Loading…",
+        "error": "Error",
+        "count": "{{count}} item(s)",
+        "summary": "Summary",
+        "summary_token": "Token",
+        "summary_provider": "Provider",
+        "amount_label": "Amount (fiat)",
+        "amount_placeholder": "e.g. 25",
+        "get_quotes": "Get quotes",
+        "get_quotes_disabled_hint": "Enter a positive amount",
+        "headless_section_badge": "⚠️ HEADLESS CONSUMER SIMULATION",
+        "headless_section_title": "useHeadlessBuy sandbox",
+        "headless_section_warning": "Inputs default to hardcoded sim values. Pick a different token, payment method or provider in the accordions above to override — tap Reset here to switch back to the hardcoded value.",
+        "headless_section_asset_id": "Asset ID",
+        "headless_section_payment_method_id": "Payment method ID",
+        "headless_section_provider_id": "Provider ID",
+        "headless_section_resolved": "Resolved via useHeadlessBuy",
+        "headless_section_unresolved": "Not in catalog yet",
+        "headless_section_meta_hardcoded": "Hardcoded default",
+        "headless_section_meta_overridden": "Override (tap Reset to clear)",
+        "headless_section_reset": "Reset",
+        "quotes": "Quotes",
+        "quotes_idle": "Press \"Get quotes\" to fetch",
+        "quotes_no_results": "No quotes returned",
+        "quote_amount_out": "{{amount}} {{symbol}}",
+        "quote_amount_in": "for {{amount}} {{currency}}",
+        "quote_provider": "via {{provider}}",
+        "quote_payment_method": "Payment: {{paymentMethod}}",
+        "quote_errors_title": "Errored providers ({{count}})",
+        "quote_error_item": "{{provider}}: {{message}}",
+        "quote_you_pay": "You pay",
+        "quote_you_get": "You get",
+        "quote_payment_method_label": "Payment method",
+        "quote_fees": "Fees",
+        "quote_fees_total": "{{total}} total",
+        "quote_fees_breakdown": "(network {{network}} + provider {{provider}})",
+        "quote_reliability": "Reliability",
+        "quote_reliability_value": "{{score}}/100",
+        "quote_tag_best_rate": "Best rate",
+        "quote_tag_most_reliable": "Most reliable",
+        "quote_unknown_provider": "Unknown provider",
+        "start_headless_buy": "Start headless buy",
+        "start_headless_buy_disabled_hint": "Enter a valid amount to enable",
+        "start_headless_buy_pending": "Headless session active — open BuildQuote",
+        "cancel_headless_buy": "Cancel headless session",
+        "event_log_title": "Event log",
+        "event_log_empty": "No events yet — start a headless session and watch this space.",
+        "event_log_started": "started session {{sessionId}} (asset={{assetId}}, amount={{amount}}, payment={{paymentMethodId}}{{providerSuffix}})",
+        "event_log_order_created": "onOrderCreated → {{orderId}}",
+        "event_log_error": "onError → {{code}}{{messageSuffix}}",
+        "event_log_close": "onClose → {{reason}}",
+        "event_log_cancelled": "consumer-cancelled session {{sessionId}}"
+      }
     },
     "request_feature": "Request a feature",
     "contact_support": "Contact support",
@@ -6307,7 +6387,10 @@
       "step_progress": "Step {{current}} of {{total}}",
       "title": "Add money",
       "description": "Buy mUSD and start earning APY today.",
-      "add": "Add"
+      "add": "Add",
+      "step2_title": "Get your MetaMask Card",
+      "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
+      "step2_cta": "Get card"
     },
     "action": {
       "add": "Add",
@@ -6321,7 +6404,7 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Hold mUSD in your Money Account and auto-earn ",
+      "description_prefix": "Hold mUSD in your Money Account and auto-earn",
       "description_suffix": ". It's dollar-backed, always liquid, and ready to spend, trade, or send anytime."
     },
     "musd_row": {
@@ -6332,7 +6415,8 @@
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "convert": "Convert",
       "no_fee": "No MetaMask fee",
-      "view_all": "View all"
+      "view_all": "View all",
+      "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
       "title": "MetaMask Card",
@@ -6364,6 +6448,14 @@
       "filter_deposits": "Deposits",
       "filter_transfers": "Transfers"
     },
+    "condensed_cards": {
+      "how_it_works_title": "How it works",
+      "how_it_works_subtitle": "See how your money works for you",
+      "musd_title": "MetaMask USD",
+      "musd_subtitle": "Learn more about mUSD",
+      "what_you_get_title": "What you get",
+      "what_you_get_subtitle": "Explore your benefits"
+    },
     "transaction": {
       "added": "Added",
       "deposited": "Deposited",
@@ -6386,6 +6478,25 @@
       "learn_more": "Learn more",
       "swap": "Swap",
       "buy": "Buy"
+    },
+    "how_it_works_page": {
+      "header_title": "Money",
+      "section_title": "How it works",
+      "description_1": "Your Money account earns 4% APY (variable) automatically. Funds go into a curated DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
+      "faq_title": "FAQ",
+      "faq_placeholder_answer": "Coming soon.",
+      "faq_q1": "What is the Money account?",
+      "faq_q2": "What is mUSD?",
+      "faq_q3": "Where does the yield come from?",
+      "faq_q4": "Is my money locked? Can I withdraw anytime?",
+      "faq_q5": "How does spending with the MetaMask Card work?",
+      "faq_q6": "Are there any fees?",
+      "faq_q7": "Does the APY rate change?",
+      "faq_q8": "Is this a savings account or a spending account?",
+      "faq_q9": "Who controls my money?",
+      "faq_q10": "What cash back do I get with the MetaMask Card?",
+      "sounds_good": "Sounds good"
     }
   },
   "stake": {
@@ -6905,6 +7016,8 @@
     "fetching_quote": "Fetching quote",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee.",
     "no_mm_fee": "No MM fee",
+    "token_suspicious": "Suspicious",
+    "token_malicious": "Malicious",
     "no_mm_fee_disclaimer": "No MetaMask fee swapping into {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
@@ -8298,6 +8411,36 @@
       "error_description": "We couldn't load the campaigns. Please try again.",
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
+    },
+    "ondo_campaign_winning": {
+      "you_won": "You won",
+      "rank_label": "{{place}} place",
+      "email_instructions": "Email ondocampaign@consensys.net with your code to claim your prize.",
+      "open_mail": "Open mail",
+      "skip_for_now": "Skip for now",
+      "mail_subject": "Ondo campaign prize claim",
+      "mail_body": "My winning code: {{code}}",
+      "winning_code": "Winning code",
+      "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
+      "participant_pending": {
+        "title": "Contest has ended.",
+        "description": "We're determining the contest winners. Check back soon."
+      },
+      "participant_finalized": {
+        "title": "Contest results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
     }
   },
   "time": {
@@ -8450,7 +8593,10 @@
       "tip_enable_bluetooth": "Bluetooth is turned on",
       "tip_bluetooth_permission": "Location and Bluetooth permission is granted",
       "tip_bluetooth_permission_v12": "Nearby devices permission is granted",
-      "tip_stay_close": "Your device stays close to your phone"
+      "tip_stay_close": "Your device stays close to your phone",
+      "qr_tip_scan": "Your camera is ready to scan the QR code",
+      "qr_tip_align": "Align the QR code within the frame",
+      "qr_tip_lighting": "Ensure good lighting for clear scanning"
     },
     "awaiting_app": {
       "title": "Open {{app}}",
