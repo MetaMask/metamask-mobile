@@ -29,6 +29,8 @@ import {
   calculateEthFeeForMultiLayer as bigintCalculateEthFeeForMultiLayer,
   safeBigIntToHex,
   addCurrencySymbol as bigintAddCurrencySymbol,
+  normalizeToDotDecimal as bigintNormalizeToDotDecimal,
+  formatAmountWithThreshold as bigintFormatAmountWithThreshold,
 } from './bigint';
 
 import {
@@ -54,6 +56,8 @@ import {
   calculateEthFeeForMultiLayer as legacyCalculateEthFeeForMultiLayer,
   safeBNToHex,
   addCurrencySymbol as legacyAddCurrencySymbol,
+  normalizeToDotDecimal as legacyNormalizeToDotDecimal,
+  formatAmountWithThreshold as legacyFormatAmountWithThreshold,
 } from './index';
 
 /**
@@ -314,6 +318,59 @@ describe('Parity: addCurrencySymbol', () => {
       legacyAddCurrencySymbol(amount, currency),
     );
   });
+});
+
+describe('Parity: normalizeToDotDecimal', () => {
+  const CASES = [
+    '9,336822',
+    '1.234,56',
+    '1,234.56',
+    '$1,234.56',
+    '-1.234,56',
+    '  12.5  ',
+    '',
+    null,
+    undefined,
+  ] as const;
+
+  it.each(CASES)('normalizeToDotDecimal(%p) matches legacy', (input) => {
+    expect(bigintNormalizeToDotDecimal(input as never)).toBe(
+      legacyNormalizeToDotDecimal(input as never),
+    );
+  });
+
+  it('matches for numeric input', () => {
+    expect(bigintNormalizeToDotDecimal(1.25)).toBe(
+      legacyNormalizeToDotDecimal(1.25),
+    );
+  });
+});
+
+describe('Parity: formatAmountWithThreshold', () => {
+  // NaN omitted: legacy limitToMaximumDecimalPlaces returns the number NaN;
+  // bigint returns the string "NaN" (see bigint.test.ts).
+  const CASES: [number, number | undefined][] = [
+    [0.000001, undefined],
+    [0.00001, undefined],
+    [1.234567, 2],
+    [0, undefined],
+    [-0.000001, 5],
+  ];
+
+  it.each(CASES)(
+    'formatAmountWithThreshold(%s, %s) matches legacy',
+    (num, maxDecimals) => {
+      const legacy =
+        maxDecimals === undefined
+          ? legacyFormatAmountWithThreshold(num)
+          : legacyFormatAmountWithThreshold(num, maxDecimals);
+      const bigint =
+        maxDecimals === undefined
+          ? bigintFormatAmountWithThreshold(num)
+          : bigintFormatAmountWithThreshold(num, maxDecimals);
+      expect(bigint).toBe(legacy);
+    },
+  );
 });
 
 /**

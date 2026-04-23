@@ -43,7 +43,8 @@ export const hexToBigInt = (inputHex: string | number | bigint): bigint => {
   return BigInt(0);
 };
 
-export const bigIntToHex = (value: bigint): string => add0x(value.toString(16));
+export const bigIntToHex = (value: bigint): string =>
+  addHexPrefix(value.toString(16));
 
 // Setter Maps
 export const toBigInt = {
@@ -710,11 +711,7 @@ export function fiatNumberToWei(
   const fiat =
     typeof fiatInput === 'string' ? parseFloat(fiatInput) : fiatInput;
   const floatFiatConverted = fiat / conversionRate;
-  if (
-    !floatFiatConverted ||
-    isNaN(floatFiatConverted) ||
-    floatFiatConverted === Infinity
-  ) {
+  if (!Number.isFinite(floatFiatConverted)) {
     return BigInt(0);
   }
   const base = Math.pow(10, 18);

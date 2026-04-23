@@ -10,6 +10,7 @@ import {
   fastSplit,
   fiatNumberToTokenMinimalUnit,
   fiatNumberToWei,
+  formatAmountWithThreshold,
   formatValueToMatchTokenDecimals,
   fromTokenMinimalUnit,
   fromTokenMinimalUnitString,
@@ -24,6 +25,8 @@ import {
   isZeroValue,
   limitToMaximumDecimalPlaces,
   localizeLargeNumber,
+  MINIMUM_DISPLAY_THRESHOLD,
+  normalizeToDotDecimal,
   renderFiat,
   renderFiatAddition,
   renderFromTokenMinimalUnit,
@@ -45,6 +48,11 @@ import {
 describe('Number utils :: bigIntToHex', () => {
   it('bigIntToHex', () => {
     expect(bigIntToHex(BigInt('1337'))).toEqual('0x539');
+  });
+
+  it('prefixes negative values as -0x… (not 0x-…)', () => {
+    expect(bigIntToHex(-1n)).toEqual('-0x1');
+    expect(bigIntToHex(-255n)).toEqual('-0xff');
   });
 });
 
@@ -325,6 +333,48 @@ describe('Number utils :: renderSmallNumber', () => {
   });
 });
 
+describe('Number utils :: formatAmountWithThreshold', () => {
+  it('shows threshold string for positive values below MINIMUM_DISPLAY_THRESHOLD', () => {
+    expect(formatAmountWithThreshold(0.000001)).toBe(
+      `< ${MINIMUM_DISPLAY_THRESHOLD}`,
+    );
+    expect(formatAmountWithThreshold(0.000009999)).toBe(
+      `< ${MINIMUM_DISPLAY_THRESHOLD}`,
+    );
+  });
+
+  it('does not use threshold when value equals or exceeds MINIMUM_DISPLAY_THRESHOLD', () => {
+    expect(formatAmountWithThreshold(MINIMUM_DISPLAY_THRESHOLD)).toBe(
+      '0.00001',
+    );
+    expect(formatAmountWithThreshold(0.1)).toBe('0.1');
+    expect(formatAmountWithThreshold(1.5)).toBe('1.5');
+  });
+
+  it('caps decimal places via limitToMaximumDecimalPlaces', () => {
+    expect(formatAmountWithThreshold(1.123456789, 5)).toBe('1.12346');
+    expect(formatAmountWithThreshold(1.123456789, 2)).toBe('1.12');
+    expect(formatAmountWithThreshold(42, 5)).toBe('42');
+  });
+
+  it('uses default maxDecimalPlaces of 5 when omitted', () => {
+    expect(formatAmountWithThreshold(3.14159265)).toBe('3.14159');
+  });
+
+  it('formats zero without threshold', () => {
+    expect(formatAmountWithThreshold(0)).toBe('0');
+  });
+
+  it('formats negative values without threshold branch', () => {
+    expect(formatAmountWithThreshold(-0.000001)).toBe('0');
+    expect(formatAmountWithThreshold(-1.234, 2)).toBe('-1.23');
+  });
+
+  it('returns string for NaN input per limitToMaximumDecimalPlaces', () => {
+    expect(formatAmountWithThreshold(Number.NaN)).toBe('NaN');
+  });
+});
+
 describe('Number utils :: renderFromTokenMinimalUnit', () => {
   it('renderFromTokenMinimalUnit using number', () => {
     expect(renderFromTokenMinimalUnit(1337, 6)).toEqual('0.00134');
@@ -378,6 +428,7 @@ describe('Number utils :: localizeLargeNumber', () => {
           'token.trillion_abbreviation': 'T',
           'token.billion_abbreviation': 'B',
           'token.million_abbreviation': 'M',
+          'token.thousand_abbreviation': 'K',
         };
         return translations[key];
       }),
@@ -425,6 +476,35 @@ describe('Number utils :: localizeLargeNumber', () => {
 
     expect(localizeLargeNumber(i18n, million)).toBe('1.00M');
     expect(i18n.t).toHaveBeenCalledWith('token.million_abbreviation');
+  });
+
+  it('includes K suffix for thousands when includeK is true', () => {
+    const number = 150000;
+    const result = localizeLargeNumber(i18n, number, { includeK: true });
+    expect(result).toBe('150.00K');
+    expect(i18n.t).toHaveBeenCalledWith('token.thousand_abbreviation');
+  });
+
+  it('does not include K suffix for thousands when includeK is false (default)', () => {
+    const number = 150000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('150000.00');
+    expect(i18n.t).not.toHaveBeenCalled();
+  });
+
+  it('supports custom decimals option', () => {
+    const number = 1500000;
+    const result = localizeLargeNumber(i18n, number, { decimals: 1 });
+    expect(result).toBe('1.5M');
+  });
+
+  it('supports includeK with custom decimals', () => {
+    const number = 150000;
+    const result = localizeLargeNumber(i18n, number, {
+      includeK: true,
+      decimals: 0,
+    });
+    expect(result).toBe('150K');
   });
 });
 
@@ -560,6 +640,11 @@ describe('Number utils :: fiatNumberToWei', () => {
 
   it('returns BigInt zero when result would be Infinity', () => {
     expect(fiatNumberToWei(Infinity, 1)).toEqual(BigInt(0));
+  });
+
+  it('returns BigInt zero when result would be -Infinity', () => {
+    expect(fiatNumberToWei(-Infinity, 1)).toEqual(BigInt(0));
+    expect(fiatNumberToWei(-1, Number.MIN_VALUE)).toEqual(BigInt(0));
   });
 
   it('returns BigInt zero when result is NaN', () => {
@@ -835,6 +920,41 @@ describe('Number utils :: isNumberValue', () => {
     expect(isNumberValue('a¡1')).toBe(false);
     expect(isNumberValue(undefined)).toBe(false);
     expect(isNumberValue(null)).toBe(false);
+  });
+});
+
+describe('Number utils :: normalizeToDotDecimal', () => {
+  it.each([
+    ['9,336822', '9.336822'],
+    ['1.234,56', '1234.56'],
+    ['1,234.56', '1234.56'],
+    ['1,234,567.89', '1234567.89'],
+    ['12,34', '12.34'],
+    ['12.34', '12.34'],
+    ['123', '123'],
+    ['-1,234.56', '-1234.56'],
+    ['-1.234,56', '-1234.56'],
+    ['$1,234.56', '1234.56'],
+    ['  1.5  ', '1.5'],
+    ['', ''],
+  ] as const)('normalizes %p to %p', (input, expected) => {
+    expect(normalizeToDotDecimal(input)).toBe(expected);
+  });
+
+  it('coerces null and undefined to zero string', () => {
+    expect(normalizeToDotDecimal(null as unknown as string)).toBe('0');
+    expect(normalizeToDotDecimal(undefined as unknown as string)).toBe('0');
+  });
+
+  it('accepts number input', () => {
+    expect(normalizeToDotDecimal(0)).toBe('0');
+    expect(normalizeToDotDecimal(1.25)).toBe('1.25');
+    expect(normalizeToDotDecimal(1234)).toBe('1234');
+  });
+
+  it('strips characters that are not digits, separators, or sign', () => {
+    expect(normalizeToDotDecimal('€\u00a01.234,56')).toBe('1234.56');
+    expect(normalizeToDotDecimal('abc')).toBe('');
   });
 });
 
