@@ -214,7 +214,10 @@ export const useDeviceConnectionFlow = ({
         pendingReadyResolveRef.current = null;
       }
 
-      const targetType = refs.targetWalletTypeRef.current ?? walletType;
+      const targetType =
+        refs.targetWalletTypeRef.current ??
+        refs.pendingOperationWalletTypeRef.current ??
+        walletType;
 
       if (!targetType) {
         throw new Error('ensureDeviceReady called without a wallet type');

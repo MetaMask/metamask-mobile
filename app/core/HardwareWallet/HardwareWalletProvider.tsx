@@ -45,7 +45,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const { state, refs, setters } = useHardwareWalletStateManager();
   const { connectionState, deviceId, walletType, targetWalletType } = state;
 
-  const [pendingOperationAddress, setPendingOperationAddress] = useState<
+  const [pendingOperationAddress, setPendingOperationAddressState] = useState<
     string | null
   >(null);
 
@@ -201,6 +201,16 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     onReject?.();
     hideAwaitingConfirmation();
   }, [hideAwaitingConfirmation, refs.adapterRef]);
+
+  const setPendingOperationAddress = useCallback(
+    (address: string | null) => {
+      setters.setPendingOperationWalletType(
+        address ? (getHardwareWalletTypeForAddress(address) ?? null) : null,
+      );
+      setPendingOperationAddressState(address);
+    },
+    [setters],
+  );
 
   const contextValue = useMemo(
     () => ({

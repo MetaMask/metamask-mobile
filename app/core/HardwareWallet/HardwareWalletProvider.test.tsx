@@ -280,6 +280,67 @@ describe('HardwareWalletProvider', () => {
           'device-123',
         );
       });
+
+      it('updates the provider wallet type from the pending operation address', async () => {
+        mockUseSelector.mockReturnValue({ address: '0x1234' });
+        mockGetHardwareWalletType.mockImplementation((address: string) =>
+          address === '0xqr'
+            ? HardwareWalletType.Qr
+            : HardwareWalletType.Ledger,
+        );
+
+        const ledgerAdapter = {
+          ...mockAdapterInstance,
+          walletType: HardwareWalletType.Ledger,
+          requiresDeviceDiscovery: true,
+          ensureDeviceReady: jest.fn().mockResolvedValue(true),
+          resetFlowState: jest.fn(),
+          markFlowComplete: jest.fn(),
+          disconnect: jest.fn().mockResolvedValue(undefined),
+        };
+        const qrAdapter = {
+          ...mockAdapterInstance,
+          walletType: HardwareWalletType.Qr,
+          requiresDeviceDiscovery: false,
+          ensureDeviceReady: jest.fn().mockResolvedValue(true),
+          resetFlowState: jest.fn(),
+          markFlowComplete: jest.fn(),
+          disconnect: jest.fn().mockResolvedValue(undefined),
+        };
+
+        mockCreateAdapter.mockImplementation(
+          (walletType: HardwareWalletType | null) => {
+            if (walletType === HardwareWalletType.Qr) {
+              return qrAdapter;
+            }
+
+            return ledgerAdapter;
+          },
+        );
+
+        const { result } = renderHook(() => useTestActions(), {
+          wrapper: ({ children }: { children: React.ReactNode }) => (
+            <HardwareWalletProvider>{children}</HardwareWalletProvider>
+          ),
+        });
+
+        await waitFor(() => {
+          expect(mockCreateAdapter).toHaveBeenCalledWith(
+            HardwareWalletType.Ledger,
+            expect.any(Object),
+          );
+        });
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0xqr');
+        });
+
+        await waitFor(() => {
+          expect(capturedBottomSheetProps.walletType).toBe(
+            HardwareWalletType.Qr,
+          );
+        });
+      });
     });
   });
 
