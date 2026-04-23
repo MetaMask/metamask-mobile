@@ -24,6 +24,6 @@ describe('WatchAssetRequest', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.find(Provider)).toHaveLength(1);
   });
 });

@@ -61,7 +61,7 @@ describe('BlockaidBanner', () => {
       { state: mockState },
     );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.getByTestId('security-alert-banner')).toBeOnTheScreen();
   });
 
   it('should render correctly with reason "raw_signature_farming"', async () => {
@@ -76,16 +76,18 @@ describe('BlockaidBanner', () => {
       { state: mockState },
     );
 
-    expect(wrapper).toMatchSnapshot();
-    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeDefined();
+    expect(wrapper.getByTestId('security-alert-banner')).toBeOnTheScreen();
+    expect(
+      await wrapper.queryByTestId(TESTID_ACCORDIONHEADER),
+    ).toBeOnTheScreen();
     expect(
       await wrapper.getByText('This is a suspicious request'),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       await wrapper.getByText(
         'If you approve this request, you might lose your assets.',
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('should render correctly with list attack details', async () => {
@@ -100,32 +102,36 @@ describe('BlockaidBanner', () => {
       { state: mockState },
     );
 
-    expect(wrapper).toMatchSnapshot();
-    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeDefined();
+    expect(wrapper.getByTestId('security-alert-banner')).toBeOnTheScreen();
+    expect(
+      await wrapper.queryByTestId(TESTID_ACCORDIONHEADER),
+    ).toBeOnTheScreen();
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
 
     fireEvent.press(await wrapper.getByText('See details'));
 
-    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
+    expect(
+      await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT),
+    ).toBeOnTheScreen();
     expect(
       await wrapper.queryByText('We found attack vectors in this request'),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       await wrapper.queryByText(
         'This request shows a fake token name and icon.',
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       await wrapper.queryByText(
         'If you approve this request, a third party known for scams might take all your assets.',
       ),
-    ).toBeDefined();
-    expect(await wrapper.queryByText('Operator is an EOA')).toBeDefined();
+    ).toBeOnTheScreen();
+    expect(await wrapper.queryByText('Operator is an EOA')).toBeOnTheScreen();
     expect(
       await wrapper.queryByText(
         'Operator is untrusted according to previous activity',
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('should render something does not look right with contact us link when expanded', async () => {
@@ -140,19 +146,23 @@ describe('BlockaidBanner', () => {
       { state: mockState },
     );
 
-    expect(wrapper).toMatchSnapshot();
-    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeDefined();
+    expect(wrapper.getByTestId('security-alert-banner')).toBeOnTheScreen();
+    expect(
+      await wrapper.queryByTestId(TESTID_ACCORDIONHEADER),
+    ).toBeOnTheScreen();
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
 
     fireEvent.press(await wrapper.getByText('See details'));
 
-    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
+    expect(
+      await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT),
+    ).toBeOnTheScreen();
     expect(
       await wrapper.queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       await wrapper.queryByText('Something doesn’t look right?'),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('should not render if securityAlertResponse is undefined', async () => {
@@ -160,7 +170,6 @@ describe('BlockaidBanner', () => {
       state: mockState,
     });
 
-    expect(wrapper).toMatchSnapshot();
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
@@ -170,7 +179,6 @@ describe('BlockaidBanner', () => {
       state: mockState,
     });
 
-    expect(wrapper).toMatchSnapshot();
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
@@ -180,7 +188,6 @@ describe('BlockaidBanner', () => {
       state: mockState,
     });
 
-    expect(wrapper).toMatchSnapshot();
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
@@ -198,7 +205,8 @@ describe('BlockaidBanner', () => {
       },
     );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
+    expect(await wrapper.queryByTestId(BANNERALERT_TEST_ID)).toBeNull();
   });
 
   it('should not render if resultType is benign', async () => {
@@ -213,7 +221,6 @@ describe('BlockaidBanner', () => {
       { state: mockState },
     );
 
-    expect(wrapper).toMatchSnapshot();
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
@@ -224,16 +231,16 @@ describe('BlockaidBanner', () => {
       { state: mockState },
     );
 
-    expect(wrapper).toMatchSnapshot();
-
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
-    expect(await wrapper.queryByTestId(BANNERALERT_TEST_ID)).toBeDefined();
-    expect(await wrapper.queryByText('Request may not be safe')).toBeDefined();
+    expect(await wrapper.queryByTestId(BANNERALERT_TEST_ID)).toBeOnTheScreen();
+    expect(
+      await wrapper.queryByText('Request may not be safe'),
+    ).toBeOnTheScreen();
     expect(
       await wrapper.queryByText(
         'Because of an error, this request was not verified by the security provider. Proceed with caution.',
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 });
