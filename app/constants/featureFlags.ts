@@ -28,5 +28,5 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,
   [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: false,
-  [FeatureFlagNames.addDeviceSyncEnabled]: false,
+  [FeatureFlagNames.addDeviceSyncEnabled]: true,
 };
