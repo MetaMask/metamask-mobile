@@ -202,13 +202,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     hideAwaitingConfirmation();
   }, [hideAwaitingConfirmation, refs.adapterRef]);
 
-  const setPendingOperationAddressWrapper = useCallback(
-    (address: string | null) => {
-      setPendingOperationAddress(address);
-    },
-    [],
-  );
-
   const contextValue = useMemo(
     () => ({
       walletType: effectiveWalletType,
