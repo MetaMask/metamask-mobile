@@ -515,18 +515,6 @@ export type RewardsControllerGetOndoCampaignDepositsAction = {
 };
 
 /**
- * Fetch the participant outcome for the current user in a completed Ondo GM campaign.
- *
- * @param campaignId - The campaign ID.
- * @param subscriptionId - The subscription ID for authentication.
- * @returns The participant outcome DTO, or null if unavailable.
- */
-export type RewardsControllerGetOndoCampaignParticipantOutcomeAction = {
-  type: `RewardsController:getOndoCampaignParticipantOutcome`;
-  handler: RewardsController['getOndoCampaignParticipantOutcome'];
-};
-
-/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes.
@@ -538,6 +526,11 @@ export type RewardsControllerGetOndoCampaignParticipantOutcomeAction = {
 export type RewardsControllerGetOndoCampaignLeaderboardPositionAction = {
   type: `RewardsController:getOndoCampaignLeaderboardPosition`;
   handler: RewardsController['getOndoCampaignLeaderboardPosition'];
+};
+
+export type RewardsControllerGetOndoCampaignParticipantOutcomeAction = {
+  type: `RewardsController:getOndoCampaignParticipantOutcome`;
+  handler: RewardsController['getOndoCampaignParticipantOutcome'];
 };
 
 /**
@@ -763,8 +756,8 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction
-  | RewardsControllerGetOndoCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
+  | RewardsControllerGetOndoCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
   | RewardsControllerGetOndoCampaignActivityAction
   | RewardsControllerGetActivityIfChangedAction
