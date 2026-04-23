@@ -397,7 +397,9 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
         name,
         type,
       );
-      const persisted = await onUrlSheetMutationCommitted?.(nextForm);
+      const persisted = await onUrlSheetMutationCommitted?.(nextForm, {
+        skipChainIdSubmitValidation: true,
+      });
       if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
         setRpcSheetSubmitError(
           strings('app_settings.url_sheet_network_update_failed'),
@@ -414,7 +416,9 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
     async (url: string) => {
       setRpcSheetSubmitError(undefined);
       const nextForm = removeRpcUrlFromFormState(latestFormRef.current, url);
-      const persisted = await onUrlSheetMutationCommitted?.(nextForm);
+      const persisted = await onUrlSheetMutationCommitted?.(nextForm, {
+        skipChainIdSubmitValidation: true,
+      });
       if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
         setRpcSheetSubmitError(
           strings('app_settings.url_sheet_network_update_failed'),

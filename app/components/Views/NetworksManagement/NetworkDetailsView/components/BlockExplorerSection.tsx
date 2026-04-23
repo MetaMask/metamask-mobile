@@ -37,16 +37,15 @@ import type {
   UrlSheetMutationCommittedHandler,
   UrlSheetPersistOptions,
 } from '../NetworkDetailsView.types';
+import type { UseNetworkFormReturn } from '../hooks/useNetworkForm';
+import type { NetworkDetailsStyles } from '../NetworkDetailsView.styles';
 
 /** Block explorer list edits do not change RPC / chain-id pairing — skip eth_chainId on persist. */
 const BLOCK_EXPLORER_SHEET_PERSIST_OPTS: UrlSheetPersistOptions = {
   skipChainIdSubmitValidation: true,
 };
-import type { UseNetworkFormReturn } from '../hooks/useNetworkForm';
-import type { NetworkDetailsStyles } from '../NetworkDetailsView.styles';
 
 const FORM_INNER_STYLE = { position: 'absolute' as const, left: 0, right: 0 };
-
 interface BlockExplorerSectionProps {
   formHook: UseNetworkFormReturn;
   styles: NetworkDetailsStyles;

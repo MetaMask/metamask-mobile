@@ -275,6 +275,10 @@ describe('RpcEndpointModals', () => {
     await waitFor(() => {
       expect(onUrlSheetMutationCommitted).toHaveBeenCalled();
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
     expect(formHook.onRpcItemAdd).toHaveBeenCalledWith(
       'https://new-rpc.example.com',
       'New RPC',
@@ -311,6 +315,10 @@ describe('RpcEndpointModals', () => {
         strings('app_settings.rpc_sheet_network_update_failed'),
       );
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
     expect(formHook.onRpcItemAdd).not.toHaveBeenCalled();
   });
 
@@ -396,6 +404,8 @@ describe('RpcEndpointModals', () => {
       },
     });
 
+    const onUrlSheetMutationCommitted = jest.fn().mockResolvedValue(true);
+
     const { getByText } = render(
       <RpcEndpointModals
         formHook={formHook}
@@ -405,7 +415,7 @@ describe('RpcEndpointModals', () => {
         styles={styles}
         themeAppearance="light"
         placeholderTextColor={placeholderTextColor}
-        onUrlSheetMutationCommitted={jest.fn().mockResolvedValue(true)}
+        onUrlSheetMutationCommitted={onUrlSheetMutationCommitted}
       />,
     );
 
@@ -421,6 +431,10 @@ describe('RpcEndpointModals', () => {
         RpcEndpointType.Custom,
       );
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
   });
 
   it('shows sheet error and skips onRpcUrlChangeWithName when persist returns false', async () => {
@@ -442,6 +456,8 @@ describe('RpcEndpointModals', () => {
       },
     });
 
+    const onUrlSheetMutationCommitted = jest.fn().mockResolvedValue(false);
+
     const { getByText, getByTestId } = render(
       <RpcEndpointModals
         formHook={formHook}
@@ -451,7 +467,7 @@ describe('RpcEndpointModals', () => {
         styles={styles}
         themeAppearance="light"
         placeholderTextColor={placeholderTextColor}
-        onUrlSheetMutationCommitted={jest.fn().mockResolvedValue(false)}
+        onUrlSheetMutationCommitted={onUrlSheetMutationCommitted}
       />,
     );
 
@@ -466,6 +482,10 @@ describe('RpcEndpointModals', () => {
         strings('app_settings.url_sheet_network_update_failed'),
       );
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
     expect(formHook.onRpcUrlChangeWithName).not.toHaveBeenCalled();
   });
 
@@ -488,6 +508,8 @@ describe('RpcEndpointModals', () => {
       },
     });
 
+    const onUrlSheetMutationCommitted = jest.fn().mockResolvedValue(false);
+
     const { getAllByTestId, getByTestId } = render(
       <RpcEndpointModals
         formHook={formHook}
@@ -497,7 +519,7 @@ describe('RpcEndpointModals', () => {
         styles={styles}
         themeAppearance="light"
         placeholderTextColor={placeholderTextColor}
-        onUrlSheetMutationCommitted={jest.fn().mockResolvedValue(false)}
+        onUrlSheetMutationCommitted={onUrlSheetMutationCommitted}
       />,
     );
 
@@ -510,6 +532,10 @@ describe('RpcEndpointModals', () => {
         getByTestId(NetworkDetailsViewSelectorsIDs.RPC_SHEET_SUBMIT_ERROR),
       ).toBeOnTheScreen();
     });
+    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
+      expect.any(Object),
+      { skipChainIdSubmitValidation: true },
+    );
     expect(formHook.onRpcUrlDelete).not.toHaveBeenCalled();
   });
 });
