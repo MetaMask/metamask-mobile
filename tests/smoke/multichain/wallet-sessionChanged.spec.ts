@@ -23,20 +23,16 @@ describe(SmokeMultiChainAPI('wallet_sessionChanged'), () => {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        fixture: new FixtureBuilder()
+          .withPopularNetworks()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
         restartDevice: true,
       },
       async () => {
         await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true');
 
-        // Create initial session with Ethereum and Polygon
-        const initialNetworks = [
-          MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
-          MultichainUtilities.CHAIN_IDS.POLYGON,
-        ];
-        await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
-
-        // Add Base network to the session
+        // Modify the fixture-seeded session to include Base, triggering sessionChanged
         const modifiedNetworks = [
           MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
           MultichainUtilities.CHAIN_IDS.BASE,

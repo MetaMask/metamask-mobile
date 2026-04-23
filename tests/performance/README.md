@@ -624,7 +624,7 @@ For CI/CD pipelines, the aggregation script combines results from multiple test 
 ### Running Aggregation
 
 ```bash
-node scripts/aggregate-performance-reports.mjs
+node tests/scripts/aggregate-performance-reports.mjs
 ```
 
 ### Generated Files

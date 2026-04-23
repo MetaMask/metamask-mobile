@@ -2,6 +2,41 @@ import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
+// ─── Hub Page Discovery Tabs ────────────────────────────────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `core`, ticket MCU-589).
+ */
+export const HUB_PAGE_DISCOVERY_TABS_AB_KEY =
+  'coreMCU589AbtestHubPageDiscoveryTabs';
+
+export enum HubPageDiscoveryTabsVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+interface HubPageDiscoveryTabsVariantConfig {
+  discoveryTabsEnabled: boolean;
+}
+
+export const HUB_PAGE_DISCOVERY_TABS_VARIANTS: Record<
+  HubPageDiscoveryTabsVariant,
+  HubPageDiscoveryTabsVariantConfig
+> = {
+  [HubPageDiscoveryTabsVariant.Control]: { discoveryTabsEnabled: false },
+  [HubPageDiscoveryTabsVariant.Treatment]: { discoveryTabsEnabled: true },
+};
+
+export const HUB_PAGE_DISCOVERY_TABS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HUB_PAGE_DISCOVERY_TABS_AB_KEY,
+    validVariants: Object.values(HubPageDiscoveryTabsVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+  };
+
+// ─── Trending Sections ───────────────────────────────────────────────────────
+
 /**
  * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
  * sync with the flag in LD (team `home`, ticket TMCU-470).

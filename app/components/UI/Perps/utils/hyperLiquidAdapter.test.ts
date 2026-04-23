@@ -1077,6 +1077,7 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '700.25',
+        availableToTradeBalance: '700.25', // withdrawable + free spot (no spot provided)
         marginUsed: '300.25',
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
         returnOnEquity: '7.991673605328893', // Calculated from weighted return and margin
@@ -1120,6 +1121,7 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '350.0',
+        availableToTradeBalance: '850.5', // withdrawable 350 + free spot 500.5 (hold = 0)
         marginUsed: '150.0',
         unrealizedPnl: '100',
         returnOnEquity: '0',
@@ -1158,6 +1160,7 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '800.0',
+        availableToTradeBalance: '800', // withdrawable + 0 (no spot totals)
         marginUsed: '200.0',
         unrealizedPnl: '0',
         returnOnEquity: '0',

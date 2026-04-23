@@ -8,6 +8,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
+import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import {
   setSourceAmount,
   setSourceToken,
@@ -19,8 +20,6 @@ import {
   selectIsNonEvmNonEvmBridge,
   setIsSubmittingTx,
 } from '../../../../../../core/redux/slices/bridge';
-import { useBridgeQuoteRequest } from '../../../../../UI/Bridge/hooks/useBridgeQuoteRequest';
-import { useBridgeQuoteData } from '../../../../../UI/Bridge/hooks/useBridgeQuoteData';
 import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
@@ -160,20 +159,17 @@ export function useQuickBuyBottomSheet(
     balance: sourceToken?.balance,
   });
 
-  const updateQuoteParams = useBridgeQuoteRequest({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
-
   const {
     activeQuote,
     destTokenAmount: estimatedReceiveAmount,
-    isLoading: isQuoteLoading,
+    isQuoteLoading,
     isNoQuotesAvailable,
     quoteFetchError,
-    blockaidError,
     isActiveQuoteForCurrentTokenPair,
-  } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  } = useQuickBuyQuotes({
+    sourceToken,
+    destToken,
+    sourceTokenAmount,
   });
 
   const {
@@ -192,6 +188,7 @@ export function useQuickBuyBottomSheet(
     amount: sourceTokenAmount,
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    quoteOverride: activeQuote ?? null,
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
@@ -214,21 +211,6 @@ export function useQuickBuyBottomSheet(
   const { submitBridgeTx } = useSubmitBridgeTx();
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
-  const hasValidQuoteInputs = Boolean(
-    sourceToken &&
-      destToken &&
-      sourceTokenAmount &&
-      !isDestinationAddressMissing,
-  );
-
-  useEffect(() => {
-    if (hasValidQuoteInputs) {
-      updateQuoteParams();
-    }
-    return () => {
-      updateQuoteParams.cancel();
-    };
-  }, [hasValidQuoteInputs, updateQuoteParams]);
 
   // Cleanup bridge state on unmount
   useEffect(
@@ -255,10 +237,11 @@ export function useQuickBuyBottomSheet(
 
   const handleAmountChange = useCallback((text: string) => {
     const cleaned = text.replace(/[^0-9.]/g, '');
-    const parts = cleaned.split('.');
+    const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
+    const parts = normalized.split('.');
     if (parts.length > 2) return;
     if (parts.length === 2 && parts[1].length > 2) return;
-    setUsdAmount(cleaned);
+    setUsdAmount(normalized);
   }, []);
 
   const handleConfirm = useCallback(async () => {
@@ -295,9 +278,7 @@ export function useQuickBuyBottomSheet(
     return `$${(balance * sourceToken.currencyExchangeRate).toFixed(2)}`;
   }, [latestSourceBalance?.displayBalance, sourceToken?.currencyExchangeRate]);
 
-  const hasError = Boolean(
-    blockaidError || quoteFetchError || isNoQuotesAvailable,
-  );
+  const hasError = Boolean(quoteFetchError || isNoQuotesAvailable);
   const hasValidAmount = Boolean(usdAmount && Number(usdAmount) > 0);
   const hasQuoteRequestableAmount = useMemo(() => {
     const hasNonZeroInputAmount = Boolean(
