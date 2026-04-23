@@ -37,6 +37,11 @@ export interface SetOsAuthEnabled
   enabled: boolean;
 }
 
+export interface SetAutomaticSecurityChecksModalOpen
+  extends Action<ActionType.SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN> {
+  open: boolean;
+}
+
 export type Action =
   | AllowLoginWithRememberMeUpdated
   | SetDataCollectionForMarketing
