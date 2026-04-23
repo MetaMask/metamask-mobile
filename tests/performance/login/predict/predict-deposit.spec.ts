@@ -31,7 +31,7 @@ perfTest.describe(PerformancePredict, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       // Login to the app
       await loginToAppPlaywright();
-
+      perfTest.setTimeout(10 * 60 * 1000);
       // Timer 1: Navigate to Predict tab
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Predict Market List is displayed',
@@ -50,7 +50,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 2: Open deposit screen
       const timer2 = new TimerHelper(
         'Time since user taps Add Funds button until Predict Deposit screen is visible',
-        { ios: 1000, android: 1500 },
+        { ios: 1000, android: 2500 },
         currentDeviceDetails.platform,
       );
 

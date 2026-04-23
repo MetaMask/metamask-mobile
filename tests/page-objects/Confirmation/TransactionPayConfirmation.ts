@@ -224,7 +224,10 @@ class TransactionPayConfirmation {
   getFirstTokenOption(tokenSymbol: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(tokenSymbol, 0),
-      appium: () => PlaywrightMatchers.getElementByCatchAll(tokenSymbol),
+      appium: () =>
+        PlaywrightMatchers.getElementByXPath(
+          `//*[@resource-id='${tokenSymbol}' or contains(@text,'${tokenSymbol}') or contains(@content-desc,'${tokenSymbol}')]/*[@resource-id='badgenetwork']`,
+        ),
     });
   }
 
