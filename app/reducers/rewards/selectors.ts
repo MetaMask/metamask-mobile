@@ -297,15 +297,6 @@ export const selectOndoCampaignDepositsLoading = (state: RootState) =>
 export const selectOndoCampaignDepositsError = (state: RootState) =>
   state.rewards.ondoCampaignDepositsError;
 
-export const selectOndoCampaignParticipantOutcomeById =
-  (subscriptionId: string | undefined, campaignId: string | undefined) =>
-  (state: RootState) =>
-    subscriptionId && campaignId
-      ? (state.rewards.ondoCampaignParticipantOutcome?.[
-          `${subscriptionId}:${campaignId}`
-        ] ?? null)
-      : null;
-
 export const selectIsCampaignOutcomeToastDismissed =
   (
     subscriptionId: string | undefined,

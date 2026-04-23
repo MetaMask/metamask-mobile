@@ -17,7 +17,6 @@ import {
   OndoGmPortfolioDto,
   OndoGmActivityEntryDto,
   OndoGmCampaignDepositsDto,
-  OndoGmCampaignParticipantOutcomeDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -166,12 +165,6 @@ export interface RewardsState {
   ondoCampaignDepositsLoading: boolean;
   ondoCampaignDepositsError: boolean;
 
-  // Ondo campaign participant outcome (keyed by `${subscriptionId}:${campaignId}`)
-  ondoCampaignParticipantOutcome: Record<
-    string,
-    OndoGmCampaignParticipantOutcomeDto
-  >;
-
   // General dismissed campaign outcome toasts (keyed by `${subscriptionId}:${campaignId}`)
   dismissedCampaignOutcomeToasts: Record<string, true>;
 
@@ -284,9 +277,6 @@ export const initialState: RewardsState = {
   ondoCampaignDeposits: null,
   ondoCampaignDepositsLoading: false,
   ondoCampaignDepositsError: false,
-
-  // Ondo campaign participant outcome initial state
-  ondoCampaignParticipantOutcome: {},
 
   // Dismissed campaign outcome toasts
   dismissedCampaignOutcomeToasts: {},
@@ -405,7 +395,6 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDeposits = null;
       state.ondoCampaignDepositsLoading = false;
       state.ondoCampaignDepositsError = false;
-      state.ondoCampaignParticipantOutcome = {};
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -710,16 +699,6 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDepositsError = action.payload;
     },
 
-    setOndoCampaignParticipantOutcome: (
-      state,
-      action: PayloadAction<{
-        key: string;
-        outcome: OndoGmCampaignParticipantOutcomeDto;
-      }>,
-    ) => {
-      state.ondoCampaignParticipantOutcome[action.payload.key] =
-        action.payload.outcome;
-    },
     dismissCampaignOutcomeToast: (state, action: PayloadAction<string>) => {
       state.dismissedCampaignOutcomeToasts[action.payload] = true;
     },
@@ -918,8 +897,6 @@ export const {
   setOndoCampaignDeposits,
   setOndoCampaignDepositsLoading,
   setOndoCampaignDepositsError,
-  // Campaign participant outcome actions
-  setOndoCampaignParticipantOutcome,
   dismissCampaignOutcomeToast,
   // Bulk link actions
   bulkLinkStarted,

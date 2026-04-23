@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import {
-  selectOndoCampaignParticipantOutcomeById,
-  selectCampaignParticipantStatusById,
-} from '../../../../reducers/rewards/selectors';
-import { setOndoCampaignParticipantOutcome } from '../../../../reducers/rewards';
+import { selectCampaignParticipantStatusById } from '../../../../reducers/rewards/selectors';
 import type { OndoGmCampaignParticipantOutcomeDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseOndoCampaignParticipantOutcomeResult {
@@ -18,17 +14,12 @@ export interface UseOndoCampaignParticipantOutcomeResult {
 export function useOndoCampaignParticipantOutcome(
   campaignId: string | undefined,
 ): UseOndoCampaignParticipantOutcomeResult {
-  const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isOptedIn =
     useSelector(selectCampaignParticipantStatusById(campaignId))?.optedIn ===
     true;
-  const outcome = useSelector(
-    selectOndoCampaignParticipantOutcomeById(
-      subscriptionId ?? undefined,
-      campaignId,
-    ),
-  );
+  const [outcome, setOutcome] =
+    useState<OndoGmCampaignParticipantOutcomeDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -47,20 +38,13 @@ export function useOndoCampaignParticipantOutcome(
         campaignId,
         subscriptionId,
       );
-      if (result) {
-        dispatch(
-          setOndoCampaignParticipantOutcome({
-            key: `${subscriptionId}:${campaignId}`,
-            outcome: result,
-          }),
-        );
-      }
+      setOutcome(result);
     } catch {
       setHasError(true);
     } finally {
       setIsLoading(false);
     }
-  }, [dispatch, campaignId, subscriptionId, isOptedIn]);
+  }, [campaignId, subscriptionId, isOptedIn]);
 
   useEffect(() => {
     fetchOutcome();
