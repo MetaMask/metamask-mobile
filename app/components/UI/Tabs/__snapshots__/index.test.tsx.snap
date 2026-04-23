@@ -27,51 +27,20 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        {
-          "opacity": 1,
-        }
-      }
+    <TouchableOpacity
+      onPress={[MockFunction]}
       testID="tabs_back_button"
     >
       <View />
-    </View>
+    </TouchableOpacity>
     <Text
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "flex": 1,
-          "fontFamily": "Geist-Bold",
-          "fontSize": 18,
+          "fontFamily": "Geist-SemiBold",
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
           "textAlign": "center",
@@ -81,43 +50,12 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
     >
       Opened tabs
     </Text>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        {
-          "opacity": 1,
-        }
-      }
+    <TouchableOpacity
+      onPress={[Function]}
       testID="tabs_add"
     >
       <View />
-    </View>
+    </TouchableOpacity>
   </View>
   <RCTScrollView
     contentContainerStyle={
@@ -131,7 +69,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
     }
     style={
       {
-        "backgroundColor": "#f3f5f9",
+        "backgroundColor": "#f3f3f4",
         "flex": 1,
       }
     }
@@ -155,47 +93,27 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
           ]
         }
       >
-        <View
+        <TouchableOpacity
           accessibilityLabel="Switch tab"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          onPress={[Function]}
           style={
-            {
-              "borderColor": "#4459ff",
-              "borderRadius": 12,
-              "borderWidth": 3,
-              "elevation": 4,
-              "height": 345.94,
-              "justifyContent": "flex-start",
-              "opacity": 1,
-              "overflow": "hidden",
-              "width": 353,
-            }
+            [
+              {
+                "borderColor": "#949596",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "elevation": 4,
+                "height": 345.94,
+                "justifyContent": "flex-start",
+                "overflow": "hidden",
+                "width": 353,
+              },
+              {
+                "borderColor": "#4459ff",
+                "borderWidth": 3,
+              },
+            ]
           }
           testID="browser-tab-1"
         >
@@ -234,7 +152,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 }
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="Global"
@@ -252,9 +170,9 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "flex": 1,
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 12,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -266,28 +184,9 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 example.com
               </Text>
             </View>
-            <View
+            <TouchableOpacity
               accessibilityLabel="Close tab"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
               hitSlop={
                 {
                   "bottom": 10,
@@ -296,22 +195,11 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                   "top": 10,
                 }
               }
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              style={
-                {
-                  "opacity": 1,
-                }
-              }
+              onPress={[Function]}
               testID="tab-close-button-1"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="Close"
@@ -323,7 +211,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 }
                 width={20}
               />
-            </View>
+            </TouchableOpacity>
           </View>
           <View
             style={
@@ -351,7 +239,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
               }
             />
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
       <View
         style={
@@ -370,47 +258,24 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
           ]
         }
       >
-        <View
+        <TouchableOpacity
           accessibilityLabel="Switch tab"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          onPress={[Function]}
           style={
-            {
-              "borderColor": "#b7bbc8",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "elevation": 4,
-              "height": 345.94,
-              "justifyContent": "flex-start",
-              "opacity": 1,
-              "overflow": "hidden",
-              "width": 353,
-            }
+            [
+              {
+                "borderColor": "#949596",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "elevation": 4,
+                "height": 345.94,
+                "justifyContent": "flex-start",
+                "overflow": "hidden",
+                "width": 353,
+              },
+              false,
+            ]
           }
           testID="browser-tab-2"
         >
@@ -449,7 +314,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 }
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="Global"
@@ -467,9 +332,9 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "flex": 1,
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 12,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -481,28 +346,9 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 test.com
               </Text>
             </View>
-            <View
+            <TouchableOpacity
               accessibilityLabel="Close tab"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
               hitSlop={
                 {
                   "bottom": 10,
@@ -511,22 +357,11 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                   "top": 10,
                 }
               }
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              style={
-                {
-                  "opacity": 1,
-                }
-              }
+              onPress={[Function]}
               testID="tab-close-button-2"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="Close"
@@ -538,7 +373,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 }
                 width={20}
               />
-            </View>
+            </TouchableOpacity>
           </View>
           <View
             style={
@@ -566,7 +401,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
               }
             />
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   </RCTScrollView>
@@ -600,51 +435,20 @@ exports[`Tabs rendering renders with single tab 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        {
-          "opacity": 1,
-        }
-      }
+    <TouchableOpacity
+      onPress={[MockFunction]}
       testID="tabs_back_button"
     >
       <View />
-    </View>
+    </TouchableOpacity>
     <Text
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "flex": 1,
-          "fontFamily": "Geist-Bold",
-          "fontSize": 18,
+          "fontFamily": "Geist-SemiBold",
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
           "textAlign": "center",
@@ -654,43 +458,12 @@ exports[`Tabs rendering renders with single tab 1`] = `
     >
       Opened tabs
     </Text>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        {
-          "opacity": 1,
-        }
-      }
+    <TouchableOpacity
+      onPress={[Function]}
       testID="tabs_add"
     >
       <View />
-    </View>
+    </TouchableOpacity>
   </View>
   <RCTScrollView
     contentContainerStyle={
@@ -704,7 +477,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
     }
     style={
       {
-        "backgroundColor": "#f3f5f9",
+        "backgroundColor": "#f3f3f4",
         "flex": 1,
       }
     }
@@ -728,47 +501,27 @@ exports[`Tabs rendering renders with single tab 1`] = `
           ]
         }
       >
-        <View
+        <TouchableOpacity
           accessibilityLabel="Switch tab"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          onPress={[Function]}
           style={
-            {
-              "borderColor": "#4459ff",
-              "borderRadius": 12,
-              "borderWidth": 3,
-              "elevation": 4,
-              "height": 345.94,
-              "justifyContent": "flex-start",
-              "opacity": 1,
-              "overflow": "hidden",
-              "width": 353,
-            }
+            [
+              {
+                "borderColor": "#949596",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "elevation": 4,
+                "height": 345.94,
+                "justifyContent": "flex-start",
+                "overflow": "hidden",
+                "width": 353,
+              },
+              {
+                "borderColor": "#4459ff",
+                "borderWidth": 3,
+              },
+            ]
           }
           testID="browser-tab-1"
         >
@@ -807,7 +560,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
                 }
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="Global"
@@ -825,9 +578,9 @@ exports[`Tabs rendering renders with single tab 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "flex": 1,
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 12,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -839,28 +592,9 @@ exports[`Tabs rendering renders with single tab 1`] = `
                 example.com
               </Text>
             </View>
-            <View
+            <TouchableOpacity
               accessibilityLabel="Close tab"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
               hitSlop={
                 {
                   "bottom": 10,
@@ -869,22 +603,11 @@ exports[`Tabs rendering renders with single tab 1`] = `
                   "top": 10,
                 }
               }
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              style={
-                {
-                  "opacity": 1,
-                }
-              }
+              onPress={[Function]}
               testID="tab-close-button-1"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="Close"
@@ -896,7 +619,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
                 }
                 width={20}
               />
-            </View>
+            </TouchableOpacity>
           </View>
           <View
             style={
@@ -924,7 +647,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
               }
             />
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   </RCTScrollView>

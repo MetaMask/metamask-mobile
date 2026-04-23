@@ -1,42 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`UnstakingTimeCard render matches snapshot 1`] = `
-<View
-  accessibilityState={
-    {
-      "busy": undefined,
-      "checked": undefined,
-      "disabled": true,
-      "expanded": undefined,
-      "selected": undefined,
-    }
-  }
-  accessibilityValue={
-    {
-      "max": undefined,
-      "min": undefined,
-      "now": undefined,
-      "text": undefined,
-    }
-  }
-  accessible={true}
-  collapsable={false}
-  focusable={false}
-  onClick={[Function]}
-  onResponderGrant={[Function]}
-  onResponderMove={[Function]}
-  onResponderRelease={[Function]}
-  onResponderTerminate={[Function]}
-  onResponderTerminationRequest={[Function]}
-  onStartShouldSetResponder={[Function]}
+<TouchableOpacity
+  disabled={true}
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#b7bbc8",
+      "borderColor": "#949596",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
-      "opacity": 1,
       "padding": 16,
     }
   }
@@ -85,7 +58,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -96,36 +69,15 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
           >
             Unstaking time
           </Text>
-          <View
+          <TouchableOpacity
             accessibilityLabel="Unstaking time tooltip"
             accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
             accessible={true}
-            collapsable={false}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+            activeOpacity={1}
+            disabled={false}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -138,7 +90,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
             }
           >
             <SvgMock
-              color="#686e7d"
+              color="#66676a"
               fill="currentColor"
               height={16}
               name="Question"
@@ -150,7 +102,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
               }
               width={16}
             />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -183,7 +135,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -198,5 +150,5 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
       </View>
     </View>
   </View>
-</View>
+</TouchableOpacity>
 `;

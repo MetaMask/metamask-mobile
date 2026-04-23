@@ -9,40 +9,18 @@ exports[`SheetActionView should render correctly 1`] = `
     }
   }
 >
-  <View
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -51,7 +29,6 @@ exports[`SheetActionView should render correctly 1`] = `
         "height": 48,
         "justifyContent": "center",
         "marginRight": 8,
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -61,7 +38,7 @@ exports[`SheetActionView should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -71,48 +48,25 @@ exports[`SheetActionView should render correctly 1`] = `
     >
       Cancel
     </Text>
-  </View>
-  <View
+  </TouchableOpacity>
+  <TouchableOpacity
     accessibilityRole="button"
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
     accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#121314",
+        "backgroundColor": "#131416",
         "borderRadius": 12,
         "flex": 1,
         "flexDirection": "row",
         "height": 48,
         "justifyContent": "center",
         "marginLeft": 8,
-        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -132,6 +86,6 @@ exports[`SheetActionView should render correctly 1`] = `
     >
       Confirm
     </Text>
-  </View>
+  </TouchableOpacity>
 </View>
 `;

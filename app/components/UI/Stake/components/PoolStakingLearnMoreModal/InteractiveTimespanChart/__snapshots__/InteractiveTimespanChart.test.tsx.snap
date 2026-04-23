@@ -16,42 +16,15 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -61,7 +34,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -71,35 +44,9 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       >
         Label 1
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -107,7 +54,6 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -117,7 +63,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -127,35 +73,9 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       >
         Label 2
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -163,7 +83,6 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -173,7 +92,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -183,7 +102,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       >
         Label 3
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -198,8 +117,8 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
-          "fontFamily": "Geist-Bold",
+          "color": "#131416",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -212,7 +131,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -314,7 +233,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
               }
               stroke={
                 {
-                  "payload": 4279374612,
+                  "payload": 4279440406,
                   "type": 0,
                 }
               }
@@ -326,7 +245,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
                 gradient={
                   [
                     0,
-                    856822548,
+                    856888342,
                     1,
                     872415231,
                   ]
@@ -364,42 +283,15 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -409,7 +301,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -419,35 +311,9 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       >
         Label 1
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -455,7 +321,6 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -465,7 +330,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -475,35 +340,9 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       >
         Label 2
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -511,7 +350,6 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -521,7 +359,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -531,7 +369,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       >
         Label 3
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -546,8 +384,8 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
-          "fontFamily": "Geist-Bold",
+          "color": "#131416",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -558,7 +396,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -658,7 +496,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
               }
               stroke={
                 {
-                  "payload": 4279374612,
+                  "payload": 4279440406,
                   "type": 0,
                 }
               }
@@ -670,7 +508,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
                 gradient={
                   [
                     0,
-                    856822548,
+                    856888342,
                     1,
                     872415231,
                   ]
@@ -708,42 +546,15 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -753,7 +564,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -763,35 +574,9 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       >
         Label 1
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -799,7 +584,6 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -809,7 +593,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -819,35 +603,9 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       >
         Label 2
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -855,7 +613,6 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -865,7 +622,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -875,7 +632,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       >
         Label 3
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -890,8 +647,8 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
-          "fontFamily": "Geist-Bold",
+          "color": "#131416",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -902,7 +659,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -1004,7 +761,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
               }
               stroke={
                 {
-                  "payload": 4279374612,
+                  "payload": 4279440406,
                   "type": 0,
                 }
               }
@@ -1016,7 +773,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
                 gradient={
                   [
                     0,
-                    856822548,
+                    856888342,
                     1,
                     872415231,
                   ]
@@ -1054,42 +811,15 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1099,7 +829,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1109,35 +839,9 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       >
         Label 1
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1145,7 +849,6 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1155,7 +858,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1165,35 +868,9 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       >
         Label 2
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1201,7 +878,6 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1211,7 +887,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1221,7 +897,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       >
         Label 3
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -1236,8 +912,8 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
-          "fontFamily": "Geist-Bold",
+          "color": "#131416",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -1250,7 +926,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -1350,7 +1026,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
               }
               stroke={
                 {
-                  "payload": 4279374612,
+                  "payload": 4279440406,
                   "type": 0,
                 }
               }
@@ -1362,7 +1038,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
                 gradient={
                   [
                     0,
-                    856822548,
+                    856888342,
                     1,
                     872415231,
                   ]
@@ -1400,42 +1076,15 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1445,7 +1094,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1455,35 +1104,9 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       >
         Label 1
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1491,7 +1114,6 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1501,7 +1123,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1511,35 +1133,9 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       >
         Label 2
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1547,7 +1143,6 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1557,7 +1152,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1567,7 +1162,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       >
         Label 3
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -1582,8 +1177,8 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
-          "fontFamily": "Geist-Bold",
+          "color": "#131416",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -1596,7 +1191,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -1698,7 +1293,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
               }
               stroke={
                 {
-                  "payload": 4279374612,
+                  "payload": 4279440406,
                   "type": 0,
                 }
               }
@@ -1710,7 +1305,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
                 gradient={
                   [
                     0,
-                    856822548,
+                    856888342,
                     1,
                     872415231,
                   ]
@@ -1748,42 +1343,15 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1793,7 +1361,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1803,35 +1371,9 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       >
         Label 1
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1839,7 +1381,6 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1849,7 +1390,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1859,35 +1400,9 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       >
         Label 2
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1895,7 +1410,6 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1905,7 +1419,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1915,7 +1429,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       >
         Label 3
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -1930,8 +1444,8 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
-          "fontFamily": "Geist-Bold",
+          "color": "#131416",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -1944,7 +1458,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -2046,7 +1560,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
               }
               stroke={
                 {
-                  "payload": 4279374612,
+                  "payload": 4279440406,
                   "type": 0,
                 }
               }
@@ -2058,7 +1572,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
                 gradient={
                   [
                     0,
-                    856822548,
+                    856888342,
                     1,
                     872415231,
                   ]

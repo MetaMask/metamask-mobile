@@ -53,7 +53,7 @@ exports[`BackupAlert render matches snapshot 1`] = `
         }
       >
         <SvgMock
-          color="#121314"
+          color="#131416"
           fill="currentColor"
           height={20}
           name="Notification"
@@ -77,8 +77,8 @@ exports[`BackupAlert render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -97,39 +97,8 @@ exports[`BackupAlert render matches snapshot 1`] = `
             }
           }
         >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              {
-                "opacity": 1,
-              }
-            }
+          <TouchableOpacity
+            onPress={[Function]}
             testID="protect-your-wallet-button"
           >
             <Text
@@ -138,7 +107,7 @@ exports[`BackupAlert render matches snapshot 1`] = `
                 {
                   "color": "#4459ff",
                   "flex": 1,
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -149,39 +118,12 @@ exports[`BackupAlert render matches snapshot 1`] = `
             >
               Protect wallet
             </Text>
-          </View>
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={[Function]}
             style={
               {
                 "flex": 1,
-                "opacity": 1,
               }
             }
           >
@@ -203,7 +145,7 @@ exports[`BackupAlert render matches snapshot 1`] = `
             >
               Remind me later
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     </View>

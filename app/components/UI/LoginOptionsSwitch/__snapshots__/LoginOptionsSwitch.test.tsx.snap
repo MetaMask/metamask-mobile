@@ -1,73 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`LoginWithBiometricsSwitch should render correctly 1`] = `
-<View
-  style={
+<ContextProvider
+  value={
     {
-      "width": "100%",
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
+      "store": {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
+        "handleChangeWrapper": [Function],
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
+      },
     }
   }
 >
-  <View
-    style={
-      {
-        "alignItems": "center",
-        "flexDirection": "row",
-      }
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#121314",
-          "flex": 1,
-          "fontFamily": "Geist-Medium",
-          "fontSize": 18,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      [missing "en.biometrics.enable_face" translation]
-    </Text>
-    <View
-      style={
-        {
-          "marginLeft": 16,
-        }
-      }
-    >
-      <RCTSwitch
-        accessibilityRole="switch"
-        onChange={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        onTintColor="#4459ff"
-        style={
-          [
-            {
-              "alignSelf": "flex-start",
-            },
-            [
-              {
-                "alignSelf": "flex-start",
-              },
-              {
-                "backgroundColor": "#b7bbc866",
-                "borderRadius": 16,
-              },
-            ],
-          ]
-        }
-        testID="login-with-biometric-switch"
-        thumbTintColor="#ffffff"
-        tintColor="#b7bbc866"
-        value={true}
-      />
-    </View>
-  </View>
-</View>
+  <Component
+    biometryChoiceState={true}
+    onUpdateBiometryChoice={[Function]}
+    onUpdateRememberMe={[Function]}
+    shouldRenderBiometricOption="Face"
+  />
+</ContextProvider>
 `;
-
-exports[`LoginWithBiometricsSwitch should return empty object when shouldRenderBiometricOption is undefined and allowLoginWithRememberMe is false in settings 1`] = `null`;

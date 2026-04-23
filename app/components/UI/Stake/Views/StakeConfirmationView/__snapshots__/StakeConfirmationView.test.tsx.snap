@@ -5,7 +5,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
   collapsable={false}
   contentContainerStyle={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#ffffff",
       "flexGrow": 1,
       "justifyContent": "space-between",
       "paddingHorizontal": 16,
@@ -43,8 +43,8 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 24,
                 "letterSpacing": 0,
                 "lineHeight": 32,
@@ -59,7 +59,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -80,44 +80,17 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
         }
       >
         <View>
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": true,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={false}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          <TouchableOpacity
+            disabled={true}
             style={
               {
                 "backgroundColor": "#ffffff",
                 "borderBottomLeftRadius": 0,
                 "borderBottomRightRadius": 0,
-                "borderColor": "#b7bbc8",
+                "borderColor": "#949596",
                 "borderRadius": 8,
                 "borderWidth": 0,
                 "gap": 16,
-                "opacity": 1,
                 "padding": 16,
               }
             }
@@ -167,7 +140,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -255,7 +228,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -299,49 +272,22 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                 </View>
               </View>
             </View>
-          </View>
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": true,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={false}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={true}
             style={
               {
                 "backgroundColor": "#ffffff",
                 "borderBottomLeftRadius": 8,
                 "borderBottomRightRadius": 8,
                 "borderBottomWidth": 0,
-                "borderColor": "#b7bbc866",
+                "borderColor": "#b4b4b566",
                 "borderLeftWidth": 0,
                 "borderRadius": 4,
                 "borderRightWidth": 0,
                 "borderTopLeftRadius": 0,
                 "borderTopRightRadius": 0,
                 "borderWidth": 1,
-                "opacity": 1,
                 "padding": 16,
               }
             }
@@ -390,7 +336,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -457,7 +403,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -472,44 +418,17 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                 </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
-        <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": true,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+        <TouchableOpacity
+          disabled={true}
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#b7bbc8",
+              "borderColor": "#949596",
               "borderRadius": 8,
               "borderWidth": 0,
               "gap": 16,
-              "opacity": 1,
               "padding": 16,
             }
           }
@@ -558,7 +477,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -569,36 +488,15 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   >
                     Reward rate
                   </Text>
-                  <View
+                  <TouchableOpacity
                     accessibilityLabel="Reward rate tooltip"
                     accessibilityRole="button"
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
                     accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
                     style={
                       {
                         "alignItems": "center",
@@ -611,7 +509,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#686e7d"
+                      color="#66676a"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -623,7 +521,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       }
                       width={16}
                     />
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -715,7 +613,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -766,7 +664,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -780,7 +678,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -839,7 +737,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -850,36 +748,15 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   >
                     Reward frequency
                   </Text>
-                  <View
+                  <TouchableOpacity
                     accessibilityLabel="Reward frequency tooltip"
                     accessibilityRole="button"
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
                     accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
                     style={
                       {
                         "alignItems": "center",
@@ -892,7 +769,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#686e7d"
+                      color="#66676a"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -904,7 +781,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       }
                       width={16}
                     />
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -937,7 +814,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -952,43 +829,16 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               </View>
             </View>
           </View>
-        </View>
-        <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": true,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+        </TouchableOpacity>
+        <TouchableOpacity
+          disabled={true}
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#b7bbc8",
+              "borderColor": "#949596",
               "borderRadius": 8,
               "borderWidth": 0,
               "gap": 16,
-              "opacity": 1,
               "padding": 16,
             }
           }
@@ -1037,7 +887,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1048,36 +898,15 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   >
                     Unstaking time
                   </Text>
-                  <View
+                  <TouchableOpacity
                     accessibilityLabel="Unstaking time tooltip"
                     accessibilityRole="button"
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
                     accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
                     style={
                       {
                         "alignItems": "center",
@@ -1090,7 +919,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#686e7d"
+                      color="#66676a"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -1102,7 +931,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       }
                       width={16}
                     />
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -1135,7 +964,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1150,7 +979,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               </View>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
     <View
@@ -1168,37 +997,11 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           }
         }
       >
-        <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={[Function]}
           style={
             {
-              "opacity": 1,
               "padding": 16,
             }
           }
@@ -1217,38 +1020,12 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           >
             Terms of service
           </Text>
-        </View>
-        <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={[Function]}
           style={
             {
-              "opacity": 1,
               "padding": 16,
             }
           }
@@ -1267,7 +1044,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           >
             Risk disclosure
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
       <View
         style={
@@ -1279,40 +1056,19 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           }
         }
       >
-        <View
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          disabled={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -1322,7 +1078,6 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               "flexShrink": 0,
               "height": 48,
               "justifyContent": "center",
-              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
             }
@@ -1343,41 +1098,21 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           >
             Cancel
           </Text>
-        </View>
-        <View
+        </TouchableOpacity>
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          disabled={false}
+          loading={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexBasis": 0,
               "flexDirection": "row",
@@ -1385,7 +1120,6 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               "flexShrink": 0,
               "height": 48,
               "justifyContent": "center",
-              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
             }
@@ -1406,7 +1140,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           >
             Continue
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   </View>

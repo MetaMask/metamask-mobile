@@ -32,25 +32,7 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -82,41 +64,18 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                 ]
               }
             >
-              <View
+              <TouchableOpacity
                 accessibilityRole="button"
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
                 accessible={true}
-                collapsable={false}
-                focusable={true}
-                onClick={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
+                activeOpacity={1}
+                disabled={false}
+                onPress={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "alignSelf": "stretch",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc866",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -124,7 +83,6 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                     "justifyContent": "center",
                     "maxHeight": 58,
                     "minHeight": 48,
-                    "opacity": 1,
                     "overflow": "hidden",
                     "paddingBottom": 8,
                     "paddingHorizontal": 16,
@@ -135,140 +93,8 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                 }
                 testID="snap-ui-renderer__selector"
               >
-                <View
-                  alignItems="center"
-                  flexDirection="row"
-                  gap={16}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "gap": 16,
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "backgroundColor": "#ffffff",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "overflow": "hidden",
-                        "width": 32,
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "height": 32,
-                          "width": 32,
-                        }
-                      }
-                    />
-                  </View>
-                  <View
-                    flexDirection="column"
-                    style={
-                      [
-                        {
-                          "flexDirection": "column",
-                        },
-                        {
-                          "flex": 1,
-                          "overflow": "hidden",
-                        },
-                      ]
-                    }
-                  >
-                    <Text
-                      accessibilityRole="text"
-                      ellipsizeMode="tail"
-                      numberOfLines={1}
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist-Medium",
-                          "fontSize": 16,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
-                      }
-                    >
-                      Account 1
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      numberOfLines={1}
-                      style={
-                        {
-                          "color": "#686e7d",
-                          "fontFamily": "Geist-Regular",
-                          "fontSize": 14,
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                        }
-                      }
-                    >
-                      0xC4955...4D272
-                    </Text>
-                  </View>
-                  <View
-                    alignItems="flex-end"
-                    flexDirection="column"
-                    style={
-                      [
-                        {
-                          "alignItems": "flex-end",
-                          "flexDirection": "column",
-                        },
-                        {
-                          "marginLeft": "auto",
-                        },
-                      ]
-                    }
-                  >
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist-Medium",
-                          "fontSize": 14,
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                        }
-                      }
-                    >
-                      $3200.00
-                    </Text>
-                    <View
-                      style={
-                        {
-                          "marginTop": 4,
-                        }
-                      }
-                      testID="network-container"
-                    >
-                      <View
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                          }
-                        }
-                        testID="avatar-group-container"
-                      />
-                    </View>
-                  </View>
-                </View>
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"
@@ -281,10 +107,11 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                   }
                   width={16}
                 />
-              </View>
+              </TouchableOpacity>
             </View>
+            <View />
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>
@@ -327,25 +154,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -380,53 +189,32 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
                 }
-                testID="label"
               >
                 Account Selector
               </Text>
-              <View
+              <TouchableOpacity
                 accessibilityRole="button"
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
                 accessible={true}
-                collapsable={false}
-                focusable={true}
-                onClick={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
+                activeOpacity={1}
+                disabled={false}
+                onPress={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "alignSelf": "stretch",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc866",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -434,7 +222,6 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                     "justifyContent": "center",
                     "maxHeight": 58,
                     "minHeight": 48,
-                    "opacity": 1,
                     "overflow": "hidden",
                     "paddingBottom": 8,
                     "paddingHorizontal": 16,
@@ -445,140 +232,8 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                 }
                 testID="snap-ui-renderer__selector"
               >
-                <View
-                  alignItems="center"
-                  flexDirection="row"
-                  gap={16}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "gap": 16,
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "backgroundColor": "#ffffff",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "overflow": "hidden",
-                        "width": 32,
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "height": 32,
-                          "width": 32,
-                        }
-                      }
-                    />
-                  </View>
-                  <View
-                    flexDirection="column"
-                    style={
-                      [
-                        {
-                          "flexDirection": "column",
-                        },
-                        {
-                          "flex": 1,
-                          "overflow": "hidden",
-                        },
-                      ]
-                    }
-                  >
-                    <Text
-                      accessibilityRole="text"
-                      ellipsizeMode="tail"
-                      numberOfLines={1}
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist-Medium",
-                          "fontSize": 16,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
-                      }
-                    >
-                      Account 1
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      numberOfLines={1}
-                      style={
-                        {
-                          "color": "#686e7d",
-                          "fontFamily": "Geist-Regular",
-                          "fontSize": 14,
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                        }
-                      }
-                    >
-                      0xC4955...4D272
-                    </Text>
-                  </View>
-                  <View
-                    alignItems="flex-end"
-                    flexDirection="column"
-                    style={
-                      [
-                        {
-                          "alignItems": "flex-end",
-                          "flexDirection": "column",
-                        },
-                        {
-                          "marginLeft": "auto",
-                        },
-                      ]
-                    }
-                  >
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist-Medium",
-                          "fontSize": 14,
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                        }
-                      }
-                    >
-                      $3200.00
-                    </Text>
-                    <View
-                      style={
-                        {
-                          "marginTop": 4,
-                        }
-                      }
-                      testID="network-container"
-                    >
-                      <View
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                          }
-                        }
-                        testID="avatar-group-container"
-                      />
-                    </View>
-                  </View>
-                </View>
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"
@@ -591,10 +246,11 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                   }
                   width={16}
                 />
-              </View>
+              </TouchableOpacity>
             </View>
+            <View />
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>

@@ -50,7 +50,7 @@ exports[`PredictDetailsContentSkeleton matches snapshot 1`] = `
         pointerEvents="none"
         style={
           {
-            "backgroundColor": "#686e7d",
+            "backgroundColor": "#66676a",
             "borderRadius": 4,
             "bottom": 0,
             "left": 0,
@@ -87,7 +87,7 @@ exports[`PredictDetailsContentSkeleton matches snapshot 1`] = `
         pointerEvents="none"
         style={
           {
-            "backgroundColor": "#686e7d",
+            "backgroundColor": "#66676a",
             "borderRadius": 4,
             "bottom": 0,
             "left": 0,
@@ -136,7 +136,7 @@ exports[`PredictDetailsContentSkeleton matches snapshot 1`] = `
         pointerEvents="none"
         style={
           {
-            "backgroundColor": "#686e7d",
+            "backgroundColor": "#66676a",
             "borderRadius": 4,
             "bottom": 0,
             "left": 0,
@@ -173,7 +173,7 @@ exports[`PredictDetailsContentSkeleton matches snapshot 1`] = `
         pointerEvents="none"
         style={
           {
-            "backgroundColor": "#686e7d",
+            "backgroundColor": "#66676a",
             "borderRadius": 4,
             "bottom": 0,
             "left": 0,

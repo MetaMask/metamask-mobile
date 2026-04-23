@@ -38,11 +38,6 @@ exports[`FoxRiveLoaderAnimation displays Rive animation and ActivityIndicator 1`
     <RiveView
       alignment="Center"
       autoplay={true}
-      ref={
-        {
-          "current": null,
-        }
-      }
       source="mock-rive-file"
       style={
         {
@@ -70,7 +65,7 @@ exports[`FoxRiveLoaderAnimation displays Rive animation and ActivityIndicator 1`
     }
   >
     <ActivityIndicator
-      color="#121314"
+      color="#131416"
       size="large"
     />
   </View>

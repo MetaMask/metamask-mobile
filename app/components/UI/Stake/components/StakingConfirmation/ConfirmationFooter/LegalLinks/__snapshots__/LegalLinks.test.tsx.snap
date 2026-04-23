@@ -9,37 +9,11 @@ exports[`FooterLegalLinks navigates to risk disclosure web page 1`] = `
     }
   }
 >
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  <TouchableOpacity
+    activeOpacity={0.5}
+    onPress={[Function]}
     style={
       {
-        "opacity": 1,
         "padding": 16,
       }
     }
@@ -58,38 +32,12 @@ exports[`FooterLegalLinks navigates to risk disclosure web page 1`] = `
     >
       Terms of service
     </Text>
-  </View>
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.5}
+    onPress={[Function]}
     style={
       {
-        "opacity": 1,
         "padding": 16,
       }
     }
@@ -108,7 +56,7 @@ exports[`FooterLegalLinks navigates to risk disclosure web page 1`] = `
     >
       Risk disclosure
     </Text>
-  </View>
+  </TouchableOpacity>
 </View>
 `;
 
@@ -121,37 +69,11 @@ exports[`FooterLegalLinks navigates to terms of use web page 1`] = `
     }
   }
 >
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  <TouchableOpacity
+    activeOpacity={0.5}
+    onPress={[Function]}
     style={
       {
-        "opacity": 1,
         "padding": 16,
       }
     }
@@ -170,38 +92,12 @@ exports[`FooterLegalLinks navigates to terms of use web page 1`] = `
     >
       Terms of service
     </Text>
-  </View>
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.5}
+    onPress={[Function]}
     style={
       {
-        "opacity": 1,
         "padding": 16,
       }
     }
@@ -220,7 +116,7 @@ exports[`FooterLegalLinks navigates to terms of use web page 1`] = `
     >
       Risk disclosure
     </Text>
-  </View>
+  </TouchableOpacity>
 </View>
 `;
 
@@ -233,37 +129,11 @@ exports[`FooterLegalLinks render matches snapshot 1`] = `
     }
   }
 >
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  <TouchableOpacity
+    activeOpacity={0.5}
+    onPress={[Function]}
     style={
       {
-        "opacity": 1,
         "padding": 16,
       }
     }
@@ -282,38 +152,12 @@ exports[`FooterLegalLinks render matches snapshot 1`] = `
     >
       Terms of service
     </Text>
-  </View>
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessibilityValue={
-      {
-        "max": undefined,
-        "min": undefined,
-        "now": undefined,
-        "text": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.5}
+    onPress={[Function]}
     style={
       {
-        "opacity": 1,
         "padding": 16,
       }
     }
@@ -332,6 +176,6 @@ exports[`FooterLegalLinks render matches snapshot 1`] = `
     >
       Risk disclosure
     </Text>
-  </View>
+  </TouchableOpacity>
 </View>
 `;

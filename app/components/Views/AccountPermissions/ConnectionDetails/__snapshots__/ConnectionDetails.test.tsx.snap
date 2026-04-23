@@ -45,10 +45,9 @@ exports[`ConnectionDetails renders correctly 1`] = `
         style={
           [
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
-              "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 24,
             },
@@ -74,7 +73,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -93,46 +92,23 @@ exports[`ConnectionDetails renders correctly 1`] = `
       }
     }
   >
-    <View
+    <TouchableOpacity
       accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
       accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#131416",
           "borderRadius": 12,
           "flex": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
-          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -152,7 +128,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
       >
         Got it
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
 </View>
 `;

@@ -32,25 +32,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -103,7 +85,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               </Text>
             </Text>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
     <View
@@ -128,130 +110,47 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": false,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        jestAnimatedProps={
-          {
-            "value": {},
-          }
-        }
-        jestAnimatedStyle={
-          {
-            "value": {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          }
-        }
-        jestInlineStyle={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "transparent",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-        nativeID="2"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "transparent",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "flex": 1,
-            },
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          ]
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
         }
         testID="default-snap-footer-button"
       >
-        <View
-          style={{}}
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
-          >
-            Close
-          </Text>
-        </View>
-      </View>
+          }
+        >
+          Close
+        </Text>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -293,25 +192,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -427,7 +308,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
               </View>
             </View>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>
@@ -470,25 +351,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -700,7 +563,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
               </View>
             </View>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>
@@ -743,25 +606,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -971,7 +816,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
               </View>
             </View>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>
@@ -1014,25 +859,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -1085,7 +912,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
               </Text>
             </Text>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>
@@ -1128,25 +955,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -1465,7 +1274,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               </View>
             </View>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
     <View
@@ -1489,119 +1298,115 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": false,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        jestAnimatedProps={
-          {
-            "value": {},
-          }
-        }
-        jestAnimatedStyle={
-          {
-            "value": {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          }
-        }
-        jestInlineStyle={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "transparent",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-        nativeID="5"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
-          [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="undefined-snap-footer-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
             {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "transparent",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "flex": 1,
-            },
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          ]
+              "color": "#131416",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
         }
         testID="undefined-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
         >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 50,
+                "borderWidth": 0,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              m
+            </Text>
+          </View>
           <Text
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#ffffff",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -1609,187 +1414,25 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               }
             }
           >
-            Cancel
-          </Text>
-        </View>
-      </View>
-      <View
-        accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": false,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        jestAnimatedProps={
-          {
-            "value": {},
-          }
-        }
-        jestAnimatedStyle={
-          {
-            "value": {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          }
-        }
-        jestInlineStyle={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
-              "borderRadius": 12,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "backgroundColor": "#131416",
-              "flex": 1,
-            },
-          ]
-        }
-        nativeID="6"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
-              "borderRadius": 12,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "backgroundColor": "#131416",
-              "flex": 1,
-            },
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          ]
-        }
-        testID="undefined-snap-footer-button"
-      >
-        <View
-          style={{}}
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 8,
-                "justifyContent": "center",
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 50,
-                  "borderWidth": 0,
-                  "height": 24,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "width": 24,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                m
-              </Text>
-            </View>
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
+                  "color": "inherit",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
+                  "fontWeight": undefined,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "textAlign": undefined,
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "inherit",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "fontWeight": undefined,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "textAlign": undefined,
-                  }
-                }
-              >
-                Foo
-              </Text>
+              Foo
             </Text>
-          </View>
+          </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -1831,25 +1474,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -1902,7 +1527,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               </Text>
             </Text>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
     <View
@@ -1926,119 +1551,115 @@ exports[`SnapUIRenderer renders footers 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": false,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        jestAnimatedProps={
-          {
-            "value": {},
-          }
-        }
-        jestAnimatedStyle={
-          {
-            "value": {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          }
-        }
-        jestInlineStyle={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "transparent",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-        nativeID="0"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
-          [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="undefined-snap-footer-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
             {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "transparent",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "flex": 1,
-            },
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          ]
+              "color": "#131416",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
         }
         testID="undefined-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
         >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 50,
+                "borderWidth": 0,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              m
+            </Text>
+          </View>
           <Text
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#ffffff",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -2046,187 +1667,25 @@ exports[`SnapUIRenderer renders footers 1`] = `
               }
             }
           >
-            Cancel
-          </Text>
-        </View>
-      </View>
-      <View
-        accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": false,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        jestAnimatedProps={
-          {
-            "value": {},
-          }
-        }
-        jestAnimatedStyle={
-          {
-            "value": {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          }
-        }
-        jestInlineStyle={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
-              "borderRadius": 12,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "backgroundColor": "#131416",
-              "flex": 1,
-            },
-          ]
-        }
-        nativeID="1"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
-              "borderRadius": 12,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "backgroundColor": "#131416",
-              "flex": 1,
-            },
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          ]
-        }
-        testID="undefined-snap-footer-button"
-      >
-        <View
-          style={{}}
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 8,
-                "justifyContent": "center",
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 50,
-                  "borderWidth": 0,
-                  "height": 24,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "width": 24,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                m
-              </Text>
-            </View>
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
+                  "color": "inherit",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
+                  "fontWeight": undefined,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "textAlign": undefined,
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "inherit",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "fontWeight": undefined,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "textAlign": undefined,
-                  }
-                }
-              >
-                Foo
-              </Text>
+              Foo
             </Text>
-          </View>
+          </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -2238,7 +1697,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
 
 exports[`SnapUIRenderer renders loading state 1`] = `
 <ActivityIndicator
-  color="#4459ff"
+  color="#1292B4"
   size="large"
 />
 `;
@@ -2275,25 +1734,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -2536,40 +1977,14 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     }
                     testID="textfield-endacccessory"
                   >
-                    <View
-                      accessibilityState={
-                        {
-                          "busy": undefined,
-                          "checked": undefined,
-                          "disabled": false,
-                          "expanded": undefined,
-                          "selected": undefined,
-                        }
-                      }
-                      accessibilityValue={
-                        {
-                          "max": undefined,
-                          "min": undefined,
-                          "now": undefined,
-                          "text": undefined,
-                        }
-                      }
-                      accessible={true}
-                      collapsable={false}
-                      focusable={true}
-                      nativeID="submit"
-                      onClick={[Function]}
-                      onResponderGrant={[Function]}
-                      onResponderMove={[Function]}
-                      onResponderRelease={[Function]}
-                      onResponderTerminate={[Function]}
-                      onResponderTerminationRequest={[Function]}
-                      onStartShouldSetResponder={[Function]}
+                    <TouchableOpacity
+                      disabled={false}
+                      id="submit"
+                      onPress={[Function]}
                       style={
                         {
                           "alignItems": "center",
                           "flexDirection": "row",
-                          "opacity": 1,
                         }
                       }
                     >
@@ -2589,13 +2004,13 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       >
                         Submit
                       </Text>
-                    </View>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>
@@ -2638,25 +2053,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -2772,7 +2169,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
               </View>
             </View>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>
@@ -2815,25 +2212,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             color="Default"
             flexDirection="column"
@@ -2886,7 +2265,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               </Text>
             </Text>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
     <View
@@ -2910,119 +2289,115 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         ]
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": false,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        jestAnimatedProps={
-          {
-            "value": {},
-          }
-        }
-        jestAnimatedStyle={
-          {
-            "value": {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          }
-        }
-        jestInlineStyle={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "transparent",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-        nativeID="3"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
-          [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="undefined-snap-footer-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
             {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "transparent",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "flex": 1,
-            },
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          ]
+              "color": "#131416",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
         }
         testID="undefined-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
         >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 50,
+                "borderWidth": 0,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              m
+            </Text>
+          </View>
           <Text
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#ffffff",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -3030,187 +2405,25 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               }
             }
           >
-            Cancel
-          </Text>
-        </View>
-      </View>
-      <View
-        accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": false,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        jestAnimatedProps={
-          {
-            "value": {},
-          }
-        }
-        jestAnimatedStyle={
-          {
-            "value": {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          }
-        }
-        jestInlineStyle={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
-              "borderRadius": 12,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "backgroundColor": "#131416",
-              "flex": 1,
-            },
-          ]
-        }
-        nativeID="4"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
-              "borderRadius": 12,
-              "columnGap": 8,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "minWidth": 80,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
-            },
-            {
-              "backgroundColor": "#131416",
-              "flex": 1,
-            },
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-          ]
-        }
-        testID="undefined-snap-footer-button"
-      >
-        <View
-          style={{}}
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 8,
-                "justifyContent": "center",
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 50,
-                  "borderWidth": 0,
-                  "height": 24,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "width": 24,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                m
-              </Text>
-            </View>
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
+                  "color": "inherit",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
+                  "fontWeight": undefined,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "textAlign": undefined,
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "inherit",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "fontWeight": undefined,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "textAlign": undefined,
-                  }
-                }
-              >
-                Foo
-              </Text>
+              Foo
             </Text>
-          </View>
+          </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View

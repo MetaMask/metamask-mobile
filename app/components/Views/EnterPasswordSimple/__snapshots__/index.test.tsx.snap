@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EnterPasswordSimple should render correctly 1`] = `
-<View
+<RCTSafeAreaView
   style={
     {
       "backgroundColor": "white",
@@ -103,43 +103,27 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
               }
             }
           >
-            <View
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={0.2}
+              disabled={false}
+              onPress={[Function]}
               style={
-                {
-                  "backgroundColor": "blue",
-                  "borderRadius": 12,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "padding": 15,
-                }
+                [
+                  [
+                    {
+                      "borderRadius": 12,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    {
+                      "backgroundColor": "blue",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
               }
             >
               <Text
@@ -169,11 +153,11 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
               >
                 Confirm
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
     </RCTScrollView>
   </View>
-</View>
+</RCTSafeAreaView>
 `;
