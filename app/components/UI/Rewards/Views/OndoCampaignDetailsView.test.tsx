@@ -278,11 +278,6 @@ jest.mock('../hooks/useOndoCampaignParticipantOutcome', () => ({
   })),
 }));
 
-jest.mock('../hooks/useOndoCampaignEndedOutcomeToast', () => ({
-  __esModule: true,
-  useOndoCampaignEndedOutcomeToast: jest.fn(),
-}));
-
 const mockOndoPrizePool = jest.fn();
 jest.mock('../components/Campaigns/OndoPrizePool', () => {
   const ReactActual = jest.requireActual('react');

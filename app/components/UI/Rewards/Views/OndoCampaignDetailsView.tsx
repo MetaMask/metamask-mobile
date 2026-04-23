@@ -55,7 +55,6 @@ import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
-import { useOndoCampaignEndedOutcomeToast } from '../hooks/useOndoCampaignEndedOutcomeToast';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -163,13 +162,6 @@ const OndoCampaignDetailsView: React.FC = () => {
     campaign && getCampaignStatus(campaign) === 'complete' && isOptedIn
       ? effectiveCampaignId || undefined
       : undefined,
-  );
-
-  useOndoCampaignEndedOutcomeToast(
-    campaign && getCampaignStatus(campaign) === 'complete'
-      ? effectiveCampaignId || undefined
-      : undefined,
-    campaign,
   );
 
   // Single fetch point for portfolio — only fetches when opted in

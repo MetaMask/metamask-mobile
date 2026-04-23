@@ -17,12 +17,10 @@ import {
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import {
-  selectOndoCampaignParticipantOutcomeById,
-  selectIsCampaignOutcomeToastDismissed,
-} from '../../../../reducers/rewards/selectors';
+import { selectIsCampaignOutcomeToastDismissed } from '../../../../reducers/rewards/selectors';
 import { dismissCampaignOutcomeToast } from '../../../../reducers/rewards';
 import useRewardsToast from './useRewardsToast';
+import { useOndoCampaignParticipantOutcome } from './useOndoCampaignParticipantOutcome';
 
 export function useOndoCampaignEndedOutcomeToast(
   campaignId: string | undefined,
@@ -35,12 +33,6 @@ export function useOndoCampaignEndedOutcomeToast(
   const { showToast } = useRewardsToast();
 
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const outcome = useSelector(
-    selectOndoCampaignParticipantOutcomeById(
-      subscriptionId ?? undefined,
-      campaignId,
-    ),
-  );
   const toastKey =
     subscriptionId && campaignId ? `${subscriptionId}:${campaignId}` : '';
   const isDismissed = useSelector(
@@ -57,6 +49,10 @@ export function useOndoCampaignEndedOutcomeToast(
     getCampaignStatus(campaign) === 'complete' &&
     Boolean(subscriptionId) &&
     Boolean(campaignId);
+
+  const { outcome } = useOndoCampaignParticipantOutcome(
+    isEligible ? campaignId : undefined,
+  );
 
   const handleDismiss = useCallback(() => {
     toastRef?.current?.closeToast();

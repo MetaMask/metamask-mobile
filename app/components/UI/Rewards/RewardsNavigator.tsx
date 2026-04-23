@@ -19,11 +19,15 @@ import CampaignTourStepView from './Views/CampaignTourStepView';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import {
+  selectCampaigns,
   selectIsRewardsVersionBlocked,
   selectPendingDeeplink,
 } from '../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
+import { useOndoCampaignEndedOutcomeToast } from './hooks/useOndoCampaignEndedOutcomeToast';
+import { getCampaignStatus } from './components/Campaigns/CampaignTile.utils';
+import { CampaignType } from '../../../core/Engine/controllers/rewards-controller/types';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
@@ -36,6 +40,15 @@ const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const pendingDeeplink = useSelector(selectPendingDeeplink);
+  const campaigns = useSelector(selectCampaigns);
+  const completeOndoCampaign =
+    subscriptionId && campaigns
+      ? (campaigns.find(
+          (c) =>
+            c.type === CampaignType.ONDO_HOLDING &&
+            getCampaignStatus(c) === 'complete',
+        ) ?? null)
+      : null;
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -54,6 +67,11 @@ const RewardsNavigator: React.FC = () => {
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
+
+  useOndoCampaignEndedOutcomeToast(
+    completeOndoCampaign?.id ?? undefined,
+    completeOndoCampaign,
+  );
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
