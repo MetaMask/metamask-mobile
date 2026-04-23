@@ -888,7 +888,6 @@ export const {
   setOndoCampaignDeposits,
   setOndoCampaignDepositsLoading,
   setOndoCampaignDepositsError,
-  dismissCampaignOutcomeToast,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,
