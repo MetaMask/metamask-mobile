@@ -248,15 +248,15 @@ describe('PerpsMarketSortDropdowns', () => {
       expect(() => unmount()).not.toThrow();
     });
 
-    it('cleans up properly when remounted with different props', () => {
-      const { root, rerender, unmount } = render(
+    it('updates displayed label when selectedOptionId prop changes', () => {
+      const { rerender, getByText, queryByText, unmount } = render(
         <PerpsMarketSortDropdowns
           selectedOptionId="volume"
           onSortPress={mockOnSortPress}
         />,
       );
 
-      expect(root).toBeTruthy();
+      expect(getByText('Volume')).toBeOnTheScreen();
 
       rerender(
         <PerpsMarketSortDropdowns
@@ -265,7 +265,8 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(root).toBeTruthy();
+      expect(queryByText('Volume')).toBeNull();
+      expect(getByText('Price change')).toBeOnTheScreen();
 
       expect(() => unmount()).not.toThrow();
     });
