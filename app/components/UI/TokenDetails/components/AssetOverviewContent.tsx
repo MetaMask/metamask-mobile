@@ -350,22 +350,21 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     if (!securityData?.resultType || securityData.resultType === 'Benign')
       return;
 
-    const config = getResultTypeConfig(securityData.resultType);
     if (
-      !config.icon ||
-      !config.iconColor ||
-      !config.sheetTitle ||
-      !config.getSheetDescription
+      !securityConfig.icon ||
+      !securityConfig.iconColor ||
+      !securityConfig.sheetTitle ||
+      !securityConfig.getSheetDescription
     )
       return;
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
       params: {
-        icon: config.icon,
-        iconColor: config.iconColor,
-        title: config.sheetTitle,
-        description: config.getSheetDescription(token.symbol),
+        icon: securityConfig.icon,
+        iconColor: securityConfig.iconColor,
+        title: securityConfig.sheetTitle,
+        description: securityConfig.getSheetDescription(token.symbol),
         source: 'badge',
         severity: securityData.resultType,
         tokenAddress: token.address,
@@ -374,7 +373,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         features: securityData.features,
       },
     });
-  }, [securityData, token.symbol, token.address, token.chainId, navigation]);
+  }, [
+    securityData,
+    securityConfig,
+    token.symbol,
+    token.address,
+    token.chainId,
+    navigation,
+  ]);
 
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
