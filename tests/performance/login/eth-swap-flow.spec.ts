@@ -27,7 +27,7 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
         { ios: 9000, android: 7000 },
         currentDeviceDetails.platform,
       );
-      await QuoteView.selectNetworkAndTokenTo('Ethereum', 'LINK');
+      await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');
       await QuoteView.enterSourceTokenAmount('1');
 
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());
