@@ -226,6 +226,18 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: jest.fn(() => ({
+    variant: { swapLabelKey: 'asset_overview.swap' },
+    variantName: 'control',
+    isActive: false,
+  })),
+}));
+
+jest.mock('../hooks/useStickyFooterTracking', () => ({
+  useStickyFooterTracking: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('../../MarketInsights', () => ({
   MarketInsightsDisclaimerBottomSheet: () => null,
 }));
@@ -259,6 +271,7 @@ describe('TokenDetails', () => {
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
       fiatBalance: '$150.00',
+      balanceFiatUsd: 150,
       tokenFormattedBalance: '1.5 ETH',
     });
 
@@ -361,6 +374,7 @@ describe('TokenDetails', () => {
           token_symbol: 'DAI',
           market_insights_displayed: true,
           has_perps_market: false,
+          sticky_buttons_shown: expect.stringMatching(/^(both|buy|swap)$/),
         }),
       );
     });

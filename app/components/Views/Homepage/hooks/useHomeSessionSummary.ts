@@ -38,32 +38,29 @@ const useHomeSessionSummary = ({
     sessionStartRef.current = Date.now();
   }, [visitId]);
 
-  // Stable refs for the blur callback to avoid stale closure issues.
-  // Values that change after mount (including async ones like homepageUserId)
-  // are synced via useEffect so the useFocusEffect callback stays stable and
-  // React Navigation never tears it down prematurely due to a dependency change.
-  const visitIdRef = useRef(visitId);
-  const entryPointRef = useRef(entryPoint);
-  const totalSectionsLoadedRef = useRef(totalSectionsLoaded);
-  const appSessionIdRef = useRef(appSessionId);
+  // Stable ref so the blur callback always reads the latest values without
+  // needing them in its dependency array (which would re-create the callback
+  // and trigger useFocusEffect cleanup → false blur events).
+  const latestRef = useRef({
+    visitId,
+    entryPoint,
+    totalSectionsLoaded,
+    appSessionId,
+  });
+  latestRef.current = {
+    visitId,
+    entryPoint,
+    totalSectionsLoaded,
+    appSessionId,
+  };
 
-  useEffect(() => {
-    visitIdRef.current = visitId;
-  }, [visitId]);
-  useEffect(() => {
-    entryPointRef.current = entryPoint;
-  }, [entryPoint]);
-  useEffect(() => {
-    totalSectionsLoadedRef.current = totalSectionsLoaded;
-  }, [totalSectionsLoaded]);
-  useEffect(() => {
-    appSessionIdRef.current = appSessionId;
-  }, [appSessionId]);
-
+  // active_ab_tests is auto-injected by the analytics registry via
+  // HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING in abTestConfig.ts
   useFocusEffect(
     useCallback(
       () => () => {
-        if (visitIdRef.current === 0) return;
+        const snap = latestRef.current;
+        if (snap.visitId === 0) return;
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,
         );
@@ -74,11 +71,11 @@ const useHomeSessionSummary = ({
               interaction_type: 'session_summary',
               location: 'home',
               total_sections_viewed: getViewedSectionCount(),
-              total_sections_loaded: totalSectionsLoadedRef.current,
-              entry_point: entryPointRef.current,
+              total_sections_loaded: snap.totalSectionsLoaded,
+              entry_point: snap.entryPoint,
               session_time: sessionTime,
-              app_session_id: appSessionIdRef.current,
-              visit_number: visitIdRef.current,
+              app_session_id: snap.appSessionId,
+              visit_number: snap.visitId,
               max_scroll_depth_visit: getVisitMaxDepth(),
             })
             .build(),

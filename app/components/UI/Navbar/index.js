@@ -1238,6 +1238,9 @@ export function getDepositNavbarOptions(
     startButtonIconProps,
     closeButtonProps,
     includesTopInset: true,
+    style: {
+      backgroundColor: theme.colors.background.default,
+    },
   });
 }
 

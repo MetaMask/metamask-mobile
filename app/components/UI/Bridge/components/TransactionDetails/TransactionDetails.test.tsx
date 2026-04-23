@@ -225,6 +225,32 @@ describe('BridgeTransactionDetails', () => {
     expect(queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
   });
 
+  it('displays full amount from pricingData.amountSent when gas is sponsored', () => {
+    mockIsHardwareAccount.mockReturnValue(false);
+
+    const gasSponsoredTx = {
+      ...mockEVMTx,
+      id: 'gas-sponsored-tx-id',
+      isGasFeeSponsored: true,
+    } as TransactionMeta;
+
+    const { getByText } = renderScreen(
+      () => (
+        <BridgeTransactionDetails
+          route={{ params: { evmTxMeta: gasSponsoredTx } }}
+        />
+      ),
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState },
+    );
+
+    // Should display "1.00000 SEI" (from pricingData.amountSent),
+    // not "0.99125 SEI" (from srcTokenAmount)
+    expect(getByText(/1\.00000\s+SEI/)).toBeOnTheScreen();
+  });
+
   it('shows "Paid by MetaMask" when gas is sponsored and sender is not a hardware wallet', () => {
     mockIsHardwareAccount.mockReturnValue(false);
 

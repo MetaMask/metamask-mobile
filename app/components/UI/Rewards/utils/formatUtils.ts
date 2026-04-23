@@ -402,6 +402,29 @@ export const isPercentChangeNonNegative = (value: string | number): boolean => {
   return !Number.isNaN(num) && num >= 0;
 };
 
+// ── Ordinal rank (English) ─────────────────────────────────────────────
+
+/**
+ * Formats a 1-based rank as an English ordinal suffix (e.g. `3` → `"3rd"`).
+ * Pair with localized copy such as `"{{place}} place"`.
+ */
+export function formatOrdinalRank(rank: number): string {
+  const n = Math.floor(Math.abs(rank));
+  const mod100 = n % 100;
+  const mod10 = n % 10;
+  let suffix = 'th';
+  if (mod100 < 11 || mod100 > 13) {
+    if (mod10 === 1) {
+      suffix = 'st';
+    } else if (mod10 === 2) {
+      suffix = 'nd';
+    } else if (mod10 === 3) {
+      suffix = 'rd';
+    }
+  }
+  return `${n}${suffix}`;
+}
+
 // ── Timestamp formatting ────────────────────────────────────────────────
 
 /**
@@ -482,3 +505,20 @@ export const shortenAddress = (address: string): string => {
   if (address.length <= 10) return address;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
+
+const MAX_ONDO_TOKEN_NAME_LENGTH = 28;
+
+/**
+ * Strips Ondo branding from a token name and truncates to
+ * MAX_ONDO_TOKEN_NAME_LENGTH characters with an ellipsis if needed.
+ *
+ * Handles two forms: prefix ("Ondo Tokenized Apple" → "Apple") and
+ * suffix ("US Dollar (Ondo Tokenized)" → "US Dollar").
+ */
+export function sanitizeOndoTokenName(raw: string): string {
+  const cleaned = raw
+    .replace(/(?:^ondo\s+tokenized\s+|\s*\(ondo\s+tokenized\))/gi, '')
+    .trim();
+  if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
+  return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
+}

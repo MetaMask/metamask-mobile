@@ -1,5 +1,7 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TraderRow from './TraderRow';
 import type { TopTrader } from '../types';
@@ -11,6 +13,7 @@ const baseTrader: TopTrader = {
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
   pnlValue: 963146.8,
+  pnlPerChain: { base: 963146.8 },
   isFollowing: false,
 };
 
@@ -112,5 +115,106 @@ describe('TraderRow', () => {
       />,
     );
     expect(screen.getByTestId('custom-test-id')).toBeOnTheScreen();
+  });
+
+  describe('layout stability (prevents Follow/Following toggle shift)', () => {
+    const findAncestor = (
+      start: ReactTestInstance | null,
+      predicate: (node: ReactTestInstance) => boolean,
+    ): ReactTestInstance | null => {
+      let node: ReactTestInstance | null = start;
+      while (node) {
+        if (predicate(node)) return node;
+        node = node.parent;
+      }
+      return null;
+    };
+
+    const resolveMinWidth = (node: ReactTestInstance): number | undefined => {
+      const flat = StyleSheet.flatten(node.props.style) as
+        | { minWidth?: number }
+        | undefined;
+      return flat?.minWidth;
+    };
+
+    it('renders the stats line with numberOfLines=1 so it does not wrap when the button grows', () => {
+      const trader: TopTrader = {
+        ...baseTrader,
+        percentageChange: 28233,
+        pnlValue: 407000,
+      };
+      renderWithProvider(
+        <TraderRow trader={trader} onFollowPress={mockOnFollowPress} />,
+      );
+
+      const roiSegment = screen.getByText('+28233.0%');
+      const statsText = findAncestor(
+        roiSegment,
+        (node) => node.props?.numberOfLines === 1,
+      );
+
+      expect(statsText).not.toBeNull();
+    });
+
+    it('renders the Follow button with a minimum width', () => {
+      renderWithProvider(
+        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+      );
+
+      const followLabel = screen.getByText('Follow');
+      const buttonWithMinWidth = findAncestor(
+        followLabel,
+        (node) => resolveMinWidth(node) !== undefined,
+      );
+
+      expect(buttonWithMinWidth).not.toBeNull();
+      expect(resolveMinWidth(buttonWithMinWidth as ReactTestInstance)).toBe(96);
+    });
+
+    it('renders the rank on a single line so the trailing dot does not wrap for double-digit ranks', () => {
+      const doubleDigitTrader: TopTrader = { ...baseTrader, rank: 20 };
+      renderWithProvider(
+        <TraderRow
+          trader={doubleDigitTrader}
+          onFollowPress={mockOnFollowPress}
+        />,
+      );
+
+      const rankText = screen.getByText('20.');
+
+      expect(rankText.props.numberOfLines).toBe(1);
+    });
+
+    it('keeps the same minimum width when toggling between Follow and Following', () => {
+      const { rerender } = renderWithProvider(
+        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+      );
+
+      const followLabel = screen.getByText('Follow');
+      const followButton = findAncestor(
+        followLabel,
+        (node) => resolveMinWidth(node) !== undefined,
+      );
+      const followMinWidth = resolveMinWidth(followButton as ReactTestInstance);
+
+      rerender(
+        <TraderRow
+          trader={{ ...baseTrader, isFollowing: true }}
+          onFollowPress={mockOnFollowPress}
+        />,
+      );
+
+      const followingLabel = screen.getByText('Following');
+      const followingButton = findAncestor(
+        followingLabel,
+        (node) => resolveMinWidth(node) !== undefined,
+      );
+      const followingMinWidth = resolveMinWidth(
+        followingButton as ReactTestInstance,
+      );
+
+      expect(followMinWidth).toBeDefined();
+      expect(followingMinWidth).toBe(followMinWidth);
+    });
   });
 });

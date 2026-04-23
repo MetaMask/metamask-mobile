@@ -1,8 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Text as RNText } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import CampaignStatsSummary, {
   IneligibleTag,
+  PendingTag,
+  StatCell,
   CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from './CampaignStatsSummary';
 import type {
@@ -57,7 +60,7 @@ jest.mock('../RewardsErrorBanner', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, string>) => {
     const t: Record<string, string> = {
       'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
       'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
@@ -75,10 +78,25 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'We had a problem loading your stats. Please try again later.',
       'rewards.ondo_campaign_stats.retry': 'Retry',
       'rewards.ondo_campaign_stats.label_return': 'Return',
-      'rewards.ondo_campaign_stats.label_market_value': 'Market Value',
+      'rewards.ondo_campaign_stats.label_market_value': 'Market value',
       'rewards.ondo_campaign_stats.label_rank': 'Rank',
       'rewards.ondo_campaign_stats.label_tier': 'Tier',
+      'rewards.ondo_winning_banner.description': 'Claim your prize now!',
+      'rewards.ondo_campaign_stats.qualified_title': 'You are qualified',
+      'rewards.ondo_campaign_leaderboard.qualify_for_rank_title':
+        'Qualify for this rank',
     };
+    if (key === 'rewards.ondo_winning_banner.title') {
+      return `You won the ${params?.campaignName ?? ''}`;
+    }
+    if (key === 'rewards.ondo_campaign_stats.qualified_description') {
+      return `Qualified copy ${params?.minNetDeposit ?? ''}`;
+    }
+    if (
+      key === 'rewards.ondo_campaign_leaderboard.qualify_for_rank_description'
+    ) {
+      return `Qualify copy ${params?.minNetDeposit ?? ''} ${params?.daysRemaining ?? ''}`;
+    }
     return t[key] ?? key;
   },
   default: { locale: 'en-US' },
@@ -199,10 +217,11 @@ describe('CampaignStatsSummary', () => {
     ).toBe('05');
   });
 
-  it('uses error color for market value when portfolioPnl is negative, regardless of leaderboard position', () => {
+  it('uses error color for market value when return is negative', () => {
     const negativePortfolio: OndoGmPortfolioSummaryDto = {
       ...MOCK_SUMMARY,
       portfolioPnl: '-500.000000',
+      portfolioPnlPercent: '-0.04',
     };
 
     const { getByTestId } = render(
@@ -255,28 +274,16 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-5.00%');
   });
 
-  it('renders Stats title by default', () => {
-    const { getByText } = render(<CampaignStatsSummary {...baseProps} />);
-    expect(getByText('Stats')).toBeDefined();
-  });
-
-  it('hides Stats title when showHeader is false', () => {
-    const { queryByText } = render(
-      <CampaignStatsSummary {...baseProps} showHeader={false} />,
-    );
-    expect(queryByText('Stats')).toBeNull();
-  });
-
   // ── Pending / Qualified tags ────────────────────────────────────────
 
-  it('renders Pending tags next to rank and tier when qualified is false', () => {
+  it('renders Pending tag next to rank when qualified is false', () => {
     const pendingPosition: CampaignLeaderboardPositionDto = {
       ...MOCK_POSITION,
       qualified: false,
       qualifiedDays: 3,
     };
 
-    const { getAllByTestId, getAllByText } = render(
+    const { getByTestId, getAllByText } = render(
       <CampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
@@ -284,20 +291,19 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
-    ).toHaveLength(2);
-    expect(getAllByText('Pending')).toHaveLength(2);
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+    ).toBeOnTheScreen();
+    expect(getAllByText('Pending')).toHaveLength(1);
   });
 
-  it('renders Qualified tag on tier cell and no Pending tags when qualified is true', () => {
-    const { getByTestId, getByText, queryAllByText, queryByTestId } = render(
+  it('renders check icon on rank cell and no Pending tags when qualified is true', () => {
+    const { getByTestId, queryAllByText, queryByTestId } = render(
       <CampaignStatsSummary {...baseProps} />,
     );
 
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG),
     ).toBeOnTheScreen();
-    expect(getByText('Qualified')).toBeOnTheScreen();
     expect(queryAllByText('Pending')).toHaveLength(0);
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
@@ -499,114 +505,15 @@ describe('CampaignStatsSummary', () => {
     ).toHaveLength(1);
   });
 
-  // ── Qualify for rank card ─────────────────────────────────────────
-
-  it('shows the qualify card when position is pending and tierMinDeposit is provided', () => {
-    const pendingPosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      qualified: false,
-      qualifiedDays: 3,
-    };
-
-    const { getByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={pendingPosition}
-        tierMinDeposit={500}
-      />,
-    );
-
-    expect(
-      getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeDefined();
-  });
-
-  it('does not show the qualify card when position is qualified', () => {
-    const { queryByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={MOCK_POSITION}
-        tierMinDeposit={500}
-      />,
-    );
-
-    expect(
-      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeNull();
-  });
-
-  it('does not show the qualify card when tierMinDeposit is null', () => {
-    const pendingPosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      qualified: false,
-      qualifiedDays: 3,
-    };
-
-    const { queryByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={pendingPosition}
-        tierMinDeposit={null}
-      />,
-    );
-
-    expect(
-      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeNull();
-  });
-
-  it('does not show the qualify card when qualifiedDays meets the requirement', () => {
-    const pendingPosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      qualified: false,
-      qualifiedDays: 10, // equals ONDO_GM_REQUIRED_QUALIFIED_DAYS
-    };
-
-    const { queryByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={pendingPosition}
-        tierMinDeposit={500}
-      />,
-    );
-
-    expect(
-      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeNull();
-  });
-
-  it('calls onQualifyPress when the qualify card is pressed', () => {
-    const mockOnQualifyPress = jest.fn();
-    const pendingPosition: CampaignLeaderboardPositionDto = {
-      ...MOCK_POSITION,
-      qualified: false,
-      qualifiedDays: 3,
-    };
-
-    const { getByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={pendingPosition}
-        tierMinDeposit={500}
-        onQualifyPress={mockOnQualifyPress}
-      />,
-    );
-
-    fireEvent.press(
-      getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    );
-    expect(mockOnQualifyPress).toHaveBeenCalledTimes(1);
-  });
-
   // ── Ineligible state ──────────────────────────────────────────────
 
-  it('shows ineligible tags on both rank and tier cells when isIneligible=true', () => {
+  it('shows ineligible tag on rank cell when isIneligible=true', () => {
     const pendingPosition: CampaignLeaderboardPositionDto = {
       ...MOCK_POSITION,
       qualified: false,
       qualifiedDays: 0,
     };
-    const { getAllByTestId, getAllByText } = render(
+    const { getByTestId, getAllByText } = render(
       <CampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
@@ -614,9 +521,9 @@ describe('CampaignStatsSummary', () => {
       />,
     );
     expect(
-      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
-    ).toHaveLength(2);
-    expect(getAllByText('Ineligible')).toHaveLength(2);
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
+    ).toBeOnTheScreen();
+    expect(getAllByText('Ineligible')).toHaveLength(1);
   });
 
   it('shows dash for rank and tier when isIneligible=true even with leaderboard data', () => {
@@ -672,24 +579,6 @@ describe('CampaignStatsSummary', () => {
     expect(queryAllByText('Pending')).toHaveLength(0);
   });
 
-  it('hides qualify card when isIneligible=true even with tierMinDeposit set', () => {
-    const { queryByText } = render(
-      <CampaignStatsSummary
-        {...baseProps}
-        leaderboardPosition={{
-          ...MOCK_POSITION,
-          qualified: false,
-          qualifiedDays: 3,
-        }}
-        tierMinDeposit={500}
-        isIneligible
-      />,
-    );
-    expect(
-      queryByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
-    ).toBeNull();
-  });
-
   it('does not show ineligible tags when isIneligible=false', () => {
     const { queryAllByText, queryByTestId } = render(
       <CampaignStatsSummary
@@ -713,6 +602,153 @@ describe('CampaignStatsSummary', () => {
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
     ).toBeNull();
+  });
+
+  // ── Winning banner ────────────────────────────────────────────────
+
+  it('shows winning banner with campaign name when isWinner=true', () => {
+    const { getByTestId, getByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        isWinner
+        campaignName="Ondo Campaign"
+      />,
+    );
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.WINNING_BANNER),
+    ).toBeOnTheScreen();
+    expect(getByText('You won the Ondo Campaign')).toBeOnTheScreen();
+    expect(getByText('Claim your prize now!')).toBeOnTheScreen();
+  });
+
+  it('hides qualified card when isWinner=true', () => {
+    const { queryByText } = render(
+      <CampaignStatsSummary {...baseProps} isWinner tierMinDeposit={1000} />,
+    );
+    expect(
+      queryByText('rewards.ondo_campaign_stats.qualified_title'),
+    ).toBeNull();
+  });
+
+  it('hides not-eligible banner when isWinner=true', () => {
+    const { queryByTestId } = render(
+      <CampaignStatsSummary {...baseProps} isWinner isIneligible />,
+    );
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeNull();
+  });
+
+  it('does not show winning banner when isWinner=false', () => {
+    const { queryByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.WINNING_BANNER),
+    ).toBeNull();
+  });
+
+  it('calls onWinnerBannerPress when the winning banner touchable is pressed', () => {
+    const onWinnerBannerPress = jest.fn();
+    const { getByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        isWinner
+        campaignName="Ondo Campaign"
+        onWinnerBannerPress={onWinnerBannerPress}
+      />,
+    );
+    fireEvent.press(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.WINNING_BANNER),
+    );
+    expect(onWinnerBannerPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the qualified explainer card when qualified, not winner, and tierMinDeposit is set', () => {
+    const { getByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        tierMinDeposit={2500}
+        isWinner={false}
+      />,
+    );
+    expect(getByText('You are qualified')).toBeOnTheScreen();
+    expect(getByText(/Qualified copy/)).toBeOnTheScreen();
+  });
+
+  it('shows the qualify-for-rank card when pending with remaining qualifying days and tierMinDeposit', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 4,
+    };
+    const { getByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={1000}
+        isWinner={false}
+      />,
+    );
+    expect(getByText('Qualify for this rank')).toBeOnTheScreen();
+    expect(getByText(/Qualify copy/)).toBeOnTheScreen();
+  });
+
+  it('omits the qualify-for-rank card when pending but no qualifying days remain', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 10,
+    };
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={1000}
+        isWinner={false}
+      />,
+    );
+    expect(queryByText('Qualify for this rank')).toBeNull();
+  });
+});
+
+describe('StatCell', () => {
+  it('renders a skeleton instead of value text while loading', () => {
+    const { queryByTestId } = render(
+      <StatCell label="L" value="V" isLoading testID="stat-val" />,
+    );
+    expect(queryByTestId('stat-val')).toBeNull();
+  });
+
+  it('renders suffix only when not loading', () => {
+    const { getByText } = render(
+      <StatCell
+        label="L"
+        value="V"
+        isLoading={false}
+        suffix={<RNText>Sfx</RNText>}
+      />,
+    );
+    expect(getByText('Sfx')).toBeOnTheScreen();
+    const { queryByText } = render(
+      <StatCell
+        label="L2"
+        value="V2"
+        isLoading
+        suffix={<RNText>Hidden</RNText>}
+      />,
+    );
+    expect(queryByText('Hidden')).toBeNull();
+  });
+});
+
+describe('PendingTag', () => {
+  it('renders pending label', () => {
+    const { getByText } = render(<PendingTag />);
+    expect(getByText('Pending')).toBeOnTheScreen();
+  });
+
+  it('forwards testID', () => {
+    const { getByTestId } = render(<PendingTag testID="pending-tag-id" />);
+    expect(getByTestId('pending-tag-id')).toBeOnTheScreen();
   });
 });
 

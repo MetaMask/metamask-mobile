@@ -151,6 +151,7 @@ const mockState = ({
                   decimals: 18,
                   symbol: 'stETH',
                   name: 'Lido Staked Ether',
+                  aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
                   image:
                     'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
                 },
@@ -223,19 +224,6 @@ const mockState = ({
                 tokenAddress: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
                 currency: 'ETH',
                 price: 0.005,
-              },
-            },
-          },
-        },
-        TokenListController: {
-          tokensChainsCache: {
-            '0x1': {
-              data: {
-                '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': {
-                  address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
-                  symbol: 'stETH',
-                  aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
-                },
               },
             },
           },

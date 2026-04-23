@@ -1,5 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text as RNText,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,17 +28,18 @@ import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
-import { TrendingTokenNetworkBottomSheet } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import {
   TraderRow,
   TraderRowSkeleton,
-  NetworkFilterButton,
 } from '../../Homepage/Sections/TopTraders/components';
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
-import type { NetworkFilterSelection } from '../../Homepage/Sections/TopTraders/types';
-import type { CaipChainId } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  BASE_DISPLAY_NAME,
+  MAINNET_DISPLAY_NAME,
+  SOLANA_DISPLAY_NAME,
+} from '../../../../core/Engine/constants';
 
 const SKELETON_COUNT = 5;
 const SKELETON_KEYS = Array.from(
@@ -39,23 +47,97 @@ const SKELETON_KEYS = Array.from(
   (_, i) => `top-trader-skeleton-${i}`,
 );
 
-/**
- * TopTradersView — Social leaderboard detail screen.
- *
- * Displays the full ranked list of top-performing traders with
- * network filtering and Follow / Following actions.
- */
+type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum';
+
+const getChainFilters = (): { key: ChainFilter; label: string }[] => [
+  {
+    key: 'all',
+    label: strings('social_leaderboard.top_traders_view.chain_filter.all'),
+  },
+  { key: 'base', label: BASE_DISPLAY_NAME },
+  { key: 'solana', label: SOLANA_DISPLAY_NAME },
+  { key: 'ethereum', label: MAINNET_DISPLAY_NAME },
+];
+
+const styles = StyleSheet.create({
+  filterRow: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pill: {
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 38,
+  },
+  pillBorder: {
+    borderWidth: 1,
+  },
+  pillText: {
+    fontSize: 14,
+    fontWeight: FontWeight.Medium,
+  },
+});
+
+interface ChainPillProps {
+  filterKey: ChainFilter;
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+}
+
+const ChainPill: React.FC<ChainPillProps> = ({
+  filterKey,
+  label,
+  isSelected,
+  onPress,
+}) => {
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      testID={`chain-filter-${filterKey}`}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isSelected }}
+      style={[
+        styles.pill,
+        isSelected
+          ? { backgroundColor: colors.icon.default }
+          : [styles.pillBorder, { borderColor: colors.border.muted }],
+      ]}
+    >
+      <RNText
+        style={[
+          styles.pillText,
+          { color: isSelected ? colors.primary.inverse : colors.text.default },
+        ]}
+      >
+        {label}
+      </RNText>
+    </Pressable>
+  );
+};
+
 const TopTradersView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { colors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
 
+  const [selectedChain, setSelectedChain] = useState<ChainFilter>('all');
+  const [refreshing, setRefreshing] = useState(false);
+
   const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
+    limit: 250,
     enabled: isEnabled,
   });
-
-  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isEnabled) {
@@ -63,29 +145,22 @@ const TopTradersView = () => {
     }
   }, [isEnabled, navigation]);
 
-  const [showNetworkBottomSheet, setShowNetworkBottomSheet] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] =
-    useState<NetworkFilterSelection>(null);
+  const filteredTraders = useMemo(() => {
+    const filtered =
+      selectedChain === 'all'
+        ? traders
+        : traders.filter((t) => (t.pnlPerChain[selectedChain] ?? 0) !== 0);
+
+    return filtered.slice(0, 50).map((t, i) => ({ ...t, rank: i + 1 }));
+  }, [traders, selectedChain]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleSearchPress = useCallback(() => {
-    // Search UI will be wired when the leaderboard data layer ships.
-  }, []);
-
-  const handleNetworkPress = useCallback(() => {
-    setShowNetworkBottomSheet(true);
-  }, []);
-
-  const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
-    setSelectedNetwork(chainIds ? chainIds[0] : null);
-  }, []);
-
-  const handleNetworkBottomSheetClose = useCallback(() => {
-    setShowNetworkBottomSheet(false);
-  }, []);
+  const handleNotificationPreferencesPress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES);
+  }, [navigation]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -111,16 +186,11 @@ const TopTradersView = () => {
     [navigation],
   );
 
-  const selectedNetworkCaip = selectedNetwork
-    ? ([selectedNetwork] as CaipChainId[])
-    : null;
-
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       testID={TopTradersViewSelectorsIDs.CONTAINER}
     >
-      {/* Header row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -134,15 +204,14 @@ const TopTradersView = () => {
           testID={TopTradersViewSelectorsIDs.BACK_BUTTON}
         />
         <ButtonIcon
-          iconName={IconName.Search}
+          iconName={IconName.Notification}
           size={ButtonIconSize.Md}
-          onPress={handleSearchPress}
-          testID={TopTradersViewSelectorsIDs.SEARCH_BUTTON}
+          onPress={handleNotificationPreferencesPress}
+          testID={TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON}
         />
       </Box>
 
-      {/* Title */}
-      <Box twClassName="px-4 pt-2 pb-3">
+      <Box twClassName="px-4 pt-2 pb-3 mb-2">
         <Text
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
@@ -152,49 +221,65 @@ const TopTradersView = () => {
         </Text>
       </Box>
 
-      {/* Network filter */}
-      <Box twClassName="px-4 pb-3">
-        <NetworkFilterButton
-          selectedNetwork={selectedNetwork}
-          onPress={handleNetworkPress}
-          testID="top-traders-view-network-filter"
-        />
-      </Box>
-
-      {/* Trader list */}
       <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-6')}
-        testID={TopTradersViewSelectorsIDs.TRADER_LIST}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-          />
-        }
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterRow}
       >
-        {isLoading
-          ? SKELETON_KEYS.map((key) => <TraderRowSkeleton key={key} />)
-          : traders.map((trader) => (
-              <TraderRow
-                key={trader.id}
-                trader={trader}
-                onFollowPress={toggleFollow}
-                onTraderPress={handleTraderPress}
-              />
-            ))}
+        {getChainFilters().map(({ key, label }) => (
+          <ChainPill
+            key={key}
+            filterKey={key}
+            label={label}
+            isSelected={selectedChain === key}
+            onPress={() => setSelectedChain(key)}
+          />
+        ))}
       </ScrollView>
 
-      {/* Network filter bottom sheet */}
-      <TrendingTokenNetworkBottomSheet
-        isVisible={showNetworkBottomSheet}
-        onClose={handleNetworkBottomSheetClose}
-        onNetworkSelect={handleNetworkSelect}
-        selectedNetwork={selectedNetworkCaip}
-        networks={[]}
-      />
+      {isLoading ? (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('pb-6')}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+        >
+          {SKELETON_KEYS.map((key) => (
+            <TraderRowSkeleton key={key} />
+          ))}
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={filteredTraders}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TraderRow
+              trader={item}
+              onFollowPress={toggleFollow}
+              onTraderPress={handleTraderPress}
+            />
+          )}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('pb-6')}
+          testID={TopTradersViewSelectorsIDs.TRADER_LIST}
+          initialNumToRender={15}
+          windowSize={5}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 };

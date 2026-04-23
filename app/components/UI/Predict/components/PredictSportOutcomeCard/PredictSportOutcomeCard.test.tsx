@@ -7,6 +7,36 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { PREDICT_SPORT_OUTCOME_CARD_TEST_IDS } from './PredictSportOutcomeCard.testIds';
 
+jest.mock('react-native-reanimated', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: { View },
+    useSharedValue: (v: number) => ({ value: v }),
+    useAnimatedStyle: (fn: () => object) => fn(),
+    withTiming: (v: number) => v,
+    Easing: { inOut: (fn: unknown) => fn, ease: jest.fn() },
+  };
+});
+
+jest.mock('@react-native-masked-view/masked-view', () =>
+  jest.fn(
+    ({
+      children,
+    }: {
+      children?: React.ReactNode;
+      maskElement?: React.ReactNode;
+    }) => children,
+  ),
+);
+
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'light' },
+}));
+
 const createButtons = (
   overrides: Partial<PredictSportOutcomeButton>[] = [],
 ): PredictSportOutcomeButton[] => {
@@ -265,6 +295,59 @@ describe('PredictSportOutcomeCard', () => {
       expect(screen.getByText('HOME · 40¢')).toBeOnTheScreen();
       expect(screen.getByText('DRAW · 35¢')).toBeOnTheScreen();
       expect(screen.getByText('AWAY · 25¢')).toBeOnTheScreen();
+    });
+  });
+
+  describe('line selector', () => {
+    it('renders line selector when lines, selectedLine, and onSelectLine are provided', () => {
+      const props = createDefaultProps({
+        lines: [4.5, 5, 5.5],
+        selectedLine: 5,
+        onSelectLine: jest.fn(),
+      });
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.getByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides line selector when lines has only one item', () => {
+      const props = createDefaultProps({
+        lines: [5],
+        selectedLine: 5,
+        onSelectLine: jest.fn(),
+      });
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.queryByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR),
+      ).toBeNull();
+    });
+
+    it('hides line selector when lines prop is omitted', () => {
+      const props = createDefaultProps();
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.queryByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR),
+      ).toBeNull();
+    });
+
+    it('hides line selector when onSelectLine is omitted', () => {
+      const props = createDefaultProps({
+        lines: [4.5, 5, 5.5],
+        selectedLine: 5,
+      });
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.queryByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR),
+      ).toBeNull();
     });
   });
 });

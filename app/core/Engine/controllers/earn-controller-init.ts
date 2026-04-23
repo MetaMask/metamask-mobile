@@ -14,8 +14,8 @@ import {
 export const earnControllerInit: MessengerClientInitFunction<
   EarnController,
   EarnControllerMessenger
-> = ({ controllerMessenger, getController }) => {
-  const transactionController = getController('TransactionController');
+> = ({ controllerMessenger, getMessengerClient }) => {
+  const transactionController = getMessengerClient('TransactionController');
 
   const controller = new EarnController({
     messenger: controllerMessenger,

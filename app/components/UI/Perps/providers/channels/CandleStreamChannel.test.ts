@@ -12,6 +12,7 @@ const mockGetIsInitialized = jest.fn().mockReturnValue(true);
 
 jest.mock('../../../../../core/Engine');
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../../util/Logger');
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 
@@ -59,6 +60,9 @@ describe('CandleStreamChannel', () => {
 
   // Flush the debounce delay used by connect() → deferConnect() (#28141)
   const flushConnectDebounce = () => jest.advanceTimersByTime(500);
+  // Flush the deferred WS teardown delay.
+  const flushTeardownDelay = () =>
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.CandleTeardownDelayMs);
 
   describe('Cache Management', () => {
     it('should generate correct cache key', () => {
@@ -324,6 +328,9 @@ describe('CandleStreamChannel', () => {
       expect(mockUnsubscribe).not.toHaveBeenCalled();
 
       unsubscribe2();
+      // Teardown is deferred to coalesce rapid market switches — flush the
+      // delay before asserting the WS actually closed.
+      flushTeardownDelay();
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
@@ -350,6 +357,7 @@ describe('CandleStreamChannel', () => {
       flushConnectDebounce();
 
       btcUnsubscribe();
+      flushTeardownDelay();
 
       expect(mockBtcUnsubscribe).toHaveBeenCalled();
       expect(mockEthUnsubscribe).not.toHaveBeenCalled();
@@ -436,6 +444,10 @@ describe('CandleStreamChannel', () => {
       capturedCallback?.(mockCandleData);
 
       unsubscribe();
+      // Let the deferred teardown fire so the next subscribe reopens the WS
+      // rather than reusing the pending one (this test exercises the
+      // reconnect-with-cached-data path).
+      flushTeardownDelay();
 
       channel.subscribe({
         symbol: 'BTC',
@@ -467,6 +479,7 @@ describe('CandleStreamChannel', () => {
       flushConnectDebounce();
 
       unsubscribe();
+      flushTeardownDelay();
 
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
@@ -986,6 +999,39 @@ describe('CandleStreamChannel', () => {
           TimeDuration.OneDay,
         ),
       ).rejects.toThrow('Network error');
+    });
+
+    it('skips Sentry logging for abort errors', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      capturedCallback?.(mockCandleData);
+
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetchHistoricalCandles.mockRejectedValue(abortError);
+
+      await expect(
+        channel.fetchHistoricalCandles(
+          'BTC',
+          CandlePeriod.OneHour,
+          TimeDuration.OneDay,
+        ),
+      ).rejects.toThrow();
+
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('returns early when no additional candles available', async () => {

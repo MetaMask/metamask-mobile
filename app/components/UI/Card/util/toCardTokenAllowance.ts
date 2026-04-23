@@ -1,26 +1,23 @@
-import { AllowanceState, type CardTokenAllowance } from '../types';
+import { FundingStatus, type CardFundingToken } from '../types';
 import type { CardFundingAsset } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
-const STATUS_TO_ALLOWANCE_STATE: Record<string, AllowanceState> = {
-  active: AllowanceState.Enabled,
-  limited: AllowanceState.Limited,
-  inactive: AllowanceState.NotEnabled,
+const STATUS_TO_FUNDING_STATUS: Record<string, FundingStatus> = {
+  active: FundingStatus.Enabled,
+  limited: FundingStatus.Limited,
+  inactive: FundingStatus.NotEnabled,
 };
 
-export function toCardTokenAllowance(
-  asset: CardFundingAsset,
-): CardTokenAllowance {
+export function toCardFundingToken(asset: CardFundingAsset): CardFundingToken {
   return {
     address: asset.address,
     decimals: asset.decimals,
     symbol: asset.symbol,
     name: asset.name,
     caipChainId: asset.chainId,
-    allowanceState:
-      STATUS_TO_ALLOWANCE_STATE[asset.status] ?? AllowanceState.NotEnabled,
-    allowance: asset.balance ?? '0',
-    totalAllowance: asset.allowance ?? '0',
-    availableBalance: asset.balance || undefined,
+    fundingStatus:
+      STATUS_TO_FUNDING_STATUS[asset.status] ?? FundingStatus.NotEnabled,
+    spendableBalance: asset.spendableBalance ?? '0',
+    spendingCap: asset.spendingCap ?? '0',
     walletAddress: asset.walletAddress,
     priority:
       asset.priority >= Number.MAX_SAFE_INTEGER ? undefined : asset.priority,

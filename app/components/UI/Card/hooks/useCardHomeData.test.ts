@@ -2,14 +2,13 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useCardHomeData } from './useCardHomeData';
 import { useAssetBalances } from './useAssetBalances';
-import { toCardTokenAllowance } from '../util/toCardTokenAllowance';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import Engine from '../../../../core/Engine';
 import {
   FundingAssetStatus,
   type CardFundingAsset,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
-import { AllowanceState, type CardTokenAllowance } from '../types';
+import { FundingStatus, type CardFundingToken } from '../types';
 
 const mockFetchCardHomeData = jest.fn();
 
@@ -22,15 +21,11 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 jest.mock('./useAssetBalances', () => ({ useAssetBalances: jest.fn() }));
-jest.mock('../util/toCardTokenAllowance');
 jest.mock('../util/getAssetBalanceKey');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseAssetBalances = useAssetBalances as jest.MockedFunction<
   typeof useAssetBalances
->;
-const mockToCardTokenAllowance = toCardTokenAllowance as jest.MockedFunction<
-  typeof toCardTokenAllowance
 >;
 const mockGetAssetBalanceKey = getAssetBalanceKey as jest.MockedFunction<
   typeof getAssetBalanceKey
@@ -43,22 +38,21 @@ const mockAsset: CardFundingAsset = {
   walletAddress: '0xWalletAddr',
   decimals: 6,
   chainId: 'eip155:59144',
-  balance: '500',
-  allowance: '1000',
+  spendableBalance: '500',
+  spendingCap: '1000',
   priority: 1,
   status: FundingAssetStatus.Active,
 };
 
-const mockLegacyToken: CardTokenAllowance = {
+const mockFundingToken: CardFundingToken = {
   address: '0xUSDCAddress',
   decimals: 6,
   symbol: 'USDC',
   name: 'USD Coin',
   caipChainId: 'eip155:59144',
-  allowanceState: AllowanceState.Enabled,
-  allowance: '500',
-  totalAllowance: '1000',
-  availableBalance: '500',
+  fundingStatus: FundingStatus.Enabled,
+  spendableBalance: '500',
+  spendingCap: '1000',
   walletAddress: '0xWalletAddr',
   priority: 1,
   stagingTokenAddress: null,
@@ -72,17 +66,37 @@ const mockBalanceEntry = {
   rawTokenBalance: 500,
 };
 
-// useCardHomeData calls useSelector twice: once for data, once for status.
-// We set up the mock to return different values based on call order.
+// useCardHomeData calls useSelector 5 times:
+// 1. selectCardHomeData (raw CardHomeData)
+// 2. selectCardHomeDataStatus
+// 3. selectCardPrimaryToken
+// 4. selectCardAvailableTokens
+// 5. selectCardFundingTokens
 function setupSelectors(
   data: unknown,
   status: 'idle' | 'loading' | 'success' | 'error',
+  primaryToken: CardFundingToken | null = null,
+  availableTokens: CardFundingToken[] = [],
+  fundingTokens: CardFundingToken[] = [],
 ) {
   let callCount = 0;
   mockUseSelector.mockImplementation(() => {
     callCount++;
-    // First call is selectCardHomeData, second is selectCardHomeDataStatus
-    return callCount % 2 === 1 ? data : status;
+    const callIndex = ((callCount - 1) % 5) + 1;
+    switch (callIndex) {
+      case 1:
+        return data;
+      case 2:
+        return status;
+      case 3:
+        return primaryToken;
+      case 4:
+        return availableTokens;
+      case 5:
+        return fundingTokens;
+      default:
+        return undefined;
+    }
   });
 }
 
@@ -93,7 +107,6 @@ describe('useCardHomeData', () => {
       mockFetchCardHomeData;
     mockFetchCardHomeData.mockResolvedValue(undefined);
     mockUseAssetBalances.mockReturnValue(new Map());
-    mockToCardTokenAllowance.mockReturnValue(mockLegacyToken);
     mockGetAssetBalanceKey.mockReturnValue('mock-key');
   });
 
@@ -111,7 +124,7 @@ describe('useCardHomeData', () => {
     });
 
     it("does NOT trigger fetchCardHomeData when status is 'success'", () => {
-      setupSelectors({ primaryAsset: null }, 'success');
+      setupSelectors({ primaryFundingAsset: null }, 'success');
       renderHook(() => useCardHomeData());
       expect(mockFetchCardHomeData).not.toHaveBeenCalled();
     });
@@ -137,7 +150,7 @@ describe('useCardHomeData', () => {
     });
 
     it("is false when status is 'success'", () => {
-      setupSelectors({ primaryAsset: null }, 'success');
+      setupSelectors({ primaryFundingAsset: null }, 'success');
       const { result } = renderHook(() => useCardHomeData());
       expect(result.current.isLoading).toBe(false);
     });
@@ -157,7 +170,7 @@ describe('useCardHomeData', () => {
     });
 
     it("is false when status is 'success'", () => {
-      setupSelectors({ primaryAsset: null }, 'success');
+      setupSelectors({ primaryFundingAsset: null }, 'success');
       const { result } = renderHook(() => useCardHomeData());
       expect(result.current.isError).toBe(false);
     });
@@ -171,7 +184,11 @@ describe('useCardHomeData', () => {
 
   describe('data', () => {
     it('reflects the value from selectCardHomeData', () => {
-      const mockData = { primaryAsset: null, assets: [], card: null };
+      const mockData = {
+        primaryFundingAsset: null,
+        fundingAssets: [],
+        card: null,
+      };
       setupSelectors(mockData, 'success');
       const { result } = renderHook(() => useCardHomeData());
       expect(result.current.data).toStrictEqual(mockData);
@@ -195,23 +212,30 @@ describe('useCardHomeData', () => {
     });
   });
 
-  describe('primaryAsset', () => {
+  describe('primaryToken', () => {
     it('is null when data is null', () => {
       setupSelectors(null, 'success');
       const { result } = renderHook(() => useCardHomeData());
-      expect(result.current.primaryAsset).toBeNull();
+      expect(result.current.primaryToken).toBeNull();
     });
 
-    it('is null when primaryAsset is null', () => {
-      setupSelectors({ primaryAsset: null }, 'success');
+    it('is null when primaryFundingAsset is null', () => {
+      setupSelectors({ primaryFundingAsset: null }, 'success');
       const { result } = renderHook(() => useCardHomeData());
-      expect(result.current.primaryAsset).toBeNull();
+      expect(result.current.primaryToken).toBeNull();
     });
 
-    it('returns enriched token when primaryAsset exists and balance map has a match', () => {
+    it('returns enriched token when primaryFundingAsset exists and balance map has a match', () => {
       setupSelectors(
-        { primaryAsset: mockAsset, supportedTokens: [], assets: [] },
+        {
+          primaryFundingAsset: mockAsset,
+          availableFundingAssets: [],
+          fundingAssets: [],
+        },
         'success',
+        mockFundingToken,
+        [],
+        [],
       );
       mockGetAssetBalanceKey.mockReturnValue('mock-key');
       mockUseAssetBalances.mockReturnValue(
@@ -220,9 +244,8 @@ describe('useCardHomeData', () => {
 
       const { result } = renderHook(() => useCardHomeData());
 
-      expect(mockToCardTokenAllowance).toHaveBeenCalledWith(mockAsset);
-      expect(result.current.primaryAsset).toEqual({
-        ...mockLegacyToken,
+      expect(result.current.primaryToken).toEqual({
+        ...mockFundingToken,
         balanceFiat: '$500.00',
         balanceFormatted: '500 USDC',
         rawFiatNumber: 500,
@@ -232,15 +255,22 @@ describe('useCardHomeData', () => {
 
     it('returns enriched token with undefined balance fields when map has no match', () => {
       setupSelectors(
-        { primaryAsset: mockAsset, supportedTokens: [], assets: [] },
+        {
+          primaryFundingAsset: mockAsset,
+          availableFundingAssets: [],
+          fundingAssets: [],
+        },
         'success',
+        mockFundingToken,
+        [],
+        [],
       );
       mockUseAssetBalances.mockReturnValue(new Map());
 
       const { result } = renderHook(() => useCardHomeData());
 
-      expect(result.current.primaryAsset).toEqual({
-        ...mockLegacyToken,
+      expect(result.current.primaryToken).toEqual({
+        ...mockFundingToken,
         balanceFiat: undefined,
         balanceFormatted: undefined,
         rawFiatNumber: undefined,
@@ -249,17 +279,24 @@ describe('useCardHomeData', () => {
     });
   });
 
-  describe('supportedAssets', () => {
-    it('is an empty array when supportedTokens is absent', () => {
-      setupSelectors({ primaryAsset: null }, 'success');
+  describe('availableTokens', () => {
+    it('is an empty array when availableFundingAssets is absent', () => {
+      setupSelectors({ primaryFundingAsset: null }, 'success');
       const { result } = renderHook(() => useCardHomeData());
-      expect(result.current.supportedAssets).toEqual([]);
+      expect(result.current.availableTokens).toEqual([]);
     });
 
     it('converts each supported token and merges balance data', () => {
       setupSelectors(
-        { primaryAsset: null, supportedTokens: [mockAsset], assets: [] },
+        {
+          primaryFundingAsset: null,
+          availableFundingAssets: [mockAsset],
+          fundingAssets: [],
+        },
         'success',
+        null,
+        [mockFundingToken],
+        [],
       );
       mockGetAssetBalanceKey.mockReturnValue('mock-key');
       mockUseAssetBalances.mockReturnValue(
@@ -268,9 +305,9 @@ describe('useCardHomeData', () => {
 
       const { result } = renderHook(() => useCardHomeData());
 
-      expect(result.current.supportedAssets).toHaveLength(1);
-      expect(result.current.supportedAssets[0]).toEqual({
-        ...mockLegacyToken,
+      expect(result.current.availableTokens).toHaveLength(1);
+      expect(result.current.availableTokens[0]).toEqual({
+        ...mockFundingToken,
         balanceFiat: '$500.00',
         balanceFormatted: '500 USDC',
         rawFiatNumber: 500,
@@ -279,17 +316,24 @@ describe('useCardHomeData', () => {
     });
   });
 
-  describe('assetTokens', () => {
-    it('is an empty array when assets is absent', () => {
-      setupSelectors({ primaryAsset: null }, 'success');
+  describe('fundingTokens', () => {
+    it('is an empty array when fundingAssets is absent', () => {
+      setupSelectors({ primaryFundingAsset: null }, 'success');
       const { result } = renderHook(() => useCardHomeData());
-      expect(result.current.assetTokens).toEqual([]);
+      expect(result.current.fundingTokens).toEqual([]);
     });
 
-    it('converts each asset token and merges balance data', () => {
+    it('converts each funding token and merges balance data', () => {
       setupSelectors(
-        { primaryAsset: null, supportedTokens: [], assets: [mockAsset] },
+        {
+          primaryFundingAsset: null,
+          availableFundingAssets: [],
+          fundingAssets: [mockAsset],
+        },
         'success',
+        null,
+        [],
+        [mockFundingToken],
       );
       mockGetAssetBalanceKey.mockReturnValue('mock-key');
       mockUseAssetBalances.mockReturnValue(
@@ -298,9 +342,9 @@ describe('useCardHomeData', () => {
 
       const { result } = renderHook(() => useCardHomeData());
 
-      expect(result.current.assetTokens).toHaveLength(1);
-      expect(result.current.assetTokens[0]).toEqual({
-        ...mockLegacyToken,
+      expect(result.current.fundingTokens).toHaveLength(1);
+      expect(result.current.fundingTokens[0]).toEqual({
+        ...mockFundingToken,
         balanceFiat: '$500.00',
         balanceFormatted: '500 USDC',
         rawFiatNumber: 500,
@@ -309,15 +353,15 @@ describe('useCardHomeData', () => {
     });
   });
 
-  describe('assetBalancesMap', () => {
+  describe('balanceMap', () => {
     it('returns the map from useAssetBalances', () => {
       const mockMap = new Map([['key', mockBalanceEntry]]);
-      setupSelectors({ primaryAsset: null }, 'success');
+      setupSelectors({ primaryFundingAsset: null }, 'success');
       mockUseAssetBalances.mockReturnValue(mockMap);
 
       const { result } = renderHook(() => useCardHomeData());
 
-      expect(result.current.assetBalancesMap).toBe(mockMap);
+      expect(result.current.balanceMap).toBe(mockMap);
     });
   });
 });

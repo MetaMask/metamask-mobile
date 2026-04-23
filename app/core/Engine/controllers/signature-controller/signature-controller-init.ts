@@ -40,6 +40,6 @@ function getControllers(
   request: MessengerClientInitRequest<SignatureControllerMessenger>,
 ) {
   return {
-    preferencesController: request.getController('PreferencesController'),
+    preferencesController: request.getMessengerClient('PreferencesController'),
   };
 }

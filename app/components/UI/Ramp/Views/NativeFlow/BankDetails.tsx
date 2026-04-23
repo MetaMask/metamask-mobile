@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
@@ -7,7 +7,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Text,
@@ -201,19 +201,17 @@ const V2BankDetails = () => {
     order?.paymentMethod?.shortName ??
     '';
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings('deposit.bank_details.navbar_title', {
-            paymentMethod: paymentMethodShortName,
-          }),
-        },
-        theme,
-      ),
-    );
-  }, [navigation, theme, paymentMethodShortName]);
+  const headerTitle = useMemo(
+    () =>
+      strings('deposit.bank_details.navbar_title', {
+        paymentMethod: paymentMethodShortName,
+      }),
+    [paymentMethodShortName],
+  );
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleBankTransferSent = useCallback(async () => {
     setCancelOrderError(null);
@@ -313,18 +311,24 @@ const V2BankDetails = () => {
 
   return (
     <ScreenLayout>
-      <ScrollView
-        testID={BANK_DETAILS_TEST_IDS.REFRESH_CONTROL_SCROLLVIEW}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={isRefreshing}
-            onRefresh={handleOnRefresh}
-          />
-        }
-      >
-        <ScreenLayout.Body>
+      <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={headerTitle}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
+        <ScrollView
+          testID={BANK_DETAILS_TEST_IDS.REFRESH_CONTROL_SCROLLVIEW}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={isRefreshing}
+              onRefresh={handleOnRefresh}
+            />
+          }
+        >
           <ScreenLayout.Content style={styles.content}>
             <View style={styles.mainSection}>
               <Text variant={TextVariant.HeadingMd}>
@@ -445,8 +449,8 @@ const V2BankDetails = () => {
               <Loader size="large" color={theme.colors.primary.default} />
             )}
           </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScrollView>
+        </ScrollView>
+      </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content>

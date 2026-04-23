@@ -1730,8 +1730,11 @@ export class PerpsController extends BaseController<
       // IMPORTANT: Must use import() — NOT require() — for core/extension tree-shaking.
       // require() is synchronous and bundlers include it in the main bundle.
       // import() enables true code splitting so MYX is excluded when not enabled.
+      // NOTE: Keep the path in a variable so ts-bridge does not rewrite the
+      // import argument and strip the webpackIgnore magic comment in core dist.
+      const myxModulePath = './providers/MYXProvider';
       this.#myxRegistrationPromise = import(
-        /* webpackIgnore: true */ './providers/MYXProvider'
+        /* webpackIgnore: true */ myxModulePath
       )
         .then(({ MYXProvider }) => {
           this.registerMYXProvider(MYXProvider);
@@ -2758,14 +2761,21 @@ export class PerpsController extends BaseController<
    * Thin delegation to MarketDataService
    *
    * @param params - The operation parameters.
+   * @param options - Optional call modifiers.
+   * @param options.forceRefresh - Bypass the request-coalesce cache
+   * end-to-end (user-initiated refresh).
    * @returns Array of historical trade executions (fills).
    */
-  async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
+  async getOrderFills(
+    params?: GetOrderFillsParams,
+    options?: { forceRefresh?: boolean },
+  ): Promise<OrderFill[]> {
     const provider = this.getActiveProvider();
     return this.#marketDataService.getOrderFills({
       provider,
       params,
       context: this.#createServiceContext('getOrderFills'),
+      forceRefresh: options?.forceRefresh,
     });
   }
 
@@ -2774,14 +2784,21 @@ export class PerpsController extends BaseController<
    * Thin delegation to MarketDataService
    *
    * @param params - The operation parameters.
+   * @param options - Optional call modifiers.
+   * @param options.forceRefresh - Bypass the request-coalesce cache
+   * end-to-end (user-initiated refresh).
    * @returns Array of historical orders.
    */
-  async getOrders(params?: GetOrdersParams): Promise<Order[]> {
+  async getOrders(
+    params?: GetOrdersParams,
+    options?: { forceRefresh?: boolean },
+  ): Promise<Order[]> {
     const provider = this.getActiveProvider();
     return this.#marketDataService.getOrders({
       provider,
       params,
       context: this.#createServiceContext('getOrders'),
+      forceRefresh: options?.forceRefresh,
     });
   }
 
@@ -2816,14 +2833,21 @@ export class PerpsController extends BaseController<
    * Thin delegation to MarketDataService
    *
    * @param params - The operation parameters.
+   * @param options - Optional call modifiers.
+   * @param options.forceRefresh - Bypass the request-coalesce cache
+   * end-to-end (user-initiated refresh).
    * @returns Array of historical funding payments.
    */
-  async getFunding(params?: GetFundingParams): Promise<Funding[]> {
+  async getFunding(
+    params?: GetFundingParams,
+    options?: { forceRefresh?: boolean },
+  ): Promise<Funding[]> {
     const provider = this.getActiveProvider();
     return this.#marketDataService.getFunding({
       provider,
       params,
       context: this.#createServiceContext('getFunding'),
+      forceRefresh: options?.forceRefresh,
     });
   }
 

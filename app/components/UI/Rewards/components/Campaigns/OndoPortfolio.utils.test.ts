@@ -2,7 +2,7 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
-  sanitizeTokenName,
+  sanitizeOndoTokenName,
 } from './OndoPortfolio.utils';
 
 describe('groupPortfolioPositionsByAsset', () => {
@@ -113,38 +113,44 @@ describe('isPnlNonNegative', () => {
   });
 });
 
-describe('sanitizeTokenName', () => {
-  it('strips "(Ondo Tokenized)" and trims', () => {
-    expect(sanitizeTokenName('US Dollar (Ondo Tokenized)')).toBe('US Dollar');
+describe('sanitizeOndoTokenName', () => {
+  it('strips "(Ondo Tokenized)" suffix and trims', () => {
+    expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
+      'US Dollar',
+    );
+  });
+
+  it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
+    expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
   });
 
   it('is case-insensitive', () => {
-    expect(sanitizeTokenName('Token (ondo tokenized)')).toBe('Token');
+    expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
   });
 
-  it('truncates to 20 characters with ellipsis', () => {
-    expect(sanitizeTokenName('A Very Long Token Name That Exceeds')).toBe(
-      'A Very Long Token Na...',
+  it('truncates to 28 characters with ellipsis', () => {
+    expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
+      'A Very Long Token Name That...',
     );
   });
 
   it('strips then truncates with ellipsis', () => {
-    const long = 'Extremely Long Name Here (Ondo Tokenized)';
-    const result = sanitizeTokenName(long);
-    expect(result).toBe('Extremely Long Name...');
+    const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
+    const result = sanitizeOndoTokenName(long);
+    expect(result).toBe('Extremely Long Name Here Tha...');
   });
 
-  it('does not add ellipsis when exactly 20 characters', () => {
-    expect(sanitizeTokenName('12345678901234567890')).toBe(
-      '12345678901234567890',
+  it('does not add ellipsis when exactly 28 characters', () => {
+    expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
+      '1234567890123456789012345678',
     );
   });
 
   it('returns the name unchanged when no stripping or truncation is needed', () => {
-    expect(sanitizeTokenName('OUSG')).toBe('OUSG');
+    expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
   });
 
   it('handles empty string', () => {
-    expect(sanitizeTokenName('')).toBe('');
+    expect(sanitizeOndoTokenName('')).toBe('');
   });
 });

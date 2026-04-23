@@ -1,5 +1,5 @@
 import Braze, { type PushNotificationEvent } from '@braze/react-native-sdk';
-import { Platform, type EmitterSubscription } from 'react-native';
+import { type EmitterSubscription } from 'react-native';
 import Logger from '../../util/Logger';
 
 /**
@@ -36,23 +36,22 @@ export function getBrazeInitialDeeplink(): Promise<string | null> {
  * Subscribe to Braze push notification tap events and invoke `callback` with
  * the deep link URL when one is present.
  *
- * Android-only — on iOS, warm/suspended push deep links flow through the
- * system URL handlers (Linking / Branch) which are already wired up.
+ * On iOS, the native `BrazeDelegate.shouldOpenURL` routes universal links
+ * (Branch domains) through Branch for proper resolution, and suppresses all
+ * other URLs. Non-universal-link URLs are handled exclusively through this JS
+ * listener, tagged with ORIGIN_BRAZE. Universal links are resolved by Branch
+ * and delivered through the Branch flow with ORIGIN_DEEPLINK (unless further
+ * tagged).
  *
- * @returns An unsubscribe function, or null on iOS / on error.
+ * @returns An EmitterSubscription, or null on error.
  */
 export function subscribeToBrazePushDeeplinks(
   callback: (deeplink: string) => void,
 ): EmitterSubscription | null {
-  if (Platform.OS !== 'android') {
-    return null;
-  }
-
   try {
     return Braze.addListener(
       Braze.Events.PUSH_NOTIFICATION_EVENT,
       (event: PushNotificationEvent) => {
-        // Only handle user-tapped notifications, not foreground-received ones
         if (event.payload_type !== 'push_opened') {
           return;
         }

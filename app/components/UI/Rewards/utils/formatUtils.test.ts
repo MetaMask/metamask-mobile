@@ -26,6 +26,8 @@ import {
   formatUsd,
   formatSignedUsd,
   formatCompactUsd,
+  sanitizeOndoTokenName,
+  formatOrdinalRank,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -1367,6 +1369,60 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatOrdinalRank', () => {
+    it('formats 1 as 1st', () => {
+      expect(formatOrdinalRank(1)).toBe('1st');
+    });
+
+    it('formats 2 as 2nd', () => {
+      expect(formatOrdinalRank(2)).toBe('2nd');
+    });
+
+    it('formats 3 as 3rd', () => {
+      expect(formatOrdinalRank(3)).toBe('3rd');
+    });
+
+    it('formats 4 as 4th', () => {
+      expect(formatOrdinalRank(4)).toBe('4th');
+    });
+
+    it('formats 11 as 11th', () => {
+      expect(formatOrdinalRank(11)).toBe('11th');
+    });
+
+    it('formats 12 as 12th', () => {
+      expect(formatOrdinalRank(12)).toBe('12th');
+    });
+
+    it('formats 13 as 13th', () => {
+      expect(formatOrdinalRank(13)).toBe('13th');
+    });
+
+    it('formats 21 as 21st', () => {
+      expect(formatOrdinalRank(21)).toBe('21st');
+    });
+
+    it('formats 22 as 22nd', () => {
+      expect(formatOrdinalRank(22)).toBe('22nd');
+    });
+
+    it('formats 23 as 23rd', () => {
+      expect(formatOrdinalRank(23)).toBe('23rd');
+    });
+
+    it('formats 111 as 111th', () => {
+      expect(formatOrdinalRank(111)).toBe('111th');
+    });
+
+    it('uses absolute value for negative ranks', () => {
+      expect(formatOrdinalRank(-5)).toBe('5th');
+    });
+
+    it('floors non-integer ranks', () => {
+      expect(formatOrdinalRank(3.7)).toBe('3rd');
+    });
+  });
+
   describe('isPercentChangeNonNegative', () => {
     it('returns true for positive number', () => {
       expect(isPercentChangeNonNegative(0.15)).toBe(true);
@@ -1595,6 +1651,61 @@ describe('formatUtils', () => {
 
     it('formats negative thousands', () => {
       expect(formatCompactUsd(-75_000)).toBe('-$75K');
+    });
+  });
+
+  describe('sanitizeOndoTokenName', () => {
+    it('strips "(Ondo Tokenized)" suffix and trims', () => {
+      expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
+        'US Dollar',
+      );
+    });
+
+    it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
+      expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
+    });
+
+    it('is case-insensitive for suffix form', () => {
+      expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
+    });
+
+    it('is case-insensitive for prefix form', () => {
+      expect(sanitizeOndoTokenName('ONDO TOKENIZED Apple')).toBe('Apple');
+    });
+
+    it('truncates to 28 characters with ellipsis', () => {
+      expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
+        'A Very Long Token Name That...',
+      );
+    });
+
+    it('strips suffix then truncates with ellipsis', () => {
+      const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
+      expect(sanitizeOndoTokenName(long)).toBe(
+        'Extremely Long Name Here Tha...',
+      );
+    });
+
+    it('strips prefix then truncates with ellipsis', () => {
+      expect(
+        sanitizeOndoTokenName(
+          'Ondo Tokenized Extremely Long Name That Exceeds',
+        ),
+      ).toBe('Extremely Long Name That Exc...');
+    });
+
+    it('does not add ellipsis when exactly 28 characters', () => {
+      expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
+        '1234567890123456789012345678',
+      );
+    });
+
+    it('leaves unrelated names unchanged', () => {
+      expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
+    });
+
+    it('returns empty string for an empty input', () => {
+      expect(sanitizeOndoTokenName('')).toBe('');
     });
   });
 });

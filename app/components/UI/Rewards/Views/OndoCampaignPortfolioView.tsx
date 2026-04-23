@@ -7,6 +7,7 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
+
 import {
   Box,
   IconName,
@@ -27,6 +28,7 @@ import { formatRewardsDateLabel } from '../utils/formatUtils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 type ActivityListItem =
   | { kind: 'date-header'; dateKey: string; label: string }
@@ -46,6 +48,11 @@ const OndoCampaignPortfolioView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<PortfolioRouteParams>>();
   const { campaignId } = route.params;
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_activity',
+    campaign_id: campaignId,
+  });
 
   const {
     activityEntries,
