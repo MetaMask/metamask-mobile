@@ -1034,6 +1034,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         sendActiveAccount(nativeEvent.url);
 
         iconRef.current = undefined;
+        iframeContextRef.current = { isIframe: false };
 
         initializeBackgroundBridge(urlOrigin, true);
       },
