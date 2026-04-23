@@ -11,21 +11,38 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        (props: { children: unknown }, _ref: unknown) => (
-          <View testID="bottom-sheet">{props.children as React.ReactNode}</View>
-        ),
-      ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactModule = jest.requireActual('react');
+  const actualModule = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+  const { View } = jest.requireActual('react-native');
+
+  const BottomSheet = ReactModule.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        goBack?: () => void;
+      },
+      ref: React.Ref<unknown>,
+    ) => {
+      ReactModule.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: () => props.goBack?.(),
+      }));
+
+      return ReactModule.createElement(
+        View,
+        { testID: 'bottom-sheet' },
+        props.children,
+      );
+    },
+  );
+
+  return {
+    ...actualModule,
+    BottomSheet,
+  };
+});
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
