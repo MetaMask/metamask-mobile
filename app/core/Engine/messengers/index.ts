@@ -146,13 +146,11 @@ import {
   getProfileMetricsControllerInitMessenger,
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
-import {
-  getAnalyticsControllerMessenger,
-  getAnalyticsControllerInitMessenger,
-} from './analytics-controller-messenger';
+import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
+import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
@@ -466,7 +464,7 @@ export const MESSENGER_FACTORIES = {
   },
   AnalyticsController: {
     getMessenger: getAnalyticsControllerMessenger,
-    getInitMessenger: getAnalyticsControllerInitMessenger,
+    getInitMessenger: noop,
   },
   AiDigestController: {
     getMessenger: getAiDigestControllerMessenger,
@@ -482,6 +480,10 @@ export const MESSENGER_FACTORIES = {
   },
   SocialController: {
     getMessenger: getSocialControllerMessenger,
+    getInitMessenger: noop,
+  },
+  AuthenticatedUserStorageService: {
+    getMessenger: getAuthenticatedUserStorageServiceMessenger,
     getInitMessenger: noop,
   },
   CardController: {

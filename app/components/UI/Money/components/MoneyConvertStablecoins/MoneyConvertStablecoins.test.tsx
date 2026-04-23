@@ -1,10 +1,23 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import MoneyConvertStablecoins from './MoneyConvertStablecoins';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { ConvertTokenRowTestIds } from '../../../Earn/components/Musd/ConvertTokenRow';
+import {
+  selectHasUnapprovedMusdConversion,
+  selectHasInFlightMusdConversion,
+  selectMusdConversionStatuses,
+} from '../../../Earn/selectors/musdConversionStatus';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.Mock;
 
 jest.mock('../../../../../component-library/base-components/TagBase', () => ({
   __esModule: true,
@@ -100,6 +113,12 @@ const defaultProps = {
 describe('MoneyConvertStablecoins', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectHasUnapprovedMusdConversion) return false;
+      if (selector === selectHasInFlightMusdConversion) return false;
+      if (selector === selectMusdConversionStatuses) return {};
+      return undefined;
+    });
   });
 
   describe('with eligible tokens', () => {

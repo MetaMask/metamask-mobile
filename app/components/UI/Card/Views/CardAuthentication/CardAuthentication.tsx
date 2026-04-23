@@ -1,6 +1,6 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
+import { Platform, TouchableOpacity } from 'react-native';
 import {
   Box,
   FontWeight,
@@ -13,8 +13,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import { useTheme } from '../../../../../util/theme';
 import { useCardAuth } from '../../hooks/useCardAuth';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
@@ -34,7 +34,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+const autoComplete = Platform.select({
   android: 'sms-otp',
   default: 'one-time-code',
 });
@@ -299,6 +299,7 @@ const CardAuthentication = () => {
               value={confirmCode}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
+              // @ts-expect-error - autoComplete is not typed correctly
               autoComplete={autoComplete}
               maxLength={CODE_LENGTH}
               accessibilityLabel={strings(
@@ -407,7 +408,7 @@ const CardAuthentication = () => {
             <Label>{strings('card.card_authentication.email_label')}</Label>
             <TextField
               autoCapitalize={'none'}
-              autoComplete="one-time-code"
+              autoComplete="username"
               onChangeText={handleEmailChange}
               numberOfLines={1}
               value={email}
@@ -425,7 +426,7 @@ const CardAuthentication = () => {
             <TextField
               autoCapitalize={'none'}
               onChangeText={handlePasswordChange}
-              autoComplete="one-time-code"
+              autoComplete="password"
               numberOfLines={1}
               value={password}
               maxLength={255}
