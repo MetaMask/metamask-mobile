@@ -235,7 +235,7 @@ jobs:
           BODY="$(jq -n \
             --arg state success \
             --arg context 'ci/ios-js-bundle-size' \
-            --arg desc "iOS JS bundle: ${FILE_SIZE_MB} MB" \
+            --arg desc "${FILE_SIZE_MB};" \
             --arg target_url "$TARGET_URL" \
             '{
               state: $state,
