@@ -1,0 +1,58 @@
+name: 'Post build-source-hash commit status'
+description: >-
+  Computes the @expo/fingerprint hash via `yarn fingerprint:generate` and posts
+  it as a `build-source-hash` GitHub commit status on the current SHA. This
+  makes the fingerprint queryable by future workflow runs so they can locate a
+  prior run whose uploaded native build artifacts match the current source.
+
+inputs:
+  github-token:
+    description: 'GitHub token with `statuses: write` permission'
+    required: true
+  status-context:
+    description: 'GitHub commit status context name'
+    required: false
+    default: 'build-source-hash'
+
+outputs:
+  fingerprint:
+    description: 'The @expo/fingerprint hash that was posted'
+    value: ${{ steps.generate-fingerprint.outputs.fingerprint }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate fingerprint
+      id: generate-fingerprint
+      shell: bash
+      run: |
+        FINGERPRINT=$(yarn fingerprint:generate)
+        echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+        echo "Current fingerprint: ${FINGERPRINT}"
+
+    - name: Post commit status
+      uses: actions/github-script@v7
+      continue-on-error: true
+      env:
+        FINGERPRINT: ${{ steps.generate-fingerprint.outputs.fingerprint }}
+        STATUS_CONTEXT: ${{ inputs.status-context }}
+        TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const { FINGERPRINT, STATUS_CONTEXT, TARGET_SHA, RUN_URL } = process.env;
+          if (!FINGERPRINT) {
+            core.setFailed('Fingerprint is empty; refusing to post status');
+            return;
+          }
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: TARGET_SHA,
+            state: 'success',
+            context: STATUS_CONTEXT,
+            description: FINGERPRINT.slice(0, 140),
+            target_url: RUN_URL,
+          });
+          core.info(`Posted ${STATUS_CONTEXT}=${FINGERPRINT} on ${TARGET_SHA}`);

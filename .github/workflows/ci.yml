@@ -78,6 +78,41 @@ jobs:
             echo "No changes detected"
           fi
 
+  post-build-source-hash:
+    name: Post build-source-hash commit status
+    runs-on: ubuntu-latest
+    # Always publish the commit status (even for merge_group or when builds are
+    # skipped) so future runs can still find this commit when searching for
+    # reusable native builds.
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      statuses: write
+    needs:
+      - check-skip-merge-queue
+    outputs:
+      fingerprint: ${{ steps.publish.outputs.fingerprint }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Post build-source-hash commit status
+        id: publish
+        uses: ./.github/actions/post-build-source-hash
+        with:
+          github-token: ${{ github.token }}
+
   dedupe:
     name: Dedupe
     runs-on: ubuntu-latest
@@ -538,6 +573,9 @@ jobs:
     name: 'Build Android APKs'
     if: >-
       ${{
+        !cancelled() &&
+        needs.needs_e2e_build.result == 'success' &&
+        needs.smart-e2e-selection.result == 'success' &&
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
         (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
@@ -546,12 +584,16 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
+      actions: read
+      pull-requests: read
+      statuses: read
+    needs: [needs_e2e_build, smart-e2e-selection, post-build-source-hash]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
       keystore_target: 'qa'
+      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
     secrets: inherit
 
   e2e-smoke-tests-android:
@@ -573,8 +615,15 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
+    # See `build-android-apks` above for why `!cancelled()` + explicit
+    # `result == 'success'` checks are used here: a failure/skip of
+    # `post-build-source-hash` must NOT block the E2E build — it only
+    # disables cross-run cache reuse.
     if: >-
       ${{
+        !cancelled() &&
+        needs.needs_e2e_build.result == 'success' &&
+        needs.smart-e2e-selection.result == 'success' &&
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
         (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
@@ -583,8 +632,13 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
+      actions: read
+      pull-requests: read
+      statuses: read
+    needs: [needs_e2e_build, smart-e2e-selection, post-build-source-hash]
     uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
     secrets: inherit
 
   ios-tests-ready:

@@ -25,6 +25,26 @@ on:
         required: false
         default: 'qa'
         type: string
+      source-fingerprint:
+        description: >-
+          Canonical @expo/fingerprint hash for this commit, computed once in
+          the `post-build-source-hash` job. Used for cache keys and cross-run
+          artifact lookups. When empty (e.g. forked PR where the hash job is
+          skipped), the build compiles fresh with no cache reuse.
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+  pull-requests: read
+  # Required by `find-reusable-build` so `getCombinedStatusForRef` can read
+  # the `build-source-hash` commit status on candidate runs. On a public
+  # repo unauthenticated reads already work, but declaring this explicitly
+  # future-proofs us against visibility/token-scope changes.
+  statuses: read
 
 jobs:
   build-android-apks:
@@ -44,6 +64,16 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      # Escape hatch: a `force-builds` label on the PR or a `[force-builds]`
+      # token in the head commit message forces a fresh native build and
+      # bypasses both the GHA cache restores and the cross-run artifact
+      # lookup. Honored only on `pull_request` events.
+      - name: Check force-builds override
+        id: force-builds
+        uses: ./.github/actions/check-force-builds
+        with:
+          github-token: ${{ github.token }}
 
       - name: Setup Android Build Environment
         timeout-minutes: 15
@@ -75,13 +105,21 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
-      - name: Generate current fingerprint
-        id: generate-fingerprint
+      # Use the canonical fingerprint computed upstream by `post-build-source-hash`.
+      # Do NOT recompute it here — Cirrus ubuntu `node_modules/` differs from
+      # ubuntu-latest `node_modules/` (different Node/yarn versions, prebuilt
+      # binaries), so recomputing per-runner would give a different value than
+      # the one posted as the `build-source-hash` commit status and break
+      # cross-run artifact reuse.
+      - name: Report source fingerprint
         run: |
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Current fingerprint: ${FINGERPRINT}"
+          if [[ -z "$SOURCE_FINGERPRINT" ]]; then
+            echo "::warning::No source-fingerprint provided (likely a forked PR); caches and reuse disabled."
+          else
+            echo "Source fingerprint: $SOURCE_FINGERPRINT"
+          fi
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
 
       - name: Determine target paths and Artifact Names
         id: determine-target-paths
@@ -105,6 +143,7 @@ jobs:
 
       - name: Restore APKs matching fingerprint from branch cache
         id: apk-cache-restore
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -117,10 +156,10 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore APKs matching fingerprint from main cache
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -134,13 +173,54 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      # Cross-PR reuse: before building, try to find a prior workflow run whose
+      # build-source-hash commit status matches our fingerprint AND whose
+      # APK + androidTest APK artifacts are still available. Falls back to a
+      # fresh build when no match is found.
+      - name: Find reusable build from prior run
+        id: find-reusable-build
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source-fingerprint }}
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
+          github-token: ${{ github.token }}
+
+      - name: Download reusable APK from prior run
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Download reusable androidTest APK from prior run
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Log reused Android build source
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        run: |
+          echo "Reusing Android build from run ${{ steps.find-reusable-build.outputs.run-id }}"
+          echo "Source SHA: ${{ steps.find-reusable-build.outputs.source-sha }}"
+          echo "Source branch: ${{ steps.find-reusable-build.outputs.source-branch }}"
+        shell: bash
 
       - name: Restore Gradle dependencies from branch cache
         id: gradle-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' && steps.find-reusable-build.outputs.found != 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -158,7 +238,7 @@ jobs:
       - name: Restore Gradle dependencies from main cache
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' && steps.find-reusable-build.outputs.found != 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -174,7 +254,7 @@ jobs:
           key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' && steps.find-reusable-build.outputs.found != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=4096"
@@ -227,7 +307,7 @@ jobs:
           MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' || steps.apk-cache-restore-main.outputs.cache-hit == 'true' }}
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' || steps.apk-cache-restore-main.outputs.cache-hit == 'true' || steps.find-reusable-build.outputs.found == 'true' }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
