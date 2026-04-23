@@ -103,6 +103,8 @@ jest.mock('../Engine/Engine', () => {
     },
     controllerMessenger: {
       call: jest.fn().mockResolvedValue('snap-result'),
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
     },
   };
   return {

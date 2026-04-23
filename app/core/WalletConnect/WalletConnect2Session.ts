@@ -12,12 +12,14 @@ import {
   Hex,
   KnownCaipNamespace,
 } from '@metamask/utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import Routes from '../../../app/constants/navigation/Routes';
 import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import Device from '../../util/device';
 import Logger from '../../util/Logger';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
+import Engine from '../Engine';
 import { Minimizer } from '../NativeModules';
 import { getPermittedAccounts } from '../Permissions';
 import { INTERNAL_ORIGINS } from '../../constants/transaction';
@@ -71,6 +73,7 @@ class WalletConnect2Session {
   private lastChainId: Hex;
   private isHandlingChainChange = false;
   private storeUnsubscribe: (() => void) | null = null;
+  private accountChangeUnsubscribe: (() => void) | null = null;
 
   private _isHandlingRequest = false;
 
@@ -130,6 +133,7 @@ class WalletConnect2Session {
     this.checkPendingRequests();
     this.lastChainId = this.getCurrentChainId();
     this.storeUnsubscribe = store.subscribe(this.onStoreChange.bind(this));
+    this.accountChangeUnsubscribe = this.subscribeToMultichainAccountChanges();
   }
 
   /**
@@ -222,6 +226,90 @@ class WalletConnect2Session {
       this.channelId,
     );
     return perOriginChainId;
+  }
+
+  /**
+   * Subscribe to non-EVM account changes (Solana, Tron, …) via the
+   * AccountsController. EVM account changes are handled separately through
+   * BackgroundBridge → WalletConnectPort.
+   *
+   * When the selected account switches to a non-EVM type that the session
+   * recognises, we rebuild the approved namespaces and push the updated
+   * session to the dapp so it sees the new account.
+   *
+   * @returns An unsubscribe callback.
+   */
+  private subscribeToMultichainAccountChanges(): () => void {
+    const handler = (account: InternalAccount) => {
+      this.onMultichainAccountChange(account);
+    };
+
+    const eventName = 'AccountsController:selectedAccountChange';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (Engine.controllerMessenger as any).subscribe(eventName, handler);
+
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (Engine.controllerMessenger as any).unsubscribe(eventName, handler);
+    };
+  }
+
+  /**
+   * Callback for `AccountsController:selectedAccountChange`. Triggers a
+   * session namespace rebuild when the newly selected account belongs to a
+   * non-EVM namespace that the active WC session includes.
+   */
+  private onMultichainAccountChange(account: InternalAccount) {
+    // Account type format is `namespace:subtype` (e.g. `solana:data-account`,
+    // `tron:eoa`). Extract the CAIP-2 namespace prefix.
+    const namespace = account.type.split(':')[0];
+
+    // EVM accounts are propagated through BackgroundBridge → WalletConnectPort.
+    if (namespace === KnownCaipNamespace.Eip155) return;
+
+    // Only act when the active session actually includes this namespace.
+    const nsConfig = this.session.namespaces?.[namespace];
+    if (!nsConfig) return;
+
+    // Only act when the newly selected account is among the session's
+    // authorised accounts (CAIP-10 format: `namespace:chainRef:address`).
+    const isPermitted = nsConfig.accounts?.some(
+      (caip10: string) =>
+        caip10.split(':').slice(2).join(':') === account.address,
+    );
+    if (!isPermitted) return;
+
+    this.refreshMultichainNamespaces().catch((err) => {
+      DevLogger.log(
+        '[wc][WC2Session] multichain account change update failed',
+        err,
+      );
+    });
+  }
+
+  /**
+   * Rebuild the approved namespaces from all registered adapters and push
+   * the updated session to the dapp. Used when a non-EVM account changes
+   * and the dapp needs to see the updated account list.
+   */
+  private async refreshMultichainNamespaces() {
+    const mergedNamespaces = await this.computeMergedNamespaces();
+    if (!mergedNamespaces) return;
+
+    await this.web3Wallet.updateSession({
+      topic: this.session.topic,
+      namespaces: mergedNamespaces,
+    });
+
+    // Sync local session state from WalletConnect's canonical copy.
+    const activeSession =
+      this.web3Wallet.getActiveSessions?.()?.[this.session.topic];
+    if (activeSession) {
+      this.session = {
+        ...activeSession,
+        namespaces: normalizeSessionNamespaces(activeSession.namespaces),
+      };
+    }
   }
 
   /** Check for pending unresolved requests */
@@ -787,6 +875,8 @@ class WalletConnect2Session {
   removeListeners = async () => {
     this.storeUnsubscribe?.();
     this.storeUnsubscribe = null;
+    this.accountChangeUnsubscribe?.();
+    this.accountChangeUnsubscribe = null;
     this.backgroundBridge.onDisconnect();
   };
 }
