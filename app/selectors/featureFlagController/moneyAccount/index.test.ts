@@ -101,7 +101,7 @@ describe('Money Account feature flag selectors', () => {
       };
 
       const result = selectMoneyAccountVaultConfig.resultFunc({
-        moneyAccountDepositConfig: remoteConfig,
+        moneyAccountVaultConfig: remoteConfig,
       });
 
       expect(result).toEqual(remoteConfig);
@@ -111,7 +111,7 @@ describe('Money Account feature flag selectors', () => {
       process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED = 'true';
 
       const result = selectMoneyAccountVaultConfig.resultFunc({
-        moneyAccountDepositConfig: null,
+        moneyAccountVaultConfig: null,
       });
 
       expect(result).toEqual(DEV_VAULT_CONFIG);
@@ -121,7 +121,7 @@ describe('Money Account feature flag selectors', () => {
       process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED = 'false';
 
       const result = selectMoneyAccountVaultConfig.resultFunc({
-        moneyAccountDepositConfig: null,
+        moneyAccountVaultConfig: null,
       });
 
       expect(result).toBeUndefined();
@@ -131,7 +131,7 @@ describe('Money Account feature flag selectors', () => {
       delete process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED;
 
       const result = selectMoneyAccountVaultConfig.resultFunc({
-        moneyAccountDepositConfig: null,
+        moneyAccountVaultConfig: null,
       });
 
       expect(result).toBeUndefined();
@@ -149,7 +149,7 @@ describe('Money Account feature flag selectors', () => {
       };
 
       const result = selectMoneyAccountVaultConfig.resultFunc({
-        moneyAccountDepositConfig: remoteConfig,
+        moneyAccountVaultConfig: remoteConfig,
       });
 
       expect(result).toEqual(remoteConfig);
