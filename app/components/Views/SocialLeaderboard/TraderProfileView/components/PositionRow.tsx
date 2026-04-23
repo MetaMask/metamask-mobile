@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
@@ -9,41 +9,19 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  AvatarToken,
-  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { chainNameToId } from '../../utils/chainMapping';
-import { addThousandsSeparator } from '../../utils/numberFormatting';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import {
-  formatPerpsFiat,
-  formatPercentage,
-  formatOrderCardDate,
-} from '../../../../UI/Perps/utils/formatUtils';
+  formatUsd,
+  formatTokenAmount,
+  formatPercent,
+  formatTradeDate,
+} from '../../utils/formatters';
 
 export interface PositionRowProps {
   position: Position;
   onPress?: (position: Position) => void;
-}
-
-function formatUsd(value: number | null | undefined): string {
-  if (value == null) return '\u2014';
-  const sign = value < 0 ? '-' : '';
-  return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
-}
-
-function formatTokenAmount(value: number): string {
-  const sign = value < 0 ? '-' : '';
-  const abs = Math.abs(value);
-  const [whole, frac = ''] = abs.toString().split('.');
-  const commaWhole = addThousandsSeparator(whole);
-  return frac ? `${sign}${commaWhole}.${frac}` : `${sign}${commaWhole}`;
-}
-
-function formatPercent(value: number | null | undefined): string {
-  if (value == null) return '\u2014';
-  return formatPercentage(value, 0);
 }
 
 const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
@@ -63,12 +41,6 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
   const isPnlPositive = hasPnl && (displayPnlPercent ?? 0) >= 0;
   const testID = `position-row-${position.tokenSymbol}`;
 
-  const tokenImageUrl = useMemo(() => {
-    const chainId = chainNameToId(position.chain);
-    if (!chainId) return undefined;
-    return getAssetImageUrl(position.tokenAddress, chainId);
-  }, [position.chain, position.tokenAddress]);
-
   const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -83,11 +55,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
         gap={4}
         twClassName="flex-1 min-w-0 mr-3"
       >
-        <AvatarToken
-          name={position.tokenSymbol}
-          src={tokenImageUrl ? { uri: tokenImageUrl } : undefined}
-          size={AvatarTokenSize.Lg}
-        />
+        <PositionTokenAvatar position={position} />
 
         <Box twClassName="flex-1 min-w-0">
           <Text
@@ -104,7 +72,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
             numberOfLines={1}
           >
             {isClosed
-              ? formatOrderCardDate(position.lastTradeAt)
+              ? formatTradeDate(position.lastTradeAt)
               : `${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
           </Text>
         </Box>
