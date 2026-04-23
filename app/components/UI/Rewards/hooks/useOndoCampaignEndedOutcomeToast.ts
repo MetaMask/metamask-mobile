@@ -16,7 +16,7 @@ import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
   selectCampaigns,
-  selectCampaignParticipantStatusById,
+  selectCampaignParticipantStatus,
   selectIsCampaignOutcomeToastDismissed,
 } from '../../../../reducers/rewards/selectors';
 import { dismissCampaignOutcomeToast } from '../../../../reducers/rewards';
@@ -49,8 +49,8 @@ export function useOndoCampaignEndedOutcomeToast(): void {
 
   const campaignId = campaign?.id;
   const isOptedIn =
-    useSelector(selectCampaignParticipantStatusById(campaignId))?.optedIn ===
-    true;
+    useSelector(selectCampaignParticipantStatus(subscriptionId, campaignId))
+      ?.optedIn === true;
 
   const isEligible =
     Boolean(subscriptionId) && Boolean(campaignId) && isOptedIn;

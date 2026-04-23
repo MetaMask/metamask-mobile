@@ -541,18 +541,6 @@ export type RewardsControllerGetOndoCampaignLeaderboardPositionAction = {
 };
 
 /**
- * Fetch the winning code for the current user in a completed Ondo GM campaign.
- * This is an authenticated, no-cache endpoint — called only when the winner
- * screen is shown, so freshness is guaranteed.
- * Returns null when rewards are disabled; otherwise propagates request failures
- * so callers can surface retry UI (unlike a silent null on errors).
- */
-export type RewardsControllerGetOndoCampaignWinnerCodeAction = {
-  type: `RewardsController:getOndoCampaignWinnerCode`;
-  handler: RewardsController['getOndoCampaignWinnerCode'];
-};
-
-/**
  * Get the current user's Ondo GM portfolio for a campaign.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes under
@@ -777,7 +765,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetOndoCampaignDepositsAction
   | RewardsControllerGetOndoCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
-  | RewardsControllerGetOndoCampaignWinnerCodeAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
   | RewardsControllerGetOndoCampaignActivityAction
   | RewardsControllerGetActivityIfChangedAction

@@ -1407,18 +1407,13 @@ describe('OndoCampaignDetailsView', () => {
         hasFetched: true,
         refetch: jest.fn(),
       });
-      mockUseGetOndoLeaderboardPosition.mockReturnValue({
-        position: { ...winnerPosition, rank: 10, qualified: false },
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: jest.fn(),
-      });
-      render(<OndoCampaignDetailsView />);
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
-        expect.anything(),
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignDetailsView />,
       );
+      fireEvent.press(getByTestId('ondo-campaign-portfolio-not-eligible'));
+      expect(getByTestId('ondo-not-eligible-sheet')).toBeDefined();
+      fireEvent.press(getByTestId('ondo-not-eligible-sheet-close'));
+      expect(queryByTestId('ondo-not-eligible-sheet')).toBeNull();
     });
 
     it('does not auto-navigate when campaign is active', () => {

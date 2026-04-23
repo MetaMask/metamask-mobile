@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignParticipantStatusById } from '../../../../reducers/rewards/selectors';
+import { selectCampaignParticipantStatus } from '../../../../reducers/rewards/selectors';
 import type { OndoGmCampaignParticipantOutcomeDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseOndoCampaignParticipantOutcomeResult {
@@ -16,8 +16,8 @@ export function useOndoCampaignParticipantOutcome(
 ): UseOndoCampaignParticipantOutcomeResult {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isOptedIn =
-    useSelector(selectCampaignParticipantStatusById(campaignId))?.optedIn ===
-    true;
+    useSelector(selectCampaignParticipantStatus(subscriptionId, campaignId))
+      ?.optedIn === true;
   const [outcome, setOutcome] =
     useState<OndoGmCampaignParticipantOutcomeDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
