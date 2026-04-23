@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
   formatChainIdToHex,
@@ -8,6 +9,7 @@ import type { Position } from '@metamask/social-controllers';
 import { useAssetMetadata } from '../../../../../UI/Bridge/hooks/useAssetMetadata';
 import { chainNameToId } from '../../../utils/chainMapping';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
+import { selectIsBridgeEnabledSourceFactory } from '../../../../../../core/redux/slices/bridge';
 
 export interface QuickBuySetupResult {
   /** The destination chain ID (hex or CAIP) for this position's chain */
@@ -29,16 +31,17 @@ export interface QuickBuySetupResult {
 export const useQuickBuySetup = (
   position: Position | null,
 ): QuickBuySetupResult => {
+  const isBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
+
   // Destination chain from the position — hex for EVM, CAIP for non-EVM
   const destChainId = useMemo(() => {
     if (!position) return undefined;
     const caipId = chainNameToId(position.chain);
-    return caipId
-      ? isNonEvmChainId(caipId)
-        ? caipId
-        : formatChainIdToHex(caipId)
-      : undefined;
-  }, [position]);
+    if (!caipId) return undefined;
+    if (isNonEvmChainId(caipId)) return caipId;
+    if (!isBridgeEnabledSource(caipId)) return undefined;
+    return formatChainIdToHex(caipId);
+  }, [position, isBridgeEnabledSource]);
 
   const isUnsupportedChain = Boolean(position && !destChainId);
 
