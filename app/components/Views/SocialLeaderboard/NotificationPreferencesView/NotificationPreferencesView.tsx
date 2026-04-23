@@ -276,7 +276,10 @@ const NotificationPreferencesView = () => {
   // the user previously had it ON. Render a skeleton instead; interaction
   // remains disabled until we have authoritative server state.
   const showPreferencesSkeleton = isLoadingPreferences;
-  const globalOff = !preferences.enabled;
+  // Treat "still loading" identically to "disabled" so the traders section
+  // never renders in a muted/disabled state based on the false default while
+  // the preferences GET is in flight.
+  const globalOff = isLoadingPreferences || !preferences.enabled;
 
   const showFollowedError =
     Boolean(followedError) && followedTraders.length === 0;
