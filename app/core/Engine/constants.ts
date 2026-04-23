@@ -21,6 +21,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'TransakService',
   'ComplianceService',
   'SocialService',
+  'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
 ] as const;
 
