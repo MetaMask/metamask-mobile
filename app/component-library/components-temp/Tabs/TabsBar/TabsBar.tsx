@@ -279,9 +279,11 @@ const TabsBar: React.FC<TabsBarProps> = ({
     }
   };
 
+  const hasIcons = tabs.some((tab) => tab.iconName);
+
   return (
     <Box
-      twClassName={`relative overflow-hidden px-4 border-b border-border-default ${twClassName || ''}`}
+      twClassName={`relative overflow-hidden px-4 ${hasIcons ? 'border-b border-border-muted' : ''} ${twClassName || ''}`}
       testID={testID}
       onLayout={handleContainerLayout as (layoutEvent: unknown) => void}
       {...boxProps}
@@ -310,7 +312,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
                 onPress={() => handleTabPress(index)}
                 onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
                 testID={tab.testID ?? `${testID}-tab-${index}`}
-                style={tw.style('py-2')}
+                style={hasIcons ? tw.style('py-2') : undefined}
               />
             ))}
 
@@ -318,7 +320,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
             {activeIndex >= 0 && isInitialized && (
               <Animated.View
                 style={tw.style(
-                  'absolute -bottom-px h-0.5 bg-icon-default z-1',
+                  `absolute ${hasIcons ? '-bottom-px' : 'bottom-0'} h-0.5 bg-icon-default z-1`,
                   {
                     width: underlineWidthAnimated,
                     transform: [{ translateX: underlineAnimated }],
@@ -350,10 +352,13 @@ const TabsBar: React.FC<TabsBarProps> = ({
           {/* Animated underline for non-scrollable tabs */}
           {activeIndex >= 0 && isInitialized && (
             <Animated.View
-              style={tw.style('absolute -bottom-px h-0.5 bg-icon-default', {
-                width: underlineWidthAnimated,
-                transform: [{ translateX: underlineAnimated }],
-              })}
+              style={tw.style(
+                `absolute ${hasIcons ? '-bottom-px' : 'bottom-0'} h-0.5 bg-icon-default`,
+                {
+                  width: underlineWidthAnimated,
+                  transform: [{ translateX: underlineAnimated }],
+                },
+              )}
             />
           )}
         </Box>

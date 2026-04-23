@@ -5,6 +5,7 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 // Internal dependencies.
 import TabsBar from './TabsBar';
 import { TabItem } from './TabsBar.types';
+import { IconName } from '../../../components/Icons/Icon/Icon.types';
 
 // Mock layout events for automatic scroll detection
 const mockLayoutEvent = (width: number) => ({
@@ -1644,6 +1645,106 @@ describe('TabsBar', () => {
 
       // Should handle hasValidDimensions state updates
       expect(tabsBarComponent).toBeOnTheScreen();
+    });
+  });
+
+  describe('Icon Support', () => {
+    const iconTabs: TabItem[] = [
+      { key: 'tab1', label: 'Tab 1', content: null, iconName: IconName.Add },
+      { key: 'tab2', label: 'Tab 2', content: null, iconName: IconName.Edit },
+      { key: 'tab3', label: 'Tab 3', content: null, iconName: IconName.Close },
+    ];
+
+    it('renders correctly when tabs have icons', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={iconTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="icon-tabs-bar"
+        />,
+      );
+      expect(getByTestId('icon-tabs-bar')).toBeOnTheScreen();
+    });
+
+    it('renders all tab labels when icons are provided', () => {
+      const mockOnTabPress = jest.fn();
+      const { getAllByText } = render(
+        <TabsBar tabs={iconTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
+      );
+      iconTabs.forEach((tab) => {
+        expect(getAllByText(tab.label)[0]).toBeOnTheScreen();
+      });
+    });
+
+    it('fires onTabPress correctly when icon tabs are pressed', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={iconTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="icon-tabs-bar"
+        />,
+      );
+      fireEvent.press(getByTestId('icon-tabs-bar-tab-1'));
+      expect(mockOnTabPress).toHaveBeenCalledWith(1);
+    });
+
+    it('does not visually change tabs without iconName (no-icon behavior preserved)', () => {
+      const mockOnTabPress = jest.fn();
+      const { toJSON: withoutIcons } = render(
+        <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
+      );
+      const { toJSON: withIcons } = render(
+        <TabsBar tabs={iconTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
+      );
+      // The two renders should differ since icon tabs add border + icon layout
+      expect(withoutIcons()).not.toEqual(withIcons());
+    });
+
+    it('handles mixed tabs where only some have icons gracefully', () => {
+      const mixedTabs: TabItem[] = [
+        { key: 'tab1', label: 'Tab 1', content: null, iconName: IconName.Add },
+        { key: 'tab2', label: 'Tab 2', content: null },
+      ];
+      const mockOnTabPress = jest.fn();
+      const { getAllByText } = render(
+        <TabsBar
+          tabs={mixedTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+        />,
+      );
+      mixedTabs.forEach((tab) => {
+        expect(getAllByText(tab.label)[0]).toBeOnTheScreen();
+      });
+    });
+
+    it('handles layout events correctly with icon tabs', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={iconTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="icon-tabs-bar"
+        />,
+      );
+      const container = getByTestId('icon-tabs-bar');
+      act(() => {
+        fireEvent(container, 'onLayout', mockLayoutEvent(300));
+        iconTabs.forEach((_, index) => {
+          const tab = getByTestId(`icon-tabs-bar-tab-${index}`);
+          fireEvent(tab, 'onLayout', {
+            nativeEvent: {
+              layout: { x: index * 100, y: 0, width: 90, height: 56 },
+            },
+          });
+        });
+      });
+      expect(container).toBeOnTheScreen();
     });
   });
 

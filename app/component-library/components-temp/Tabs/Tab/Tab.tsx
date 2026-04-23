@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useRef, useCallback } from 'react';
-import { Pressable, View } from 'react-native';
+import React, { useContext, useRef, useCallback } from 'react';
+import { Animated, Pressable, View } from 'react-native';
 
 // External dependencies.
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -17,6 +17,10 @@ import Icon, { IconSize, IconColor } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import { TabProps } from './Tab.types';
+import { TabIconAnimationContext } from './TabIconAnimationContext';
+
+const ICON_SIZE_LG = 24;
+const ICON_MARGIN_BOTTOM = 4;
 
 const Tab: React.FC<TabProps> = ({
   label,
@@ -30,6 +34,25 @@ const Tab: React.FC<TabProps> = ({
 }) => {
   const tw = useTailwind();
   const viewRef = useRef<View>(null);
+  const { iconCollapseAnim } = useContext(TabIconAnimationContext);
+
+  const iconAnimatedStyle = iconCollapseAnim
+    ? {
+        height: iconCollapseAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [ICON_SIZE_LG, 0],
+        }),
+        opacity: iconCollapseAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 0],
+        }),
+        marginBottom: iconCollapseAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [ICON_MARGIN_BOTTOM, 0],
+        }),
+        overflow: 'hidden' as const,
+      }
+    : { height: ICON_SIZE_LG, marginBottom: ICON_MARGIN_BOTTOM };
 
   const handleOnLayout = useCallback(
     (layoutEvent: Parameters<NonNullable<typeof onLayout>>[0]) => {
@@ -48,7 +71,9 @@ const Tab: React.FC<TabProps> = ({
     >
       <Pressable
         style={tw.style(
-          'px-0 py-1 flex-col items-center justify-center relative',
+          iconName
+            ? 'px-0 py-1 flex-col items-center justify-center relative'
+            : 'px-0 py-1 flex-row items-center justify-center relative',
           isDisabled && 'opacity-50',
         )}
         onPress={isDisabled ? undefined : onPress}
@@ -57,25 +82,25 @@ const Tab: React.FC<TabProps> = ({
         {...pressableProps}
       >
         {iconName ? (
-          // Icon mode: simple column stack, no layout-shift trick needed
+          // Icon mode: icon animates away on scroll, label stays visible
           <Box
-            twClassName="mb-1"
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
           >
-            <Icon
-              name={iconName}
-              size={IconSize.Lg}
-              color={
-                isDisabled
-                  ? IconColor.Muted
-                  : isActive
-                    ? IconColor.Default
-                    : IconColor.Alternative
-              }
-              style={tw.style('mb-1')}
-            />
+            <Animated.View style={iconAnimatedStyle}>
+              <Icon
+                name={iconName}
+                size={IconSize.Lg}
+                color={
+                  isDisabled
+                    ? IconColor.Muted
+                    : isActive
+                      ? IconColor.Default
+                      : IconColor.Alternative
+                }
+              />
+            </Animated.View>
             <Text
               variant={TextVariant.BodySm}
               fontWeight={

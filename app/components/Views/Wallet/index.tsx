@@ -26,6 +26,10 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -615,6 +619,8 @@ const Wallet = ({
   const [viewportHeight, setViewportHeight] = useState(0);
   const [containerScreenY, setContainerScreenY] = useState(0);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const sharedHeaderHeight = useSharedValue(0);
+  const walletHeaderTranslateY = useSharedValue(0);
   const insets = useSafeAreaInsets();
   const { entryPoint, visitId } = useHomepageEntryPoint(navigation);
 
@@ -1047,6 +1053,17 @@ const Wallet = ({
   const isDiscoveryTabsTreatment =
     discoveryTabsVariantName === HubPageDiscoveryTabsVariant.Treatment;
 
+  // translateY slides the header up; negative marginBottom collapses the layout
+  // space it occupied so the content below moves up in sync.
+  const animatedHeaderStyle = useAnimatedStyle(() => {
+    const h = sharedHeaderHeight.value;
+    return {
+      transform: [{ translateY: walletHeaderTranslateY.value }],
+      marginBottom: walletHeaderTranslateY.value,
+      opacity: h > 0 ? Math.max(0, 1 + walletHeaderTranslateY.value / h) : 1,
+    };
+  });
+
   const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
@@ -1416,39 +1433,70 @@ const Wallet = ({
         >
           {selectedInternalAccount ? (
             <>
-              <HeaderRoot
-                onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}
-                testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
-                style={styles.walletHeaderRoot}
-                endAccessory={
-                  <View style={styles.headerEndAccessoryContainer}>
-                    <View style={styles.headerActionButtonsContainer}>
-                      <View
-                        testID={
-                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
-                        }
-                      >
-                        <AddressCopy hitSlop={touchAreaSlop} />
-                      </View>
-                      <CardButton
-                        onPress={handleCardPress}
-                        touchAreaSlop={touchAreaSlop}
-                      />
-                      {isNotificationsFeatureEnabled() ? (
-                        <BadgeWrapper
-                          position={BadgeWrapperPosition.TopRight}
-                          positionAnchorShape={
-                            BadgeWrapperPositionAnchorShape.Circular
+              <Reanimated.View
+                style={
+                  isDiscoveryTabsTreatment
+                    ? [styles.walletHeaderRoot, animatedHeaderStyle]
+                    : undefined
+                }
+              >
+                <HeaderRoot
+                  onLayout={
+                    isDiscoveryTabsTreatment
+                      ? (e) => {
+                          const h = e.nativeEvent.layout.height;
+                          if (h > 0) {
+                            setHeaderHeight(h);
+                            sharedHeaderHeight.value = h;
                           }
-                          badge={
-                            isNotificationEnabled &&
-                            unreadNotificationCount > 0 ? (
-                              <BadgeStatus
-                                status={BadgeStatusStatus.Attention}
-                              />
-                            ) : null
+                        }
+                      : undefined
+                  }
+                  testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+                  style={undefined}
+                  endAccessory={
+                    <View style={styles.headerEndAccessoryContainer}>
+                      <View style={styles.headerActionButtonsContainer}>
+                        <View
+                          testID={
+                            WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
                           }
                         >
+                          <AddressCopy hitSlop={touchAreaSlop} />
+                        </View>
+                        <CardButton
+                          onPress={handleCardPress}
+                          touchAreaSlop={touchAreaSlop}
+                        />
+                        {isNotificationsFeatureEnabled() ? (
+                          <BadgeWrapper
+                            position={BadgeWrapperPosition.TopRight}
+                            positionAnchorShape={
+                              BadgeWrapperPositionAnchorShape.Circular
+                            }
+                            badge={
+                              isNotificationEnabled &&
+                              unreadNotificationCount > 0 ? (
+                                <BadgeStatus
+                                  status={BadgeStatusStatus.Attention}
+                                />
+                              ) : null
+                            }
+                          >
+                            <ButtonIcon
+                              iconProps={{
+                                color: MMDSIconColor.IconDefault,
+                              }}
+                              onPress={handleHamburgerPress}
+                              iconName={MMDSIconName.Menu}
+                              size={ButtonIconSize.Md}
+                              testID={
+                                WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
+                              }
+                              hitSlop={touchAreaSlop}
+                            />
+                          </BadgeWrapper>
+                        ) : (
                           <ButtonIcon
                             iconProps={{
                               color: MMDSIconColor.IconDefault,
@@ -1461,37 +1509,26 @@ const Wallet = ({
                             }
                             hitSlop={touchAreaSlop}
                           />
-                        </BadgeWrapper>
-                      ) : (
-                        <ButtonIcon
-                          iconProps={{
-                            color: MMDSIconColor.IconDefault,
-                          }}
-                          onPress={handleHamburgerPress}
-                          iconName={MMDSIconName.Menu}
-                          size={ButtonIconSize.Md}
-                          testID={
-                            WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
-                          }
-                          hitSlop={touchAreaSlop}
-                        />
-                      )}
+                        )}
+                      </View>
                     </View>
-                  </View>
-                }
-                twClassName="pl-1 pr-3"
-              >
-                <PickerAccount
-                  ref={walletRef}
-                  accountName={displayName}
-                  onPress={() =>
-                    navigation.navigate(...createAccountSelectorNavDetails({}))
                   }
-                  testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-                  hitSlop={touchAreaSlop}
-                  style={styles.headerAccountPickerStyle}
-                />
-              </HeaderRoot>
+                  twClassName="pl-1 pr-3"
+                >
+                  <PickerAccount
+                    ref={walletRef}
+                    accountName={displayName}
+                    onPress={() =>
+                      navigation.navigate(
+                        ...createAccountSelectorNavDetails({}),
+                      )
+                    }
+                    testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+                    hitSlop={touchAreaSlop}
+                    style={styles.headerAccountPickerStyle}
+                  />
+                </HeaderRoot>
+              </Reanimated.View>
               <View
                 ref={containerViewRef}
                 style={styles.wrapper}
@@ -1517,6 +1554,8 @@ const Wallet = ({
                           portfolioHeader={portfolioHeader}
                           onPortfolioScroll={handleHomepageScroll}
                           walletHeaderOffset={headerHeight + insets.top}
+                          walletHeaderHeight={headerHeight}
+                          walletHeaderTranslateY={walletHeaderTranslateY}
                           refreshControl={
                             <RefreshControl
                               colors={[colors.primary.default]}

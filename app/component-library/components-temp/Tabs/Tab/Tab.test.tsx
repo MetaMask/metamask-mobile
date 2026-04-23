@@ -4,6 +4,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
 import Tab from './Tab';
+import { IconName } from '../../../components/Icons/Icon/Icon.types';
 
 describe('Tab', () => {
   const defaultProps = {
@@ -230,6 +231,66 @@ describe('Tab', () => {
       const tab = getByTestId('accessible-tab');
       expect(tab.props.accessibilityLabel).toBe('Custom accessibility label');
       expect(tab.props.accessibilityHint).toBe('Custom accessibility hint');
+    });
+  });
+
+  describe('Icon Support', () => {
+    it('renders without icon by default', () => {
+      const { getByTestId } = render(<Tab {...defaultProps} testID="tab" />);
+      // Should still render fine with no iconName
+      expect(getByTestId('tab')).toBeOnTheScreen();
+    });
+
+    it('renders with icon when iconName is provided', () => {
+      const { getAllByText } = render(
+        <Tab {...defaultProps} iconName={IconName.Add} />,
+      );
+      // Label should still be visible in icon mode
+      expect(getAllByText('Test Tab')[0]).toBeOnTheScreen();
+    });
+
+    it('renders correctly when active with icon', () => {
+      const { getAllByText } = render(
+        <Tab {...defaultProps} iconName={IconName.Add} isActive />,
+      );
+      expect(getAllByText('Test Tab')[0]).toBeOnTheScreen();
+    });
+
+    it('renders correctly when disabled with icon', () => {
+      const { getByTestId } = render(
+        <Tab
+          {...defaultProps}
+          iconName={IconName.Add}
+          isDisabled
+          testID="icon-disabled-tab"
+        />,
+      );
+      expect(
+        getByTestId('icon-disabled-tab').props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('does not call onPress when disabled with icon', () => {
+      const mockOnPress = jest.fn();
+      const { getAllByText } = render(
+        <Tab
+          {...defaultProps}
+          iconName={IconName.Add}
+          onPress={mockOnPress}
+          isDisabled
+        />,
+      );
+      fireEvent.press(getAllByText('Test Tab')[0]);
+      expect(mockOnPress).not.toHaveBeenCalled();
+    });
+
+    it('calls onPress when icon tab is pressed and not disabled', () => {
+      const mockOnPress = jest.fn();
+      const { getAllByText } = render(
+        <Tab {...defaultProps} iconName={IconName.Add} onPress={mockOnPress} />,
+      );
+      fireEvent.press(getAllByText('Test Tab')[0]);
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
   });
 

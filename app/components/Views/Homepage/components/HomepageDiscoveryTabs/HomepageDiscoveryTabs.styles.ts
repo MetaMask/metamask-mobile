@@ -13,6 +13,9 @@ const styleSheet = (_params: { theme: Theme }) =>
       zIndex: 1,
       pointerEvents: 'none',
     },
+    gradientFill: {
+      flex: 1,
+    },
   });
 
 export default styleSheet;
