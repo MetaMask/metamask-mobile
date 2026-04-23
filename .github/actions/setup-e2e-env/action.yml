@@ -230,23 +230,30 @@ runs:
         YARN_ENABLE_GLOBAL_CACHE: 'true'
 
     - name: Install Foundry
-      shell: bash
-      env:
-        FOUNDRY_VERSION: ${{ inputs.foundry-version }}
-      run: |
-        echo "Installing Foundry via foundryup..."
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: 3
+        max_attempts: 3
+        retry_wait_seconds: 30
+        on_retry_command: |
+          FOUNDRY_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/.foundry"
+          rm -rf "$FOUNDRY_DIR"
+          echo "🧹 Cleaned up partial Foundry installation"
+        command: |
+          set -euo pipefail
+          echo "Installing Foundry via foundryup..."
 
-        export FOUNDRY_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/.foundry"
-        export FOUNDRY_BIN="$FOUNDRY_DIR/bin"
+          export FOUNDRY_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/.foundry"
+          export FOUNDRY_BIN="$FOUNDRY_DIR/bin"
 
-        mkdir -p "$FOUNDRY_BIN"
+          mkdir -p "$FOUNDRY_BIN"
 
-        curl -sL https://raw.githubusercontent.com/foundry-rs/foundry/master/foundryup/foundryup -o "$FOUNDRY_BIN/foundryup"
-        chmod +x "$FOUNDRY_BIN/foundryup"
+          curl -sL https://raw.githubusercontent.com/foundry-rs/foundry/master/foundryup/foundryup -o "$FOUNDRY_BIN/foundryup"
+          chmod +x "$FOUNDRY_BIN/foundryup"
 
-        echo "$FOUNDRY_BIN" >> "$GITHUB_PATH"
+          echo "$FOUNDRY_BIN" >> "$GITHUB_PATH"
 
-        "$FOUNDRY_BIN/foundryup" -i "$FOUNDRY_VERSION"
+          "$FOUNDRY_BIN/foundryup" -i "${{ inputs.foundry-version }}"
 
     ## iOS Setup ##
 
