@@ -8292,11 +8292,11 @@
       "close_a11y": "Close"
     },
     "ondo_outcome_banner": {
-      "loser_pending": {
+      "participant_pending": {
         "title": "Determining winners",
         "description": "We're still determining the winners."
       },
-      "loser_finalized": {
+      "participant_finalized": {
         "title": "Contest results are in",
         "description": "You didn't win this time. Check the leaderboard to see where you finished."
       },
@@ -8306,7 +8306,7 @@
       }
     },
     "ondo_outcome_toast": {
-      "loser_finalized": {
+      "participant_finalized": {
         "title": "The results are in 🥇",
         "description": "See where you finished on the leaderboard."
       },

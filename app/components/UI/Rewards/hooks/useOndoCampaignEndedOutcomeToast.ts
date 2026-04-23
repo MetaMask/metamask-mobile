@@ -85,13 +85,13 @@ export function useOndoCampaignEndedOutcomeToast(
         hapticsType: NotificationFeedbackType.Success,
         labelOptions: [
           {
-            label: strings('rewards.ondo_outcome_toast.loser_finalized.title'),
+            label: strings('rewards.ondo_outcome_toast.participant_finalized.title'),
             isBold: true,
           },
         ],
         descriptionOptions: {
           description: strings(
-            'rewards.ondo_outcome_toast.loser_finalized.description',
+            'rewards.ondo_outcome_toast.participant_finalized.description',
           ),
         },
         linkButtonOptions: {

@@ -125,20 +125,20 @@ const WinnerFinalizedBanner = React.memo(() => (
   />
 ));
 
-const LoserFinalizedBanner = React.memo(() => (
+const ParticipantFinalizedBanner = React.memo(() => (
   <RewardsInfoBanner
-    title={strings('rewards.ondo_outcome_banner.loser_finalized.title')}
+    title={strings('rewards.ondo_outcome_banner.participant_finalized.title')}
     description={strings(
-      'rewards.ondo_outcome_banner.loser_finalized.description',
+      'rewards.ondo_outcome_banner.participant_finalized.description',
     )}
   />
 ));
 
-const LoserPendingBanner = React.memo(() => (
+const ParticipantPendingBanner = React.memo(() => (
   <RewardsInfoBanner
-    title={strings('rewards.ondo_outcome_banner.loser_pending.title')}
+    title={strings('rewards.ondo_outcome_banner.participant_pending.title')}
     description={strings(
-      'rewards.ondo_outcome_banner.loser_pending.description',
+      'rewards.ondo_outcome_banner.participant_pending.description',
     )}
   />
 ));
@@ -369,8 +369,8 @@ const OndoCampaignDetailsView: React.FC = () => {
       );
     }
     if (hasCode && isFinalized) return <WinnerFinalizedBanner />;
-    if (isFinalized) return <LoserFinalizedBanner />;
-    return <LoserPendingBanner />;
+    if (isFinalized) return <ParticipantFinalizedBanner />;
+    return <ParticipantPendingBanner />;
   }, [campaign, participantOutcome, effectiveCampaignId, navigation]);
 
   return (
