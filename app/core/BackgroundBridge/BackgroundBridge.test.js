@@ -1682,7 +1682,54 @@ describe('BackgroundBridge', () => {
       expect(bridge.multichainEngine.emit).not.toHaveBeenCalled();
     });
 
-    it('calls notifyCaipAuthorizationChange with the caveat value', () => {
+    it('calls notifyCaipAuthorizationChange with the refetched caveat value', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const notifySpy = jest.spyOn(bridge, 'notifyCaipAuthorizationChange');
+
+      const mockInitialCaveatValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+      const mockRefetchedCaveatValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0xAbCdEf0123456789abcdef0123456789AbCdEf01'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+      PermissionController.getCaveat.mockClear();
+      PermissionController.getCaveat
+        .mockReturnValueOnce({
+          type: Caip25CaveatType,
+          value: mockInitialCaveatValue,
+        })
+        .mockReturnValueOnce({
+          type: Caip25CaveatType,
+          value: mockRefetchedCaveatValue,
+        });
+
+      bridge.handleSessionChangedFromSelectedAccountGroupChanges();
+
+      jest.advanceTimersByTime(1000);
+
+      // The caveat is fetched once synchronously and once again inside the
+      // setTimeout so that the latest value is used when notifying.
+      expect(PermissionController.getCaveat).toHaveBeenCalledTimes(2);
+      expect(notifySpy).toHaveBeenCalledWith(mockRefetchedCaveatValue);
+      expect(notifySpy).not.toHaveBeenCalledWith(mockInitialCaveatValue);
+    });
+
+    it('does not call notifyCaipAuthorizationChange if the caveat is revoked before the setTimeout fires', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const notifySpy = jest.spyOn(bridge, 'notifyCaipAuthorizationChange');
@@ -1697,16 +1744,20 @@ describe('BackgroundBridge', () => {
         isMultichainOrigin: true,
         sessionProperties: {},
       };
-      PermissionController.getCaveat.mockReturnValue({
-        type: Caip25CaveatType,
-        value: mockCaveatValue,
-      });
+      PermissionController.getCaveat.mockClear();
+      PermissionController.getCaveat
+        .mockReturnValueOnce({
+          type: Caip25CaveatType,
+          value: mockCaveatValue,
+        })
+        .mockReturnValueOnce(undefined);
 
       bridge.handleSessionChangedFromSelectedAccountGroupChanges();
 
       jest.advanceTimersByTime(1000);
 
-      expect(notifySpy).toHaveBeenCalledWith(mockCaveatValue);
+      expect(PermissionController.getCaveat).toHaveBeenCalledTimes(2);
+      expect(notifySpy).not.toHaveBeenCalled();
     });
   });
 

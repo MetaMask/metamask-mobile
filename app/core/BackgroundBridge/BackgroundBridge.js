@@ -1239,7 +1239,16 @@ export class BackgroundBridge extends EventEmitter {
         // The former issue mainly affects Extension, not Mobile, but to keep both in sync, we'll keep the setTimeout for now.
         // The latter issue is what requires the setTimeout below.
         setTimeout(() => {
-          this.notifyCaipAuthorizationChange(caip25Caveat.value);
+          // We refetch the caip25Caveat to get the latest value in case it
+          // has changed since we first fetched it.
+          const caip25CaveatRefetched = Engine.context.PermissionController.getCaveat(
+            this.channelIdOrOrigin,
+            Caip25EndowmentPermissionName,
+            Caip25CaveatType,
+          );
+          if (caip25CaveatRefetched) {
+            this.notifyCaipAuthorizationChange(caip25CaveatRefetched.value);
+          }
         }, 1000);
       }
     } catch (err) {
