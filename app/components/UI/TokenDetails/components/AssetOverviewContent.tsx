@@ -550,7 +550,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       ) : (
         <View>
           {(securityData?.resultType === 'Malicious' ||
-            securityData?.resultType === 'Warning') && (
+            securityData?.resultType === 'Warning' ||
+            securityData?.resultType === 'Spam') && (
             <TouchableOpacity
               onPress={handleSecurityBadgePress}
               testID={
