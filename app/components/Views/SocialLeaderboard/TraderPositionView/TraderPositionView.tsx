@@ -27,6 +27,7 @@ import {
   AvatarBase,
   AvatarBaseSize,
   AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../locales/i18n';
@@ -259,7 +260,7 @@ const TraderPositionView = () => {
             {positionParam ? (
               <PositionTokenAvatar position={positionParam} />
             ) : (
-              <AvatarToken name={symbol} />
+              <AvatarToken name={symbol} size={AvatarTokenSize.Lg} />
             )}
             <Box twClassName="flex-1 min-w-0">
               <Text
