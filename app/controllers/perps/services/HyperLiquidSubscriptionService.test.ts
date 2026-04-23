@@ -283,6 +283,12 @@ describe('HyperLiquidSubscriptionService', () => {
         }, 0);
         return Promise.resolve(mockSubscription);
       }),
+      spotState: jest.fn((_params: any, _callback: any) =>
+        // Default: subscribe resolves but never emits. Tests that need the
+        // push-driven path call mockSubscriptionClient.spotState.mock.calls[0][1]
+        // manually to drive the handler.
+        Promise.resolve(mockSubscription),
+      ),
       l2Book: jest.fn((_params: any, callback: any) => {
         // Simulate l2Book data
         setTimeout(() => {
@@ -3681,6 +3687,121 @@ describe('HyperLiquidSubscriptionService', () => {
 
       unsubscribe1();
       unsubscribe2();
+    });
+  });
+
+  describe('spotState WebSocket Subscription', () => {
+    it('establishes a spotState subscription on subscribeToAccount', async () => {
+      const unsubscribe = service.subscribeToAccount({
+        callback: jest.fn(),
+      });
+      await jest.runAllTimersAsync();
+
+      expect(mockSubscriptionClient.spotState).toHaveBeenCalledWith(
+        expect.objectContaining({ user: expect.stringMatching(/^0x/) }),
+        expect.any(Function),
+      );
+
+      unsubscribe();
+    });
+
+    it('does not re-subscribe spotState for the same user', async () => {
+      const unsubscribe1 = service.subscribeToAccount({
+        callback: jest.fn(),
+      });
+      const unsubscribe2 = service.subscribeToAccount({
+        callback: jest.fn(),
+      });
+      await jest.runAllTimersAsync();
+
+      expect(mockSubscriptionClient.spotState).toHaveBeenCalledTimes(1);
+
+      unsubscribe1();
+      unsubscribe2();
+    });
+
+    it('re-notifies account subscribers when a spotState push arrives', async () => {
+      // Seed aggregation with a perps tick so #dexAccountCache is non-empty,
+      // which is the guard the handler uses before calling
+      // #aggregateAndNotifySubscribers.
+      const firstCallback = jest.fn();
+      const firstUnsubscribe = service.subscribeToAccount({
+        callback: firstCallback,
+      });
+      await jest.runAllTimersAsync();
+
+      const notifyCallback = jest.fn();
+      const unsubscribe = service.subscribeToAccount({
+        callback: notifyCallback,
+      });
+      await jest.runAllTimersAsync();
+
+      const callsBefore = notifyCallback.mock.calls.length;
+
+      const spotListener = mockSubscriptionClient.spotState.mock.calls[0][1];
+      spotListener({
+        user: '0x123',
+        spotState: {
+          balances: [
+            {
+              coin: 'USDC',
+              token: 0,
+              hold: '0',
+              total: '123.45',
+              entryNtl: '123.45',
+            },
+          ],
+        },
+      });
+
+      expect(notifyCallback.mock.calls.length).toBeGreaterThan(callsBefore);
+
+      firstUnsubscribe();
+      unsubscribe();
+    });
+
+    it('ignores spotState events for a different user', async () => {
+      // First seed perps state so the handler's re-aggregate guard could fire.
+      const unsubscribe = service.subscribeToAccount({
+        callback: jest.fn(),
+      });
+      await jest.runAllTimersAsync();
+
+      const observerCallback = jest.fn();
+      const observerUnsubscribe = service.subscribeToAccount({
+        callback: observerCallback,
+      });
+      await jest.runAllTimersAsync();
+
+      const callsBefore = observerCallback.mock.calls.length;
+
+      const spotListener = mockSubscriptionClient.spotState.mock.calls[0][1];
+      spotListener({
+        user: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+        spotState: { balances: [] },
+      });
+
+      expect(observerCallback.mock.calls.length).toBe(callsBefore);
+
+      observerUnsubscribe();
+      unsubscribe();
+    });
+
+    it('unsubscribes spotState when the last account subscriber leaves', async () => {
+      const unsubSpot = jest.fn().mockResolvedValue(undefined);
+      mockSubscriptionClient.spotState.mockResolvedValueOnce({
+        unsubscribe: unsubSpot,
+      });
+
+      const unsubscribe = service.subscribeToAccount({
+        callback: jest.fn(),
+      });
+      await jest.runAllTimersAsync();
+
+      unsubscribe();
+      await jest.runAllTimersAsync();
+
+      expect(unsubSpot).toHaveBeenCalled();
     });
   });
 
