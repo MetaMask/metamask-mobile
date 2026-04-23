@@ -8,7 +8,6 @@ import {
   ButtonVariant,
   IconName,
   IconSize,
-  IconColor,
   TextColor,
 } from '@metamask/design-system-react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
