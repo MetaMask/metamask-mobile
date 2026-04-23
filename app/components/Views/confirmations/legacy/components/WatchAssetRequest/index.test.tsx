@@ -24,6 +24,6 @@ describe('WatchAssetRequest', () => {
         />
       </Provider>,
     );
-    expect(wrapper.find(Provider)).toHaveLength(1);
+    expect(wrapper.find(WatchAssetRequest)).toHaveLength(1);
   });
 });

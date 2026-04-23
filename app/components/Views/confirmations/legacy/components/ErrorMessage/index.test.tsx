@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import ErrorMessage from '.';
-import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
+import { CommonSelectorsIDs } from '../../../../../../util/Common.testIds';
 
 describe('ErrorMessage', () => {
   it('should render correctly', () => {
