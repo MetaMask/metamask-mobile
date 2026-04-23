@@ -274,7 +274,7 @@ export function useContinueWithQuote(): UseContinueWithQuoteResult {
             error,
             {
               provider: quote.provider,
-              message: 'Failed to fetch widget URL',
+              message: 'Failed to open widget',
             },
             strings('deposit.buildQuote.unexpectedError'),
           ),
