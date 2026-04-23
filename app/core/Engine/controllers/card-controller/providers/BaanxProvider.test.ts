@@ -654,12 +654,20 @@ describe('BaanxProvider', () => {
               getLogs: getLogsMock,
             }) as unknown as ethers.providers.JsonRpcProvider,
         );
-      contractSpy = jest.spyOn(ethers, 'Contract').mockImplementation(
-        () =>
-          ({
-            spendersAllowancesForTokens: spendersMock,
-          }) as unknown as ethers.Contract,
-      );
+      contractSpy = jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation((address: string) => {
+          if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+            return {
+              spendersAllowancesForTokens: spendersMock,
+            } as unknown as ethers.Contract;
+          }
+          return {
+            balanceOf: jest
+              .fn()
+              .mockResolvedValue(ethers.utils.parseUnits('100', 6)),
+          } as unknown as ethers.Contract;
+        });
     });
 
     afterEach(() => {
@@ -686,6 +694,11 @@ describe('BaanxProvider', () => {
       expect(result.primaryFundingAsset?.status).toBe(
         FundingAssetStatus.Limited,
       );
+      expect(result.primaryFundingAsset?.spendableBalance).toBe('50');
+      const assetB = result.fundingAssets.find(
+        (a) => a.address.toLowerCase() === tokenB.toLowerCase(),
+      );
+      expect(assetB?.spendableBalance).toBe('0');
     });
 
     it('uses #findLastApprovedToken when multiple tokens have non-zero allowance and prefers latest Approval log', async () => {
@@ -760,6 +773,129 @@ describe('BaanxProvider', () => {
       expect(result.primaryFundingAsset?.address.toLowerCase()).toBe(
         tokenA.toLowerCase(),
       );
+    });
+
+    it('sets spendableBalance to wallet balance when wallet is below allowance', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+      contractSpy.mockImplementation((address: string) => {
+        if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+          return {
+            spendersAllowancesForTokens: spendersMock,
+          } as unknown as ethers.Contract;
+        }
+        if (address.toLowerCase() === tokenA.toLowerCase()) {
+          return {
+            balanceOf: jest
+              .fn()
+              .mockResolvedValue(ethers.utils.parseUnits('25', 6)),
+          } as unknown as ethers.Contract;
+        }
+        return {
+          balanceOf: jest
+            .fn()
+            .mockResolvedValue(ethers.utils.parseUnits('100', 6)),
+        } as unknown as ethers.Contract;
+      });
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(result.primaryFundingAsset?.spendableBalance).toBe('25');
+    });
+
+    it('sets spendableBalance to zero when on-chain wallet balance is zero', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+      contractSpy.mockImplementation((address: string) => {
+        if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+          return {
+            spendersAllowancesForTokens: spendersMock,
+          } as unknown as ethers.Contract;
+        }
+        return {
+          balanceOf: jest.fn().mockResolvedValue(ethers.constants.Zero),
+        } as unknown as ethers.Contract;
+      });
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(result.primaryFundingAsset?.spendableBalance).toBe('0');
+    });
+
+    it('treats balanceOf failure as zero wallet balance and logs an error', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+      contractSpy.mockImplementation((address: string) => {
+        if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+          return {
+            spendersAllowancesForTokens: spendersMock,
+          } as unknown as ethers.Contract;
+        }
+        if (address.toLowerCase() === tokenA.toLowerCase()) {
+          return {
+            balanceOf: jest
+              .fn()
+              .mockRejectedValue(new Error('balanceOf reverted')),
+          } as unknown as ethers.Contract;
+        }
+        return {
+          balanceOf: jest
+            .fn()
+            .mockResolvedValue(ethers.utils.parseUnits('100', 6)),
+        } as unknown as ethers.Contract;
+      });
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(result.primaryFundingAsset?.spendableBalance).toBe('0');
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            name: 'BaanxProvider',
+            data: expect.objectContaining({
+              method: 'fetchOnChainAllowances/balanceOf',
+              tokenAddr: tokenA,
+              owner: ownerAddr,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('calls balanceOf on each token contract with the owner address', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+      const balanceOfTokenA = jest
+        .fn()
+        .mockResolvedValue(ethers.utils.parseUnits('100', 6));
+      const balanceOfTokenB = jest
+        .fn()
+        .mockResolvedValue(ethers.utils.parseUnits('100', 6));
+
+      contractSpy.mockImplementation((address: string) => {
+        if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+          return {
+            spendersAllowancesForTokens: spendersMock,
+          } as unknown as ethers.Contract;
+        }
+        if (address.toLowerCase() === tokenA.toLowerCase()) {
+          return {
+            balanceOf: balanceOfTokenA,
+          } as unknown as ethers.Contract;
+        }
+        if (address.toLowerCase() === tokenB.toLowerCase()) {
+          return {
+            balanceOf: balanceOfTokenB,
+          } as unknown as ethers.Contract;
+        }
+        return {} as unknown as ethers.Contract;
+      });
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      await p.getOnChainAssets(ownerAddr);
+
+      expect(balanceOfTokenA).toHaveBeenCalledWith(ownerAddr);
+      expect(balanceOfTokenB).toHaveBeenCalledWith(ownerAddr);
     });
   });
 

@@ -1,16 +1,24 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
 import {
   useAssetMetadata,
   AssetType,
 } from '../../../../../UI/Bridge/hooks/useAssetMetadata';
+import { selectIsBridgeEnabledSourceFactory } from '../../../../../../core/redux/slices/bridge';
 import { useQuickBuySetup } from './useQuickBuySetup';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 jest.mock('../../../../../UI/Bridge/hooks/useAssetMetadata', () => ({
   ...jest.requireActual('../../../../../UI/Bridge/hooks/useAssetMetadata'),
   useAssetMetadata: jest.fn(),
 }));
 
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseAssetMetadata = useAssetMetadata as jest.MockedFunction<
   typeof useAssetMetadata
 >;
@@ -27,6 +35,12 @@ const createPosition = (overrides: Partial<Position> = {}): Position =>
 describe('useQuickBuySetup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsBridgeEnabledSourceFactory) {
+        return () => true;
+      }
+      return undefined;
+    });
     mockUseAssetMetadata.mockReturnValue({
       assetMetadata: undefined,
       pending: false,
@@ -47,6 +61,25 @@ describe('useQuickBuySetup', () => {
       isUnsupportedChain: false,
     });
     expect(mockUseAssetMetadata).toHaveBeenCalledWith('', false, undefined);
+  });
+
+  it('marks chain as unsupported when not bridge-enabled', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsBridgeEnabledSourceFactory) {
+        return () => false;
+      }
+      return undefined;
+    });
+
+    const position = createPosition({ chain: 'base' });
+    const { result } = renderHook(() => useQuickBuySetup(position));
+
+    expect(result.current).toEqual({
+      chainId: undefined,
+      destToken: undefined,
+      isLoading: false,
+      isUnsupportedChain: true,
+    });
   });
 
   it('marks unsupported chains when the position chain is not mapped', () => {

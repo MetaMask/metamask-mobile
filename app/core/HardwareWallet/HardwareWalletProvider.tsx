@@ -9,6 +9,7 @@ import React, {
 import HardwareWalletContext from './contexts/HardwareWalletContext';
 import QRSigningContext from './contexts/QRSigningContext';
 import { HardwareWalletBottomSheet } from './components';
+import { getHardwareWalletTypeForAddress } from './helpers';
 import {
   HardwareWalletAnalyticsFlow,
   useHardwareWalletAnalytics,
@@ -25,7 +26,6 @@ import {
 } from './hooks';
 import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import { getHardwareWalletTypeForAddress } from './helpers';
 
 interface HardwareWalletProviderProps {
   children: ReactNode;
@@ -216,9 +216,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       connectionState,
       deviceSelection,
       ensureDeviceReady,
-      setTargetWalletType: (wt: HardwareWalletType) =>
-        setters.setTargetWalletType(wt),
-      setPendingOperationAddress: setPendingOperationAddressWrapper,
+      setTargetWalletType: setters.setTargetWalletType,
+      setPendingOperationAddress,
       showHardwareWalletError,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
@@ -229,8 +228,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       connectionState,
       deviceSelection,
       ensureDeviceReady,
-      setters,
-      setPendingOperationAddressWrapper,
+      setters.setTargetWalletType,
+      setPendingOperationAddress,
       showHardwareWalletError,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
