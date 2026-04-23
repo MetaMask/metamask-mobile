@@ -246,6 +246,68 @@ describe('useNetworkOperations', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
+  it('returns false and skips token filter and enableNetwork when addNetwork rejects', async () => {
+    mockAddNetwork.mockRejectedValueOnce(new Error('persist failed'));
+
+    const { result } = renderHook(() => useNetworkOperations());
+
+    let saved: boolean;
+    await act(async () => {
+      saved = await result.current.saveNetwork(baseForm, {
+        ...defaultSaveOpts(),
+        shouldNetworkSwitchPopToWallet: false,
+      });
+    });
+
+    expect(saved).toBe(false);
+    expect(mockAddNetwork).toHaveBeenCalled();
+    expect(mockSetTokenNetworkFilter).not.toHaveBeenCalled();
+    expect(mockEnableNetwork).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('returns false and skips token filter and enableNetwork when updateNetwork rejects', async () => {
+    mockUpdateNetwork.mockRejectedValueOnce(new Error('update failed'));
+    setupSelectors({
+      networkConfigurations: {
+        '0x2a': {
+          chainId: '0x2a',
+          rpcEndpoints: [
+            { url: 'https://rpc.example.com', name: 'R', type: 'Custom' },
+          ],
+          defaultRpcEndpointIndex: 0,
+          name: 'Test',
+          nativeCurrency: 'TST',
+          blockExplorerUrls: [],
+        },
+      },
+    });
+
+    const { result } = renderHook(() => useNetworkOperations());
+
+    let saved: boolean;
+    await act(async () => {
+      saved = await result.current.saveNetwork(
+        {
+          ...baseForm,
+          addMode: false,
+          rpcUrls: [
+            { url: 'https://rpc.example.com', name: 'R', type: 'Custom' },
+          ],
+        },
+        {
+          ...defaultSaveOpts(),
+          shouldNetworkSwitchPopToWallet: false,
+        },
+      );
+    });
+
+    expect(saved).toBe(false);
+    expect(mockUpdateNetwork).toHaveBeenCalled();
+    expect(mockSetTokenNetworkFilter).not.toHaveBeenCalled();
+    expect(mockEnableNetwork).not.toHaveBeenCalled();
+  });
+
   it('navigates to WalletView when shouldNetworkSwitchPopToWallet is true', async () => {
     const { result } = renderHook(() => useNetworkOperations());
 

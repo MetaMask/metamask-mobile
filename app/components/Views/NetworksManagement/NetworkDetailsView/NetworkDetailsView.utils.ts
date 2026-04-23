@@ -10,6 +10,29 @@ import type { NetworkFormState, RpcEndpoint } from './NetworkDetailsView.types';
 export const formatNetworkRpcUrl = (rpcUrl: string): string =>
   stripProtocol(stripKeyFromInfuraUrl(rpcUrl) ?? rpcUrl) ?? rpcUrl;
 
+/**
+ * Stable snapshot of form fields for dirty detection vs the last committed baseline.
+ * Uses `JSON.stringify` for `rpcUrls`, `blockExplorerUrls`, and `failoverRpcUrls` so
+ * in-place content changes register (not `String([object])` collisions).
+ */
+export function networkFormBaselineSnapshot(prev: NetworkFormState): string {
+  const failoverKey =
+    prev.failoverRpcUrls === undefined
+      ? ''
+      : JSON.stringify(prev.failoverRpcUrls);
+  return (
+    (prev.rpcUrl ?? '') +
+    failoverKey +
+    (prev.blockExplorerUrl ?? '') +
+    (prev.nickname ?? '') +
+    (prev.chainId ?? '') +
+    (prev.ticker ?? '') +
+    String(prev.editable) +
+    JSON.stringify(prev.rpcUrls ?? []) +
+    JSON.stringify(prev.blockExplorerUrls ?? [])
+  );
+}
+
 /** Next form state after appending a custom RPC (same transform as `onRpcItemAdd`). */
 export function appendRpcItemToFormState(
   prev: NetworkFormState,

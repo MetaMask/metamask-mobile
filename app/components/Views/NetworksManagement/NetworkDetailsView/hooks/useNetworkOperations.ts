@@ -320,20 +320,6 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         return false;
       }
 
-      // Update token network filter
-      const { PreferencesController } = Engine.context;
-      if (!isAllNetworks) {
-        PreferencesController.setTokenNetworkFilter({ [chainId]: true });
-      } else {
-        PreferencesController.setTokenNetworkFilter({
-          ...tokenNetworkFilter,
-          [chainId]: true,
-        });
-      }
-
-      const { NetworkEnablementController } = Engine.context;
-      NetworkEnablementController.enableNetwork(chainId as Hex);
-
       try {
         await handleNetworkUpdate({
           rpcUrl,
@@ -349,7 +335,20 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
           trackRpcUpdateFromBanner,
           skipPostSaveNavigation,
         });
-      } catch (error) {
+
+        const { PreferencesController } = Engine.context;
+        if (!isAllNetworks) {
+          PreferencesController.setTokenNetworkFilter({ [chainId]: true });
+        } else {
+          PreferencesController.setTokenNetworkFilter({
+            ...tokenNetworkFilter,
+            [chainId]: true,
+          });
+        }
+
+        const { NetworkEnablementController } = Engine.context;
+        NetworkEnablementController.enableNetwork(chainId as Hex);
+      } catch {
         return false;
       }
       return true;

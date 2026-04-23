@@ -16,6 +16,7 @@ import {
   applyBlockExplorerSelectionToFormState,
   applyRpcSelectionToFormState,
   getDefaultBlockExplorerUrl,
+  networkFormBaselineSnapshot,
   removeBlockExplorerUrlFromFormState,
   removeRpcUrlFromFormState,
 } from '../NetworkDetailsView.utils';
@@ -57,21 +58,6 @@ function getRpcEndpointName(
   if (!endpoint) return undefined;
   if (endpoint.type === RpcEndpointType.Infura) return 'Infura';
   return 'name' in endpoint ? endpoint.name : undefined;
-}
-
-/** Snapshot string used to detect unsaved edits vs the last baseline. */
-function baselineSnapshotFromForm(prev: NetworkFormState): string {
-  return (
-    (prev.rpcUrl ?? '') +
-    String(prev.failoverRpcUrls) +
-    (prev.blockExplorerUrl ?? '') +
-    (prev.nickname ?? '') +
-    (prev.chainId ?? '') +
-    (prev.ticker ?? '') +
-    String(prev.editable) +
-    String(prev.rpcUrls) +
-    String(prev.blockExplorerUrls)
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -168,7 +154,7 @@ export const useNetworkForm = (
   // ---- Helpers -------------------------------------------------------------
   const getCurrentState = useCallback(() => {
     setForm((prev) => {
-      const actual = baselineSnapshotFromForm(prev);
+      const actual = networkFormBaselineSnapshot(prev);
 
       setEnableAction(actual !== initialBaselineStrRef.current);
       return prev; // no mutation
@@ -177,7 +163,7 @@ export const useNetworkForm = (
 
   const commitBaselineFromFormState = useCallback(
     (formState: NetworkFormState) => {
-      initialBaselineStrRef.current = baselineSnapshotFromForm(formState);
+      initialBaselineStrRef.current = networkFormBaselineSnapshot(formState);
       setEnableAction(false);
     },
     [],
@@ -291,7 +277,7 @@ export const useNetworkForm = (
         addMode: false,
       };
 
-      initialBaselineStrRef.current = baselineSnapshotFromForm(nextForm);
+      initialBaselineStrRef.current = networkFormBaselineSnapshot(nextForm);
       setForm(nextForm);
     } else {
       // --- Add mode --------------------------------------------------------

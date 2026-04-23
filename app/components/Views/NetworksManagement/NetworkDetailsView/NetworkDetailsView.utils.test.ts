@@ -6,6 +6,7 @@ import {
   applyRpcSelectionToFormState,
   formatNetworkRpcUrl,
   getDefaultBlockExplorerUrl,
+  networkFormBaselineSnapshot,
   removeBlockExplorerUrlFromFormState,
   removeRpcUrlFromFormState,
   templateInfuraRpc,
@@ -229,6 +230,68 @@ describe('NetworkDetailsView.utils', () => {
         removeBlockExplorerUrlFromFormState(prev, 'https://a.com')
           .blockExplorerUrls,
       ).toEqual(['https://b.com']);
+    });
+  });
+
+  describe('networkFormBaselineSnapshot', () => {
+    const minimalForm = (
+      overrides: Partial<NetworkFormState> = {},
+    ): NetworkFormState =>
+      ({
+        rpcUrl: 'https://rpc.example.com',
+        failoverRpcUrls: undefined,
+        rpcName: 'R',
+        rpcUrlForm: '',
+        rpcNameForm: '',
+        rpcUrls: [
+          {
+            url: 'https://rpc.example.com',
+            name: 'SameName',
+            type: RpcEndpointType.Custom,
+          },
+        ],
+        blockExplorerUrls: ['https://a.io'],
+        selectedRpcEndpointIndex: 0,
+        blockExplorerUrl: 'https://a.io',
+        blockExplorerUrlForm: undefined,
+        nickname: 'Net',
+        chainId: '0x1',
+        ticker: 'ETH',
+        editable: true,
+        addMode: false,
+        ...overrides,
+      }) as NetworkFormState;
+
+    it('differs when only an RPC endpoint display name changes', () => {
+      const a = minimalForm();
+      const b = minimalForm({
+        rpcUrls: [
+          {
+            url: 'https://rpc.example.com',
+            name: 'Renamed',
+            type: RpcEndpointType.Custom,
+          },
+        ],
+      });
+
+      expect(networkFormBaselineSnapshot(a)).not.toBe(
+        networkFormBaselineSnapshot(b),
+      );
+    });
+
+    it('differs when a block explorer URL entry changes', () => {
+      const a = minimalForm({
+        blockExplorerUrls: ['https://a.io'],
+        blockExplorerUrl: 'https://a.io',
+      });
+      const b = minimalForm({
+        blockExplorerUrls: ['https://b.io'],
+        blockExplorerUrl: 'https://a.io',
+      });
+
+      expect(networkFormBaselineSnapshot(a)).not.toBe(
+        networkFormBaselineSnapshot(b),
+      );
     });
   });
 });
