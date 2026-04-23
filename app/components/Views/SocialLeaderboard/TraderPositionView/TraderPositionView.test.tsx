@@ -6,7 +6,6 @@ import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position } from '@metamask/social-controllers';
 
 const mockGoBack = jest.fn();
-const mockGetAssetImageUrl = jest.fn();
 
 interface MockRouteParams {
   traderId: string;
@@ -49,14 +48,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
-  getAssetImageUrl: (...args: unknown[]) => mockGetAssetImageUrl(...args),
+jest.mock('../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetAssetImageUrl.mockReturnValue('https://example.com/token.png');
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'dutchiono',
@@ -121,25 +120,5 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('builds the token image URL when the position chain is supported', () => {
-    renderWithProvider(<TraderPositionView />);
-
-    expect(mockGetAssetImageUrl).toHaveBeenCalledWith(
-      '0x1234567890123456789012345678901234567890',
-      'eip155:8453',
-    );
-  });
-
-  it('skips token image URL resolution when the position chain is unsupported', () => {
-    mockRouteParams.position = {
-      ...mockRouteParams.position,
-      chain: 'unsupported-chain',
-    } as Position;
-
-    renderWithProvider(<TraderPositionView />);
-
-    expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
   });
 });

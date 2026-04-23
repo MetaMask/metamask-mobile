@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
@@ -9,13 +9,10 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  AvatarToken,
-  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { chainNameToId } from '../../utils/chainMapping';
 import { addThousandsSeparator } from '../../utils/numberFormatting';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import {
   formatPerpsFiat,
   formatPercentage,
@@ -63,12 +60,6 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
   const isPnlPositive = hasPnl && (displayPnlPercent ?? 0) >= 0;
   const testID = `position-row-${position.tokenSymbol}`;
 
-  const tokenImageUrl = useMemo(() => {
-    const chainId = chainNameToId(position.chain);
-    if (!chainId) return undefined;
-    return getAssetImageUrl(position.tokenAddress, chainId);
-  }, [position.chain, position.tokenAddress]);
-
   const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -83,11 +74,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
         gap={4}
         twClassName="flex-1 min-w-0 mr-3"
       >
-        <AvatarToken
-          name={position.tokenSymbol}
-          src={tokenImageUrl ? { uri: tokenImageUrl } : undefined}
-          size={AvatarTokenSize.Lg}
-        />
+        <PositionTokenAvatar position={position} />
 
         <Box twClassName="flex-1 min-w-0">
           <Text

@@ -4,14 +4,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
 import type { Position } from '@metamask/social-controllers';
 
-jest.mock('../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
-  getAssetImageUrl: jest.fn().mockReturnValue('https://example.com/token.png'),
-}));
-
-jest.mock('../../utils/chainMapping', () => ({
-  chainNameToId: jest.fn((chain: string) =>
-    chain === 'unknown' ? undefined : 'eip155:1',
-  ),
+jest.mock('../../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 jest.mock('../../../../UI/Perps/utils/formatUtils', () => {
