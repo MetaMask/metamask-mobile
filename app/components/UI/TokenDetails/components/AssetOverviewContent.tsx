@@ -61,7 +61,7 @@ import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import { getSecurityBadgeConfig } from '../../SecurityTrust/utils/securityUtils';
+import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import {
   Box,
   BoxFlexDirection,
@@ -70,6 +70,8 @@ import {
   IconName,
   IconSize,
   IconColor,
+  IconAlert,
+  IconAlertSeverity,
   FontWeight,
   Text,
   TextColor,
@@ -342,82 +344,40 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [isMerklClaimingEnabled, token.chainId, token.address],
   );
 
-  const securityBadge = useMemo(
-    () => getSecurityBadgeConfig(securityData),
-    [securityData],
+  const securityConfig = useMemo(
+    () => getResultTypeConfig(securityData?.resultType),
+    [securityData?.resultType],
   );
 
   const handleSecurityBadgePress = useCallback(() => {
     if (!securityData?.resultType || securityData.resultType === 'Benign')
       return;
 
-    const configMap: Record<
-      string,
-      {
-        icon: IconName;
-        iconColor: IconColor;
-        title: string;
-        description: string;
-      }
-    > = {
-      Verified: {
-        icon: IconName.VerifiedFilled,
-        iconColor: IconColor.IconDefault,
-        title: strings('security_trust.verified_token_title'),
-        description: strings('security_trust.verified_token_description', {
-          symbol: token.symbol,
-        }),
-      },
-      Warning: {
-        icon: IconName.Danger,
-        iconColor: IconColor.WarningDefault,
-        title: strings('security_trust.risky_token_title'),
-        description: strings('security_trust.risky_token_description', {
-          symbol: token.symbol,
-        }),
-      },
-      Spam: {
-        icon: IconName.Danger,
-        iconColor: IconColor.WarningDefault,
-        title: strings('security_trust.risky_token_title'),
-        description: strings('security_trust.risky_token_description', {
-          symbol: token.symbol,
-        }),
-      },
-      Malicious: {
-        icon: IconName.Danger,
-        iconColor: IconColor.ErrorDefault,
-        title: strings('security_trust.malicious_token_title'),
-        description: strings(
-          'security_trust.malicious_token_sheet_description',
-          { symbol: token.symbol },
-        ),
-      },
-    };
+    const config = getResultTypeConfig(securityData.resultType);
+    if (
+      !config.icon ||
+      !config.iconColor ||
+      !config.sheetTitle ||
+      !config.getSheetDescription
+    )
+      return;
 
-    const config = configMap[securityData.resultType];
-    if (config) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
-        params: {
-          ...config,
-          source: 'badge',
-          severity: securityData.resultType,
-          tokenAddress: token.address,
-          tokenSymbol: token.symbol,
-          chainId: token.chainId,
-          features: securityData.features,
-        },
-      });
-    }
-  }, [
-    securityData?.resultType,
-    securityData?.features,
-    token.symbol,
-    token.address,
-    token.chainId,
-    navigation,
-  ]);
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+      params: {
+        icon: config.icon,
+        iconColor: config.iconColor,
+        title: config.sheetTitle,
+        description: config.getSheetDescription(token.symbol),
+        source: 'badge',
+        severity: securityData.resultType,
+        tokenAddress: token.address,
+        tokenSymbol: token.symbol,
+        chainId: token.chainId,
+        features: securityData.features,
+      },
+    });
+  }, [securityData, token.symbol, token.address, token.chainId, navigation]);
 
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
@@ -609,15 +569,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 }`}
               >
                 <Box twClassName="pt-[2px]">
-                  <Icon
-                    name={IconName.Danger} // once this PR is merged https://github.com/MetaMask/metamask-mobile/pull/29149 need to use new IconAlert for all security badges
-                    size={IconSize.Md}
-                    color={
-                      securityData?.resultType === 'Malicious'
-                        ? IconColor.ErrorDefault
-                        : IconColor.WarningDefault
-                    }
-                  />
+                  {securityConfig.iconAlertSeverity && (
+                    <IconAlert
+                      severity={securityConfig.iconAlertSeverity}
+                      size={IconSize.Md}
+                    />
+                  )}
                 </Box>
                 <Box twClassName="flex-1">
                   <Text
@@ -686,20 +643,21 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     {token.name || token.symbol}
                   </Text>
                 </Box>
-                {securityBadge && securityBadge.label === null && (
-                  <Box twClassName="shrink-0 pb-[2px]">
-                    <TouchableOpacity
-                      onPress={handleSecurityBadgePress}
-                      testID="security-badge-verified"
-                    >
-                      <Icon
-                        name={securityBadge.icon}
-                        size={IconSize.Md}
-                        color={securityBadge.iconColor}
-                      />
-                    </TouchableOpacity>
-                  </Box>
-                )}
+                {securityData?.resultType === 'Verified' &&
+                  securityConfig.badge && (
+                    <Box twClassName="shrink-0 pb-[2px]">
+                      <TouchableOpacity
+                        onPress={handleSecurityBadgePress}
+                        testID="security-badge-verified"
+                      >
+                        <Icon
+                          name={securityConfig.badge.icon}
+                          size={IconSize.Md}
+                          color={securityConfig.badge.iconColor}
+                        />
+                      </TouchableOpacity>
+                    </Box>
+                  )}
                 {!token.name && isStockToken(token as BridgeToken) && (
                   <Box twClassName="shrink-0">
                     <StockBadge token={token as BridgeToken} />

@@ -21,6 +21,7 @@ import {
   IconName,
   IconSize,
   IconColor,
+  IconAlert,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -85,8 +86,8 @@ const SecurityBadgeBottomSheet = () => {
     return { tags: [], remainingCount: 0 };
   }, [features, severity]);
 
-  // Get icon and color for feature tags
-  const { icon: tagIcon, iconColor: tagIconColor } = useMemo(
+  // Get icon configuration for feature tags
+  const { iconAlertSeverity } = useMemo(
     () => getResultTypeConfig(severity),
     [severity],
   );
@@ -171,7 +172,11 @@ const SecurityBadgeBottomSheet = () => {
           gap={2}
           twClassName="self-stretch"
         >
-          <Icon name={icon} size={IconSize.Xl} color={iconColor} />
+          {iconAlertSeverity && severity !== 'Verified' ? (
+            <IconAlert severity={iconAlertSeverity} size={IconSize.Xl} />
+          ) : (
+            <Icon name={icon} size={IconSize.Xl} color={iconColor} />
+          )}
           <Box
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Center}
@@ -186,13 +191,43 @@ const SecurityBadgeBottomSheet = () => {
             >
               {title}
             </DSText>
-            <DSText
-              variant={DSTextVariant.BodyMd}
-              color={DSTextColor.TextAlternative}
-              twClassName="text-center mb-2"
-            >
-              {description}
-            </DSText>
+            {severity !== 'Malicious' ? (
+              <DSText
+                variant={DSTextVariant.BodyMd}
+                color={DSTextColor.TextAlternative}
+                twClassName="text-center mb-2"
+              >
+                {description}
+              </DSText>
+            ) : (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Start}
+                twClassName="self-stretch py-3 pl-6 pr-4 gap-3 rounded-2xl bg-error-muted mt-3"
+              >
+                <Box twClassName="pt-[2px]">
+                  {iconAlertSeverity && (
+                    <IconAlert
+                      severity={iconAlertSeverity}
+                      size={IconSize.Md}
+                    />
+                  )}
+                </Box>
+                <Box twClassName="flex-1">
+                  <DSText
+                    variant={DSTextVariant.BodyMd}
+                    color={DSTextColor.TextDefault}
+                  >
+                    {strings(
+                      'security_trust.malicious_token_banner_description',
+                      {
+                        symbol: tokenSymbol,
+                      },
+                    )}
+                  </DSText>
+                </Box>
+              </Box>
+            )}
           </Box>
         </Box>
         {featureTags.length > 0 && (
@@ -210,12 +245,8 @@ const SecurityBadgeBottomSheet = () => {
                 twClassName="w-full"
                 gap={3}
               >
-                {tagIcon && tagIconColor && (
-                  <Icon
-                    name={tagIcon}
-                    size={IconSize.Md}
-                    color={tagIconColor}
-                  />
+                {iconAlertSeverity && (
+                  <IconAlert severity={iconAlertSeverity} size={IconSize.Md} />
                 )}
                 <DSText
                   variant={DSTextVariant.BodyMd}
@@ -229,20 +260,31 @@ const SecurityBadgeBottomSheet = () => {
         )}
         {onProceed ? (
           <Box
-            flexDirection={BoxFlexDirection.Row}
+            flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Start}
-            twClassName="self-stretch flex-wrap gap-4"
+            twClassName="self-stretch gap-4"
           >
             <Button
               variant={ButtonVariant.Secondary}
-              twClassName="flex-1"
+              isFullWidth
               onPress={handleProceed}
+              twClassName={severity === 'Malicious' ? 'bg-error-default' : ''}
             >
-              {strings('security_trust.proceed')}
+              <DSText
+                variant={DSTextVariant.BodyMd}
+                color={
+                  severity === 'Malicious'
+                    ? DSTextColor.PrimaryInverse
+                    : DSTextColor.TextDefault
+                }
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('security_trust.continue_anyway')}
+              </DSText>
             </Button>
             <Button
               variant={ButtonVariant.Primary}
-              twClassName="flex-1"
+              isFullWidth
               onPress={handleClose}
             >
               {strings('security_trust.cancel')}
