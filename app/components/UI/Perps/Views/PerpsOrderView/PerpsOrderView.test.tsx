@@ -3903,7 +3903,9 @@ describe('PerpsOrderView', () => {
 
   describe('Pay-token validation error analytics tracking', () => {
     const findPerpsErrorBuilder = () => {
-      const calls = mockCreateEventBuilder.mock.calls as unknown as [{ category?: string }][];
+      const calls = mockCreateEventBuilder.mock.calls as unknown as [
+        { category?: string },
+      ][];
       for (let i = 0; i < calls.length; i++) {
         if (calls[i][0]?.category === 'Perp Error') {
           return mockCreateEventBuilder.mock.results[i].value;
