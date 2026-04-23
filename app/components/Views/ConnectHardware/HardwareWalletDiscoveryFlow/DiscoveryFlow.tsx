@@ -6,7 +6,7 @@ import useBluetoothPermissions from '../../../hooks/useBluetoothPermissions';
 import { BluetoothPermissionErrors } from '../../../../core/Ledger/ledgerErrors';
 import { transition } from './DiscoveryFlow.machine';
 import { getConfigForWalletType } from './configs';
-import type { DiscoveryStep, MachineEvent, DeviceUIConfig } from './DiscoveryFlow.types';
+import type { DiscoveryStep, MachineEvent } from './DiscoveryFlow.types';
 import type { DiscoveredDevice } from '../../../../core/HardwareWallet/types';
 import SearchingForDevice from '../SearchingForDevice';
 import DiscoveryNotFoundScreen from './screens/DiscoveryNotFound';
@@ -18,14 +18,18 @@ interface RouteParams {
   walletType: HardwareWalletType;
 }
 
+const useIsBleWallet = (walletType: HardwareWalletType) =>
+  walletType === HardwareWalletType.Ledger;
+
 const DiscoveryFlow: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { walletType } = (route.params as RouteParams) ?? {
     walletType: HardwareWalletType.Ledger,
   };
-  const { hasBluetoothPermissions, bluetoothPermissionError } =
-    useBluetoothPermissions();
+
+  const isBle = useIsBleWallet(walletType);
+  const blePermissions = useBluetoothPermissions();
 
   const config = useMemo(() => getConfigForWalletType(walletType), [walletType]);
 
@@ -36,6 +40,7 @@ const DiscoveryFlow: React.FC = () => {
   const [selectedDevice, setSelectedDevice] =
     useState<DiscoveredDevice | null>(null);
   const [isSelectingDevice, setIsSelectingDevice] = useState(false);
+  const [permissionsGranted, setPermissionsGranted] = useState(false);
 
   const stepRef = useRef<DiscoveryStep>(step);
   stepRef.current = step;
@@ -51,17 +56,19 @@ const DiscoveryFlow: React.FC = () => {
   const adapterRef = useRef<ReturnType<typeof createAdapter> | null>(null);
   const scanCleanupRef = useRef<(() => void) | null>(null);
   const transportUnsubscribeRef = useRef<(() => void) | null>(null);
-  const [bluetoothOn, setBluetoothOn] = useState(false);
-  const [bluetoothStateReceived, setBluetoothStateReceived] = useState(false);
+  const [transportReady, setTransportReady] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
-  // Route permission errors through the state machine
+  // === Permission handling ===
+
+  // BLE wallets: use useBluetoothPermissions hook for specific error types
   useEffect(() => {
-    if (!bluetoothPermissionError) return;
-    switch (bluetoothPermissionError) {
+    if (!isBle) return;
+    if (!blePermissions.bluetoothPermissionError) return;
+    switch (blePermissions.bluetoothPermissionError) {
       case BluetoothPermissionErrors.BluetoothAccessBlocked:
         send({ type: 'PERMISSIONS_DENIED', errorCode: ErrorCode.PermissionBluetoothDenied });
         break;
@@ -72,11 +79,46 @@ const DiscoveryFlow: React.FC = () => {
         send({ type: 'PERMISSIONS_DENIED', errorCode: ErrorCode.PermissionNearbyDevicesDenied });
         break;
     }
-  }, [bluetoothPermissionError, send]);
+  }, [blePermissions.bluetoothPermissionError, isBle, send]);
 
-  // Create adapter when searching begins
   useEffect(() => {
-    if (!hasBluetoothPermissions || stepRef.current !== 'searching') {
+    if (!isBle) return;
+    if (blePermissions.hasBluetoothPermissions) {
+      setPermissionsGranted(true);
+    }
+  }, [blePermissions.hasBluetoothPermissions, isBle]);
+
+  // Non-BLE wallets: use adapter's ensurePermissions
+  useEffect(() => {
+    if (isBle || stepRef.current !== 'searching') return;
+
+    const adapter = createAdapter(walletType, {
+      onDisconnect: () => undefined,
+      onDeviceEvent: () => undefined,
+    });
+    adapterRef.current = adapter;
+
+    adapter.ensurePermissions().then((granted) => {
+      if (granted) {
+        setPermissionsGranted(true);
+      } else {
+        send({
+          type: 'PERMISSIONS_DENIED',
+          errorCode: ErrorCode.PermissionCameraDenied,
+        });
+      }
+    });
+
+    return () => {
+      adapter.destroy();
+      adapterRef.current = null;
+    };
+  }, [isBle, send, walletType]);
+
+  // === Adapter creation + transport monitoring (BLE only) ===
+
+  useEffect(() => {
+    if (!isBle || !permissionsGranted || stepRef.current !== 'searching') {
       return;
     }
 
@@ -89,8 +131,7 @@ const DiscoveryFlow: React.FC = () => {
     if (adapter.onTransportStateChange) {
       transportUnsubscribeRef.current = adapter.onTransportStateChange(
         (isAvailable) => {
-          setBluetoothStateReceived(true);
-          setBluetoothOn(isAvailable);
+          setTransportReady(isAvailable);
           if (!isAvailable) {
             send({ type: 'TRANSPORT_UNAVAILABLE' });
           }
@@ -104,9 +145,23 @@ const DiscoveryFlow: React.FC = () => {
       adapter.destroy();
       adapterRef.current = null;
     };
-  }, [hasBluetoothPermissions, send, walletType]);
+  }, [isBle, permissionsGranted, send, walletType]);
 
-  // Start device discovery once bluetooth is on
+  // === Non-BLE: skip discovery, go to accounts directly ===
+
+  useEffect(() => {
+    if (isBle || !permissionsGranted || stepRef.current !== 'searching') return;
+
+    const adapter = adapterRef.current;
+    if (!adapter) return;
+
+    if (!adapter.requiresDeviceDiscovery) {
+      send({ type: 'OPEN_ACCOUNTS', device: { id: 'qr-wallet', name: 'QR Wallet' } });
+    }
+  }, [isBle, permissionsGranted, send]);
+
+  // === Device discovery (BLE) ===
+
   const handleDeviceFound = useCallback((foundDevice: DiscoveredDevice) => {
     setDiscoveredDevices((prev) => {
       if (prev.some((d) => d.id === foundDevice.id)) return prev;
@@ -123,7 +178,7 @@ const DiscoveryFlow: React.FC = () => {
 
   useEffect(() => {
     const adapter = adapterRef.current;
-    if (!adapter || !bluetoothOn || stepRef.current !== 'searching') {
+    if (!adapter || !transportReady || stepRef.current !== 'searching') {
       return;
     }
 
@@ -143,7 +198,7 @@ const DiscoveryFlow: React.FC = () => {
       scanCleanupRef.current?.();
       scanCleanupRef.current = null;
     };
-  }, [bluetoothOn, send, handleDeviceFound, handleScanError]);
+  }, [transportReady, send, handleDeviceFound, handleScanError]);
 
   // Transition to found when devices discovered
   useEffect(() => {
@@ -170,15 +225,14 @@ const DiscoveryFlow: React.FC = () => {
   const resetToSearching = useCallback(() => {
     setDiscoveredDevices([]);
     setSelectedDevice(null);
-    setBluetoothStateReceived(false);
-    setBluetoothOn(false);
+    setTransportReady(false);
+    setPermissionsGranted(false);
     send({ type: 'RETRY' });
   }, [send]);
 
   const selectedDeviceId = selectedDevice?.id ?? discoveredDevices[0]?.id;
 
   const content = useMemo(() => {
-    // Error screens
     if (
       step === 'device-locked' ||
       step === 'device-unresponsive' ||
@@ -195,7 +249,6 @@ const DiscoveryFlow: React.FC = () => {
       );
     }
 
-    // Account selection
     if (step === 'accounts' && selectedDevice) {
       return (
         <DiscoveryAccountSelectionScreen
@@ -206,7 +259,6 @@ const DiscoveryFlow: React.FC = () => {
       );
     }
 
-    // Not found
     if (step === 'not-found') {
       return (
         <DiscoveryNotFoundScreen
@@ -216,7 +268,6 @@ const DiscoveryFlow: React.FC = () => {
       );
     }
 
-    // Found
     if (step === 'found' && selectedDevice) {
       return (
         <>

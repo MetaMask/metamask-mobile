@@ -27,6 +27,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { getConnectedDevicesCount } from '../../../../core/HardwareWallets/analytics';
 import SelectHardwareTestIds from './SelectHardware.testIds';
 import LedgerLogo from '../../../../images/hardware-ledger-logo.svg';
@@ -113,7 +114,9 @@ const SelectHardwareWallet = () => {
       console.error('[SelectHardware] Failed to track analytics:', error);
     }
 
-    navigation.navigate(Routes.HW.LEDGER_DISCOVERY);
+    navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
+      walletType: HardwareWalletType.Ledger,
+    });
   };
 
   const navigateToSearchingPreview = () => {
@@ -121,7 +124,9 @@ const SelectHardwareWallet = () => {
   };
 
   const navigateToDiscoveryPreview = () => {
-    navigation.navigate(Routes.HW.LEDGER_DISCOVERY);
+    navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
+      walletType: HardwareWalletType.Ledger,
+    });
   };
 
   const renderIconTile = (icon: ReactNode) => (

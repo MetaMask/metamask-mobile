@@ -6,6 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { getConnectedDevicesCount } from '../../../../core/HardwareWallets/analytics';
 import { AppThemeKey } from '../../../../util/theme/models';
 import SelectHardwareTestIds from './SelectHardware.testIds';
@@ -108,7 +109,10 @@ describe('SelectHardwareWallet', () => {
         MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.LEDGER_DISCOVERY);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HW.HARDWARE_WALLET_DISCOVERY,
+        { walletType: HardwareWalletType.Ledger },
+      );
     });
 
     it('includes connected devices count in metrics event', async () => {
@@ -293,7 +297,10 @@ describe('SelectHardwareWallet', () => {
         fireEvent.press(ledgerButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.LEDGER_DISCOVERY);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HW.HARDWARE_WALLET_DISCOVERY,
+        { walletType: HardwareWalletType.Ledger },
+      );
     });
 
     it('continues navigation to QR when getConnectedDevicesCount fails', async () => {
