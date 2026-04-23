@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
@@ -10,6 +10,7 @@ import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
+import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
 import { hasConvertibleTokensWithBalance } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings';
@@ -24,8 +25,20 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import AppConstants from '../../../../../core/AppConstants';
+import NavigationService from '../../../../../core/NavigationService';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
+
+type MoneyHomeState = 'empty' | 'milestone' | 'filled';
+
+const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
+  if (transactionCount === 0) return 'empty';
+  if (transactionCount < 10) return 'milestone';
+  return 'filled';
+};
 
 /** Placeholder until Money home actions are implemented */
 // eslint-disable-next-line no-alert
@@ -42,6 +55,9 @@ const MoneyHomeView = () => {
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
+  const homeState = getMoneyHomeState(allTransactions.length);
+  const isMilestone = homeState === 'milestone' || homeState === 'filled';
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -54,15 +70,24 @@ const MoneyHomeView = () => {
   const handleApyInfoPress = displayUnderConstructionAlert;
   const handleProjectedEarningsPress = displayUnderConstructionAlert;
   const handleGetNowPress = displayUnderConstructionAlert;
-  const handleMusdRowPress = displayUnderConstructionAlert;
+  const handleMusdRowPress = useCallback(() => {
+    NavigationService.navigation.navigate('Asset', {
+      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
+      source: TokenDetailsSource.MobileTokenListPage,
+    });
+  }, []);
   const handleHeaderPress = displayUnderConstructionAlert;
 
   const handleTokenConvertPress = displayUnderConstructionAlert;
 
   const handleEarnCryptoPress = displayUnderConstructionAlert;
-  const handleLearnMorePress = displayUnderConstructionAlert;
+  const handleLearnMorePress = useCallback(() => {
+    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+  }, []);
   const handleAddMoneyPress = displayUnderConstructionAlert;
-  const handleHowItWorksHeaderPress = displayUnderConstructionAlert;
+  const handleHowItWorksHeaderPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
+  }, [navigation]);
 
   const handleViewAllActivityPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.ACTIVITY as never);
@@ -103,25 +128,45 @@ const MoneyHomeView = () => {
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        <MoneyOnboardingCard onAddPress={handleAddPress} />
+        <MoneyOnboardingCard
+          currentStep={isMilestone ? 2 : 1}
+          onCtaPress={isMilestone ? handleCardPress : handleAddPress}
+        />
         <Divider />
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
         <Divider />
-        <MoneyHowItWorks
-          apy={DEV_APY}
-          onHeaderPress={handleHowItWorksHeaderPress}
-          isLoading={vaultApyQuery.isLoading}
-        />
-        <MoneyMusdTokenRow
-          onPress={handleMusdRowPress}
-          onAddPress={handleAddPress}
-        />
-        <Divider />
+        {!isMilestone && (
+          <>
+            <MoneyHowItWorks
+              apy={DEV_APY}
+              onHeaderPress={handleHowItWorksHeaderPress}
+              isLoading={vaultApyQuery.isLoading}
+            />
+            <MoneyMusdTokenRow
+              onPress={handleMusdRowPress}
+              onAddPress={handleAddPress}
+            />
+            <Divider />
+          </>
+        )}
+        {allTransactions.length >= 1 && (
+          <>
+            <MoneyActivityList
+              transactions={allTransactions}
+              moneyAddress={moneyAddress}
+              onViewAllPress={handleViewAllActivityPress}
+              onHeaderPress={handleActivityHeaderPress}
+              onItemPress={handleActivityItemPress}
+            />
+            <Divider />
+          </>
+        )}
         {hasConvertibleTokensWithBalance(conversionTokens) && (
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}
               apy={DEV_APY}
+              condensed={isMilestone}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
@@ -134,22 +179,22 @@ const MoneyHomeView = () => {
           onHeaderPress={handleHeaderPress}
         />
         <Divider />
-        {allTransactions.length >= 10 && (
+        {isMilestone && (
           <>
-            <MoneyActivityList
-              transactions={allTransactions}
-              moneyAddress={moneyAddress}
-              onViewAllPress={handleViewAllActivityPress}
-              onHeaderPress={handleActivityHeaderPress}
-              onItemPress={handleActivityItemPress}
+            <MoneyCondensedInfoCards
+              onHowItWorksPress={handleHowItWorksHeaderPress}
+              onMusdPress={handleMusdRowPress}
+              onWhatYouGetPress={handleLearnMorePress}
             />
             <Divider />
           </>
         )}
-        <MoneyWhatYouGet
-          apy={DEV_APY}
-          onLearnMorePress={handleLearnMorePress}
-        />
+        {!isMilestone && (
+          <MoneyWhatYouGet
+            apy={DEV_APY}
+            onLearnMorePress={handleLearnMorePress}
+          />
+        )}
       </ScrollView>
       <MoneyFooter onAddMoneyPress={handleAddMoneyPress} />
     </Box>

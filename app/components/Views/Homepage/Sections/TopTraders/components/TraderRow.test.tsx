@@ -171,6 +171,20 @@ describe('TraderRow', () => {
       expect(resolveMinWidth(buttonWithMinWidth as ReactTestInstance)).toBe(96);
     });
 
+    it('renders the rank on a single line so the trailing dot does not wrap for double-digit ranks', () => {
+      const doubleDigitTrader: TopTrader = { ...baseTrader, rank: 20 };
+      renderWithProvider(
+        <TraderRow
+          trader={doubleDigitTrader}
+          onFollowPress={mockOnFollowPress}
+        />,
+      );
+
+      const rankText = screen.getByText('20.');
+
+      expect(rankText.props.numberOfLines).toBe(1);
+    });
+
     it('keeps the same minimum width when toggling between Follow and Following', () => {
       const { rerender } = renderWithProvider(
         <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,

@@ -131,9 +131,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockGate = jest.fn(
+  async (action: () => Promise<unknown>) => await action(),
+);
 jest.mock('../../Compliance', () => ({
   useComplianceGate: () => ({
-    gate: (action: () => Promise<unknown>) => action(),
+    gate: (action: () => Promise<unknown>) => mockGate(action),
     isBlocked: false,
     isComplianceEnabled: false,
     checkCompliance: jest.fn(),
@@ -325,6 +328,51 @@ describe('AssetOverviewContent', () => {
       expect(mockTrack).not.toHaveBeenCalled();
     });
 
+    it('releases the navigation lock when gate() settles without navigating so Long can be pressed again', async () => {
+      // Simulate a blocked wallet: gate() shows the compliance modal and
+      // returns without invoking the action. Without releasing the nav lock
+      // in the finally(), the second press would be silently ignored.
+      mockGate.mockImplementationOnce(async () => undefined);
+      mockGate.mockImplementationOnce(async () => undefined);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} />,
+        { state: createState(true) },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      });
+      expect(mockGate).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      });
+      expect(mockGate).toHaveBeenCalledTimes(2);
+      expect(mockHandlePerpsAction).not.toHaveBeenCalled();
+    });
+
+    it('releases the navigation lock when gate() settles without navigating so Short can be pressed again', async () => {
+      mockGate.mockImplementationOnce(async () => undefined);
+      mockGate.mockImplementationOnce(async () => undefined);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} />,
+        { state: createState(true) },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+      });
+      expect(mockGate).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+      });
+      expect(mockGate).toHaveBeenCalledTimes(2);
+      expect(mockHandlePerpsAction).not.toHaveBeenCalled();
+    });
+
     it('closes geo block modal when closeEligibilityModal is called', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
@@ -369,8 +417,10 @@ describe('AssetOverviewContent', () => {
         Routes.MARKET_INSIGHTS.VIEW,
         expect.objectContaining({
           assetSymbol: 'ETH',
-          tokenAddress: '0x123',
-          tokenChainId: '0x1',
+          token: expect.objectContaining({
+            address: '0x123',
+            chainId: '0x1',
+          }),
         }),
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
