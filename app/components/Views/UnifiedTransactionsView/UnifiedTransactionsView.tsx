@@ -62,6 +62,8 @@ import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.testIds';
+import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
+import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
@@ -150,6 +152,10 @@ const UnifiedTransactionsView = ({
     () => enabledNonEVMNetworks ?? [],
     [enabledNonEVMNetworks],
   );
+
+  const { maliciousTokenKeys } =
+    useMultichainActivityMaliciousTokenKeys(nonEvmTransactions);
+
   const providerType = useSelector(selectProviderType);
   const evmNetworkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -310,20 +316,25 @@ const UnifiedTransactionsView = ({
     // whose destination chain is enabled (e.g. Solana→Optimism bridge
     // should appear when viewing Optimism activity)
     const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
-    const filteredNonEvmTransactionsForSelectedChain = nonEvmTransactions
-      .filter((tx) => {
-        if (enabledNonEVMChainIds.includes(tx.chain)) return true;
-        const bridge = bridgeHistoryValues.find(
-          (item) => item.status?.srcChain?.txHash === tx.id,
-        );
-        return (
-          bridge?.quote?.destChainId !== undefined &&
-          enabledEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
-        );
-      })
-      // deduplicate by id
-      .filter(
-        (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
+    const filteredNonEvmTransactionsForSelectedChain =
+      filterMultichainTransactionsExcludingMaliciousTokenActivity(
+        nonEvmTransactions
+          .filter((tx) => {
+            if (enabledNonEVMChainIds.includes(tx.chain)) return true;
+            const bridge = bridgeHistoryValues.find(
+              (item) => item.status?.srcChain?.txHash === tx.id,
+            );
+            return (
+              bridge?.quote?.destChainId !== undefined &&
+              enabledEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
+            );
+          })
+          // deduplicate by id
+          .filter(
+            (tx, index, self) =>
+              index === self.findIndex((t) => t.id === tx.id),
+          ),
+        maliciousTokenKeys,
       );
 
     const evmPendingItems: UnifiedItem[] = evmPendingFirst.map((tx) => ({
@@ -364,6 +375,7 @@ const UnifiedTransactionsView = ({
   }, [
     evmTransactions,
     nonEvmTransactions,
+    maliciousTokenKeys,
     selectedAccountGroupInternalAccountsAddresses,
     enabledEVMChainIds,
     enabledNonEVMChainIds,
@@ -658,6 +670,7 @@ const UnifiedTransactionsView = ({
             <FlashList
               ref={listRef}
               data={data}
+              extraData={maliciousTokenKeys}
               testID={UnifiedTransactionsViewSelectorsIDs.CONTAINER}
               renderItem={renderItem}
               keyExtractor={(listItem) =>

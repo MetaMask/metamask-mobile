@@ -29,6 +29,8 @@ import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
+import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -104,6 +106,19 @@ const MultichainTransactionsView = ({
     [transactions, nonEvmTransactions],
   );
 
+  const { maliciousTokenKeys } = useMultichainActivityMaliciousTokenKeys(
+    txList ?? [],
+  );
+
+  const visibleMultichainTransactions = useMemo(
+    () =>
+      filterMultichainTransactionsExcludingMaliciousTokenActivity(
+        txList ?? [],
+        maliciousTokenKeys,
+      ),
+    [txList, maliciousTokenKeys],
+  );
+
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -134,7 +149,7 @@ const MultichainTransactionsView = ({
   const footer = (
     <MultichainTransactionsFooter
       url={url}
-      hasTransactions={(txList?.length ?? 0) > 0}
+      hasTransactions={(visibleMultichainTransactions?.length ?? 0) > 0}
       showDisclaimer={showDisclaimer}
       showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
@@ -181,7 +196,8 @@ const MultichainTransactionsView = ({
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList
-              data={txList}
+              data={visibleMultichainTransactions}
+              extraData={maliciousTokenKeys}
               renderItem={renderTransactionItem}
               keyExtractor={(item) => item.id}
               ListHeaderComponent={header}
