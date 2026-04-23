@@ -187,6 +187,27 @@ describe('SecurityBadgeBottomSheet', () => {
       expect(iconAlerts.length).toBeGreaterThanOrEqual(1);
     });
 
+    it('renders feature tags for Spam severity', () => {
+      mockUseRouteImpl = jest.fn(() => ({
+        params: {
+          ...mockRouteParams,
+          severity: 'Spam',
+          features: [
+            {
+              featureId: 'IMPERSONATOR_HIGH_CONFIDENCE',
+              type: 'negative',
+              description: 'Impersonator',
+            },
+          ],
+        },
+      }));
+
+      const { getByText } = render(<SecurityBadgeBottomSheet />);
+
+      // Feature tag label should be rendered for Spam tokens
+      expect(getByText('Likely impersonator')).toBeTruthy();
+    });
+
     it('does not render feature tags for Verified severity', () => {
       mockUseRouteImpl = jest.fn(() => ({
         params: {

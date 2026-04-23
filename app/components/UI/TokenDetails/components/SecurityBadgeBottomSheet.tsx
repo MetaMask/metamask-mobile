@@ -68,12 +68,14 @@ const SecurityBadgeBottomSheet = () => {
     features,
   } = route.params;
 
-  // Get feature tags for Malicious and Warning types only (max 5)
+  // Get feature tags for Malicious, Warning, and Spam types only (max 5)
   const featureTags = useMemo(() => {
     if (
       features &&
       features.length > 0 &&
-      (severity === 'Malicious' || severity === 'Warning')
+      (severity === 'Malicious' ||
+        severity === 'Warning' ||
+        severity === 'Spam')
     ) {
       // Use showAll=true to get all tags, then manually slice to 5
       const result = getFeatureTags(features, severity, true);
