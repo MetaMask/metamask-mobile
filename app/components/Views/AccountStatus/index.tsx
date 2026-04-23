@@ -135,6 +135,23 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     };
   }, [onboardingTraceCtx, type, track]);
 
+  useEffect(() => {
+    const traceName =
+      type === 'found'
+        ? TraceName.OnboardingNewSocialAccountExists
+        : TraceName.OnboardingExistingSocialAccountNotFound;
+
+    trace({
+      name: traceName,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: getTraceTags(store.getState()),
+      parentContext: onboardingTraceCtx,
+    });
+    return () => {
+      endTrace({ name: traceName });
+    };
+  }, [onboardingTraceCtx, type]);
+
   const navigateNextScreen = (
     targetRoute: string,
     previousScreen: string,

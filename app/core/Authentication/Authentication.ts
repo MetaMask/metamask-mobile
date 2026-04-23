@@ -38,7 +38,11 @@ import { retryWithExponentialDelay } from '../../util/exponential-retry';
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import {
+  convertEnglishWordlistIndicesToCodepoints,
+  convertMnemonicToWordlistIndices,
+  uint8ArrayToMnemonic,
+} from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';

@@ -1157,6 +1157,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         strings('import_from_seed.srp_placeholder'),
       );
 
+      // Enter a seed phrase to enable the show all button
       await act(async () => {
         fireEvent.changeText(input, 'word1 word2 word3');
       });

@@ -552,7 +552,7 @@
   "reset_password": {
     "title": "パスワードを変更",
     "subtitle": "このパスワードはこのデバイスでのみMetaMaskウォレットのロックを解除します。",
-    "password": "新しいパスワード",
+    "password": "New password",
     "confirm_password": "パスワードの確認",
     "reset_button": "パスワードをリセット",
     "import_with_seed_phrase": "秘密のリカバリーフレーズでインポート",
@@ -898,7 +898,7 @@
     "enter_address": {
       "navbar_title": "本人確認を行う",
       "title": "住所を入力",
-      "subtitle": "最新の住所を入力してください。",
+      "subtitle": "Use your most recent permanent address.",
       "continue": "続行",
       "address_line_1": "住所1",
       "address_line_2": "住所2（任意）",

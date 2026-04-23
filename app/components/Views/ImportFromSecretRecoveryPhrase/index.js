@@ -538,6 +538,17 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           ],
         });
+
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        if (onboardingTraceCtx) {
+          trace({
+            name: TraceName.OnboardingPasswordSetupError,
+            op: TraceOperation.OnboardingUserJourney,
+            parentContext: onboardingTraceCtx,
+            tags: { errorMessage: error.toString() },
+          });
+          endTrace({ name: TraceName.OnboardingPasswordSetupError });
+        }
       }
     }
   };

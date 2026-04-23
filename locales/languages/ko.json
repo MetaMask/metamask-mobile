@@ -898,7 +898,7 @@
     "enter_address": {
       "navbar_title": "본인 인증",
       "title": "주소를 입력하세요",
-      "subtitle": "가장 최근의 영구 주소를 입력하세요.",
+      "subtitle": "Use your most recent permanent address.",
       "continue": "계속",
       "address_line_1": "기본 주소",
       "address_line_2": "상세 주소(선택사항)",

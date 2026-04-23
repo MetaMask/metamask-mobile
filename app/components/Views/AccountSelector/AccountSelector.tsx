@@ -120,6 +120,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     return strings('multichain_accounts.add_wallet');
   }, [isAccountSyncingInProgress, accountOperationLoadingMessage]);
 
+  useSyncSRPs();
+
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
     () => ({

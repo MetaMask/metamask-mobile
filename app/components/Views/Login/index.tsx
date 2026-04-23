@@ -92,6 +92,12 @@ interface LoginRouteParams {
   locked: boolean;
 }
 
+interface LoginRouteParams {
+  locked: boolean;
+  oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: unknown;
+}
+
 interface LoginProps {
   saveOnboardingEvent: (event: AnalyticsTrackingEvent) => void;
 }
@@ -382,6 +388,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);
     setError(null);
+  };
+
+  // Component that throws error if needed (to be caught by ErrorBoundary)
+  const ThrowErrorIfNeeded = () => {
+    if (errorToThrow) {
+      throw errorToThrow;
+    }
+    return null;
   };
 
   return (

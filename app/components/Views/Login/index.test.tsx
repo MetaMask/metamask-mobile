@@ -131,6 +131,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Metrics mocks
+const mockTrackEvent = jest.fn();
+
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
@@ -363,6 +366,8 @@ describe('Login', () => {
     jest.clearAllMocks();
     Alert.alert = mockAlertAlert;
     mockNavigate.mockClear();
+    mockMetricsTrackEvent.mockClear();
+    mockMetricsCreateEventBuilder.mockClear();
     mockReplace.mockClear();
     mockGoBack.mockClear();
     mockReset.mockClear();
@@ -1402,3 +1407,10 @@ describe('Login', () => {
     });
   });
 });
+// it('should navigate back and reset OAuth state when using other methods', async () => {
+//   mockRoute.mockReturnValue({
+//     params: {
+//       locked: false,
+//       oauthLoginSuccess: true,
+//     },
+//   });
