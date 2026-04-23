@@ -50,16 +50,6 @@ describe('PickerBase', () => {
     expect(icon).toBeTruthy();
   });
 
-  it('does not render dropdown icon when showDropdownIcon is false', () => {
-    const { UNSAFE_queryByProps } = render(
-      <PickerBase onPress={jest.fn()} showDropdownIcon={false}>
-        <Text>Test Content</Text>
-      </PickerBase>,
-    );
-
-    expect(UNSAFE_queryByProps({ name: IconName.ArrowDown })).toBeNull();
-  });
-
   it('should apply custom icon size', () => {
     const { UNSAFE_getByProps } = render(
       <PickerBase onPress={jest.fn()} iconSize={IconSize.Lg}>

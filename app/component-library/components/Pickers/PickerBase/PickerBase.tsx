@@ -13,14 +13,7 @@ import { PickerBaseProps } from './PickerBase.types';
 import styleSheet from './PickerBase.styles';
 
 const PickerBase: React.ForwardRefRenderFunction<View, PickerBaseProps> = (
-  {
-    iconSize = IconSize.Md,
-    style,
-    dropdownIconStyle,
-    showDropdownIcon = true,
-    children,
-    ...props
-  },
+  { iconSize = IconSize.Md, style, dropdownIconStyle, children, ...props },
   ref,
 ) => {
   const { styles, theme } = useStyles(styleSheet, { style, dropdownIconStyle });
@@ -34,14 +27,12 @@ const PickerBase: React.ForwardRefRenderFunction<View, PickerBaseProps> = (
       testID={props.testID}
     >
       {children}
-      {showDropdownIcon ? (
-        <Icon
-          size={iconSize}
-          color={colors.icon.default}
-          name={IconName.ArrowDown}
-          style={styles.dropdownIcon}
-        />
-      ) : null}
+      <Icon
+        size={iconSize}
+        color={colors.icon.default}
+        name={IconName.ArrowDown}
+        style={styles.dropdownIcon}
+      />
     </TouchableOpacity>
   );
 };

@@ -52,7 +52,6 @@ const PickerAccount: React.ForwardRefRenderFunction<
       onPressOut={triggerOnPressedOut}
       hitSlop={hitSlop}
       activeOpacity={1}
-      showDropdownIcon={false}
       {...props}
     >
       <DSText

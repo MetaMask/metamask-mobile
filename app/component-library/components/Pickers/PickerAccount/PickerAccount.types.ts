@@ -4,8 +4,7 @@ import { PickerBaseProps } from '../PickerBase';
 /**
  * PickerAccount component props.
  */
-export interface PickerAccountProps
-  extends Omit<PickerBaseProps, 'children' | 'showDropdownIcon'> {
+export interface PickerAccountProps extends Omit<PickerBaseProps, 'children'> {
   /**
    * Name of the account.
    */
