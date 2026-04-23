@@ -604,11 +604,11 @@
     "@walletconnect/types": "^2.23.0",
     "@wdio/protocols": "^9.27.0",
     "@welldone-software/why-did-you-render": "^8.0.1",
-    "appium": "^3.3.0",
+    "appium": "^2.5.4",
     "appium-adb": "^9.11.4",
     "appium-chromium-driver": "^2.0.2",
     "appium-uiautomator2-driver": "4.2.7",
-    "appium-xcuitest-driver": "^11.0.0",
+    "appium-xcuitest-driver": "9.5.0",
     "appwright": "patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch",
     "assert": "^1.5.0",
     "babel-jest": "^29.7.0",
@@ -703,7 +703,7 @@
     }
   },
   "engines": {
-    "node": "^20.19.0",
+    "node": "^20.18.0",
     "yarn": "^4.10.3"
   },
   "optionalDependencies": {
