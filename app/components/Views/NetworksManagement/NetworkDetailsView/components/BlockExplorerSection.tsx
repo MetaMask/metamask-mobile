@@ -33,10 +33,7 @@ import {
   applyBlockExplorerSelectionToFormState,
   removeBlockExplorerUrlFromFormState,
 } from '../NetworkDetailsView.utils';
-import type {
-  NetworkFormState,
-  UrlSheetPersistOptions,
-} from '../NetworkDetailsView.types';
+import type { UrlSheetMutationCommittedHandler } from '../NetworkDetailsView.types';
 import type { UseNetworkFormReturn } from '../hooks/useNetworkForm';
 import type { NetworkDetailsStyles } from '../NetworkDetailsView.styles';
 
@@ -47,11 +44,8 @@ interface BlockExplorerSectionProps {
   styles: NetworkDetailsStyles;
   themeAppearance: 'light' | 'dark' | 'default';
   placeholderTextColor: string;
-  /** Invoked after add / select / delete explorer URL is applied in edit mode (persists to network store). */
-  onUrlSheetMutationCommitted?: (
-    committedFormSnapshot?: NetworkFormState,
-    persistOptions?: UrlSheetPersistOptions,
-  ) => void | Promise<boolean>;
+  /** Invoked after add / select / delete explorer URL is applied in edit mode (persists to network store). Must return whether persist succeeded. */
+  onUrlSheetMutationCommitted?: UrlSheetMutationCommittedHandler;
 }
 
 const BlockExplorerSection: React.FC<BlockExplorerSectionProps> = ({
@@ -117,7 +111,9 @@ const BlockExplorerListItem: React.FC<BlockExplorerListItemProps> = React.memo(
     const handlePress = useCallback(async () => {
       await onSelect(url);
     }, [onSelect, url]);
-    const handleDelete = useCallback(() => onDelete(url), [onDelete, url]);
+    const handleDelete = useCallback(async () => {
+      await onDelete(url);
+    }, [onDelete, url]);
 
     return (
       <Cell

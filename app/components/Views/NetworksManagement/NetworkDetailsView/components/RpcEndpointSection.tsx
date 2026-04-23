@@ -38,9 +38,8 @@ import {
   removeRpcUrlFromFormState,
 } from '../NetworkDetailsView.utils';
 import type {
-  NetworkFormState,
   RpcEndpoint,
-  UrlSheetPersistOptions,
+  UrlSheetMutationCommittedHandler,
 } from '../NetworkDetailsView.types';
 import type { UseNetworkFormReturn } from '../hooks/useNetworkForm';
 import type { UseNetworkValidationReturn } from '../hooks/useNetworkValidation';
@@ -56,11 +55,8 @@ interface RpcEndpointSectionProps {
   styles: NetworkDetailsStyles;
   themeAppearance: 'light' | 'dark' | 'default';
   placeholderTextColor: string;
-  /** Invoked to persist RPC / explorer edits; RPC add passes a form snapshot and returns success. */
-  onUrlSheetMutationCommitted?: (
-    committedFormSnapshot?: NetworkFormState,
-    persistOptions?: UrlSheetPersistOptions,
-  ) => void | Promise<boolean>;
+  /** Invoked to persist RPC / explorer edits; RPC add passes a form snapshot. Must return whether persist succeeded. */
+  onUrlSheetMutationCommitted?: UrlSheetMutationCommittedHandler;
 }
 
 const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
@@ -211,7 +207,9 @@ const RpcListItem: React.FC<RpcListItemProps> = React.memo(
       await onSelect(url, failoverUrls, name ?? '', type);
     }, [onSelect, url, failoverUrls, name, type]);
 
-    const handleDelete = useCallback(() => onDelete(url), [onDelete, url]);
+    const handleDelete = useCallback(async () => {
+      await onDelete(url);
+    }, [onDelete, url]);
 
     return (
       <Cell
