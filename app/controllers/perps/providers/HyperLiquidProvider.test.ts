@@ -9821,4 +9821,19 @@ describe('HyperLiquidProvider', () => {
       expect(Array.isArray(markets)).toBe(true);
     });
   });
+
+  describe('getExchangeClient escape hatch', () => {
+    it('delegates to the client service and returns the underlying ExchangeClient', () => {
+      const sentinel = mockClientService.getExchangeClient();
+      expect(provider.getExchangeClient()).toBe(sentinel);
+    });
+
+    it('propagates errors thrown by the client service', () => {
+      const bomb = new Error('client not initialized');
+      mockClientService.getExchangeClient = jest.fn(() => {
+        throw bomb;
+      });
+      expect(() => provider.getExchangeClient()).toThrow(bomb);
+    });
+  });
 });

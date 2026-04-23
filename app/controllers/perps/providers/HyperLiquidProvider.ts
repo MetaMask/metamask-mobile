@@ -1,5 +1,6 @@
 import { CaipAccountId, hasProperty } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
+import type { ExchangeClient } from '@nktkas/hyperliquid';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { CandlePeriod } from '../constants/chartConfig';
@@ -7770,6 +7771,22 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#userFeeCache.clear();
       this.#deps.debugLogger.log('Cleared all fee cache');
     }
+  }
+
+  /**
+   * Escape hatch that returns the underlying HyperLiquid SDK ExchangeClient.
+   *
+   * NOT part of the PerpsProvider interface. Intended exclusively for
+   * agentic validation flows and test harnesses that need to drive HL
+   * mutations (order, usdClassTransfer, userSetAbstraction, etc.)
+   * directly — bypassing TradingService, metrics, error handling, and
+   * cache-invalidation plumbing. Production code paths MUST go through
+   * the provider's own methods instead.
+   *
+   * @returns The initialized HL ExchangeClient.
+   */
+  public getExchangeClient(): ExchangeClient {
+    return this.#clientService.getExchangeClient();
   }
 
   /**
