@@ -34,12 +34,16 @@ export function useMoneyAccountDeposit() {
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const initiateDeposit = useCallback(
+    // TODO: remove the account parameter and instead of directly building approve and deposit transactions
+    // we need to implemend a hook from `addTransactionBatch` from which we can get the user inputed amount
+    // and then use that to build the approve and deposit transactions. This is because user inputs the amount
+    // in the MM pay UI and we need to use that amount.
     async (amount: bigint) => {
-      if (!vaultConfig || !primaryMoneyAccount?.address) {
-        Logger.error(
-          new Error(`${LOG_TAG} Missing vault config or money account address`),
-        );
-        return;
+      if (!vaultConfig) {
+        throw new Error(`${LOG_TAG} Missing vault config`);
+      }
+      if (!primaryMoneyAccount?.address) {
+        throw new Error(`${LOG_TAG} Missing money account address`);
       }
 
       const {
@@ -53,10 +57,9 @@ export function useMoneyAccountDeposit() {
       const chainIdHex = chainId as Hex;
       const provider = getProviderByChainId(chainIdHex);
       if (!provider) {
-        Logger.error(
-          new Error(`${LOG_TAG} No provider available for chain ${chainId}`),
+        throw new Error(
+          `${LOG_TAG} No provider available for chain ${chainId}`,
         );
-        return;
       }
 
       const networkClientId =
@@ -64,6 +67,7 @@ export function useMoneyAccountDeposit() {
           chainIdHex,
         );
 
+      // TODO: as mentioned above this should move into hook from `addTransactionBatch`.
       const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
         amount,
         chainId: chainIdHex,
@@ -108,11 +112,11 @@ export function useMoneyAccountWithdrawal() {
 
   const initiateWithdrawal = useCallback(
     async (amount: bigint) => {
-      if (!vaultConfig || !primaryMoneyAccount?.address) {
-        Logger.error(
-          new Error(`${LOG_TAG} Missing vault config or money account address`),
-        );
-        return;
+      if (!vaultConfig) {
+        throw new Error(`${LOG_TAG} Missing vault config`);
+      }
+      if (!primaryMoneyAccount?.address) {
+        throw new Error(`${LOG_TAG} Missing money account address`);
       }
 
       const { chainId, tellerAddress, accountantAddress } = vaultConfig;
@@ -120,10 +124,9 @@ export function useMoneyAccountWithdrawal() {
       const chainIdHex = chainId as Hex;
       const provider = getProviderByChainId(chainIdHex);
       if (!provider) {
-        Logger.error(
-          new Error(`${LOG_TAG} No provider available for chain ${chainId}`),
+        throw new Error(
+          `${LOG_TAG} No provider available for chain ${chainId}`,
         );
-        return;
       }
 
       const networkClientId =
