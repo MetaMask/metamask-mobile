@@ -429,12 +429,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const availableBalance = Number.parseFloat(
-    account?.availableBalance?.toString() ?? '0',
+  const tradeableBalance = Number.parseFloat(
+    account?.availableToTradeBalance?.toString() ??
+      account?.availableBalance?.toString() ??
+      '0',
   );
   const hasDirectOrderFundingPath =
     !isLoadingAccount &&
-    (availableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
+    (tradeableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
       defaultPayTokenWhenNoPerpsBalance !== null);
 
   const handleAddFunds = useCallback(async () => {
