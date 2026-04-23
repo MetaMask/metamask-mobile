@@ -24,7 +24,6 @@ import {
 } from '../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
-import { useOndoCampaignEndedOutcomeToast } from './hooks/useOndoCampaignEndedOutcomeToast';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
@@ -69,9 +68,6 @@ const RewardsNavigator: React.FC = () => {
   useReferralDetails();
 
   useRewardCampaigns();
-
-  // Show toast when Ondo campaign has ended, the user is a participant and all results are finalized
-  useOndoCampaignEndedOutcomeToast();
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
