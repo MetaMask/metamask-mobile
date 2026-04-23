@@ -39,15 +39,18 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
     if (!featureEnabled) {
       return null;
     }
-    // Gate on availableBalance (spendable): order-form pay-token preselection
-    // must fire when withdrawable is 0 but totalBalance > 0 (spot-funded or
-    // margin-locked). The CTA consumer layers its own totalBalance guard on
-    // top of this hook's result to hide "Add Funds" for spot-funded accounts.
-    const availableBalance = Number.parseFloat(
-      perpsAccount?.availableBalance?.toString() ?? '0',
+    // Gate on availableToTradeBalance when available (withdrawable +
+    // unreserved spot collateral on HL Unified/PM), falling back to
+    // availableBalance for providers/modes without the fold. This keeps
+    // spot-funded accounts from being auto-steered to an external USDC
+    // pay-token when they already have Perps-tradeable balance.
+    const tradeableBalance = Number.parseFloat(
+      perpsAccount?.availableToTradeBalance?.toString() ??
+        perpsAccount?.availableBalance?.toString() ??
+        '0',
     );
 
-    if (availableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
+    if (tradeableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
       return null;
     }
     if (!allowlistAssets?.length) {
@@ -97,6 +100,7 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
   }, [
     featureEnabled,
     perpsAccount?.availableBalance,
+    perpsAccount?.availableToTradeBalance,
     allowlistAssets,
     activeProvider,
     currentNetwork,
