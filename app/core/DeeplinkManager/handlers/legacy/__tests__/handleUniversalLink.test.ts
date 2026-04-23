@@ -1418,12 +1418,12 @@ describe('handleUniversalLink', () => {
       it.each(trustedInAppSources)(
         'skips modal when source is "%s" with signed (PRIVATE) link',
         async (testSource) => {
-          const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}?sig=${validSignature}`;
+          const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SEND}?sig=${validSignature}`;
           const testUrlObj = {
             ...urlObj,
             hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
             href: signedUrl,
-            pathname: `/${ACTIONS.SWAP}`,
+            pathname: `/${ACTIONS.SEND}`,
           };
 
           await handleUniversalLink({
@@ -1443,12 +1443,12 @@ describe('handleUniversalLink', () => {
       it.each(trustedInAppSources)(
         'skips modal when source is "%s" with unsigned (PUBLIC) link',
         async (testSource) => {
-          const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+          const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SEND}`;
           const testUrlObj = {
             ...urlObj,
             hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
             href: unsignedUrl,
-            pathname: `/${ACTIONS.SWAP}`,
+            pathname: `/${ACTIONS.SEND}`,
           };
 
           await handleUniversalLink({
