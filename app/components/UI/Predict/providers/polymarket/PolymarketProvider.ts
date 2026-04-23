@@ -691,20 +691,36 @@ export class PolymarketProvider implements PredictProvider {
 
       const supportedLeagues = this.#getSupportedLeagues();
       const liveSportsEnabled = supportedLeagues.length > 0;
+      const extendedSportsMarketsLeagues =
+        this.#getExtendedSportsMarketsLeagues();
       const isSportsEvent =
-        liveSportsEnabled && isLiveSportsEvent(event, supportedLeagues);
+        liveSportsEnabled &&
+        isLiveSportsEvent(
+          event,
+          supportedLeagues,
+          extendedSportsMarketsLeagues,
+        );
 
       let mergedEvent = event;
       let childMarketIds: string[] | undefined;
       if (isSportsEvent) {
-        const league = getEventLeague(event);
-        if (league && this.#hasExtendedMarketsForLeague(league)) {
+        const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
+        if (eventLeague && this.#hasExtendedMarketsForLeague(eventLeague)) {
           let resolvedMarketId = marketId;
+          // If event has parentEventId, we fetch parent data instead of the requested event
           if (event.parentEventId) {
-            resolvedMarketId = event.parentEventId;
-            event = await getMarketDetailsFromGammaApi({
-              marketId: resolvedMarketId,
-            });
+            resolvedMarketId = String(event.parentEventId);
+            try {
+              event = await getMarketDetailsFromGammaApi({
+                marketId: resolvedMarketId,
+              });
+              mergedEvent = event;
+            } catch (parentFetchError) {
+              DevLogger.log(
+                'Failed to fetch parent event, using requested event only:',
+                parentFetchError,
+              );
+            }
           }
 
           try {
@@ -729,7 +745,7 @@ export class PolymarketProvider implements PredictProvider {
       const [parsedMarket] = parsePolymarketEvents([mergedEvent], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
-        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+        extendedSportsMarketsLeagues,
       });
 
       if (!parsedMarket) {

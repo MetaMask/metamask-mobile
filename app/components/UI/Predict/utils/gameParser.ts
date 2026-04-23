@@ -220,8 +220,17 @@ export interface ParsedGameSlug {
   dateString: string;
 }
 
+const hasTeamsMatchingLeague = (
+  event: PolymarketApiEvent,
+  league: PredictSportsLeague,
+): boolean => {
+  const teams = Array.isArray(event.teams) ? event.teams : [];
+  return teams.length > 0 && teams.every((team) => team.league === league);
+};
+
 export function getEventLeague(
   event: PolymarketApiEvent,
+  extendedSportsMarketsLeagues: string[] = [],
 ): PredictSportsLeague | null {
   const tags = Array.isArray(event.tags) ? event.tags : [];
   const hasGamesTag = tags.some((tag) => tag.slug === 'games');
@@ -238,6 +247,15 @@ export function getEventLeague(
     if (hasLeagueTag && hasValidSlug) {
       return league;
     }
+
+    const canInferFromTeams =
+      hasLeagueTag &&
+      extendedSportsMarketsLeagues.includes(league) &&
+      hasTeamsMatchingLeague(event, league);
+
+    if (canInferFromTeams) {
+      return league;
+    }
   }
 
   return null;
@@ -246,8 +264,9 @@ export function getEventLeague(
 export function isLiveSportsEvent(
   event: PolymarketApiEvent,
   enabledLeagues: PredictSportsLeague[],
+  extendedSportsMarketsLeagues: string[] = [],
 ): boolean {
-  const league = getEventLeague(event);
+  const league = getEventLeague(event, extendedSportsMarketsLeagues);
   return league !== null && enabledLeagues.includes(league);
 }
 

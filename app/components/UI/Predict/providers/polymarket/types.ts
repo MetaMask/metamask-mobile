@@ -180,6 +180,7 @@ export interface PolymarketApiEvent {
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
   tags: PolymarketApiTag[];
+  teams?: PolymarketApiTeam[];
   liquidity: number;
   volume: number;
   sortBy?: 'price' | 'ascending' | 'descending';
@@ -191,7 +192,7 @@ export interface PolymarketApiEvent {
   period?: PredictGamePeriod;
   live?: boolean;
   ended?: boolean;
-  parentEventId?: string;
+  parentEventId?: string | number;
 }
 
 export interface PolymarketApiActivity {
@@ -363,6 +364,7 @@ export interface PolymarketApiTeam {
   abbreviation: string;
   color: string;
   alias: string;
+  league?: string;
 }
 
 export interface PolymarketApiGameEvent {

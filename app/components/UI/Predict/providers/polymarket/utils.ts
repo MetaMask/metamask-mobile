@@ -996,7 +996,7 @@ export const parsePolymarketEvents = (
   const parsedMarkets: PredictMarket[] = events.map(
     (event: PolymarketApiEvent) => {
       const tags = Array.isArray(event.tags) ? event.tags : [];
-      const eventLeague = getEventLeague(event);
+      const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
 
       const predictTeamLookup: TeamLookup | undefined = teamLookup
         ? (league, abbr) => {
@@ -1336,7 +1336,7 @@ export const getMarketDetailsFromGammaApi = async ({
 export const fetchChildEventsFromGammaApi = async ({
   parentEventId,
 }: {
-  parentEventId: string;
+  parentEventId: string | number;
 }): Promise<PolymarketApiEvent[]> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
   const response = await fetch(
