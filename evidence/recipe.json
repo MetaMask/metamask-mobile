@@ -16,6 +16,13 @@
           "assert": { "operator": "eq", "field": "ok", "value": true }
         },
         {
+          "id": "cancel-leftover-orders",
+          "action": "eval_async",
+          "expression": "(function(){try{return Engine.context.PerpsController.cancelOrders({cancelAll:true}).then(function(r){return JSON.stringify({ok:true,cleared:(r&&r.successCount)||0})}).catch(function(e){return JSON.stringify({ok:true,cleared:0,note:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:true,cleared:0,error:String(e)}))}})()",
+          "assert": { "operator": "eq", "field": "ok", "value": true },
+          "timeout_ms": 30000
+        },
+        {
           "id": "capture-initial-state",
           "action": "eval_async",
           "expression": "(function(){try{var ctrl=Engine.context.PerpsController;var accs=Engine.context.AccountsController.state.internalAccounts;var user=accs.accounts[accs.selectedAccount].address;return ctrl.getAccountState({standalone:true,userAddress:user}).then(function(s){return JSON.stringify({ok:true,user:user,startingTotal:s.totalBalance,startingAvailable:s.availableBalance,startingTradeable:s.availableToTradeBalance})}).catch(function(e){return JSON.stringify({ok:false,error:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:false,error:String(e)}))}})()",
@@ -121,11 +128,66 @@
               { "operator": "eq", "field": "defaultsToPerps", "value": true }
             ]
           },
-          "next": "back-to-wallet"
+          "next": "limit-cycle-nav-wallet"
         },
-        "back-to-wallet": {
+        "limit-cycle-nav-wallet": {
           "action": "navigate",
           "target": "Wallet",
+          "next": "limit-cycle-cleanup-existing"
+        },
+        "limit-cycle-cleanup-existing": {
+          "action": "eval_async",
+          "expression": "(function(){try{return Engine.context.PerpsController.cancelOrders({cancelAll:true}).then(function(r){return JSON.stringify({ok:true,cleared:(r&&r.successCount)||0})}).catch(function(e){return JSON.stringify({ok:true,cleared:0,note:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:true,cleared:0,error:String(e)}))}})()",
+          "assert": { "operator": "eq", "field": "ok", "value": true },
+          "timeout_ms": 30000,
+          "next": "limit-cycle-baseline"
+        },
+        "limit-cycle-baseline": {
+          "action": "eval_sync",
+          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var total=parseFloat(s.totalBalance||'0');return JSON.stringify({baselineTradeable:trade,totalBalance:total,convergent:Math.abs(trade-total)<=0.2})})()",
+          "assert": {
+            "all": [
+              { "operator": "gt", "field": "baselineTradeable", "value": 1 },
+              { "operator": "eq", "field": "convergent", "value": true }
+            ]
+          },
+          "next": "limit-cycle-place"
+        },
+        "limit-cycle-place": {
+          "action": "eval_async",
+          "expression": "(function(){try{return Engine.context.PerpsController.getMarketDataWithPrices().then(function(markets){var m=null;for(var i=0;i<markets.length;i++){if(markets[i].symbol==='BTC'){m=markets[i];break}}var raw=m?String(m.price):'70000';var mid=parseFloat(raw.replace(/[$,]/g,''));var farPrice=Math.floor(mid*0.5).toString();return Engine.context.PerpsController.placeOrder({symbol:'BTC',isBuy:true,orderType:'limit',price:farPrice,size:'0.0002',leverage:2,usdAmount:'11',maxSlippageBps:500}).then(function(r){return JSON.stringify({ok:!!(r&&r.success),farPrice:farPrice,result:r})})}).catch(function(e){return JSON.stringify({ok:false,error:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:false,error:String(e)}))}})()",
+          "assert": { "operator": "eq", "field": "ok", "value": true },
+          "timeout_ms": 30000,
+          "next": "limit-cycle-wait-hold"
+        },
+        "limit-cycle-wait-hold": {
+          "action": "wait_for",
+          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var total=parseFloat(s.totalBalance||'0');return JSON.stringify({tradeable:trade,totalBalance:total,holdApplied:trade<total-0.1})})()",
+          "assert": { "operator": "eq", "field": "holdApplied", "value": true },
+          "timeout_ms": 10000,
+          "next": "limit-cycle-cancel-all"
+        },
+        "limit-cycle-cancel-all": {
+          "action": "eval_async",
+          "expression": "(function(){try{return Engine.context.PerpsController.cancelOrders({cancelAll:true}).then(function(r){return JSON.stringify({ok:!!(r&&r.success),successCount:(r&&r.successCount)||0})}).catch(function(e){return JSON.stringify({ok:false,error:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:false,error:String(e)}))}})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "ok", "value": true },
+              { "operator": "gt", "field": "successCount", "value": 0 }
+            ]
+          },
+          "timeout_ms": 30000,
+          "next": "limit-cycle-wait-release"
+        },
+        "limit-cycle-wait-release": {
+          "action": "wait_for",
+          "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var total=parseFloat(s.totalBalance||'0');var released=Math.abs(trade-total)<=0.2;return JSON.stringify({tradeable:trade,totalBalance:total,holdReleased:released})})()",
+          "assert": {
+            "operator": "eq",
+            "field": "holdReleased",
+            "value": true
+          },
+          "timeout_ms": 15000,
           "next": "manual-vs-hl-web"
         },
         "manual-vs-hl-web": {
@@ -139,6 +201,13 @@
         }
       },
       "teardown": [
+        {
+          "id": "teardown-cancel-orders",
+          "action": "eval_async",
+          "expression": "(function(){try{return Engine.context.PerpsController.cancelOrders({cancelAll:true}).then(function(r){return JSON.stringify({ok:true,cleared:(r&&r.successCount)||0})}).catch(function(e){return JSON.stringify({ok:true,cleared:0,note:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:true,cleared:0,error:String(e)}))}})()",
+          "assert": { "operator": "eq", "field": "ok", "value": true },
+          "timeout_ms": 30000
+        },
         {
           "id": "restore-unified",
           "action": "call",
