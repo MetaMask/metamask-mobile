@@ -112,7 +112,7 @@ describe('PaymentMethodListItem', () => {
   });
 
   it('renders as selected when isSelected is true', () => {
-    const { toJSON } = renderWithTheme(
+    const { getByText } = renderWithTheme(
       <PaymentMethodListItem
         paymentMethod={mockPaymentMethod}
         isSelected
@@ -120,16 +120,6 @@ describe('PaymentMethodListItem', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(
-      <PaymentMethodListItem
-        paymentMethod={mockPaymentMethod}
-        {...defaultQuoteProps}
-      />,
-    );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Debit or Credit')).toBeOnTheScreen();
   });
 });

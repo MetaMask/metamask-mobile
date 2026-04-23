@@ -1,5 +1,5 @@
 import { scrypt } from 'react-native-fast-crypto';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import {
   Controller as UserStorageController,
   UserStorageControllerMessenger,
@@ -16,7 +16,7 @@ import { buildAndTrackEvent } from '../../utils/analytics';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const userStorageControllerInit: ControllerInitFunction<
+export const userStorageControllerInit: MessengerClientInitFunction<
   UserStorageController,
   UserStorageControllerMessenger,
   UserStorageControllerInitMessenger

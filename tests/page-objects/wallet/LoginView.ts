@@ -1,4 +1,7 @@
-import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
+import {
+  LoginViewSelectors,
+  LoginViewSelectorText,
+} from '../../../app/components/Views/Login/LoginView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { PlaywrightAssertions } from '../../framework';
@@ -10,7 +13,6 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
-import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 
 class LoginView {
   get container(): EncapsulatedElementType {
@@ -56,7 +58,7 @@ class LoginView {
       detox: () => Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID),
       appium: () =>
         PlaywrightMatchers.getElementByText(
-          OnboardingSelectorText.UNLOCK_BUTTON,
+          LoginViewSelectorText.UNLOCK_BUTTON,
         ),
     });
   }

@@ -24,11 +24,11 @@ import {
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake';
+import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
 import {
   MetaMetricsEvents,
-  useMetrics,
-} from '../../../../../../hooks/useMetrics';
-import { IMetaMetricsEvent } from '../../../../../../../core/Analytics';
+  IMetaMetricsEvent,
+} from '../../../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../../constants/events';
 import { EVM_SCOPE } from '../../../../../Earn/constants/networks';
 
@@ -61,7 +61,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const navigation = useNavigation();
   const { navigate } = navigation;
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,

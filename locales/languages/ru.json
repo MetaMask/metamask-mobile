@@ -243,7 +243,6 @@
     "import_wallet_button": "Синхронизировать или импортировать кошелек",
     "new_to_crypto": "Новичок в криптоактивах?",
     "start_exploring_now": "Создайте новый кошелек",
-    "unlock": "Разблокировать",
     "new_to_metamask": "Новичок в MetaMask?",
     "already_have_wallet": "Уже есть кошелек?",
     "optin_back_title": "Внимание!",
@@ -4876,7 +4875,7 @@
     "body_for_seedphrase": "Теперь, когда эта сумма добавлена в ваш кошелек, защитите свой кошелек, установив пароль и сохранив секретную фразу для восстановления (обязательно).",
     "button": "Защитить кошелек"
   },
-  "transaction_update_retry_modal": {
+  "transaction_update_toast": {
     "title": "Не удалось обновить транзакцию",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
@@ -6349,7 +6348,7 @@
       "fiat_unavailable": "Значения фиатных валют временно недоступны.",
       "estimated_annual_reward": "Прим. вознаграждение за год",
       "trx_locked_for": "TRX заблокированы на",
-      "trx_locked_for_minimum_time": "~3 дня",
+      "trx_locked_for_minimum_time": "~14 дней",
       "trx_released_in": "TRX разблокируются через",
       "trx_released_in_minimum_time": "~14 дней",
       "fee": "Комиссия",
@@ -6766,7 +6765,6 @@
     "nested_transaction_heading": "Транзакция {{index}}",
     "transaction": "Защита",
     "available_balance": "Доступный баланс: ",
-    "available_perps_balance": "Доступный баланс перпов: ",
     "edit_amount_done": "Продолжить",
     "deposit_edit_amount_done": "Внести средства",
     "deposit_edit_amount_predict_withdraw": "Вывести средства",
@@ -8122,7 +8120,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize Pool",
+      "title": "Prize pool",
       "current_label": "Текущая",
       "next_label": "Далее",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8211,9 +8209,7 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Повтор",
       "label_return": "Доход",
-      "label_market_value": "Market Value",
-      "label_net_deposited": "Net deposited",
-      "label_cashed_out": "Деньги выведены",
+      "label_market_value": "Market value",
       "label_rank": "Рейтинг",
       "label_tier": "Tier",
       "label_your_return": "Your return",

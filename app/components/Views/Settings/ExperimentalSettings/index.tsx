@@ -10,11 +10,11 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../app/constants/navigation/Routes';
 import { selectPerformanceMetrics } from '../../../../core/redux/slices/performance';
 import { useDispatch, useSelector } from 'react-redux';
@@ -27,12 +27,9 @@ import {
   getBuildNumber,
 } from 'react-native-device-info';
 import {
-  selectAlwaysShowCardButton,
   selectIsDaimoDemo,
-  setAlwaysShowCardButton,
   setIsDaimoDemo,
 } from '../../../../core/redux/slices/card';
-import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagController/card';
 import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
@@ -43,8 +40,6 @@ import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 const ExperimentalSettings = ({ navigation }: Props) => {
   const dispatch = useDispatch();
   const performanceMetrics = useSelector(selectPerformanceMetrics);
-  const cardExperimentalSwitch = useSelector(selectCardExperimentalSwitch);
-  const alwaysShowCardButton = useSelector(selectAlwaysShowCardButton);
   const isDaimoDemo = useSelector(selectIsDaimoDemo);
 
   const theme = useTheme();
@@ -76,43 +71,20 @@ const ExperimentalSettings = ({ navigation }: Props) => {
         {strings('experimental_settings.wallet_connect_dapps_desc')}
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={strings('experimental_settings.wallet_connect_dapps_cta')}
         onPress={goToWalletConnectSessions}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         style={styles.accessory}
-      />
+      >
+        {strings('experimental_settings.wallet_connect_dapps_cta')}
+      </Button>
     </>
   );
-
-  const handleAlwaysShowCardButtonToggle = (value: boolean) => {
-    dispatch(setAlwaysShowCardButton(value));
-  };
 
   const handleDaimoDemoToggle = (value: boolean) => {
     dispatch(setIsDaimoDemo(value));
   };
-
-  const renderCardSettings = () => (
-    <View style={styles.heading}>
-      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-        {strings('experimental_settings.card_title')}
-      </Text>
-      <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
-        style={styles.desc}
-      >
-        {strings('experimental_settings.card_desc')}
-      </Text>
-      <Switch
-        value={alwaysShowCardButton}
-        onValueChange={handleAlwaysShowCardButtonToggle}
-        testID="always-show-card-button-switch"
-      />
-    </View>
-  );
 
   const renderDaimoDemoSettings = () => (
     <View style={styles.heading}>
@@ -172,13 +144,14 @@ const ExperimentalSettings = ({ navigation }: Props) => {
         Download Performance Metrics
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={'Download Performance Metrics'}
         onPress={downloadPerformanceMetrics}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         testID="download-performance-metrics-button"
-      />
+      >
+        {'Download Performance Metrics'}
+      </Button>
     </View>
   );
   return (
@@ -194,7 +167,6 @@ const ExperimentalSettings = ({ navigation }: Props) => {
       />
       <ScrollView style={styles.content}>
         {renderWalletConnectSettings()}
-        {cardExperimentalSwitch && renderCardSettings()}
         {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
         {isTest && renderPerformanceSettings()}
       </ScrollView>

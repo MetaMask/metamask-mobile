@@ -25,7 +25,6 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import { useSelector } from 'react-redux';
-import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
   PERPS_EVENT_PROPERTY,
@@ -55,9 +54,6 @@ const PerpsTabView = () => {
 
   const navigation = useNavigation();
   const { account } = usePerpsLiveAccount();
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
   const isEligible = useSelector(selectPerpsEligibility);
   const { track } = usePerpsEventTracking();
 
@@ -395,10 +391,7 @@ const PerpsTabView = () => {
 
   return (
     <SafeAreaView
-      style={[
-        styles.wrapper,
-        isHomepageRedesignV1Enabled && { flex: undefined },
-      ]}
+      style={[styles.wrapper, { flex: undefined }]}
       edges={['left', 'right']}
     >
       <PerpsTabControlBar
@@ -407,7 +400,7 @@ const PerpsTabView = () => {
         hasOrders={hasOrders}
       />
       <ConditionalScrollView
-        isScrollEnabled={!isHomepageRedesignV1Enabled}
+        isScrollEnabled={false}
         scrollViewProps={{
           style: styles.content,
           testID: PerpsTabViewSelectorsIDs.SCROLL_VIEW,

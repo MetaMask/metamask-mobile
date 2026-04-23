@@ -1,6 +1,8 @@
 import React from 'react';
+import { screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import ErrorDetailsModal from './ErrorDetailsModal';
+import { strings } from '../../../../../../../../locales/i18n';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(component, {
@@ -22,8 +24,11 @@ describe('ErrorDetailsModal', () => {
     });
   });
 
-  it('renders correctly and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(ErrorDetailsModal);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders the error message and title', () => {
+    renderWithProvider(ErrorDetailsModal);
+    expect(
+      screen.getByText(strings('deposit.errors.error_details_title')),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('This is a test error message.')).toBeOnTheScreen();
   });
 });

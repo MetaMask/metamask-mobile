@@ -32,6 +32,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
@@ -43,7 +44,10 @@ import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictBuyPreviewProps,
+  PredictNavigationParamList,
+} from '../../types/navigation';
 import { PredictTradeStatus } from '../../constants/eventNames';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatCents, formatPrice } from '../../utils/format';
@@ -67,7 +71,7 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
 
-const PredictBuyPreview = () => {
+const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
@@ -75,7 +79,16 @@ const PredictBuyPreview = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken, entryPoint } = route.params;
+  const isSheetMode = props.mode === 'sheet';
+  const {
+    market,
+    outcome,
+    outcomeToken,
+    entryPoint,
+    transactionActiveAbTests,
+  } = isSheetMode ? props : route.params;
+  const onClose = isSheetMode ? props.onClose : undefined;
+  const ActiveScrollView = isSheetMode ? GHScrollView : ScrollView;
 
   const analyticsProperties = useMemo(
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
@@ -89,7 +102,7 @@ const PredictBuyPreview = () => {
     result,
     isOrderNotFilled,
     resetOrderNotFilled,
-  } = usePredictPlaceOrder();
+  } = usePredictPlaceOrder({ transactionActiveAbTests });
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
@@ -208,9 +221,13 @@ const PredictBuyPreview = () => {
 
   useEffect(() => {
     if (result?.success) {
-      dispatch(StackActions.pop());
+      if (isSheetMode) {
+        onClose?.();
+      } else {
+        dispatch(StackActions.pop());
+      }
     }
-  }, [dispatch, result]);
+  }, [dispatch, result, isSheetMode, onClose]);
 
   const onPlaceBet = useCallback(async () => {
     if (!preview || isBelowMinimum) return;
@@ -241,7 +258,10 @@ const PredictBuyPreview = () => {
       alignItems={BoxAlignItems.Center}
       twClassName="w-full gap-4 p-4"
     >
-      <TouchableOpacity testID="back-button" onPress={() => goBack()}>
+      <TouchableOpacity
+        testID="back-button"
+        onPress={() => (isSheetMode ? onClose?.() : goBack())}
+      >
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
       </TouchableOpacity>
       <Image
@@ -304,7 +324,7 @@ const PredictBuyPreview = () => {
   );
 
   const renderAmount = () => (
-    <ScrollView
+    <ActiveScrollView
       style={tw.style('flex-col')}
       contentContainerStyle={tw.style('flex-grow justify-center')}
       showsVerticalScrollIndicator={false}
@@ -366,7 +386,7 @@ const PredictBuyPreview = () => {
           )}
         </Box>
       </Box>
-    </ScrollView>
+    </ActiveScrollView>
   );
 
   const renderActionButton = () => {
@@ -489,9 +509,14 @@ const PredictBuyPreview = () => {
     );
   };
 
+  const Wrapper = isSheetMode ? Box : SafeAreaView;
+  const wrapperProps = isSheetMode
+    ? { twClassName: 'flex-1 bg-background-default' }
+    : { style: tw.style('flex-1 bg-background-default') };
+
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
-      {renderHeader()}
+    <Wrapper {...wrapperProps}>
+      {!isSheetMode && renderHeader()}
       {renderAmount()}
       {renderMinimumBetWarning()}
       <PredictKeypad
@@ -526,7 +551,7 @@ const PredictBuyPreview = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-    </SafeAreaView>
+    </Wrapper>
   );
 };
 

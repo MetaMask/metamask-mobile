@@ -460,6 +460,7 @@ export const BrowserPure = (props) => {
               homePageUrl={homePageUrl()}
               fromTrending={route.params?.fromTrending}
               fromPerps={route.params?.fromPerps}
+              fromBenefit={route.params?.fromBenefit}
             />
           ) : (
             <DiscoveryTab
@@ -481,6 +482,7 @@ export const BrowserPure = (props) => {
       showTabsView,
       route.params?.fromTrending,
       route.params?.fromPerps,
+      route.params?.fromBenefit,
     ],
   );
 

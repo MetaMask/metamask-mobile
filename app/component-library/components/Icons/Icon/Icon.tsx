@@ -16,7 +16,7 @@ import { DEFAULT_ICON_SIZE, DEFAULT_ICON_COLOR } from './Icon.constants';
  * @deprecated Please update your code to use `Icon` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md}
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md Migration docs}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#icon-component Migration docs}
  */
 const Icon = ({
   size = DEFAULT_ICON_SIZE,

@@ -4,7 +4,7 @@ import {
 } from '@metamask/notification-services-controller/notification-services';
 
 import Logger from '../../../../util/Logger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 // eslint-disable-next-line import-x/no-namespace
 import * as createNotificationServicesControllerModule from './create-notification-services-controller';
 import { notificationServicesControllerInit } from './notification-services-controller-init';
@@ -25,7 +25,7 @@ describe('notificationServicesControllerInit', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
 
-    const initRequestMock = buildControllerInitRequestMock(
+    const initRequestMock = buildMessengerClientInitRequestMock(
       baseControllerMessenger,
     );
 

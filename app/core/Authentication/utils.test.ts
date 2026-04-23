@@ -12,6 +12,9 @@ import {
   getAuthLabel,
   getAuthType,
   getAuthIcon,
+  isAndroidKeychainBiometricUserCancellation,
+  isIosUserCancelledBiometricUnlock,
+  isBiometricUnlockCancelledByUser,
 } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { AuthenticationType } from 'expo-local-authentication';
@@ -96,6 +99,62 @@ describe('handlePasswordSubmissionError', () => {
     expect(() => handlePasswordSubmissionError(error)).toThrow(
       expectedThrownError,
     );
+  });
+});
+
+describe('isAndroidKeychainBiometricUserCancellation', () => {
+  it.each([
+    ['code: 10, msg: Fingerprint operation canceled by user', true],
+    ['code:5, msg: canceled', true],
+    ['code: 13, msg: negative button', true],
+    ['code: 7, msg: lockout', false],
+    ['User canceled the operation', false],
+  ])('returns %s -> %s', (message, expected) => {
+    expect(isAndroidKeychainBiometricUserCancellation(new Error(message))).toBe(
+      expected,
+    );
+  });
+});
+
+describe('isIosUserCancelledBiometricUnlock', () => {
+  it('returns true for the iOS LocalAuthentication cancel message', () => {
+    expect(
+      isIosUserCancelledBiometricUnlock(
+        new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false for unrelated errors', () => {
+    expect(isIosUserCancelledBiometricUnlock(new Error('Decrypt failed'))).toBe(
+      false,
+    );
+  });
+});
+
+describe('isBiometricUnlockCancelledByUser', () => {
+  it('returns true for Android keychain user-cancel shape', () => {
+    expect(
+      isBiometricUnlockCancelledByUser(
+        new Error('code: 10, msg: Fingerprint operation canceled by user'),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true for iOS user cancel message', () => {
+    expect(
+      isBiometricUnlockCancelledByUser(
+        new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true for Android legacy Error: Cancel', () => {
+    expect(
+      isBiometricUnlockCancelledByUser(
+        new Error(UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_PIN_DENIED),
+      ),
+    ).toBe(true);
   });
 });
 

@@ -24,6 +24,8 @@ const isMultichainAccountsState2Enabled =
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     carouselBanners: false,
+    homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
+    homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
   });
 };
 
@@ -155,12 +157,11 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           NetworkToCaipChainId.ETHEREUM,
         );
 
-        // Ethereum may show ETH, USDC, DAI, and/or MUSD (MUSD can load early); require 3 of 4.
-        const ethereumVisibleCandidates = ['ETH', 'USDC', 'DAI', 'mUSD'];
-        await NetworkManager.expectAtLeastTokenSymbolsVisible(
-          ethereumVisibleCandidates,
-          3,
-        );
+        // Verify tokens that should be visible on Ethereum
+        const expectedVisibleTokens = ['ETH', 'USDC', 'DAI'];
+        for (const token of expectedVisibleTokens) {
+          await NetworkManager.checkTokenIsVisible(token);
+        }
 
         // Verify tokens that should not be visible (from other networks)
         const expectedHiddenTokens = ['SOL', 'Linea'];

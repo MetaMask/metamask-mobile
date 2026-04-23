@@ -82,13 +82,16 @@ describe('UnsupportedStateModal', () => {
     });
   });
 
-  it('render match snapshot', () => {
+  it('renders title, selected state and action buttons', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: mockSelectedRegion,
     });
 
-    const { toJSON } = render(UnsupportedStateModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = render(UnsupportedStateModal);
+    expect(getByText('Region not supported')).toBeOnTheScreen();
+    expect(getByText('New York')).toBeOnTheScreen();
+    expect(getByText('Try another option')).toBeOnTheScreen();
+    expect(getByText('Change region')).toBeOnTheScreen();
   });
 
   it('handles try another option button press correctly', () => {

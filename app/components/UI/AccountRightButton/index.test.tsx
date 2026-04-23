@@ -22,7 +22,6 @@ const mockCreateEventBuilder = jest.fn(() => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
-  useRoute: () => ({ params: {} }),
 }));
 
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
@@ -62,6 +61,9 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
+/** Representative in-app browser origin for tests (non-empty). */
+const MOCK_DAPP_ORIGIN = 'https://metamask.github.io';
+
 describe('AccountRightButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -70,7 +72,11 @@ describe('AccountRightButton', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
       () => (
-        <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
+        <AccountRightButton
+          selectedAddress="0x123"
+          onPress={() => undefined}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
       ),
       {
         name: 'AccountRightButton',
@@ -83,7 +89,11 @@ describe('AccountRightButton', () => {
   it('should render correctly when a EVM network is selected', () => {
     const { toJSON } = renderScreen(
       () => (
-        <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
+        <AccountRightButton
+          selectedAddress="0x123"
+          onPress={() => undefined}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
       ),
       {
         name: 'AccountRightButton',
@@ -111,7 +121,11 @@ describe('AccountRightButton', () => {
 
     const { toJSON } = renderScreen(
       () => (
-        <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
+        <AccountRightButton
+          selectedAddress="0x123"
+          onPress={() => undefined}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
       ),
       {
         name: 'AccountRightButton',
@@ -126,7 +140,11 @@ describe('AccountRightButton', () => {
     const onPressMock = jest.fn();
     const { getByTestId } = renderScreen(
       () => (
-        <AccountRightButton selectedAddress="0x123" onPress={onPressMock} />
+        <AccountRightButton
+          selectedAddress="0x123"
+          onPress={onPressMock}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
       ),
       {
         name: 'AccountRightButton',
@@ -140,7 +158,13 @@ describe('AccountRightButton', () => {
 
   it('should render network avatar when selectedAddress is not provided (EVM)', () => {
     const { toJSON } = renderScreen(
-      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      () => (
+        <AccountRightButton
+          selectedAddress=""
+          onPress={() => undefined}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
+      ),
       {
         name: 'AccountRightButton',
       },
@@ -166,7 +190,13 @@ describe('AccountRightButton', () => {
     };
 
     const { toJSON } = renderScreen(
-      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      () => (
+        <AccountRightButton
+          selectedAddress=""
+          onPress={() => undefined}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
+      ),
       {
         name: 'AccountRightButton',
       },
@@ -178,7 +208,11 @@ describe('AccountRightButton', () => {
   it('should render account avatar when selectedAddress is provided', () => {
     const { toJSON } = renderScreen(
       () => (
-        <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
+        <AccountRightButton
+          selectedAddress="0x123"
+          onPress={() => undefined}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
       ),
       {
         name: 'AccountRightButton',
@@ -190,7 +224,13 @@ describe('AccountRightButton', () => {
 
   it('should navigate with EVM chainId when selectedAddress is empty and EVM is selected', () => {
     const { getByTestId } = renderScreen(
-      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      () => (
+        <AccountRightButton
+          selectedAddress=""
+          onPress={() => undefined}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
+      ),
       {
         name: 'AccountRightButton',
       },
@@ -228,7 +268,13 @@ describe('AccountRightButton', () => {
     };
 
     const { getByTestId } = renderScreen(
-      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      () => (
+        <AccountRightButton
+          selectedAddress=""
+          onPress={() => undefined}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
+      ),
       {
         name: 'AccountRightButton',
       },
@@ -272,7 +318,13 @@ describe('AccountRightButton', () => {
     };
 
     const { toJSON } = renderScreen(
-      () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
+      () => (
+        <AccountRightButton
+          selectedAddress=""
+          onPress={() => undefined}
+          dappOrigin={MOCK_DAPP_ORIGIN}
+        />
+      ),
       {
         name: 'AccountRightButton',
       },

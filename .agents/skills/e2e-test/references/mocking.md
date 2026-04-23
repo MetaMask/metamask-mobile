@@ -127,15 +127,17 @@ Add a mock for every such request to ensure test determinism.
 
 ## Features using WebSockets or complex transport
 
-Some features depend on **WebSockets** or other non-HTTP transport (e.g. Perps/HyperLiquid, real-time data). The HTTP mock server cannot intercept these. The repo uses two patterns:
+Some features depend on **WebSockets** or other non-HTTP transport (e.g. Perps/HyperLiquid, real-time data). The HTTP mock server cannot intercept these. The repo uses three patterns:
 
-1. **Controller-level mocking** — A mixin under `tests/controller-mocking/mock-config/` replaces provider SDK touchpoints so E2E runs with stable, test-controlled data. Example: `perps-controller-mixin.ts` for HyperLiquid. See **`tests/docs/CONTROLLER_MOCKING.md`** for when and how to use it.
-2. **Command queue / test server** — Tests that need to drive the app (e.g. inject state or commands) can use **`CommandQueueServer`** (`tests/framework/fixtures/CommandQueueServer.ts`). Enable it in the fixture with `useCommandQueueServer: true`. Used by Perps specs (e.g. `tests/smoke/perps/perps-add-funds.spec.ts`, `tests/regression/perps/perps-limit-long-fill.spec.ts`). The app consumes the queue in E2E context.
+1. **WebSocket mocking** — A `LocalWebSocketServer` (`tests/websocket/server.ts`) intercepts production WebSocket connections via URL rewriting in the E2E shim. Protocol-specific mocks handle subscribe/unsubscribe and push notifications. See **`tests/docs/WEBSOCKET_MOCKING.md`** for full usage guide and how to add new services. Example: `tests/websocket/account-activity-mocks.ts` for AccountActivity.
+2. **Controller-level mocking** — A mixin under `tests/controller-mocking/mock-config/` replaces provider SDK touchpoints so E2E runs with stable, test-controlled data. Example: `perps-controller-mixin.ts` for HyperLiquid. See **`tests/docs/CONTROLLER_MOCKING.md`** for when and how to use it.
+3. **Command queue / test server** — Tests that need to drive the app (e.g. inject state or commands) can use **`CommandQueueServer`** (`tests/framework/fixtures/CommandQueueServer.ts`). Enable it in the fixture with `useCommandQueueServer: true`. Used by Perps specs (e.g. `tests/smoke/perps/perps-add-funds.spec.ts`, `tests/regression/perps/perps-limit-long-fill.spec.ts`). The app consumes the queue in E2E context.
 
 **When adding support for a new feature that uses WebSockets or similar:**
 
-- Follow the **same pattern** as existing features (controller mixin and/or CommandQueueServer).
-- Implement under `tests/controller-mocking/mock-config/` or extend the command-queue protocol as needed.
+- For WebSocket services: add a service config in `tests/websocket/constants.ts` and a protocol mock. See `tests/docs/WEBSOCKET_MOCKING.md`.
+- For SDK-level mocking: implement under `tests/controller-mocking/mock-config/`.
+- For test-driven commands: extend the command-queue protocol as needed.
 - Add or update **tests/specs** that cover the mock infrastructure and the E2E flow.
 
-Prefer HTTP mocking whenever the feature’s API is plain HTTP; use controller mocking or the command server only when necessary.
+Prefer HTTP mocking whenever the feature’s API is plain HTTP; use WebSocket mocking for WS connections; use controller mocking or the command server only when necessary.
