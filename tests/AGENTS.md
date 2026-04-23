@@ -7,7 +7,7 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 - **tests/smoke** — `tests/smoke/`, `tests/regression/` , `tests/page-objects/`, `tests/selectors/`, config. Specs, Page Objects, selectors. Consumes `tests/framework/` and fixtures.
 - **tests/regression** — `tests/smoke/`, `tests/regression/` , `tests/page-objects/`, `tests/selectors/`, config. Specs, Page Objects, selectors. Consumes `tests/framework/` and fixtures.
 - **tests/** — `tests/framework/`, `tests/api-mocking/`, `tests/docs/`, `tests/regression/`, `tests/smoke/`, etc. Framework, fixtures, mocking, regression/smoke specs.
-- **wdio/** — `wdio/helpers/`, `wdio/screen-objects/`, `wdio/utils/`. Legacy WebdriverIO/Appium — **deprecated**. Use Detox + tests/smoke or Appwright for performance.
+- **wdio/** — `wdio/helpers/`, `wdio/screen-objects/`, `wdio/utils/`. Legacy WebdriverIO/Appium — **deprecated**. Use Detox + tests/smoke or Playwright for performance.
 - **component view tests** — `app/**/*.view.test.tsx`. Jest component view tests.
 
 ### Component-View Tests (Mandatory)
@@ -21,7 +21,7 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 ## Canonical Sources (read these, do not duplicate)
 
 - [.cursor/rules/e2e-testing-guidelines.mdc](../.cursor/rules/e2e-testing-guidelines.mdc) — Patterns, Page Objects, assertions, gestures, prohibited patterns.
-- [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md) — Setup, run commands, build types, Metro, Detox, Flask; legacy Appium; Appwright.
+- [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md) — Setup, run commands, build types, Metro, Detox, Flask; legacy Appium; Playwright.
 - [tests/docs/README.md](docs/README.md) — Framework structure, withFixtures, FixtureBuilder, anti-patterns, checklist.
 - [tests/docs/MOCKING.md](docs/MOCKING.md) — API mocking, default and test-specific mocks.
 - [tests/docs/analytics-e2e.md](docs/analytics-e2e.md) — MetaMetrics E2E: `analyticsExpectations` on `withFixtures`, presets, `runAnalyticsExpectations`.

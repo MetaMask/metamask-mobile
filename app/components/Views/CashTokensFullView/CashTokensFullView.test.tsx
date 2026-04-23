@@ -29,7 +29,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const mockUseMusdBalance = jest.fn(() => ({ hasMusdBalanceOnAnyChain: false }));
+const mockUseMusdBalance = jest.fn(() => ({
+  hasMusdBalanceOnAnyChain: false,
+  tokenBalanceByChain: {},
+}));
 jest.mock('../../UI/Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: () => mockUseMusdBalance(),
 }));
@@ -224,7 +227,10 @@ describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     flushInteractionManager();
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
     mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
 
@@ -253,14 +259,20 @@ describe('CashTokensFullView', () => {
   });
 
   it('renders Get mUSD empty state when user has no mUSD', () => {
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
     renderWithProvider(<CashTokensFullView />);
     expect(screen.getByTestId('cash-get-musd-empty-state')).toBeOnTheScreen();
     expect(screen.getByText('Get mUSD')).toBeOnTheScreen();
   });
 
   it('renders Tokens with isFullView and showOnlyMusd when user has mUSD', () => {
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: true });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceByChain: { '0x1': '1.0' },
+    });
     renderWithProvider(<CashTokensFullView />);
     expect(screen.getByTestId('tokens-cash-view')).toBeOnTheScreen();
     expect(
@@ -346,7 +358,10 @@ describe('CashTokensFullView', () => {
   });
 
   it('empty-state Buy button passes mUSD assetId to goToBuy', () => {
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
     mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
     renderWithProvider(<CashTokensFullView />);
     fireEvent.press(screen.getByText('Buy'));
@@ -355,9 +370,7 @@ describe('CashTokensFullView', () => {
     });
   });
 
-  it('renders CashTokensFullViewSkeleton on first render before data is marked loaded', () => {
-    // Prevent InteractionManager's callback from running so the view stays
-    // in its loading state for the duration of the render.
+  it('renders header immediately and content skeleton before InteractionManager fires when user has mUSD', () => {
     jest.restoreAllMocks();
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
@@ -366,15 +379,45 @@ describe('CashTokensFullView', () => {
         done: jest.fn(),
         cancel: jest.fn(),
       }));
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceByChain: { '0x1': '1.0' },
+    });
 
     renderWithProvider(<CashTokensFullView />);
+    expect(screen.getByText('Money')).toBeOnTheScreen();
     expect(
       screen.getByTestId(CashTokensFullViewSkeletonTestIds.CONTAINER),
     ).toBeOnTheScreen();
   });
 
+  it('renders content immediately without skeleton when user has no mUSD', () => {
+    jest.restoreAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation(() => ({
+        then: jest.fn(),
+        done: jest.fn(),
+        cancel: jest.fn(),
+      }));
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+
+    renderWithProvider(<CashTokensFullView />);
+    expect(screen.getByText('Money')).toBeOnTheScreen();
+    expect(screen.getByTestId('cash-get-musd-empty-state')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(CashTokensFullViewSkeletonTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
   it('wires RefreshControl onRefresh to useCashTokensRefresh.onRefresh on the Tokens branch', async () => {
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: true });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceByChain: { '0x1': '1.0' },
+    });
     const onRefresh = jest.fn().mockResolvedValue(undefined);
     mockUseCashTokensRefresh.mockReturnValue({ refreshing: false, onRefresh });
 
@@ -387,7 +430,10 @@ describe('CashTokensFullView', () => {
   });
 
   it('wires RefreshControl onRefresh to useCashTokensRefresh.onRefresh on the empty-state branch', async () => {
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
     const onRefresh = jest.fn().mockResolvedValue(undefined);
     mockUseCashTokensRefresh.mockReturnValue({ refreshing: false, onRefresh });
 
@@ -475,11 +521,11 @@ describe('CashTokensFullView', () => {
     });
   });
 
-  it('calls initiateMaxConversion on first conversionToken via handleConvertPress', async () => {
+  it('calls initiateCustomConversion with preferredPaymentToken via handleConvertPress', async () => {
     mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
     const token = { address: '0xabc', chainId: '0x1' } as AssetType;
     mockUseMusdConversionTokens.mockReturnValue({ tokens: [token] });
-    mockInitiateMaxConversion.mockResolvedValue(undefined);
+    mockInitiateCustomConversion.mockResolvedValue(undefined);
 
     renderWithProvider(<CashTokensFullView />);
 
@@ -487,7 +533,12 @@ describe('CashTokensFullView', () => {
       fireEvent.press(screen.getByText('Convert to mUSD'));
     });
 
-    expect(mockInitiateMaxConversion).toHaveBeenCalledWith(token);
+    expect(mockInitiateCustomConversion).toHaveBeenCalledWith({
+      preferredPaymentToken: {
+        address: '0xabc',
+        chainId: '0x1',
+      },
+    });
   });
 
   it('logs error when handleConvertPress fails', async () => {
@@ -495,7 +546,7 @@ describe('CashTokensFullView', () => {
     const token = { address: '0xabc', chainId: '0x1' } as AssetType;
     mockUseMusdConversionTokens.mockReturnValue({ tokens: [token] });
     const error = new Error('convert CTA failed');
-    mockInitiateMaxConversion.mockRejectedValue(error);
+    mockInitiateCustomConversion.mockRejectedValue(error);
     const loggerSpy = jest.spyOn(
       jest.requireMock('../../../util/Logger').default,
       'error',
@@ -525,8 +576,8 @@ describe('CashTokensFullView', () => {
     // so we test the early return by having tokens initially then not.
     // Actually, the early return is only hit if conversionTokens[0] is falsy.
     // Since the CTA only renders when hasConversionTokens, we just verify
-    // the convert press calls initiateMaxConversion above.
-    expect(mockInitiateMaxConversion).not.toHaveBeenCalled();
+    // the convert press calls initiateCustomConversion above.
+    expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
   });
 
   it('calls goToSwaps when Swap button is pressed', () => {
