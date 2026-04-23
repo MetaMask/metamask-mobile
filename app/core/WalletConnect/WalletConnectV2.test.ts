@@ -15,6 +15,7 @@ import { store } from '../../store';
 import { ActionType } from '../../actions/sdk';
 // eslint-disable-next-line import-x/no-namespace
 import * as waitUtil from '../SDKConnect/utils/wait.util';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -220,14 +221,6 @@ jest.mock('../BackgroundBridge/BackgroundBridge', () => ({
 
 jest.mock('./wc-utils', () => ({
   ...jest.requireActual('./wc-utils'),
-  getScopedPermissions: jest.fn().mockResolvedValue({
-    eip155: {
-      chains: ['eip155:1'],
-      methods: ['eth_sendTransaction', 'eth_signTransaction', 'eth_sign'],
-      events: ['chainChanged', 'accountsChanged'],
-      accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
-    },
-  }),
   showWCLoadingState: jest.fn(),
   hideWCLoadingState: jest.fn(),
 }));
@@ -406,17 +399,10 @@ describe('WC2Manager', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (TestWC2Manager as any)._initialized = false;
 
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
       const result = await TestWC2Manager.init({});
 
       // Should return undefined when navigation is not available
       expect(result).toBeUndefined();
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'WC2::init missing navigation --- SKIP INIT',
-      );
-
-      consoleWarnSpy.mockRestore();
 
       // Restore the original NavigationService mock
       jest.doMock('../NavigationService', () => ({
@@ -925,6 +911,47 @@ describe('WC2Manager', () => {
   });
 
   describe('WC2Manager session proposal handling', () => {
+    it('adds wallet namespace alias when proposal requests wallet:eip155', async () => {
+      const mockSessionProposal = {
+        id: 1,
+        params: {
+          id: 1,
+          pairingTopic: 'test-pairing',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              name: 'Test App',
+              description: 'Test App',
+              url: 'https://example.com',
+              icons: ['https://example.com/icon.png'],
+            },
+          },
+          requiredNamespaces: {
+            wallet: {
+              chains: ['wallet:eip155'],
+              methods: ['wallet_sendCalls'],
+              events: [],
+            },
+          },
+          optionalNamespaces: {},
+          expiryTimestamp: 10000000,
+          relays: [{ protocol: 'irn' }],
+        },
+      };
+
+      await manager.onSessionProposal(mockSessionProposal as any);
+
+      expect(mockApproveSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          namespaces: expect.objectContaining({
+            wallet: expect.objectContaining({
+              chains: ['wallet:eip155'],
+            }),
+          }),
+        }),
+      );
+    });
+
     it('returns rejectSession event to wallet on proposal rejection', async () => {
       const mockPermissionController = Engine.context.PermissionController;
       (
@@ -1089,6 +1116,7 @@ describe('WC2Manager', () => {
       mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
         .web3Wallet;
       consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      jest.spyOn(DevLogger, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -1146,7 +1174,7 @@ describe('WC2Manager', () => {
 
       await manager.removePendings();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(DevLogger.log).toHaveBeenCalledWith(
         "Can't remove pending session 1",
         expect.any(Error),
       );
@@ -1246,7 +1274,7 @@ describe('WC2Manager', () => {
 
       await manager.removePendings();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(DevLogger.log).toHaveBeenCalledWith(
         "Can't remove request 1",
         expect.any(Error),
       );
@@ -1581,12 +1609,10 @@ describe('WC2Manager', () => {
     beforeEach(() => {
       // Clear all mocks before each test
       jest.clearAllMocks();
-      // Spy on console.warn
-      jest.spyOn(console, 'warn').mockImplementation();
+      jest.spyOn(DevLogger, 'log').mockImplementation();
     });
 
     afterEach(() => {
-      // Restore console.warn after each test
       jest.restoreAllMocks();
     });
 
@@ -1616,7 +1642,7 @@ describe('WC2Manager', () => {
       );
 
       // Verify that the error was logged
-      expect(console.warn).toHaveBeenCalledWith(
+      expect(DevLogger.log).toHaveBeenCalledWith(
         'WC2::init Init failed due to Error: Core initialization failed',
       );
     });

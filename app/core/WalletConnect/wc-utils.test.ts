@@ -4,8 +4,6 @@ import {
   showWCLoadingState,
   isValidWCURI,
   waitForNetworkModalOnboarding,
-  getApprovedSessionMethods,
-  getScopedPermissions,
   networkModalOnboardingConfig,
   getHostname,
   normalizeDappUrl,
@@ -59,6 +57,17 @@ jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
 
 jest.mock('../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
+}));
+
+jest.mock('../Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      AccountsController: {
+        listAccounts: jest.fn().mockReturnValue([]),
+      },
+    },
+  },
 }));
 
 jest.mock('qs', () => ({
@@ -208,35 +217,6 @@ describe('WalletConnect Utils', () => {
       await expect(
         waitForNetworkModalOnboarding({ chainId: '1' }),
       ).rejects.toThrow('Timeout error');
-    });
-  });
-
-  describe('getApprovedSessionMethods', () => {
-    it('returns all approved EIP-155 methods', () => {
-      const methods = getApprovedSessionMethods();
-      expect(methods).toContain('eth_sendTransaction');
-      expect(methods).toContain('wallet_switchEthereumChain');
-    });
-
-    it('includes EIP-5792 methods', () => {
-      const methods = getApprovedSessionMethods();
-      expect(methods).toContain('wallet_sendCalls');
-      expect(methods).toContain('wallet_getCallsStatus');
-      expect(methods).toContain('wallet_getCapabilities');
-    });
-  });
-
-  describe('getScopedPermissions', () => {
-    it('returns correct scoped permissions', async () => {
-      const result = await getScopedPermissions({ channelId: 'test' });
-      expect(result).toEqual({
-        eip155: {
-          chains: ['eip155:1'],
-          methods: expect.any(Array),
-          events: ['chainChanged', 'accountsChanged'],
-          accounts: ['eip155:1:0x123'],
-        },
-      });
     });
   });
 

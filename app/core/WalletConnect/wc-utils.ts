@@ -1,5 +1,5 @@
 import { rpcErrors } from '@metamask/rpc-errors';
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -14,7 +14,7 @@ import {
   selectNetworkConfigurations,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../selectors/networkController';
-import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { getPermittedChains } from '../Permissions';
 import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
@@ -209,91 +209,6 @@ export const waitForNetworkModalOnboarding = async ({
       throw new Error('Timeout error');
     }
   }
-};
-
-export const getApprovedSessionMethods = (): string[] => {
-  const allEIP155Methods = [
-    // Standard JSON-RPC methods
-    'eth_sendTransaction',
-    'eth_sign',
-    'eth_signTransaction',
-    'eth_signTypedData',
-    'eth_signTypedData_v3',
-    'eth_signTypedData_v4',
-    'personal_sign',
-    'eth_sendRawTransaction',
-    'eth_accounts',
-    'eth_getBalance',
-    'eth_call',
-    'eth_estimateGas',
-    'eth_blockNumber',
-    'eth_getCode',
-    'eth_getTransactionCount',
-    'eth_getTransactionReceipt',
-    'eth_getTransactionByHash',
-    'eth_getBlockByHash',
-    'eth_getBlockByNumber',
-    'net_version',
-    'eth_chainId',
-    'eth_requestAccounts',
-
-    // MetaMask specific methods
-    'wallet_addEthereumChain',
-    'wallet_switchEthereumChain',
-    'wallet_getPermissions',
-    'wallet_requestPermissions',
-    'wallet_watchAsset',
-    'wallet_scanQRCode',
-
-    // EIP-5792 methods
-    'wallet_sendCalls',
-    'wallet_getCallsStatus',
-    'wallet_getCapabilities',
-  ];
-
-  // TODO: extract from the permissions controller when implemented
-  return allEIP155Methods;
-};
-
-export const getScopedPermissions = async ({
-  channelId,
-}: {
-  channelId: string;
-}) => {
-  const approvedAccounts = getPermittedAccounts(channelId);
-  const chains = await getPermittedChains(channelId);
-
-  DevLogger.log(
-    `WC::getScopedPermissions for ${channelId}, found accounts:`,
-    approvedAccounts,
-  );
-
-  DevLogger.log(
-    `WC::getScopedPermissions for ${channelId}, found chains:`,
-    chains,
-  );
-
-  // Create properly formatted account strings for each chain and account
-  const accountsPerChains = chains.flatMap((chain) =>
-    Array.isArray(approvedAccounts)
-      ? approvedAccounts.map((account) => `${chain}:${account}`)
-      : [],
-  );
-
-  const scopedPermissions = {
-    chains,
-    methods: getApprovedSessionMethods(),
-    events: ['chainChanged', 'accountsChanged'],
-    accounts: accountsPerChains,
-  };
-
-  DevLogger.log(
-    `WC::getScopedPermissions final permissions`,
-    scopedPermissions,
-  );
-  return {
-    [KnownCaipNamespace.Eip155]: scopedPermissions,
-  };
 };
 
 export const isSwitchingChainRequest = (
