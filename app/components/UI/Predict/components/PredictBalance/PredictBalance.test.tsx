@@ -4,6 +4,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBalance from './PredictBalance';
 import { strings } from '../../../../../../locales/i18n';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 
 // Mock React Query
 jest.mock('@tanstack/react-query', () => ({
@@ -518,42 +519,40 @@ describe('PredictBalance', () => {
       expect(getByText(/Add funds/i)).toBeOnTheScreen();
     });
 
-    it('shows primary button variant when balance is zero', () => {
-      // Arrange
+    it('shows primary button variant for Add funds when balance is zero', () => {
       mockUsePredictBalance.mockReturnValue({
         data: 0,
         isLoading: false,
       });
 
-      // Act
-      const { getByText } = renderWithProvider(<PredictBalance />, {
+      const { UNSAFE_getAllByProps } = renderWithProvider(<PredictBalance />, {
         state: initialState,
       });
 
-      // Assert
-      const addFundsButton = getByText(/Add funds/i);
-      expect(addFundsButton).toBeOnTheScreen();
-      // The button should exist, but we can't easily test the variant without more complex testing
+      // When balance is 0, Add funds uses Primary variant
+      const primaryButtons = UNSAFE_getAllByProps({
+        variant: ButtonVariants.Primary,
+      });
+      expect(primaryButtons.length).toBeGreaterThan(0);
     });
 
-    it('shows secondary button variant when balance is greater than zero', () => {
-      // Arrange
+    it('shows secondary button variant for Add funds when balance is greater than zero', () => {
       mockUsePredictBalance.mockReturnValue({
         data: 10,
         isLoading: false,
       });
 
-      // Act
-      const { getByText } = renderWithProvider(<PredictBalance />, {
-        state: initialState,
+      const { UNSAFE_getAllByProps, getByText } = renderWithProvider(
+        <PredictBalance />,
+        { state: initialState },
+      );
+
+      // When balance > 0, Add funds uses Secondary variant and Withdraw also appears
+      const secondaryButtons = UNSAFE_getAllByProps({
+        variant: ButtonVariants.Secondary,
       });
-
-      // Assert
-      const addFundsButton = getByText(/Add funds/i);
-      expect(addFundsButton).toBeOnTheScreen();
-
-      const withdrawButton = getByText(/Withdraw/i);
-      expect(withdrawButton).toBeOnTheScreen();
+      expect(secondaryButtons.length).toBeGreaterThanOrEqual(2);
+      expect(getByText(/Withdraw/i)).toBeOnTheScreen();
     });
 
     it('handles undefined balance gracefully', () => {
