@@ -166,8 +166,7 @@ export interface RewardsState {
   ondoCampaignDepositsLoading: boolean;
   ondoCampaignDepositsError: boolean;
 
-  // Ondo campaign participant outcome (keyed by campaignId)
-  // keyed by `${subscriptionId}:${campaignId}`
+  // Ondo campaign participant outcome (keyed by `${subscriptionId}:${campaignId}`)
   ondoCampaignParticipantOutcome: Record<
     string,
     OndoGmCampaignParticipantOutcomeDto
