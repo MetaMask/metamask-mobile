@@ -16,6 +16,9 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
     accessible={true}
     activeOpacity={1}
     disabled={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -57,6 +60,9 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
     activeOpacity={1}
     disabled={true}
     loading={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -99,6 +105,9 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
     accessible={true}
     activeOpacity={1}
     disabled={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -140,6 +149,9 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
     activeOpacity={1}
     disabled={true}
     loading={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -184,6 +196,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
     disabled={false}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -227,6 +240,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
     loading={false}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -281,6 +295,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
     disabled={false}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -324,6 +339,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
     loading={false}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",

@@ -104,6 +104,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       activeOpacity={1}
       onPress={[MockFunction]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -200,6 +201,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     activeOpacity={1}
     onPress={[MockFunction]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",

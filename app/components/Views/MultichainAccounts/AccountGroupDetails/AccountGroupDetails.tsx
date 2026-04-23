@@ -55,7 +55,6 @@ import {
 } from '../../../../util/trace';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
-import TempTouchableOpacity from '../../../../component-library/components-temp/TempTouchableOpacity';
 
 interface AccountGroupDetailsRouteParams {
   accountGroup: AccountGroupObject;
@@ -198,11 +197,10 @@ export const AccountGroupDetails = () => {
             testID={AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR}
           />
         </Box>
-        <TempTouchableOpacity
+        <TouchableOpacity
           style={styles.accountName}
           testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
           onPress={handleEditAccountName}
-          shouldEnableAndroidPressIn
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.account_name')}
@@ -226,12 +224,11 @@ export const AccountGroupDetails = () => {
               color={colors.text.alternative}
             />
           </Box>
-        </TempTouchableOpacity>
-        <TempTouchableOpacity
+        </TouchableOpacity>
+        <TouchableOpacity
           style={styles.networks}
           testID={AccountDetailsIds.NETWORKS_LINK}
           onPress={navigateToAddressList}
-          shouldEnableAndroidPressIn
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.networks')}
@@ -252,9 +249,9 @@ export const AccountGroupDetails = () => {
               color={colors.text.alternative}
             />
           </Box>
-        </TempTouchableOpacity>
+        </TouchableOpacity>
         {!isHardwareWallet && (
-          <TempTouchableOpacity
+          <TouchableOpacity
             style={styles.privateKeys}
             testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
             onPress={() => {
@@ -267,7 +264,6 @@ export const AccountGroupDetails = () => {
                 }),
               );
             }}
-            shouldEnableAndroidPressIn
           >
             <Text variant={TextVariant.BodyMDMedium}>
               {strings('multichain_accounts.account_details.private_keys')}
@@ -288,13 +284,12 @@ export const AccountGroupDetails = () => {
                 color={colors.text.alternative}
               />
             </Box>
-          </TempTouchableOpacity>
+          </TouchableOpacity>
         )}
-        <TempTouchableOpacity
+        <TouchableOpacity
           style={styles.smartAccount}
           testID={AccountDetailsIds.SMART_ACCOUNT_LINK}
           onPress={navigateToSmartAccount}
-          shouldEnableAndroidPressIn
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.smart_account')}
@@ -313,7 +308,7 @@ export const AccountGroupDetails = () => {
               color={colors.text.alternative}
             />
           </Box>
-        </TempTouchableOpacity>
+        </TouchableOpacity>
         <Wallet wallet={wallet} />
         {canExportMnemonic && <SecretRecoveryPhrase account={account} />}
         {type === AccountGroupType.SingleAccount &&

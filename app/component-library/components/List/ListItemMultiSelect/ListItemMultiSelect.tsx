@@ -20,7 +20,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   isDisabled = false,
   children,
   gap = DEFAULT_LISTITEMMULTISELECT_GAP,
-  shouldEnableAndroidPressIn = false,
+  onPress,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });

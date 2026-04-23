@@ -94,6 +94,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -278,6 +279,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -316,6 +318,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",

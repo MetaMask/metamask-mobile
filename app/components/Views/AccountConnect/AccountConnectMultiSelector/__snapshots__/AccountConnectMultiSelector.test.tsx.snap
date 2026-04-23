@@ -199,6 +199,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -340,24 +341,24 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#4459ff",
-                        "borderColor": "#4459ff",
-                        "borderRadius": 4,
-                        "borderWidth": 2,
-                        "height": 20,
-                        "justifyContent": "center",
-                        "width": 20,
+                        "flexDirection": "row",
+                        "height": 24,
+                        "marginRight": -8,
+                        "opacity": 1,
                       }
                     }
                   >
-                    <SvgMock
-                      color="#ffffff"
-                      fill="currentColor"
-                      height={20}
-                      name="CheckBold"
+                    <View
+                      accessibilityRole="checkbox"
                       style={
                         {
+                          "alignItems": "center",
+                          "backgroundColor": "#4459ff",
+                          "borderColor": "#4459ff",
+                          "borderRadius": 4,
+                          "borderWidth": 2,
                           "height": 20,
+                          "justifyContent": "center",
                           "width": 20,
                         }
                       }
@@ -528,13 +529,10 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#ffffff",
-                        "borderColor": "#121314",
-                        "borderRadius": 4,
-                        "borderWidth": 2,
-                        "height": 20,
-                        "justifyContent": "center",
-                        "width": 20,
+                        "flexDirection": "row",
+                        "height": 24,
+                        "marginRight": -8,
+                        "opacity": 1,
                       }
                     }
                   >
@@ -672,6 +670,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
