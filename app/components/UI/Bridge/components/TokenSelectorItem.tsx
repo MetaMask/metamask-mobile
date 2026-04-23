@@ -61,8 +61,7 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-
-const SHOW_TOKEN_WARNINGS = false;
+import { SHOW_TOKEN_WARNINGS } from './TokenSelectorItem.config';
 
 const createStyles = ({
   theme,
