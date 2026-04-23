@@ -408,7 +408,8 @@ jobs:
           echo "✅ Installed provisioning profile"
 
           # Add keychain to search list (codesign searches this; default-keychain alone is insufficient)
-          # shellcheck disable=SC2046 -- word splitting is intentional; security list-keychains -s expects separate args
+          # Word splitting is intentional; security list-keychains -s expects separate args
+          # shellcheck disable=SC2046
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"' | xargs)
           security default-keychain -s "$KEYCHAIN_PATH"
           echo "✅ Keychain added to search list and set as default"
