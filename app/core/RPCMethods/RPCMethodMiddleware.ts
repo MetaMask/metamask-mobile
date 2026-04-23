@@ -489,6 +489,13 @@ export const getRpcMethodMiddleware = ({
       return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
 
+    const getSource = () => {
+      if (analytics?.isRemoteConn)
+        return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+      if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
+      return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+    };
+
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
       checkTabActive();
       await Engine.context.ApprovalController.clearRequests(
