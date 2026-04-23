@@ -1,5 +1,9 @@
 import { ErrorCode } from '@metamask/hw-wallet-sdk';
-import type { DiscoveryStep, MachineEvent, DeviceUIConfig } from './DiscoveryFlow.types';
+import type {
+  DiscoveryStep,
+  MachineEvent,
+  DeviceUIConfig,
+} from './DiscoveryFlow.types';
 
 export function transition(
   currentStep: DiscoveryStep,
@@ -10,7 +14,7 @@ export function transition(
     case 'searching':
       return transitionFromSearching(event, config);
     case 'found':
-      return transitionFromFound(event);
+      return transitionFromFound(event, config);
     case 'accounts':
       return transitionFromAccounts(event);
     case 'not-found':
@@ -45,10 +49,15 @@ function transitionFromSearching(
   }
 }
 
-function transitionFromFound(event: MachineEvent): DiscoveryStep {
+function transitionFromFound(
+  event: MachineEvent,
+  config: DeviceUIConfig,
+): DiscoveryStep {
   switch (event.type) {
     case 'OPEN_ACCOUNTS':
       return 'accounts';
+    case 'CONNECT_ERROR':
+      return config.errorToStepMap[event.errorCode] ?? 'not-found';
     default:
       return 'found';
   }
@@ -56,6 +65,8 @@ function transitionFromFound(event: MachineEvent): DiscoveryStep {
 
 function transitionFromAccounts(event: MachineEvent): DiscoveryStep {
   switch (event.type) {
+    case 'BACK':
+      return 'found';
     case 'RETRY':
       return 'searching';
     default:
@@ -96,7 +107,10 @@ function resolveScanErrorStep(
     message.includes('bleerror') ||
     message.includes('bluetooth')
   ) {
-    return config.errorToStepMap[ErrorCode.BluetoothConnectionFailed] ?? 'transport-connection-failed';
+    return (
+      config.errorToStepMap[ErrorCode.BluetoothConnectionFailed] ??
+      'transport-connection-failed'
+    );
   }
 
   return 'not-found';

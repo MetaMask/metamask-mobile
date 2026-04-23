@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
 interface DiscoveryFoundScreenProps {
   config: DeviceUIConfig;
   deviceName: string;
+  isConnecting?: boolean;
   onOpenSelectDevice: () => void;
   onConnect: () => void;
 }
@@ -34,6 +35,7 @@ interface DiscoveryFoundScreenProps {
 const DiscoveryFoundScreen: React.FC<DiscoveryFoundScreenProps> = ({
   config,
   deviceName,
+  isConnecting = false,
   onOpenSelectDevice,
   onConnect,
 }) => {
@@ -88,7 +90,7 @@ const DiscoveryFoundScreen: React.FC<DiscoveryFoundScreenProps> = ({
             size={20}
             color={colors.text.default}
             backgroundColor="transparent"
-            onPress={onOpenSelectDevice}
+            onPress={isConnecting ? undefined : onOpenSelectDevice}
             testID="discovery-device-chip"
           >
             {deviceName}
@@ -99,6 +101,8 @@ const DiscoveryFoundScreen: React.FC<DiscoveryFoundScreenProps> = ({
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
+            isLoading={isConnecting}
+            isDisabled={isConnecting}
             onPress={onConnect}
             testID="discovery-connect-button"
           >

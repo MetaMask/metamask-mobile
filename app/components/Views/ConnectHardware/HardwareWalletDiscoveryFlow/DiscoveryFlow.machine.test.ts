@@ -1,6 +1,10 @@
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { transition } from './DiscoveryFlow.machine';
-import type { DiscoveryStep, MachineEvent, DeviceUIConfig } from './DiscoveryFlow.types';
+import type {
+  DiscoveryStep,
+  MachineEvent,
+  DeviceUIConfig,
+} from './DiscoveryFlow.types';
 
 const mockConfig: DeviceUIConfig = {
   walletType: HardwareWalletType.Ledger,
@@ -49,7 +53,10 @@ describe('DiscoveryFlow.machine — transition()', () => {
       expect(
         transition(
           'searching',
-          { type: 'PERMISSIONS_DENIED', errorCode: ErrorCode.PermissionBluetoothDenied },
+          {
+            type: 'PERMISSIONS_DENIED',
+            errorCode: ErrorCode.PermissionBluetoothDenied,
+          },
           mockConfig,
         ),
       ).toBe('permission-denied');
@@ -59,7 +66,10 @@ describe('DiscoveryFlow.machine — transition()', () => {
       expect(
         transition(
           'searching',
-          { type: 'PERMISSIONS_DENIED', errorCode: ErrorCode.PermissionLocationDenied },
+          {
+            type: 'PERMISSIONS_DENIED',
+            errorCode: ErrorCode.PermissionLocationDenied,
+          },
           mockConfig,
         ),
       ).toBe('permission-denied');
@@ -67,14 +77,18 @@ describe('DiscoveryFlow.machine — transition()', () => {
 
     it('moves to found on DEVICE_FOUND', () => {
       expect(
-        transition('searching', { type: 'DEVICE_FOUND', device: DEVICE }, mockConfig),
+        transition(
+          'searching',
+          { type: 'DEVICE_FOUND', device: DEVICE },
+          mockConfig,
+        ),
       ).toBe('found');
     });
 
     it('moves to not-found on TIMEOUT', () => {
-      expect(
-        transition('searching', { type: 'TIMEOUT' }, mockConfig),
-      ).toBe('not-found');
+      expect(transition('searching', { type: 'TIMEOUT' }, mockConfig)).toBe(
+        'not-found',
+      );
     });
 
     it('moves to transport-connection-failed on SCAN_ERROR with mapped bluetooth error', () => {
@@ -113,63 +127,104 @@ describe('DiscoveryFlow.machine — transition()', () => {
     });
 
     it('returns current step for irrelevant events', () => {
-      expect(
-        transition('searching', { type: 'RETRY' }, mockConfig),
-      ).toBe('searching');
-      expect(
-        transition('searching', { type: 'BACK' }, mockConfig),
-      ).toBe('searching');
+      expect(transition('searching', { type: 'RETRY' }, mockConfig)).toBe(
+        'searching',
+      );
+      expect(transition('searching', { type: 'BACK' }, mockConfig)).toBe(
+        'searching',
+      );
     });
   });
 
   describe('found state', () => {
     it('moves to accounts on OPEN_ACCOUNTS', () => {
       expect(
-        transition('found', { type: 'OPEN_ACCOUNTS', device: DEVICE }, mockConfig),
+        transition(
+          'found',
+          { type: 'OPEN_ACCOUNTS', device: DEVICE },
+          mockConfig,
+        ),
       ).toBe('accounts');
     });
 
     it('stays found on DEVICE_FOUND (additional device)', () => {
       expect(
-        transition('found', { type: 'DEVICE_FOUND', device: DEVICE }, mockConfig),
+        transition(
+          'found',
+          { type: 'DEVICE_FOUND', device: DEVICE },
+          mockConfig,
+        ),
       ).toBe('found');
     });
 
-    it('returns current step for irrelevant events', () => {
+    it('maps to configured error step on CONNECT_ERROR', () => {
       expect(
-        transition('found', { type: 'TIMEOUT' }, mockConfig),
-      ).toBe('found');
+        transition(
+          'found',
+          {
+            type: 'CONNECT_ERROR',
+            errorCode: ErrorCode.AuthenticationDeviceLocked,
+          },
+          mockConfig,
+        ),
+      ).toBe('device-locked');
+    });
+
+    it('falls back to not-found on unmapped CONNECT_ERROR', () => {
+      expect(
+        transition(
+          'found',
+          { type: 'CONNECT_ERROR', errorCode: ErrorCode.Unknown },
+          mockConfig,
+        ),
+      ).toBe('not-found');
+    });
+
+    it('returns current step for irrelevant events', () => {
+      expect(transition('found', { type: 'TIMEOUT' }, mockConfig)).toBe(
+        'found',
+      );
     });
   });
 
   describe('accounts state', () => {
     it('stays accounts on most events', () => {
+      expect(transition('accounts', { type: 'TIMEOUT' }, mockConfig)).toBe(
+        'accounts',
+      );
       expect(
-        transition('accounts', { type: 'TIMEOUT' }, mockConfig),
-      ).toBe('accounts');
-      expect(
-        transition('accounts', { type: 'DEVICE_FOUND', device: DEVICE }, mockConfig),
+        transition(
+          'accounts',
+          { type: 'DEVICE_FOUND', device: DEVICE },
+          mockConfig,
+        ),
       ).toBe('accounts');
     });
 
+    it('moves to found on BACK', () => {
+      expect(transition('accounts', { type: 'BACK' }, mockConfig)).toBe(
+        'found',
+      );
+    });
+
     it('moves to searching on RETRY', () => {
-      expect(
-        transition('accounts', { type: 'RETRY' }, mockConfig),
-      ).toBe('searching');
+      expect(transition('accounts', { type: 'RETRY' }, mockConfig)).toBe(
+        'searching',
+      );
     });
   });
 
   describe('not-found state', () => {
     it('moves to searching on RETRY', () => {
-      expect(
-        transition('not-found', { type: 'RETRY' }, mockConfig),
-      ).toBe('searching');
+      expect(transition('not-found', { type: 'RETRY' }, mockConfig)).toBe(
+        'searching',
+      );
     });
 
     it('stays not-found on other events', () => {
-      expect(
-        transition('not-found', { type: 'TIMEOUT' }, mockConfig),
-      ).toBe('not-found');
+      expect(transition('not-found', { type: 'TIMEOUT' }, mockConfig)).toBe(
+        'not-found',
+      );
     });
   });
 
@@ -184,18 +239,14 @@ describe('DiscoveryFlow.machine — transition()', () => {
     ];
 
     it.each(errorSteps)('moves %s to searching on RETRY', (step) => {
-      expect(
-        transition(step, { type: 'RETRY' }, mockConfig),
-      ).toBe('searching');
+      expect(transition(step, { type: 'RETRY' }, mockConfig)).toBe('searching');
     });
 
     it.each(errorSteps)('stays %s on irrelevant events', (step) => {
       expect(
         transition(step, { type: 'DEVICE_FOUND', device: DEVICE }, mockConfig),
       ).toBe(step);
-      expect(
-        transition(step, { type: 'TIMEOUT' }, mockConfig),
-      ).toBe(step);
+      expect(transition(step, { type: 'TIMEOUT' }, mockConfig)).toBe(step);
     });
   });
 
@@ -204,14 +255,20 @@ describe('DiscoveryFlow.machine — transition()', () => {
       expect(
         transition(
           'searching',
-          { type: 'CONNECT_ERROR', errorCode: ErrorCode.AuthenticationDeviceLocked },
+          {
+            type: 'CONNECT_ERROR',
+            errorCode: ErrorCode.AuthenticationDeviceLocked,
+          },
           mockConfig,
         ),
       ).toBe('device-locked');
       expect(
         transition(
           'searching',
-          { type: 'CONNECT_ERROR', errorCode: ErrorCode.DeviceStateEthAppClosed },
+          {
+            type: 'CONNECT_ERROR',
+            errorCode: ErrorCode.DeviceStateEthAppClosed,
+          },
           mockConfig,
         ),
       ).toBe('app-not-open');
@@ -238,7 +295,10 @@ describe('DiscoveryFlow.machine — transition()', () => {
       expect(
         transition(
           'searching',
-          { type: 'PERMISSIONS_DENIED', errorCode: ErrorCode.PermissionBluetoothDenied },
+          {
+            type: 'PERMISSIONS_DENIED',
+            errorCode: ErrorCode.PermissionBluetoothDenied,
+          },
           minimalConfig,
         ),
       ).toBe('permission-denied');
@@ -258,7 +318,10 @@ describe('DiscoveryFlow.machine — transition()', () => {
       expect(
         transition(
           'searching',
-          { type: 'CONNECT_ERROR', errorCode: ErrorCode.AuthenticationDeviceLocked },
+          {
+            type: 'CONNECT_ERROR',
+            errorCode: ErrorCode.AuthenticationDeviceLocked,
+          },
           minimalConfig,
         ),
       ).toBe('not-found');
