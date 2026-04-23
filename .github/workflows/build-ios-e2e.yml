@@ -17,10 +17,22 @@ on:
         required: false
         default: 'qa'
         type: string
+      source-fingerprint:
+        description: >-
+          Canonical @expo/fingerprint hash for this commit, computed once in
+          the `post-build-source-hash` job. Used for cache keys and cross-run
+          artifact lookups. When empty (e.g. forked PR where the hash job is
+          skipped), the build compiles fresh with no cache reuse.
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
   id-token: write
+  actions: read
+  pull-requests: read
+  statuses: read
 
 jobs:
   build-ios-apps:
@@ -75,8 +87,113 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # -------------------------------------------------------------------------
+      # Fast-path: probe branch cache, main cache, and cross-run artifacts BEFORE
+      # any heavy native setup. These steps only need `inputs.source-fingerprint`
+      # and `github.token`, so we can short-circuit Ruby/Bundler/CocoaPods/Xcode
+      # (~6m) when a compatible .app already exists.
+      # -------------------------------------------------------------------------
+
+      # Escape hatch: a `force-builds` label on the PR or a `[force-builds]`
+      # token in the head commit message forces a fresh native build and
+      # bypasses both the GHA cache restores and the cross-run artifact
+      # lookup. Honored only on `pull_request` events.
+      - name: Check force-builds override
+        id: force-builds
+        uses: ./.github/actions/check-force-builds
+        with:
+          github-token: ${{ github.token }}
+
+      # Use the canonical fingerprint computed upstream by `post-build-source-hash`.
+      # Do NOT recompute it here — macOS `node_modules/` differs from Linux
+      # `node_modules/` in ways @expo/fingerprint hashes (prebuilt binaries,
+      # platform-conditional deps), so recomputing per-runner would give a
+      # different value than the one posted as the `build-source-hash` commit
+      # status and break cross-run artifact reuse.
+      - name: Report source fingerprint
+        run: |
+          if [[ -z "$SOURCE_FINGERPRINT" ]]; then
+            echo "::warning::No source-fingerprint provided (likely a forked PR); caches and reuse disabled."
+          else
+            echo "Source fingerprint: $SOURCE_FINGERPRINT"
+          fi
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+
+      - name: Restore iOS app matching fingerprint from branch cache
+        id: cache-restore
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        # This action automatically updates the cache at the end of the workflow
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+
+      - name: Restore iOS app matching fingerprint from main cache
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        id: cache-restore-main
+        # This will only restore the cache, not update it
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+
+      # Cross-PR reuse: before building, try to find a prior workflow run whose
+      # build-source-hash commit status matches our fingerprint AND whose
+      # MetaMask.app artifact is still available. Falls back to a fresh build.
+      - name: Find reusable build from prior run
+        id: find-reusable-build
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source-fingerprint }}
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          github-token: ${{ github.token }}
+
+      - name: Download reusable iOS build from prior run
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Log reused iOS build source
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        run: |
+          echo "Reusing iOS build from run ${{ steps.find-reusable-build.outputs.run-id }}"
+          echo "Source SHA: ${{ steps.find-reusable-build.outputs.source-sha }}"
+          echo "Source branch: ${{ steps.find-reusable-build.outputs.source-branch }}"
+        shell: bash
+
+      # When any of the three reuse paths hit (branch cache, main cache,
+      # cross-run artifact), gate = false and we skip the heavy Xcode + CocoaPods
+      # setup and jump straight to a lean JS-only setup + repack.
+      - name: Compute native-build gate
+        id: gate
+        run: |
+          if [[ "${{ steps.cache-restore.outputs.cache-hit }}" == "true" \
+             || "${{ steps.cache-restore-main.outputs.cache-hit }}" == "true" \
+             || "${{ steps.find-reusable-build.outputs.found }}" == "true" ]]; then
+            echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+            echo "Reuse path active; heavy native setup will be skipped."
+          else
+            echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+            echo "No reuse path; full native build + setup will run."
+          fi
+        shell: bash
+
+      # -------------------------------------------------------------------------
+      # Heavy native setup — only runs on a full native-build path.
+      # -------------------------------------------------------------------------
+
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -86,7 +203,7 @@ jobs:
           key: ${{ runner.os }}-xcode-${{ github.ref_name }}-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       - name: Restore Xcode derived data from main cache
-        if: ${{ steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: xcode-restore-cache-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -98,6 +215,7 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env
         with:
@@ -105,6 +223,7 @@ jobs:
           setup-simulator: false
 
       - name: Print iOS tool versions
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: |
           echo "🔧 Node.js Version:"
           node -v || echo "Node not found"
@@ -120,9 +239,11 @@ jobs:
 
       # Clean iOS plist files to prevent extended attribute issues
       - name: Clean iOS plist files
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: find ios -name "*.plist" -exec xattr -c {} \;
 
       - name: Restore .metamask folder
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         id: restore-metamask
         uses: actions/cache@v4
         with:
@@ -130,10 +251,11 @@ jobs:
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
-        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && steps.restore-metamask.outputs.cache-hit != 'true' }}
         run: yarn install:foundryup
       # Run project setup with retry for better resilience
       - name: Setup project dependencies with retry
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -143,36 +265,72 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications
-      - name: Generate current fingerprint
-        id: generate-fingerprint
+      # -------------------------------------------------------------------------
+      # Lean JS-only setup — only runs on the reuse-hit path so that
+      # `yarn build:repack:ios` has Node, @expo/repack-app, and the inpage
+      # bridge + terms-of-use assets. Skips Ruby/Bundler/CocoaPods/Xcode entirely
+      # (not needed for repack — saves ~6m wall time on cache-hit builds).
+      # -------------------------------------------------------------------------
+
+      - name: Setup Node.js (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.18.0'
+
+      - name: Enable corepack (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         run: |
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Current fingerprint: ${FINGERPRINT}"
+          corepack enable
+          corepack prepare yarn@3.8.7 --activate
+        shell: bash
 
-      - name: Restore iOS app matching fingerprint from branch cache
-        id: cache-restore
-        # This action automatically updates the cache at the end of the workflow
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+      # Matches the cache key used by `setup-e2e-env` so both paths share the
+      # same node_modules cache.
+      - name: Restore yarn cache (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        uses: actions/cache@v4
         with:
           path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+            node_modules
+          key: e2e-yarn-ios-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
-      - name: Restore iOS app matching fingerprint from main cache
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
-        id: cache-restore-main
-        # This will only restore the cache, not update it
-        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+      - name: Install JS dependencies (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          YARN_ENABLE_GLOBAL_CACHE: 'true'
+
+      - name: Restore .metamask folder (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        id: restore-metamask-lean
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      # `--no-build-ios --no-build-android` skips the native setup tasks
+      # (bundler, CocoaPods, jetify) but still runs the JS-side tasks that
+      # `yarn build:repack:ios` depends on: build-inpage-bridge,
+      # patch-package, allow-scripts, install-foundry, terms-of-use.
+      - name: Run lightweight project setup (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        run: yarn setup:github-ci --no-build-ios --no-build-android
+        shell: bash
+
+      # -------------------------------------------------------------------------
+      # Build (fresh) or Repack (reuse) — exactly one of these runs per job.
+      # -------------------------------------------------------------------------
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -207,7 +365,7 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -283,11 +441,12 @@ jobs:
           if-no-files-found: error
         continue-on-error: true
 
-      # Upload source map file for crash debugging and error tracking if exists
-      # Only runs when repack step runs (cache hit), as that's when sourcemap is generated
+      # Upload source map file for crash debugging and error tracking.
+      # Both paths produce it: `yarn build:ios:main:e2e` via
+      # `scripts/ios/bundle-js-and-sentry-upload.sh` and `yarn build:repack:ios`
+      # via `scripts/repack.js` both write to `sourcemaps/ios/index.js.map`.
       - name: Upload iOS Source Map
         id: upload-sourcemap
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map

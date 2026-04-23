@@ -1,0 +1,81 @@
+name: 'Check force-builds override'
+description: >-
+  Detects whether the current workflow run should bypass native build reuse
+  (both the GHA cache and the cross-run artifact lookup) and always compile
+  fresh. The override is honored on `pull_request` events via a `force-builds`
+  label OR a `[force-builds]` token in the head commit message. It is
+  intentionally ignored on `merge_group` and `push` events so the merge queue
+  always uses hash-verified reuse.
+
+inputs:
+  github-token:
+    description: >-
+      GitHub token with `pull-requests: read` (for label lookup) and
+      `contents: read` (to fetch the head commit message via the REST API).
+    required: true
+  label-name:
+    description: 'PR label that, when present, forces fresh builds'
+    required: false
+    default: 'force-builds'
+  commit-tag:
+    description: 'Case-sensitive substring in the head commit message that forces fresh builds'
+    required: false
+    default: '[force-builds]'
+
+outputs:
+  force:
+    description: "'true' when fresh builds should be forced, otherwise 'false'"
+    value: ${{ steps.compute.outputs.force }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Compute force-builds flag
+      id: compute
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        LABEL_NAME: ${{ inputs.label-name }}
+        COMMIT_TAG: ${{ inputs.commit-tag }}
+        EVENT_NAME: ${{ github.event_name }}
+        HEAD_COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPOSITORY: ${{ github.repository }}
+      run: |
+        FORCE="false"
+
+        if [[ "$EVENT_NAME" != "pull_request" ]]; then
+          echo "Event is $EVENT_NAME; force-builds override is ignored outside pull_request events."
+          echo "force=$FORCE" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # Commit-message tag.
+        COMMIT_MESSAGE=""
+        if COMMIT_MESSAGE=$(gh api \
+            "repos/$REPOSITORY/commits/$HEAD_COMMIT_HASH" \
+            --jq '.commit.message' 2>/dev/null); then
+          if printf '%s' "$COMMIT_MESSAGE" \
+              | grep --fixed-strings --quiet "$COMMIT_TAG"; then
+            echo "-> force=true because '$COMMIT_TAG' was found in commit message of $HEAD_COMMIT_HASH"
+            FORCE="true"
+          fi
+        else
+          echo "::warning::Failed to fetch commit message for $HEAD_COMMIT_HASH via GitHub API; commit-tag force-builds check skipped for this run (the '$LABEL_NAME' label path still works)."
+        fi
+
+        # PR label
+        if [[ -n "$PR_NUMBER" ]]; then
+          if gh pr view "$PR_NUMBER" --repo "$REPOSITORY" \
+              --json labels --jq '.labels[].name' \
+              | grep -qx "$LABEL_NAME"; then
+            echo "-> force=true because '$LABEL_NAME' label is applied to PR #$PR_NUMBER"
+            FORCE="true"
+          fi
+        fi
+
+        if [[ "$FORCE" == "false" ]]; then
+          echo "No force-builds override active."
+        fi
+
+        echo "force=$FORCE" >> "$GITHUB_OUTPUT"
