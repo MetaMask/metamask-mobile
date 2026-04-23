@@ -217,6 +217,7 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
+        if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -227,7 +228,7 @@ jobs:
           echo "Current iOS JS bundle: ${CURRENT_MB} MB"
 
           BASELINE_MB=""
-          BASE_SHA='${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'merge_group' && github.event.merge_group.base_sha || '' }}'
+          BASE_SHA='${{ github.event.pull_request.base.sha }}'
           if [[ -n "$BASE_SHA" ]]; then
             echo "Resolving baseline bundle size from ci/ios-js-bundle-size status on base commit ${BASE_SHA}"
             if ! STATUSES_JSON="$(
@@ -259,7 +260,7 @@ jobs:
               exit 0
             fi
           else
-            echo "::warning::No pull_request / merge_group base SHA; skipping iOS JS bundle delta check (no default baseline)."
+            echo "::warning::Pull request base SHA is empty; skipping iOS JS bundle delta check."
             exit 0
           fi
 
