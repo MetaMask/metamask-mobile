@@ -358,11 +358,21 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     )
       return;
 
+    // For Verified tokens, use badge icon (VerifiedFilled) instead of tag icon (SecurityTick)
+    const displayIcon =
+      securityData.resultType === 'Verified' && securityConfig.badge
+        ? securityConfig.badge.icon
+        : securityConfig.icon;
+    const displayIconColor =
+      securityData.resultType === 'Verified' && securityConfig.badge
+        ? securityConfig.badge.iconColor
+        : securityConfig.iconColor;
+
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
       params: {
-        icon: securityConfig.icon,
-        iconColor: securityConfig.iconColor,
+        icon: displayIcon,
+        iconColor: displayIconColor,
         title: securityConfig.sheetTitle,
         description: securityConfig.getSheetDescription(token.symbol),
         source: 'badge',
