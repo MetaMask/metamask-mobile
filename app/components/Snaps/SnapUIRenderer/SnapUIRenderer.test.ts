@@ -36,8 +36,9 @@ describe('SnapUIRenderer', () => {
   });
 
   it('renders loading state', () => {
-    const { queryByTestId } = renderInterface(null);
+    const { getByTestId, queryByTestId } = renderInterface(null);
 
+    expect(getByTestId('snap-ui-renderer__loading')).toBeOnTheScreen();
     expect(queryByTestId('snap-ui-renderer__scrollview')).toBeNull();
   });
 
