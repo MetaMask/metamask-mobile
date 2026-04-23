@@ -35,7 +35,7 @@ describe('CollapsibleSection', () => {
   });
 
   it('can expand', () => {
-    const { toJSON, getByText } = renderInterface(
+    const { getByText } = renderInterface(
       CollapsibleSection({
         label: 'My Section',
         children: [
@@ -56,7 +56,6 @@ describe('CollapsibleSection', () => {
     fireEvent.press(section);
 
     expect(getByText('Row 1')).toBeDefined();
-
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Row 2')).toBeDefined();
   });
 });

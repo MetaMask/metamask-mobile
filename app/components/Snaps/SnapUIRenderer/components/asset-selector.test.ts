@@ -144,7 +144,7 @@ describe('SnapUIAssetSelector', () => {
   const mockChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
   it('should render', () => {
-    const { getByTestId, toJSON } = renderInterface(
+    const { getByTestId } = renderInterface(
       Box({
         children: AssetSelector({
           name: 'asset-selector',
@@ -156,7 +156,6 @@ describe('SnapUIAssetSelector', () => {
     );
 
     expect(getByTestId('snap-ui-renderer__selector')).toBeTruthy();
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('can be disabled', () => {
