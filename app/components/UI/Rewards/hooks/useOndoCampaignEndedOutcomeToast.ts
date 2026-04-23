@@ -33,13 +33,6 @@ export function useOndoCampaignEndedOutcomeToast(
   const { showToast } = useRewardsToast();
 
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const toastKey =
-    subscriptionId && campaignId ? `${subscriptionId}:${campaignId}` : '';
-  const isDismissed = useSelector(
-    selectIsCampaignOutcomeToastDismissed(subscriptionId ?? undefined, campaignId),
-  );
-
-  const hasShownRef = useRef(false);
 
   const isEligible =
     campaign?.type === CampaignType.ONDO_HOLDING &&
@@ -50,6 +43,28 @@ export function useOndoCampaignEndedOutcomeToast(
   const { outcome } = useOndoCampaignParticipantOutcome(
     isEligible ? campaignId : undefined,
   );
+
+  const outcomeVariant = outcome
+    ? outcome.winnerVerificationCode && outcome.outcomeStatus === 'pending'
+      ? 'winner_pending'
+      : !outcome.winnerVerificationCode && outcome.outcomeStatus === 'finalized'
+        ? 'participant_finalized'
+        : undefined
+    : undefined;
+
+  const toastKey =
+    subscriptionId && campaignId && outcomeVariant
+      ? `${subscriptionId}:${campaignId}:${outcomeVariant}`
+      : '';
+  const isDismissed = useSelector(
+    selectIsCampaignOutcomeToastDismissed(
+      subscriptionId ?? undefined,
+      campaignId,
+      outcomeVariant,
+    ),
+  );
+
+  const shownVariantsRef = useRef(new Set<string>());
 
   const handleDismiss = useCallback(() => {
     toastRef?.current?.closeToast();
@@ -62,8 +77,9 @@ export function useOndoCampaignEndedOutcomeToast(
     if (
       !isEligible ||
       !outcome ||
+      !outcomeVariant ||
       isDismissed ||
-      hasShownRef.current ||
+      shownVariantsRef.current.has(outcomeVariant) ||
       !campaignId
     ) {
       return;
@@ -75,7 +91,7 @@ export function useOndoCampaignEndedOutcomeToast(
     const isPending = outcome.outcomeStatus === 'pending';
 
     if (isFinalized && !hasCode) {
-      hasShownRef.current = true;
+      shownVariantsRef.current.add('participant_finalized');
       showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
@@ -85,17 +101,22 @@ export function useOndoCampaignEndedOutcomeToast(
         hapticsType: NotificationFeedbackType.Success,
         labelOptions: [
           {
-            label: strings('rewards.ondo_outcome_toast.participant_finalized.title'),
+            label: strings(
+              'rewards.ondo_outcome_toast.participant_finalized.title',
+            ),
             isBold: true,
           },
         ],
         descriptionOptions: {
           description: strings(
             'rewards.ondo_outcome_toast.participant_finalized.description',
+            { campaignName: campaign?.name ?? '' },
           ),
         },
         linkButtonOptions: {
-          label: strings('rewards.ondo_outcome_toast.view'),
+          label: strings(
+            'rewards.ondo_outcome_toast.participant_finalized.view',
+          ),
           onPress: () => {
             navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD, {
               campaignId: resolvedCampaignId,
@@ -109,7 +130,7 @@ export function useOndoCampaignEndedOutcomeToast(
         },
       });
     } else if (isPending && hasCode) {
-      hasShownRef.current = true;
+      shownVariantsRef.current.add('winner_pending');
       showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Star,
@@ -126,10 +147,13 @@ export function useOndoCampaignEndedOutcomeToast(
         descriptionOptions: {
           description: strings(
             'rewards.ondo_outcome_toast.winner_pending.description',
+            { campaignName: campaign?.name ?? '' },
           ),
         },
         linkButtonOptions: {
-          label: strings('rewards.ondo_outcome_toast.view_details'),
+          label: strings(
+            'rewards.ondo_outcome_toast.winner_pending.view_details',
+          ),
           onPress: () => {
             navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
               campaignId: resolvedCampaignId,
@@ -147,6 +171,7 @@ export function useOndoCampaignEndedOutcomeToast(
   }, [
     isEligible,
     outcome,
+    outcomeVariant,
     isDismissed,
     campaignId,
     campaign,

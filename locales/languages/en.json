@@ -8308,14 +8308,14 @@
     "ondo_outcome_toast": {
       "participant_finalized": {
         "title": "The results are in 🥇",
-        "description": "See where you finished on the leaderboard."
+        "description": "See where you finished on the leaderboard for the {{campaignName}}.",
+        "view": "View"
       },
       "winner_pending": {
         "title": "You won! 🏆",
-        "description": "Reach out to us to claim your reward."
-      },
-      "view": "View",
-      "view_details": "View details"
+        "description": "Reach out to us to claim your reward for the {{campaignName}}.",
+        "view_details": "View details"
+      }
     }
   },
   "time": {
