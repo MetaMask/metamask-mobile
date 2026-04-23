@@ -252,7 +252,6 @@ export function useQuickBuyBottomSheet(
     try {
       dispatch(setIsSubmittingTx(true));
       await submitBridgeTx({ quoteResponse: activeQuote });
-      dispatch(setIsSubmittingTx(false));
       setTxPhase('success');
       notificationAsync(NotificationFeedbackType.Success);
       await new Promise((resolve) => setTimeout(resolve, 800));
@@ -260,8 +259,9 @@ export function useQuickBuyBottomSheet(
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
-      dispatch(setIsSubmittingTx(false));
       notificationAsync(NotificationFeedbackType.Error);
+    } finally {
+      dispatch(setIsSubmittingTx(false));
     }
   }, [
     activeQuote,
