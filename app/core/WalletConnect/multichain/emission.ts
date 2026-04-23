@@ -1,5 +1,7 @@
 import { KnownCaipNamespace } from '@metamask/utils';
 
+import { getAdapter } from './registry';
+
 /**
  * Minimal shape required to pick a `chainChanged` target. Structurally
  * matches both `ApprovedNamespaces` (our strict type) and WalletConnect's
@@ -35,9 +37,9 @@ export interface ChainChangedEmitDecision {
 
 /**
  * Pick the CAIP chain id the wallet should emit `chainChanged` for and the
- * payload it should carry. Prefers non-EVM namespaces (they tend to be
- * chain-specific dapps that also crashed during our Tron debugging), falling
- * back to the first EIP155 chain, falling back to the EVM wallet state.
+ * payload it should carry. Selects the namespace with the highest
+ * `emissionPriority` (from the adapter registry) that has at least one
+ * chain. Falls back to the EVM wallet state when no namespace qualifies.
  */
 export const getChainChangedEmission = ({
   namespaces,
@@ -48,24 +50,30 @@ export const getChainChangedEmission = ({
   fallbackEvmDecimal: number;
   fallbackEvmHex: string;
 }): ChainChangedEmission => {
-  const entries = Object.entries(namespaces ?? {});
+  const candidates = Object.entries(namespaces ?? {})
+    .filter(
+      (
+        entry,
+      ): entry is [string, { chains: string[] } & EmissionNamespaceSlice] =>
+        entry[0] !== KnownCaipNamespace.Wallet &&
+        Array.isArray(entry[1]?.chains) &&
+        entry[1].chains.length > 0,
+    )
+    .map(([key, config]) => ({
+      key,
+      chain: config.chains[0],
+      priority: getAdapter(key)?.emissionPriority ?? 0,
+    }))
+    .sort((a, b) => b.priority - a.priority);
 
-  for (const [key, config] of entries) {
-    if (
-      key === KnownCaipNamespace.Eip155 ||
-      key === KnownCaipNamespace.Wallet
-    ) {
-      continue;
-    }
-    const first = config?.chains?.[0];
-    if (first) {
-      return { chainId: first, data: first };
-    }
-  }
+  const winner = candidates[0];
 
-  const eip155Chain = namespaces?.[KnownCaipNamespace.Eip155]?.chains?.[0];
-  if (eip155Chain) {
-    return { chainId: eip155Chain, data: fallbackEvmHex };
+  if (winner) {
+    const isEvm = winner.key === KnownCaipNamespace.Eip155;
+    return {
+      chainId: winner.chain,
+      data: isEvm ? fallbackEvmHex : winner.chain,
+    };
   }
 
   return {
