@@ -4,7 +4,7 @@ import Logger from '../../util/Logger';
 import { isE2E } from '../../util/test/utils';
 import Engine from '../Engine/Engine';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
-import { BRAZE_BANNER_PLACEMENT_ID } from './constants';
+import { ALL_BRAZE_BANNER_PLACEMENT_IDS } from './constants';
 
 let brazePlugin: BrazePlugin | undefined;
 
@@ -62,6 +62,52 @@ export function clearBrazeUser(): void {
 
   getBrazePlugin().setBrazeProfileId(undefined);
   Logger.log('[Braze] Cleared Braze user identity');
+}
+
+/**
+ * Retrieve the cached banner for a placement without throwing.
+ * Returns `null` when no banner is cached or if the SDK call fails.
+ */
+export async function getBannerForPlacement(
+  placementId: string,
+): Promise<import('@braze/react-native-sdk').Banner | null> {
+  try {
+    return await Braze.getBanner(placementId);
+  } catch (error) {
+    Logger.error(error as Error, '[Braze] Failed to get banner for placement');
+    return null;
+  }
+}
+
+/**
+ * Request a fresh banner from the SDK for the given placements.
+ * Defaults to the standard banner placement when no IDs are supplied.
+ * Call this after dismissal or on app foreground to ensure the next
+ * campaign is fetched and cached.
+ */
+export function refreshBrazeBanners(
+  placementIds: string[] = ALL_BRAZE_BANNER_PLACEMENT_IDS,
+): void {
+  try {
+    Braze.requestBannersRefresh(placementIds);
+    Logger.log('[Braze] Requested banner refresh');
+  } catch (error) {
+    Logger.error(error as Error, '[Braze] Failed to refresh banners');
+  }
+}
+
+/**
+ * Set a custom user attribute to track banner dismissals and flush the event immediately.
+ */
+export function dismissBrazeBanner(dismissId: string): void {
+  try {
+    const dismissalAttribute = `banner-dismissed-${dismissId}`;
+    Logger.log('[Braze] Setting custom user attribute', { dismissalAttribute });
+    Braze.setCustomUserAttribute(dismissalAttribute, true);
+    Braze.requestImmediateDataFlush();
+  } catch (error) {
+    Logger.error(error as Error, '[Braze] Failed to log banner dismissal');
+  }
 }
 
 /**

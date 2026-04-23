@@ -144,7 +144,7 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import BrazeBanner from '../../UI/BrazeBanner';
-import { BRAZE_BANNER_PLACEMENT_ID } from '../../../core/Braze/constants';
+import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/constants';
 import { TokenI } from '../../UI/Tokens/types';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
@@ -1341,7 +1341,7 @@ const Wallet = ({
         />
 
         {homeBanner === 'braze' && (
-          <BrazeBanner placementId={BRAZE_BANNER_PLACEMENT_ID} />
+          <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
         )}
         {homeBanner === 'carousel' && <Carousel style={styles.carousel} />}
 
