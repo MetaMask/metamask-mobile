@@ -15,6 +15,12 @@ import {
   PredictMarketDetailsSelectorsText,
 } from '../../../app/components/UI/Predict/Predict.testIds';
 import { PREDICT_PICK_ITEM_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictPicks/PredictPickItem.testIds';
+import {
+  PREDICT_GAME_DETAILS_FOOTER,
+  PREDICT_GAME_DETAILS_FOOTER_TEST_IDS,
+} from '../../../app/components/UI/Predict/components/PredictGameDetailsFooter/PredictGameDetailsFooter.testIds';
+import { PREDICT_ACTION_BUTTONS_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictActionButtons/PredictActionButtons.testIds';
+import { PREDICT_BET_BUTTONS_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictActionButtons/PredictBetButtons.testIds';
 
 class PredictDetailsPage {
   get container(): EncapsulatedElementType {
@@ -209,6 +215,14 @@ class PredictDetailsPage {
     });
   }
 
+  get gameBetYesButton(): EncapsulatedElementType {
+    const testID = `${PREDICT_GAME_DETAILS_FOOTER}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.ACTION_BUTTONS}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_YES}`;
+    return encapsulated({
+      detox: () => Matchers.getElementByID(testID),
+      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
+    });
+  }
+
   async waitForScreenToDisplay(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Predict market details screen',
@@ -264,6 +278,12 @@ class PredictDetailsPage {
   async tapOpenPositionValue(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.getOpenPositionValueButton(), {
       description: 'Celtics outcome button',
+    });
+  }
+
+  async tapGameBetYesButton(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.gameBetYesButton, {
+      description: 'Game bet yes button',
     });
   }
 

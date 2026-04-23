@@ -24,6 +24,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-cash-out.analytics';
+import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -32,9 +33,6 @@ Test Scenario: Cash out on open position - Spurs vs. Pelicans
   2. Cash out the position with updated mocks
   3. Verify balance and cash out in Activities tab
   */
-const SPURS_PELICANS_POSITION_ID =
-  '110743925263777693447488608878982152642205002490046349037358337248548507433643';
-
 const positionDetails = {
   name: 'Spurs vs. Pelicans',
   cashOutValue: '$30.75',
