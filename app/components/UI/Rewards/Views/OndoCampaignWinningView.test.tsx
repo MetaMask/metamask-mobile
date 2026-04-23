@@ -2,11 +2,11 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useSelector } from 'react-redux';
 import OndoCampaignWinningView, {
   ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS,
 } from './OndoCampaignWinningView';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 
 jest.mock('../../../../images/rewards/campaign_winning.png', () => ({
   __esModule: true,
@@ -15,8 +15,10 @@ jest.mock('../../../../images/rewards/campaign_winning.png', () => ({
 
 const mockGoBack = jest.fn();
 
+const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({
     params: { campaignId: 'campaign-ondo-1', campaignName: 'Ondo Campaign' },
   }),
@@ -36,12 +38,14 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-  useDispatch: jest.fn(() => jest.fn()),
+jest.mock('../hooks/useOndoCampaignParticipantOutcome', () => ({
+  useOndoCampaignParticipantOutcome: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseOndoCampaignParticipantOutcome =
+  useOndoCampaignParticipantOutcome as jest.MockedFunction<
+    typeof useOndoCampaignParticipantOutcome
+  >;
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -168,10 +172,14 @@ describe('OndoCampaignWinningView', () => {
       hasFetched: true,
       refetch: jest.fn(),
     });
-    mockUseSelector.mockReturnValue({
-      subscriptionId: 'sub-1',
-      outcomeStatus: 'pending',
-      winnerVerificationCode: 'LVL346',
+    mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+      outcome: {
+        subscriptionId: 'sub-1',
+        outcomeStatus: 'pending',
+        winnerVerificationCode: 'LVL346',
+      },
+      isLoading: false,
+      hasError: false,
     });
   });
 
