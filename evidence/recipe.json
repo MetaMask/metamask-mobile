@@ -1,9 +1,6 @@
 {
-  "title": "HL spotState live-balance validation",
-  "description": "Validates the HyperLiquid spotState WebSocket fix end-to-end. Resets any leaked payment-token state, then runs hl-balance-validation in Unified mode to assert: (1) availableToTradeBalance is populated and >= availableBalance (fold invariant), (2) the PerpsMarketListView balance row renders availableToTradeBalance, (3) the PerpsWithdrawView balance row renders availableBalance (non-regression — spot fold must NOT leak into the withdraw path), and (4) the PerpsOrderView Pay-with row defaults to 'Perps balance' rather than an external USDC fallback when spot collateral is available. Passing proves: subscription established, stream handler populates #cachedSpotState, addSpotBalanceToAccountState folds spot total + tracks hold, adapter / aggregator propagate the new field, UI consumers prefer it over raw availableBalance. External-client probe and UI-driven open/close cycles are deferred to a follow-up recipe once the underlying trade-open-market flow is fixed for the RedesignedConfirmations route.",
-  "initial_conditions": {
-    "testnet": false
-  },
+  "title": "HL balance live-update parity across account abstraction modes",
+  "description": "Captures the account's current abstraction mode, runs the balance validation (hl-balance-validation + REST parity + order-form wiring check) under Standard and Unified modes, then restores the original mode. Passing proves the spotState WS fix holds across the two modes users actually configure. Portfolio Margin is not cycled here: its caps fall back to non-PM silently which muddies assertions. Runs on both testnet and mainnet.",
   "validate": {
     "workflow": {
       "pre_conditions": [
@@ -11,29 +8,147 @@
         "perps.feature_enabled",
         "perps.ready_to_trade"
       ],
-      "entry": "reset-payment-token",
-      "nodes": {
-        "reset-payment-token": {
+      "setup": [
+        {
+          "id": "reset-payment-token",
           "action": "eval_async",
           "expression": "(function(){try{var c=Engine.context.PerpsController;c.clearPendingTradeConfiguration&&c.clearPendingTradeConfiguration('BTC');c.resetSelectedPaymentToken&&c.resetSelectedPaymentToken();return Promise.resolve(JSON.stringify({ok:true}))}catch(e){return Promise.resolve(JSON.stringify({ok:false,error:String(e)}))}})()",
-          "assert": { "operator": "eq", "field": "ok", "value": true },
-          "timeout_ms": 5000,
-          "next": "baseline"
+          "assert": { "operator": "eq", "field": "ok", "value": true }
         },
-        "baseline": {
+        {
+          "id": "capture-initial-state",
+          "action": "eval_async",
+          "expression": "(function(){try{var ctrl=Engine.context.PerpsController;var accs=Engine.context.AccountsController.state.internalAccounts;var user=accs.accounts[accs.selectedAccount].address;return ctrl.getAccountState({standalone:true,userAddress:user}).then(function(s){return JSON.stringify({ok:true,user:user,startingTotal:s.totalBalance,startingAvailable:s.availableBalance,startingTradeable:s.availableToTradeBalance})}).catch(function(e){return JSON.stringify({ok:false,error:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:false,error:String(e)}))}})()",
+          "assert": { "operator": "eq", "field": "ok", "value": true },
+          "save_as": "initial",
+          "timeout_ms": 15000
+        }
+      ],
+      "entry": "set-standard",
+      "nodes": {
+        "set-standard": {
+          "action": "call",
+          "ref": "perps/hl-provision-fixture",
+          "params": { "abstraction": "disabled", "transferDirection": "none" },
+          "next": "validate-standard"
+        },
+        "validate-standard": {
           "action": "call",
           "ref": "perps/hl-balance-validation",
-          "params": {
-            "expectedMode": "unified",
-            "phaseLabel": "t0-baseline"
+          "params": { "expectedMode": "standard", "phaseLabel": "standard" },
+          "next": "parity-standard"
+        },
+        "parity-standard": {
+          "action": "eval_async",
+          "expression": "(function(){try{var ctrl=Engine.context.PerpsController;var stream=(ctrl.state&&ctrl.state.accountState)||{};var accs=Engine.context.AccountsController.state.internalAccounts;var user=accs.accounts[accs.selectedAccount].address;return ctrl.getAccountState({standalone:true,userAddress:user}).then(function(standalone){function n(v){return parseFloat(v||'0')}var dAvail=Math.abs(n(stream.availableBalance)-n(standalone.availableBalance));var dTrade=Math.abs(n(stream.availableToTradeBalance||stream.availableBalance)-n(standalone.availableToTradeBalance||standalone.availableBalance));var dTotal=Math.abs(n(stream.totalBalance)-n(standalone.totalBalance));var tol=0.1;return JSON.stringify({phase:'standard',streamAvail:stream.availableBalance,streamTrade:stream.availableToTradeBalance,streamTotal:stream.totalBalance,restAvail:standalone.availableBalance,restTrade:standalone.availableToTradeBalance,restTotal:standalone.totalBalance,availParity:dAvail<=tol,tradeParity:dTrade<=tol,totalParity:dTotal<=tol})}).catch(function(e){return JSON.stringify({phase:'standard',availParity:false,tradeParity:false,totalParity:false,error:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({phase:'standard',availParity:false,tradeParity:false,totalParity:false,error:String(e)}))}})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "availParity", "value": true },
+              { "operator": "eq", "field": "tradeParity", "value": true },
+              { "operator": "eq", "field": "totalParity", "value": true }
+            ]
           },
+          "timeout_ms": 20000,
+          "next": "set-unified"
+        },
+        "set-unified": {
+          "action": "call",
+          "ref": "perps/hl-provision-fixture",
+          "params": {
+            "abstraction": "unifiedAccount",
+            "transferDirection": "none"
+          },
+          "next": "validate-unified"
+        },
+        "validate-unified": {
+          "action": "call",
+          "ref": "perps/hl-balance-validation",
+          "params": { "expectedMode": "unified", "phaseLabel": "unified" },
+          "next": "parity-unified"
+        },
+        "parity-unified": {
+          "action": "eval_async",
+          "expression": "(function(){try{var ctrl=Engine.context.PerpsController;var stream=(ctrl.state&&ctrl.state.accountState)||{};var accs=Engine.context.AccountsController.state.internalAccounts;var user=accs.accounts[accs.selectedAccount].address;return ctrl.getAccountState({standalone:true,userAddress:user}).then(function(standalone){function n(v){return parseFloat(v||'0')}var dAvail=Math.abs(n(stream.availableBalance)-n(standalone.availableBalance));var dTrade=Math.abs(n(stream.availableToTradeBalance||stream.availableBalance)-n(standalone.availableToTradeBalance||standalone.availableBalance));var dTotal=Math.abs(n(stream.totalBalance)-n(standalone.totalBalance));var tol=0.1;return JSON.stringify({phase:'unified',streamAvail:stream.availableBalance,streamTrade:stream.availableToTradeBalance,streamTotal:stream.totalBalance,restAvail:standalone.availableBalance,restTrade:standalone.availableToTradeBalance,restTotal:standalone.totalBalance,availParity:dAvail<=tol,tradeParity:dTrade<=tol,totalParity:dTotal<=tol})}).catch(function(e){return JSON.stringify({phase:'unified',availParity:false,tradeParity:false,totalParity:false,error:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({phase:'unified',availParity:false,tradeParity:false,totalParity:false,error:String(e)}))}})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "availParity", "value": true },
+              { "operator": "eq", "field": "tradeParity", "value": true },
+              { "operator": "eq", "field": "totalParity", "value": true }
+            ]
+          },
+          "timeout_ms": 20000,
+          "next": "order-form-wiring-unified"
+        },
+        "order-form-wiring-unified": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "BTC",
+              "name": "BTC",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "wait-long"
+        },
+        "wait-long": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-long-button",
+          "timeout_ms": 15000,
+          "next": "press-long"
+        },
+        "press-long": {
+          "action": "press",
+          "test_id": "perps-market-details-long-button",
+          "next": "wait-place-order"
+        },
+        "wait-place-order": {
+          "action": "wait_for",
+          "test_id": "perps-order-view-place-order-button",
+          "timeout_ms": 15000,
+          "next": "check-order-form"
+        },
+        "check-order-form": {
+          "action": "eval_sync",
+          "expression": "(function(){try{var a=globalThis.__AGENTIC__;var paySymbol=(a&&a.getTextByTestId('pay-with-symbol'))||'';var placeOrderMounted=!!(a&&a.findFiberByTestId&&a.findFiberByTestId('perps-order-view-place-order-button'));var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var paysPerps=paySymbol.toLowerCase().indexOf('perps')>=0;var expectTradeable=trade>0.5;var defaultsToPerps=expectTradeable?paysPerps:true;return JSON.stringify({paySymbol:paySymbol,availableToTradeBalance:trade,placeOrderMounted:placeOrderMounted,paysWithPerpsBalance:paysPerps,defaultsToPerps:defaultsToPerps})}catch(e){return JSON.stringify({error:String(e)})}})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "placeOrderMounted", "value": true },
+              { "operator": "eq", "field": "defaultsToPerps", "value": true }
+            ]
+          },
+          "next": "back-to-wallet"
+        },
+        "back-to-wallet": {
+          "action": "navigate",
+          "target": "Wallet",
+          "next": "manual-vs-hl-web"
+        },
+        "manual-vs-hl-web": {
+          "action": "manual",
+          "note": "Human gate — open app.hyperliquid.xyz for the connected account and confirm:\n  1. Perps 'Total equity' ≈ AccountState.totalBalance (within ~$0.20)\n  2. HL 'Available to trade' ≈ availableToTradeBalance (within ~$0.20)\n  3. Spot USDC total + hold match spotClearinghouseState\n  4. Opening/closing a position changes the displayed total only by unrealized PnL + fees\nPress enter on match, abort on drift. Run with --skip-manual to bypass.",
           "next": "done"
         },
         "done": {
           "action": "end",
           "status": "pass"
         }
-      }
+      },
+      "teardown": [
+        {
+          "id": "restore-unified",
+          "action": "call",
+          "ref": "perps/hl-provision-fixture",
+          "params": {
+            "abstraction": "unifiedAccount",
+            "transferDirection": "none"
+          }
+        }
+      ]
     }
   }
 }

@@ -9823,17 +9823,17 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('getExchangeClient escape hatch', () => {
-    it('delegates to the client service and returns the underlying ExchangeClient', () => {
+    it('delegates to the client service and resolves with the underlying ExchangeClient', async () => {
       const sentinel = mockClientService.getExchangeClient();
-      expect(provider.getExchangeClient()).toBe(sentinel);
+      await expect(provider.getExchangeClient()).resolves.toBe(sentinel);
     });
 
-    it('propagates errors thrown by the client service', () => {
+    it('propagates errors thrown by the client service', async () => {
       const bomb = new Error('client not initialized');
       mockClientService.getExchangeClient = jest.fn(() => {
         throw bomb;
       });
-      expect(() => provider.getExchangeClient()).toThrow(bomb);
+      await expect(provider.getExchangeClient()).rejects.toBe(bomb);
     });
   });
 });

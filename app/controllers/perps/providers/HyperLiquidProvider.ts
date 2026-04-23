@@ -7778,9 +7778,11 @@ export class HyperLiquidProvider implements PerpsProvider {
    * HL mutations directly. NOT part of the PerpsProvider interface.
    * Production code paths must go through the provider's own methods.
    *
-   * @returns The underlying HyperLiquid SDK ExchangeClient.
+   * @returns A promise resolving to the underlying HyperLiquid SDK
+   * ExchangeClient. Promise shape matches the existing agentic flows
+   * (hl-provision-fixture) that chain `.then` on the result.
    */
-  public getExchangeClient(): ExchangeClient {
+  public async getExchangeClient(): Promise<ExchangeClient> {
     return this.#clientService.getExchangeClient();
   }
 
