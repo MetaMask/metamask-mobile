@@ -369,6 +369,49 @@ jobs:
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
 
+      # Temporary: iOS signing from GitHub Environment secrets (no AWS).
+      # Bridges main-dev until signing is fully migrated to AWS. Remove this step once it uses AWS-based signing.
+      - name: Configure iOS signing from GitHub secrets
+        if: matrix.platform == 'ios' && inputs.build_name == 'main-dev'
+        run: |
+          echo "📦 Configuring iOS code signing for dev builds..."
+
+          CERT_PATH="$RUNNER_TEMP/build_certificate.p12"
+          PROFILE_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          CERT_PW="${IOS_SIGNING_KEYSTORE_PASSWORD}"
+
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "🧹 Removing existing keychain..."
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
+
+          echo "$IOS_SIGNING_KEYSTORE" | base64 --decode > "$CERT_PATH"
+          echo "$IOS_SIGNING_PROFILE" | base64 --decode > "$PROFILE_PATH"
+          echo "✅ Decoded .p12 and provisioning profile"
+
+          security create-keychain -p "$CERT_PW" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$CERT_PW" "$KEYCHAIN_PATH"
+
+          echo "🔐 Importing certificate..."
+          if ! security import "$CERT_PATH" -P "$CERT_PW" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"; then
+            echo "❌ Failed to import certificate."
+            exit 1
+          fi
+          echo "✅ Certificate imported"
+
+          security set-key-partition-list -S apple-tool:,apple: -k "$CERT_PW" "$KEYCHAIN_PATH" 2>/dev/null || true
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
+          echo "✅ Installed provisioning profile"
+
+          # Add keychain to search list (codesign searches this; default-keychain alone is insufficient)
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"' | xargs)
+          security default-keychain -s "$KEYCHAIN_PATH"
+          echo "✅ Keychain added to search list and set as default"
+
       # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
       - name: Configure Node path for Xcode
         if: matrix.platform == 'ios'
