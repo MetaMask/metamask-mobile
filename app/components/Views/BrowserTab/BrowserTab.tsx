@@ -465,6 +465,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       trackDappViewedEvent({
         hostname,
         numberOfConnectedAccounts: connectedAccounts.length,
+        isIframe: iframeContextRef.current.isIframe,
+        iframeOrigin: iframeContextRef.current.iframeOrigin,
       });
     }, []);
 
