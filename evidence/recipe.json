@@ -1,6 +1,6 @@
 {
   "title": "HL balance live-update parity across account abstraction modes",
-  "description": "Captures the account's current abstraction mode, runs the balance validation (hl-balance-validation + REST parity + order-form wiring check) under Standard and Unified modes, then restores the original mode. Passing proves the spotState WS fix holds across the two modes users actually configure. Portfolio Margin is not cycled here: its caps fall back to non-PM silently which muddies assertions. Runs on both testnet and mainnet.",
+  "description": "Cycles the account through Standard and Unified abstraction modes, validating fold invariant + REST parity + UI wiring + limit-order hold/release in each. Captures a screenshot after every key validation point so a cold reviewer can eyeball the evidence without re-running. Setup/teardown cancel any leftover open orders so mode flips don't fail on 'cannot disable unified with open orders'. Known asymmetry: teardown always restores to Unified (does not preserve the exact pre-recipe mode) — safe for the shared Trading fixture which is Unified by convention. Runs on both testnet and mainnet.",
   "validate": {
     "workflow": {
       "pre_conditions": [
@@ -21,6 +21,13 @@
           "expression": "(function(){try{return Engine.context.PerpsController.cancelOrders({cancelAll:true}).then(function(r){return JSON.stringify({ok:true,cleared:(r&&r.successCount)||0})}).catch(function(e){return JSON.stringify({ok:true,cleared:0,note:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:true,cleared:0,error:String(e)}))}})()",
           "assert": { "operator": "eq", "field": "ok", "value": true },
           "timeout_ms": 30000
+        },
+        {
+          "id": "close-leftover-positions",
+          "action": "eval_async",
+          "expression": "(function(){try{return Engine.context.PerpsController.closePositions({closeAll:true}).then(function(r){return JSON.stringify({ok:true,closed:(r&&r.successCount)||0})}).catch(function(e){return JSON.stringify({ok:true,closed:0,note:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:true,closed:0,error:String(e)}))}})()",
+          "assert": { "operator": "eq", "field": "ok", "value": true },
+          "timeout_ms": 60000
         },
         {
           "id": "capture-initial-state",
@@ -56,6 +63,11 @@
             ]
           },
           "timeout_ms": 20000,
+          "next": "screenshot-standard-summary"
+        },
+        "screenshot-standard-summary": {
+          "action": "screenshot",
+          "filename": "phase-standard-summary.png",
           "next": "set-unified"
         },
         "set-unified": {
@@ -128,6 +140,11 @@
               { "operator": "eq", "field": "defaultsToPerps", "value": true }
             ]
           },
+          "next": "screenshot-order-form"
+        },
+        "screenshot-order-form": {
+          "action": "screenshot",
+          "filename": "phase-unified-order-form.png",
           "next": "limit-cycle-nav-wallet"
         },
         "limit-cycle-nav-wallet": {
@@ -151,6 +168,11 @@
               { "operator": "eq", "field": "convergent", "value": true }
             ]
           },
+          "next": "screenshot-limit-baseline"
+        },
+        "screenshot-limit-baseline": {
+          "action": "screenshot",
+          "filename": "limit-cycle-0-baseline.png",
           "next": "limit-cycle-place"
         },
         "limit-cycle-place": {
@@ -165,6 +187,11 @@
           "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var total=parseFloat(s.totalBalance||'0');return JSON.stringify({tradeable:trade,totalBalance:total,holdApplied:trade<total-0.1})})()",
           "assert": { "operator": "eq", "field": "holdApplied", "value": true },
           "timeout_ms": 10000,
+          "next": "screenshot-limit-hold-applied"
+        },
+        "screenshot-limit-hold-applied": {
+          "action": "screenshot",
+          "filename": "limit-cycle-1-hold-applied.png",
           "next": "limit-cycle-cancel-all"
         },
         "limit-cycle-cancel-all": {
@@ -188,11 +215,11 @@
             "value": true
           },
           "timeout_ms": 15000,
-          "next": "manual-vs-hl-web"
+          "next": "screenshot-limit-hold-released"
         },
-        "manual-vs-hl-web": {
-          "action": "manual",
-          "note": "Human gate — open app.hyperliquid.xyz for the connected account and confirm:\n  1. Perps 'Total equity' ≈ AccountState.totalBalance (within ~$0.20)\n  2. HL 'Available to trade' ≈ availableToTradeBalance (within ~$0.20)\n  3. Spot USDC total + hold match spotClearinghouseState\n  4. Opening/closing a position changes the displayed total only by unrealized PnL + fees\nPress enter on match, abort on drift. Run with --skip-manual to bypass.",
+        "screenshot-limit-hold-released": {
+          "action": "screenshot",
+          "filename": "limit-cycle-2-hold-released.png",
           "next": "done"
         },
         "done": {
@@ -204,9 +231,16 @@
         {
           "id": "teardown-cancel-orders",
           "action": "eval_async",
-          "expression": "(function(){try{return Engine.context.PerpsController.cancelOrders({cancelAll:true}).then(function(r){return JSON.stringify({ok:true,cleared:(r&&r.successCount)||0})}).catch(function(e){return JSON.stringify({ok:true,cleared:0,note:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:true,cleared:0,error:String(e)}))}})()",
+          "expression": "(function(){try{return Engine.context.PerpsController.cancelOrders({cancelAll:true}).then(function(r){return JSON.stringify({ok:true,cleared:(r&&r.successCount)||0})}).catch(function(e){return JSON.stringify({ok:false,cleared:0,error:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:false,cleared:0,error:String(e)}))}})()",
           "assert": { "operator": "eq", "field": "ok", "value": true },
           "timeout_ms": 30000
+        },
+        {
+          "id": "teardown-close-positions",
+          "action": "eval_async",
+          "expression": "(function(){try{return Engine.context.PerpsController.closePositions({closeAll:true}).then(function(r){return JSON.stringify({ok:true,closed:(r&&r.successCount)||0})}).catch(function(e){return JSON.stringify({ok:false,closed:0,error:String(e&&e.message||e)})})}catch(e){return Promise.resolve(JSON.stringify({ok:false,closed:0,error:String(e)}))}})()",
+          "assert": { "operator": "eq", "field": "ok", "value": true },
+          "timeout_ms": 60000
         },
         {
           "id": "restore-unified",
