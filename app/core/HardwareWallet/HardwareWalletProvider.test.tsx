@@ -20,7 +20,7 @@ jest.mock('./helpers', () => ({
 }));
 
 const mockAdapterInstance = {
-  walletType: 'Ledger',
+  walletType: HardwareWalletType.Ledger,
   requiresDeviceDiscovery: true,
   connect: jest.fn().mockResolvedValue(undefined),
   disconnect: jest.fn().mockResolvedValue(undefined),
@@ -112,6 +112,7 @@ describe('HardwareWalletProvider', () => {
     // Default: non-hardware wallet account
     mockUseSelector.mockReturnValue(null);
     mockGetHardwareWalletType.mockReturnValue(undefined);
+    mockCreateAdapter.mockImplementation(() => mockAdapterInstance);
   });
 
   const TestConsumer: React.FC = () => {
@@ -340,6 +341,50 @@ describe('HardwareWalletProvider', () => {
             HardwareWalletType.Qr,
           );
         });
+      });
+
+      it('derives the pending operation wallet type once and reuses it on unrelated re-renders', async () => {
+        mockUseSelector.mockReturnValue({ address: '0x1234' });
+        mockGetHardwareWalletType.mockImplementation((address: string) =>
+          address === '0xqr'
+            ? HardwareWalletType.Qr
+            : HardwareWalletType.Ledger,
+        );
+
+        const { result } = renderHook(() => useTestActions(), {
+          wrapper: ({ children }: { children: React.ReactNode }) => (
+            <HardwareWalletProvider>{children}</HardwareWalletProvider>
+          ),
+        });
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0xqr');
+        });
+
+        await waitFor(() => {
+          expect(capturedBottomSheetProps.walletType).toBe(
+            HardwareWalletType.Qr,
+          );
+        });
+
+        expect(
+          mockGetHardwareWalletType.mock.calls.filter(
+            ([address]) => address === '0xqr',
+          ),
+        ).toHaveLength(1);
+
+        mockGetHardwareWalletType.mockClear();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        expect(
+          mockGetHardwareWalletType.mock.calls.filter(
+            ([address]) => address === '0xqr',
+          ),
+        ).toHaveLength(0);
+        expect(capturedBottomSheetProps.walletType).toBe(HardwareWalletType.Qr);
       });
     });
   });

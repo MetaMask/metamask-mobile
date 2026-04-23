@@ -62,6 +62,9 @@ export const useDeviceConnectionFlow = ({
 
   const connectionSuccessCallbackRef = useRef<(() => void) | null>(null);
 
+  const lastDeviceIdRef = useRef<string | null>(deviceId);
+  lastDeviceIdRef.current = deviceId;
+
   /**
    * Resolve an existing adapter or create a new one if the wallet type
    * doesn't match. Named replacement for the inline IIFE that was previously
@@ -178,6 +181,7 @@ export const useDeviceConnectionFlow = ({
         }
 
         setters.setDeviceId(targetDeviceId);
+        lastDeviceIdRef.current = targetDeviceId;
 
         DevLogger.log(
           '[HardwareWallet] Connect succeeded, continuing readiness check...',
@@ -225,6 +229,9 @@ export const useDeviceConnectionFlow = ({
 
       if (!targetDeviceId) {
         setters.setDeviceId(null);
+        lastDeviceIdRef.current = null;
+      } else {
+        lastDeviceIdRef.current = targetDeviceId;
       }
 
       const adapter = resolveOrCreateAdapter(targetType);
@@ -319,10 +326,12 @@ export const useDeviceConnectionFlow = ({
       return;
     }
 
-    if (deviceId && adapter) {
+    const effectiveDeviceId = lastDeviceIdRef.current;
+
+    if (effectiveDeviceId && adapter) {
       updateConnectionState({ status: ConnectionStatus.Connecting });
       try {
-        await tryEnsureReady(adapter, deviceId);
+        await tryEnsureReady(adapter, effectiveDeviceId);
       } catch (error) {
         handleError(error);
       }
@@ -330,7 +339,6 @@ export const useDeviceConnectionFlow = ({
       updateConnectionState({ status: ConnectionStatus.Scanning });
     }
   }, [
-    deviceId,
     handleError,
     updateConnectionState,
     refs,
