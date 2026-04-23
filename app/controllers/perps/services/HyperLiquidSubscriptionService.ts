@@ -14,6 +14,7 @@ import type {
   FrontendOpenOrdersResponse,
   ClearinghouseStateWsEvent,
   OpenOrdersWsEvent,
+  SpotStateWsEvent,
 } from '@nktkas/hyperliquid';
 
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
@@ -136,6 +137,20 @@ export class HyperLiquidSubscriptionService {
 
   // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
   readonly #orderFillSubscriptions = new Map<string, ISubscription>();
+
+  // spotState subscriptions keyed by user address.
+  // HL pushes spot balance/hold changes over this channel on every on-chain
+  // event — local trades, external-client trades, funding, liquidations,
+  // deposits, transfers. Keeping the #cachedSpotState fresh from the push
+  // means the next perps tick (or a #aggregateAndNotifySubscribers call
+  // from the handler itself) re-folds the current spot contribution into
+  // AccountState without any REST refresh.
+  readonly #spotStateSubscriptions = new Map<string, ISubscription>();
+
+  // In-flight spotState subscribe promises keyed by user address. Prevents
+  // two concurrent subscribeToAccount calls from opening two WS subs before
+  // either resolves and records itself in #spotStateSubscriptions.
+  readonly #spotStateSubscriptionPromises = new Map<string, Promise<void>>();
 
   readonly #symbolSubscriberCounts = new Map<string, number>();
 
@@ -1099,6 +1114,87 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Ensure a spotState WebSocket subscription is active for the given
+   * accountId. HL pushes the user's spot clearinghouse state on every
+   * change (local trade, external trade, funding, liquidation, deposit,
+   * transfer) — so this subscription keeps #cachedSpotState fresh without
+   * REST polling or mutation-triggered refresh.
+   *
+   * Shares one subscription per user address.
+   *
+   * @param accountId - Optional CAIP account ID to subscribe for.
+   * @returns A promise that resolves when the subscription is established.
+   */
+  async #ensureSpotStateSubscription(accountId?: CaipAccountId): Promise<void> {
+    const userAddress =
+      await this.#walletService.getUserAddressWithDefault(accountId);
+
+    if (this.#spotStateSubscriptions.has(userAddress)) {
+      return;
+    }
+
+    const inFlight = this.#spotStateSubscriptionPromises.get(userAddress);
+    if (inFlight) {
+      await inFlight;
+      return;
+    }
+
+    const promise = (async (): Promise<void> => {
+      await this.#clientService.ensureSubscriptionClient(
+        this.#walletService.createWalletAdapter(),
+      );
+      const subscriptionClient = this.#clientService.getSubscriptionClient();
+      if (!subscriptionClient) {
+        throw new Error('SubscriptionClient not available');
+      }
+
+      const subscription = await subscriptionClient.spotState(
+        { user: userAddress as `0x${string}` },
+        (event: SpotStateWsEvent) => {
+          try {
+            if (event.user.toLowerCase() !== userAddress.toLowerCase()) {
+              return;
+            }
+            // Bump generation so any in-flight REST #refreshSpotState drops
+            // its result instead of overwriting our fresh WS snapshot.
+            this.#spotStateGeneration += 1;
+            this.#cachedSpotState = event.spotState;
+            this.#cachedSpotStateUserAddress = event.user;
+
+            // Re-fold spot into the aggregated account and notify subscribers.
+            // Guarded by #dexAccountCache size so we don't emit a spot-only
+            // snapshot before perps data has arrived; the next perps tick
+            // will pick up the cached spot state via #aggregateAccountStates
+            // if we skip here.
+            if (this.#dexAccountCache.size > 0) {
+              this.#aggregateAndNotifySubscribers();
+            }
+          } catch (error) {
+            this.#logErrorUnlessClearing(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.ensureSpotStateSubscription',
+              ),
+              this.#getErrorContext('spotState callback error', {
+                user: userAddress,
+              }),
+            );
+          }
+        },
+      );
+
+      this.#spotStateSubscriptions.set(userAddress, subscription);
+    })();
+
+    this.#spotStateSubscriptionPromises.set(userAddress, promise);
+    try {
+      await promise;
+    } finally {
+      this.#spotStateSubscriptionPromises.delete(userAddress);
+    }
+  }
+
+  /**
    * Subscribe to live price updates with singleton subscription architecture
    * Uses allMids for fast price updates and predictedFundings for accurate funding rates
    *
@@ -1990,6 +2086,25 @@ export class HyperLiquidSubscriptionService {
         this.#webData3SubscriptionPromise = undefined;
       }
 
+      // Cleanup spotState subscriptions (per-user)
+      if (this.#spotStateSubscriptions.size > 0) {
+        this.#spotStateSubscriptions.forEach((subscription, user) => {
+          subscription.unsubscribe().catch((error: Error) => {
+            this.#logErrorUnlessClearing(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+              ),
+              this.#getErrorContext(
+                'cleanupSharedWebData3ISubscription.spotState',
+                { user },
+              ),
+            );
+          });
+        });
+        this.#spotStateSubscriptions.clear();
+      }
+
       // Cleanup individual subscriptions (clearinghouseState + openOrders)
       if (this.#clearinghouseStateSubscriptions.size > 0) {
         this.#clearinghouseStateSubscriptions.forEach(
@@ -2385,6 +2500,17 @@ export class HyperLiquidSubscriptionService {
       this.#logErrorUnlessClearing(
         ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
         this.#getErrorContext('subscribeToAccount.ensureSpotState'),
+      );
+    });
+
+    // Establish the spotState WS subscription in parallel with the REST
+    // cold-start fetch. Whichever arrives first populates #cachedSpotState;
+    // subsequent on-chain spot changes flow exclusively through the
+    // subscription.
+    this.#ensureSpotStateSubscription(accountId).catch((error) => {
+      this.#logErrorUnlessClearing(
+        ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
+        this.#getErrorContext('subscribeToAccount.ensureSpotStateSubscription'),
       );
     });
 
@@ -3778,6 +3904,14 @@ export class HyperLiquidSubscriptionService {
       });
     });
     this.#orderFillSubscriptions.clear();
+
+    // Clear spotState subscriptions
+    this.#spotStateSubscriptions.forEach((subscription) => {
+      subscription.unsubscribe().catch(() => {
+        // Ignore errors during cleanup
+      });
+    });
+    this.#spotStateSubscriptions.clear();
 
     // Clear cached data
     this.#cachedPriceData = null;
