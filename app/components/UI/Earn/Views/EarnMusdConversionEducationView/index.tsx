@@ -224,6 +224,8 @@ const EarnMusdConversionEducationView = () => {
       : MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     if (returnTo) {
       redirectsTo = MONEY_EVENT_LOCATIONS.MONEY_HUB;
+    } else if (deeplinkState?.action === 'navigate_money_hub') {
+      redirectsTo = MONEY_EVENT_LOCATIONS.MONEY_HUB;
     } else if (deeplinkState?.action === 'navigate_home') {
       redirectsTo = MUSD_EVENT_LOCATIONS.HOME_SCREEN;
     } else if (deeplinkState?.action === 'buy') {
@@ -381,6 +383,7 @@ const EarnMusdConversionEducationView = () => {
 
     dispatch(setMusdConversionEducationSeen(true));
     submitGoBackPressedEvent();
+
     // Pop education screen from the navigation stack.
     if (navigation.canGoBack()) {
       navigation.goBack();
