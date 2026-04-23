@@ -2148,7 +2148,7 @@ describe('HyperLiquidProvider', () => {
       const accountState = await provider.getAccountState();
 
       expect(accountState).toBeDefined();
-      expect(accountState.totalBalance).toBe('20500'); // 10000 (spot) + 10500 (perps marginSummary)
+      expect(accountState.totalBalance).toBe('19500'); // 10500 (perps) + 10000 (spot.total) - 1000 (spot.hold, double-counted in accountValue)
       expect(
         mockClientService.getInfoClient().clearinghouseState,
       ).toHaveBeenCalled();
@@ -3786,7 +3786,7 @@ describe('HyperLiquidProvider', () => {
 
         const accountState = await hip3Provider.getAccountState();
 
-        expect(parseFloat(accountState.totalBalance)).toBe(20500);
+        expect(parseFloat(accountState.totalBalance)).toBe(19500); // perps 10500 + spot.total 10000 - spot.hold 1000
         expect(parseFloat(accountState.marginUsed)).toBe(500);
         expect(mockInfoClient.clearinghouseState).toHaveBeenCalledWith({
           user: '0x123',
