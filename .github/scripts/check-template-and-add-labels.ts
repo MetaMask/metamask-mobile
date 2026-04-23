@@ -23,7 +23,7 @@ import {
 import { TemplateType, templates } from './shared/template';
 import { retrievePullRequest } from './shared/pull-request';
 
-const knownBots = ["metamaskbot", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github"];
+const knownBots = ["metamaskbot", "metamaskbotv2", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github"];
 
 // GitHub App / bot logins that cannot be resolved as User in GraphQL (user(login:) returns null).
 // Issues/PRs from these actors still get full template and label checks; we only skip the org check.
@@ -156,7 +156,7 @@ async function main(): Promise<void> {
       // Add label to indicate issue doesn't match any template
       await addLabelToLabelable(octokit, labelable, invalidIssueTemplateLabel);
       await checkAndRemoveNeedsTriageIfFullyLabeled(octokit, labelable);
-      
+
       // Github action shall fail in case issue body doesn't match any template
       core.setFailed(errorMessage);
       process.exit(1);
@@ -272,7 +272,7 @@ function extractReleaseVersionFromBugReportIssueBody(
   const regex = /### Version\s+(.*?)(?=\s+###|$)/;
   const versionMatch = cleanedBody.match(regex);
   const fullVersionString = versionMatch?.[1]?.trim();
-  
+
   // Extract just the x.x.x part from the full version string
   const versionRegex = /(\d+\.\d+\.\d+)/;
   const semanticVersionMatch = fullVersionString?.match(versionRegex);
