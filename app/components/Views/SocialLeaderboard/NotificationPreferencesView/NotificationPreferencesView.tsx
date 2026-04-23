@@ -1,12 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, ScrollView, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,7 +25,7 @@ import { NotificationPreferencesViewSelectorsIDs } from './NotificationPreferenc
 import {
   useNotificationPreferences,
   useFollowedTraders,
-  TX_AMOUNT_THRESHOLDS,
+  type TxAmountThreshold,
 } from './hooks';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
@@ -41,84 +34,8 @@ import {
   PreferencesSkeleton,
   TradersFollowedSkeleton,
 } from './components/Skeletons';
+import ThresholdRadioList from './components/ThresholdRadioList';
 const AVATAR_SIZE = 40;
-
-const radioStyles = StyleSheet.create({
-  circle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-});
-
-// ---------------------------------------------------------------------------
-// Threshold radio row
-// ---------------------------------------------------------------------------
-
-interface ThresholdRowProps {
-  label: string;
-  isChecked: boolean;
-  isDisabled: boolean;
-  onPress: () => void;
-  testID?: string;
-}
-
-const ThresholdRow: React.FC<ThresholdRowProps> = ({
-  label,
-  isChecked,
-  isDisabled,
-  onPress,
-  testID,
-}) => {
-  const tw = useTailwind();
-  const { colors } = useTheme();
-
-  const borderColor = isChecked
-    ? colors.primary.default
-    : colors.border.default;
-  const innerColor = colors.primary.default;
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={isDisabled}
-      testID={testID}
-      style={tw.style(
-        'flex-row items-center justify-between px-4 py-4',
-        isDisabled && 'opacity-50',
-      )}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: isChecked, disabled: isDisabled }}
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
-      >
-        {label}
-      </Text>
-      {/* Radio circle indicator — View-only, touches handled by the outer TouchableOpacity */}
-      <View
-        style={[
-          radioStyles.circle,
-          { borderColor, backgroundColor: colors.background.default },
-        ]}
-        accessibilityElementsHidden
-      >
-        {isChecked && (
-          <View style={[radioStyles.dot, { backgroundColor: innerColor }]} />
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-};
 
 // ---------------------------------------------------------------------------
 // Per-trader row
@@ -203,31 +120,6 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
 // ---------------------------------------------------------------------------
 // Main screen
 // ---------------------------------------------------------------------------
-
-// One formatter per currency code; created once and reused across renders.
-const thresholdFormatterCache = new Map<string, Intl.NumberFormat>();
-
-const formatThreshold = (
-  amount: number,
-  currency: string | undefined,
-): string => {
-  const code = currency?.toUpperCase() ?? 'USD';
-  try {
-    let formatter = thresholdFormatterCache.get(code);
-    if (!formatter) {
-      formatter = new Intl.NumberFormat(undefined, {
-        style: 'currency',
-        currency: code,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
-      thresholdFormatterCache.set(code, formatter);
-    }
-    return formatter.format(amount);
-  } catch {
-    return `${code} ${amount}`;
-  }
-};
 
 /**
  * NotificationPreferencesView — notification settings for the Top Traders feature.
@@ -352,29 +244,18 @@ const NotificationPreferencesView = () => {
 
             <View style={tw.style('h-px bg-muted mx-4')} />
 
-            <Box twClassName="px-4 pt-4 pb-2">
-              <Text
-                variant={TextVariant.BodyMd}
-                color={globalOff ? TextColor.TextMuted : TextColor.TextDefault}
-              >
-                {strings(
-                  'social_leaderboard.notification_preferences.trades_over_label',
-                )}
-              </Text>
-            </Box>
-
-            {TX_AMOUNT_THRESHOLDS.map((amount) => (
-              <ThresholdRow
-                key={amount}
-                label={formatThreshold(amount, currentCurrency)}
-                isChecked={preferences.txAmountLimit === amount}
-                isDisabled={globalOff}
-                onPress={() => setTxAmountLimit(amount)}
-                testID={NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(
-                  amount,
-                )}
-              />
-            ))}
+            <ThresholdRadioList
+              selected={(preferences.txAmountLimit ?? 500) as TxAmountThreshold}
+              onChange={setTxAmountLimit}
+              isDisabled={globalOff}
+              currency={currentCurrency}
+              labelText={strings(
+                'social_leaderboard.notification_preferences.trades_over_label',
+              )}
+              testIDForAmount={
+                NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION
+              }
+            />
           </>
         )}
 

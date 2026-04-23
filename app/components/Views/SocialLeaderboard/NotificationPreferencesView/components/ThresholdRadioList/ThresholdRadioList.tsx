@@ -26,16 +26,28 @@ const radioStyles = StyleSheet.create({
   },
 });
 
-export const formatThreshold = (amount: number, currency: string): string => {
+// One formatter per currency code; created once and reused across renders.
+const thresholdFormatterCache = new Map<string, Intl.NumberFormat>();
+
+export const formatThreshold = (
+  amount: number,
+  currency: string | undefined,
+): string => {
+  const code = (currency ?? 'USD').toUpperCase();
   try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    let formatter = thresholdFormatterCache.get(code);
+    if (!formatter) {
+      formatter = new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: code,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      thresholdFormatterCache.set(code, formatter);
+    }
+    return formatter.format(amount);
   } catch {
-    return `${currency.toUpperCase()} ${amount}`;
+    return `${code} ${amount}`;
   }
 };
 
@@ -103,7 +115,7 @@ export interface ThresholdRadioListProps {
   selected: TxAmountThreshold;
   onChange: (value: TxAmountThreshold) => void;
   isDisabled: boolean;
-  currency: string;
+  currency: string | undefined;
   labelText: string;
   testIDForAmount?: (amount: number) => string;
 }
