@@ -102,6 +102,7 @@ const TraderProfileView = () => {
 
   const {
     preferences,
+    isLoading: isLoadingPreferences,
     setEnabled,
     setTxAmountLimit,
     toggleTraderNotification,
@@ -119,12 +120,16 @@ const TraderProfileView = () => {
   }, [navigation]);
 
   const handleNotificationPress = useCallback(() => {
+    // Don't open any sheet while preferences are still loading — the enabled
+    // default is false, which would incorrectly route to the setup sheet for
+    // users who already have notifications enabled.
+    if (isLoadingPreferences) return;
     if (preferences.enabled) {
       notificationsSheetRef.current?.onOpenBottomSheet();
     } else {
       setupSheetRef.current?.onOpenBottomSheet();
     }
-  }, [preferences.enabled]);
+  }, [isLoadingPreferences, preferences.enabled]);
 
   const handlePositionPress = useCallback(
     (position: Position) => {
