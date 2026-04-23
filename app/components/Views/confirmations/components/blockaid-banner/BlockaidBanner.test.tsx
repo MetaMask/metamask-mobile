@@ -205,6 +205,7 @@ describe('BlockaidBanner', () => {
       },
     );
 
+    expect(wrapper.getByTestId('blockaid-banner-loader')).toBeOnTheScreen();
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
     expect(await wrapper.queryByTestId(BANNERALERT_TEST_ID)).toBeNull();
   });
