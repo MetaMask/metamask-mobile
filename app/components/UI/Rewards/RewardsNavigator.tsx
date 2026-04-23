@@ -67,8 +67,6 @@ const RewardsNavigator: React.FC = () => {
   // Fetch referral details so referral code is available across all rewards screens
   useReferralDetails();
 
-  useRewardCampaigns();
-
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
     // If user has already opted in and has a valid subscription candidate ID, go to dashboard
