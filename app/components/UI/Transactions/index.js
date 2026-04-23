@@ -269,8 +269,8 @@ class Transactions extends PureComponent {
     });
   };
 
-  componentWillUnmount() {
-    this.mounted = false;
+  componentDidUpdate() {
+    this.updateBlockExplorer();
   }
 
   updateBlockExplorer = () => {
