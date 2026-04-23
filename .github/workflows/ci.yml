@@ -192,6 +192,9 @@ jobs:
     if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
     needs:
       - check-skip-merge-queue
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -268,6 +271,37 @@ jobs:
       - name: Restore HEAD bundle
         if: github.event_name == 'pull_request'
         run: cp /tmp/head-main.jsbundle ios/main.jsbundle
+
+      - name: Post iOS JS bundle size to commit status
+        if: ${{ github.ref == 'refs/heads/main' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE_PATH='ios/main.jsbundle'
+          # Match scripts/js-bundle-stats.sh: GNU stat byte size, MiB via awk
+          FILE_SIZE_MB="$(stat -c %s "$FILE_PATH" | awk '{print $1/1024/1024}')"
+          echo "File size of $FILE_PATH: $FILE_SIZE_MB MB"
+          COMMIT_SHA='${{ github.event.pull_request.head.sha || github.sha }}'
+          TARGET_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          BODY="$(jq -n \
+            --arg state success \
+            --arg context 'ci/ios-js-bundle-size' \
+            --arg desc "iOS JS bundle: ${FILE_SIZE_MB} MB" \
+            --arg target_url "$TARGET_URL" \
+            '{
+              state: $state,
+              context: $context,
+              description: ($desc | if length > 140 then .[0:140] else . end),
+              target_url: $target_url
+            }')"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -d "$BODY"
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
