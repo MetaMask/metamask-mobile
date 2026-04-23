@@ -57,10 +57,6 @@ interface HardwareOption {
   testID: string;
 }
 
-interface ConnectQrNavigationParams {
-  hideMarketingContent?: boolean;
-}
-
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -74,7 +70,7 @@ const SelectHardwareWallet = () => {
   }, [navigation]);
 
   const navigateToConnectQRWallet = async (
-    params?: ConnectQrNavigationParams,
+    _params?: ConnectQrNavigationParams,
   ) => {
     try {
       const connectedDeviceCount = await getConnectedDevicesCount();
@@ -90,12 +86,11 @@ const SelectHardwareWallet = () => {
       // [SelectHardware] Analytics error should not block navigation
       console.error('[SelectHardware] Failed to track analytics:', error);
     }
-    if (params) {
-      navigation.navigate(Routes.HW.CONNECT_QR_DEVICE, params);
-      return;
-    }
 
-    navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
+    navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
+      walletType: HardwareWalletType.Qr,
+      initialStep: 'accounts',
+    });
   };
 
   const navigateToConnectLedger = async () => {

@@ -16,6 +16,7 @@ import DiscoveryAccountSelectionScreen from './screens/DiscoveryAccountSelection
 
 interface RouteParams {
   walletType: HardwareWalletType;
+  initialStep?: 'searching' | 'accounts';
 }
 
 const useIsBleWallet = (walletType: HardwareWalletType) =>
@@ -24,7 +25,7 @@ const useIsBleWallet = (walletType: HardwareWalletType) =>
 const DiscoveryFlow: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { walletType } = (route.params as RouteParams) ?? {
+  const { walletType, initialStep } = (route.params as RouteParams) ?? {
     walletType: HardwareWalletType.Ledger,
   };
 
@@ -33,14 +34,22 @@ const DiscoveryFlow: React.FC = () => {
 
   const config = useMemo(() => getConfigForWalletType(walletType), [walletType]);
 
-  const [step, setStep] = useState<DiscoveryStep>('searching');
+  const [step, setStep] = useState<DiscoveryStep>(
+    initialStep ?? 'searching',
+  );
   const [discoveredDevices, setDiscoveredDevices] = useState<DiscoveredDevice[]>(
     [],
   );
   const [selectedDevice, setSelectedDevice] =
-    useState<DiscoveredDevice | null>(null);
+    useState<DiscoveredDevice | null>(
+      initialStep === 'accounts'
+        ? { id: 'qr-wallet', name: 'QR Wallet' }
+        : null,
+    );
   const [isSelectingDevice, setIsSelectingDevice] = useState(false);
-  const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const [permissionsGranted, setPermissionsGranted] = useState(
+    initialStep === 'accounts',
+  );
 
   const stepRef = useRef<DiscoveryStep>(step);
   stepRef.current = step;

@@ -15,10 +15,13 @@ import {
 import { useDispatch } from 'react-redux';
 import { KeyringController } from '@metamask/keyring-controller';
 import { AccountsController } from '@metamask/accounts-controller';
-import { DeviceEvent } from '@metamask/hw-wallet-sdk';
+import { DeviceEvent, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { UR } from '@ngraveio/bc-ur';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Engine from '../../../../../core/Engine';
 import AccountSelector from '../../../../UI/HardwareWallet/AccountSelector';
+import AnimatedQRScannerModal from '../../../../UI/QRHardware/AnimatedQRScanner';
 import BlockingActionModal from '../../../../UI/BlockingActionModal';
 import Text from '../../../../Base/Text';
 import SelectOptionSheet from '../../../../UI/SelectOptionSheet';
@@ -93,6 +96,9 @@ const DiscoveryAccountSelectionScreen: React.FC<
     accountIndexes: [] as number[],
   });
   const [forgetDevice, setForgetDevice] = useState(false);
+  const [isQrScanning, setIsQrScanning] = useState(false);
+
+  const isQrWallet = config.walletType === HardwareWalletType.Qr;
 
   const hdPathOptions = useMemo(
     () => config.accountManager.getHDPathOptions?.() ?? [],
@@ -150,14 +156,47 @@ const DiscoveryAccountSelectionScreen: React.FC<
 
   const onConnectHardware = useCallback(async () => {
     setErrorMsg(null);
-    await runDeviceLogic(async () => {
-      const initialAccounts = await config.accountManager.getAccounts(
-        String(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      );
-      setAccounts(initialAccounts);
-    });
+
+    if (isQrWallet) {
+      setIsQrScanning(true);
+      try {
+        const initialAccounts = await config.accountManager.getAccounts(
+          String(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+        );
+        setAccounts(initialAccounts);
+      } finally {
+        setIsQrScanning(false);
+      }
+    } else {
+      await runDeviceLogic(async () => {
+        const initialAccounts = await config.accountManager.getAccounts(
+          String(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+        );
+        setAccounts(initialAccounts);
+      });
+    }
     setHasLoadedAccounts(true);
-  }, [runDeviceLogic, config.accountManager]);
+  }, [runDeviceLogic, config.accountManager, isQrWallet]);
+
+  const onQrScanSuccess = useCallback(async (ur: UR) => {
+    setIsQrScanning(false);
+    Engine.getQrKeyringScanner().resolvePendingScan({
+      type: ur.type,
+      cbor: ur.cbor.toString('hex'),
+    });
+    setErrorMsg(null);
+  }, []);
+
+  const onQrScanError = useCallback((error: string) => {
+    setErrorMsg(error);
+    Engine.getQrKeyringScanner().rejectPendingScan(new Error(error));
+    setIsQrScanning(false);
+  }, []);
+
+  const cancelQrScan = useCallback(() => {
+    Engine.getQrKeyringScanner().rejectPendingScan(new Error('Scan cancelled'));
+    setIsQrScanning(false);
+  }, []);
 
   useEffect(() => {
     onConnectHardware().catch((error: Error) => {
@@ -359,6 +398,15 @@ const DiscoveryAccountSelectionScreen: React.FC<
       >
         <Text style={styles.text}>{strings('common.please_wait')}</Text>
       </BlockingActionModal>
+      {isQrWallet && (
+        <AnimatedQRScannerModal
+          visible={isQrScanning}
+          purpose={QrScanRequestType.PAIR}
+          onScanSuccess={onQrScanSuccess}
+          onScanError={onQrScanError}
+          hideModal={cancelQrScan}
+        />
+      )}
     </>
   );
 };
