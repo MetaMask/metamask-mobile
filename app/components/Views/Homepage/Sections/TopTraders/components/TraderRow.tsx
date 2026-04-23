@@ -76,7 +76,8 @@ const TraderRow: React.FC<TraderRowProps> = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            twClassName="w-6 text-right"
+            numberOfLines={1}
+            twClassName="w-8 text-right"
           >
             {`${trader.rank}.`}
           </Text>

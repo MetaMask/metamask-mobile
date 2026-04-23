@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeReadFile": [
+      {
+        "command": "[ -z \"$CI\" ] && [ \"$TOOL_USAGE_COLLECTION_OPT_IN\" != \"false\" ] && yarn tsx scripts/tooling/cursor-hook-skill-tracking.ts || echo '{\"permission\":\"allow\"}'"
+      }
+    ]
+  }
+}

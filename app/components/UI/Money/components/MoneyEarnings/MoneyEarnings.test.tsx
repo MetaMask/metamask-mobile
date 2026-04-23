@@ -78,4 +78,11 @@ describe('MoneyEarnings', () => {
       fireEvent.press(getByTestId(MoneyEarningsTestIds.PROJECTED));
     }).not.toThrow();
   });
+
+  it('renders lifetime earnings in success color when value starts with +', () => {
+    const { getByTestId } = render(<MoneyEarnings lifetimeEarnings="+$2.84" />);
+
+    const lifetimeValue = getByTestId(MoneyEarningsTestIds.LIFETIME_VALUE);
+    expect(lifetimeValue).toHaveTextContent('+$2.84');
+  });
 });
