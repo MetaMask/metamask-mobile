@@ -61,6 +61,13 @@ async function addTempoTransaction({
   // and add excludeNativeTokenForFee to signal to ignore native.
   // We enter this flow is dApp non-0x76 txs as well as send flow.
   if (!isTempoTransactionType(transaction)) {
+    // We use the `to` field to determine if the tx is a contract deployment.
+    if (!transaction.to) {
+      Logger.log(
+        'addTransactionOnTempo: Smart-Contract deployment tx detected. Fallback to classic tx.',
+      );
+      return TransactionController.addTransaction(transaction, options);
+    }
     if (!isEip7702SupportedByAccount) {
       Logger.log(
         'addTransactionOnTempo: Tempo chain but wallet does not support 7702. Falling back to legacy transactions',
