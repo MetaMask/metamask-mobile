@@ -923,8 +923,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         backgroundBridgeRef.current?.onDisconnect();
         backgroundBridgeRef.current = undefined;
 
-        const iframeContext = iframeContextRef.current;
-
         //@ts-expect-error - We should type bacgkround bridge js file
         const newBridge = new BackgroundBridge({
           webview: webviewRef,
@@ -947,13 +945,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               isWalletConnect: false,
               isMMSDK: false,
               analytics: {},
-              // Iframe context from injected detection script
-              isIframe: iframeContext.isIframe,
-              iframeOrigin: iframeContext.iframeOrigin,
+              // Pass the ref so the middleware reads the latest iframe context
+              // lazily at RPC-request time (after IFRAME_DETECTION_SCRIPT runs).
+              iframeContext: iframeContextRef,
             }),
           isMainFrame,
-          isIframe: iframeContext.isIframe,
-          iframeOrigin: iframeContext.iframeOrigin,
         });
         backgroundBridgeRef.current = newBridge;
       },
