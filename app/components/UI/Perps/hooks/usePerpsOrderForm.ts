@@ -89,11 +89,6 @@ export function usePerpsOrderForm(
     selectPendingTradeConfiguration(state, initialAsset),
   );
 
-  // When paying with Perps balance (no external token), prefer
-  // availableToTradeBalance (withdrawable + unreserved spot collateral on
-  // HL Unified/PM) so order-form sizing and margin checks recognise spot
-  // collateral. Fall back to availableBalance for providers/modes that
-  // don't compute the fold.
   const availableBalance = Number.parseFloat(
     effectiveAvailableBalanceParam != null
       ? effectiveAvailableBalanceParam.toString()

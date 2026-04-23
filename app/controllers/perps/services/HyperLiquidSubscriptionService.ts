@@ -138,18 +138,8 @@ export class HyperLiquidSubscriptionService {
   // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
   readonly #orderFillSubscriptions = new Map<string, ISubscription>();
 
-  // spotState subscriptions keyed by user address.
-  // HL pushes spot balance/hold changes over this channel on every on-chain
-  // event — local trades, external-client trades, funding, liquidations,
-  // deposits, transfers. Keeping the #cachedSpotState fresh from the push
-  // means the next perps tick (or a #aggregateAndNotifySubscribers call
-  // from the handler itself) re-folds the current spot contribution into
-  // AccountState without any REST refresh.
   readonly #spotStateSubscriptions = new Map<string, ISubscription>();
 
-  // In-flight spotState subscribe promises keyed by user address. Prevents
-  // two concurrent subscribeToAccount calls from opening two WS subs before
-  // either resolves and records itself in #spotStateSubscriptions.
   readonly #spotStateSubscriptionPromises = new Map<string, Promise<void>>();
 
   readonly #symbolSubscriberCounts = new Map<string, number>();
@@ -1113,18 +1103,6 @@ export class HyperLiquidSubscriptionService {
     }
   }
 
-  /**
-   * Ensure a spotState WebSocket subscription is active for the given
-   * accountId. HL pushes the user's spot clearinghouse state on every
-   * change (local trade, external trade, funding, liquidation, deposit,
-   * transfer) — so this subscription keeps #cachedSpotState fresh without
-   * REST polling or mutation-triggered refresh.
-   *
-   * Shares one subscription per user address.
-   *
-   * @param accountId - Optional CAIP account ID to subscribe for.
-   * @returns A promise that resolves when the subscription is established.
-   */
   async #ensureSpotStateSubscription(accountId?: CaipAccountId): Promise<void> {
     const userAddress =
       await this.#walletService.getUserAddressWithDefault(accountId);
@@ -1153,38 +1131,16 @@ export class HyperLiquidSubscriptionService {
         (event: SpotStateWsEvent) => {
           try {
             if (event.user.toLowerCase() !== userAddress.toLowerCase()) {
-              this.#deps.debugLogger.log(
-                '[TAT-3016] spotState push ignored (user mismatch)',
-                { eventUser: event.user, subscribedUser: userAddress },
-              );
               return;
             }
-            const balances = event.spotState?.balances ?? [];
-            const usdc = balances.find((b) => b.coin === 'USDC');
-            this.#deps.debugLogger.log('[TAT-3016] spotState push received', {
-              user: event.user,
-              balanceCount: balances.length,
-              usdcTotal: usdc?.total,
-              usdcHold: usdc?.hold,
-              dexAccountCacheSize: this.#dexAccountCache.size,
-            });
-            // Bump generation so any in-flight REST #refreshSpotState drops
-            // its result instead of overwriting our fresh WS snapshot.
+            // Invalidate any in-flight REST refreshSpotState so it drops
+            // its result instead of overwriting this fresher WS snapshot.
             this.#spotStateGeneration += 1;
             this.#cachedSpotState = event.spotState;
             this.#cachedSpotStateUserAddress = event.user;
 
-            // Re-fold spot into the aggregated account and notify subscribers.
-            // Guarded by #dexAccountCache size so we don't emit a spot-only
-            // snapshot before perps data has arrived; the next perps tick
-            // will pick up the cached spot state via #aggregateAccountStates
-            // if we skip here.
             if (this.#dexAccountCache.size > 0) {
               this.#aggregateAndNotifySubscribers();
-            } else {
-              this.#deps.debugLogger.log(
-                '[TAT-3016] spotState push deferred: no perps data in #dexAccountCache yet',
-              );
             }
           } catch (error) {
             this.#logErrorUnlessClearing(
@@ -2033,15 +1989,6 @@ export class HyperLiquidSubscriptionService {
 
     const aggregatedAccount = this.#aggregateAccountStates();
 
-    this.#deps.debugLogger.log('[TAT-3016] aggregated account post-notify', {
-      availableBalance: aggregatedAccount.availableBalance,
-      availableToTradeBalance: aggregatedAccount.availableToTradeBalance,
-      totalBalance: aggregatedAccount.totalBalance,
-      marginUsed: aggregatedAccount.marginUsed,
-      dexCount: this.#dexAccountCache.size,
-      spotCached: Boolean(this.#cachedSpotState),
-    });
-
     // Check if aggregated data changed using fast hash comparison
     const positionsHash = this.#hashPositions(aggregatedPositions);
     const ordersHash = this.#hashOrders(aggregatedOrders);
@@ -2529,10 +2476,6 @@ export class HyperLiquidSubscriptionService {
       );
     });
 
-    // Establish the spotState WS subscription in parallel with the REST
-    // cold-start fetch. Whichever arrives first populates #cachedSpotState;
-    // subsequent on-chain spot changes flow exclusively through the
-    // subscription.
     this.#ensureSpotStateSubscription(accountId).catch((error) => {
       this.#logErrorUnlessClearing(
         ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),

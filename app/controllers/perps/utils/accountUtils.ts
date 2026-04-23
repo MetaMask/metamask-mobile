@@ -4,7 +4,6 @@
  */
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
-import { DevLogger } from '../../../core/SDKConnect/utils/DevLogger';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
 import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
@@ -116,17 +115,6 @@ export function getSpotBalance(
   );
 }
 
-/**
- * Sum of `hold` across SPOT_COLLATERAL_COINS balances.
- *
- * HyperLiquid Unified / Portfolio Margin accounts track margin reservations
- * for open positions and open orders in the spot clearinghouse state's
- * `hold` field. Subtracting this from the spot total yields the portion of
- * spot collateral that is still free to back a new trade.
- *
- * @param spotState - Spot clearinghouse state payload (REST or pushed via spotState WS).
- * @returns Total `hold` across allowlisted collateral coins, or 0 if payload is empty.
- */
 export function getSpotHold(
   spotState?: SpotClearinghouseStateResponse | null,
 ): number {
@@ -157,24 +145,13 @@ export function addSpotBalanceToAccountState(
   const currentTotal = parseFloat(accountState.totalBalance);
   const currentAvailable = parseFloat(accountState.availableBalance);
 
-  DevLogger.log('[TAT-3016] addSpotBalanceToAccountState', {
-    spotBalance,
-    spotHold,
-    freeSpot,
-    currentTotal,
-    currentAvailable,
-  });
-
+  // Preserve sentinel totals (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--')
+  // rather than coercing them to NaN.
   if (!Number.isFinite(currentTotal)) {
-    // totalBalance is a non-numeric sentinel (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--').
-    // Adding spot would yield 'NaN' — leave the sentinel intact for the UI to render.
     return accountState;
   }
 
   if (spotBalance === 0) {
-    // No spot collateral held. availableToTradeBalance defaults to the
-    // existing availableBalance (withdrawable) so the order-entry path has
-    // a concrete value to gate on and fall back from.
     return {
       ...accountState,
       availableToTradeBalance: Number.isFinite(currentAvailable)
@@ -187,17 +164,9 @@ export function addSpotBalanceToAccountState(
     ? (currentAvailable + freeSpot).toString()
     : freeSpot.toString();
 
-  // totalBalance composition:
-  //   perpsBalance (= marginSummary.accountValue = marginUsed + unrealizedPnl + withdrawable_perps)
-  //   + spotBalance (total across SPOT_COLLATERAL_COINS)
-  //   - spotHold    (subtracted because on Unified/PM the margin already
-  //                  counted in perpsBalance.accountValue is reserved out
-  //                  of the same spot balance — adding both double-counts
-  //                  the held portion; on Standard mode spotHold == 0 so
-  //                  this is a no-op).
-  // Without this correction, opening a position on a Unified-mode account
-  // inflates totalBalance by the position margin even though no wealth
-  // changed hands.
+  // Subtract spotHold to avoid double-counting on Unified/PM accounts:
+  // marginSummary.accountValue already includes the margin that HL
+  // surfaces via spot.hold. Standard mode has spotHold = 0, no-op.
   const nextTotal = currentTotal + spotBalance - spotHold;
 
   return {

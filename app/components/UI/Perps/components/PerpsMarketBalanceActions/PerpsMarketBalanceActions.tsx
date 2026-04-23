@@ -182,10 +182,9 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     [stopBalanceAnimation],
   );
 
-  // Order-entry surface: prefer availableToTradeBalance (withdrawable +
-  // unreserved spot collateral on HL Unified/PM accounts). Fall back to
-  // availableBalance (= withdrawable) on providers/modes that don't set it.
-  // Withdraw surfaces continue to read availableBalance directly.
+  // Order-entry surface reads availableToTradeBalance (withdrawable +
+  // unreserved spot collateral). Withdraw surfaces keep reading
+  // availableBalance directly.
   const availableBalance =
     perpsAccount?.availableToTradeBalance ??
     perpsAccount?.availableBalance ??

@@ -297,11 +297,9 @@ export function adaptAccountStateFromSDK(
     }
   }
 
-  // Subtract spotHold to avoid double-counting on Unified/PM accounts,
-  // where marginSummary.accountValue (perpsBalance) already counts the
-  // same margin reservation that HL surfaces via spot.hold. On Standard
-  // mode spotHold = 0 so this is a no-op. See
-  // addSpotBalanceToAccountState for the matching fold on the helper side.
+  // Subtract spotHold to avoid double-counting margin on Unified/PM:
+  // perpsBalance already includes the margin HL surfaces as spot.hold.
+  // Standard mode has spotHold = 0. See addSpotBalanceToAccountState.
   const totalBalance = (spotBalance + perpsBalance - spotHold).toString();
 
   const withdrawable = parseFloat(perpsState.withdrawable || '0');

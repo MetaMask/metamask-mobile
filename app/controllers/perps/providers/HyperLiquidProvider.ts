@@ -7774,16 +7774,11 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
-   * Escape hatch that returns the underlying HyperLiquid SDK ExchangeClient.
+   * Escape hatch for agentic validation flows and test harnesses that drive
+   * HL mutations directly. NOT part of the PerpsProvider interface.
+   * Production code paths must go through the provider's own methods.
    *
-   * NOT part of the PerpsProvider interface. Intended exclusively for
-   * agentic validation flows and test harnesses that need to drive HL
-   * mutations (order, usdClassTransfer, userSetAbstraction, etc.)
-   * directly — bypassing TradingService, metrics, error handling, and
-   * cache-invalidation plumbing. Production code paths MUST go through
-   * the provider's own methods instead.
-   *
-   * @returns The initialized HL ExchangeClient.
+   * @returns The underlying HyperLiquid SDK ExchangeClient.
    */
   public getExchangeClient(): ExchangeClient {
     return this.#clientService.getExchangeClient();

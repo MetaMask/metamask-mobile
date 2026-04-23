@@ -329,9 +329,8 @@ export const PerpsWithdrawViewSelectorsIDs = {
   RECEIVE_VALUE: 'perps-withdraw-receive-value',
   FEE_VALUE: 'perps-withdraw-fee-value',
   TIME_VALUE: 'perps-withdraw-time-value',
-  // TAT-3016 non-regression: this label MUST render availableBalance
-  // (withdrawable), never availableToTradeBalance. Withdraw path does not
-  // offer spot collateral as withdrawable. Guarded by hl-balance-validation.
+  // Must render availableBalance only (not availableToTradeBalance):
+  // withdraw does not offer spot collateral.
   AVAILABLE_BALANCE_TEXT: 'perps-withdraw-available-balance-text',
 };
 

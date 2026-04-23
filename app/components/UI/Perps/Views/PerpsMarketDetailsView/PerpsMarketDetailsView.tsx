@@ -446,13 +446,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const availableBalance = Number.parseFloat(
-    account?.availableBalance?.toString() ?? '0',
-  );
-  // Direct-funding gate reads availableToTradeBalance (withdrawable +
-  // unreserved spot collateral on HL Unified/PM) with fallback to
-  // availableBalance. When non-zero, the account can place an order from
-  // its Perps balance directly — no external pay-token needed.
   const tradeableBalance = Number.parseFloat(
     account?.availableToTradeBalance?.toString() ??
       account?.availableBalance?.toString() ??
@@ -461,7 +454,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const hasDirectOrderFundingPath =
     !isLoadingAccount &&
     (tradeableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
-      availableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
       defaultPayTokenWhenNoPerpsBalance !== null);
 
   const handleAddFunds = useCallback(async () => {

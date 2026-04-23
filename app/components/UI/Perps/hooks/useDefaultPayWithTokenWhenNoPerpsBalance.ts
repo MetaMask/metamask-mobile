@@ -39,11 +39,6 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
     if (!featureEnabled) {
       return null;
     }
-    // Gate on availableToTradeBalance when available (withdrawable +
-    // unreserved spot collateral on HL Unified/PM), falling back to
-    // availableBalance for providers/modes without the fold. This keeps
-    // spot-funded accounts from being auto-steered to an external USDC
-    // pay-token when they already have Perps-tradeable balance.
     const tradeableBalance = Number.parseFloat(
       perpsAccount?.availableToTradeBalance?.toString() ??
         perpsAccount?.availableBalance?.toString() ??
