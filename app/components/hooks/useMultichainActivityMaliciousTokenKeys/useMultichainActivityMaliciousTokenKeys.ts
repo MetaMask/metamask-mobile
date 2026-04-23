@@ -56,28 +56,30 @@ export function useMultichainActivityMaliciousTokenKeys(
         return;
       }
 
-      setIsScanning(true);
-
-      const byNamespace: Record<string, Set<string>> = {};
-      for (const tx of transactionsRef.current) {
-        for (const key of collectMultichainTransactionTokenScanKeys(tx)) {
-          const sep = key.indexOf(':');
-          if (sep <= 0) {
-            continue;
-          }
-          const ns = key.slice(0, sep);
-          const addr = key.slice(sep + 1);
-          if (!addr) {
-            continue;
-          }
-          byNamespace[ns] ??= new Set();
-          byNamespace[ns].add(addr);
-        }
+      if (!cancelled) {
+        setIsScanning(true);
       }
 
-      const malicious = new Set<MultichainTokenScanKey>();
-
       try {
+        const byNamespace: Record<string, Set<string>> = {};
+        for (const tx of transactionsRef.current) {
+          for (const key of collectMultichainTransactionTokenScanKeys(tx)) {
+            const sep = key.indexOf(':');
+            if (sep <= 0) {
+              continue;
+            }
+            const ns = key.slice(0, sep);
+            const addr = key.slice(sep + 1);
+            if (!addr) {
+              continue;
+            }
+            byNamespace[ns] ??= new Set();
+            byNamespace[ns].add(addr);
+          }
+        }
+
+        const malicious = new Set<MultichainTokenScanKey>();
+
         for (const [chainNamespace, addresses] of Object.entries(byNamespace)) {
           const list = [...addresses];
           for (let i = 0; i < list.length; i += BATCH_SIZE) {
@@ -98,15 +100,28 @@ export function useMultichainActivityMaliciousTokenKeys(
             }
           }
         }
-      } finally {
-        setIsScanning(false);
+
         if (!cancelled) {
           setMaliciousTokenKeys(malicious);
+        }
+      } catch {
+        if (!cancelled) {
+          setMaliciousTokenKeys(new Set());
+        }
+      } finally {
+        if (!cancelled) {
+          setIsScanning(false);
         }
       }
     };
 
-    run();
+    run().catch((error: unknown) => {
+      if (!cancelled) {
+        setMaliciousTokenKeys(new Set());
+        setIsScanning(false);
+      }
+      console.warn('Multichain activity token scan failed:', error);
+    });
 
     return () => {
       cancelled = true;
