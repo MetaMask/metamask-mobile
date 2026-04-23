@@ -1052,7 +1052,9 @@
       "trades": "Trades",
       "buy": "Buy",
       "bought": "{{name}} bought",
-      "sold": "{{name}} sold"
+      "sold": "{{name}} sold",
+      "no_trades": "No trades for this interval",
+      "closed_position": "Closed position"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
