@@ -50,6 +50,12 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: jest.fn().mockReturnValue({
+    initiateDeposit: jest.fn(),
+  }),
+}));
+
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
