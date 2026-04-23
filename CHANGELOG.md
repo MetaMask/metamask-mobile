@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.73.1]
 
 ### Fixed
+
 - Fixed google and Apple login issue
 
 ## [7.73.0]
