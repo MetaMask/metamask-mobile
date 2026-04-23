@@ -333,6 +333,48 @@ describe('usePredictBuyError', () => {
         expect.objectContaining({ variant: 'order_failed' }),
       );
     });
+
+    it('suppresses errorMessage when predict balance is selected even with blockingPayAlertMessage', () => {
+      mockActiveOrder = { error: 'something broke' };
+      mockIsPredictBalanceSelected = true;
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'Order placement failed',
+      });
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({
+          ...defaultParams,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+        }),
+      );
+
+      expect(result.current.errorMessage).toBeUndefined();
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
+      );
+    });
+
+    it('returns errorMessage when external token has blockingPayAlertMessage (banner suppressed)', () => {
+      mockActiveOrder = { error: 'something broke' };
+      mockIsPredictBalanceSelected = false;
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'Order placement failed',
+      });
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({
+          ...defaultParams,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+        }),
+      );
+
+      expect(result.current.errorMessage).toBe(
+        'Insufficient payment token balance',
+      );
+      expect(result.current.buyErrorBanner).toBeNull();
+    });
   });
 
   describe('isOrderNotFilled', () => {

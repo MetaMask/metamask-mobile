@@ -377,9 +377,11 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           />
         )}
         <PredictBuyActionButton
-          isLoading={isPlacingOrder || (isBannerActive && isRetrying)}
+          isLoading={
+            isPlacingOrder || (isBannerActive && (isRetrying || !preview))
+          }
           onPress={handleBuyButtonPress}
-          disabled={isBannerActive ? isRetrying : !canPlaceBet}
+          disabled={isBannerActive ? isRetrying || !preview : !canPlaceBet}
           showReducedOpacity={isBannerActive ? false : !canPlaceBet}
           outcomeTokenTitle={outcomeToken?.title}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}

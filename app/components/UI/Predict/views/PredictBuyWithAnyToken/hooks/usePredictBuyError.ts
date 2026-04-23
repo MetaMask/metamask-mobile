@@ -117,11 +117,16 @@ export const usePredictBuyError = ({
     }
 
     if (errorResult.status === 'error') {
-      // In sheet mode, active-order errors (with no pay-alert priority) are
-      // surfaced via `buyErrorBanner` instead of inline text. In legacy
-      // (full-screen) mode there is no banner, so we keep the previous
-      // behaviour and return the error string here.
-      if (isSheetMode && activeOrder?.error && !blockingPayAlertMessage) {
+      // In sheet mode, active-order errors are surfaced via `buyErrorBanner`
+      // instead of inline text -- UNLESS the banner is itself suppressed by a
+      // blocking pay-alert for an external token. In that case, fall through
+      // so errorMessage can surface the error. In legacy (full-screen) mode
+      // there is no banner, so we always return the error string.
+      const bannerWouldSuppress =
+        isSheetMode &&
+        activeOrder?.error &&
+        !(blockingPayAlertMessage && !isPredictBalanceSelected);
+      if (bannerWouldSuppress) {
         return undefined;
       }
       return errorResult.error;
@@ -136,6 +141,7 @@ export const usePredictBuyError = ({
     maxBetAmount,
     activeOrder?.error,
     blockingPayAlertMessage,
+    isPredictBalanceSelected,
     isSheetMode,
   ]);
 
