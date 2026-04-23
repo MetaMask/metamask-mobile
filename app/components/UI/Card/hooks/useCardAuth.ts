@@ -16,11 +16,12 @@ function getController() {
   return controller;
 }
 
-const LOGIN_STEP: CardAuthStep = { type: 'email_password' };
+const OAUTH2_LOGIN_STEP: CardAuthStep = { type: 'oauth2' };
 
 export const useCardAuth = () => {
   const queryClient = useQueryClient();
-  const [currentStep, setCurrentStep] = useState<CardAuthStep>(LOGIN_STEP);
+  const [currentStep, setCurrentStep] =
+    useState<CardAuthStep>(OAUTH2_LOGIN_STEP);
 
   const initiate = useMutation({
     mutationKey: cardQueries.auth.keys.initiate(),
@@ -34,23 +35,16 @@ export const useCardAuth = () => {
       getController().submitCredentials(credentials),
     onSuccess: (result) => {
       if (result.done || result.onboardingRequired) {
-        setCurrentStep(LOGIN_STEP);
+        setCurrentStep(OAUTH2_LOGIN_STEP);
         if (result.done) {
           queryClient.invalidateQueries({ queryKey: cardQueries.keys.all() });
         }
       } else if (result.nextStep) {
         setCurrentStep(result.nextStep);
       } else {
-        // Controller cleared session (done:false without nextStep/onboardingRequired)
-        setCurrentStep(LOGIN_STEP);
+        setCurrentStep(OAUTH2_LOGIN_STEP);
       }
     },
-    retry: false,
-  });
-
-  const stepAction = useMutation({
-    mutationKey: cardQueries.auth.keys.stepAction(),
-    mutationFn: () => getController().executeStepAction(),
     retry: false,
   });
 
@@ -58,24 +52,22 @@ export const useCardAuth = () => {
     mutationKey: cardQueries.auth.keys.logout(),
     mutationFn: () => getController().logout(),
     onSuccess: () => {
-      setCurrentStep(LOGIN_STEP);
+      setCurrentStep(OAUTH2_LOGIN_STEP);
       queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
     },
     retry: false,
   });
 
   const resetToLogin = useCallback(() => {
-    setCurrentStep(LOGIN_STEP);
+    setCurrentStep(OAUTH2_LOGIN_STEP);
     initiate.reset();
     submit.reset();
-    stepAction.reset();
-  }, [initiate, submit, stepAction]);
+  }, [initiate, submit]);
 
   return {
     currentStep,
     initiate,
     submit,
-    stepAction,
     logout,
     resetToLogin,
     getErrorMessage: getCardProviderErrorMessage,

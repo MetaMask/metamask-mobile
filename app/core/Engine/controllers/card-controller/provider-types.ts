@@ -42,7 +42,7 @@ export class CardProviderError extends Error {
 
 export type CardProviderId = string;
 
-export type CardAuthMethod = 'email_password' | 'siwe';
+export type CardAuthMethod = 'email_password' | 'siwe' | 'oauth2';
 
 // -- Auth Tokens --
 
@@ -70,6 +70,7 @@ export interface CardAuthResult {
 
 export type CardAuthStep =
   | { type: 'email_password' }
+  | { type: 'oauth2' }
   | { type: 'otp'; destination: string }
   | { type: 'siwe'; message: string }
   | { type: 'complete' };
@@ -86,6 +87,12 @@ export type CardCredentials =
       email: string;
       password: string;
       otpCode?: string;
+    }
+  | {
+      type: 'oauth2';
+      code: string;
+      codeVerifier: string;
+      redirectUri: string;
     }
   | { type: 'siwe'; signature: string };
 

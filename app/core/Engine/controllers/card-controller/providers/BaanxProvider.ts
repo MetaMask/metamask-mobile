@@ -5,9 +5,6 @@ import {
   CardWalletExternalPriorityResponse,
   CardDetailsResponse,
   CardExchangeTokenRawResponse,
-  CardLoginInitiateResponse,
-  CardLoginResponse,
-  CardAuthorizeResponse,
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
   UserResponse,
@@ -30,12 +27,10 @@ import {
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../../../../components/UI/Card/constants';
 import { isAccountEligibleForProvisioning } from '../../../../../components/UI/Card/pushProvisioning/constants';
-import {
-  generatePKCEPair,
-  generateState,
-} from '../../../../../components/UI/Card/util/pkceHelpers';
 import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
+import { DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS } from '../../../../../components/UI/Card/util/mapBaanxApiUrl';
 import { CardApiError, type BaanxService } from '../services/BaanxService';
+import { cardLocationFromBaanxAccessToken } from '../utils/baanxOAuth2Jwt';
 import {
   CardAccountStatus,
   CardAction,
@@ -71,9 +66,7 @@ import {
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
-
-// Required by the OAuth API but not validated server-side.
-const OAUTH_REDIRECT_URI = 'https://example.com';
+const OAUTH2_TOKEN_TIMEOUT_MS = 30_000;
 
 const ONBOARDING_ENDPOINTS: Record<string, string> = {
   email_verification: '/v1/auth/register/email/send',
@@ -94,60 +87,6 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
 const ERC20_BALANCE_OF_ABI = [
   'function balanceOf(address account) view returns (uint256)',
 ];
-
-function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
-  if (error instanceof CardApiError) {
-    const body =
-      typeof error.responseBody === 'string' ? error.responseBody : '';
-
-    if (body.includes('account has been disabled')) {
-      return new CardProviderError(
-        CardProviderErrorCode.AccountDisabled,
-        'Account has been disabled',
-        error.statusCode,
-      );
-    }
-    if (error.statusCode === 400 && hasOtpCode) {
-      return new CardProviderError(
-        CardProviderErrorCode.InvalidOtp,
-        'Invalid OTP code',
-        400,
-      );
-    }
-    if ([401, 403, 404].includes(error.statusCode)) {
-      return new CardProviderError(
-        CardProviderErrorCode.InvalidCredentials,
-        'Invalid login details',
-        error.statusCode,
-      );
-    }
-    if (error.statusCode >= 500) {
-      return new CardProviderError(
-        CardProviderErrorCode.ServerError,
-        'Server error',
-        error.statusCode,
-      );
-    }
-    if (error.statusCode === 408) {
-      return new CardProviderError(
-        CardProviderErrorCode.Timeout,
-        'Login request timed out',
-        408,
-      );
-    }
-    if (error.statusCode === 0) {
-      return new CardProviderError(
-        CardProviderErrorCode.Network,
-        'Network error during login',
-        0,
-      );
-    }
-  }
-  return new CardProviderError(
-    CardProviderErrorCode.Unknown,
-    (error as Error).message ?? 'Login failed',
-  );
-}
 
 function mapApiError(error: unknown, operation: string): CardProviderError {
   if (error instanceof CardProviderError) return error;
@@ -213,8 +152,8 @@ export class BaanxProvider implements ICardProvider {
   readonly id = 'baanx' as const;
 
   readonly capabilities: CardProviderCapabilities = {
-    authMethod: 'email_password',
-    supportsOTP: true,
+    authMethod: 'oauth2',
+    supportsOTP: false,
     supportsFundingApproval: true,
     supportsFundingLimits: true,
     fundingChains: ['eip155:59144', 'eip155:8453'],
@@ -255,33 +194,10 @@ export class BaanxProvider implements ICardProvider {
     const location = mapCountryToLocation(country);
     this.service.setLocation(location);
 
-    const state = generateState();
-    const { codeVerifier, codeChallenge } = await generatePKCEPair();
-
-    const query = new URLSearchParams({
-      client_id: this.service.apiKey,
-      client_secret: this.service.apiKey,
-      state,
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256',
-      mode: 'api',
-      response_type: 'code',
-      redirect_uri: OAUTH_REDIRECT_URI,
-    }).toString();
-
-    const response = await this.service.get<CardLoginInitiateResponse>(
-      `/v1/auth/oauth/authorize/initiate?${query}`,
-    );
-
     return {
-      id: response.token,
-      currentStep: { type: 'email_password' },
-      _metadata: {
-        initiateToken: response.token,
-        location,
-        state,
-        codeVerifier,
-      },
+      id: `oauth2-${Date.now()}`,
+      currentStep: { type: 'oauth2' },
+      _metadata: { location },
     };
   }
 
@@ -289,21 +205,17 @@ export class BaanxProvider implements ICardProvider {
     session: CardAuthSession,
     credentials: CardCredentials,
   ): Promise<CardAuthResult> {
-    if (credentials.type === 'email_password') {
-      return this.handleEmailPassword(session, credentials);
+    if (credentials.type === 'oauth2') {
+      try {
+        return await this.handleOAuth2(session, credentials);
+      } catch (error) {
+        throw mapApiError(error, 'oauth2');
+      }
     }
-    throw new Error(`Unsupported credential type: ${credentials.type}`);
-  }
-
-  async executeStepAction(session: CardAuthSession): Promise<void> {
-    const userId = session._metadata.otpUserId as string | undefined;
-    if (!userId) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'executeStepAction: session missing otpUserId',
-      );
-    }
-    await this.service.post('/v1/auth/login/otp', { userId });
+    throw new CardProviderError(
+      CardProviderErrorCode.Unknown,
+      `Unsupported credential type: ${'type' in credentials ? credentials.type : 'unknown'}`,
+    );
   }
 
   async refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens> {
@@ -311,25 +223,31 @@ export class BaanxProvider implements ICardProvider {
       throw new Error('No refresh token available');
     }
 
-    const response = await this.service.request<CardExchangeTokenRawResponse>(
-      '/v1/auth/oauth/token',
-      {
-        method: 'POST',
-        body: {
-          grant_type: 'refresh_token',
-          refresh_token: tokens.refreshToken,
-        },
-        headers: { 'x-secret-key': this.service.apiKey },
+    const priorLocation = tokens.location as CardLocation;
+    const response = await this.service.request<
+      CardExchangeTokenRawResponse & { refresh_token_expires_in?: number }
+    >('/v1/auth/oauth2/token', {
+      method: 'POST',
+      body: {
+        grant_type: 'refresh_token',
+        refresh_token: tokens.refreshToken,
       },
-    );
+      location: priorLocation,
+    });
+
+    const resolvedLocation =
+      cardLocationFromBaanxAccessToken(response.access_token) ?? priorLocation;
+
+    const refreshExpiresSec =
+      response.refresh_token_expires_in ??
+      DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS;
 
     return {
       accessToken: response.access_token,
       refreshToken: response.refresh_token,
       accessTokenExpiresAt: Date.now() + response.expires_in * 1000,
-      refreshTokenExpiresAt:
-        Date.now() + response.refresh_token_expires_in * 1000,
-      location: tokens.location,
+      refreshTokenExpiresAt: Date.now() + refreshExpiresSec * 1000,
+      location: resolvedLocation,
     };
   }
 
@@ -1109,109 +1027,72 @@ export class BaanxProvider implements ICardProvider {
 
   // ---- Private helpers ----
 
-  private async handleEmailPassword(
+  private async handleOAuth2(
     session: CardAuthSession,
-    credentials: Extract<CardCredentials, { type: 'email_password' }>,
+    credentials: Extract<CardCredentials, { type: 'oauth2' }>,
   ): Promise<CardAuthResult> {
-    let loginResponse: CardLoginResponse;
-    try {
-      loginResponse = await this.service.post<CardLoginResponse>(
-        '/v1/auth/login',
-        {
-          email: credentials.email,
-          password: credentials.password,
-          ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
-        },
-      );
-    } catch (error) {
-      throw mapLoginError(error, !!credentials.otpCode);
-    }
-
-    if (loginResponse.isOtpRequired) {
-      session._metadata.otpUserId = loginResponse.userId;
-      return {
-        done: false,
-        nextStep: {
-          type: 'otp',
-          destination: loginResponse.phoneNumber ?? credentials.email,
-        },
-      };
-    }
-
-    if (loginResponse.phase) {
-      return {
-        done: false,
-        onboardingRequired: {
-          sessionId: loginResponse.userId,
-          phase: loginResponse.phase,
-        },
-      };
-    }
-
-    try {
-      return await this.completeAuth(session, loginResponse);
-    } catch (error) {
-      throw mapApiError(error, 'completeAuth');
-    }
-  }
-
-  private async completeAuth(
-    session: CardAuthSession,
-    loginResponse: CardLoginResponse,
-  ): Promise<CardAuthResult> {
-    const { initiateToken, location, state, codeVerifier } = session._metadata;
-    if (
-      typeof initiateToken !== 'string' ||
-      typeof location !== 'string' ||
-      typeof state !== 'string' ||
-      typeof codeVerifier !== 'string'
-    ) {
-      throw new Error(
-        'Invalid auth session: missing initiateToken, location, state, or codeVerifier in _metadata',
+    const metaLoc = session._metadata.location;
+    if (typeof metaLoc !== 'string') {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Invalid auth session: missing location in _metadata',
       );
     }
-    const metadata = {
-      initiateToken,
-      location: location as CardLocation,
-      state,
-      codeVerifier,
-    };
+    const sessionLocation = metaLoc as CardLocation;
 
-    const authorizeResponse = await this.service.request<CardAuthorizeResponse>(
-      '/v1/auth/oauth/authorize',
-      {
-        method: 'POST',
-        body: { token: metadata.initiateToken },
-        headers: { Authorization: `Bearer ${loginResponse.accessToken}` },
-      },
-    );
-
-    if (authorizeResponse.state !== metadata.state) {
-      throw new Error('OAuth state mismatch — possible CSRF attack');
-    }
+    const formBody = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: credentials.code,
+      code_verifier: credentials.codeVerifier,
+      redirect_uri: credentials.redirectUri,
+      client_id: this.service.apiKey,
+    });
 
     const tokenResponse =
       await this.service.request<CardExchangeTokenRawResponse>(
-        '/v1/auth/oauth/token',
+        '/v1/auth/oauth2/token',
         {
           method: 'POST',
-          body: {
-            grant_type: 'authorization_code',
-            code: authorizeResponse.code,
-            code_verifier: metadata.codeVerifier,
-            redirect_uri: OAUTH_REDIRECT_URI,
+          body: formBody.toString(),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
-          headers: { 'x-secret-key': this.service.apiKey },
+          location: sessionLocation,
+          timeout: OAUTH2_TOKEN_TIMEOUT_MS,
         },
       );
+
+    if (!tokenResponse.access_token) {
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'OAuth2 token exchange returned no access token',
+      );
+    }
+
+    const location = cardLocationFromBaanxAccessToken(
+      tokenResponse.access_token,
+    );
+    if (!sessionLocation && !location) {
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'Invalid or missing app_id in access token',
+      );
+    }
+
+    this.service.setLocation(location ?? sessionLocation);
+
+    const refreshExpiresSec =
+      tokenResponse.refresh_token_expires_in ??
+      DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS;
 
     const tokenSet: CardAuthTokens = {
       accessToken: tokenResponse.access_token,
       refreshToken: tokenResponse.refresh_token,
       accessTokenExpiresAt: Date.now() + tokenResponse.expires_in * 1000,
-      refreshTokenExpiresAt:
-        Date.now() + tokenResponse.refresh_token_expires_in * 1000,
-      location: metadata.location,
+      refreshTokenExpiresAt: tokenResponse.refresh_token
+        ? Date.now() + refreshExpiresSec * 1000
+        : undefined,
+      location: location ?? sessionLocation,
     };
 
     return { done: true, tokenSet };

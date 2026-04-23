@@ -14,7 +14,6 @@ jest.mock('../../../../core/Engine', () => ({
     CardController: {
       initiateAuth: jest.fn(),
       submitCredentials: jest.fn(),
-      executeStepAction: jest.fn(),
       logout: jest.fn(),
     },
   },
@@ -32,6 +31,13 @@ const mockController = Engine.context.CardController as jest.Mocked<
 
 const mockInvalidateQueries = jest.fn();
 const mockRemoveQueries = jest.fn();
+
+const oauth2Credentials = {
+  type: 'oauth2' as const,
+  code: 'c',
+  codeVerifier: 'v',
+  redirectUri: 'https://link.metamask.io/card-oauth',
+};
 
 describe('useCardAuth', () => {
   beforeEach(() => {
@@ -60,12 +66,10 @@ describe('useCardAuth', () => {
     );
   });
 
-  it('currentStep starts as email_password', () => {
+  it('currentStep starts as oauth2', () => {
     const { result } = renderHook(() => useCardAuth());
 
-    expect(result.current.currentStep).toStrictEqual({
-      type: 'email_password',
-    });
+    expect(result.current.currentStep).toStrictEqual({ type: 'oauth2' });
   });
 
   it('exposes getErrorMessage for displaying auth errors', () => {
@@ -97,18 +101,12 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.submit.mutateAsync({
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        });
+        await result.current.submit.mutateAsync(oauth2Credentials);
       });
 
-      expect(mockController.submitCredentials).toHaveBeenCalledWith({
-        type: 'email_password',
-        email: 'a@b.com',
-        password: 'p',
-      });
+      expect(mockController.submitCredentials).toHaveBeenCalledWith(
+        oauth2Credentials,
+      );
     });
 
     it('resets currentStep and invalidates queries on done:true', async () => {
@@ -116,16 +114,10 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.submit.mutateAsync({
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        });
+        await result.current.submit.mutateAsync(oauth2Credentials);
       });
 
-      expect(result.current.currentStep).toStrictEqual({
-        type: 'email_password',
-      });
+      expect(result.current.currentStep).toStrictEqual({ type: 'oauth2' });
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: cardQueries.keys.all(),
       });
@@ -139,11 +131,7 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.submit.mutateAsync({
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        });
+        await result.current.submit.mutateAsync(oauth2Credentials);
       });
 
       expect(result.current.currentStep).toStrictEqual({
@@ -160,16 +148,10 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.submit.mutateAsync({
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        });
+        await result.current.submit.mutateAsync(oauth2Credentials);
       });
 
-      expect(result.current.currentStep).toStrictEqual({
-        type: 'email_password',
-      });
+      expect(result.current.currentStep).toStrictEqual({ type: 'oauth2' });
     });
 
     it('resets currentStep when done:false without nextStep or onboardingRequired', async () => {
@@ -177,34 +159,15 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.submit.mutateAsync({
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        });
+        await result.current.submit.mutateAsync(oauth2Credentials);
       });
 
-      expect(result.current.currentStep).toStrictEqual({
-        type: 'email_password',
-      });
-    });
-  });
-
-  describe('stepAction', () => {
-    it('calls controller.executeStepAction', async () => {
-      mockController.executeStepAction.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useCardAuth());
-
-      await act(async () => {
-        await result.current.stepAction.mutateAsync();
-      });
-
-      expect(mockController.executeStepAction).toHaveBeenCalled();
+      expect(result.current.currentStep).toStrictEqual({ type: 'oauth2' });
     });
   });
 
   describe('resetToLogin', () => {
-    it('resets currentStep to email_password after OTP step', async () => {
+    it('resets currentStep to oauth2 after OTP step', async () => {
       mockController.submitCredentials.mockResolvedValue({
         done: false,
         nextStep: { type: 'otp', destination: '+1555****90' },
@@ -212,11 +175,7 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.submit.mutateAsync({
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        });
+        await result.current.submit.mutateAsync(oauth2Credentials);
       });
       expect(result.current.currentStep.type).toBe('otp');
 
@@ -224,9 +183,7 @@ describe('useCardAuth', () => {
         result.current.resetToLogin();
       });
 
-      expect(result.current.currentStep).toStrictEqual({
-        type: 'email_password',
-      });
+      expect(result.current.currentStep).toStrictEqual({ type: 'oauth2' });
     });
   });
 
@@ -251,11 +208,7 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.submit.mutateAsync({
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        });
+        await result.current.submit.mutateAsync(oauth2Credentials);
       });
       expect(result.current.currentStep).toStrictEqual({
         type: 'otp',
@@ -266,9 +219,7 @@ describe('useCardAuth', () => {
         await result.current.logout.mutateAsync();
       });
 
-      expect(result.current.currentStep).toStrictEqual({
-        type: 'email_password',
-      });
+      expect(result.current.currentStep).toStrictEqual({ type: 'oauth2' });
       expect(mockRemoveQueries).toHaveBeenCalledWith({
         queryKey: cardQueries.keys.all(),
       });
