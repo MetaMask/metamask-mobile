@@ -297,7 +297,7 @@ describe('SecurityTrustEntryCard', () => {
       );
 
       // Feature tag should be rendered for Warning severity
-      expect(getByText('Suspicious airdrop')).toBeTruthy();
+      expect(getByText('Suspicious airdrop')).toBeOnTheScreen();
     });
 
     it('renders feature tags for Malicious tokens with features', () => {
@@ -349,8 +349,8 @@ describe('SecurityTrustEntryCard', () => {
       );
 
       // Feature tags should be rendered for Malicious severity
-      expect(getByText('Known malicious')).toBeTruthy();
-      expect(getByText('Rugpull risk')).toBeTruthy();
+      expect(getByText('Known malicious')).toBeOnTheScreen();
+      expect(getByText('Rugpull risk')).toBeOnTheScreen();
     });
 
     it('renders feature tags for Verified tokens with features', () => {
@@ -374,7 +374,7 @@ describe('SecurityTrustEntryCard', () => {
       );
 
       // Feature tag should be rendered for Verified severity
-      expect(getByText('Published contract')).toBeTruthy();
+      expect(getByText('Published contract')).toBeOnTheScreen();
     });
 
     it('renders positive feature tags for Benign tokens', () => {
@@ -421,7 +421,7 @@ describe('SecurityTrustEntryCard', () => {
       );
 
       // Positive feature tag should be rendered for Benign
-      expect(getByText('Established reputation')).toBeTruthy();
+      expect(getByText('Established reputation')).toBeOnTheScreen();
     });
 
     it('does not render feature tags when there are no recognized features', () => {
@@ -439,8 +439,8 @@ describe('SecurityTrustEntryCard', () => {
       );
 
       // No feature tags should be rendered when features array is empty
-      expect(queryByText('Published contract')).toBeNull();
-      expect(queryByText('Honeypot risk')).toBeNull();
+      expect(queryByText('Published contract')).not.toBeOnTheScreen();
+      expect(queryByText('Honeypot risk')).not.toBeOnTheScreen();
     });
   });
 });

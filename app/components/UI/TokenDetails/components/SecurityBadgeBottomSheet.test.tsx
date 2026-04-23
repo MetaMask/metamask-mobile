@@ -161,8 +161,8 @@ describe('SecurityBadgeBottomSheet', () => {
       const { getByText } = render(<SecurityBadgeBottomSheet />);
 
       // Both feature tag labels should be rendered
-      expect(getByText('Known malicious')).toBeTruthy();
-      expect(getByText('Rugpull risk')).toBeTruthy();
+      expect(getByText('Known malicious')).toBeOnTheScreen();
+      expect(getByText('Rugpull risk')).toBeOnTheScreen();
     });
 
     it('renders feature tags for Warning severity', () => {
@@ -183,7 +183,7 @@ describe('SecurityBadgeBottomSheet', () => {
       const { getByText } = render(<SecurityBadgeBottomSheet />);
 
       // Feature tag label should be rendered
-      expect(getByText('Suspicious airdrop')).toBeTruthy();
+      expect(getByText('Suspicious airdrop')).toBeOnTheScreen();
     });
 
     it('renders feature tags for Spam severity', () => {
@@ -204,7 +204,7 @@ describe('SecurityBadgeBottomSheet', () => {
       const { getByText } = render(<SecurityBadgeBottomSheet />);
 
       // Feature tag label should be rendered for Spam tokens
-      expect(getByText('Likely impersonator')).toBeTruthy();
+      expect(getByText('Likely impersonator')).toBeOnTheScreen();
     });
 
     it('does not render feature tags for Verified severity', () => {
@@ -221,7 +221,7 @@ describe('SecurityBadgeBottomSheet', () => {
       const { queryByText } = render(<SecurityBadgeBottomSheet />);
 
       // Feature tags should not be rendered for Verified tokens
-      expect(queryByText('Verified')).toBeNull();
+      expect(queryByText('Verified')).not.toBeOnTheScreen();
     });
 
     it('limits feature tags to maximum of 5', () => {
@@ -266,15 +266,15 @@ describe('SecurityBadgeBottomSheet', () => {
       const { getByText, queryByText } = render(<SecurityBadgeBottomSheet />);
 
       // Should render first 5 feature tags
-      expect(getByText('Rugpull risk')).toBeTruthy();
-      expect(getByText('Known malicious')).toBeTruthy();
-      expect(getByText('High transfer fee')).toBeTruthy();
-      expect(getByText('Unsellable token')).toBeTruthy();
-      expect(getByText('Token backdoor')).toBeTruthy();
+      expect(getByText('Rugpull risk')).toBeOnTheScreen();
+      expect(getByText('Known malicious')).toBeOnTheScreen();
+      expect(getByText('High transfer fee')).toBeOnTheScreen();
+      expect(getByText('Unsellable token')).toBeOnTheScreen();
+      expect(getByText('Token backdoor')).toBeOnTheScreen();
 
       // Should NOT render 6th and 7th tags
-      expect(queryByText('Possible price manipulation')).toBeNull();
-      expect(queryByText('High buy fee')).toBeNull();
+      expect(queryByText('Possible price manipulation')).not.toBeOnTheScreen();
+      expect(queryByText('High buy fee')).not.toBeOnTheScreen();
     });
   });
 
@@ -298,10 +298,10 @@ describe('SecurityBadgeBottomSheet', () => {
           symbol: 'SCAM',
         },
       );
-      expect(getByText(bannerText)).toBeTruthy();
+      expect(getByText(bannerText)).toBeOnTheScreen();
 
       // Original description should NOT be rendered
-      expect(queryByText('This should not appear')).toBeNull();
+      expect(queryByText('This should not appear')).not.toBeOnTheScreen();
     });
 
     it('renders malicious banner with error styling', () => {
@@ -322,7 +322,7 @@ describe('SecurityBadgeBottomSheet', () => {
           symbol: 'TEST',
         },
       );
-      expect(getByText(bannerText)).toBeTruthy();
+      expect(getByText(bannerText)).toBeOnTheScreen();
     });
 
     it('does not render malicious banner for Warning severity', () => {
@@ -337,7 +337,7 @@ describe('SecurityBadgeBottomSheet', () => {
       const { getByText, queryByText } = render(<SecurityBadgeBottomSheet />);
 
       // Regular description should be rendered
-      expect(getByText('Warning description')).toBeTruthy();
+      expect(getByText('Warning description')).toBeOnTheScreen();
 
       // Malicious banner should NOT be rendered
       const maliciousBannerText = strings(
@@ -346,7 +346,7 @@ describe('SecurityBadgeBottomSheet', () => {
           symbol: 'TEST',
         },
       );
-      expect(queryByText(maliciousBannerText)).toBeNull();
+      expect(queryByText(maliciousBannerText)).not.toBeOnTheScreen();
     });
   });
 
@@ -367,7 +367,7 @@ describe('SecurityBadgeBottomSheet', () => {
       const continueButton = getByText(
         strings('security_trust.continue_anyway'),
       );
-      expect(continueButton).toBeTruthy();
+      expect(continueButton).toBeOnTheScreen();
 
       // Button should exist and be pressable
       fireEvent.press(continueButton);
@@ -390,7 +390,7 @@ describe('SecurityBadgeBottomSheet', () => {
       const continueButton = getByText(
         strings('security_trust.continue_anyway'),
       );
-      expect(continueButton).toBeTruthy();
+      expect(continueButton).toBeOnTheScreen();
     });
   });
 
@@ -407,7 +407,7 @@ describe('SecurityBadgeBottomSheet', () => {
       const { getByText } = render(<SecurityBadgeBottomSheet />);
 
       // Should render the title
-      expect(getByText('Risky Token')).toBeTruthy();
+      expect(getByText('Risky Token')).toBeOnTheScreen();
     });
 
     it('renders title for Malicious severity', () => {
@@ -422,7 +422,7 @@ describe('SecurityBadgeBottomSheet', () => {
       const { getByText } = render(<SecurityBadgeBottomSheet />);
 
       // Should render the title
-      expect(getByText('Malicious Token')).toBeTruthy();
+      expect(getByText('Malicious Token')).toBeOnTheScreen();
     });
 
     it('renders title and description for Verified severity', () => {
@@ -439,8 +439,8 @@ describe('SecurityBadgeBottomSheet', () => {
       const { getByText } = render(<SecurityBadgeBottomSheet />);
 
       // Should render title and description for Verified
-      expect(getByText('Verified Token')).toBeTruthy();
-      expect(getByText('This token has been verified')).toBeTruthy();
+      expect(getByText('Verified Token')).toBeOnTheScreen();
+      expect(getByText('This token has been verified')).toBeOnTheScreen();
     });
   });
 });
