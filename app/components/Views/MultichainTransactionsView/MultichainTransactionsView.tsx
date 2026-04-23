@@ -197,7 +197,6 @@ const MultichainTransactionsView = ({
           {({ isChartBeingTouched }) => (
             <FlashList
               data={visibleMultichainTransactions}
-              extraData={maliciousTokenKeys}
               renderItem={renderTransactionItem}
               keyExtractor={(item) => item.id}
               ListHeaderComponent={header}

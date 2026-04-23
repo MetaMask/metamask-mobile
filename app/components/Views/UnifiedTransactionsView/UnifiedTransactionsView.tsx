@@ -687,7 +687,6 @@ const UnifiedTransactionsView = ({
             <FlashList
               ref={listRef}
               data={data}
-              extraData={maliciousTokenKeys}
               testID={UnifiedTransactionsViewSelectorsIDs.CONTAINER}
               renderItem={renderItem}
               keyExtractor={(listItem) =>
