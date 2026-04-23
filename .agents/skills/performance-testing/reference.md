@@ -1,6 +1,6 @@
 # E2E Performance Test — Full Reference Guide
 
-**Goal**: Create Appwright-based E2E performance tests that measure real user flows on real devices with `TimerHelper` and `PerformanceTracker` — no mocking, no shortcuts.
+**Goal**: Create Playwright-based E2E performance tests that measure real user flows on real devices with `TimerHelper` and `PerformanceTracker` — no mocking, no shortcuts.
 
 ## Core Principles
 
@@ -8,20 +8,21 @@
 2. **User-Centric Timers**: Every `TimerHelper` description reads from the user's perspective: _"Time since the user clicks X until Y is visible"_
 3. **Platform-Specific Thresholds**: Every timer defines `{ ios: <ms>, android: <ms> }` thresholds that trigger quality gate validation
 4. **One Timer Per Measurable Step**: Break flows into discrete, meaningful timing segments — never lump multiple transitions into one timer
-5. **Screen Object Pattern**: All UI interactions go through screen objects from `wdio/screen-objects/`, never raw selectors
+5. **Page Object Pattern**: All UI interactions go through page objects from `tests/page-objects/`, never raw selectors
 6. **Performance Tags + Team Ownership**: Every test uses area tags from `tags.performance.js` and a team tag for Sentry routing
 
 ## Step 0: Determine Test Location (MANDATORY)
 
 Before writing anything, determine where the test file goes:
 
-| Starting condition                                          | Folder                                       | Appwright project                           | App build       |
+| Starting condition                                          | Folder                                       | Project                                     | App build       |
 | ----------------------------------------------------------- | -------------------------------------------- | ------------------------------------------- | --------------- |
 | User already has a wallet (login screen)                    | `tests/performance/login/`                   | `browserstack-android` / `browserstack-ios` | Standard build  |
 | Fresh install (onboarding flow)                             | `tests/performance/onboarding/`              | `android-onboarding` / `ios-onboarding`     | **Clean** build |
 | Dapp connection / external server needed                    | `tests/performance/mm-connect/`              | `mm-connect-*` projects                     | Standard build  |
 | Sub-flows within login (e.g., launch times)                 | `tests/performance/login/launch-times/`      | Same as login                               | Standard build  |
 | Sub-flows within onboarding (e.g., cold start after import) | `tests/performance/onboarding/launch-times/` | Same as onboarding                          | Clean build     |
+| Predict market flows                                        | `tests/performance/login/predict/`           | Same as login                               | Standard build  |
 
 **Key difference**: Onboarding projects use `BROWSERSTACK_*_CLEAN_APP_URL` (no pre-seeded wallet), while login projects use `BROWSERSTACK_*_APP_URL` (wallet already imported).
 
@@ -33,80 +34,76 @@ Before writing code:
 
 1. Identify the exact user journey to measure (e.g., "open swap screen and get a quote")
 2. Break it into discrete steps, each becoming a `TimerHelper`
-3. Identify which screen objects are needed for each step
+3. Identify which page objects are needed for each step
 4. Determine if the flow starts from login or onboarding
 5. Choose the appropriate performance tag(s) from `tests/tags.performance.js`
 6. Identify the owning team for the `{ tag: '@team-name' }` annotation
 
 ### Step 2: Create the Test File
 
-**File naming**: `<descriptive-name>.spec.js` inside the appropriate folder.
+**File naming**: `<descriptive-name>.spec.ts` inside the appropriate folder.
 
-**Login-based test template** (`tests/performance/login/<name>.spec.js`):
+**Login-based test template** (`tests/performance/login/<name>.spec.ts`):
 
-```js
-import { test } from '../../framework/fixtures/performance';
+```typescript
+import { test as perfTest } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-// ... import all screen objects needed for the flow
-import { login } from '../../framework/utils/Flows.js';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import WalletView from '../../page-objects/wallet/WalletView';
+import SomeOtherView from '../../page-objects/wallet/SomeOtherView';
 import {
   PerformanceLogin,
   // Add relevant area tags
 } from '../../tags.performance.js';
 
-test.describe(`${PerformanceLogin}`, () => {
-  test(
+perfTest.describe(`${PerformanceLogin}`, () => {
+  perfTest(
     'Descriptive test name matching the scenario',
     { tag: '@owning-team-name' },
-    async ({ device, performanceTracker }, testInfo) => {
-      // 1. Assign device to ALL screen objects used in this test
-      LoginScreen.device = device;
-      WalletMainScreen.device = device;
-      // ... assign to every screen object
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      // 1. Login
+      await loginToAppPlaywright();
 
-      // 2. Login (for login-based tests)
-      await login(device);
-
-      // 3. Define timers with user-centric descriptions and platform thresholds
+      // 2. Define timers with user-centric descriptions and platform thresholds
+      //    Third arg is currentDeviceDetails.platform — NOT device
       const timer1 = new TimerHelper(
         'Time since the user clicks on X until Y is visible',
         { ios: 2000, android: 3000 },
-        device,
+        currentDeviceDetails.platform,
       );
 
-      // 4. Perform action OUTSIDE measure, assertion INSIDE measure
-      await SomeScreen.tapSomeButton(); // action (not timed)
+      // 3. Perform action OUTSIDE measure, assertion INSIDE measure
+      await WalletView.tapSomeButton(); // action (not timed)
       await timer1.measure(async () => {
-        await AnotherScreen.isElementVisible(); // assertion only (timed)
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(SomeOtherView.container),
+        );
       });
 
-      // 5. Add all timers and attach to test
+      // 4. Add all timers to the tracker
+      //    DO NOT call performanceTracker.attachToTest() — the fixture handles it automatically
       performanceTracker.addTimers(timer1);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });
 ```
 
-**Onboarding-based test template** (`tests/performance/onboarding/<name>.spec.js`):
+**Onboarding-based test template** (`tests/performance/onboarding/<name>.spec.ts`):
 
-```js
-import { test } from '../../framework/fixtures/performance';
+```typescript
+import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
-import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
-import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
-import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import {
-  dissmissPredictionsModal,
-  checkPredictionsModalIsVisible,
-} from '../../framework/utils/Flows.js';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
+import { fetchProductionFeatureFlags } from '../feature-flag-helper';
+import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
+import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
+import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
+import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
+import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
+import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
+import WalletView from '../../page-objects/wallet/WalletView';
 import { PerformanceOnboarding } from '../../tags.performance.js';
 
 test.describe(PerformanceOnboarding, () => {
@@ -115,33 +112,27 @@ test.describe(PerformanceOnboarding, () => {
   test(
     'Descriptive test name matching the scenario',
     { tag: '@owning-team-name' },
-    async ({ device, performanceTracker }, testInfo) => {
-      // 1. Assign device to ALL screen objects
-      OnboardingScreen.device = device;
-      OnboardingSheet.device = device;
-      ImportFromSeedScreen.device = device;
-      CreatePasswordScreen.device = device;
-      MetaMetricsScreen.device = device;
-      OnboardingSucessScreen.device = device;
-      WalletMainScreen.device = device;
-
-      // 2. Define all timers upfront
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      // 1. Define all timers upfront
       const timer1 = new TimerHelper(
         'Time since the user clicks on "Have existing wallet" until sheet is visible',
         { ios: 1000, android: 1800 },
-        device,
+        currentDeviceDetails.platform,
       );
       // ... more timers for each step
 
-      // 3. Execute onboarding flow with measurements
-      await OnboardingScreen.tapHaveAnExistingWallet();
-      await timer1.measure(async () => await OnboardingSheet.isVisible());
+      // 2. Execute onboarding flow with measurements
+      await OnboardingView.tapHaveAnExistingWallet();
+      await timer1.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(OnboardingSheet.importSeedButton),
+        );
+      });
 
       // ... continue flow
 
-      // 4. Add all timers and attach
+      // 3. Add all timers and attach
       performanceTracker.addTimers(timer1 /* , timer2, timer3, ... */);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });
@@ -153,30 +144,36 @@ test.describe(PerformanceOnboarding, () => {
 
 The `measure()` callback must contain **only assertions/wait conditions** — never user actions like taps, types, or swipes. The user action that triggers the transition goes **before** the `measure()` call. This ensures we measure purely the app's response time, not the interaction itself.
 
-```js
+```typescript
 // ✅ CORRECT — tap OUTSIDE measure, assertion INSIDE measure
-await WalletMainScreen.tapSwapButton();
-await timer.measure(() => BridgeScreen.isVisible());
+await WalletView.tapSwapButton();
+await timer.measure(() =>
+  PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(BridgeView.container),
+  ),
+);
 
 // ✅ CORRECT — multiple assertions inside measure are fine
-await WalletMainScreen.tapOnToken('USDC');
+await WalletView.tapOnToken('USDC');
 await timer.measure(async () => {
-  await TokenOverviewScreen.isTokenOverviewVisible();
-  await TokenOverviewScreen.isTodaysChangeVisible();
-  await TokenOverviewScreen.isSendButtonVisible();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(TokenOverview.container),
+  );
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(TokenOverview.sendButton),
+  );
+  await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+    asPlaywrightElement(TokenOverview.todaysChange),
+    { timeout: 10000, settleMs: 500 },
+  );
 });
 
-// ❌ WRONG — tap inside measure pollutes the timing
+// ❌ WRONG — action inside measure pollutes the timing
 await timer.measure(async () => {
-  await WalletMainScreen.tapSwapButton(); // ❌ action inside measure
-  await BridgeScreen.isVisible();
-});
-
-// ❌ WRONG — mixing actions and assertions
-await timer.measure(async () => {
-  await Screen.tapSomeButton(); // ❌ action
-  await Screen.typeText('hello'); // ❌ action
-  await NextScreen.isVisible(); // ✅ assertion (but above polluted the timing)
+  await WalletView.tapSwapButton(); // ❌ action inside measure
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(BridgeView.container),
+  );
 });
 ```
 
@@ -184,124 +181,137 @@ await timer.measure(async () => {
 
 When the action that starts the timer and the wait condition are in sequence:
 
-```js
+```typescript
 const timer = new TimerHelper(
   'Time since the user clicks on the "Swap" button until the swap page is loaded',
   { ios: 2000, android: 2500 },
-  device,
+  currentDeviceDetails.platform,
 );
 
 // Action BEFORE measure
-await WalletMainScreen.tapSwapButton();
+await WalletView.tapSwapButton();
 // Only assertions INSIDE measure
-await timer.measure(() => BridgeScreen.isVisible());
+await timer.measure(() =>
+  PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(BridgeView.container),
+  ),
+);
 ```
 
-#### 3b: Using manual `start()` / `stop()` (cross-context flows)
+#### 3b: Using manual `start()` / `stop()` (cross-context flows — dapp tests)
 
-When timing spans context switches (e.g., native ↔ web in dapp tests), the same rule applies: `start()` goes right after the triggering action, and `stop()` goes after the assertion that confirms the result.
+When timing spans native ↔ web context switches, use `start()`/`stop()` with `PlaywrightContextHelpers`. The same rule applies: `start()` goes right after the triggering action, and `stop()` goes after the assertion that confirms the result.
 
-```js
+```typescript
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+
 const connectTimer = new TimerHelper(
   'Time from tapping Connect to dapp confirming connected state',
   { ios: 20000, android: 30000 },
-  device,
+  currentDeviceDetails.platform,
 );
 
-// Action then start — tap triggers the flow, then start timing
-await AppwrightHelpers.withWebAction(
-  device,
-  async () => {
-    await BrowserPlaygroundDapp.tapConnectLegacy(); // action
-    connectTimer.start(); // start AFTER the action
-  },
-  DAPP_URL,
-);
+// Switch to web context, action then start — tap triggers the flow, then start timing
+await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
+await BrowserPlaygroundDapp.tapConnectLegacy(); // action
+connectTimer.start(); // start AFTER the action
 
-// Continue in native context — these are intermediate actions, not measured
-await AppwrightHelpers.withNativeAction(device, async () => {
-  await DappConnectionModal.tapConnectButton();
-});
+// Switch to native context — these are intermediate steps, not measured
+await PlaywrightContextHelpers.switchToNativeContext();
+await DappConnectionModal.tapConnectButton();
 
-// Stop after assertion — only the verification is inside the timed window
-await AppwrightHelpers.withWebAction(
-  device,
-  async () => {
-    await BrowserPlaygroundDapp.assertConnected(true); // assertion
-    connectTimer.stop(); // stop AFTER assertion
-  },
-  DAPP_URL,
-);
+// Switch back to web, stop after assertion
+await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
+await BrowserPlaygroundDapp.assertConnected(true); // assertion
+connectTimer.stop(); // stop AFTER assertion
 ```
 
 #### 3c: Multi-timer flows
 
 For complex scenarios, define all timers upfront. Each step follows the same pattern: action first, then `measure()` with only assertions.
 
-```js
+```typescript
 const timer1 = new TimerHelper(
   'Time since the user clicks on "Create wallet" until sign-up screen is visible',
   { ios: 1000, android: 1800 },
-  device,
+  currentDeviceDetails.platform,
 );
 const timer2 = new TimerHelper(
   'Time since the user clicks "Import SRP" until SRP field is displayed',
   { ios: 1000, android: 1500 },
-  device,
+  currentDeviceDetails.platform,
 );
 const timer3 = new TimerHelper(
   'Time since the user clicks "Continue" until password fields are visible',
   { ios: 2500, android: 1800 },
-  device,
+  currentDeviceDetails.platform,
 );
 
 // Step 1: action OUTSIDE, assertion INSIDE
-await Screen.tapAction1();
-await timer1.measure(async () => await NextScreen.isVisible());
+await OnboardingView.tapCreateWallet();
+await timer1.measure(async () => {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(OnboardingSheet.importSeedButton),
+  );
+});
 
 // Step 2: action OUTSIDE, assertion INSIDE
-await NextScreen.tapAction2();
-await timer2.measure(async () => await AnotherScreen.isVisible());
+await OnboardingSheet.tapImportSeedButton();
+await timer2.measure(async () => {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(ImportWalletView.title),
+  );
+});
 
 // Step 3: action OUTSIDE, assertion INSIDE
-await AnotherScreen.tapContinueButton();
-await timer3.measure(async () => await PasswordScreen.isVisible());
+await ImportWalletView.tapContinueButton();
+await timer3.measure(async () => {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(CreatePasswordView.container),
+  );
+});
 
 performanceTracker.addTimers(timer1, timer2, timer3);
-await performanceTracker.attachToTest(testInfo);
 ```
 
-### Step 4: Assign Device to Screen Objects
+### Step 4: Page Objects
 
-**CRITICAL**: Every screen object used in the test MUST have `device` assigned before any interaction. This is not optional.
+Page objects in `tests/page-objects/` are static classes — no device assignment needed. Just import and use:
 
-```js
-// ✅ CORRECT — assign ALL screen objects at the start of the test
-LoginScreen.device = device;
-WalletMainScreen.device = device;
-AccountListComponent.device = device;
-AddAccountModal.device = device;
-TokenOverviewScreen.device = device;
-CommonScreen.device = device;
-WalletActionModal.device = device;
-NetworksScreen.device = device;
+```typescript
+import WalletView from '../../page-objects/wallet/WalletView';
+import TokenOverview from '../../page-objects/wallet/TokenOverview';
+import LoginView from '../../page-objects/wallet/LoginView';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 
-// ❌ WRONG — forgetting to assign device causes runtime errors
-await WalletMainScreen.tapOnToken('USDC'); // crashes if device not assigned
+// ✅ CORRECT — just use the static methods directly
+await WalletView.tapOnToken('USDC');
+await PlaywrightAssertions.expectElementToBeVisible(
+  asPlaywrightElement(TokenOverview.container),
+);
+```
+
+Dapp tests have their own page objects under `tests/page-objects/MMConnect/`:
+
+```typescript
+import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
+import SignModal from '../../page-objects/MMConnect/SignModal';
+import SwitchChainModal from '../../page-objects/MMConnect/SwitchChainModal';
 ```
 
 ### Step 5: Register Timers and Attach Results
 
-At the end of every test, ALWAYS:
+At the end of every test, add timers to the tracker. **Do NOT call `attachToTest` manually** — the fixture teardown calls it automatically.
 
-```js
+```typescript
 // Add all timers to the tracker
 performanceTracker.addTimers(timer1, timer2, timer3);
 // OR for a single timer:
 performanceTracker.addTimer(timer1);
 
-// Attach results for reporting, Sentry publishing, and quality gate validation
-await performanceTracker.attachToTest(testInfo);
+// ❌ DO NOT CALL — the fixture handles this automatically
+// await performanceTracker.attachToTest(testInfo);
 ```
 
 The performance fixture automatically:
@@ -315,7 +325,7 @@ The performance fixture automatically:
 
 Import from `tests/tags.performance.js`:
 
-```js
+```javascript
 import {
   PerformanceLogin, // Login/unlock flows
   PerformanceOnboarding, // Fresh wallet setup
@@ -330,17 +340,17 @@ import {
 
 Combine multiple tags in `test.describe()`:
 
-```js
-test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => { ... });
-test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => { ... });
+```typescript
+perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => { ... });
+perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => { ... });
 ```
 
 ## Team Tags
 
 Every test MUST include a team tag for ownership and Sentry routing:
 
-```js
-test('Test name', { tag: '@team-name' }, async ({ device, performanceTracker }, testInfo) => { ... });
+```typescript
+perfTest('Test name', { tag: '@team-name' }, async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => { ... });
 ```
 
 Known team tags:
@@ -364,7 +374,7 @@ Thresholds are in milliseconds. The `TimerHelper` adds a 10% margin automaticall
 | Heavy computation (50+ accounts) | 5000–90000 ms | 5000–90000 ms  |
 | Dapp connection (cross-context)  | 8000–20000 ms | 12000–30000 ms |
 | Quote/swap execution             | 7000–9000 ms  | 7000–9000 ms   |
-| Cold start to screen             | 2000–3000 ms  | 2000–3000 ms   |
+| Cold start to screen             | 2000–3500 ms  | 2000–3500 ms   |
 
 When unsure, start generous and tighten after collecting baseline data.
 
@@ -372,127 +382,150 @@ When unsure, start generous and tighten after collecting baseline data.
 
 ### Login flow
 
-```js
-import { login } from '../../framework/utils/Flows.js';
-await login(device); // Types password + taps unlock + waits
+```typescript
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
+await loginToAppPlaywright(); // Types password, taps unlock, waits — no args needed
+// Optional: specify scenario type for different wallets
+await loginToAppPlaywright({ scenarioType: 'login' });
 ```
 
-### Import additional SRP
+### Account selection by device
 
-```js
-import { importSRPFlow } from '../../framework/utils/Flows.js';
-const timers = await importSRPFlow(device, process.env.TEST_SRP_2);
-// Returns array of TimerHelper instances for each step
+```typescript
+import { selectAccountByDevice } from '../../flows/wallet.flow';
+await selectAccountByDevice(currentDeviceDetails.deviceName);
+// Selects the account mapped in tests/performance/device-matrix.json
 ```
 
 ### Onboarding flow
 
-```js
-import { onboardingFlowImportSRP } from '../../framework/utils/Flows.js';
-await onboardingFlowImportSRP(device, process.env.TEST_SRP_1);
+```typescript
+import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
+await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_1);
 ```
 
 ### Dismiss modals
 
-```js
-import {
-  dissmissPredictionsModal,
-  checkPredictionsModalIsVisible,
-  dismissMultichainAccountsIntroModal,
-} from '../../framework/utils/Flows.js';
+```typescript
+import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
+await dismisspredictionsModalPlaywright();
 ```
 
 ### App lifecycle (cold start tests)
 
-```js
-import AppwrightGestures from '../../framework/AppwrightGestures';
-await AppwrightGestures.terminateApp(device);
-await AppwrightGestures.activateApp(device);
-await AppwrightGestures.wait(5000);
+```typescript
+import { PlaywrightGestures } from '../../framework';
+await PlaywrightGestures.terminateApp(currentDeviceDetails);
+await PlaywrightGestures.activateApp(currentDeviceDetails);
 ```
 
 ### Dapp tests (native ↔ web context switching)
 
-```js
-import AppwrightHelpers from '../../framework/AppwrightHelpers.ts';
-import {
-  switchToMobileBrowser,
-  navigateToDapp,
-  launchMobileBrowser,
-} from '../../framework/utils/MobileBrowser.js';
+```typescript
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import { DappServer, DappVariants, TestDapps } from '../../framework';
 
-// Native context
-await AppwrightHelpers.withNativeAction(device, async () => { ... });
+// Switch between contexts
+await PlaywrightContextHelpers.switchToNativeContext();
+await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
 
-// Web context
-await AppwrightHelpers.withWebAction(device, async () => { ... }, DAPP_URL);
+// Start a local dapp server
+const playgroundServer = new DappServer({
+  dappCounter: 0,
+  rootDirectory: TestDapps[DappVariants.BROWSER_PLAYGROUND].dappPath,
+  dappVariant: DappVariants.BROWSER_PLAYGROUND,
+});
+
+perfTest.beforeAll(async () => {
+  playgroundServer.setServerPort(DAPP_PORT);
+  await playgroundServer.start();
+});
+
+perfTest.afterAll(async () => {
+  await playgroundServer.stop();
+});
+```
+
+### Production feature flags
+
+```typescript
+import { fetchProductionFeatureFlags } from '../feature-flag-helper';
+const flags = await fetchProductionFeatureFlags();
+// Use flags to conditionally skip tests based on feature availability
 ```
 
 ## ❌ FORBIDDEN Patterns
 
-```js
+```typescript
 // NEVER in E2E performance tests:
-jest.mock(...)                    // No mocking — real device, real app
-require(...)                      // Use ES6 imports only
-import { test } from 'appwright'  // ALWAYS import from fixtures/performance
-as any                            // Use proper types
-// Hardcoded passwords            // Use getPasswordForScenario()
-// Raw selectors                  // Use screen objects from wdio/screen-objects/
-// Missing device assignment      // EVERY screen object needs ScreenObj.device = device
-// Timer without threshold        // Always provide { ios: X, android: Y }
-// Timer without team tag         // Always include { tag: '@team-name' }
-// Missing attachToTest           // Always call performanceTracker.attachToTest(testInfo)
-// Actions inside measure()       // ONLY assertions/waits go inside measure — taps/types go BEFORE
+jest.mock(...)                          // No mocking — real device, real app
+require(...)                            // Use ES6 imports only
+import { test } from '@playwright/test' // ALWAYS import from framework/fixture (not directly)
+as any                                  // Use proper types
+// Hardcoded passwords                  // Use getPasswordForScenario()
+// Raw selectors                        // Use page objects from tests/page-objects/
+// PageObj.device = device              // Page objects are static — no device assignment needed
+// Timer without threshold              // Always provide { ios: X, android: Y }
+// Timer without team tag               // Always include { tag: '@team-name' }
+new TimerHelper('...', {...}, device)   // Third arg is currentDeviceDetails.platform, not device
+await performanceTracker.attachToTest() // DO NOT call manually — fixture auto-handles teardown
+// Actions inside measure()             // ONLY assertions/waits go inside measure
 ```
 
 ## Checklist Before Submitting
 
-- [ ] Test file is in the correct folder (`login/`, `onboarding/`, or `mm-connect/`)
-- [ ] Imports `test` from `../../framework/fixtures/performance` (NOT from `appwright`)
-- [ ] All screen objects have `device` assigned before first interaction
+- [ ] Test file is `.spec.ts` (TypeScript) and in the correct folder (`login/`, `onboarding/`, `mm-connect/`, etc.)
+- [ ] Imports `test` from `../../framework/fixture` (NOT from `@playwright/test` directly)
+- [ ] Fixture destructures `{ currentDeviceDetails, driver, performanceTracker }` (not `device`)
+- [ ] `TimerHelper` third argument is `currentDeviceDetails.platform` (not `device`)
 - [ ] Each measurable step has its own `TimerHelper` with platform-specific thresholds
 - [ ] Timer descriptions are user-centric: _"Time since the user clicks X until Y is visible"_
 - [ ] `test.describe()` uses performance area tag(s) from `tags.performance.js`
 - [ ] Test has `{ tag: '@team-name' }` for ownership
 - [ ] All timers are added via `performanceTracker.addTimers()` or `performanceTracker.addTimer()`
-- [ ] `performanceTracker.attachToTest(testInfo)` is called at the end
+- [ ] **`performanceTracker.attachToTest()` is NOT called** — the fixture handles it automatically
 - [ ] `test.setTimeout()` is set for long flows (onboarding: 240000ms+)
 - [ ] Actions (taps, types, swipes) are OUTSIDE `measure()` — only assertions/waits inside
 - [ ] No mocking of any kind
 - [ ] No hardcoded passwords (use `getPasswordForScenario()`)
 - [ ] Test name is descriptive and matches the scenario being measured
+- [ ] Page objects from `tests/page-objects/` used — no `.device = device` assignment
 
 ## Quick Commands
 
 ```bash
 # Run a single performance test locally (Android emulator)
-yarn appwright test --project android --grep "Test name pattern"
+yarn playwright test --project android --grep "Test name pattern"
 
 # Run all login performance tests on BrowserStack
-yarn appwright test --project browserstack-android
+yarn playwright test --project browserstack-android
 
 # Run all onboarding tests on BrowserStack
-yarn appwright test --project android-onboarding
+yarn playwright test --project android-onboarding
 
 # Run with specific tag filter
-yarn appwright test --grep "@PerformanceLogin"
-yarn appwright test --grep "@PerformanceSwaps|@PerformanceOnboarding"
+yarn playwright test --grep "@PerformanceLogin"
+yarn playwright test --grep "@PerformanceSwaps|@PerformanceOnboarding"
 
-# View test report
-open tests/test-reports/appwright-report/index.html
+# View test reports
+open tests/reporters/reports
 ```
 
 ## References
 
-- Performance fixture: `tests/framework/fixtures/performance/performance-fixture.ts`
+- Performance fixture: `tests/framework/fixture/index.ts`
 - TimerHelper: `tests/framework/TimerHelper.ts`
 - Performance tags: `tests/tags.performance.js`
-- Flow utilities: `tests/framework/utils/Flows.js`
-- Appwright config: `tests/appwright.config.ts`
+- Flow utilities: `tests/flows/wallet.flow.ts`
+- Feature flag helper: `tests/performance/feature-flag-helper.ts`
+- Device matrix: `tests/performance/device-matrix.json`
+- Context switching (dapp tests): `tests/framework/PlaywrightContextHelpers.ts`
 - Quality gates: `tests/framework/quality-gates/`
-- Screen objects: `wdio/screen-objects/`
-- Example login test: `tests/performance/login/asset-view.spec.js`
-- Example onboarding test: `tests/performance/onboarding/import-wallet.spec.js`
-- Example dapp test: `tests/performance/mm-connect/connection-evm.spec.js`
-- Example cold start test: `tests/performance/login/launch-times/cold-start-to-login.spec.js`
+- Page objects: `tests/page-objects/`
+- Dapp page objects: `tests/page-objects/MMConnect/`
+- Config: `tests/playwright.config.ts`
+- Example login test: `tests/performance/login/asset-view.spec.ts`
+- Example onboarding test: `tests/performance/onboarding/import-wallet.spec.ts`
+- Example cold start test: `tests/performance/login/launch-times/cold-start-to-login.spec.ts`
+- Example predict test: `tests/performance/login/predict/predict-available-balance.spec.ts`
+- Example dapp test: `tests/performance/mm-connect/connection-evm.spec.ts`
