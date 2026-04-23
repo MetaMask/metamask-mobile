@@ -42,6 +42,8 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
     onForget,
     onUnlock,
     title,
+    warningMsg,
+    subMsg,
   } = props;
 
   const { colors } = useTheme();
