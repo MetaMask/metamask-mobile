@@ -11,21 +11,19 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  CampaignType,
-  CampaignDto,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
+import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectIsCampaignOutcomeToastDismissed } from '../../../../reducers/rewards/selectors';
+import {
+  selectCampaigns,
+  selectCampaignParticipantStatusById,
+  selectIsCampaignOutcomeToastDismissed,
+} from '../../../../reducers/rewards/selectors';
 import { dismissCampaignOutcomeToast } from '../../../../reducers/rewards';
 import useRewardsToast from './useRewardsToast';
 import { useOndoCampaignParticipantOutcome } from './useOndoCampaignParticipantOutcome';
 
-export function useOndoCampaignEndedOutcomeToast(
-  campaignId: string | undefined,
-  campaign: CampaignDto | null,
-): void {
+export function useOndoCampaignEndedOutcomeToast(): void {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
@@ -33,12 +31,29 @@ export function useOndoCampaignEndedOutcomeToast(
   const { showToast } = useRewardsToast();
 
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const campaigns = useSelector(selectCampaigns);
+
+  const campaign =
+    subscriptionId && campaigns
+      ? (campaigns
+          .filter(
+            (c) =>
+              c.type === CampaignType.ONDO_HOLDING &&
+              getCampaignStatus(c) === 'complete',
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+          )[0] ?? null)
+      : null;
+
+  const campaignId = campaign?.id;
+  const isOptedIn =
+    useSelector(selectCampaignParticipantStatusById(campaignId))?.optedIn ===
+    true;
 
   const isEligible =
-    campaign?.type === CampaignType.ONDO_HOLDING &&
-    getCampaignStatus(campaign) === 'complete' &&
-    Boolean(subscriptionId) &&
-    Boolean(campaignId);
+    Boolean(subscriptionId) && Boolean(campaignId) && isOptedIn;
 
   const { outcome } = useOndoCampaignParticipantOutcome(
     isEligible ? campaignId : undefined,

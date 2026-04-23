@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectOndoCampaignParticipantOutcomeById } from '../../../../reducers/rewards/selectors';
+import {
+  selectOndoCampaignParticipantOutcomeById,
+  selectCampaignParticipantStatusById,
+} from '../../../../reducers/rewards/selectors';
 import { setOndoCampaignParticipantOutcome } from '../../../../reducers/rewards';
 import type { OndoGmCampaignParticipantOutcomeDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -17,6 +20,9 @@ export function useOndoCampaignParticipantOutcome(
 ): UseOndoCampaignParticipantOutcomeResult {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isOptedIn =
+    useSelector(selectCampaignParticipantStatusById(campaignId))?.optedIn ===
+    true;
   const outcome = useSelector(
     selectOndoCampaignParticipantOutcomeById(
       subscriptionId ?? undefined,
@@ -27,7 +33,7 @@ export function useOndoCampaignParticipantOutcome(
   const [hasError, setHasError] = useState(false);
 
   const fetchOutcome = useCallback(async (): Promise<void> => {
-    if (!subscriptionId || !campaignId) {
+    if (!subscriptionId || !campaignId || !isOptedIn) {
       setIsLoading(false);
       setHasError(false);
       return;
@@ -54,7 +60,7 @@ export function useOndoCampaignParticipantOutcome(
     } finally {
       setIsLoading(false);
     }
-  }, [dispatch, campaignId, subscriptionId]);
+  }, [dispatch, campaignId, subscriptionId, isOptedIn]);
 
   useEffect(() => {
     fetchOutcome();
