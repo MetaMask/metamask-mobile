@@ -48,6 +48,7 @@ import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags'
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
+import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -86,6 +87,7 @@ const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
   const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
+  const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const { initiateCustomConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
@@ -159,15 +161,21 @@ const EarnMusdConversionEducationView = () => {
       };
     }
 
+    // Fallback to the Money Hub if enabled.
+    if (isMoneyHubEnabled) {
+      return { action: 'navigate_money_hub' as const };
+    }
+
     return { action: 'navigate_home' as const };
   }, [
     isDeeplink,
     isGeoEligible,
     hasConvertibleTokens,
+    isMusdBuyable,
+    isMoneyHubEnabled,
+    conversionTokens,
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
-    isMusdBuyable,
-    conversionTokens,
   ]);
 
   const primaryButtonText = useMemo(() => {
@@ -250,7 +258,7 @@ const EarnMusdConversionEducationView = () => {
     primaryButtonText,
   ]);
 
-  const submitGoBackPressedEvent = () => {
+  const submitGoBackPressedEvent = (redirectsTo?: string) => {
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
@@ -261,6 +269,7 @@ const EarnMusdConversionEducationView = () => {
           button_text: strings(
             'earn.musd_conversion.education.secondary_button',
           ),
+          ...(redirectsTo ? { redirects_to: redirectsTo } : {}),
         })
         .build(),
     );
@@ -302,6 +311,11 @@ const EarnMusdConversionEducationView = () => {
             assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
           };
           goToBuy(rampIntent);
+          return;
+        }
+
+        if (deeplinkState.action === 'navigate_money_hub') {
+          navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
           return;
         }
 
@@ -352,8 +366,22 @@ const EarnMusdConversionEducationView = () => {
     callerNavigationOverride,
   ]);
 
-  const handleGoBack = () => {
+  const handleNotNow = () => {
+    // Redirect to the Money Hub if enabled and geo-eligible.
+    if (isDeeplink && isMoneyHubEnabled && isGeoEligible) {
+      // Pop education screen from the navigation stack.
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+      dispatch(setMusdConversionEducationSeen(true));
+      submitGoBackPressedEvent(MONEY_EVENT_LOCATIONS.MONEY_HUB);
+      navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
+      return;
+    }
+
+    dispatch(setMusdConversionEducationSeen(true));
     submitGoBackPressedEvent();
+    // Pop education screen from the navigation stack.
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
@@ -418,7 +446,7 @@ const EarnMusdConversionEducationView = () => {
         <DesignSystemButton
           variant={DesignSystemButtonVariant.Tertiary}
           isFullWidth
-          onPress={handleGoBack}
+          onPress={handleNotNow}
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
         >
           <Text variant={TextVariant.BodyMDMedium}>
