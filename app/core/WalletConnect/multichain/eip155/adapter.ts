@@ -1,6 +1,8 @@
 import { KnownCaipNamespace } from '@metamask/utils';
 import { getPermittedAccounts, getPermittedChains } from '../../../Permissions';
-import type { ChainAdapter, NamespaceConfig } from '../types';
+import type { ChainAdapter, NamespaceConfig, ProposalLike } from '../types';
+
+const WALLET_PREFIX = `${KnownCaipNamespace.Wallet}:` as const;
 
 const METHODS: string[] = [
   'eth_sendTransaction',
@@ -78,5 +80,32 @@ export const eip155Adapter: ChainAdapter = {
       : [];
 
     return { chains, methods: METHODS, events: EVENTS, accounts };
+  },
+
+  onAfterBuildNamespaces({
+    proposal,
+    namespaces,
+  }: {
+    proposal: ProposalLike;
+    namespaces: Record<string, NamespaceConfig>;
+  }) {
+    const eip155 = namespaces[KnownCaipNamespace.Eip155];
+    if (!eip155) return;
+
+    const hasWalletEip155 = Object.values(proposal.requiredNamespaces ?? {})
+      .concat(Object.values(proposal.optionalNamespaces ?? {}))
+      .some((ns) => ns?.chains?.includes(`${WALLET_PREFIX}eip155`));
+
+    if (!hasWalletEip155) return;
+
+    namespaces[KnownCaipNamespace.Wallet] = {
+      chains: [`${WALLET_PREFIX}eip155`],
+      methods: eip155.methods,
+      events: eip155.events,
+      accounts: eip155.accounts.map((account) => {
+        const address = account.split(':').slice(2).join(':');
+        return `${WALLET_PREFIX}eip155:${address}`;
+      }),
+    };
   },
 };

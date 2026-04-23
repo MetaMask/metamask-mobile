@@ -108,24 +108,10 @@ export const buildApprovedNamespaces = async ({
     }
   }
 
-  // Dapps that requested `wallet:eip155` may still look up a `wallet`
-  // namespace in their session restore path. Mirror the eip155 slice under
-  // the `wallet` key so the dapp universal provider finds it.
-  const hasWalletEip155 = Object.values(proposal.requiredNamespaces ?? {})
-    .concat(Object.values(proposal.optionalNamespaces ?? {}))
-    .some((ns) => ns?.chains?.includes('wallet:eip155'));
-
-  if (hasWalletEip155 && namespaces[KnownCaipNamespace.Eip155]) {
-    const eip155 = namespaces[KnownCaipNamespace.Eip155];
-    namespaces[KnownCaipNamespace.Wallet] = {
-      chains: ['wallet:eip155'],
-      methods: eip155.methods,
-      events: eip155.events,
-      accounts: eip155.accounts.map((account) => {
-        const address = account.split(':').slice(2).join(':');
-        return `wallet:eip155:${address}`;
-      }),
-    };
+  // Let each adapter post-process the full map (e.g. EIP-155 mirrors itself
+  // under the `wallet` key for dapps using `wallet:eip155`).
+  for (const adapter of adapters) {
+    adapter.onAfterBuildNamespaces?.({ proposal, namespaces });
   }
 
   return namespaces;

@@ -3,7 +3,10 @@ import { getChainChangedEmission, shouldEmitChainChanged } from './emission';
 describe('getChainChangedEmission', () => {
   const fallback = { fallbackEvmDecimal: 1, fallbackEvmHex: '0x1' };
 
-  it('prefers the first non-EVM namespace chain', () => {
+  it('selects the namespace with highest emissionPriority', () => {
+    // Both namespaces have no registered adapter → priority 0, eip155 wins
+    // by insertion order. When a higher-priority adapter is registered (e.g.
+    // Tron with priority 10), it would be selected instead.
     expect(
       getChainChangedEmission({
         namespaces: {
@@ -13,8 +16,8 @@ describe('getChainChangedEmission', () => {
             events: [],
             accounts: [],
           },
-          tron: {
-            chains: ['tron:0x2b6653dc'],
+          unknown: {
+            chains: ['unknown:42'],
             methods: [],
             events: [],
             accounts: [],
@@ -22,7 +25,7 @@ describe('getChainChangedEmission', () => {
         },
         ...fallback,
       }),
-    ).toEqual({ chainId: 'tron:0x2b6653dc', data: 'tron:0x2b6653dc' });
+    ).toEqual({ chainId: 'eip155:1', data: '0x1' });
   });
 
   it('falls back to the first eip155 chain when no non-EVM namespace is present', () => {

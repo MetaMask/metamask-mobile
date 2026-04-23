@@ -90,6 +90,15 @@ export interface ChainAdapter {
   readonly redirectMethods: string[];
 
   /**
+   * Priority when selecting which namespace's chain to emit `chainChanged`
+   * for. Higher values are preferred. Defaults to `0` when omitted.
+   *
+   * EIP-155 uses `0`; non-EVM adapters that serve chain-specific dapps
+   * should use a higher value so their chain is emitted first.
+   */
+  readonly emissionPriority?: number;
+
+  /**
    * Build the namespace slice the wallet wants to approve for this chain,
    * or `undefined` if the wallet has nothing to expose (e.g. no permitted
    * chains and no fallback accounts).
@@ -125,4 +134,16 @@ export interface ChainAdapter {
     proposal: ProposalLike;
     channelId: string;
   }): Promise<void>;
+
+  /**
+   * Post-process the full namespaces map after all adapters have built their
+   * slices. Used to derive alias namespaces (e.g. EIP-155 mirrors itself
+   * under `wallet` for dapps using `wallet:eip155`).
+   *
+   * Mutates `namespaces` in place.
+   */
+  onAfterBuildNamespaces?(params: {
+    proposal: ProposalLike;
+    namespaces: Record<string, NamespaceConfig>;
+  }): void;
 }
