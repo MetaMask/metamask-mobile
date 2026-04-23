@@ -1382,7 +1382,9 @@ describe('OndoCampaignDetailsView', () => {
     it('shows the winner banner in the stats section when user is a winner and campaign is complete', () => {
       setupWinner();
       const { getByText } = render(<OndoCampaignDetailsView />);
-      expect(getByText('rewards.ondo_outcome_banner.winner_pending.title')).toBeDefined();
+      expect(
+        getByText('rewards.ondo_outcome_banner.winner_pending.title'),
+      ).toBeDefined();
     });
 
     it('does not show the winner banner when user is not a winner', () => {
@@ -1411,14 +1413,18 @@ describe('OndoCampaignDetailsView', () => {
         refetch: jest.fn(),
       });
       const { queryByText } = render(<OndoCampaignDetailsView />);
-      expect(queryByText('rewards.ondo_outcome_banner.winner_pending.title')).toBeNull();
+      expect(
+        queryByText('rewards.ondo_outcome_banner.winner_pending.title'),
+      ).toBeNull();
     });
 
     it('tapping the winner banner navigates to the winning view', () => {
       setupWinner();
       mockNavigate.mockClear();
       const { getByLabelText } = render(<OndoCampaignDetailsView />);
-      fireEvent.press(getByLabelText('rewards.ondo_outcome_banner.winner_pending.a11y'));
+      fireEvent.press(
+        getByLabelText('rewards.ondo_outcome_banner.winner_pending.a11y'),
+      );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
         { campaignId: 'campaign-1', campaignName: 'Test Campaign' },

@@ -88,7 +88,9 @@ interface WinnerPendingBannerProps {
 const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
   ({ onPress }) => (
     <Pressable
-      accessibilityLabel={strings('rewards.ondo_outcome_banner.winner_pending.a11y')}
+      accessibilityLabel={strings(
+        'rewards.ondo_outcome_banner.winner_pending.a11y',
+      )}
       onPress={onPress}
     >
       <Box
