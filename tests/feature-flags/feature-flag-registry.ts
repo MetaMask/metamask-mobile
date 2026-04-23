@@ -3121,7 +3121,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   },
 
   moneyAccountVaultConfig : {
-    name: 'moneyAccountDepositConfig',
+    name: 'moneyAccountVaultConfig',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {
