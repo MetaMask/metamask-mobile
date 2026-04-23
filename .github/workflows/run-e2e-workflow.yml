@@ -53,16 +53,11 @@ on:
         required: false
         type: string
         default: 'main-'
-      use_bitrise_runner:
-        description: 'Route iOS E2E jobs to Bitrise self-hosted runner group.'
-        required: false
-        type: boolean
-        default: false
 
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && (inputs.use_bitrise_runner && fromJSON('{"group":"temp-bitrise-runners","labels":["bitrise_pool_name:DemoFAL"]}') || 'ghcr.io/cirruslabs/macos-runner:tahoe') || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -106,34 +101,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # TEMPORARY: Bitrise runners use Vagrant (user=vagrant, HOME=/Users/vagrant).
-      # GitHub Actions tools hardcode /Users/runner paths. Create symlink to fix.
-      - name: Fix Vagrant environment paths (Bitrise runners)
-        if: ${{ inputs.use_bitrise_runner && inputs.platform == 'ios' }}
-        run: |
-          if [ -L /Users/runner ]; then
-            current_target="$(readlink /Users/runner)"
-            if [ "$current_target" = "/Users/vagrant" ]; then
-              echo "Symlink already correct: /Users/runner → /Users/vagrant"
-            else
-              echo "Replacing incorrect symlink /Users/runner → $current_target"
-              sudo rm /Users/runner
-              sudo ln -s /Users/vagrant /Users/runner
-              echo "Recreated symlink: /Users/runner → /Users/vagrant"
-            fi
-          elif [ -e /Users/runner ]; then
-            echo "Error: /Users/runner exists but is not a symlink"
-            ls -ld /Users/runner
-            exit 1
-          else
-            sudo ln -s /Users/vagrant /Users/runner
-            echo "Created symlink /Users/runner → /Users/vagrant"
-          fi
-          mkdir -p "$HOME/hostedtoolcache" "$HOME/tmp"
-          echo "RUNNER_TOOL_CACHE=$HOME/hostedtoolcache" >> "$GITHUB_ENV"
-          echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
-        shell: bash
 
       - name: Set up E2E environment
         timeout-minutes: 15

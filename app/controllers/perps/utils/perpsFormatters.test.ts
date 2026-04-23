@@ -178,6 +178,14 @@ describe('formatPositionSize', () => {
     expect(formatPositionSize(44.0, 2)).toBe('44');
   });
 
+  it('preserves integer trailing zeros when szDecimals=0 (whole-unit assets)', () => {
+    expect(formatPositionSize(100, 0)).toBe('100');
+    expect(formatPositionSize(20, 0)).toBe('20');
+    expect(formatPositionSize(1000, 0)).toBe('1000');
+    expect(formatPositionSize(1, 0)).toBe('1');
+    expect(formatPositionSize(1.7, 0)).toBe('2');
+  });
+
   it('uses magnitude logic for very small values (< 0.01) without szDecimals', () => {
     const result = formatPositionSize(0.00009);
     expect(result).toBe('0.00009');

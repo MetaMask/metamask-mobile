@@ -34,7 +34,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
   const origin = approvalRequest?.requestData?.metadata?.origin;
 
-  const eventSource = useOriginSource({ origin });
+  const originSource = useOriginSource({ origin });
 
   const sdkV2Connection = useSDKV2Connection(origin);
   const anonId = sdkV2Connection?.originatorInfo?.anonId;
@@ -42,7 +42,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   useEffect(() => {
     if (
       approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS ||
-      !eventSource
+      !originSource
     ) {
       return;
     }
@@ -92,7 +92,8 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
       createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
         .addProperties({
           number_of_accounts: totalAccounts,
-          source: eventSource,
+          source: originSource.source,
+          request_source: originSource.requestSource,
           chain_id_list: chainIds,
           ...getApiAnalyticsProperties(isMultichainRequest),
           ...iframeProps,
@@ -113,7 +114,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     props.navigation,
     trackEvent,
     createEventBuilder,
-    eventSource,
+    originSource,
     anonId,
     // Re-run when the queue changes so new approvals are picked up.
     // The ref guard above prevents re-navigation for the same approval.
