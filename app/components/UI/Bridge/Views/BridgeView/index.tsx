@@ -556,7 +556,9 @@ const BridgeView = () => {
                 })()
               : null}
 
-            {contentMode === 'quote' && hasMissingPriceData(activeQuote) ? (
+            {contentMode === 'quote' &&
+            activeQuote &&
+            hasMissingPriceData(activeQuote) ? (
               <BannerAlert
                 severity={BannerAlertSeverity.Danger}
                 description={strings('swaps.market_price_unavailable')}
