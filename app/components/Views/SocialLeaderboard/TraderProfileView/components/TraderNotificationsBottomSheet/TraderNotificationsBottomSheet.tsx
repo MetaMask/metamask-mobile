@@ -65,11 +65,20 @@ const TraderNotificationsBottomSheet = forwardRef<
   ) => {
     const sheetRef = useRef<BottomSheetRef>(null);
     const [isVisible, setIsVisible] = useState(false);
+    const [localEnabled, setLocalEnabled] = useState(false);
     const tw = useTailwind();
     const navigation = useNavigation();
 
     const globalOff = !preferences.enabled;
-    const traderNotificationEnabled = isTraderNotificationEnabled(traderId);
+
+    // Snapshot the remote value each time the sheet opens so the toggle
+    // always starts from the authoritative server state.
+    useEffect(() => {
+      if (isVisible) {
+        setLocalEnabled(isTraderNotificationEnabled(traderId));
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible]);
 
     const handleSheetClosed = useCallback(() => {
       setIsVisible(false);
@@ -116,9 +125,20 @@ const TraderNotificationsBottomSheet = forwardRef<
       });
     }, [navigation]);
 
+    // Only persist when the user explicitly confirms with Save.
+    // If the local draft differs from the remote value, issue one toggle call.
     const handleSave = useCallback(() => {
+      if (localEnabled !== isTraderNotificationEnabled(traderId)) {
+        toggleTraderNotification(traderId);
+      }
       closeSheet();
-    }, [closeSheet]);
+    }, [
+      closeSheet,
+      isTraderNotificationEnabled,
+      localEnabled,
+      toggleTraderNotification,
+      traderId,
+    ]);
 
     if (!isVisible) {
       return null;
@@ -154,10 +174,10 @@ const TraderNotificationsBottomSheet = forwardRef<
             'social_leaderboard.trader_notifications.allow_push_notifications_desc',
             { traderName },
           )}
-          value={traderNotificationEnabled}
-          onValueChange={() => {
+          value={localEnabled}
+          onValueChange={(next: boolean) => {
             if (!globalOff) {
-              toggleTraderNotification(traderId);
+              setLocalEnabled(next);
             }
           }}
           disabled={globalOff}

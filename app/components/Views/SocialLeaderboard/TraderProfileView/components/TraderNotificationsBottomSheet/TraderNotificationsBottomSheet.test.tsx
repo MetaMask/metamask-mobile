@@ -216,8 +216,13 @@ describe('TraderNotificationsBottomSheet', () => {
       expect(toggle.props.value).toBe(false);
     });
 
-    it('calls toggleTraderNotification with the trader id when toggled', () => {
-      renderWithProvider(<OpenedSheet traderId="trader-1" />);
+    it('flips the toggle value locally but does NOT call toggleTraderNotification immediately', () => {
+      renderWithProvider(
+        <OpenedSheet
+          traderId="trader-1"
+          isTraderNotificationEnabled={() => true}
+        />,
+      );
 
       fireEvent(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
@@ -225,7 +230,11 @@ describe('TraderNotificationsBottomSheet', () => {
         false,
       );
 
-      expect(mockToggleTraderNotification).toHaveBeenCalledWith('trader-1');
+      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE)
+          .props.value,
+      ).toBe(false);
     });
 
     it('disables the toggle when global notifications are off', () => {
@@ -278,7 +287,81 @@ describe('TraderNotificationsBottomSheet', () => {
   });
 
   describe('save button', () => {
-    it('closes the sheet and calls onDismiss without other side effects when save is pressed', () => {
+    it('calls toggleTraderNotification when the toggle was changed before saving', () => {
+      renderWithProvider(
+        <OpenedSheet
+          traderId="trader-1"
+          isTraderNotificationEnabled={() => true}
+        />,
+      );
+
+      fireEvent(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
+        'valueChange',
+        false,
+      );
+
+      act(() => {
+        fireEvent.press(
+          screen.getByTestId(
+            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockToggleTraderNotification).toHaveBeenCalledWith('trader-1');
+    });
+
+    it('does not call toggleTraderNotification when the toggle was not changed before saving', () => {
+      renderWithProvider(
+        <OpenedSheet
+          traderId="trader-1"
+          isTraderNotificationEnabled={() => true}
+        />,
+      );
+
+      act(() => {
+        fireEvent.press(
+          screen.getByTestId(
+            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+    });
+
+    it('does not call toggleTraderNotification when the toggle was changed and then reverted before saving', () => {
+      renderWithProvider(
+        <OpenedSheet
+          traderId="trader-1"
+          isTraderNotificationEnabled={() => true}
+        />,
+      );
+
+      fireEvent(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
+        'valueChange',
+        false,
+      );
+      fireEvent(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
+        'valueChange',
+        true,
+      );
+
+      act(() => {
+        fireEvent.press(
+          screen.getByTestId(
+            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+    });
+
+    it('closes the sheet and calls onDismiss when save is pressed', () => {
       const mockOnDismiss = jest.fn();
 
       renderWithProvider(<OpenedSheet onDismiss={mockOnDismiss} />);
@@ -292,7 +375,6 @@ describe('TraderNotificationsBottomSheet', () => {
       });
 
       expect(mockOnDismiss).toHaveBeenCalledTimes(1);
-      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
