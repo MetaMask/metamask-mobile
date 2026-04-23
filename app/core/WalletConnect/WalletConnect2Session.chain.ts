@@ -28,7 +28,8 @@ export const doesChainExist = (caip2ChainId: CaipChainId): boolean => {
       store.getState(),
     );
     return networkConfigurations[chainId] !== undefined;
-  } catch {
+  } catch (err) {
+    DevLogger.log(`WC::doesChainExist lookup failed for ${caip2ChainId}`, err);
     return false;
   }
 };
