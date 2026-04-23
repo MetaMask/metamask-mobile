@@ -16,28 +16,29 @@ export const useMusdConfirmNavigation = () => {
   // stale confirmation screen in the back stack. To prevent that:
   //  - pop: if CashTokensFullView is already below (entered from Money Hub)
   //  - replace: if it isn't (entered from TokenListItem or asset detail)
-  const handleMoneyHubNavigation = useCallback(() => {
+  const handleMoneyHubNavigation = useCallback((): boolean => {
     const parentNavigation = navigation.getParent();
-    if (parentNavigation) {
-      const parentState = parentNavigation.getState();
-      const isCashTokensFullViewInStack = parentState.routes.some(
-        (route) => route.name === Routes.WALLET.CASH_TOKENS_FULL_VIEW,
-      );
-
-      if (isCashTokensFullViewInStack) {
-        parentNavigation.dispatch(StackActions.pop());
-      } else {
-        parentNavigation.dispatch(
-          StackActions.replace(Routes.WALLET.CASH_TOKENS_FULL_VIEW),
-        );
-      }
+    if (!parentNavigation) {
+      return false;
     }
-    return;
+
+    const parentState = parentNavigation.getState();
+    const isCashTokensFullViewInStack = parentState.routes.some(
+      (route) => route.name === Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+    );
+
+    if (isCashTokensFullViewInStack) {
+      parentNavigation.dispatch(StackActions.pop());
+    } else {
+      parentNavigation.dispatch(
+        StackActions.replace(Routes.WALLET.CASH_TOKENS_FULL_VIEW),
+      );
+    }
+    return true;
   }, [navigation]);
 
   const navigateOnConfirm = useCallback(() => {
-    if (isMoneyHubEnabled) {
-      handleMoneyHubNavigation();
+    if (isMoneyHubEnabled && handleMoneyHubNavigation()) {
       return;
     }
 

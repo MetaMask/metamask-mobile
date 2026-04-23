@@ -81,7 +81,7 @@ describe('useMusdConfirmNavigation', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does not dispatch when parent navigation is unavailable', () => {
+    it('falls back to wallet view when parent navigation is unavailable', () => {
       mockGetParent.mockReturnValue(null);
 
       const { result } = renderHook(() => useMusdConfirmNavigation());
@@ -91,7 +91,7 @@ describe('useMusdConfirmNavigation', () => {
       });
 
       expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
   });
 
