@@ -125,7 +125,21 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
 
       const hexChainId = chainId as Hex;
       const existingNetwork = networkConfigurations[hexChainId];
-      const indexRpc = rpcUrls.findIndex((r) => r.url === correctedRpcUrl);
+
+      const stripTrailingSlashFromUrl = (value: string) =>
+        value.replace(/\/$/, '');
+
+      const rpcUrlsReferToSameEndpoint = (a: string, b: string) =>
+        a === b ||
+        stripTrailingSlashFromUrl(a) === stripTrailingSlashFromUrl(b);
+
+      const endpointMatchesSelectedRpc = (endpointUrl: string) =>
+        rpcUrlsReferToSameEndpoint(endpointUrl, rpcUrl) ||
+        rpcUrlsReferToSameEndpoint(endpointUrl, correctedRpcUrl);
+
+      const indexRpc = rpcUrls.findIndex((r) =>
+        endpointMatchesSelectedRpc(r.url),
+      );
       const blockExplorerIndex = blockExplorerUrls.findIndex(
         (u) => u === blockExplorerUrl,
       );
@@ -134,25 +148,29 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         blockExplorerUrls,
         chainId: hexChainId,
         rpcEndpoints: rpcUrls.map((r) =>
-          r.url === rpcUrl ? { ...r, url: correctedRpcUrl } : r,
+          endpointMatchesSelectedRpc(r.url)
+            ? { ...r, url: correctedRpcUrl }
+            : r,
         ),
         nativeCurrency: ticker,
         name: nickname,
-        defaultRpcEndpointIndex:
-          indexRpc !== -1
-            ? indexRpc
-            : rpcUrls.findIndex((r) => r.url === rpcUrl),
+        defaultRpcEndpointIndex: indexRpc,
         defaultBlockExplorerUrlIndex:
           blockExplorerIndex !== -1 ? blockExplorerIndex : undefined,
       };
+
+      const updateOptions =
+        existingNetwork != null &&
+        existingNetwork.chainId === hexChainId &&
+        indexRpc >= 0
+          ? { replacementSelectedRpcEndpointIndex: indexRpc }
+          : undefined;
 
       if (!isNetworkNew && existingNetwork) {
         await NetworkController.updateNetwork(
           existingNetwork.chainId,
           networkConfig as unknown as UpdateNetworkFields,
-          existingNetwork.chainId === hexChainId
-            ? { replacementSelectedRpcEndpointIndex: indexRpc }
-            : undefined,
+          updateOptions,
         );
 
         if (trackRpcUpdateFromBanner) {
@@ -269,7 +287,22 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
 
       const ticker = form.ticker ? form.ticker.toUpperCase() : undefined;
 
-      if (!stateChainId || !rpcUrl || !nickname?.trim()) {
+      if (!stateChainId || !rpcUrl) {
+        return false;
+      }
+
+      const formChainId = stateChainId.trim().toLowerCase();
+      let chainId = formChainId;
+      if (!chainId.startsWith('0x')) {
+        chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+      }
+
+      const existingNetwork = networkConfigurations[chainId as Hex];
+      let resolvedNickname = nickname?.trim() ?? '';
+      if (!resolvedNickname && !addMode && existingNetwork?.name) {
+        resolvedNickname = existingNetwork.name.trim();
+      }
+      if (!resolvedNickname) {
         return false;
       }
 
@@ -279,12 +312,6 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
             (cfg) => cfg.chainId === toHex(stateChainId),
           )
         : false;
-
-      const formChainId = stateChainId.trim().toLowerCase();
-      let chainId = formChainId;
-      if (!chainId.startsWith('0x')) {
-        chainId = `0x${parseInt(chainId, 10).toString(16)}`;
-      }
 
       if (
         !skipChainIdSubmitValidation &&
@@ -307,20 +334,24 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       const { NetworkEnablementController } = Engine.context;
       NetworkEnablementController.enableNetwork(chainId as Hex);
 
-      await handleNetworkUpdate({
-        rpcUrl,
-        chainId,
-        nickname: nickname ?? '',
-        ticker: ticker ?? '',
-        blockExplorerUrl,
-        blockExplorerUrls,
-        rpcUrls,
-        isNetworkNew,
-        isCustomMainnet,
-        shouldNetworkSwitchPopToWallet,
-        trackRpcUpdateFromBanner,
-        skipPostSaveNavigation,
-      });
+      try {
+        await handleNetworkUpdate({
+          rpcUrl,
+          chainId,
+          nickname: resolvedNickname,
+          ticker: ticker ?? '',
+          blockExplorerUrl,
+          blockExplorerUrls,
+          rpcUrls,
+          isNetworkNew,
+          isCustomMainnet,
+          shouldNetworkSwitchPopToWallet,
+          trackRpcUpdateFromBanner,
+          skipPostSaveNavigation,
+        });
+      } catch (error) {
+        return false;
+      }
       return true;
     },
     [

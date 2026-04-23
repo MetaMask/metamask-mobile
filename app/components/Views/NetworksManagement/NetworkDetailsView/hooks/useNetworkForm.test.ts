@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { appendRpcItemToFormState } from '../NetworkDetailsView.utils';
 import { useNetworkForm } from './useNetworkForm';
 
 jest.mock('react-redux', () => ({
@@ -214,6 +215,37 @@ describe('useNetworkForm', () => {
       expect(result.current.form.rpcUrls.length).toBeGreaterThan(1);
       expect(result.current.form.rpcUrl).toBe('https://new.example.com');
       expect(result.current.form.rpcName).toBe('New RPC');
+    });
+
+    it('does not re-enable Save after commitBaseline then onRpcItemAdd (sheet persist order)', () => {
+      const customConfigs = {
+        '0x89': {
+          chainId: '0x89',
+          name: 'Polygon',
+          nativeCurrency: 'MATIC',
+          rpcEndpoints: [{ url: 'https://polygon-rpc.com', type: 'custom' }],
+          defaultRpcEndpointIndex: 0,
+          blockExplorerUrls: [],
+        },
+      };
+      mockUseSelector.mockReturnValue(customConfigs);
+
+      const { result } = renderHook(() =>
+        useNetworkForm({ network: 'https://polygon-rpc.com' }),
+      );
+
+      const nextForm = appendRpcItemToFormState(
+        result.current.form,
+        'https://extra-rpc.example.com',
+        'Extra',
+      );
+
+      act(() => {
+        result.current.commitBaselineFromFormState(nextForm);
+        result.current.onRpcItemAdd('https://extra-rpc.example.com', 'Extra');
+      });
+
+      expect(result.current.enableAction).toBe(false);
     });
 
     it('does not add empty RPC item', () => {

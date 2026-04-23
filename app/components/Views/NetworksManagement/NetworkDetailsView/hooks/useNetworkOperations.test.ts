@@ -450,6 +450,45 @@ describe('useNetworkOperations', () => {
       });
     };
 
+    it('uses stored network name when form nickname is empty in edit mode', async () => {
+      setupExistingNetwork();
+
+      const { result } = renderHook(() => useNetworkOperations());
+
+      await act(async () => {
+        await result.current.saveNetwork(
+          {
+            ...baseForm,
+            chainId: '42',
+            addMode: false,
+            nickname: '',
+            rpcUrls: [
+              {
+                url: 'https://rpc.example.com/',
+                name: 'Test RPC',
+                type: 'Custom',
+              },
+            ],
+          },
+          {
+            ...defaultSaveOpts(),
+            shouldNetworkSwitchPopToWallet: false,
+            skipPostSaveNavigation: true,
+            bypassEnableActionGuard: true,
+            bypassFormDisabledGuards: true,
+          },
+        );
+      });
+
+      expect(mockUpdateNetwork).toHaveBeenCalledWith(
+        existingChainId,
+        expect.objectContaining({
+          name: 'OldNet',
+        }),
+        expect.anything(),
+      );
+    });
+
     it('calls updateNetwork for an existing network', async () => {
       setupExistingNetwork();
 
@@ -620,7 +659,7 @@ describe('useNetworkOperations', () => {
       expect(mockUpdateNetwork).toHaveBeenCalled();
     });
 
-    it('passes options with indexRpc when form rpcUrl is not in rpcUrls list', async () => {
+    it('omits replacementSelectedRpcEndpointIndex when selected RPC is not in list', async () => {
       setupExistingNetwork();
 
       const { result } = renderHook(() => useNetworkOperations());
@@ -645,9 +684,51 @@ describe('useNetworkOperations', () => {
         expect.objectContaining({
           defaultRpcEndpointIndex: -1,
         }),
+        undefined,
+      );
+    });
+
+    it('matches selected RPC index when URL differs only by trailing slash', async () => {
+      setupExistingNetwork();
+
+      const { result } = renderHook(() => useNetworkOperations());
+
+      await act(async () => {
+        await result.current.saveNetwork(
+          {
+            ...baseForm,
+            chainId: '42',
+            addMode: false,
+            rpcUrl: 'https://linea-rpc.publicnode.com',
+            rpcUrls: [
+              {
+                url: 'https://rpc.example.com/',
+                name: 'Old',
+                type: 'Custom',
+              },
+              {
+                url: 'https://linea-rpc.publicnode.com/',
+                name: 'PublicNode',
+                type: 'Custom',
+              },
+            ],
+          },
+          {
+            ...defaultSaveOpts(),
+            shouldNetworkSwitchPopToWallet: false,
+            skipPostSaveNavigation: true,
+            bypassEnableActionGuard: true,
+            bypassFormDisabledGuards: true,
+          },
+        );
+      });
+
+      expect(mockUpdateNetwork).toHaveBeenCalledWith(
+        existingChainId,
         expect.objectContaining({
-          replacementSelectedRpcEndpointIndex: -1,
+          defaultRpcEndpointIndex: 1,
         }),
+        { replacementSelectedRpcEndpointIndex: 1 },
       );
     });
 

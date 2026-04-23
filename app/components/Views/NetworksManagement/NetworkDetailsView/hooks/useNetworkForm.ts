@@ -154,9 +154,8 @@ export const useNetworkForm = (
 
   // ---- Derived / tracking state -------------------------------------------
   const [enableAction, setEnableAction] = useState(false);
-  const [initialStateStr, setInitialStateStr] = useState<string | undefined>(
-    undefined,
-  );
+  /** Last-saved baseline for dirty detection; ref (not state) so `getCurrentState` never closes over a stale string after `commitBaselineFromFormState`. */
+  const initialBaselineStrRef = useRef<string | undefined>(undefined);
 
   // Allows the parent to register a callback we invoke after
   // certain form changes (e.g. chainId change, rpc change).
@@ -171,14 +170,14 @@ export const useNetworkForm = (
     setForm((prev) => {
       const actual = baselineSnapshotFromForm(prev);
 
-      setEnableAction(actual !== initialStateStr);
+      setEnableAction(actual !== initialBaselineStrRef.current);
       return prev; // no mutation
     });
-  }, [initialStateStr]);
+  }, []);
 
   const commitBaselineFromFormState = useCallback(
     (formState: NetworkFormState) => {
-      setInitialStateStr(baselineSnapshotFromForm(formState));
+      initialBaselineStrRef.current = baselineSnapshotFromForm(formState);
       setEnableAction(false);
     },
     [],
@@ -292,7 +291,7 @@ export const useNetworkForm = (
         addMode: false,
       };
 
-      setInitialStateStr(baselineSnapshotFromForm(nextForm));
+      initialBaselineStrRef.current = baselineSnapshotFromForm(nextForm);
       setForm(nextForm);
     } else {
       // --- Add mode --------------------------------------------------------
