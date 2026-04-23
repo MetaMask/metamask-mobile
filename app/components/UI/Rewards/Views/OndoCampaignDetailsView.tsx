@@ -193,7 +193,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         !hasPresentedWinningViewRef.current &&
         campaign &&
         getCampaignStatus(campaign) === 'complete' &&
-        participantOutcome?.winnerVerificationCode != null &&
+        participantOutcome?.winnerVerificationCode &&
         participantOutcome?.outcomeStatus === 'pending' &&
         effectiveCampaignId
       ) {
@@ -400,7 +400,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                     {getCampaignStatus(campaign) === 'complete' &&
                       participantOutcome && (
                         <Box twClassName="mt-3">
-                          {participantOutcome.winnerVerificationCode != null &&
+                          {participantOutcome.winnerVerificationCode &&
                           participantOutcome.outcomeStatus === 'pending' ? (
                             <Pressable
                               accessibilityLabel={strings(
