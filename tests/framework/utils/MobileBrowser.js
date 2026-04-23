@@ -105,48 +105,48 @@ async function dismissChromeNotificationsIfPresent(device) {
 export async function launchMobileBrowser(device) {
   const isAndroid = AppwrightSelectors.isAndroid(device);
   if (isAndroid) {
-    setupChromeDisableFre();
+    // setupChromeDisableFre();
     clearChromeData();
     await device.activateApp(CHROME_PACKAGE);
     MobileBrowserScreen.device = device;
     // Dismiss first-run / sign-in prompts if present (short timeout so we don't hang)
-    try {
-      await withTimeout(
-        MobileBrowserScreen.tapOnboardingChromeWithoutAccount(),
-        CHROME_DISMISS_TIMEOUT_MS,
-        'tapOnboardingChromeWithoutAccount',
-      );
-    } catch {
-      // No onboarding dialog or timed out
-    }
-    try {
-      await withTimeout(
-        MobileBrowserScreen.tapChromeNoThanksButton(),
-        CHROME_DISMISS_TIMEOUT_MS,
-        'tapChromeNoThanksButton',
-      );
-    } catch {
-      // No "No thanks" dialog or timed out
-    }
-    try {
-      await withTimeout(
-        dismissChromeAdPrivacyIfPresent(device),
-        CHROME_DISMISS_TIMEOUT_MS,
-        'dismissChromeAdPrivacy',
-      );
-    } catch {
-      // No Enhanced ad privacy dialog or timed out — continue
-    }
-    try {
-      await withTimeout(
-        dismissChromeNotificationsIfPresent(device),
-        CHROME_DISMISS_TIMEOUT_MS,
-        'dismissChromeNotifications',
-      );
-    } catch {
-      // No "Chrome notifications" modal or timed out — continue
-    }
-    await new Promise((r) => setTimeout(r, CHROME_UI_SETTLE_MS));
+    // try {
+    //   await withTimeout(
+    //     MobileBrowserScreen.tapOnboardingChromeWithoutAccount(),
+    //     CHROME_DISMISS_TIMEOUT_MS,
+    //     'tapOnboardingChromeWithoutAccount',
+    //   );
+    // } catch {
+    //   // No onboarding dialog or timed out
+    // }
+    // try {
+    //   await withTimeout(
+    //     MobileBrowserScreen.tapChromeNoThanksButton(),
+    //     CHROME_DISMISS_TIMEOUT_MS,
+    //     'tapChromeNoThanksButton',
+    //   );
+    // } catch {
+    //   // No "No thanks" dialog or timed out
+    // }
+    // try {
+    //   await withTimeout(
+    //     dismissChromeAdPrivacyIfPresent(device),
+    //     CHROME_DISMISS_TIMEOUT_MS,
+    //     'dismissChromeAdPrivacy',
+    //   );
+    // } catch {
+    //   // No Enhanced ad privacy dialog or timed out — continue
+    // }
+    // try {
+    //   await withTimeout(
+    //     dismissChromeNotificationsIfPresent(device),
+    //     CHROME_DISMISS_TIMEOUT_MS,
+    //     'dismissChromeNotifications',
+    //   );
+    // } catch {
+    //   // No "Chrome notifications" modal or timed out — continue
+    // }
+    // await new Promise((r) => setTimeout(r, CHROME_UI_SETTLE_MS));
   } else {
     await device.activateApp('com.apple.mobilesafari');
   }
