@@ -249,7 +249,9 @@ jobs:
               '
             )"
             # Status description is "${FILE_SIZE_MB};" from the Post iOS JS bundle size step (awk MiB + ';').
-            if [[ "$DESC" =~ ^[[:space:]]*([0-9]+(\.[0-9]*)?)[[:space:]]*;?[[:space:]]*$ ]]; then
+            # Regex in a variable: ';' in an unquoted [[ =~ ... ]] pattern is parsed as a command separator (shellcheck SC1072).
+            _bundle_desc_re='^[[:space:]]*([0-9]+(\.[0-9]*)?)[[:space:]]*;?[[:space:]]*$'
+            if [[ "$DESC" =~ $_bundle_desc_re ]]; then
               BASELINE_MB="${BASH_REMATCH[1]}"
               echo "Baseline from base ref status: ${BASELINE_MB} MB"
             else
