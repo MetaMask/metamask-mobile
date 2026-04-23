@@ -106,5 +106,5 @@ export function buildMultichainActivityTokenScanFingerprint(
       all.add(key);
     }
   }
-  return [...all].sort().join('\u0000');
+  return [...all].sort((a, b) => a.localeCompare(b)).join('\u0000');
 }
