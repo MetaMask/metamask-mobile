@@ -212,7 +212,9 @@ describe('spot balance helpers', () => {
       ],
     } as never);
 
-    expect(result).toBe(accountState);
+    expect(result.totalBalance).toBe(accountState.totalBalance);
+    expect(result.availableBalance).toBe(accountState.availableBalance);
+    expect(result.availableToTradeBalance).toBe(accountState.availableBalance);
   });
 
   it('excludes USDH-only spot balance from funded-state totals', () => {
@@ -231,7 +233,9 @@ describe('spot balance helpers', () => {
       ],
     } as never);
 
-    expect(result).toBe(accountState);
+    expect(result.totalBalance).toBe(accountState.totalBalance);
+    expect(result.availableBalance).toBe(accountState.availableBalance);
+    expect(result.availableToTradeBalance).toBe(accountState.availableBalance);
   });
 
   it('adds only the USDC portion when USDC and USDH are both present', () => {
@@ -254,7 +258,7 @@ describe('spot balance helpers', () => {
     expect(result.totalBalance).toBe('30');
   });
 
-  it('returns the original account state when spot balance is zero', () => {
+  it('preserves numeric fields and defaults availableToTradeBalance when spot balance is zero', () => {
     const accountState: AccountState = {
       availableBalance: '1',
       totalBalance: '2',
@@ -263,9 +267,14 @@ describe('spot balance helpers', () => {
       returnOnEquity: '5',
     };
 
-    expect(
-      addSpotBalanceToAccountState(accountState, { balances: [] } as never),
-    ).toBe(accountState);
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [],
+    } as never);
+
+    expect(result.totalBalance).toBe(accountState.totalBalance);
+    expect(result.availableBalance).toBe(accountState.availableBalance);
+    expect(result.marginUsed).toBe(accountState.marginUsed);
+    expect(result.availableToTradeBalance).toBe(accountState.availableBalance);
   });
 });
 
