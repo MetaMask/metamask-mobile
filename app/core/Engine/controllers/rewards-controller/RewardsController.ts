@@ -28,6 +28,7 @@ import {
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
   type OndoGmCampaignDepositsDto,
+  type OndoGmCampaignParticipantOutcomeDto,
   type PaginatedOndoGmActivityDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
@@ -403,7 +404,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getOndoCampaignLeaderboardPosition',
   'getOndoCampaignActivity',
   'getOndoCampaignPortfolioPosition',
-  'getOndoCampaignWinnerCode',
+  'getOndoCampaignParticipantOutcome',
   'getOptInStatus',
   'getPerpsDiscountForAccount',
   'getPointsEvents',
@@ -3710,23 +3711,18 @@ export class RewardsController extends BaseController<
     return result;
   }
 
-  /**
-   * Fetch the winning code for the current user in a completed Ondo GM campaign.
-   * This is an authenticated, no-cache endpoint — called only when the winner
-   * screen is shown, so freshness is guaranteed.
-   */
-  async getOndoCampaignWinnerCode(
+  async getOndoCampaignParticipantOutcome(
     campaignId: string,
     subscriptionId: string,
-  ): Promise<string | null> {
+  ): Promise<OndoGmCampaignParticipantOutcomeDto | null> {
     if (!this.isRewardsFeatureEnabled()) {
       return null;
     }
     try {
       const result = await this.#withAuthRetry(async () => {
-        Logger.log('RewardsController: Fetching Ondo campaign winner code');
+        Logger.log('RewardsController: Fetching Ondo campaign participant outcome');
         return this.messenger.call(
-          'RewardsDataService:getOndoCampaignWinnerCode',
+          'RewardsDataService:getOndoCampaignParticipantOutcome',
           campaignId,
           subscriptionId,
         );
@@ -3734,7 +3730,7 @@ export class RewardsController extends BaseController<
       return result;
     } catch (error) {
       Logger.log(
-        'RewardsController: Failed to get Ondo campaign winner code:',
+        'RewardsController: Failed to get Ondo campaign participant outcome:',
         error instanceof Error ? error.message : String(error),
       );
       return null;

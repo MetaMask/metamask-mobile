@@ -8290,6 +8290,32 @@
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
       "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "loser_pending": {
+        "title": "Determining winners",
+        "description": "We're still determining the winners."
+      },
+      "loser_finalized": {
+        "title": "Contest results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "loser_finalized": {
+        "title": "The results are in 🥇",
+        "description": "See where you finished on the leaderboard."
+      },
+      "winner_pending": {
+        "title": "You won! 🏆",
+        "description": "Reach out to us to claim your reward."
+      },
+      "view": "View",
+      "view_details": "View details"
     }
   },
   "time": {

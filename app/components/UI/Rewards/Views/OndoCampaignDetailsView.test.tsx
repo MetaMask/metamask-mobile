@@ -191,6 +191,21 @@ jest.mock('../components/Campaigns/CampaignOptInSheet', () => {
   };
 });
 
+jest.mock('../components/RewardsInfoBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ title, description }: { title: string; description: string }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-info-banner' },
+        ReactActual.createElement(Text, null, title),
+        ReactActual.createElement(Text, null, description),
+      ),
+  };
+});
+
 jest.mock('../components/RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
@@ -253,6 +268,20 @@ const mockUseGetOndoCampaignDeposits =
   useGetOndoCampaignDeposits as jest.MockedFunction<
     typeof useGetOndoCampaignDeposits
   >;
+
+jest.mock('../hooks/useOndoCampaignParticipantOutcome', () => ({
+  __esModule: true,
+  useOndoCampaignParticipantOutcome: jest.fn(() => ({
+    outcome: null,
+    isLoading: false,
+    hasError: false,
+  })),
+}));
+
+jest.mock('../hooks/useOndoCampaignEndedOutcomeToast', () => ({
+  __esModule: true,
+  useOndoCampaignEndedOutcomeToast: jest.fn(),
+}));
 
 const mockOndoPrizePool = jest.fn();
 jest.mock('../components/Campaigns/OndoPrizePool', () => {
@@ -1338,9 +1367,7 @@ describe('OndoCampaignDetailsView', () => {
     it('shows the winner banner in the stats section when user is a winner and campaign is complete', () => {
       setupWinner();
       const { getByText } = render(<OndoCampaignDetailsView />);
-      expect(
-        getByText('rewards.ondo_winning_banner.title'),
-      ).toBeDefined();
+      expect(getByText('rewards.ondo_winning_banner.title')).toBeDefined();
     });
 
     it('does not show the winner banner when user is not a winner', () => {
@@ -1369,9 +1396,7 @@ describe('OndoCampaignDetailsView', () => {
         refetch: jest.fn(),
       });
       const { queryByText } = render(<OndoCampaignDetailsView />);
-      expect(
-        queryByText('rewards.ondo_winning_banner.title'),
-      ).toBeNull();
+      expect(queryByText('rewards.ondo_winning_banner.title')).toBeNull();
     });
 
     it('tapping the winner banner navigates to the winning view', () => {

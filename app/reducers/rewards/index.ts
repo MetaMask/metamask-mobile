@@ -17,6 +17,7 @@ import {
   OndoGmPortfolioDto,
   OndoGmActivityEntryDto,
   OndoGmCampaignDepositsDto,
+  OndoGmCampaignParticipantOutcomeDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -165,6 +166,17 @@ export interface RewardsState {
   ondoCampaignDepositsLoading: boolean;
   ondoCampaignDepositsError: boolean;
 
+  // Ondo campaign participant outcome (keyed by campaignId)
+  ondoCampaignParticipantOutcome: Record<
+    string,
+    OndoGmCampaignParticipantOutcomeDto
+  >;
+  ondoCampaignParticipantOutcomeLoading: boolean;
+  ondoCampaignParticipantOutcomeError: boolean;
+
+  // General dismissed campaign outcome toasts (keyed by `${subscriptionId}:${campaignId}`)
+  dismissedCampaignOutcomeToasts: Record<string, true>;
+
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
@@ -275,6 +287,14 @@ export const initialState: RewardsState = {
   ondoCampaignDeposits: null,
   ondoCampaignDepositsLoading: false,
   ondoCampaignDepositsError: false,
+
+  // Ondo campaign participant outcome initial state
+  ondoCampaignParticipantOutcome: {},
+  ondoCampaignParticipantOutcomeLoading: false,
+  ondoCampaignParticipantOutcomeError: false,
+
+  // Dismissed campaign outcome toasts
+  dismissedCampaignOutcomeToasts: {},
 
   pendingDeeplink: null,
 };
@@ -390,6 +410,9 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDeposits = null;
       state.ondoCampaignDepositsLoading = false;
       state.ondoCampaignDepositsError = false;
+      state.ondoCampaignParticipantOutcome = {};
+      state.ondoCampaignParticipantOutcomeLoading = false;
+      state.ondoCampaignParticipantOutcomeError = false;
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -694,6 +717,33 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDepositsError = action.payload;
     },
 
+    setOndoCampaignParticipantOutcome: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        outcome: OndoGmCampaignParticipantOutcomeDto;
+      }>,
+    ) => {
+      state.ondoCampaignParticipantOutcome[action.payload.campaignId] =
+        action.payload.outcome;
+      state.ondoCampaignParticipantOutcomeError = false;
+    },
+    setOndoCampaignParticipantOutcomeLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.ondoCampaignParticipantOutcomeLoading = action.payload;
+    },
+    setOndoCampaignParticipantOutcomeError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.ondoCampaignParticipantOutcomeError = action.payload;
+    },
+    dismissCampaignOutcomeToast: (state, action: PayloadAction<string>) => {
+      state.dismissedCampaignOutcomeToasts[action.payload] = true;
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -888,6 +938,11 @@ export const {
   setOndoCampaignDeposits,
   setOndoCampaignDepositsLoading,
   setOndoCampaignDepositsError,
+  // Campaign participant outcome actions
+  setOndoCampaignParticipantOutcome,
+  setOndoCampaignParticipantOutcomeLoading,
+  setOndoCampaignParticipantOutcomeError,
+  dismissCampaignOutcomeToast,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

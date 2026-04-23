@@ -297,5 +297,17 @@ export const selectOndoCampaignDepositsLoading = (state: RootState) =>
 export const selectOndoCampaignDepositsError = (state: RootState) =>
   state.rewards.ondoCampaignDepositsError;
 
+export const selectOndoCampaignParticipantOutcomeById =
+  (campaignId: string) =>
+  (state: RootState) =>
+    state.rewards.ondoCampaignParticipantOutcome[campaignId] ?? null;
+
+export const selectIsCampaignOutcomeToastDismissed =
+  (subscriptionId: string, campaignId: string) =>
+  (state: RootState) =>
+    state.rewards.dismissedCampaignOutcomeToasts[
+      `${subscriptionId}:${campaignId}`
+    ] === true;
+
 export const selectPendingDeeplink = (state: RootState) =>
   state.rewards.pendingDeeplink;

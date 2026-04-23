@@ -2,11 +2,11 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { useSelector } from 'react-redux';
 import OndoCampaignWinningView, {
   ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS,
 } from './OndoCampaignWinningView';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
-import { useOndoCampaignWinnerCode } from '../hooks/useOndoCampaignWinnerCode';
 
 jest.mock('../../../../images/rewards/campaign_winning.png', () => ({
   __esModule: true,
@@ -41,6 +41,8 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => jest.fn()),
 }));
 
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -66,10 +68,6 @@ jest.mock('../utils', () => ({
   RewardsMetricsButtons: {
     COPY_REFERRAL_CODE: 'copy_referral_code',
   },
-}));
-
-jest.mock('../hooks/useOndoCampaignWinnerCode', () => ({
-  useOndoCampaignWinnerCode: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -104,11 +102,6 @@ jest.mock('../hooks/useGetOndoLeaderboardPosition', () => ({
 const mockUseGetOndoLeaderboardPosition =
   useGetOndoLeaderboardPosition as jest.MockedFunction<
     typeof useGetOndoLeaderboardPosition
-  >;
-
-const mockUseOndoCampaignWinnerCode =
-  useOndoCampaignWinnerCode as jest.MockedFunction<
-    typeof useOndoCampaignWinnerCode
   >;
 
 jest.mock('../components/ReferralDetails/CopyableField', () => {
@@ -175,9 +168,10 @@ describe('OndoCampaignWinningView', () => {
       hasFetched: true,
       refetch: jest.fn(),
     });
-    mockUseOndoCampaignWinnerCode.mockReturnValue({
-      code: 'LVL346',
-      isLoading: false,
+    mockUseSelector.mockReturnValue({
+      subscriptionId: 'sub-1',
+      outcomeStatus: 'pending',
+      winnerVerificationCode: 'LVL346',
     });
   });
 
