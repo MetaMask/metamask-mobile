@@ -25,6 +25,7 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
 } from '../../../../../UI/Earn/constants/musd';
+import { useMMPayHardwareAccountAlert } from '../../../hooks/alerts/useMMPayHardwareAccountAlert';
 
 /**
  * Navigation params for MusdMaxConversionInfo
@@ -51,8 +52,9 @@ export const MusdMaxConversionInfo = () => {
 
   const { onConfirm } = useConfirmActions();
   const { alerts } = useAlerts();
+  const hardwareAccountAlerts = useMMPayHardwareAccountAlert();
 
-  const blockingAlert = alerts.find(
+  const blockingAlert = [...alerts, ...hardwareAccountAlerts].find(
     (confirmationAlert) => confirmationAlert.isBlocking,
   );
 
