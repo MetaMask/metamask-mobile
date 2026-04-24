@@ -15,6 +15,8 @@ import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+import Logger from '../../../../../util/Logger';
+import type { DeepLinkAnalyticsContext } from '../../../types/deepLinkAnalytics.types';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
@@ -130,6 +132,11 @@ describe('handleUniversalLink', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // `handleMetaMaskDeeplink` is async and its returned promise is
+    // `.catch`ed by the call site. The auto-mock returns `undefined`, so
+    // restore the async contract for all tests by default.
+    mockHandleMetaMaskDeeplink.mockResolvedValue(undefined);
+
     mockSDKConnectGetInstance.mockImplementation(() => ({
       getConnections: jest.fn(),
       connectToChannel: jest.fn(),
@@ -178,6 +185,46 @@ describe('handleUniversalLink', () => {
         });
       },
     );
+
+    // `handleMetaMaskDeeplink` is async and deliberately not awaited here.
+    // Make sure rejections are observed (logged) rather than surfacing as
+    // unhandled promise rejections — this covers the synchronous security
+    // throw for `INTERNAL_ORIGINS` and any rejection from `SDKConnect.init`.
+    it('swallows and logs rejections from handleMetaMaskDeeplink', async () => {
+      const loggerErrorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      const rejectionError = new Error(
+        'External transactions cannot use internal origins',
+      );
+      mockHandleMetaMaskDeeplink.mockRejectedValueOnce(rejectionError);
+
+      const testUrl = `https://link.metamask.io/${ACTIONS.CONNECT}`;
+      const { urlObj: testUrlObj } = extractURLParams(
+        `metamask://${ACTIONS.CONNECT}`,
+      );
+
+      await expect(
+        handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: testUrl,
+          source: 'origin',
+        }),
+      ).resolves.not.toThrow();
+
+      // Flush the promise attached via `.catch` at the call site.
+      await Promise.resolve();
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        rejectionError,
+        'DeepLinkManager: handleMetaMaskDeeplink failed',
+      );
+
+      loggerErrorSpy.mockRestore();
+    });
   });
 
   describe('ACTIONS.BUY_CRYPTO', () => {
@@ -1994,7 +2041,7 @@ describe('handleUniversalLink', () => {
 
     let mockAnalytics: MockMetricsInstance;
     let mockCreateEventBuilder: jest.MockedFunction<
-      () => Promise<MockEventBuilder>
+      (context: DeepLinkAnalyticsContext) => Promise<MockEventBuilder>
     >;
     const { analytics } = jest.requireMock(
       '../../../../../util/analytics/analytics',
@@ -2023,13 +2070,14 @@ describe('handleUniversalLink', () => {
       };
       analytics.trackEvent = mockAnalytics.trackEvent;
 
-      mockCreateEventBuilder = jest.fn(() =>
-        Promise.resolve({
-          addProperties: jest.fn().mockReturnThis(),
-          addSensitiveProperties: jest.fn().mockReturnThis(),
-          build: jest.fn().mockReturnValue({ eventName: 'DEEP_LINK_USED' }),
-        }),
-      );
+      mockCreateEventBuilder = jest.fn(
+        (_context: DeepLinkAnalyticsContext) =>
+          Promise.resolve({
+            addProperties: jest.fn().mockReturnThis(),
+            addSensitiveProperties: jest.fn().mockReturnThis(),
+            build: jest.fn().mockReturnValue({ eventName: 'DEEP_LINK_USED' }),
+          }),
+      ) as typeof mockCreateEventBuilder;
       createDeepLinkUsedEventBuilder.mockImplementation(mockCreateEventBuilder);
     });
 

@@ -206,12 +206,23 @@ async function handleUniversalLink({
     );
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
     const wcURL = params?.uri || mappedUrlObj.href;
+    // `handleMetaMaskDeeplink` is async (it awaits `SDKConnect.init` so the
+    // connect/mmsdk branches can't race init). We deliberately don't await
+    // it here — the call is fire-and-forget from the deeplink pipeline's
+    // perspective — but we must still surface rejections (including the
+    // synchronous `INTERNAL_ORIGINS` security throw) so they don't become
+    // silent unhandled promise rejections.
     handleMetaMaskDeeplink({
       handled,
       wcURL,
       origin: source,
       params,
       url: mappedUrl,
+    }).catch((err) => {
+      Logger.error(
+        err as Error,
+        'DeepLinkManager: handleMetaMaskDeeplink failed',
+      );
     });
     return;
   }
