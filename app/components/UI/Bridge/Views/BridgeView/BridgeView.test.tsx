@@ -2104,6 +2104,23 @@ describe('BridgeView', () => {
       createBridgeTestState(
         {
           bridgeControllerOverrides: { tokenWarnings },
+          ...(tokenWarnings.length > 0 && {
+            bridgeReducerOverrides: {
+              destToken: {
+                ...(mockBridgeReducerState.destToken as BridgeToken),
+                securityData: {
+                  type: tokenWarnings[0].type as unknown as SecurityDataType,
+                  metadata: {
+                    features: tokenWarnings.map((w) => ({
+                      featureId: w.feature_id,
+                      type: w.type as unknown as SecurityDataType,
+                      description: w.description,
+                    })),
+                  },
+                },
+              },
+            },
+          }),
         },
         mockState,
       );
