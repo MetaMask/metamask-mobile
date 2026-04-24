@@ -109,6 +109,7 @@ import type {
   FrontendOrder,
   SpotMetaResponse,
 } from '../types/hyperliquid-types';
+import { hyperLiquidModeFoldsSpot } from '../types/hyperliquid-types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import {
@@ -5649,16 +5650,35 @@ export class HyperLiquidProvider implements PerpsProvider {
         this.#clientService.isTestnetMode() ? 'TESTNET' : 'MAINNET',
       );
 
-      // Get Spot balance (global, not DEX-specific) and Perps states across all DEXs.
+      // Get Spot balance, Perps states across DEXs, and the HL abstraction
+      // mode (Unified / Standard / Portfolio / DEX-abstraction). Mode decides
+      // whether spot USDC is perps collateral — see addSpotBalanceToAccountState.
       // One transient DEX failure should not blank the entire account state.
-      const [spotStateResult, perpsStateResult] = await Promise.allSettled([
-        infoClient.spotClearinghouseState({ user: userAddress }),
-        this.#queryUserDataAcrossDexs({ user: userAddress }, (userParam) =>
-          infoClient.clearinghouseState(userParam),
-        ),
-      ]);
+      const [spotStateResult, perpsStateResult, abstractionResult] =
+        await Promise.allSettled([
+          infoClient.spotClearinghouseState({ user: userAddress }),
+          this.#queryUserDataAcrossDexs({ user: userAddress }, (userParam) =>
+            infoClient.clearinghouseState(userParam),
+          ),
+          infoClient.userAbstraction({ user: userAddress }),
+        ]);
       const spotState =
         spotStateResult.status === 'fulfilled' ? spotStateResult.value : null;
+      const abstractionMode =
+        abstractionResult.status === 'fulfilled'
+          ? abstractionResult.value
+          : null;
+      if (abstractionResult.status === 'rejected') {
+        this.#deps.debugLogger.log(
+          'User abstraction fetch failed; falling back to Unified-mode assumption',
+          {
+            error: ensureError(
+              abstractionResult.reason,
+              'HyperLiquidProvider.getAccountState.abstraction',
+            ).message,
+          },
+        );
+      }
       const perpsResponse =
         perpsStateResult.status === 'fulfilled'
           ? perpsStateResult.value
@@ -5738,6 +5758,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const aggregatedAccountState = addSpotBalanceToAccountState(
         aggregateAccountStates(dexAccountStates),
         spotState,
+        { foldIntoCollateral: hyperLiquidModeFoldsSpot(abstractionMode) },
       );
 
       // Build per-sub-account breakdown (HIP-3 DEXs map to sub-accounts)

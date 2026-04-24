@@ -14,13 +14,28 @@ import { ensureValidState } from './util';
  * which blocks order-entry and withdraw on cold start, offline use, or
  * slow startup.
  *
- * Mapping mirrors the post-refactor adapter semantics. The new spendable
- * and withdrawable fields each take `availableToTradeBalance` when
- * present (includes spot fold), otherwise fall back to `availableBalance`.
+ * Mapping preserves pre-refactor semantics per legacy field.
  *
- * The `subAccountBreakdown` entries (HIP-3) also migrate from the legacy
+ * `spendableBalance` takes `availableToTradeBalance` ?? `availableBalance`.
+ * Pre-refactor the TAT-3016 hotfix folded spot USDC into
+ * `availableToTradeBalance` for the order-entry path, so that is the
+ * correct pre-refactor "max collateral for a new position" value.
+ *
+ * `withdrawableBalance` takes `availableBalance` only. Pre-refactor
+ * `availableBalance` was perps-clearinghouse withdrawable only — the
+ * correct cap for Standard-mode withdraw validation.
+ *
+ * The asymmetric mapping avoids inflating `withdrawableBalance` on cold
+ * start for migrated Standard-mode users (where `availableToTradeBalance`
+ * would include folded spot that HL won't actually let out). A fresh WS
+ * fetch within ~1-2s of launch replaces the migrated values with live
+ * post-refactor adapter output.
+ *
+ * The `subAccountBreakdown` entries (HIP-3) migrate from the legacy
  * `{ availableBalance, totalBalance }` shape to
- * `{ spendableBalance, withdrawableBalance, totalBalance }`.
+ * `{ spendableBalance, withdrawableBalance, totalBalance }`. Sub-account
+ * legacy `availableBalance` was the per-DEX perps-only value (no spot
+ * fold), so both new sub fields take that value.
  */
 const migration = (state: unknown): unknown => {
   const migrationVersion = 133;
@@ -57,12 +72,13 @@ const migration = (state: unknown): unknown => {
       : undefined;
 
   if (legacyAvailable !== undefined || legacyTradeable !== undefined) {
-    const resolved = legacyTradeable ?? legacyAvailable ?? '0';
+    const spendableResolved = legacyTradeable ?? legacyAvailable ?? '0';
+    const withdrawableResolved = legacyAvailable ?? '0';
     if (!hasProperty(accountState, 'spendableBalance')) {
-      accountState.spendableBalance = resolved;
+      accountState.spendableBalance = spendableResolved;
     }
     if (!hasProperty(accountState, 'withdrawableBalance')) {
-      accountState.withdrawableBalance = resolved;
+      accountState.withdrawableBalance = withdrawableResolved;
     }
     delete accountState.availableBalance;
     delete accountState.availableToTradeBalance;

@@ -315,6 +315,52 @@ describe('spot balance helpers', () => {
 
     expect(result).toBe(accountState);
   });
+
+  it('does NOT fold spot into spendable/withdrawable when foldIntoCollateral is false (e.g. HL Standard mode)', () => {
+    const accountState: AccountState = {
+      spendableBalance: '5',
+      withdrawableBalance: '5',
+      totalBalance: '5',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      { balances: [{ coin: 'USDC', total: '30' }] } as never,
+      { foldIntoCollateral: false },
+    );
+
+    // Total still reflects combined wealth (display).
+    expect(parseFloat(result.totalBalance)).toBe(35);
+    // Spendable/withdrawable must remain perps-only — spot isn't auto-collateral
+    // on Standard mode, so surfacing a folded value would mislead the validation
+    // hook into approving submissions HL will reject.
+    expect(result.spendableBalance).toBe('5');
+    expect(result.withdrawableBalance).toBe('5');
+  });
+
+  it('folds spot into spendable/withdrawable when foldIntoCollateral is explicitly true (parity with default)', () => {
+    const accountState: AccountState = {
+      spendableBalance: '5',
+      withdrawableBalance: '5',
+      totalBalance: '5',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      { balances: [{ coin: 'USDC', total: '30' }] } as never,
+      { foldIntoCollateral: true },
+    );
+
+    expect(parseFloat(result.totalBalance)).toBe(35);
+    expect(parseFloat(result.spendableBalance)).toBe(35);
+    expect(parseFloat(result.withdrawableBalance)).toBe(35);
+  });
 });
 
 describe('calculateWeightedReturnOnEquity', () => {

@@ -134,10 +134,47 @@ export function getSpotHold(
   );
 }
 
+/**
+ * Options controlling how `addSpotBalanceToAccountState` folds spot balance
+ * into the three-field AccountState contract.
+ */
+export type AddSpotBalanceOptions = {
+  /**
+   * When `true`, free spot USDC contributes to both `spendableBalance` and
+   * `withdrawableBalance` in addition to `totalBalance` — appropriate for
+   * venues where spot is automatically used as perps collateral (e.g.
+   * HyperLiquid Unified/Portfolio mode, where `withdraw3` draws from the
+   * unified ledger).
+   *
+   * When `false`, free spot contributes to `totalBalance` only; spendable
+   * and withdrawable stay perps-only — appropriate for venues where spot
+   * is a separate ledger the backend cannot auto-draw from (e.g. HL
+   * Standard mode). The caller is responsible for translating
+   * provider-specific state into this flag.
+   *
+   * Defaults to `true` for backward compatibility with call sites that
+   * haven't yet been wired with provider-specific context.
+   */
+  foldIntoCollateral?: boolean;
+};
+
+/**
+ * Add spot USDC to the AccountState contract. Caller decides whether the
+ * spot balance counts as perps collateral via `options.foldIntoCollateral`
+ * — the util stays provider-agnostic.
+ *
+ * @param accountState - Base AccountState produced by a provider adapter.
+ * @param spotState - Raw spot clearinghouse response (HL-shaped); null or missing means no spot balance and the state is returned unchanged.
+ * @param options - See {@link AddSpotBalanceOptions}.
+ * @returns AccountState with spot folded into `totalBalance` always, and into spendable/withdrawable when `foldIntoCollateral` is true.
+ */
 export function addSpotBalanceToAccountState(
   accountState: AccountState,
   spotState?: SpotClearinghouseStateResponse | null,
+  options?: AddSpotBalanceOptions,
 ): AccountState {
+  const foldIntoCollateral = options?.foldIntoCollateral ?? true;
+
   const spotBalance = getSpotBalance(spotState);
   const spotHold = getSpotHold(spotState);
   const freeSpot = Math.max(0, spotBalance - spotHold);
@@ -156,16 +193,23 @@ export function addSpotBalanceToAccountState(
     return accountState;
   }
 
-  const nextSpendable = Number.isFinite(currentSpendable)
-    ? (currentSpendable + freeSpot).toString()
-    : freeSpot.toString();
-  const nextWithdrawable = Number.isFinite(currentWithdrawable)
-    ? (currentWithdrawable + freeSpot).toString()
-    : freeSpot.toString();
+  const nextSpendable = resolveFoldedBalance(
+    currentSpendable,
+    accountState.spendableBalance,
+    freeSpot,
+    foldIntoCollateral,
+  );
+  const nextWithdrawable = resolveFoldedBalance(
+    currentWithdrawable,
+    accountState.withdrawableBalance,
+    freeSpot,
+    foldIntoCollateral,
+  );
 
-  // Subtract spotHold to avoid double-counting on Unified/PM accounts:
-  // marginSummary.accountValue already includes the margin that HL
-  // surfaces via spot.hold. Standard mode has spotHold = 0, no-op.
+  // Total always reflects combined wealth: subtract spotHold to avoid
+  // double-counting on Unified/PM accounts where marginSummary.accountValue
+  // already includes the margin that HL surfaces via spot.hold. Standard
+  // mode has spotHold = 0 by construction, so the subtraction is a no-op.
   const nextTotal = currentTotal + spotBalance - spotHold;
 
   return {
@@ -174,6 +218,21 @@ export function addSpotBalanceToAccountState(
     spendableBalance: nextSpendable,
     withdrawableBalance: nextWithdrawable,
   };
+}
+
+function resolveFoldedBalance(
+  currentNumeric: number,
+  currentRaw: string,
+  freeSpot: number,
+  foldIntoCollateral: boolean,
+): string {
+  if (!foldIntoCollateral) {
+    return currentRaw;
+  }
+  if (Number.isFinite(currentNumeric)) {
+    return (currentNumeric + freeSpot).toString();
+  }
+  return freeSpot.toString();
 }
 
 /**

@@ -1,6 +1,6 @@
 {
-  "title": "HL — measure Standard-mode spot-fold inflation (TAT-3047 known limitation)",
-  "description": "Asserts what the refactor-era adapter produces in Standard mode vs what Standard semantics require. Our adapter unconditionally folds free spot USDC into spendable/withdrawable regardless of abstraction mode; on Standard this is semantically wrong (spot and perps are separate ledgers, spot is not auto-collateral). This flow does not fail the adapter — it quantifies the gap: asserts that `actualSpendable − Σ(breakdown.spendable) ≈ freeSpotUSDC`. Running it over time tracks the discrepancy. A future mode-aware fix would collapse the discrepancy to zero and we'd adjust this flow's assertion. For this PR, the assertion documents the limitation with live numbers.",
+  "title": "HL — assert Standard-mode balance correctness (no spot fold)",
+  "description": "In HL Standard mode, spot and perps are separate ledgers; spot USDC is NOT perps collateral and HL's withdraw3 / order submission will reject amounts covered only by spot. The refactor wires the provider to fetch `userAbstraction` and gate the spot fold on mode via `hyperLiquidModeFoldsSpot`. This flow confirms the gate is working: in Standard mode, `spendableBalance` and `withdrawableBalance` must equal `Σ(breakdown[*])` (perps-only, pre-fold). Fails if free spot USDC has been folded into either value.",
   "inputs": {
     "address": {
       "type": "string",
@@ -8,18 +8,18 @@
     },
     "phaseLabel": {
       "type": "string",
-      "default": "standard-fold-check",
+      "default": "standard-mode-correctness",
       "description": "Short label surfaced in assertions"
     },
     "minFoldSignal": {
       "type": "number",
       "default": 0.5,
-      "description": "Minimum expected fold inflation (in USDC) — below this, spot is too dust-like to meaningfully prove the limitation; the flow will fail with a hint to fund the account properly"
+      "description": "Minimum free spot USDC required to meaningfully test the gate. Below this, spot is too dust-like to distinguish folded from not folded; the flow will fail with a hint to fund the account properly."
     },
     "epsilon": {
       "type": "number",
       "default": 0.05,
-      "description": "Tolerance when matching the observed inflation against freeSpot"
+      "description": "Tolerance when comparing actual vs perps-only expected values"
     }
   },
   "validate": {
@@ -37,18 +37,18 @@
           "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({ready:!!r,phase:'{{phaseLabel}}'})}).catch(function(e){return JSON.stringify({ready:false,error:String(e)})})",
           "assert": { "operator": "eq", "field": "ready", "value": true },
           "timeout_ms": 30000,
-          "next": "measure-fold"
+          "next": "assert-no-fold-on-standard"
         },
-        "measure-fold": {
-          "description": "Compare adapter output vs Standard-semantic expected (perps-only). Discrepancy must equal freeSpotUSDC within epsilon, confirming the known unconditional-fold limitation.",
+        "assert-no-fold-on-standard": {
+          "description": "Compare adapter output vs Standard-semantic expected (perps-only = Σ(breakdown)). Must be equal (no inflation) when mode-aware fold gate works correctly.",
           "action": "eval_async",
-          "expression": "(function(){var addr='{{address}}'.toLowerCase();var minSignal={{minFoldSignal}};var eps={{epsilon}};var base='https://api.hyperliquid.xyz/info';return fetch(base,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'spotClearinghouseState',user:addr})}).then(function(r){return r.json()}).then(function(spot){var usdc=((spot&&spot.balances)||[]).find(function(b){return b.coin==='USDC'})||{};var t=parseFloat(usdc.total||'0');var h=parseFloat(usdc.hold||'0');var free=Math.max(0,t-h);var s=Engine.context.PerpsController.state.accountState||{};var breakdown=s.subAccountBreakdown||{};var perpsOnlySpendable=0;var perpsOnlyWithdrawable=0;Object.keys(breakdown).forEach(function(k){var e=breakdown[k]||{};perpsOnlySpendable+=parseFloat(e.spendableBalance||'0');perpsOnlyWithdrawable+=parseFloat(e.withdrawableBalance||'0')});var actualSpendable=parseFloat(s.spendableBalance||'0');var actualWithdrawable=parseFloat(s.withdrawableBalance||'0');var spendableInflation=actualSpendable-perpsOnlySpendable;var withdrawableInflation=actualWithdrawable-perpsOnlyWithdrawable;return JSON.stringify({phase:'{{phaseLabel}}',spot:{total:t,hold:h,free:free},standardSemanticExpected:{spendable:perpsOnlySpendable,withdrawable:perpsOnlyWithdrawable},adapterActual:{spendable:actualSpendable,withdrawable:actualWithdrawable},observedInflation:{spendable:spendableInflation,withdrawable:withdrawableInflation},freeSpotMeaningful:free>=minSignal,spendableInflationMatchesFold:Math.abs(spendableInflation-free)<=eps,withdrawableInflationMatchesFold:Math.abs(withdrawableInflation-free)<=eps,knownLimitationPresent:Math.abs(spendableInflation-free)<=eps&&Math.abs(withdrawableInflation-free)<=eps})})})()",
+          "expression": "(function(){var addr='{{address}}'.toLowerCase();var minSignal={{minFoldSignal}};var eps={{epsilon}};var base='https://api.hyperliquid.xyz/info';return fetch(base,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'spotClearinghouseState',user:addr})}).then(function(r){return r.json()}).then(function(spot){var usdc=((spot&&spot.balances)||[]).find(function(b){return b.coin==='USDC'})||{};var t=parseFloat(usdc.total||'0');var h=parseFloat(usdc.hold||'0');var free=Math.max(0,t-h);var s=Engine.context.PerpsController.state.accountState||{};var breakdown=s.subAccountBreakdown||{};var perpsOnlySpendable=0;var perpsOnlyWithdrawable=0;Object.keys(breakdown).forEach(function(k){var e=breakdown[k]||{};perpsOnlySpendable+=parseFloat(e.spendableBalance||'0');perpsOnlyWithdrawable+=parseFloat(e.withdrawableBalance||'0')});var actualSpendable=parseFloat(s.spendableBalance||'0');var actualWithdrawable=parseFloat(s.withdrawableBalance||'0');var spendableInflation=actualSpendable-perpsOnlySpendable;var withdrawableInflation=actualWithdrawable-perpsOnlyWithdrawable;return JSON.stringify({phase:'{{phaseLabel}}',spot:{total:t,hold:h,free:free},standardSemanticExpected:{spendable:perpsOnlySpendable,withdrawable:perpsOnlyWithdrawable},adapterActual:{spendable:actualSpendable,withdrawable:actualWithdrawable},observedInflation:{spendable:spendableInflation,withdrawable:withdrawableInflation},freeSpotMeaningful:free>=minSignal,spendableMatchesPerpsOnly:Math.abs(spendableInflation)<=eps,withdrawableMatchesPerpsOnly:Math.abs(withdrawableInflation)<=eps,standardModeCorrect:Math.abs(spendableInflation)<=eps&&Math.abs(withdrawableInflation)<=eps})})})()",
           "assert": {
             "all": [
               { "operator": "eq", "field": "freeSpotMeaningful", "value": true },
-              { "operator": "eq", "field": "spendableInflationMatchesFold", "value": true },
-              { "operator": "eq", "field": "withdrawableInflationMatchesFold", "value": true },
-              { "operator": "eq", "field": "knownLimitationPresent", "value": true }
+              { "operator": "eq", "field": "spendableMatchesPerpsOnly", "value": true },
+              { "operator": "eq", "field": "withdrawableMatchesPerpsOnly", "value": true },
+              { "operator": "eq", "field": "standardModeCorrect", "value": true }
             ]
           },
           "timeout_ms": 20000,

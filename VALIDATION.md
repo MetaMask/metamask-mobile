@@ -56,7 +56,26 @@ Note on dev2 ledger drift: `userSetAbstraction` flipping a Unified account to St
 - **Portfolio margin mode** (pre-alpha): no fixture available; behaviour expected to match Unified for borrowable-asset accounts.
 - **DEX-abstraction mode** (deprecated by HL): out of scope.
 - **Open positions on Standard mode**: would require opening a position after the flip. Not exercised — contract shape is mode-agnostic per our refactor, and the position-open path is covered separately in Trading (Unified with HIP-3 position).
-- **Fixing the Standard-mode spot-fold limitation**: out of scope for TAT-3047. The recipe confirms the limitation exists with live numbers (phase 2c `hl-standard-mode-fold-check`), not that it is solved.
+
+### Standard-mode correctness — fixed
+
+Earlier revisions of this PR had an unconditional spot-fold in `addSpotBalanceToAccountState`, which inflated `spendableBalance` and `withdrawableBalance` on HL Standard-mode accounts (where spot is a separate ledger, not perps collateral). That would have let the UI approve withdraw/order submissions that HL's backend would reject.
+
+The PR now includes a mode-aware fold gate:
+
+- `accountUtils.addSpotBalanceToAccountState` takes an `{ foldIntoCollateral: boolean }` option. Provider-agnostic — doesn't know about HL modes.
+- `hyperliquid-types.ts` owns the HL-specific `HyperLiquidAbstractionMode` type (re-export of HL SDK's `UserAbstractionResponse`) and a `hyperLiquidModeFoldsSpot(mode)` helper that returns `true` for `unifiedAccount` / `portfolioMargin` / `default` and `false` for `disabled` (Standard) / `dexAbstraction`.
+- `HyperLiquidProvider.getAccountState` fetches `userAbstraction` in parallel with clearinghouse + spot state, then passes `{ foldIntoCollateral: hyperLiquidModeFoldsSpot(mode) }` to the util.
+- `HyperLiquidSubscriptionService` caches `userAbstraction` alongside `spotClearinghouseState` (refreshed together, cleared together on cleanup) and applies the same gate on every fold site.
+
+Migration 133 uses an **asymmetric mapping** so upgraded Standard-mode users see correct cold-start values without waiting for the first live fetch: `withdrawableBalance` migrates from the legacy perps-only `availableBalance` (not from the spot-folded `availableToTradeBalance`).
+
+Phase 2c of the recipe proves the fix with live numbers on dev2 flipped to Standard mode:
+
+- `spot.free = $10.01`
+- `standardSemanticExpected.spendable = 0` (perps-only)
+- `adapterActual.spendable = 0`
+- `observedInflation = 0` — no inflation, gate works.
 
 ## Reusable composable flows
 

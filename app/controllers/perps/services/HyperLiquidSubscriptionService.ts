@@ -39,7 +39,11 @@ import type {
   PerpsPlatformDependencies,
   PerpsLogger,
 } from '../types';
-import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
+import type {
+  SpotClearinghouseStateResponse,
+  HyperLiquidAbstractionMode,
+} from '../types/hyperliquid-types';
+import { hyperLiquidModeFoldsSpot } from '../types/hyperliquid-types';
 import {
   addSpotBalanceToAccountState,
   calculateWeightedReturnOnEquity,
@@ -172,6 +176,12 @@ export class HyperLiquidSubscriptionService {
   readonly #dexAccountCache = new Map<string, AccountState>(); // Per-DEX account state
 
   #cachedSpotState: SpotClearinghouseStateResponse | null = null;
+
+  // HL abstraction mode (Unified / Standard / Portfolio / DEX-abstraction).
+  // Gates spot→perps folding in addSpotBalanceToAccountState. Refreshed
+  // alongside #cachedSpotState so mode changes (e.g. user flips via HL web)
+  // are picked up on the next refresh cycle.
+  #cachedAbstractionMode: HyperLiquidAbstractionMode | null = null;
 
   #cachedSpotStateUserAddress: string | null = null;
 
@@ -1028,6 +1038,11 @@ export class HyperLiquidSubscriptionService {
         returnOnEquity,
       },
       this.#cachedSpotState,
+      {
+        foldIntoCollateral: hyperLiquidModeFoldsSpot(
+          this.#cachedAbstractionMode,
+        ),
+      },
     );
   }
 
@@ -1089,9 +1104,12 @@ export class HyperLiquidSubscriptionService {
       }
 
       const infoClient = this.#clientService.getInfoClient();
-      const result = await infoClient.spotClearinghouseState({
-        user: userAddress,
-      });
+      // Fetch spot state + abstraction mode in parallel — mode decides
+      // whether the spot fold applies in addSpotBalanceToAccountState.
+      const [result, abstractionResult] = await Promise.allSettled([
+        infoClient.spotClearinghouseState({ user: userAddress }),
+        infoClient.userAbstraction({ user: userAddress }),
+      ]);
 
       // Drop stale results: cleanUp/clearAll or a newer fetch bumped generation.
       // Writing here would re-populate the cache with a different user's data.
@@ -1099,8 +1117,16 @@ export class HyperLiquidSubscriptionService {
         return;
       }
 
-      this.#cachedSpotState = result;
+      if (result.status === 'rejected') {
+        throw result.reason;
+      }
+
+      this.#cachedSpotState = result.value;
       this.#cachedSpotStateUserAddress = userAddress;
+      this.#cachedAbstractionMode =
+        abstractionResult.status === 'fulfilled'
+          ? abstractionResult.value
+          : null;
 
       if (this.#dexAccountCache.size > 0) {
         this.#aggregateAndNotifySubscribers();
@@ -1631,6 +1657,11 @@ export class HyperLiquidSubscriptionService {
               const spotAdjustedAccount = addSpotBalanceToAccountState(
                 accountState,
                 this.#cachedSpotState,
+                {
+                  foldIntoCollateral: hyperLiquidModeFoldsSpot(
+                    this.#cachedAbstractionMode,
+                  ),
+                },
               );
 
               const positionsHash = this.#hashPositions(positionsWithTPSL);
@@ -2175,6 +2206,7 @@ export class HyperLiquidSubscriptionService {
       this.#cachedAccount = null;
       this.#cachedSpotState = null;
       this.#cachedSpotStateUserAddress = null;
+      this.#cachedAbstractionMode = null;
       // Bump generation so any in-flight spot fetch from a prior user discards
       // its result instead of re-populating the cache post-cleanup.
       this.#spotStateGeneration += 1;
@@ -3953,6 +3985,7 @@ export class HyperLiquidSubscriptionService {
     this.#dexAccountCache.clear();
     this.#cachedSpotState = null;
     this.#cachedSpotStateUserAddress = null;
+    this.#cachedAbstractionMode = null;
     this.#spotStateGeneration += 1;
     this.#spotStatePromise = undefined;
     this.#spotStatePromiseUserAddress = undefined;
