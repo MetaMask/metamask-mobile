@@ -59,6 +59,7 @@ import { useCashNavigation } from './useCashNavigation';
 
 interface CashGetMusdEmptyStateProps {
   isFullView?: boolean;
+  hideClaimButton?: boolean;
 }
 
 /**
@@ -69,6 +70,7 @@ interface CashGetMusdEmptyStateProps {
  */
 const CashGetMusdEmptyState = ({
   isFullView = false,
+  hideClaimButton = false,
 }: CashGetMusdEmptyStateProps) => {
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
@@ -339,7 +341,7 @@ const CashGetMusdEmptyState = ({
           </Button>
         )}
       </View>
-      {hasClaimableBonus ? (
+      {hasClaimableBonus && !hideClaimButton ? (
         <Button
           testID={CashGetMusdEmptyStateSelectors.CLAIM_BONUS_BUTTON}
           variant={ButtonVariant.Secondary}

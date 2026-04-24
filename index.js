@@ -11,6 +11,16 @@ import './wdyr';
 // Required for EAS Updates to resolve assets (.riv, .png, etc.) from OTA bundles
 import 'expo-asset';
 
+import { preventAutoHideAsync } from 'expo-splash-screen';
+
+// Keep the native splash visible until we explicitly hide it in FoxLoader
+// This prevents the white flash between native splash and first RN render
+try {
+  preventAutoHideAsync();
+} catch (_e) {
+  // Non-fatal — app can still start if the native splash is unavailable
+}
+
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import-x/no-namespace
 import { setupSentry } from './app/util/sentry/utils';
 import { AppRegistry, LogBox } from 'react-native';

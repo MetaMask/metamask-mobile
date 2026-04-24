@@ -3,7 +3,6 @@ import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
-import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import type { Hex } from '@metamask/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
@@ -38,7 +37,6 @@ import { calcTokenValue } from '../../../../../../util/transactions';
 
 export interface UseQuickBuyBottomSheetResult {
   // refs
-  bottomSheetRef: React.RefObject<BottomSheetRef>;
   hiddenInputRef: React.RefObject<TextInput>;
   // setup
   destToken: BridgeToken | undefined;
@@ -88,7 +86,6 @@ export function useQuickBuyBottomSheet(
   position: Position,
   onClose: () => void,
 ): UseQuickBuyBottomSheetResult {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -214,11 +211,6 @@ export function useQuickBuyBottomSheet(
   const { submitBridgeTx } = useSubmitBridgeTx();
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
-
-  // Open bottom sheet on mount
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-  }, []);
 
   // Cleanup bridge state on unmount
   useEffect(
@@ -354,22 +346,14 @@ export function useQuickBuyBottomSheet(
     (isQuoteLoading && !activeQuote && hasCompleteQuoteInputs);
 
   const getButtonLabel = useCallback(() => {
-    if (isSetupLoading) return strings('social_leaderboard.quick_buy.loading');
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (hasSufficientGas === false) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     if (hasError) return strings('social_leaderboard.quick_buy.unavailable');
     return strings('social_leaderboard.trader_position.buy');
-  }, [
-    isSetupLoading,
-    hasInsufficientBalance,
-    hasSufficientGas,
-    isSubmittingTx,
-    hasError,
-  ]);
+  }, [hasInsufficientBalance, hasSufficientGas, isSubmittingTx, hasError]);
 
   return {
-    bottomSheetRef,
     hiddenInputRef,
     destToken,
     isSetupLoading,
