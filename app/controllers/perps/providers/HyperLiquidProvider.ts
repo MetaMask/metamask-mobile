@@ -6882,8 +6882,9 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#deps.debugLogger.log('✅ HyperLiquidProvider: BALANCE SUFFICIENT');
 
       // Step 5b: If perps clearinghouse alone can't cover, sweep spot→perps.
-      // Honours the provider-agnostic withdrawableBalance contract: UI only
-      // sees one number and withdraw() handles the internal move.
+      // `usdClassTransfer` is applied atomically at the HL validator layer —
+      // when `status === 'ok'` the perps clearinghouse already sees the funds,
+      // so `withdraw3` can fire immediately. No polling required.
       const perpsWithdrawable = await this.#getBalanceForDex({ dex: null });
       if (withdrawAmount > perpsWithdrawable) {
         const shortfall = withdrawAmount - perpsWithdrawable;
@@ -6901,25 +6902,7 @@ export class HyperLiquidProvider implements PerpsProvider {
             `Spot→perps sweep failed: ${String(transferResult.status)}`,
           );
         }
-        // Poll clearinghouseState until the funds land on perps side.
-        // HL L1 spot↔perps moves are fast (<2s p95); 10s covers the tail.
-        const sweepTimeoutMs = 10000;
-        const sweepStart = Date.now();
-        let confirmed = false;
-        while (Date.now() - sweepStart < sweepTimeoutMs) {
-          const current = await this.#getBalanceForDex({ dex: null });
-          if (current >= withdrawAmount) {
-            confirmed = true;
-            break;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-        if (!confirmed) {
-          throw new Error(
-            'Spot→perps sweep did not confirm before withdraw timeout',
-          );
-        }
-        this.#deps.debugLogger.log('✅ HyperLiquidProvider: SWEEP CONFIRMED');
+        this.#deps.debugLogger.log('✅ HyperLiquidProvider: SWEEP APPLIED');
       }
 
       // Step 6: Execute withdrawal via HyperLiquid SDK (API call)
