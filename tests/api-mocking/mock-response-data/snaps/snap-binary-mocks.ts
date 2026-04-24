@@ -4,11 +4,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
 import type { Mockttp } from 'mockttp';
+import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers';
 
 const SNAP_BINARIES_DIR = path.resolve(__dirname, 'snap-binaries-and-headers');
-
-const getDecodedProxiedURL = (url: string) =>
-  decodeURIComponent(String(new URL(url).searchParams.get('url')));
 
 /**
  * Scans the binaries directory for files matching `<snapNamePrefix>@<version>.txt`
