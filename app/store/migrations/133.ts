@@ -62,14 +62,18 @@ const migration = (state: unknown): unknown => {
 
   const accountState = PerpsController.accountState as Record<string, unknown>;
 
-  const legacyAvailable =
-    typeof accountState.availableBalance === 'string'
-      ? accountState.availableBalance
-      : undefined;
-  const legacyTradeable =
-    typeof accountState.availableToTradeBalance === 'string'
-      ? accountState.availableToTradeBalance
-      : undefined;
+  const coerceLegacyBalance = (value: unknown): string | undefined => {
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value.toString();
+    }
+    return undefined;
+  };
+
+  const legacyAvailable = coerceLegacyBalance(accountState.availableBalance);
+  const legacyTradeable = coerceLegacyBalance(
+    accountState.availableToTradeBalance,
+  );
 
   const hasNewSpendable = hasProperty(accountState, 'spendableBalance');
   const hasNewWithdrawable = hasProperty(accountState, 'withdrawableBalance');
@@ -106,10 +110,9 @@ const migration = (state: unknown): unknown => {
         continue;
       }
       const entryRecord = entry as Record<string, unknown>;
-      const legacySubAvailable =
-        typeof entryRecord.availableBalance === 'string'
-          ? entryRecord.availableBalance
-          : undefined;
+      const legacySubAvailable = coerceLegacyBalance(
+        entryRecord.availableBalance,
+      );
       const hasSubLegacyKey = hasProperty(entryRecord, 'availableBalance');
       const hasSubNewSpendable = hasProperty(entryRecord, 'spendableBalance');
       const hasSubNewWithdrawable = hasProperty(

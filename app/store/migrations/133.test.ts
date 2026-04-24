@@ -122,6 +122,41 @@ describe('migration 133', () => {
     expect('availableBalance' in acc).toBe(false);
   });
 
+  it('coerces numeric legacy values (defensive — pre-refactor dev branches could have written numbers)', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            accountState: {
+              availableBalance: 10,
+              availableToTradeBalance: 100,
+              totalBalance: '100',
+              marginUsed: '0',
+              unrealizedPnl: '0',
+              returnOnEquity: '0',
+              subAccountBreakdown: {
+                '': { availableBalance: 7, totalBalance: '7' },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as Record<string, unknown>;
+
+    migrate(state);
+
+    const acc = getAccountState(state);
+    expect(acc.spendableBalance).toBe('100');
+    expect(acc.withdrawableBalance).toBe('10');
+    expect('availableBalance' in acc).toBe(false);
+    const breakdown = getSubAccountBreakdown(state);
+    expect(breakdown['']).toEqual({
+      spendableBalance: '7',
+      withdrawableBalance: '7',
+      totalBalance: '7',
+    });
+  });
+
   it('defaults both new fields to "0" when legacy fields are null or missing — no NaN downstream', () => {
     const state = {
       engine: {

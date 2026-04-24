@@ -196,6 +196,11 @@ export class HyperLiquidSubscriptionService {
   // picking up HL-web mode flips promptly against avoiding REST quota burn.
   static readonly #abstractionModeRefreshThrottleMs = 60_000;
 
+  // In-flight promise for the WS-triggered refresh, so concurrent spot
+  // ticks share one fetch instead of each launching their own. Cleared
+  // in the finally block so the next eligible tick can kick a new fetch.
+  #abstractionModeInflight: Promise<void> | null = null;
+
   #cachedSpotStateUserAddress: string | null = null;
 
   #spotStatePromise?: Promise<void>;
@@ -1078,10 +1083,8 @@ export class HyperLiquidSubscriptionService {
     if (!userAddress) {
       return null;
     }
-    if (
-      this.#cachedAbstractionModeUserAddress?.toLowerCase() !==
-      userAddress.toLowerCase()
-    ) {
+    // All set-sites normalise to lowercase, so strict comparison is safe.
+    if (this.#cachedAbstractionModeUserAddress !== userAddress.toLowerCase()) {
       return null;
     }
     return this.#cachedAbstractionMode;
@@ -1093,7 +1096,12 @@ export class HyperLiquidSubscriptionService {
    * without burning REST quota. Handles HL-web mode flips propagating back
    * to mobile without requiring a restart or account switch.
    *
+   * Concurrent callers share the same in-flight promise so an in-flight
+   * fetch (especially a slow-failing one) doesn't ratchet the throttle
+   * forward on every WS tick and leave mode stale during a network hang.
+   *
    * @param userAddress - Current user address to refresh the cache for.
+   * @returns Promise that resolves once the refresh completes (or immediately when throttled).
    */
   async #refreshAbstractionModeThrottled(userAddress: string): Promise<void> {
     const now = Date.now();
@@ -1101,51 +1109,66 @@ export class HyperLiquidSubscriptionService {
       now - this.#abstractionModeLastFetchedAt <
       HyperLiquidSubscriptionService.#abstractionModeRefreshThrottleMs
     ) {
-      return;
+      return undefined;
     }
-    // Mark the timestamp before the await so concurrent WS ticks don't
-    // each launch their own fetch.
-    this.#abstractionModeLastFetchedAt = now;
-    try {
-      const infoClient = this.#clientService.getInfoClient();
-      const mode = await infoClient.userAbstraction({ user: userAddress });
-      const previousMode = this.#cachedAbstractionMode;
-      const previousUser = this.#cachedAbstractionModeUserAddress;
-      this.#cachedAbstractionMode = mode;
-      this.#cachedAbstractionModeUserAddress = userAddress;
+    const existing = this.#abstractionModeInflight;
+    if (existing) {
+      await existing;
+      return undefined;
+    }
+    const normalizedUser = userAddress.toLowerCase();
+    const inflight: Promise<void> = (async (): Promise<void> => {
+      try {
+        const infoClient = this.#clientService.getInfoClient();
+        const mode = await infoClient.userAbstraction({ user: userAddress });
+        const previousMode = this.#cachedAbstractionMode;
+        const previousUser = this.#cachedAbstractionModeUserAddress;
+        this.#cachedAbstractionMode = mode;
+        this.#cachedAbstractionModeUserAddress = normalizedUser;
+        // Set timestamp only on success; a hanging/failed fetch must not
+        // ratchet the throttle window forward (which would silence every
+        // subsequent spot WS tick for the full throttle duration).
+        this.#abstractionModeLastFetchedAt = Date.now();
 
-      // If the fold semantics actually changed for this user, trigger a
-      // re-aggregation so balance-dependent UI (withdraw cap, order-entry
-      // validation) picks up the new mode immediately — otherwise a
-      // Unified→Standard flip can stay folded with old semantics until the
-      // next spot/account event happens to arrive.
-      const foldChanged =
-        previousUser === userAddress &&
-        hyperLiquidModeFoldsSpot(previousMode) !==
-          hyperLiquidModeFoldsSpot(mode);
-      if (foldChanged && this.#dexAccountCache.size > 0) {
-        this.#aggregateAndNotifySubscribers();
+        // If the fold semantics actually changed for this user, trigger a
+        // re-aggregation so balance-dependent UI (withdraw cap, order-entry
+        // validation) picks up the new mode immediately — otherwise a
+        // Unified→Standard flip can stay folded with old semantics until the
+        // next spot/account event happens to arrive.
+        const foldChanged =
+          previousUser === normalizedUser &&
+          hyperLiquidModeFoldsSpot(previousMode) !==
+            hyperLiquidModeFoldsSpot(mode);
+        if (foldChanged && this.#dexAccountCache.size > 0) {
+          this.#aggregateAndNotifySubscribers();
+        }
+      } catch (error) {
+        // Non-fatal — preserve the last known mode for this user. Leave
+        // timestamp at its previous value so a genuine retry on the next
+        // WS tick is allowed (no forward ratchet on slow failures).
+        this.#deps.debugLogger.log(
+          'HyperLiquidSubscriptionService: userAbstraction WS refresh failed; keeping last known mode',
+          {
+            user: normalizedUser,
+            error: ensureError(
+              error,
+              'HyperLiquidSubscriptionService.refreshAbstractionModeThrottled',
+            ).message,
+          },
+        );
+      } finally {
+        this.#abstractionModeInflight = null;
       }
-    } catch (error) {
-      // Non-fatal — preserve the last known mode for this user. Reset
-      // throttle to retry sooner on transient failures.
-      this.#abstractionModeLastFetchedAt = 0;
-      this.#deps.debugLogger.log(
-        'HyperLiquidSubscriptionService: userAbstraction WS refresh failed; keeping last known mode',
-        {
-          user: userAddress,
-          error: ensureError(
-            error,
-            'HyperLiquidSubscriptionService.refreshAbstractionModeThrottled',
-          ).message,
-        },
-      );
-    }
+    })();
+    this.#abstractionModeInflight = inflight;
+    await inflight;
+    return undefined;
   }
 
   async #ensureSpotState(accountId?: CaipAccountId): Promise<void> {
-    const userAddress =
-      await this.#walletService.getUserAddressWithDefault(accountId);
+    const userAddress = (
+      await this.#walletService.getUserAddressWithDefault(accountId)
+    ).toLowerCase();
 
     if (
       this.#cachedSpotState &&
@@ -1213,6 +1236,10 @@ export class HyperLiquidSubscriptionService {
       if (generation !== this.#spotStateGeneration) {
         return;
       }
+
+      // Caller (#ensureSpotState) normalises userAddress to lowercase so
+      // all cache keys — WS-path (event.user.toLowerCase()) and REST-path —
+      // match identically under strict comparison.
 
       // Update the abstraction-mode cache independently of spot state: a
       // successful `userAbstraction` fetch must not be discarded just because
