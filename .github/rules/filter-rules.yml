@@ -14,18 +14,10 @@
 # - android / ios:    platform-specific file trees.
 # - all_changes:      denominator for count comparisons.
 #
-# Decision logic (see get-requirements.yml "Compute E2E flags" step):
-#   skip both    = (ignorable_count == all_changes_count) && (e2e_workflows_count == 0)
-#   android only = android_count > 0, ios_count == 0,
-#                  (android_count + ignorable_count >= all_changes_count),
-#                  e2e_workflows_count == 0
-#   ios only     = symmetric
-#   both         = conservative default for everything else
+# 
+# E2E STRATEGY: Use separate filters to detect different file types non E2E related.
+# Conservative approach - add only files that safely allow skipping E2E tests.
 
-# ── Ignorable (safe to skip E2E) ─────────────────────────────────────────────
-# Conservative list: add only files that can NEVER affect a mobile E2E run.
-# .github/** is included as a catch-all so that non-E2E workflow PRs are
-# automatically skipped without needing to enumerate every ignorable workflow.
 e2e_ignorable:
   - '**/*.md'
   - 'docs/**'
@@ -36,8 +28,6 @@ e2e_ignorable:
   - 'codecov.yml'
   - 'crowdin.yml'
   - 'sonar-project.properties'
-  - 'scripts/*'                        # top-level utility scripts (not build.sh/setup.mjs)
-  - 'scripts/*/**'                     # subdirectories in scripts/
   - '.github/**'                       # all .github files — overridden by e2e_workflows below
 
 # ── E2E-relevant workflows (overrides the .github/** ignorable above) ─────────

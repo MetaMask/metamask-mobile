@@ -21,8 +21,11 @@ on:
         description: 'Space-separated list of changed file paths. Smoke test workflows use this to run modified spec files twice for flakiness detection (catches flaky tests before they land on main)'
         value: ${{ jobs.detect.outputs.changed_files }}
       block_merge_for_e2e_readiness:
-        description: 'Whether "PR-not-ready-for-E2E" label is still applied; blocks merge while true'
+        description: 'Whether "pr-not-ready-for-e2e" label is still applied; blocks merge while true'
         value: ${{ jobs.detect.outputs.block_merge_for_e2e_readiness }}
+      run_smart_e2e_selection:
+        description: 'Whether the smart-e2e-selection AI job should run. False for non-PR events, forks, drafts, hard skips, skip-smart-e2e-selection label, or release/* base branches.'
+        value: ${{ jobs.detect.outputs.run_smart_e2e_selection }}
 
 jobs:
   detect:
@@ -35,6 +38,7 @@ jobs:
       ios_e2e_needed: ${{ steps.set-outputs.outputs.ios_final }}
       changed_files: ${{ steps.set-outputs.outputs.changed_files }}
       block_merge_for_e2e_readiness: ${{ steps.check-labels.outputs.BLOCK_MERGE }}
+      run_smart_e2e_selection: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -73,6 +77,7 @@ jobs:
         run: |
           echo "SKIP_E2E=false" >> "$GITHUB_OUTPUT"
           echo "BLOCK_MERGE=false" >> "$GITHUB_OUTPUT"
+          echo "SKIP_SMART_SELECTION=false" >> "$GITHUB_OUTPUT"
 
           LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
 
@@ -81,10 +86,15 @@ jobs:
             echo "-> SKIP_E2E=true due to 'skip-e2e' label on PR"
           fi
 
-          if echo "$LABELS" | grep -qx "PR-not-ready-for-E2E"; then
+          if echo "$LABELS" | grep -qx "pr-not-ready-for-e2e"; then
             echo "SKIP_E2E=true" >> "$GITHUB_OUTPUT"
             echo "BLOCK_MERGE=true" >> "$GITHUB_OUTPUT"
-            echo "-> SKIP_E2E=true and BLOCK_MERGE=true due to 'PR-not-ready-for-E2E' label on PR"
+            echo "-> SKIP_E2E=true and BLOCK_MERGE=true due to 'pr-not-ready-for-e2e' label on PR"
+          fi
+
+          if echo "$LABELS" | grep -qx "skip-smart-e2e-selection"; then
+            echo "SKIP_SMART_SELECTION=true" >> "$GITHUB_OUTPUT"
+            echo "-> SKIP_SMART_SELECTION=true due to 'skip-smart-e2e-selection' label on PR"
           fi
 
       - name: Filter changed files
@@ -100,7 +110,11 @@ jobs:
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
+          SKIP_SMART_SELECTION: ${{ steps.check-labels.outputs.SKIP_SMART_SELECTION == 'true' }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           ALL_CHANGES_FILES: ${{ steps.filter.outputs.all_changes_files }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
@@ -115,7 +129,7 @@ jobs:
           CHANGED=""
           MSG=""
 
-          # Explicit skip signals always win (label / commit tag)
+          # Hard skip signals (label / commit tag) ALWAYS win — even on release/*
           if [[ "$SHOULD_SKIP_E2E" == "true" ]]; then
             MSG="Skipping E2E builds (skip signal)"
 
@@ -123,6 +137,13 @@ jobs:
           elif [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
             MSG="Building both platforms (scheduled run)"
             ANDROID=true; IOS=true
+
+          # Release-branch PRs always run full E2E (release safety overrides
+          # path-filter soft skip; only hard skip above can opt out)
+          elif [[ "$BASE_REF" == release/* ]]; then
+            MSG="Building both platforms (release branch override)"
+            ANDROID=true; IOS=true
+            CHANGED="$ALL_CHANGES_FILES"
 
           # All changed files are ignorable AND no E2E-relevant workflow touched
           # (e2e_workflows overrides the .github/** ignorable catch-all)
@@ -159,11 +180,26 @@ jobs:
           BUILDS=false
           [[ "$ANDROID" == "true" || "$IOS" == "true" ]] && BUILDS=true
 
+          # Run smart-e2e-selection only for non-fork, non-draft, non-hard-skip PRs
+          # targeting main with no skip-smart-e2e-selection label.
+          # release/* PRs, non-PR events, and all skip signals bypass AI selection.
+          RUN_SMART=false
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && \
+                "$BUILDS" == "true" && \
+                "$IS_FORK" != "true" && \
+                "$IS_DRAFT" != "true" && \
+                "$SHOULD_SKIP_E2E" != "true" && \
+                "$SKIP_SMART_SELECTION" != "true" && \
+                "$BASE_REF" == "main" ]]; then
+            RUN_SMART=true
+          fi
+
           echo "$MSG"
           {
             echo "android_final=$ANDROID"
             echo "ios_final=$IOS"
             echo "builds=$BUILDS"
+            echo "run_smart_e2e_selection=$RUN_SMART"
           } >> "$GITHUB_OUTPUT"
 
           {

@@ -30,7 +30,7 @@ inputs:
     required: false
     default: 'false'
   base-ref:
-    description: 'PR base branch ref (main → AI selection; release/* → skip AI, full E2E; other → skip AI, no force_run)'
+    description: 'PR base branch ref passed to the AI analysis script for diff comparison'
     required: false
     default: ''
   is-draft:
@@ -48,55 +48,21 @@ outputs:
   ai_performance_test_tags:
     description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
-  force_run:
-    description: 'Whether to force E2E builds/tests regardless of path filter (true for skip-smart-e2e-selection label or PRs targeting release/*)'
-    value: ${{ steps.final-outputs.outputs.force_run }}
-
 runs:
   using: 'composite'
   steps:
-    - name: Check skip-smart-e2e-selection label
-      id: check-skip-label
-      if: inputs.event-name == 'pull_request' && inputs.pr-number != ''
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github-token }}
-      run: |
-        echo "SKIP=false" >> "$GITHUB_OUTPUT"
-        if gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json labels --jq '.labels[].name' | grep -qx "skip-smart-e2e-selection"; then
-          echo "SKIP=true" >> "$GITHUB_OUTPUT"
-          echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
-        fi
-
-    - name: Check release target branch (full E2E, no AI selection)
-      id: check-release-target
-      shell: bash
-      run: |
-        echo "skip_ai_run_all=false" >> "$GITHUB_OUTPUT"
-        if [[ "${{ inputs.event-name }}" != "pull_request" ]]; then
-          exit 0
-        fi
-        BASE='${{ inputs.base-ref }}'
-        if [[ -n "$BASE" && "$BASE" == release/* ]]; then
-          echo "skip_ai_run_all=true" >> "$GITHUB_OUTPUT"
-          echo "⏭️ Base branch is release/* — skipping AI E2E selection; full E2E suite will run"
-        fi
-
     - name: Checkout for PR analysis
-      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       uses: actions/checkout@v4
       with:
         fetch-depth: 1 # Shallow clone - only need PR commit
 
     - name: Disable sparse checkout and restore all files
-      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       shell: bash
       run: |
         git sparse-checkout disable
         git checkout HEAD -- .
 
     - name: Fetch base branch for comparison
-      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       shell: bash
       run: |
         # Unshallow the repository first (if it's shallow)
@@ -105,13 +71,11 @@ runs:
         git fetch origin "${{ inputs.base-ref || 'main' }}" 2>/dev/null || true
 
     - name: Setup Node.js
-      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
 
     - name: Install minimal dependencies for AI analysis
-      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       shell: bash
       run: |
         echo "📦 Installing only required packages for AI analysis..."
@@ -123,7 +87,6 @@ runs:
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
     - name: Copy AI dependencies to workspace
-      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       shell: bash
       run: |
         echo "📋 Copying AI dependencies to workspace..."
@@ -151,43 +114,10 @@ runs:
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
         echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
-        SHOULD_SKIP=false
-        SKIP_REASON=""
-        FORCE_RUN=false
 
-        if [[ "$EVENT_NAME" != "pull_request" ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="only runs on PRs"
-        elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="skip-smart-e2e-selection label found"
-          FORCE_RUN=true
-          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
-        elif [[ "${{ steps.check-release-target.outputs.skip_ai_run_all }}" == "true" ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="PR targets a release branch (release/*)"
-          FORCE_RUN=true
-          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
-        elif [[ "$IS_DRAFT" == "true" ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="draft PR"
-        elif [[ "$BASE_REF" != "main" && "$BASE_REF" != release/* ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="base branch is not main or a release branch (base: $BASE_REF)"
-        fi
-
-        # Export skip status, reason, and force run flag for downstream jobs
-        echo "SKIPPED=$SHOULD_SKIP" >> "$GITHUB_OUTPUT"
-        echo "SKIP_REASON=$SKIP_REASON" >> "$GITHUB_OUTPUT"
-        echo "FORCE_RUN=$FORCE_RUN" >> "$GITHUB_OUTPUT"
-
-        if [[ "$SHOULD_SKIP" == "true" ]]; then
-          echo "⏭️ Skipping AI analysis - $SKIP_REASON"
-        else
-          echo "✅ Running AI analysis for PR #$PR_NUMBER"
-          # The script will generate the GH output variables - don't fail if script errors
-          node .github/scripts/e2e-smart-selection.mjs || echo "⚠️ AI analysis script failed, using fallback"
-        fi
+        echo "✅ Running AI analysis for PR #$PR_NUMBER"
+        # The script will generate the GH output variables - don't fail if script errors
+        node .github/scripts/e2e-smart-selection.mjs || echo "⚠️ AI analysis script failed, using fallback"
 
     - name: Set final outputs with fallback
       id: final-outputs
@@ -208,13 +138,6 @@ runs:
         else
           echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
         fi
-        # Force run flag (skip-smart-e2e-selection label or PR base release/*)
-        FORCE_RUN='${{ steps.ai-analysis.outputs.FORCE_RUN }}'
-        if [[ "$FORCE_RUN" == "true" ]]; then
-          echo "force_run=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "force_run=false" >> "$GITHUB_OUTPUT"
-        fi
     - name: Display AI Analysis Outputs
       if: always()
       shell: bash
@@ -224,7 +147,6 @@ runs:
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
         echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
-        echo "force_run: ${{ steps.final-outputs.outputs.force_run }}"
         echo "================================"
 
     - name: Delete previous comments
@@ -270,12 +192,7 @@ runs:
         MARKER="<!-- smart-e2e-selection -->"
         COMMENT_BODY=""
 
-        if [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
-          SKIP_REASON="${{ steps.ai-analysis.outputs.SKIP_REASON }}"
-          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
-
-          All E2E tests pre-selected."
-        elif [ -f "$COMMENT_FILE" ]; then
+        if [ -f "$COMMENT_FILE" ]; then
           COMMENT_BODY=$(cat "$COMMENT_FILE")
         else
           COMMENT_BODY="⚠️ AI analysis was inconclusive. Selecting all E2E tests as a fallback, if applicable based on changed files."

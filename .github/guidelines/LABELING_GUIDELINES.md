@@ -19,7 +19,7 @@ The check can be bypassed when necessary, either by setting the changelog entry 
 
 ### E2E readiness gate
 
-- **PR-not-ready-for-E2E**: Automatically applied to every newly opened PR. While present, E2E build and test jobs are skipped and the `Check all jobs pass` required status check fails, blocking merge. The PR owner must remove this label when the PR is ready for E2E validation. Once removed, CI re-runs and E2E tests execute normally. This label is distinct from `skip-e2e`: removing it is an expected part of the PR lifecycle, not an exceptional bypass.
+- **pr-not-ready-for-e2e**: Automatically applied to every newly opened PR. While present, E2E build and test jobs are skipped and the `Check all jobs pass` required status check fails, blocking merge. The PR owner must remove this label when the PR is ready for E2E validation. Once removed, CI re-runs and E2E tests execute normally. This label is distinct from `skip-e2e`: removing it is an expected part of the PR lifecycle, not an exceptional bypass.
 
 ## Optional labels (manual addition)
 
@@ -35,7 +35,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 ### Skip Smart E2E Selection
 
-- **skip-smart-e2e-selection**: This label is used to bypass the Smart E2E Selection (select E2E tests to run depending on the PR changes). Useful when we do want all E2E tests to run for a given PR.
+- **skip-smart-e2e-selection**: Bypasses the AI-powered Smart E2E Selection so that the full E2E test suite runs instead of an AI-picked subset. This label does **not** force E2E builds/tests to run on a PR that would otherwise skip them (e.g. docs-only changes). Whether E2E runs at all is determined by path filters, branch, and other skip labels — not this label.
 
 ### Block merge if any is present
 
