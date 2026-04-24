@@ -3383,7 +3383,6 @@
     "security_alerts": "Alertes de sécurité",
     "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur.",
     "smart_account_dapp_requests_heading": "Demandes de comptes intelligents émanant de dapps",
-    "smart_account_dapp_requests_desc": "Autoriser les dapps à demander des fonctionnalités de compte intelligent pour les comptes standards. Cela n’affectera pas les comptes qui sont déjà des comptes intelligents.",
     "smart_transactions_opt_in_heading": "Transactions intelligentes",
     "smart_transactions_opt_in_desc_supported_networks": "Activez les transactions intelligentes pour profiter de transactions plus fiables et plus sûres sur les réseaux pris en charge.",
     "smart_transactions_learn_more": "En savoir plus",

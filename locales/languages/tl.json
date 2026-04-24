@@ -3383,7 +3383,6 @@
     "security_alerts": "Mga alerto sa seguridad",
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
     "smart_account_dapp_requests_heading": "Mga kahilingan na smart account mula sa dapps",
-    "smart_account_dapp_requests_desc": "Hayaan ang dapps na hilingin ang mga feature ng smart account para sa mga standard na account. Hindi nito maaapektuhan ang mga smart account na.",
     "smart_transactions_opt_in_heading": "Mga Smart Transaction",
     "smart_transactions_opt_in_desc_supported_networks": "I-on ang mga Smart na Transaksyon para sa mas maaasahan at ligtas na mga transaksyon sa mga suportadong network.",
     "smart_transactions_learn_more": "Matuto pa",
