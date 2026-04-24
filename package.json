@@ -222,7 +222,7 @@
     "@ledgerhq/hw-app-eth": "^6.42.0",
     "@ledgerhq/react-native-hw-transport-ble": "^6.37.0",
     "@metamask/abi-utils": "^3.0.0",
-    "@metamask/account-api": "^1.0.0",
+    "@metamask/account-api": "^1.0.3",
     "@metamask/account-tree-controller": "^7.1.0",
     "@metamask/accounts-controller": "^37.2.0",
     "@metamask/address-book-controller": "^7.1.0",

@@ -7741,14 +7741,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-api@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/account-api@npm:1.0.0"
+"@metamask/account-api@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@metamask/account-api@npm:1.0.3"
   dependencies:
-    "@metamask/keyring-api": "npm:^21.4.0"
+    "@metamask/keyring-api": "npm:^23.0.1"
     "@metamask/keyring-utils": "npm:^3.2.0"
     uuid: "npm:^9.0.1"
-  checksum: 10/221fe044b9fb2e1cf79edea22834cfcd4e2658e26a649375b77ac7436ed6bb2f90b76168d449aef52cdd608a8908ca84570387b200f39fcd8f1127134671e7ce
+  checksum: 10/297e75336fc9bed1197135328a80a184f03f97797f50d36b6dc84866c2de5e4e5b64eb882c43e267b46da5ea17b6888484ff5f3f9f6b80957198b92c70927b36
   languageName: node
   linkType: hard
 
@@ -35873,7 +35873,7 @@ __metadata:
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
     "@metamask/abi-utils": "npm:^3.0.0"
-    "@metamask/account-api": "npm:^1.0.0"
+    "@metamask/account-api": "npm:^1.0.3"
     "@metamask/account-tree-controller": "npm:^7.1.0"
     "@metamask/accounts-controller": "npm:^37.2.0"
     "@metamask/address-book-controller": "npm:^7.1.0"
