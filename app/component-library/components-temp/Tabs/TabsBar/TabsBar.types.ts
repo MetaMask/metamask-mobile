@@ -46,4 +46,9 @@ export interface TabsBarProps extends BoxProps {
    * Tailwind CSS classes to apply to the main container
    */
   twClassName?: string;
+  /**
+   * When true, each tab stretches equally to fill the full container width.
+   * Disables horizontal scrolling and gap spacing. Defaults to false.
+   */
+  fillWidth?: boolean;
 }

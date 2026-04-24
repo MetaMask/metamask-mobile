@@ -32,4 +32,9 @@ export interface TabProps extends PressableProps {
    * Callback when tab layout changes
    */
   onLayout?: (event: LayoutChangeEvent) => void;
+  /**
+   * When true, the tab stretches to fill available space (flex: 1) instead of
+   * shrinking to its content width. Used by TabsBar's fillWidth mode.
+   */
+  fillWidth?: boolean;
 }

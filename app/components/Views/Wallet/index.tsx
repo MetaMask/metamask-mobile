@@ -1050,8 +1050,9 @@ const Wallet = ({
     HUB_PAGE_DISCOVERY_TABS_AB_KEY,
     HUB_PAGE_DISCOVERY_TABS_VARIANTS,
   );
-  const isDiscoveryTabsTreatment =
-    discoveryTabsVariantName === HubPageDiscoveryTabsVariant.Treatment;
+  const isDiscoveryTabsTreatment = true;
+  // const isDiscoveryTabsTreatment =
+  // discoveryTabsVariantName === HubPageDiscoveryTabsVariant.Treatment;
 
   // translateY slides the header up; negative marginBottom collapses the layout
   // space it occupied so the content below moves up in sync.

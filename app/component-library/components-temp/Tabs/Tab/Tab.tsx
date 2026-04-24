@@ -30,29 +30,32 @@ const Tab: React.FC<TabProps> = ({
   onPress,
   testID,
   onLayout,
+  fillWidth = false,
   ...pressableProps
 }) => {
   const tw = useTailwind();
   const viewRef = useRef<View>(null);
   const { iconCollapseAnim } = useContext(TabIconAnimationContext);
 
+  // translateY slides the icon upward out of the clipping boundary (overflow:hidden
+  // on the outer View) without changing layout — keeps tab bar height fixed so
+  // there is no layout cascade. Both transform and opacity run on the native thread.
   const iconAnimatedStyle = iconCollapseAnim
     ? {
-        height: iconCollapseAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [ICON_SIZE_LG, 0],
-        }),
         opacity: iconCollapseAnim.interpolate({
           inputRange: [0, 1],
           outputRange: [1, 0],
         }),
-        marginBottom: iconCollapseAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [ICON_MARGIN_BOTTOM, 0],
-        }),
-        overflow: 'hidden' as const,
+        transform: [
+          {
+            translateY: iconCollapseAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, -(ICON_SIZE_LG + ICON_MARGIN_BOTTOM)],
+            }),
+          },
+        ],
       }
-    : { height: ICON_SIZE_LG, marginBottom: ICON_MARGIN_BOTTOM };
+    : undefined;
 
   const handleOnLayout = useCallback(
     (layoutEvent: Parameters<NonNullable<typeof onLayout>>[0]) => {
@@ -67,12 +70,16 @@ const Tab: React.FC<TabProps> = ({
     <View
       ref={viewRef}
       onLayout={handleOnLayout}
-      style={tw.style('flex-shrink-0')}
+      style={[
+        fillWidth
+          ? tw.style('flex-1')
+          : tw.style('flex-shrink-0 overflow-hidden'),
+      ]}
     >
       <Pressable
         style={tw.style(
           iconName
-            ? 'px-0 py-1 flex-col items-center justify-center relative'
+            ? 'px-0 pt-1 pb-2 flex-col items-center justify-center relative'
             : 'px-0 py-1 flex-row items-center justify-center relative',
           isDisabled && 'opacity-50',
         )}
@@ -88,7 +95,12 @@ const Tab: React.FC<TabProps> = ({
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
           >
-            <Animated.View style={iconAnimatedStyle}>
+            <Animated.View
+              style={[
+                { height: ICON_SIZE_LG, marginBottom: ICON_MARGIN_BOTTOM },
+                iconAnimatedStyle,
+              ]}
+            >
               <Icon
                 name={iconName}
                 size={IconSize.Lg}

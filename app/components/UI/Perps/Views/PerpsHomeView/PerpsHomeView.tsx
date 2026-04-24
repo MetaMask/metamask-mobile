@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, ScrollView, Modal } from 'react-native';
+import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
@@ -57,6 +57,8 @@ import PerpsHomeHeader from '../../components/PerpsHomeHeader';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import Reanimated, { SharedValue } from 'react-native-reanimated';
+import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import {
@@ -74,9 +76,21 @@ import PerpsNavigationCard, {
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
+  walletHeaderTranslateY?: SharedValue<number>;
+  walletHeaderHeight?: number;
+  /** Ref populated with this tab's onTabEnter so the parent can call it on tab switch. */
+  tabEnterCallbackRef?: React.MutableRefObject<(() => void) | null>;
+  /** Forwarded to useDiscoveryScrollManager to sync icon animations with header hide/show. */
+  onHeaderHiddenChange?: (hidden: boolean) => void;
 }
 
-const PerpsHomeView = ({ hideHeader = false }: PerpsHomeViewProps) => {
+const PerpsHomeView = ({
+  hideHeader = false,
+  walletHeaderTranslateY,
+  walletHeaderHeight = 0,
+  tabEnterCallbackRef,
+  onHeaderHiddenChange,
+}: PerpsHomeViewProps) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -127,6 +141,34 @@ const PerpsHomeView = ({ hideHeader = false }: PerpsHomeViewProps) => {
   // Section scroll tracking for analytics
   const { handleSectionLayout, handleScroll, resetTracking } =
     usePerpsHomeSectionTracking();
+
+  // Bridge analytics handler into the Reanimated worklet via onScrollEvent
+  const handleScrollEvent = useCallback(
+    (scrollY: number, viewportHeight: number) => {
+      handleScroll({
+        nativeEvent: {
+          contentOffset: { x: 0, y: scrollY },
+          layoutMeasurement: { width: 0, height: viewportHeight },
+        } as NativeScrollEvent,
+      });
+    },
+    [handleScroll],
+  );
+
+  const { scrollHandler: perpsScrollHandler, onTabEnter: perpsOnTabEnter } =
+    useDiscoveryScrollManager({
+      walletHeaderHeight,
+      walletHeaderTranslateY,
+      onScrollEvent: handleScrollEvent,
+      onHeaderHiddenChange,
+    });
+
+  // Expose onTabEnter to the parent so it can restore this tab's header state on switch.
+  useEffect(() => {
+    if (tabEnterCallbackRef) {
+      tabEnterCallbackRef.current = perpsOnTabEnter;
+    }
+  }, [tabEnterCallbackRef, perpsOnTabEnter]);
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -435,11 +477,11 @@ const PerpsHomeView = ({ hideHeader = false }: PerpsHomeViewProps) => {
       )}
 
       {/* Main Content - ScrollView with all carousels */}
-      <ScrollView
+      <Reanimated.ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
+        onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
       >
         {/* Balance Actions Component */}
@@ -557,7 +599,7 @@ const PerpsHomeView = ({ hideHeader = false }: PerpsHomeViewProps) => {
 
         {/* Bottom spacing for tab bar */}
         <View style={bottomSpacerStyle} />
-      </ScrollView>
+      </Reanimated.ScrollView>
 
       {/* Close All Positions Bottom Sheet */}
       {showCloseAllSheet && (

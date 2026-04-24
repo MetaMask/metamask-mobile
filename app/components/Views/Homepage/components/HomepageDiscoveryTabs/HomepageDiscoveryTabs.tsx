@@ -1,13 +1,15 @@
 import React, {
   forwardRef,
   useCallback,
-  useEffect,
   useImperativeHandle,
   useRef,
-  useState,
 } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import Reanimated, { SharedValue } from 'react-native-reanimated';
+import Reanimated, {
+  SharedValue,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import TabsList from '../../../../../component-library/components-temp/Tabs/TabsList';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -23,6 +25,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './HomepageDiscoveryTabs.styles';
 import { useDiscoveryScrollManager } from '../../../../UI/Predict/hooks/useDiscoveryScrollManager';
+import { useTheme } from '../../../../../util/theme';
 import { TabIconAnimationContext } from '../../../../../component-library/components-temp/Tabs/Tab/TabIconAnimationContext';
 
 // Tab indices — kept as a const so future tabs can be added without renumbering.
@@ -131,46 +134,42 @@ const HomepageDiscoveryTabs = forwardRef<
   ) => {
     const tabsRef = useRef<TabsListRef>(null);
     const homepageRef = useRef<SectionRefreshHandle>(null);
+    const perpsTabEnterRef = useRef<(() => void) | null>(null);
     const tw = useTailwind();
     const { styles } = useStyles(styleSheet, {});
-    // Refs hold gradient colors so they can be updated without causing re-renders
-    // during the animation. Only one re-render is triggered at transition start
-    // (via gradientTick), keeping the native-thread opacity animation stutter-free.
-    const activeGradientColors = useRef(
-      TAB_GRADIENT_COLORS[TAB_INDEX.PORTFOLIO],
-    );
-    const previousGradientColors = useRef(
-      TAB_GRADIENT_COLORS[TAB_INDEX.PORTFOLIO],
-    );
-    const [gradientTick, setGradientTick] = useState(0);
-
-    // Animates the OUTGOING gradient out (1 → 0), not the incoming one in.
-    // This avoids the one-frame flash that occurs when react-native-linear-gradient
-    // re-renders a visible layer with new colors.
-    const fadeOutAnim = useRef(new Animated.Value(0)).current;
+    const { themeAppearance } = useTheme();
+    const isDarkMode = themeAppearance === 'dark';
+    // One Animated.Value per tab — pre-rendered at mount so no re-render is needed
+    // during a tab switch. Portfolio starts fully visible; others start at 0.
+    const tabGradientOpacities = useRef(
+      Object.keys(TAB_GRADIENT_COLORS).map(
+        (_, i) => new Animated.Value(i === TAB_INDEX.PORTFOLIO ? 1 : 0),
+      ),
+    ).current;
+    const activeTabIndexRef = useRef<number>(TAB_INDEX.PORTFOLIO);
 
     // 0 = icons expanded (header visible), 1 = icons collapsed (header hidden)
     const iconCollapseAnim = useRef(new Animated.Value(0)).current;
+    // Ref so the animated reaction closure always calls the latest animation starter
+    const iconCollapseAnimRef = useRef(iconCollapseAnim);
 
-    const { headerHidden, scrollHandler, onTabSwitch } =
+    // Triggered directly from the scroll worklet via onHeaderHiddenChange —
+    // fires in the same frame as the hide/show decision, not based on position.
+    const animateIcons = useCallback((hidden: boolean) => {
+      Animated.timing(iconCollapseAnimRef.current, {
+        toValue: hidden ? 1 : 0,
+        duration: hidden ? 300 : 250,
+        useNativeDriver: true,
+      }).start();
+    }, []);
+
+    const { scrollHandler, onTabEnter: portfolioOnTabEnter } =
       useDiscoveryScrollManager({
         walletHeaderHeight,
         walletHeaderTranslateY,
         onPortfolioScroll,
+        onHeaderHiddenChange: animateIcons,
       });
-
-    // Animate icons in/out slightly after the header starts moving.
-    // Delay on hide lets the header lead; no delay on show snaps icons back promptly.
-    useEffect(() => {
-      const anim = Animated.timing(iconCollapseAnim, {
-        toValue: headerHidden ? 1 : 0,
-        duration: headerHidden ? 500 : 400,
-        delay: headerHidden ? 100 : 150,
-        useNativeDriver: false,
-      });
-      anim.start();
-      return () => anim.stop();
-    }, [headerHidden, iconCollapseAnim]);
 
     useImperativeHandle(ref, () => ({
       refresh: async () => {
@@ -180,26 +179,65 @@ const HomepageDiscoveryTabs = forwardRef<
 
     const handleChangeTab = useCallback(
       ({ i }: { i: number }) => {
-        onTabSwitch();
+        // Restore each tab's own header state on entry.
+        // Predictions has no scroll manager so we always show the header.
+        if (i === TAB_INDEX.PORTFOLIO) {
+          portfolioOnTabEnter();
+        } else if (i === TAB_INDEX.PERPETUALS) {
+          if (perpsTabEnterRef.current) {
+            perpsTabEnterRef.current();
+          } else {
+            // First visit — Perps not mounted yet so ref is null. It will mount
+            // at the top of scroll, so show the header/icons immediately.
+            walletHeaderTranslateY &&
+              (walletHeaderTranslateY.value = withTiming(0, {
+                duration: 250,
+                easing: Easing.out(Easing.cubic),
+              }));
+            Animated.timing(iconCollapseAnimRef.current, {
+              toValue: 0,
+              duration: 250,
+              useNativeDriver: true,
+            }).start();
+          }
+        } else {
+          // Predictions has no scroll manager — always show header + icons on entry.
+          walletHeaderTranslateY &&
+            (walletHeaderTranslateY.value = withTiming(0, {
+              duration: 250,
+              easing: Easing.out(Easing.cubic),
+            }));
+          Animated.timing(iconCollapseAnimRef.current, {
+            toValue: 0,
+            duration: 250,
+            useNativeDriver: true,
+          }).start();
+        }
 
-        // Capture colors into refs before the single re-render.
-        previousGradientColors.current = activeGradientColors.current;
-        activeGradientColors.current =
-          TAB_GRADIENT_COLORS[i] ?? TAB_GRADIENT_COLORS[TAB_INDEX.PORTFOLIO];
+        const prevIndex = activeTabIndexRef.current;
+        activeTabIndexRef.current = i;
 
-        // Pin outgoing opacity to 1 before the re-render paints new colors.
-        fadeOutAnim.setValue(1);
+        if (prevIndex !== i) {
+          // Snap outgoing to 1 and incoming to 0 before animating, in case a
+          // previous transition was interrupted mid-flight.
+          tabGradientOpacities[prevIndex].setValue(1);
+          tabGradientOpacities[i].setValue(0);
 
-        // One re-render to paint updated colors, then animation runs uninterrupted.
-        setGradientTick((t) => t + 1);
-
-        Animated.timing(fadeOutAnim, {
-          toValue: 0,
-          duration: 350,
-          useNativeDriver: true,
-        }).start();
+          Animated.parallel([
+            Animated.timing(tabGradientOpacities[prevIndex], {
+              toValue: 0,
+              duration: 350,
+              useNativeDriver: true,
+            }),
+            Animated.timing(tabGradientOpacities[i], {
+              toValue: 1,
+              duration: 350,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        }
       },
-      [fadeOutAnim, onTabSwitch],
+      [tabGradientOpacities, portfolioOnTabEnter, walletHeaderTranslateY],
     );
 
     return (
@@ -211,6 +249,7 @@ const HomepageDiscoveryTabs = forwardRef<
             onChangeTab={handleChangeTab}
             tabsListContentTwClassName="px-0"
             style={tw.style('mt-2')}
+            tabsBarProps={{ fillWidth: true }}
           >
             <DiscoveryTabView tabLabel="Portfolio" tabIcon={IconName.Portfolio}>
               <Reanimated.ScrollView
@@ -230,7 +269,13 @@ const HomepageDiscoveryTabs = forwardRef<
             >
               <PerpsConnectionProvider suppressErrorView>
                 <PerpsStreamProvider>
-                  <PerpsHomeView hideHeader />
+                  <PerpsHomeView
+                    hideHeader
+                    walletHeaderTranslateY={walletHeaderTranslateY}
+                    walletHeaderHeight={walletHeaderHeight}
+                    tabEnterCallbackRef={perpsTabEnterRef}
+                    onHeaderHiddenChange={animateIcons}
+                  />
                 </PerpsStreamProvider>
               </PerpsConnectionProvider>
             </DiscoveryTabView>
@@ -242,46 +287,38 @@ const HomepageDiscoveryTabs = forwardRef<
             </DiscoveryTabView>
           </TabsList>
 
-          {/* Gradient overlay — crossfades between tab colors, bleeds up into the wallet header */}
-          {walletHeaderOffset > 0 && (
-            <>
-              {/* Incoming gradient — always fully opaque underneath; rendered first so it
-                  is never exposed before the outgoing gradient fades out, avoiding the
-                  one-frame white flash that occurs when LinearGradient re-renders visibly.
-                  key={gradientTick} remounts the native gradient view on each transition
-                  so it starts clean, and satisfies the ref-read needed for React to
-                  re-evaluate activeGradientColors.current after handleChangeTab fires. */}
-              <LinearGradient
-                key={gradientTick}
-                colors={activeGradientColors.current}
-                locations={[0, 0.4, 1.0]}
-                style={[
-                  styles.gradient,
-                  {
-                    top: -walletHeaderOffset,
-                    height: walletHeaderOffset + 175,
-                  },
-                ]}
-              />
-              {/* Outgoing gradient — sits on top and fades out, revealing the incoming layer */}
+          {/* Gradient overlay — dark mode only. One layer per tab, each always mounted
+              with fixed colors. Crossfade is pure opacity animation on the native thread —
+              no state update or unmount/remount during the transition.
+              Outer wrapper fades the entire gradient out when the header/icons collapse. */}
+          {walletHeaderOffset > 0 &&
+            isDarkMode &&
+            Object.entries(TAB_GRADIENT_COLORS).map(([idx, colors]) => (
               <Animated.View
+                key={idx}
                 style={[
                   styles.gradient,
                   {
                     top: -walletHeaderOffset,
                     height: walletHeaderOffset + 175,
-                    opacity: fadeOutAnim,
+                    opacity: Animated.multiply(
+                      tabGradientOpacities[Number(idx)],
+                      iconCollapseAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 0],
+                      }),
+                    ),
                   },
                 ]}
+                pointerEvents="none"
               >
                 <LinearGradient
-                  colors={previousGradientColors.current}
-                  locations={[0, 0.4, 1.0]}
+                  colors={colors}
+                  locations={[0, 0.6, 1.0]}
                   style={styles.gradientFill}
                 />
               </Animated.View>
-            </>
-          )}
+            ))}
         </View>
       </TabIconAnimationContext.Provider>
     );
