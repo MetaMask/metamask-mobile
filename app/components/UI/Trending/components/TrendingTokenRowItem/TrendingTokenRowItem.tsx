@@ -37,7 +37,7 @@ import { getSecurityBadgeConfig } from '../../../SecurityTrust/utils/securityUti
 /**
  * Converts CAIP chain ID to hex chain ID
  */
-const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
+export const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
   const { namespace, reference } = parseCaipChainId(caipChainId);
   return namespace === 'eip155'
     ? (`0x${Number(reference).toString(16)}` as Hex)
@@ -70,13 +70,13 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 /**
  * Extracts CAIP chain ID from asset ID
  */
-const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
+export const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
   assetId.split('/')[0] as CaipChainId;
 
 /**
  * Gets network badge image source for a given CAIP chain ID
  */
-const getNetworkBadgeSource = (
+export const getNetworkBadgeSource = (
   caipChainId: CaipChainId,
 ): ImageSourcePropType | undefined => {
   const hexChainId = caipChainIdToHex(caipChainId);

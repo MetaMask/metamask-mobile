@@ -1,10 +1,19 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Animated,
+  LayoutChangeEvent,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Text,
   TextColor,
   TextVariant,
@@ -13,15 +22,27 @@ import {
 import { useStyles } from '../../../../../../../component-library/hooks';
 import SparklineChart from '../../../../../Homepage/Sections/Perpetuals/components/SparklineChart';
 import TrendingTokenLogo from '../../../../../../UI/Trending/components/TrendingTokenLogo';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../../component-library/components/Badges/BadgeWrapper';
+import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
 import { TimeOption } from '../../../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { getPriceChangeFieldKey } from '../../../../../../UI/Trending/components/TrendingTokenRowItem/utils';
+import {
+  getCaipChainIdFromAssetId,
+  getNetworkBadgeSource,
+} from '../../../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
+import { formatPriceWithSubscriptNotation } from '../../../../../../UI/Predict/utils/format';
+import { isCaipChainId } from '@metamask/utils';
 import type { Theme } from '../../../../../../../util/theme/models';
 
 const DEFAULT_CARD_WIDTH = 180;
 const DEFAULT_CARD_HEIGHT = 180;
-const SPARKLINE_HEIGHT = 80;
 const SPARKLINE_STROKE_WIDTH = 2;
-const TOKEN_LOGO_SIZE = 40;
+const TOKEN_LOGO_SIZE = 28;
 const SHIMMER_PULSE_DURATION = 900;
 const SPARKLINE_MARGIN = 16;
 const CARD_BORDER_RADIUS = 12;
@@ -40,14 +61,27 @@ const styleSheet = (params: {
       borderRadius: CARD_BORDER_RADIUS,
       overflow: 'hidden',
     },
-    content: {
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 12,
+      paddingBottom: 0,
+    },
+    tokenName: {
       flex: 1,
-      padding: 16,
+      marginRight: 6,
     },
     sparklineContainer: {
-      marginTop: 'auto' as const,
-      marginHorizontal: 16,
-      marginBottom: 16,
+      flex: 1,
+      overflow: 'hidden',
+      marginHorizontal: SPARKLINE_MARGIN,
+      marginVertical: 10,
+    },
+    priceContainer: {
+      padding: 16,
+      paddingTop: 6,
+      paddingBottom: 12,
     },
     shimmerOverlay: {
       ...StyleSheet.absoluteFillObject,
@@ -104,11 +138,29 @@ const TrendingTokenTileCard: React.FC<TrendingTokenTileCardProps> = ({
     };
   }, [token.priceChangePct]);
 
+  const caipChainId = useMemo(
+    () => getCaipChainIdFromAssetId(token.assetId),
+    [token.assetId],
+  );
+
+  const networkBadgeImageSource = useMemo(() => {
+    if (!isCaipChainId(caipChainId)) return undefined;
+    return getNetworkBadgeSource(caipChainId);
+  }, [caipChainId]);
+
   const sparklineColor = isPositive
     ? theme.colors.success.default
     : theme.colors.error.default;
 
-  const sparklineWidth = cardWidth - SPARKLINE_MARGIN * 2;
+  const [sparklineLayout, setSparklineLayout] = useState({
+    width: 0,
+    height: 0,
+  });
+  const onSparklineLayout = useCallback((e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setSparklineLayout({ width, height });
+  }, []);
+
   const hasSparkline = Boolean(sparklineData && sparklineData.length >= 2);
   const isSparklineLoading = sparklineData !== undefined && !hasSparkline;
 
@@ -148,60 +200,78 @@ const TrendingTokenTileCard: React.FC<TrendingTokenTileCardProps> = ({
       activeOpacity={0.7}
       testID={testID}
     >
-      <View style={styles.content}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Start}
-          gap={2}
+      {/* Row 1: name + token icon with network badge */}
+      <View style={styles.header}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+          numberOfLines={1}
+          style={styles.tokenName}
         >
-          <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-            >
-              {token.symbol}
-            </Text>
-            {showChange && changeLabel !== undefined ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  isNeutral
-                    ? TextColor.TextAlternative
-                    : isPositive
-                      ? TextColor.SuccessDefault
-                      : TextColor.ErrorDefault
-                }
-                numberOfLines={1}
-                twClassName="shrink"
-              >
-                {changeLabel}
-              </Text>
-            ) : null}
-          </Box>
+          {token.name ?? token.symbol}
+        </Text>
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              size={AvatarSize.Xs}
+              variant={BadgeVariant.Network}
+              imageSource={networkBadgeImageSource}
+              isScaled={false}
+            />
+          }
+        >
           <TrendingTokenLogo
             assetId={token.assetId}
             symbol={token.symbol}
             size={TOKEN_LOGO_SIZE}
             recyclingKey={token.assetId}
           />
-        </Box>
+        </BadgeWrapper>
       </View>
 
-      <View style={styles.sparklineContainer}>
-        {hasSparkline && (
+      {/* Row 2: sparkline — flex:1 fills remaining vertical space */}
+      <View style={styles.sparklineContainer} onLayout={onSparklineLayout}>
+        {hasSparkline && sparklineLayout.width > 0 && (
           <SparklineChart
             data={sparklineData as number[]}
-            width={sparklineWidth}
+            width={sparklineLayout.width}
             strokeWidth={SPARKLINE_STROKE_WIDTH}
-            height={SPARKLINE_HEIGHT}
+            height={sparklineLayout.height}
             color={sparklineColor}
             gradientId={`trending-sparkline-${token.assetId}`}
             revealColor={theme.colors.background.section}
             showGradient={false}
           />
         )}
+      </View>
+
+      {/* Row 3: price + price change */}
+      <View style={styles.priceContainer}>
+        <Text
+          variant={TextVariant.BodyLg}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+        >
+          {formatPriceWithSubscriptNotation(token.price)}
+        </Text>
+        {showChange && changeLabel !== undefined ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={
+              isNeutral
+                ? TextColor.TextAlternative
+                : isPositive
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault
+            }
+            numberOfLines={1}
+          >
+            {changeLabel}
+          </Text>
+        ) : null}
       </View>
 
       {isSparklineLoading && (
