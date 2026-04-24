@@ -4588,37 +4588,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         ntli,
       });
 
-      const exchangeClient = this.#clientService.getExchangeClient();
-
-      // For ADD direction, if the perps clearinghouse alone can't cover the
-      // requested margin but the account's spendable can, sweep spot→perps
-      // first. Mirrors the withdraw() sweep so the provider honours the
-      // spendableBalance contract (UI reads one number; provider performs
-      // any internal moves required to satisfy it).
-      if (amountFloat > 0) {
-        const perpsWithdrawable = await this.#getBalanceForDex({ dex: null });
-        if (amountFloat > perpsWithdrawable) {
-          const shortfall = amountFloat - perpsWithdrawable;
-          this.#deps.debugLogger.log(
-            'HyperLiquidProvider: SWEEPING SPOT→PERPS (updateMargin)',
-            { shortfall, perpsWithdrawable, amountFloat },
-          );
-          const transferResult = await exchangeClient.usdClassTransfer({
-            amount: shortfall.toFixed(USDC_DECIMALS),
-            toPerp: true,
-          });
-          if (transferResult.status !== 'ok') {
-            throw new Error(
-              `Spot→perps sweep failed: ${String(transferResult.status)}`,
-            );
-          }
-          this.#deps.debugLogger.log(
-            '✅ HyperLiquidProvider: SWEEP APPLIED (updateMargin)',
-          );
-        }
-      }
-
       // Call SDK to update isolated margin
+      const exchangeClient = this.#clientService.getExchangeClient();
       const result = await exchangeClient.updateIsolatedMargin({
         asset: assetId,
         isBuy,
@@ -6909,30 +6880,6 @@ export class HyperLiquidProvider implements PerpsProvider {
         throw new Error(balanceValidation.error);
       }
       this.#deps.debugLogger.log('✅ HyperLiquidProvider: BALANCE SUFFICIENT');
-
-      // Step 5b: If perps clearinghouse alone can't cover, sweep spot→perps.
-      // `usdClassTransfer` is applied atomically at the HL validator layer —
-      // when `status === 'ok'` the perps clearinghouse already sees the funds,
-      // so `withdraw3` can fire immediately. No polling required.
-      const perpsWithdrawable = await this.#getBalanceForDex({ dex: null });
-      if (withdrawAmount > perpsWithdrawable) {
-        const shortfall = withdrawAmount - perpsWithdrawable;
-        this.#deps.debugLogger.log('HyperLiquidProvider: SWEEPING SPOT→PERPS', {
-          shortfall,
-          perpsWithdrawable,
-          withdrawAmount,
-        });
-        const transferResult = await exchangeClient.usdClassTransfer({
-          amount: shortfall.toFixed(USDC_DECIMALS),
-          toPerp: true,
-        });
-        if (transferResult.status !== 'ok') {
-          throw new Error(
-            `Spot→perps sweep failed: ${String(transferResult.status)}`,
-          );
-        }
-        this.#deps.debugLogger.log('✅ HyperLiquidProvider: SWEEP APPLIED');
-      }
 
       // Step 6: Execute withdrawal via HyperLiquid SDK (API call)
       this.#deps.debugLogger.log('HyperLiquidProvider: CALLING WITHDRAW3 API', {
