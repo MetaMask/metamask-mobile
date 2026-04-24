@@ -459,6 +459,94 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
   });
 
+  describe('hasMax percentage button', () => {
+    beforeEach(() => {
+      // Percentage buttons only render when hasInput is false.
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        hasInput: false,
+        isInputChanged: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: noop,
+      });
+    });
+
+    it('renders Max when hasMax=true and pay token is non-native', () => {
+      const { getByText, queryByText } = render({ hasMax: true });
+
+      expect(getByText('Max')).toBeOnTheScreen();
+      expect(queryByText('90%')).not.toBeOnTheScreen();
+    });
+
+    it('falls back to 90% when pay token is native and the flow is not a withdraw (safeguard against sending entire native balance with no gas reserve)', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: '0x123',
+          balanceHuman: '0',
+          balanceFiat: '0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'TST',
+        },
+        setPayToken: noop as never,
+        isNative: true,
+      });
+
+      const { getByText, queryByText } = render({ hasMax: true });
+
+      expect(getByText('90%')).toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      TransactionType.perpsWithdraw,
+      TransactionType.predictWithdraw,
+      TransactionType.moneyAccountWithdraw,
+    ])(
+      'renders Max for %s even with a native destination token (pay token is destination in post-quote mode, native-gas-reserve safeguard does not apply)',
+      (transactionType) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          type: transactionType,
+          txParams: { from: '0x123' },
+        } as never);
+        useTransactionPayTokenMock.mockReturnValue({
+          payToken: {
+            address: '0x123',
+            balanceHuman: '0',
+            balanceFiat: '0',
+            balanceRaw: '0',
+            balanceUsd: '0',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'TST',
+          },
+          setPayToken: noop as never,
+          isNative: true,
+        });
+
+        const { getByText, queryByText } = render({
+          hasMax: true,
+          transactionType,
+        });
+
+        expect(getByText('Max')).toBeOnTheScreen();
+        expect(queryByText('90%')).not.toBeOnTheScreen();
+      },
+    );
+
+    it('renders 90% when hasMax is not provided', () => {
+      const { getByText, queryByText } = render();
+
+      expect(getByText('90%')).toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
+    });
+  });
+
   describe('showPaymentDetails', () => {
     async function pressDone(
       getByText: ReturnType<typeof render>['getByText'],

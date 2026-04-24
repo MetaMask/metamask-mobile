@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import styleSheet from '../../InstallSnapApproval.styles';
