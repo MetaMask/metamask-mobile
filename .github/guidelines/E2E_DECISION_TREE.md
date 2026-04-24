@@ -4,7 +4,7 @@ The following diagram shows the high level decision flow used by CI to determine
 
 ```mermaid
 flowchart TD
-    CI[CI run starts (both Android & iOS)] --> GR[Check conditions]
+    CI[CI run starts - Android and iOS] --> GR[Check conditions]
     GR -->|Merge Queue | MQ[No E2E]
     GR -->|PR label: skip-e2e| HS[No E2E]
     GR -->|PR label: pr-not-ready-for-e2e| L2[No E2E]
