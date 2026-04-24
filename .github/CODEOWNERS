@@ -336,7 +336,6 @@ tests/websocket/                                                @MetaMask/qa
 # QA Team - CI
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
 .github/workflows/ai-pr-risk-analysis.yml                       @MetaMask/qa
-.github/workflows/needs-e2e-build.yml                           @MetaMask/qa
 .github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
 .github/workflows/run-e2e-regression-tests-android.yml          @MetaMask/qa
