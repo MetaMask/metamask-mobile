@@ -36144,7 +36144,6 @@ __metadata:
     lodash: "npm:4.18.1"
     lottie-react-native: "npm:6.7.2"
     luxon: "npm:^3.5.0"
-    metro-cache: "npm:^0.81.1"
     metro-react-native-babel-preset: "npm:~0.76.9"
     metro-react-native-babel-transformer: "npm:~0.76.9"
     mockttp: "npm:^3.15.2"
@@ -36344,17 +36343,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"metro-cache@npm:^0.81.1":
-  version: 0.81.5
-  resolution: "metro-cache@npm:0.81.5"
-  dependencies:
-    exponential-backoff: "npm:^3.1.1"
-    flow-enums-runtime: "npm:^0.0.6"
-    metro-core: "npm:0.81.5"
-  checksum: 10/6ffc8283ca9002c2a99a9e787e59c764399218459f9db352b9cb7543bf0f38de973130dfc9587997b6fd206c0b87b7c33def754814505c282286f12938c606d0
-  languageName: node
-  linkType: hard
-
 "metro-config@npm:0.81.1, metro-config@npm:^0.81.0":
   version: 0.81.1
   resolution: "metro-config@npm:0.81.1"
@@ -36382,7 +36370,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"metro-core@npm:0.81.5, metro-core@npm:^0.81.0":
+"metro-core@npm:^0.81.0":
   version: 0.81.5
   resolution: "metro-core@npm:0.81.5"
   dependencies:
