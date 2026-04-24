@@ -731,33 +731,38 @@ class WalletConnect2Session {
 
     // EVM namespace routing: delegate to eip155 routing module which owns
     // chain validation, auto-switching, and BackgroundBridge dispatch.
-    await handleEvmRequest({
-      requestEvent,
-      method,
-      unverifiedOrigin,
-      host: {
-        approveRequest: this.approveRequest,
-        rejectRequest: this.rejectRequest,
-        channelId: this.channelId,
-        session: this.session,
-        backgroundBridge: this.backgroundBridge,
-        getCurrentChainId: () => this.getCurrentChainId(),
-        switchToChain: (caip2, origin, allowNew) =>
-          this.switchToChain(caip2, origin, allowNew),
-        respondSessionError: (requestId, code, message) =>
-          this.web3Wallet.respondSessionRequest({
-            topic: this.session.topic,
-            response: {
-              id: requestId,
-              jsonrpc: '2.0',
-              error: { code, message },
-            },
-          }),
-        setHandlingRequest: (v) => {
-          this._isHandlingRequest = v;
+    try {
+      await handleEvmRequest({
+        requestEvent,
+        method,
+        unverifiedOrigin,
+        host: {
+          approveRequest: this.approveRequest,
+          rejectRequest: this.rejectRequest,
+          channelId: this.channelId,
+          session: this.session,
+          backgroundBridge: this.backgroundBridge,
+          getCurrentChainId: () => this.getCurrentChainId(),
+          switchToChain: (caip2, origin, allowNew) =>
+            this.switchToChain(caip2, origin, allowNew),
+          respondSessionError: (requestId, code, message) =>
+            this.web3Wallet.respondSessionRequest({
+              topic: this.session.topic,
+              response: {
+                id: requestId,
+                jsonrpc: '2.0',
+                error: { code, message },
+              },
+            }),
+          setHandlingRequest: (v) => {
+            this._isHandlingRequest = v;
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      this._isHandlingRequest = false;
+      throw error;
+    }
   };
 
   /** Route a non-EVM WalletConnect request through MultichainRoutingService. */
