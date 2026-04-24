@@ -115,8 +115,16 @@ describe('securityUtils', () => {
         const { tags, remainingCount } = getFeatureTags(features, 'Verified');
 
         expect(tags).toEqual([
-          { label: 'Published contract' },
-          { label: 'Established reputation' },
+          {
+            label: strings(
+              'security_trust.features.positive.verified_contract',
+            ),
+          },
+          {
+            label: strings(
+              'security_trust.features.positive.high_reputation_token',
+            ),
+          },
         ]);
         expect(remainingCount).toBe(0);
       });
@@ -129,7 +137,13 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Verified');
 
-        expect(tags).toEqual([{ label: 'Published contract' }]);
+        expect(tags).toEqual([
+          {
+            label: strings(
+              'security_trust.features.positive.verified_contract',
+            ),
+          },
+        ]);
       });
 
       it('caps display at 4 positive tags with no remainingCount', () => {
@@ -152,7 +166,13 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, undefined);
 
-        expect(tags).toEqual([{ label: 'Established reputation' }]);
+        expect(tags).toEqual([
+          {
+            label: strings(
+              'security_trust.features.positive.high_reputation_token',
+            ),
+          },
+        ]);
       });
     });
 
@@ -166,8 +186,10 @@ describe('securityUtils', () => {
         const { tags, remainingCount } = getFeatureTags(features, 'Warning');
 
         expect(tags).toEqual([
-          { label: 'Honeypot risk' },
-          { label: 'Suspicious airdrop' },
+          { label: strings('security_trust.features.negative.honeypot') },
+          {
+            label: strings('security_trust.features.negative.airdrop_pattern'),
+          },
         ]);
         expect(remainingCount).toBe(0);
       });
@@ -177,7 +199,13 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Spam');
 
-        expect(tags).toEqual([{ label: 'Likely impersonator' }]);
+        expect(tags).toEqual([
+          {
+            label: strings(
+              'security_trust.features.negative.impersonator_high_confidence',
+            ),
+          },
+        ]);
       });
 
       it('ignores Malicious features when resultType is Warning', () => {
@@ -185,7 +213,9 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Warning');
 
-        expect(tags).toEqual([{ label: 'Honeypot risk' }]);
+        expect(tags).toEqual([
+          { label: strings('security_trust.features.negative.honeypot') },
+        ]);
       });
 
       it('caps display at 3 and returns correct remainingCount', () => {
@@ -214,8 +244,10 @@ describe('securityUtils', () => {
         const { tags, remainingCount } = getFeatureTags(features, 'Malicious');
 
         expect(tags).toEqual([
-          { label: 'Rugpull risk' },
-          { label: 'Known malicious' },
+          { label: strings('security_trust.features.negative.rugpull') },
+          {
+            label: strings('security_trust.features.negative.known_malicious'),
+          },
         ]);
         expect(remainingCount).toBe(0);
       });
@@ -225,7 +257,9 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Malicious');
 
-        expect(tags).toEqual([{ label: 'Rugpull risk' }]);
+        expect(tags).toEqual([
+          { label: strings('security_trust.features.negative.rugpull') },
+        ]);
       });
 
       it('caps display at 3 and returns correct remainingCount', () => {
