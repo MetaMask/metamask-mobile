@@ -392,6 +392,9 @@ describe('HyperLiquidSubscriptionService', () => {
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
       getInfoClient: jest.fn(() => ({
         spotClearinghouseState: mockSpotClearinghouseState,
+        // Mode-aware fold gate reads userAbstraction; default to unifiedAccount
+        // so existing spot-fold assertions behave as before the gate was added.
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
       })),
       isTestnetMode: jest.fn(() => false),
       ensureTransportReady: jest.fn().mockResolvedValue(undefined),
@@ -3864,8 +3867,13 @@ describe('HyperLiquidSubscriptionService', () => {
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls.at(-1)[0];
+      // Unified-mode default: spot USDC folds into total, spendable, and
+      // withdrawable (all three carry the same value when perps balances
+      // are zero). Per-DEX subAccountBreakdown entries stay perps-only —
+      // the fold is applied once at the aggregation level, not per DEX.
       expect(accountState.totalBalance).toBe('100.76531791');
-      expect(accountState.spendableBalance).toBe('0');
+      expect(accountState.spendableBalance).toBe('100.76531791');
+      expect(accountState.withdrawableBalance).toBe('100.76531791');
       expect(accountState.subAccountBreakdown).toEqual({
         main: {
           spendableBalance: '0',
@@ -3933,8 +3941,14 @@ describe('HyperLiquidSubscriptionService', () => {
 
       expect(mockCallback).toHaveBeenCalled();
       const firstUpdate = mockCallback.mock.calls.at(-1)[0];
+      // Unified-mode default: freeSpot ($100.77) folds into spendable and
+      // withdrawable on top of perps-side values, and into total.
+      //   total       = perps.accountValue (200) + spot (100.77) = 300.77
+      //   spendable   = perps.withdrawable (50)  + spot (100.77) = 150.77
+      //   withdrawable = perps.withdrawable (50) + spot (100.77) = 150.77
       expect(firstUpdate.totalBalance).toBe('300.76531791');
-      expect(firstUpdate.spendableBalance).toBe('50');
+      expect(firstUpdate.spendableBalance).toBe('150.76531791');
+      expect(firstUpdate.withdrawableBalance).toBe('150.76531791');
 
       // Simulate a second WebSocket tick — should still include spot balance,
       // not revert to perps-only 200.

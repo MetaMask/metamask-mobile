@@ -92,8 +92,15 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   // account has totalBalance > 0 but spendableBalance === 0 (spot isn't auto-
   // collateral); those users need the Add Funds CTA even though their
   // aggregate wealth on the venue is non-zero.
+  //
+  // During loading, spendableBalance may carry a sentinel string
+  // (PERPS_CONSTANTS.FallbackDataDisplay = '--'). `BigNumber('--')` is NaN
+  // which reports `isZero() === false`, silently hiding the Add Funds CTA.
+  // Treat non-finite parses as empty so the skeleton/empty surface renders
+  // consistently.
   const spendableBalance = perpsAccount?.spendableBalance || '0';
-  const isBalanceEmpty = BigNumber(spendableBalance).isZero();
+  const spendableBn = BigNumber(spendableBalance);
+  const isBalanceEmpty = !spendableBn.isFinite() || spendableBn.isZero();
 
   // Use hook for eligibility checks and action handlers
   // Determine button location based on whether balance is empty (empty state) or not (home)

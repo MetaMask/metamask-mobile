@@ -1117,16 +1117,22 @@ export class HyperLiquidSubscriptionService {
         return;
       }
 
+      // Update the abstraction-mode cache independently of spot state: a
+      // successful `userAbstraction` fetch must not be discarded just because
+      // spot failed, since the mode gates the fold applied to stale spot data
+      // too. A failed `userAbstraction` fetch preserves the last known mode
+      // rather than resetting to null — losing cached Standard knowledge
+      // would silently flip the fold back to true until the next refresh.
+      if (abstractionResult.status === 'fulfilled') {
+        this.#cachedAbstractionMode = abstractionResult.value;
+      }
+
       if (result.status === 'rejected') {
         throw result.reason;
       }
 
       this.#cachedSpotState = result.value;
       this.#cachedSpotStateUserAddress = userAddress;
-      this.#cachedAbstractionMode =
-        abstractionResult.status === 'fulfilled'
-          ? abstractionResult.value
-          : null;
 
       if (this.#dexAccountCache.size > 0) {
         this.#aggregateAndNotifySubscribers();

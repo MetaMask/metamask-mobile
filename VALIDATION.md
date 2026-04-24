@@ -113,16 +113,16 @@ For zero-balance accounts:
 
 ### `hl-standard-mode-fold-check.json`
 
-Runs ONLY after the account is flipped to Standard. Compares the adapter's actual output against what Standard semantics require (perps-only, no spot fold):
+Runs ONLY after the account is flipped to Standard. Asserts that the mode-aware fold gate is holding — `spendableBalance` and `withdrawableBalance` must stay perps-only in Standard mode:
 
 - `standardSemanticExpected.spendable = Σ(breakdown.spendableBalance)` (perps-only, no fold)
 - `adapterActual.spendable = accountState.spendableBalance` (what our adapter produces)
 - `observedInflation = adapterActual.spendable − standardSemanticExpected.spendable`
-- Asserts `observedInflation ≈ freeSpotUSDC` within `ε = 0.05`
+- Asserts `standardModeCorrect === true`, which requires `|observedInflation| ≤ ε` (default `0.05`)
 
-This quantifies the known pre-existing limitation that the adapter folds spot unconditionally regardless of mode. A future mode-aware fix would reduce `observedInflation` to zero and this flow's assertion would flip to `knownLimitationPresent = false` — at which point the flow becomes a regression guard against the fold returning.
+This flow is a regression guard against the fold returning. If a future refactor accidentally drops the `foldIntoCollateral` gate, `observedInflation` grows back to `freeSpot` and the assertion fails — pointing squarely at the mode handling.
 
-Gate input `minFoldSignal` (default `0.5` USDC): the flow fails fast if spot is too dust-like to prove the limitation, with a hint to fund the account.
+Gate input `minFoldSignal` (default `0.5` USDC): the flow fails fast if spot is too dust-like to distinguish folded from non-folded, with a hint to fund the account.
 
 ### `hl-provision-fixture.json` (pre-existing, reused)
 
@@ -243,27 +243,25 @@ Equivalent to the user toggling HL web's "Disable Unified Account Mode" checkbox
 
 **Observed side effect of the flip**: HL moves the $10 USDC from the perps side to the spot side as part of the Unified → Standard transition. This leaves dev2 post-flip with `perps.withdrawable = $0, spot.USDC = $10.01` — a meaningful split that exposes the Standard-mode fold limitation.
 
-Captured live values in Standard mode:
+Captured live values in Standard mode after the mode-aware fold gate landed:
 
 ```json
 {
-  "phase": "dev2-standard-fold-quantified",
+  "phase": "dev2-standard-mode-correctness",
   "spot": { "total": 10.0120682, "hold": 0, "free": 10.0120682 },
   "standardSemanticExpected": { "spendable": 0, "withdrawable": 0 },
-  "adapterActual": { "spendable": 10.0120682, "withdrawable": 10.0120682 },
-  "observedInflation": { "spendable": 10.01, "withdrawable": 10.01 },
-  "knownLimitationPresent": true
+  "adapterActual": { "spendable": 0, "withdrawable": 0 },
+  "observedInflation": { "spendable": 0, "withdrawable": 0 },
+  "standardModeCorrect": true
 }
 ```
 
 Interpretation:
 
 - **Contract-shape check**: passed in Standard mode — fields populated, no legacy keys, shape is mode-agnostic. ✓
-- **Adapter internal-consistency check** (`hl-balance-math-check`): passed in Standard mode — the adapter's output matches its own formula. This confirms internal consistency but not Standard-mode correctness. ✓
-- **Standard-mode fold-limitation check** (`hl-standard-mode-fold-check`): confirmed empirically that the adapter returns `spendable = $10.01` in Standard mode when Standard semantics call for `spendable = $0` (spot not auto-collateral in Standard). `observedInflation = $10.01 ≈ freeSpotUSDC` within `ε = 0.05` — exactly the known limitation. ✓
-- **Post-restore contract check**: passed — shape survived the round trip. ✓
-
-This is a pre-existing behaviour preserved by the refactor, not introduced by it. A mode-aware fix is out of scope for TAT-3047 and is tracked as a follow-up. The flow above serves as a regression guard: if the limitation were fixed in a future PR, `observedInflation` would collapse to zero and the assertion's `knownLimitationPresent` check would need inverting.
+- **Adapter internal-consistency check** (`hl-balance-math-check` with `foldIntoCollateral=false`): passed — adapter output matches the expected perps-only formula when Standard semantics apply. ✓
+- **Standard-mode correctness check** (`hl-standard-mode-fold-check`): `adapterActual.spendable = 0` even though `spot.free = $10.01`, proving the `hyperLiquidModeFoldsSpot` gate is wired end-to-end through both the subscription service and the provider. ✓
+- **Post-restore contract check**: passed — shape survived the Unified → Standard → Unified round trip. ✓
 
 ### Captured values — Phase 3 (Account 6, zero)
 

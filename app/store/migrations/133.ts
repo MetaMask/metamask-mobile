@@ -71,15 +71,23 @@ const migration = (state: unknown): unknown => {
       ? accountState.availableToTradeBalance
       : undefined;
 
-  if (legacyAvailable !== undefined || legacyTradeable !== undefined) {
+  const hasNewSpendable = hasProperty(accountState, 'spendableBalance');
+  const hasNewWithdrawable = hasProperty(accountState, 'withdrawableBalance');
+  const hasLegacyKey =
+    hasProperty(accountState, 'availableBalance') ||
+    hasProperty(accountState, 'availableToTradeBalance');
+
+  if (hasLegacyKey || !hasNewSpendable || !hasNewWithdrawable) {
     const spendableResolved = legacyTradeable ?? legacyAvailable ?? '0';
     const withdrawableResolved = legacyAvailable ?? '0';
-    if (!hasProperty(accountState, 'spendableBalance')) {
+    if (!hasNewSpendable) {
       accountState.spendableBalance = spendableResolved;
     }
-    if (!hasProperty(accountState, 'withdrawableBalance')) {
+    if (!hasNewWithdrawable) {
       accountState.withdrawableBalance = withdrawableResolved;
     }
+    // Always strip the legacy keys — including `null`/non-string shapes we
+    // couldn't interpret — so downstream code never reads a stale field.
     delete accountState.availableBalance;
     delete accountState.availableToTradeBalance;
   }
@@ -102,12 +110,19 @@ const migration = (state: unknown): unknown => {
         typeof entryRecord.availableBalance === 'string'
           ? entryRecord.availableBalance
           : undefined;
-      if (legacySubAvailable !== undefined) {
-        if (!hasProperty(entryRecord, 'spendableBalance')) {
-          entryRecord.spendableBalance = legacySubAvailable;
+      const hasSubLegacyKey = hasProperty(entryRecord, 'availableBalance');
+      const hasSubNewSpendable = hasProperty(entryRecord, 'spendableBalance');
+      const hasSubNewWithdrawable = hasProperty(
+        entryRecord,
+        'withdrawableBalance',
+      );
+      if (hasSubLegacyKey || !hasSubNewSpendable || !hasSubNewWithdrawable) {
+        const resolved = legacySubAvailable ?? '0';
+        if (!hasSubNewSpendable) {
+          entryRecord.spendableBalance = resolved;
         }
-        if (!hasProperty(entryRecord, 'withdrawableBalance')) {
-          entryRecord.withdrawableBalance = legacySubAvailable;
+        if (!hasSubNewWithdrawable) {
+          entryRecord.withdrawableBalance = resolved;
         }
         delete entryRecord.availableBalance;
       }
