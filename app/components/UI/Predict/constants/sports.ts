@@ -110,4 +110,4 @@ export const MONEYLINE_MARKET_TYPES = new Set([
 ]);
 
 export const isMoneylineLikeMarketType = (type?: string): boolean =>
-  type !== undefined && MONEYLINE_MARKET_TYPES.has(type);
+  type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());

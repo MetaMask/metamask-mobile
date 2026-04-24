@@ -2599,6 +2599,25 @@ describe('polymarket utils', () => {
         expect(result.tokens[1].shortTitle).toBe('SEA');
       });
 
+      it('resolves negRisk moneyline shortTitles with mixed-case market type', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'Moneyline',
+          groupItemTitle: 'Denver Broncos',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].title).toBe('Denver Broncos');
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
       it('skips negRisk shortTitles for draw markets', () => {
         const game = createGameData();
         const market = createMarket({

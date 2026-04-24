@@ -37,6 +37,12 @@ describe('isMoneylineLikeMarketType', () => {
     expect(result).toBe(true);
   });
 
+  it('returns true for mixed-case moneyline values', () => {
+    expect(isMoneylineLikeMarketType('Moneyline')).toBe(true);
+    expect(isMoneylineLikeMarketType('FIRST_HALF_MONEYLINE')).toBe(true);
+    expect(isMoneylineLikeMarketType('Soccer_Halftime_Result')).toBe(true);
+  });
+
   it('returns false for spreads', () => {
     const result = isMoneylineLikeMarketType('spreads');
 
