@@ -159,6 +159,7 @@ app/selectors/earnController         @MetaMask/earn
 **/earn/**                           @MetaMask/earn
 **/Money/**                          @MetaMask/earn
 **/money/**                          @MetaMask/earn
+app/components/Views/Homepage/Sections/Cash/ @MetaMask/earn
 
 # Rewards Team
 app/core/Engine/controllers/rewards-controller @MetaMask/rewards
@@ -180,6 +181,7 @@ app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
 app/core/AgenticService/             @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
+app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 
 # Social & AI Team
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
@@ -207,6 +209,7 @@ app/core/Engine/messengers/predict-controller-messenger       @MetaMask/predict
 app/core/DeeplinkManager/handlers/legacy/handlePredictUrl.ts  @MetaMask/predict
 **/Predict/**                                                 @MetaMask/predict
 **/predict/**                                                 @MetaMask/predict
+app/components/Views/Homepage/Sections/Predictions/           @MetaMask/predict
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
@@ -243,6 +246,9 @@ app/reducers/collectibles @MetaMask/metamask-assets
 app/core/Engine/controllers/defi-positions-controller @MetaMask/metamask-assets
 app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamask-assets
 app/selectors/assets @MetaMask/metamask-assets
+app/components/Views/Homepage/Sections/Tokens/ @MetaMask/metamask-assets
+app/components/Views/Homepage/Sections/DeFi/ @MetaMask/metamask-assets
+app/components/Views/Homepage/Sections/NFTs/ @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions              @MetaMask/mobile-core-ux
@@ -269,6 +275,14 @@ app/reducers/modals                              @MetaMask/mobile-core-ux
 app/reducers/navigation                          @MetaMask/mobile-core-ux
 app/reducers/privacy                             @MetaMask/mobile-core-ux
 app/reducers/settings                            @MetaMask/mobile-core-ux
+app/components/Views/Homepage/Homepage.tsx       @MetaMask/mobile-core-ux
+app/components/Views/Homepage/abTestConfig.ts    @MetaMask/mobile-core-ux
+app/components/Views/Homepage/types.ts           @MetaMask/mobile-core-ux
+app/components/Views/Homepage/index.ts           @MetaMask/mobile-core-ux
+app/components/Views/Homepage/context/           @MetaMask/mobile-core-ux
+app/components/Views/Homepage/hooks/             @MetaMask/mobile-core-ux
+app/components/Views/Homepage/components/        @MetaMask/mobile-core-ux
+app/selectors/featureFlagController/homepage/    @MetaMask/mobile-core-ux @MetaMask/mobile-platform
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
@@ -321,6 +335,7 @@ tests/websocket/                                                @MetaMask/qa
 
 # QA Team - CI
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
+.github/workflows/ai-pr-risk-analysis.yml                       @MetaMask/qa
 .github/workflows/needs-e2e-build.yml                           @MetaMask/qa
 .github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa

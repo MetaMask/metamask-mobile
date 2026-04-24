@@ -161,7 +161,7 @@ describe('CampaignTile', () => {
       );
     });
 
-    it('renders date label for upcoming campaign', () => {
+    it('does not render date label for upcoming campaign', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
         statusLabel: 'Coming soon',
@@ -170,11 +170,9 @@ describe('CampaignTile', () => {
       });
       const campaign = createTestCampaign();
 
-      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      const { queryByTestId } = render(<CampaignTile campaign={campaign} />);
 
-      expect(getByTestId('campaign-tile-date-info')).toHaveTextContent(
-        'Starts June 1',
-      );
+      expect(queryByTestId('campaign-tile-date-info')).toBeNull();
     });
 
     it('renders date label for complete campaign', () => {

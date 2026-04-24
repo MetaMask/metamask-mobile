@@ -2062,4 +2062,112 @@ describe('BridgeView', () => {
       });
     });
   });
+
+  describe('Missing Price Banner', () => {
+    const mockWarning = {
+      type: TokenFeatureType.WARNING,
+      feature_id: 'warn-1',
+      description: 'This token is suspicious.',
+    };
+
+    const quoteModeState = (tokenWarnings: (typeof mockWarning)[] = []) =>
+      createBridgeTestState(
+        {
+          bridgeControllerOverrides: { tokenWarnings },
+        },
+        mockState,
+      );
+
+    it('shows the missing price banner when quote price data is unavailable', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              priceData: undefined,
+            },
+          },
+        }));
+
+      const { getByTestId, getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: quoteModeState() },
+      );
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.MISSING_PRICE_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('swaps.market_price_unavailable')),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not navigate when the missing price banner is pressed', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              priceData: undefined,
+            },
+          },
+        }));
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: quoteModeState() },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(BridgeViewSelectorsIDs.MISSING_PRICE_BANNER),
+        );
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.BRIDGE.MODALS.ROOT,
+        expect.objectContaining({
+          screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        }),
+      );
+    });
+
+    it('renders both the token warning banner and the missing price banner together', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              priceData: undefined,
+            },
+          },
+        }));
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: quoteModeState([mockWarning]) },
+      );
+
+      expect(
+        getByText(
+          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('swaps.market_price_unavailable')),
+      ).toBeOnTheScreen();
+    });
+  });
 });
