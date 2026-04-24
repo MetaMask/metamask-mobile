@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -91,12 +97,17 @@ function HeadlessHost() {
   // For headless flows, post-auth resets must land back here (not on
   // BuildQuote). We pin the routing base to the Host and re-supply the
   // session id so the Host can resume tracking on re-focus.
-  const { continueWithQuote } = useContinueWithQuote({
-    transakRouting: {
+  // Memoize so `baseRouteParams` identity is stable; otherwise
+  // `useTransakRouting` → `continueWithQuote` churn every render and
+  // `useFocusEffect` re-subscribes its listeners unnecessarily.
+  const transakRouting = useMemo(
+    () => ({
       baseRoute: Routes.RAMP.HEADLESS_HOST,
       baseRouteParams: { headlessSessionId },
-    },
-  });
+    }),
+    [headlessSessionId],
+  );
+  const { continueWithQuote } = useContinueWithQuote({ transakRouting });
 
   const chainId = session
     ? (getChainIdFromAssetId(session.params.assetId) as CaipChainId | null)

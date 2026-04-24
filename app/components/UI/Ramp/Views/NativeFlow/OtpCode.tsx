@@ -1,4 +1,11 @@
-import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  FC,
+} from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -103,14 +110,17 @@ const V2OtpCode = () => {
 
   // For headless buy flows, post-auth resets must land back on the Host
   // (which carries the live `headlessSessionId`) instead of BuildQuote.
-  const { routeAfterAuthentication } = useTransakRouting(
-    headlessSessionId
-      ? {
-          baseRoute: Routes.RAMP.HEADLESS_HOST,
-          baseRouteParams: { headlessSessionId },
-        }
-      : undefined,
+  const transakRoutingConfig = useMemo(
+    () =>
+      headlessSessionId
+        ? {
+            baseRoute: Routes.RAMP.HEADLESS_HOST,
+            baseRouteParams: { headlessSessionId },
+          }
+        : undefined,
+    [headlessSessionId],
   );
+  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
 
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
