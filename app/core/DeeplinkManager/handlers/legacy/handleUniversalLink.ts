@@ -286,30 +286,36 @@ async function handleUniversalLink({
 
   /**
    * Fire-and-forget Branch.io params fetch. Resolves to the params if Branch
-   * returns valid data within 500 ms, or `undefined` otherwise. Passed as a
-   * promise into the analytics context so the interstitial / handler flow is
-   * not blocked on Branch — only `trackDeepLinkAnalytics` (itself
-   * fire-and-forget) awaits the result.
+   * returns valid data within 500 ms, or `undefined` otherwise (timeout /
+   * error / empty response). Passed as a promise into the analytics context
+   * so the interstitial / handler flow is not blocked on Branch — only
+   * `trackDeepLinkAnalytics` (itself fire-and-forget) awaits the result.
+   * Timeout and error paths are logged so we retain observability on Branch
+   * being slow or broken.
    */
-  const branchParamsPromise: Promise<BranchParams | undefined> = Promise.race([
-    // Promise.resolve tolerates mocks that return a non-Promise synchronously.
-    Promise.resolve(branch.getLatestReferringParams()).then((rawParams) =>
-      rawParams &&
-      typeof rawParams === 'object' &&
-      Object.keys(rawParams).length > 0
-        ? (rawParams as BranchParams)
-        : undefined,
-    ),
-    new Promise<undefined>((resolve) =>
-      setTimeout(() => resolve(undefined), 500),
-    ),
-  ]).catch((error) => {
-    Logger.error(
-      error as Error,
-      'DeepLinkManager: Error getting Branch.io params',
-    );
-    return undefined;
-  });
+  const branchParamsPromise: Promise<BranchParams | undefined> =
+    Promise.race([
+      // Promise.resolve tolerates mocks that return a non-Promise synchronously.
+      Promise.resolve(branch.getLatestReferringParams()).then((rawParams) =>
+        rawParams &&
+        typeof rawParams === 'object' &&
+        Object.keys(rawParams).length > 0
+          ? (rawParams as BranchParams)
+          : undefined,
+      ),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Branch.io params fetch timeout')),
+          500,
+        ),
+      ),
+    ]).catch((error) => {
+      Logger.error(
+        error as Error,
+        'DeepLinkManager: Error getting Branch.io params',
+      );
+      return undefined;
+    });
 
   // Build analytics context - determine signature status
   // Check if signature parameter exists and has a value

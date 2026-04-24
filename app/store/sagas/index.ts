@@ -266,8 +266,7 @@ export function* basicFunctionalityToggle() {
 
 export function* initializeSDKServices() {
   try {
-    // Init WC2 and SDKConnect in parallel — they are independent and each
-    // takes ~1-3 s on cold start; serialising them blocked deeplink parsing.
+    // Init WC2 and SDKConnect in parallel — they are independent and each takes ~1-3 s on cold start;
     yield all([
       call(() => WC2Manager.init({})),
       call(() => SDKConnect.init({ context: 'Nav/App' })),
