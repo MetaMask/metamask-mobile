@@ -9,6 +9,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { UnstakeConfirmationViewRouteParams } from './UnstakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
+import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -102,23 +103,15 @@ jest.mock('../../hooks/useStakeContext', () => ({
   useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
 
-expect.addSnapshotSerializer({
-  test: (val) =>
-    val &&
-    typeof val === 'object' &&
-    (val.props?.source?.uri === '' ||
-      val.props?.onLayout ||
-      val.props?.onError ||
-      val.props?.onLoadEnd),
-  print: () => 'IGNORED_RANDOM_ELEMENT',
-});
-
 describe('UnstakeConfirmationView', () => {
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<UnstakeConfirmationView />, {
+  it('renders unstake confirmation view', () => {
+    const { getByText } = renderWithProvider(<UnstakeConfirmationView />, {
       state: mockInitialState,
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.unstaking_to'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.interacting_with'))).toBeOnTheScreen();
+    expect(getByText('Cancel')).toBeOnTheScreen();
+    expect(getByText('Continue')).toBeOnTheScreen();
   });
 });
