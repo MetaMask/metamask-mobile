@@ -404,9 +404,14 @@ export const PROVIDER_CONFIG = {
   MYX_TESTNET_ONLY: false,
 } as const;
 
-// Disk-backed cold-start cache keys and throttle interval
+// Disk-backed cold-start cache keys and throttle interval.
+// The user-data key ends in _V2 because the AccountState balance contract
+// changed (TAT-3047) and has no in-payload version field. Bumping the key
+// forces a one-time empty cache on upgrade — consumers fall through to
+// skeleton/fallback until the first WS tick, avoiding stale legacy-shape
+// reads that would surface as $0 balances.
 export const PERPS_DISK_CACHE_MARKETS = 'PERPS_DISK_CACHE_MARKETS';
-export const PERPS_DISK_CACHE_USER_DATA = 'PERPS_DISK_CACHE_USER_DATA';
+export const PERPS_DISK_CACHE_USER_DATA = 'PERPS_DISK_CACHE_USER_DATA_V2';
 export const PERPS_DISK_CACHE_THROTTLE_MS = 30_000;
 
 /**
