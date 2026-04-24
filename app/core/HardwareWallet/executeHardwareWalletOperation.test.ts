@@ -1,14 +1,11 @@
 import { executeHardwareWalletOperation } from './executeHardwareWalletOperation';
 
 const mockGetDeviceIdForAddress = jest.fn();
-const mockGetHardwareWalletTypeForAddress = jest.fn();
 const mockIsUserCancellation = jest.fn().mockReturnValue(false);
 
 jest.mock('./helpers', () => ({
   getDeviceIdForAddress: (...args: unknown[]) =>
     mockGetDeviceIdForAddress(...args),
-  getHardwareWalletTypeForAddress: (...args: unknown[]) =>
-    mockGetHardwareWalletTypeForAddress(...args),
 }));
 
 jest.mock('./errors', () => ({
@@ -20,7 +17,7 @@ describe('executeHardwareWalletOperation', () => {
   const showAwaitingConfirmation = jest.fn();
   const hideAwaitingConfirmation = jest.fn();
   const showHardwareWalletError = jest.fn();
-  const setTargetWalletType = jest.fn();
+  const setPendingOperationAddress = jest.fn();
   const execute = jest.fn();
   const onError = jest.fn();
   const onRejected = jest.fn();
@@ -29,7 +26,7 @@ describe('executeHardwareWalletOperation', () => {
     address: '0x123',
     operationType: 'transaction' as const,
     ensureDeviceReady,
-    setTargetWalletType,
+    setPendingOperationAddress,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
@@ -41,7 +38,6 @@ describe('executeHardwareWalletOperation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetDeviceIdForAddress.mockResolvedValue('device-123');
-    mockGetHardwareWalletTypeForAddress.mockReturnValue('ledger');
     ensureDeviceReady.mockResolvedValue(true);
     execute.mockResolvedValue(undefined);
     onError.mockResolvedValue(false);
@@ -56,11 +52,11 @@ describe('executeHardwareWalletOperation', () => {
     expect(ensureDeviceReady).toHaveBeenCalledWith('device-123');
   });
 
-  it('sets and clears the target wallet type around the operation', async () => {
+  it('sets the pending operation address at the start and clears it in the finally block', async () => {
     await executeHardwareWalletOperation(baseOptions);
 
-    expect(setTargetWalletType).toHaveBeenNthCalledWith(1, 'ledger');
-    expect(setTargetWalletType).toHaveBeenLastCalledWith(null);
+    expect(setPendingOperationAddress).toHaveBeenNthCalledWith(1, '0x123');
+    expect(setPendingOperationAddress).toHaveBeenLastCalledWith(null);
   });
 
   it('shows awaiting confirmation while executing the operation', async () => {
@@ -144,16 +140,9 @@ describe('executeHardwareWalletOperation', () => {
     expect(onRejected).toHaveBeenCalledTimes(1);
   });
 
-  it('does not set target wallet type when wallet type is null', async () => {
-    mockGetHardwareWalletTypeForAddress.mockReturnValue(null);
-
-    await executeHardwareWalletOperation(baseOptions);
-
-    expect(setTargetWalletType).not.toHaveBeenCalled();
-  });
-
-  it('works without setTargetWalletType provided', async () => {
-    const { setTargetWalletType: _, ...optionsWithoutSetter } = baseOptions;
+  it('works without setPendingOperationAddress provided', async () => {
+    const { setPendingOperationAddress: _, ...optionsWithoutSetter } =
+      baseOptions;
 
     await expect(
       executeHardwareWalletOperation(optionsWithoutSetter),
@@ -170,7 +159,7 @@ describe('executeHardwareWalletOperation', () => {
     ).resolves.toBe(true);
   });
 
-  it('handles operationType message', async () => {
+  it('passes message operationType to showAwaitingConfirmation', async () => {
     await expect(
       executeHardwareWalletOperation({
         ...baseOptions,
@@ -216,14 +205,34 @@ describe('executeHardwareWalletOperation', () => {
     expect(execute).not.toHaveBeenCalled();
   });
 
-  it('clears target wallet type in finally block even on error', async () => {
+  it('does not call hideAwaitingConfirmation when the error occurs before showAwaitingConfirmation', async () => {
+    const error = new Error('device lookup failed');
+    mockGetDeviceIdForAddress.mockRejectedValueOnce(error);
+
+    await executeHardwareWalletOperation(baseOptions);
+
+    expect(showAwaitingConfirmation).not.toHaveBeenCalled();
+    expect(hideAwaitingConfirmation).not.toHaveBeenCalled();
+  });
+
+  it('does not call hideAwaitingConfirmation when ensureDeviceReady throws before showAwaitingConfirmation', async () => {
+    const error = new Error('BLE connection failed');
+    ensureDeviceReady.mockRejectedValueOnce(error);
+
+    await executeHardwareWalletOperation(baseOptions);
+
+    expect(showAwaitingConfirmation).not.toHaveBeenCalled();
+    expect(hideAwaitingConfirmation).not.toHaveBeenCalled();
+  });
+
+  it('clears pending operation address in finally block even on error', async () => {
     execute.mockRejectedValueOnce(new Error('fail'));
 
     await expect(executeHardwareWalletOperation(baseOptions)).resolves.toBe(
       false,
     );
 
-    expect(setTargetWalletType).toHaveBeenNthCalledWith(1, 'ledger');
-    expect(setTargetWalletType).toHaveBeenLastCalledWith(null);
+    expect(setPendingOperationAddress).toHaveBeenNthCalledWith(1, '0x123');
+    expect(setPendingOperationAddress).toHaveBeenLastCalledWith(null);
   });
 });

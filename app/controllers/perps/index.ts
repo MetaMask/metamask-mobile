@@ -431,7 +431,7 @@ export {
   aggregateAccountStates,
 } from './utils';
 export type { ReturnOnEquityInput } from './utils';
-export { ensureError } from './utils';
+export { ensureError, isAbortError } from './utils';
 export type {
   OrderBookCacheEntry,
   ProcessL2BookDataParams,

@@ -91,6 +91,6 @@ function getControllers(
   >,
 ) {
   return {
-    transactionController: request.getController('TransactionController'),
+    transactionController: request.getMessengerClient('TransactionController'),
   };
 }

@@ -21,6 +21,8 @@ import {
   type CampaignState,
   type CampaignParticipantStatusState,
   type CampaignLeaderboardPositionState,
+  type SubscriptionBenefitsState,
+  type SubscriptionBenefitDto,
 } from './types';
 import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -349,6 +351,8 @@ describe('RewardsController', () => {
       validateBonusCode: jest.fn(),
       claimReward: jest.fn(),
       login: jest.fn(),
+      getBenefits: jest.fn(),
+      postBenefitImpression: jest.fn(),
     }));
 
     // @ts-expect-error TODO: Resolve type mismatch
@@ -393,6 +397,8 @@ describe('RewardsController', () => {
           'isRewardsFeatureEnabled',
           'getSeasonStatus',
           'getReferralDetails',
+          'getBenefits',
+          'postBenefitImpression',
           'getSeasonOneLineaRewardTokens',
           'optIn',
           'optOut',
@@ -6884,6 +6890,208 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('getBenefits', () => {
+    const mockSubscriptionId = 'sub-benefits';
+    const mockLimit = 200;
+
+    const createMockBenefit = (
+      overrides: Partial<SubscriptionBenefitDto> = {},
+    ): SubscriptionBenefitDto => ({
+      id: 1,
+      longTitle: 'Benefit title',
+      shortDescription: 'Short',
+      longDescription: 'Long description',
+      thumbnail: 'https://example.com/thumb.png',
+      validFrom: '2026-01-01T00:00:00Z',
+      validTo: '2026-12-31T23:59:59Z',
+      url: 'https://example.com/claim',
+      actionDate: '2026-08-01T00:00:00Z',
+      chain: 'ethereum',
+      type: { id: 9, name: 'Partner' },
+      ...overrides,
+    });
+
+    it('returns cached benefits when cache is fresh', async () => {
+      const cachedState: SubscriptionBenefitsState = {
+        benefits: [createMockBenefit({ id: 99 })],
+        limit: mockLimit,
+        lastFetched: 100,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptionBenefits: {
+            [mockSubscriptionId]: cachedState,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      const result = await controller.getBenefits(
+        mockSubscriptionId,
+        mockLimit,
+      );
+
+      expect(result).toEqual(cachedState);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getBenefits',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('fetches fresh benefits when cache is empty', async () => {
+      const apiBenefits = [createMockBenefit({ id: 2 })];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiBenefits);
+
+      const result = await controller.getBenefits(
+        mockSubscriptionId,
+        mockLimit,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getBenefits',
+        mockSubscriptionId,
+        mockLimit,
+      );
+      expect(result.benefits).toEqual(apiBenefits);
+      expect(result.limit).toBe(mockLimit);
+      expect(result.lastFetched).toBe(123);
+    });
+
+    it('fetches fresh benefits when cache is stale', async () => {
+      const staleState: SubscriptionBenefitsState = {
+        benefits: [createMockBenefit({ id: 3 })],
+        limit: mockLimit,
+        lastFetched: -900000,
+      };
+
+      const freshFromApi = [createMockBenefit({ id: 4 })];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptionBenefits: {
+            [mockSubscriptionId]: staleState,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(freshFromApi);
+
+      const result = await controller.getBenefits(
+        mockSubscriptionId,
+        mockLimit,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getBenefits',
+        mockSubscriptionId,
+        mockLimit,
+      );
+      expect(result.benefits).toEqual(freshFromApi);
+      expect(result.lastFetched).toBe(123);
+    });
+
+    it('persists fetched benefits to subscriptionBenefits state', async () => {
+      const apiBenefits = [createMockBenefit({ id: 5 })];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiBenefits);
+
+      await controller.getBenefits(mockSubscriptionId, mockLimit);
+
+      expect(controller.state.subscriptionBenefits[mockSubscriptionId]).toEqual(
+        {
+          benefits: apiBenefits,
+          limit: mockLimit,
+          lastFetched: 123,
+        },
+      );
+    });
+
+    it('logs and rethrows when the benefits API call fails', async () => {
+      mockLogger.log.mockClear();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      const apiError = new Error('Benefits API failed');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      await expect(
+        controller.getBenefits(mockSubscriptionId, mockLimit),
+      ).rejects.toThrow('Benefits API failed');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get benefits details:',
+        'Benefits API failed',
+      );
+    });
+  });
+
+  describe('postBenefitImpression', () => {
+    const mockSubscriptionId = 'sub-impression';
+    const mockBenefitId = 42;
+    const mockBenefitType = 7;
+
+    it('calls RewardsDataService to post a benefit impression', async () => {
+      mockMessenger.call.mockResolvedValue(undefined);
+
+      await controller.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:postBenefitImpression',
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+      );
+    });
+
+    it('logs and rethrows when posting a benefit impression fails', async () => {
+      mockLogger.log.mockClear();
+
+      const apiError = new Error('Impression API failed');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      await expect(
+        controller.postBenefitImpression(
+          mockSubscriptionId,
+          mockBenefitId,
+          mockBenefitType,
+        ),
+      ).rejects.toThrow('Impression API failed');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to post benefit impression:',
+        'Impression API failed',
+      );
+    });
+  });
+
   describe('handleAuthenticationTrigger', () => {
     beforeEach(() => {
       mockIsHardwareAccount.mockReturnValue(false);
@@ -8811,64 +9019,6 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result.balance.total).toBe(largeBalance);
-    });
-
-    it('preserves shouldInstallNewVersion when present', () => {
-      // Arrange
-      const seasonMetadata: SeasonDtoState = {
-        id: 'season-update',
-        name: 'Update Required Season',
-        startDate: Date.now(),
-        endDate: Date.now() + 86400000,
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-        shouldInstallNewVersion: '1.2.3',
-      };
-
-      const seasonState: SeasonStateDto = {
-        balance: 5000,
-        currentTierId: 'gold',
-        updatedAt: new Date(),
-      };
-
-      // Act
-      const result = controller.convertToSeasonStatusDto(
-        seasonMetadata,
-        seasonState,
-      );
-
-      // Assert
-      expect(result.season.shouldInstallNewVersion).toBe('1.2.3');
-    });
-
-    it('handles shouldInstallNewVersion when undefined', () => {
-      // Arrange
-      const seasonMetadata: SeasonDtoState = {
-        id: 'season-no-update',
-        name: 'No Update Required Season',
-        startDate: Date.now(),
-        endDate: Date.now() + 86400000,
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-        // shouldInstallNewVersion is intentionally omitted
-      };
-
-      const seasonState: SeasonStateDto = {
-        balance: 3000,
-        currentTierId: 'silver',
-        updatedAt: new Date(),
-      };
-
-      // Act
-      const result = controller.convertToSeasonStatusDto(
-        seasonMetadata,
-        seasonState,
-      );
-
-      // Assert
-      expect(result.season.shouldInstallNewVersion).toBeUndefined();
     });
   });
 
@@ -19221,7 +19371,7 @@ describe('RewardsController', () => {
       campaignId: mockCampaignId,
       computedAt: '2024-03-20T12:00:00.000Z',
       tiers: {
-        STARTER: { entries: [], totalParticipants: 100, minDeposit: 500 },
+        STARTER: { entries: [], totalParticipants: 100 },
       },
     };
 
@@ -19403,7 +19553,7 @@ describe('RewardsController', () => {
     });
 
     it('returns cached position when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000;
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
         messenger: mockMessenger,
@@ -19459,7 +19609,7 @@ describe('RewardsController', () => {
           ondoCampaignLeaderboardPositions: {
             [cacheKey]: {
               notFound: true as const,
-              lastFetched: Date.now() - 60000,
+              lastFetched: Date.now() - 30000, // 30 seconds ago (within 1 minute threshold)
             },
           },
         },
@@ -19580,7 +19730,7 @@ describe('RewardsController', () => {
     });
 
     it('returns cached portfolio when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000;
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
         messenger: mockMessenger,
@@ -19909,7 +20059,7 @@ describe('RewardsController', () => {
     });
 
     it('returns cached deposits when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000;
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const state = {
         ...getRewardsControllerDefaultState(),
         ondoCampaignDeposits: {
@@ -19928,6 +20078,160 @@ describe('RewardsController', () => {
 
       expect(result).toEqual(mockDeposits);
       expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getOndoCampaignParticipantOutcome', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-outcome-123';
+    const mockSubscriptionId = 'sub-outcome-1';
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'finalized' as const,
+      winnerVerificationCode: 'WINNER-XYZ',
+      tierRank: 1,
+      tier: 'gold',
+    };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns null when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches outcome from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockOutcome);
+
+      const result = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignParticipantOutcome',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockOutcome);
+    });
+
+    it('returns cached outcome on second call within TTL', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockOutcome);
+
+      await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      mockMessenger.call.mockClear();
+
+      const result = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockOutcome);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns null when API returns null and does not cache', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+
+      // A second call must re-fetch because null is not cached
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockResolvedValue(mockOutcome);
+      const second = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(second).toEqual(mockOutcome);
+    });
+
+    it('returns null and logs on API error', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('API error'));
+      mockLogger.log.mockClear();
+
+      const result = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get Ondo campaign participant outcome:',
+        'API error',
+      );
+    });
+
+    it('logs when fetching fresh outcome', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockOutcome);
+      mockLogger.log.mockClear();
+
+      await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching Ondo campaign participant outcome',
+      );
     });
   });
 });

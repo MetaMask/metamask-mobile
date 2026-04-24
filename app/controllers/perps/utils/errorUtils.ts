@@ -5,6 +5,25 @@
 import { hasProperty } from '@metamask/utils';
 
 /**
+ * Detects expected cancellation/abort errors that should not be reported to Sentry.
+ * These occur during normal navigation or view teardown when in-flight fetch requests
+ * are cancelled via AbortController.
+ *
+ * @param error - The error to check.
+ * @returns True if the error is an expected abort/cancellation.
+ */
+export function isAbortError(error: unknown): boolean {
+  if (error instanceof Error) {
+    return (
+      error.name === 'AbortError' ||
+      error.message.includes('signal is aborted') ||
+      error.message.includes('The operation was aborted')
+    );
+  }
+  return false;
+}
+
+/**
  * Ensures we have a proper Error object for logging.
  * Converts unknown/string errors to proper Error instances.
  * Handles undefined/null specially for better Sentry context.

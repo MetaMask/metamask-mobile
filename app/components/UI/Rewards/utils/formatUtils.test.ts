@@ -3,6 +3,7 @@
  */
 
 import {
+  formatDateRemaining,
   formatRewardsDate,
   formatRewardsDateLabel,
   formatRewardsTimeOnly,
@@ -25,6 +26,8 @@ import {
   formatUsd,
   formatSignedUsd,
   formatCompactUsd,
+  sanitizeOndoTokenName,
+  formatOrdinalRank,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -385,6 +388,96 @@ describe('formatUtils', () => {
 
       // Then: should return days and hours format without trailing space
       expect(result).toBe('2d 3h');
+    });
+  });
+
+  describe('formatDateRemaining', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('handles multi-month day borrowing when previous month is shorter', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-31T00:00:00Z'));
+
+      const result = formatDateRemaining('2025-03-03T00:00:00Z');
+
+      expect(result).toBe('1mo 3d');
+    });
+
+    it('handles leap-year February correctly with calendar month stepping', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2024-01-31T00:00:00Z'));
+
+      const result = formatDateRemaining('2024-03-03T00:00:00Z');
+
+      expect(result).toBe('1mo 3d');
+    });
+
+    it('keeps end-of-month anchor when stepping across shorter months', () => {
+      const now = new Date('2025-01-31T00:00:00Z');
+
+      const result = formatDateRemaining('2025-03-31T00:00:00Z', now);
+
+      expect(result).toBe('2mo');
+    });
+
+    it('returns null for past dates', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-03-03T00:00:00Z'));
+
+      const result = formatDateRemaining('2025-03-02T00:00:00Z');
+
+      expect(result).toBeNull();
+    });
+
+    it('uses explicit now when provided (no reliance on system time)', () => {
+      const now = new Date('2025-01-31T00:00:00Z');
+
+      const result = formatDateRemaining('2025-03-03T00:00:00Z', now);
+
+      expect(result).toBe('1mo 3d');
+    });
+
+    it('returns minutes only when remaining time is under one hour', () => {
+      const now = new Date('2025-03-03T10:00:00Z');
+
+      expect(formatDateRemaining('2025-03-03T10:45:00Z', now)).toBe('45min');
+      expect(formatDateRemaining('2025-03-03T10:59:00Z', now)).toBe('59min');
+    });
+
+    it('returns 1m when under one hour but less than one full minute remains', () => {
+      const now = new Date('2025-03-03T10:00:00Z');
+
+      expect(formatDateRemaining('2025-03-03T10:00:30Z', now)).toBe('1min');
+    });
+
+    it('returns hour and minute pair when same calendar day and at least one hour remains', () => {
+      const now = new Date('2025-03-03T10:00:00Z');
+
+      expect(formatDateRemaining('2025-03-03T11:00:00Z', now)).toBe('1h');
+      expect(formatDateRemaining('2025-03-03T12:30:00Z', now)).toBe('2h 30min');
+    });
+
+    it('returns day and hour pair when no full calendar months remain', () => {
+      const now = new Date('2025-03-01T00:00:00Z');
+
+      expect(formatDateRemaining('2025-03-02T01:00:00Z', now)).toBe('1d 1h');
+    });
+
+    it('returns year and month pair when at least one full year remains', () => {
+      const now = new Date('2024-01-15T00:00:00Z');
+
+      expect(formatDateRemaining('2026-03-20T00:00:00Z', now)).toBe('2y 2mo');
+    });
+
+    it('skips zero-value month and uses next non-zero unit', () => {
+      const now = new Date('2025-01-10T00:00:00Z');
+
+      expect(formatDateRemaining('2026-01-30T00:00:00Z', now)).toBe('1y 20d');
+    });
+
+    it('returns a single unit when only one non-zero unit remains', () => {
+      const now = new Date('2025-01-10T00:00:00Z');
+
+      expect(formatDateRemaining('2026-01-10T00:00:00Z', now)).toBe('1y');
     });
   });
 
@@ -1276,6 +1369,60 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatOrdinalRank', () => {
+    it('formats 1 as 1st', () => {
+      expect(formatOrdinalRank(1)).toBe('1st');
+    });
+
+    it('formats 2 as 2nd', () => {
+      expect(formatOrdinalRank(2)).toBe('2nd');
+    });
+
+    it('formats 3 as 3rd', () => {
+      expect(formatOrdinalRank(3)).toBe('3rd');
+    });
+
+    it('formats 4 as 4th', () => {
+      expect(formatOrdinalRank(4)).toBe('4th');
+    });
+
+    it('formats 11 as 11th', () => {
+      expect(formatOrdinalRank(11)).toBe('11th');
+    });
+
+    it('formats 12 as 12th', () => {
+      expect(formatOrdinalRank(12)).toBe('12th');
+    });
+
+    it('formats 13 as 13th', () => {
+      expect(formatOrdinalRank(13)).toBe('13th');
+    });
+
+    it('formats 21 as 21st', () => {
+      expect(formatOrdinalRank(21)).toBe('21st');
+    });
+
+    it('formats 22 as 22nd', () => {
+      expect(formatOrdinalRank(22)).toBe('22nd');
+    });
+
+    it('formats 23 as 23rd', () => {
+      expect(formatOrdinalRank(23)).toBe('23rd');
+    });
+
+    it('formats 111 as 111th', () => {
+      expect(formatOrdinalRank(111)).toBe('111th');
+    });
+
+    it('uses absolute value for negative ranks', () => {
+      expect(formatOrdinalRank(-5)).toBe('5th');
+    });
+
+    it('floors non-integer ranks', () => {
+      expect(formatOrdinalRank(3.7)).toBe('3rd');
+    });
+  });
+
   describe('isPercentChangeNonNegative', () => {
     it('returns true for positive number', () => {
       expect(isPercentChangeNonNegative(0.15)).toBe(true);
@@ -1504,6 +1651,61 @@ describe('formatUtils', () => {
 
     it('formats negative thousands', () => {
       expect(formatCompactUsd(-75_000)).toBe('-$75K');
+    });
+  });
+
+  describe('sanitizeOndoTokenName', () => {
+    it('strips "(Ondo Tokenized)" suffix and trims', () => {
+      expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
+        'US Dollar',
+      );
+    });
+
+    it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
+      expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
+    });
+
+    it('is case-insensitive for suffix form', () => {
+      expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
+    });
+
+    it('is case-insensitive for prefix form', () => {
+      expect(sanitizeOndoTokenName('ONDO TOKENIZED Apple')).toBe('Apple');
+    });
+
+    it('truncates to 28 characters with ellipsis', () => {
+      expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
+        'A Very Long Token Name That...',
+      );
+    });
+
+    it('strips suffix then truncates with ellipsis', () => {
+      const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
+      expect(sanitizeOndoTokenName(long)).toBe(
+        'Extremely Long Name Here Tha...',
+      );
+    });
+
+    it('strips prefix then truncates with ellipsis', () => {
+      expect(
+        sanitizeOndoTokenName(
+          'Ondo Tokenized Extremely Long Name That Exceeds',
+        ),
+      ).toBe('Extremely Long Name That Exc...');
+    });
+
+    it('does not add ellipsis when exactly 28 characters', () => {
+      expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
+        '1234567890123456789012345678',
+      );
+    });
+
+    it('leaves unrelated names unchanged', () => {
+      expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
+    });
+
+    it('returns empty string for an empty input', () => {
+      expect(sanitizeOndoTokenName('')).toBe('');
     });
   });
 });

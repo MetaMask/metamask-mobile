@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Text,
   TextVariant,
   TextColor,
@@ -9,9 +11,6 @@ import {
   ButtonVariant,
   ButtonBaseSize,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -141,7 +140,7 @@ function TokenNotAvailableModal() {
         if (buyFlowOrigin === 'tokenInfo') {
           // Token Info buy flow: pop back through the ramp flow to the
           // existing Asset screen. BottomSheet already performs one goBack
-          // when shouldNavigateBack is true; we need one more to exit ramp.
+          // when goBack is set; we need one more to exit ramp.
           navigation.goBack();
         } else if (buyFlowOrigin === 'homeTokenList') {
           // Home token list buy flow: return to home screen
@@ -159,7 +158,7 @@ function TokenNotAvailableModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       onClose={handleDismiss}
       testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
     >

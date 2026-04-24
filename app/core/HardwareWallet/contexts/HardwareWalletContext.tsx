@@ -22,7 +22,9 @@ export interface HardwareWalletContextValue {
    */
   ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
   /** Set the target wallet type for "Add Hardware Wallet" flows (no account yet). */
-  setTargetWalletType: (walletType: HardwareWalletType | null) => void;
+  setTargetWalletType: (walletType: HardwareWalletType) => void;
+  /** Set the pending operation address so the provider can auto-derive the wallet type during signing. */
+  setPendingOperationAddress: (address: string | null) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */
   showHardwareWalletError: (error: unknown) => void;
   /** Register a retry handler for QR scan errors outside the provider-managed flows. */

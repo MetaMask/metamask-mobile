@@ -37,6 +37,7 @@ import {
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../actions/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
 import {
   PERPS_GTM_MODAL_SHOWN,
@@ -133,6 +134,7 @@ import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagC
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
+import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -607,6 +609,8 @@ const Wallet = ({
   const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
   // Tracks which sections have been viewed this visit (reset on each focus).
   const viewedSectionsRef = useRef<Set<string>>(new Set());
+  // Max section index reached this visit (reset on each focus).
+  const maxDepthThisVisitRef = useRef<number>(-1);
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -1233,25 +1237,41 @@ const Wallet = ({
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
-  // Reset viewed sections synchronously on focus, before the new visitId
-  // propagates to child effects that re-add sections. A useEffect on [visitId]
-  // runs after children's effects (React runs children before parents), so
-  // sections would add themselves then the parent would clear them — causing
-  // total_sections_viewed to always be 0 on the second+ visit.
+  // Reset viewed sections and visit depth synchronously on focus, before the
+  // new visitId propagates to child effects that re-add sections. A useEffect
+  // on [visitId] runs after children's effects (React runs children before
+  // parents), so sections would add themselves then the parent would clear
+  // them — causing total_sections_viewed to always be 0 on the second+ visit.
   useFocusEffect(
     useCallback(() => {
       viewedSectionsRef.current.clear();
+      maxDepthThisVisitRef.current = -1;
     }, []),
   );
 
-  const notifySectionViewed = useCallback((sectionName: string) => {
-    viewedSectionsRef.current.add(sectionName);
-  }, []);
+  const notifySectionViewed = useCallback(
+    (
+      sectionName: HomeSectionName,
+      sectionIndex: number,
+      recordDepth: boolean,
+    ) => {
+      viewedSectionsRef.current.add(sectionName);
+      // Only update depth for sections that required the user to scroll to them.
+      // Non-rendered sections (sectionRef === null) pass recordDepth=false so they
+      // are counted in total_sections_viewed without inflating depth metrics.
+      if (recordDepth && sectionIndex > maxDepthThisVisitRef.current) {
+        maxDepthThisVisitRef.current = sectionIndex;
+      }
+    },
+    [],
+  );
 
   const getViewedSectionCount = useCallback(
     () => viewedSectionsRef.current.size,
     [],
   );
+
+  const getVisitMaxDepth = useCallback(() => maxDepthThisVisitRef.current, []);
 
   const homepageScrollContextValue = useMemo(
     () => ({
@@ -1262,6 +1282,8 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
+      getVisitMaxDepth,
+      appSessionId: HOMEPAGE_APP_SESSION_ID,
     }),
     [
       subscribeToScroll,
@@ -1271,6 +1293,7 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
+      getVisitMaxDepth,
     ],
   );
 

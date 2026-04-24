@@ -124,7 +124,7 @@ const Quote: React.FC<Props> = ({
       testID={QUOTE_TEST_IDS.ANIMATED_VIEW_OPACITY}
     >
       <Box
-        onPress={highlighted ? undefined : onPress}
+        onPress={highlighted || isLoading ? undefined : onPress}
         highlighted={highlighted}
         activeOpacity={0.8}
         accessible={!highlighted}
@@ -157,8 +157,8 @@ const Quote: React.FC<Props> = ({
                 </View>
               )}
               <TouchableOpacity
-                onPress={highlighted ? showInfo : undefined}
-                disabled={!highlighted}
+                onPress={highlighted && !isLoading ? showInfo : undefined}
+                disabled={!highlighted || isLoading}
                 accessibilityLabel={`${quote.provider?.name} logo`}
                 accessibilityHint="Shows provider details"
               >

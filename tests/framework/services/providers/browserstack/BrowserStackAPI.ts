@@ -31,7 +31,7 @@ const BROWSERSTACK_STATUS_MAP: Record<string, 'passed' | 'failed'> = {
   timedOut: 'failed',
   interrupted: 'failed',
   // 'skipped' intentionally absent — leaves BrowserStack session unmarked,
-  // consistent with appwright-based fixture behaviour on main where
+  // consistent with Playwright-based fixture behaviour on main where
   // quality-gate-triggered skips never call syncTestDetails at all.
 };
 

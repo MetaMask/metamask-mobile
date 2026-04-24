@@ -489,7 +489,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       ]
                                     }
                                   >
-                                    We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
+                                    We'll collect basic product usage data. We may associate this information with on-chain data. 
                                     <Text
                                       accessibilityRole="text"
                                       onPress={[Function]}
@@ -1406,7 +1406,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       ]
                                     }
                                   >
-                                    We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
+                                    We'll collect basic product usage data. We may associate this information with on-chain data. 
                                     <Text
                                       accessibilityRole="text"
                                       onPress={[Function]}
@@ -2440,7 +2440,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       ]
                                     }
                                   >
-                                    We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
+                                    We'll collect basic product usage data. We may associate this information with on-chain data. 
                                     <Text
                                       accessibilityRole="text"
                                       onPress={[Function]}

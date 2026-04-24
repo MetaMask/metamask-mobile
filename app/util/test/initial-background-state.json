@@ -394,6 +394,7 @@
   },
   "SocialController": {
     "followingAddresses": [],
+    "followingProfileIds": [],
     "leaderboardEntries": []
   },
   "SubjectMetadataController": {
@@ -644,6 +645,9 @@
     "cardholderAccounts": [],
     "providerData": {}
   },
+  "ClientController": {
+    "isUiOpen": false
+  },
   "ComplianceController": {},
   "ConnectivityController": {
     "connectivityStatus": "online"
@@ -701,7 +705,8 @@
         }
       ],
       "isEligible": false
-    }
+    },
+    "tron_staking": null
   },
   "DeFiPositionsController": {
     "allDeFiPositions": {},
@@ -727,6 +732,7 @@
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
+    "subscriptionBenefits": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null

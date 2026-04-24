@@ -1,35 +1,63 @@
-import {
-  getDeviceIdForAddress,
-  getHardwareWalletTypeForAddress,
-} from './helpers';
+import { getDeviceIdForAddress } from './helpers';
 import { isUserCancellation } from './errors';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
+/**
+ * Options for {@link executeHardwareWalletOperation}: resolve the device, gate on readiness,
+ * show confirmation UI, and run the Ledger or QR wallet work.
+ */
 interface ExecuteHardwareWalletOperationOptions {
+  /** Account address used to look up the device id and optional pending-operation context. */
   address: string;
+  /** Drives confirmation copy and behavior for a transaction signature vs a message signature. */
   operationType: 'transaction' | 'message';
+  /**
+   * Returns whether the hardware device is ready to sign. Receives the id from
+   * {@link getDeviceIdForAddress} when available.
+   */
   ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
-  setTargetWalletType?: (walletType: HardwareWalletType | null) => void;
+  /**
+   * Optional hook to set or clear the in-flight operation address (e.g. for provider context)
+   * for the duration of the call; cleared in `finally`.
+   */
+  setPendingOperationAddress?: (address: string | null) => void;
+  /**
+   * Shows the "awaiting confirmation on device" UI. The optional second callback is invoked
+   * if the user dismisses or rejects that prompt before signing completes.
+   */
   showAwaitingConfirmation: (
     operationType: 'transaction' | 'message',
     onReject?: () => void,
   ) => void;
+  /** Hides the awaiting-confirmation UI. */
   hideAwaitingConfirmation: () => void;
+  /** Presents a generic error when the operation fails and the error is not user-cancelled. */
   showHardwareWalletError: (error: unknown) => void;
+  /**
+   * Optional error handler. If it returns `true`, the generic {@link showHardwareWalletError} flow
+   * is skipped for that error.
+   */
   onError?: (error: unknown) => boolean | Promise<boolean>;
+  /** Performs the hardware-backed sign or related async work after the device is ready. */
   execute: () => Promise<void>;
+  /**
+   * Called when the user rejects the confirmation flow, the device is not ready, or an error
+   * occurs after the operation is attempted.
+   */
   onRejected?: () => void | Promise<void>;
 }
 
 /**
  * Run an operation behind the shared hardware-wallet readiness and
  * awaiting-confirmation flow.
+ *
+ * The provider auto-derives the wallet type from the pending address,
+ * so callers only need to supply the address — not the wallet type.
  */
 export async function executeHardwareWalletOperation({
   address,
   operationType,
   ensureDeviceReady,
-  setTargetWalletType,
+  setPendingOperationAddress,
   showAwaitingConfirmation,
   hideAwaitingConfirmation,
   showHardwareWalletError,
@@ -38,7 +66,7 @@ export async function executeHardwareWalletOperation({
   onRejected,
 }: ExecuteHardwareWalletOperationOptions): Promise<boolean> {
   let hasRejected = false;
-  const walletType = getHardwareWalletTypeForAddress(address) ?? null;
+  let hasShownConfirmation = false;
 
   const rejectOnce = async () => {
     if (hasRejected) {
@@ -49,9 +77,7 @@ export async function executeHardwareWalletOperation({
     await onRejected?.();
   };
 
-  if (walletType) {
-    setTargetWalletType?.(walletType);
-  }
+  setPendingOperationAddress?.(address);
 
   try {
     const deviceId = await getDeviceIdForAddress(address);
@@ -62,26 +88,16 @@ export async function executeHardwareWalletOperation({
       return false;
     }
 
-    // QR wallets use their own signing UI (QR modal) instead of the
-    // generic "awaiting confirmation" bottom sheet meant for BLE devices.
-    const isQrWallet = walletType === HardwareWalletType.Qr;
-
-    if (!isQrWallet) {
-      showAwaitingConfirmation(operationType, () => {
-        // The UI callback is synchronous, so swallow async rejection here to
-        // avoid an unhandled promise rejection from caller-provided cleanup.
-        rejectOnce().catch(() => undefined);
-      });
-    }
+    hasShownConfirmation = true;
+    showAwaitingConfirmation(operationType, () => {
+      rejectOnce().catch(() => undefined);
+    });
 
     await execute();
-
-    if (!isQrWallet) {
-      hideAwaitingConfirmation();
-    }
+    hideAwaitingConfirmation();
     return true;
   } catch (error) {
-    if (walletType !== HardwareWalletType.Qr) {
+    if (hasShownConfirmation) {
       hideAwaitingConfirmation();
     }
     const hasHandledError = (await onError?.(error)) ?? false;
@@ -93,8 +109,6 @@ export async function executeHardwareWalletOperation({
     await rejectOnce();
     return false;
   } finally {
-    if (walletType) {
-      setTargetWalletType?.(null);
-    }
+    setPendingOperationAddress?.(null);
   }
 }

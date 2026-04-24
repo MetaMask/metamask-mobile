@@ -5,8 +5,6 @@ import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useTheme } from '../../../../../util/theme';
-import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
 import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
 import { normalizeProviderCode } from '@metamask/ramps-controller';
@@ -22,13 +20,14 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
@@ -72,7 +71,6 @@ const Checkout = () => {
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
-  const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
@@ -83,7 +81,6 @@ const Checkout = () => {
   const {
     url: uri,
     providerCode,
-    providerName,
     orderId: orderIdParam,
     customOrderId,
     walletAddress,
@@ -96,34 +93,6 @@ const Checkout = () => {
   const initialUriRef = useRef(uri);
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: providerName ?? '' },
-        theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Checkout',
-                ramp_type: 'UNIFIED_BUY_2',
-                ramp_routing: rampRoutingDecision ?? undefined,
-              })
-              .build(),
-          );
-        },
-      ),
-    );
-  }, [
-    navigation,
-    theme,
-    providerName,
-    createEventBuilder,
-    trackEvent,
-    rampRoutingDecision,
-  ]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -296,7 +265,7 @@ const Checkout = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
+        goBack={navigation.goBack}
         isFullscreen
         keyboardAvoidingViewEnabled={false}
       >
@@ -322,7 +291,7 @@ const Checkout = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
+        goBack={navigation.goBack}
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
@@ -372,7 +341,7 @@ const Checkout = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       isFullscreen
       keyboardAvoidingViewEnabled={false}
     >

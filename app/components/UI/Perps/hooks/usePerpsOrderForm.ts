@@ -92,7 +92,9 @@ export function usePerpsOrderForm(
   const availableBalance = Number.parseFloat(
     effectiveAvailableBalanceParam != null
       ? effectiveAvailableBalanceParam.toString()
-      : (account?.availableBalance?.toString() ?? '0'),
+      : (account?.availableToTradeBalance?.toString() ??
+          account?.availableBalance?.toString() ??
+          '0'),
   );
 
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance

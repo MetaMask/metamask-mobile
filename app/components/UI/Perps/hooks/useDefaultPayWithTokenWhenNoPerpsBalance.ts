@@ -39,11 +39,13 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
     if (!featureEnabled) {
       return null;
     }
-    const availableBalance = Number.parseFloat(
-      perpsAccount?.availableBalance?.toString() ?? '0',
+    const tradeableBalance = Number.parseFloat(
+      perpsAccount?.availableToTradeBalance?.toString() ??
+        perpsAccount?.availableBalance?.toString() ??
+        '0',
     );
 
-    if (availableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
+    if (tradeableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
       return null;
     }
     if (!allowlistAssets?.length) {
@@ -93,6 +95,7 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
   }, [
     featureEnabled,
     perpsAccount?.availableBalance,
+    perpsAccount?.availableToTradeBalance,
     allowlistAssets,
     activeProvider,
     currentNetwork,

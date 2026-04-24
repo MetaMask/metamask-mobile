@@ -187,7 +187,7 @@ export function gasEstimateGreaterThanGasUsedPlusTenPercent(
  */
 export function normalizeReplacementGasFeeParams(
   replacementParams?: ReplacementGasFeeParamsInput | null,
-): GasPriceValue | FeeMarketEIP1559Values | undefined {
+): ReplacementGasFeeValues {
   if (replacementParams?.legacyGasFee?.gasPrice) {
     return {
       gasPrice: replacementParams.legacyGasFee.gasPrice,
@@ -227,10 +227,10 @@ export interface PreviousGasParams {
  * @returns Gas values safe for replacement, or the input unchanged when previousGas is absent.
  */
 export function getGasValuesForReplacement(
-  gasValues: GasPriceValue | FeeMarketEIP1559Values | undefined,
+  gasValues: ReplacementGasFeeValues,
   previousGas: PreviousGasParams | undefined | null,
   rate: number,
-): GasPriceValue | FeeMarketEIP1559Values | undefined {
+): ReplacementGasFeeValues {
   if (!previousGas || !gasValues) {
     return gasValues;
   }

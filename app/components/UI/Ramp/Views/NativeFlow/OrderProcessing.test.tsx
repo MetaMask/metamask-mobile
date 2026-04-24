@@ -6,23 +6,19 @@ import { Linking } from 'react-native';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
   }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -86,6 +82,28 @@ describe('V2OrderProcessing', () => {
     mockOrder = null;
     const { getByTestId } = renderWithTheme(<V2OrderProcessing />);
     expect(getByTestId('loader')).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back is pressed while order is loading', () => {
+    mockOrder = null;
+    const { getByTestId } = renderWithTheme(<V2OrderProcessing />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('calls navigation.goBack when header back is pressed for pending order', () => {
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.PENDING,
+      data: {},
+    };
+    const { getByTestId } = renderWithTheme(<V2OrderProcessing />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders main action button when order is pending', () => {

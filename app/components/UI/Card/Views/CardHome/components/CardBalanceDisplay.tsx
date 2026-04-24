@@ -18,14 +18,20 @@ import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
 } from '../../../../Tokens/constants';
-import type { AssetBalanceInfo } from '../../../hooks/useAssetBalances';
+import type { TokenI } from '../../../../Tokens/types';
 import { strings } from '../../../../../../../locales/i18n';
+
+// Minimal structural type — satisfied by both AssetBalanceInfo and CardFundingTokenWithBalance.
+interface CardBalanceDisplayData {
+  asset?: TokenI;
+  balanceFormatted?: string;
+}
 
 interface CardBalanceDisplayProps {
   isLoading: boolean;
   balanceAmount: string | undefined;
   privacyMode: boolean;
-  assetBalance: AssetBalanceInfo | undefined;
+  assetBalance: CardBalanceDisplayData | undefined;
   onTogglePrivacy: (value: boolean) => void;
 }
 

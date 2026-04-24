@@ -107,6 +107,16 @@ jest.mock(
   }),
 );
 
+const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
+  { key: string; value: string; key_value_pair?: string }[] | undefined,
+  []
+>(() => undefined);
+
+jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
+  useHomepageTrendingTransactionActiveAbTests: () =>
+    mockUseHomepageTrendingTransactionActiveAbTests(),
+}));
+
 const mockShouldShowTokenListItemCta = jest.fn().mockReturnValue(false);
 jest.mock('../../../../UI/Earn/hooks/useMusdCtaVisibility', () => ({
   useMusdCtaVisibility: () => ({
@@ -146,12 +156,31 @@ jest.mock('./components/PopularTokensSkeleton', () => {
 jest.mock(
   '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
   () => {
-    const { Text } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    const { Text, TouchableOpacity } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ token }: { token: { assetId: string; name: string } }) => (
-        <Text testID={`trending-token-row-${token.assetId}`}>{token.name}</Text>
-      ),
+      default: ({
+        token,
+        transactionActiveAbTests,
+      }: {
+        token: { assetId: string; name: string };
+        transactionActiveAbTests?: {
+          key: string;
+          value: string;
+          key_value_pair?: string;
+        }[];
+      }) =>
+        ReactActual.createElement(
+          TouchableOpacity,
+          {
+            testID: `trending-token-row-${token.assetId}${
+              transactionActiveAbTests?.length ? '-ab' : ''
+            }`,
+            onPress: () => jest.fn(),
+          },
+          ReactActual.createElement(Text, null, token.name),
+        ),
     };
   },
 );
@@ -181,6 +210,7 @@ const MockTokenListItem = ({
     TouchableOpacity,
     {
       testID: `token-item-${assetKey.address}`,
+      onPress: () => jest.fn(),
       onLongPress: () =>
         showRemoveMenu?.({
           address: assetKey.address,
@@ -301,9 +331,11 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const mockUseHomeViewedEvent = jest.fn(() => ({ onLayout: jest.fn() }));
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
-  default: jest.fn(() => ({ onLayout: jest.fn() })),
+  default: (...args: unknown[]) =>
+    Reflect.apply(mockUseHomeViewedEvent, undefined, args),
   HomeSectionNames: {
     TOKENS: 'tokens',
     PERPS: 'perps',
@@ -397,6 +429,7 @@ describe('TokensSection', () => {
       .requireMock('../../../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
+    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
 
   it('renders section title for account with balance', () => {
@@ -843,6 +876,58 @@ describe('TokensSection', () => {
       expect(toJSON()).toBeNull();
     });
 
+    it('passes isLoading true and isEmpty false while token list is loading', () => {
+      mockUseIsZeroBalanceAccount.mockReturnValue(false);
+      mockSortedTokenKeys.mockReturnValue([]);
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="positions-only"
+        />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isLoading: true,
+          isEmpty: false,
+          itemCount: 0,
+        }),
+      );
+    });
+
+    it('passes isEmpty true when display tokens are empty after load (e.g. only mUSD with Cash section)', () => {
+      mockUseIsZeroBalanceAccount.mockReturnValue(false);
+      jest
+        .requireMock('../../../../UI/Earn/selectors/featureFlags')
+        .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+      mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
+      mockSortedTokenKeys.mockReturnValue([
+        {
+          chainId: '0x1',
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          isStaked: false,
+        },
+      ]);
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="positions-only"
+        />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isLoading: false,
+          isEmpty: true,
+          itemCount: 0,
+        }),
+      );
+    });
+
     it('renders token items when account has balance', () => {
       mockUseIsZeroBalanceAccount.mockReturnValue(false);
       mockSortedTokenKeys.mockReturnValue([
@@ -967,6 +1052,34 @@ describe('TokensSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
       );
+    });
+
+    it('passes transaction AB tests to trending rows when the homepage experiment is active', () => {
+      mockUseTrendingRequest.mockReturnValue({
+        results: mockTrendingTokenData,
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue([
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
+      ]);
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="trending-only"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('trending-token-row-eip155:1/slip44:60-ab'),
+      ).toBeOnTheScreen();
     });
 
     it('calls fetchTrendingTokens on refresh', async () => {

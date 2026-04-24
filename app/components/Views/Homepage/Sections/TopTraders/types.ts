@@ -16,6 +16,8 @@ export interface TopTrader {
   percentageChange: number;
   /** Absolute PnL over 30 days in USD (raw number, formatted by the UI). */
   pnlValue: number;
+  /** PnL broken down by chain. Used for client-side chain filtering. */
+  pnlPerChain: Record<string, number>;
   /** Whether the current user is following this trader. */
   isFollowing: boolean;
 }
