@@ -128,30 +128,23 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <View
+    <Text
+      accessibilityRole="text"
+      ellipsizeMode="tail"
+      numberOfLines={1}
       style={
         {
+          "color": "#131416",
           "flex": 1,
+          "fontFamily": "Geist-Medium",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
         }
       }
     >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="tail"
-        numberOfLines={1}
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Dai Stablecoin
-      </Text>
-    </View>
+      Dai Stablecoin
+    </Text>
   </View>
   <View
     style={
