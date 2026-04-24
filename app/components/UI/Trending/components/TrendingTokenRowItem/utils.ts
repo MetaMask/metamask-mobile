@@ -1,4 +1,54 @@
+import { ImageSourcePropType } from 'react-native';
+import {
+  CaipChainId,
+  Hex,
+  isCaipChainId,
+  parseCaipChainId,
+} from '@metamask/utils';
+import {
+  getDefaultNetworkByChainId,
+  getTestNetImageByChainId,
+  isTestNet,
+} from '../../../../../util/networks';
+import {
+  CustomNetworkImgMapping,
+  PopularList,
+  UnpopularNetworkList,
+  getNonEvmNetworkImageSourceByChainId,
+} from '../../../../../util/networks/customNetworks';
 import { TimeOption } from '../TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
+
+export const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
+  assetId.split('/')[0] as CaipChainId;
+
+export const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
+  const { namespace, reference } = parseCaipChainId(caipChainId);
+  return namespace === 'eip155'
+    ? (`0x${Number(reference).toString(16)}` as Hex)
+    : (caipChainId as Hex);
+};
+
+export const getNetworkBadgeSource = (
+  caipChainId: CaipChainId,
+): ImageSourcePropType | undefined => {
+  const hexChainId = caipChainIdToHex(caipChainId);
+  if (isTestNet(hexChainId)) return getTestNetImageByChainId(hexChainId);
+  const defaultNetwork = getDefaultNetworkByChainId(hexChainId) as
+    | { imageSource: ImageSourcePropType }
+    | undefined;
+  if (defaultNetwork) return defaultNetwork.imageSource;
+  const unpopularNetwork = UnpopularNetworkList.find(
+    (n) => n.chainId === hexChainId,
+  );
+  const popularNetwork = PopularList.find((n) => n.chainId === hexChainId);
+  const network = unpopularNetwork || popularNetwork;
+  if (network) return network.rpcPrefs.imageSource;
+  if (isCaipChainId(caipChainId))
+    return getNonEvmNetworkImageSourceByChainId(caipChainId);
+  const customNetworkImg = CustomNetworkImgMapping[hexChainId];
+  if (customNetworkImg) return customNetworkImg as ImageSourcePropType;
+  return undefined;
+};
 
 /**
  * Formats a number as compact USD currency string

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Text, {
@@ -16,12 +16,7 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import {
-  CaipChainId,
-  Hex,
-  isCaipChainId,
-  parseCaipChainId,
-} from '@metamask/utils';
+import { isCaipChainId } from '@metamask/utils';
 import {
   Box,
   BoxFlexDirection,
@@ -33,31 +28,17 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { getSecurityBadgeConfig } from '../../../SecurityTrust/utils/securityUtils';
-
-/**
- * Converts CAIP chain ID to hex chain ID
- */
-export const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
-  const { namespace, reference } = parseCaipChainId(caipChainId);
-  return namespace === 'eip155'
-    ? (`0x${Number(reference).toString(16)}` as Hex)
-    : (caipChainId as Hex);
-};
+import {
+  caipChainIdToHex,
+  getCaipChainIdFromAssetId,
+  getNetworkBadgeSource,
+  formatMarketStats,
+  getPriceChangeFieldKey,
+} from './utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import {
-  getDefaultNetworkByChainId,
-  getTestNetImageByChainId,
-  isTestNet,
-} from '../../../../../util/networks';
-import {
-  CustomNetworkImgMapping,
-  PopularList,
-  UnpopularNetworkList,
-  getNonEvmNetworkImageSourceByChainId,
-} from '../../../../../util/networks/customNetworks';
+import { PopularList } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { formatMarketStats, getPriceChangeFieldKey } from './utils';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
@@ -66,56 +47,6 @@ import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-
-/**
- * Extracts CAIP chain ID from asset ID
- */
-export const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
-  assetId.split('/')[0] as CaipChainId;
-
-/**
- * Gets network badge image source for a given CAIP chain ID
- */
-export const getNetworkBadgeSource = (
-  caipChainId: CaipChainId,
-): ImageSourcePropType | undefined => {
-  const hexChainId = caipChainIdToHex(caipChainId);
-
-  if (isTestNet(hexChainId)) {
-    return getTestNetImageByChainId(hexChainId);
-  }
-
-  const defaultNetwork = getDefaultNetworkByChainId(hexChainId) as
-    | { imageSource: ImageSourcePropType }
-    | undefined;
-
-  if (defaultNetwork) {
-    return defaultNetwork.imageSource;
-  }
-
-  const unpopularNetwork = UnpopularNetworkList.find(
-    (networkConfig) => networkConfig.chainId === hexChainId,
-  );
-
-  const customNetworkImg = CustomNetworkImgMapping[hexChainId];
-
-  const popularNetwork = PopularList.find(
-    (networkConfig) => networkConfig.chainId === hexChainId,
-  );
-
-  const network = unpopularNetwork || popularNetwork;
-  if (network) {
-    return network.rpcPrefs.imageSource;
-  }
-  if (isCaipChainId(caipChainId)) {
-    return getNonEvmNetworkImageSourceByChainId(caipChainId);
-  }
-  if (customNetworkImg) {
-    return customNetworkImg as ImageSourcePropType;
-  }
-
-  return undefined;
-};
 
 /**
  * Gets the text color for price percentage change

@@ -14,9 +14,17 @@ import {
 } from '@metamask/design-system-react-native';
 import { TimeOption } from '../../../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { getPriceChangeFieldKey } from '../../../../../../UI/Trending/components/TrendingTokenRowItem/utils';
+import useNetworkBadgeSource from '../../../../../../UI/Trending/hooks/useNetworkBadgeSource';
 import TrendingTokenLogo from '../../../../../../UI/Trending/components/TrendingTokenLogo';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../../component-library/components/Badges/BadgeWrapper';
+import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
 
-const LOGO_SIZE = 20;
+const LOGO_SIZE = 24;
 
 export interface SectionPillProps {
   token: TrendingAsset;
@@ -30,6 +38,8 @@ const SectionPill: React.FC<SectionPillProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
+
+  const networkBadgeImageSource = useNetworkBadgeSource(token.assetId);
 
   const { changeLabel, textColor, showChange } = useMemo(() => {
     const key = getPriceChangeFieldKey(TimeOption.TwentyFourHours);
@@ -77,12 +87,24 @@ const SectionPill: React.FC<SectionPillProps> = ({
         paddingVertical={2}
         twClassName="rounded-full"
       >
-        <TrendingTokenLogo
-          assetId={token.assetId}
-          symbol={token.symbol}
-          size={LOGO_SIZE}
-          recyclingKey={token.assetId}
-        />
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              size={AvatarSize.Xs}
+              variant={BadgeVariant.Network}
+              imageSource={networkBadgeImageSource}
+              isScaled={false}
+            />
+          }
+        >
+          <TrendingTokenLogo
+            assetId={token.assetId}
+            symbol={token.symbol}
+            size={LOGO_SIZE}
+            recyclingKey={token.assetId}
+          />
+        </BadgeWrapper>
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}

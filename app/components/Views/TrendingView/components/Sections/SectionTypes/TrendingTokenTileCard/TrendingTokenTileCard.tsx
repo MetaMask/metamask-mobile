@@ -31,12 +31,8 @@ import BadgeWrapper, {
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
 import { TimeOption } from '../../../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { getPriceChangeFieldKey } from '../../../../../../UI/Trending/components/TrendingTokenRowItem/utils';
-import {
-  getCaipChainIdFromAssetId,
-  getNetworkBadgeSource,
-} from '../../../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { formatPriceWithSubscriptNotation } from '../../../../../../UI/Predict/utils/format';
-import { isCaipChainId } from '@metamask/utils';
+import useNetworkBadgeSource from '../../../../../../UI/Trending/hooks/useNetworkBadgeSource';
 import type { Theme } from '../../../../../../../util/theme/models';
 
 const DEFAULT_CARD_WIDTH = 180;
@@ -138,15 +134,7 @@ const TrendingTokenTileCard: React.FC<TrendingTokenTileCardProps> = ({
     };
   }, [token.priceChangePct]);
 
-  const caipChainId = useMemo(
-    () => getCaipChainIdFromAssetId(token.assetId),
-    [token.assetId],
-  );
-
-  const networkBadgeImageSource = useMemo(() => {
-    if (!isCaipChainId(caipChainId)) return undefined;
-    return getNetworkBadgeSource(caipChainId);
-  }, [caipChainId]);
+  const networkBadgeImageSource = useNetworkBadgeSource(token.assetId);
 
   const sparklineColor = isPositive
     ? theme.colors.success.default
