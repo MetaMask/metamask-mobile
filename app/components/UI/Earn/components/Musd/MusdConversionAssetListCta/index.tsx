@@ -40,7 +40,6 @@ import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetw
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
 
 enum CTA_CLICK_TARGET {
   CTA_BUTTON = 'cta_button',
@@ -134,8 +133,6 @@ const MusdConversionAssetListCta = () => {
     try {
       await initiateCustomConversion({
         preferredPaymentToken: paymentToken,
-        // TODO: Remove navigation override and all references to it
-        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
       });
     } catch (error) {
       Logger.error(

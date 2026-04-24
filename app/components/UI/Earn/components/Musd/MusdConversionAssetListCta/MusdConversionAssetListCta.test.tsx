@@ -35,7 +35,6 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { Hex } from '@metamask/utils';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
 
 const mockConversionToken = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -364,7 +363,6 @@ describe('MusdConversionAssetListCta', () => {
             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
             chainId: '0x1',
           },
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     });
@@ -422,7 +420,6 @@ describe('MusdConversionAssetListCta', () => {
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
           preferredPaymentToken: lineaToken,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     });
@@ -480,7 +477,6 @@ describe('MusdConversionAssetListCta', () => {
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
           preferredPaymentToken: firstToken,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     });
@@ -500,7 +496,6 @@ describe('MusdConversionAssetListCta', () => {
             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
             chainId: '0x1',
           },
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     });

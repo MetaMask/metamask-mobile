@@ -40,10 +40,7 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import AppConstants from '../../../../../core/AppConstants';
-import {
-  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
-  MusdNavigationTarget,
-} from '../../types/musd.types';
+import { MusdNavigationTarget } from '../../types/musd.types';
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
@@ -65,12 +62,6 @@ interface EarnMusdConversionEducationViewRouteParams {
     chainId: Hex;
   };
   /**
-   * Caller's intended navigation override. When present, this is forwarded to
-   * `initiateCustomConversion` on continue so the education screen doesn't hijack
-   * the destination (e.g., pencil-in-Hub preserves CUSTOM; other callers keep their intent).
-   */
-  navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
-  /**
    * Pure-navigation exit target. When present, the primary button routes here and
    * skips conversion entirely. Use for entry points that only needed the education
    * screen as a gate (e.g., home -> Money Hub).
@@ -90,12 +81,8 @@ const EarnMusdConversionEducationView = () => {
   const { initiateCustomConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
 
-  const {
-    preferredPaymentToken,
-    isDeeplink,
-    navigationOverride: callerNavigationOverride,
-    returnTo,
-  } = useParams<EarnMusdConversionEducationViewRouteParams>();
+  const { preferredPaymentToken, isDeeplink, returnTo } =
+    useParams<EarnMusdConversionEducationViewRouteParams>();
 
   // Hooks for deeplink case (when no params provided)
   const {
@@ -319,24 +306,15 @@ const EarnMusdConversionEducationView = () => {
           await initiateCustomConversion({
             preferredPaymentToken: deeplinkState.paymentToken,
             skipEducationCheck: true,
-            // TODO: Remove navigation override and all references to it
-            navigationOverride:
-              MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
           });
           return;
         }
       }
 
-      // Proceed to conversion flow if we have the required params (normal flow).
-      // Honor caller's navigationOverride; fall back to QUICK_CONVERT.
       if (!isDeeplink && preferredPaymentToken) {
         await initiateCustomConversion({
           preferredPaymentToken,
           skipEducationCheck: true,
-          navigationOverride:
-            callerNavigationOverride ??
-            // TODO: Remove navigation override and all references to it
-            MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         return;
       }
@@ -361,7 +339,6 @@ const EarnMusdConversionEducationView = () => {
     goToBuy,
     isDeeplink,
     returnTo,
-    callerNavigationOverride,
   ]);
 
   const handleNotNow = () => {
