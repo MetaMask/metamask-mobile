@@ -68,12 +68,12 @@ import {
   BoxAlignItems,
   Icon,
   IconSize,
-  IconAlert,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { SecurityBanner } from './SecurityBanner';
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
@@ -347,24 +347,25 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 
   const handleSecurityBadgePress = useCallback(() => {
-    if (!securityData?.resultType || securityData.resultType === 'Benign')
-      return;
-
     if (
+      !securityData?.resultType ||
+      securityData.resultType === 'Benign' ||
       !securityConfig.icon ||
       !securityConfig.iconColor ||
       !securityConfig.sheetTitle ||
       !securityConfig.getSheetDescription
-    )
+    ) {
       return;
+    }
 
     // For Verified tokens, use badge icon (VerifiedFilled) instead of tag icon (SecurityTick)
+    const isVerified = securityData.resultType === 'Verified';
     const displayIcon =
-      securityData.resultType === 'Verified' && securityConfig.badge
+      isVerified && securityConfig.badge
         ? securityConfig.badge.icon
         : securityConfig.icon;
     const displayIconColor =
-      securityData.resultType === 'Verified' && securityConfig.badge
+      isVerified && securityConfig.badge
         ? securityConfig.badge.iconColor
         : securityConfig.iconColor;
 
@@ -562,64 +563,45 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         renderWarning()
       ) : (
         <View>
-          {(securityData?.resultType === 'Malicious' ||
-            securityData?.resultType === 'Warning' ||
-            securityData?.resultType === 'Spam') && (
-            <TouchableOpacity
-              onPress={handleSecurityBadgePress}
-              testID={
-                securityData?.resultType === 'Malicious'
-                  ? 'security-banner-malicious'
-                  : 'security-banner-warning'
-              }
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                twClassName={`self-stretch mx-4 mb-3 py-3 pl-6 pr-4 gap-4 rounded-2xl ${
-                  securityData?.resultType === 'Malicious'
+          {securityData &&
+            (securityData.resultType === 'Malicious' ||
+              securityData.resultType === 'Warning' ||
+              securityData.resultType === 'Spam') && (
+              <SecurityBanner
+                securityConfig={securityConfig}
+                backgroundClass={
+                  securityData.resultType === 'Malicious'
                     ? 'bg-error-muted'
                     : 'bg-warning-muted'
-                }`}
-              >
-                <Box twClassName="pt-[2px]">
-                  {securityConfig.iconAlertSeverity && (
-                    <IconAlert
-                      severity={securityConfig.iconAlertSeverity}
-                      size={IconSize.Md}
-                    />
-                  )}
-                </Box>
-                <Box twClassName="flex-1">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                    fontWeight={
-                      securityData?.resultType === 'Malicious'
-                        ? FontWeight.Bold
-                        : FontWeight.Medium
-                    }
-                  >
-                    {securityData?.resultType === 'Malicious'
-                      ? strings('security_trust.malicious_token_title')
-                      : strings('security_trust.suspicious_token_description', {
-                          symbol: token.symbol,
-                        })}
-                  </Text>
-                  {securityData?.resultType === 'Malicious' && (
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                    >
-                      {strings('security_trust.malicious_token_description', {
+                }
+                titleFontWeight={
+                  securityData.resultType === 'Malicious'
+                    ? FontWeight.Bold
+                    : FontWeight.Medium
+                }
+                testID={
+                  securityData.resultType === 'Malicious'
+                    ? 'security-banner-malicious'
+                    : 'security-banner-warning'
+                }
+                title={
+                  securityData.resultType === 'Malicious'
+                    ? strings('security_trust.malicious_token_title')
+                    : undefined
+                }
+                description={
+                  securityData.resultType === 'Malicious'
+                    ? strings('security_trust.malicious_token_description', {
                         symbol: token.symbol,
-                      })}
-                    </Text>
-                  )}
-                </Box>
-              </Box>
-            </TouchableOpacity>
-          )}
+                      })
+                    : strings('security_trust.suspicious_token_description', {
+                        symbol: token.symbol,
+                      })
+                }
+                className="mx-4 mb-3 gap-4"
+                onPress={handleSecurityBadgePress}
+              />
+            )}
 
           {/* Token icon + name row */}
           <Box

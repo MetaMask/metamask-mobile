@@ -29,6 +29,8 @@ import {
   getResultTypeConfig,
 } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenSecurityFeature } from '../../SecurityTrust/types';
+import { SecurityBanner } from './SecurityBanner';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 
 export interface SecurityBadgeBottomSheetParams {
   icon: IconName;
@@ -85,11 +87,12 @@ const SecurityBadgeBottomSheet = () => {
     return [];
   }, [features, severity]);
 
-  // Get icon configuration for feature tags
-  const { iconAlertSeverity } = useMemo(
+  // Get security configuration
+  const securityConfig = useMemo(
     () => getResultTypeConfig(severity),
     [severity],
   );
+  const { iconAlertSeverity } = securityConfig;
 
   useEffect(() => {
     trackEvent(
@@ -168,7 +171,7 @@ const SecurityBadgeBottomSheet = () => {
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
-          gap={2}
+          gap={4}
           twClassName="self-stretch"
         >
           {iconAlertSeverity && severity !== 'Verified' ? (
@@ -194,38 +197,24 @@ const SecurityBadgeBottomSheet = () => {
               <DSText
                 variant={DSTextVariant.BodyMd}
                 color={DSTextColor.TextAlternative}
-                twClassName="text-center mb-2"
+                twClassName="text-center mb-4"
               >
                 {description}
               </DSText>
             ) : (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                twClassName="self-stretch py-3 pl-6 pr-4 gap-3 rounded-2xl bg-error-muted mt-3"
-              >
-                <Box twClassName="pt-[2px]">
-                  {iconAlertSeverity && (
-                    <IconAlert
-                      severity={iconAlertSeverity}
-                      size={IconSize.Md}
-                    />
-                  )}
-                </Box>
-                <Box twClassName="flex-1">
-                  <DSText
-                    variant={DSTextVariant.BodyMd}
-                    color={DSTextColor.TextDefault}
-                  >
-                    {strings(
-                      'security_trust.malicious_token_banner_description',
-                      {
-                        symbol: tokenSymbol,
-                      },
-                    )}
-                  </DSText>
-                </Box>
-              </Box>
+              <SecurityBanner
+                securityConfig={securityConfig}
+                backgroundClass="bg-error-muted"
+                titleFontWeight={FontWeight.Bold}
+                testID="security-banner-malicious"
+                className="my-3 gap-3"
+                description={strings(
+                  'security_trust.malicious_token_banner_description',
+                  {
+                    symbol: tokenSymbol,
+                  },
+                )}
+              />
             )}
           </Box>
         </Box>
@@ -233,7 +222,7 @@ const SecurityBadgeBottomSheet = () => {
           <Box
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Start}
-            twClassName="self-stretch mb-4"
+            twClassName="self-stretch mb-4 mt-2"
             gap={4}
           >
             {featureTags.map((tag) => (
