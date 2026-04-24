@@ -16,6 +16,7 @@ import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
 import { stripHexPrefix } from '../address';
+import { formatSubscriptNotation } from './subscriptNotation';
 
 type EthereumUnit = keyof typeof unitMap;
 type CurrencyCode = keyof typeof currencySymbols;
@@ -590,7 +591,7 @@ export function weiToFiat(
     return addCurrencySymbol(0, currencyCode);
   }
   const weiBigInt = typeof wei === 'number' ? BigInt(Math.trunc(wei)) : wei;
-  if (!weiBigInt || !conversionRate) {
+  if (!weiBigInt) {
     return addCurrencySymbol(0, currencyCode);
   }
   const decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
@@ -609,10 +610,27 @@ export function addCurrencySymbol(
   amountInput: number | string,
   currencyCode: CurrencyCode,
   extendDecimals = false,
+  useSubscriptNotation = false,
 ) {
   let amount: number | string =
     typeof amountInput === 'string' ? parseFloat(amountInput) : amountInput;
   const prefix = amount < 0 ? '-' : '';
+
+  if (useSubscriptNotation) {
+    const absNum = Math.abs(Number(amount));
+    const formatted = formatSubscriptNotation(absNum);
+
+    if (formatted) {
+      const symbol =
+        currencySymbols[currencyCode] ||
+        currencySymbols[currencyCode?.toLowerCase() as CurrencyCode] ||
+        '';
+
+      return symbol
+        ? `${prefix}${symbol}${formatted}`
+        : `${prefix}${formatted} ${currencyCode}`;
+    }
+  }
 
   if (extendDecimals) {
     if (isNumberScientificNotationWhenString(amount)) {
