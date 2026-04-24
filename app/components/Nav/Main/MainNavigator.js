@@ -77,6 +77,7 @@ import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
+import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -618,13 +619,14 @@ const SettingsFlow = () => {
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-        // TODO: Hide with runtime FF
       }
-      <Stack.Screen
-        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-        component={SnapsSettingsStack}
-        options={{ headerShown: false }}
-      />
+      {CAN_INSTALL_THIRD_PARTY_SNAPS && (
+        <Stack.Screen
+          name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+          component={SnapsSettingsStack}
+          options={{ headerShown: false }}
+        />
+      )}
       {
         ///: END:ONLY_INCLUDE_IF
       }
