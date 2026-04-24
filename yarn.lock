@@ -8949,6 +8949,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/keyring-api@npm:21.6.0":
+  version: 21.6.0
+  resolution: "@metamask/keyring-api@npm:21.6.0"
+  dependencies:
+    "@ethereumjs/tx": "npm:^5.4.0"
+    "@metamask/eth-sig-util": "npm:^8.2.0"
+    "@metamask/keyring-utils": "npm:^3.2.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.1.0"
+    "@types/uuid": "npm:^9.0.8"
+    async-mutex: "npm:^0.5.0"
+    bitcoin-address-validation: "npm:^2.2.3"
+    uuid: "npm:^9.0.1"
+  checksum: 10/ecd482ec83fbdb16da5f0c548db29931edd4718c57550547aed9f3532c8e60ec39a6894571c96a819e5f205e53ec149e6b52710194ac0610960aa51834f15dd8
+  languageName: node
+  linkType: hard
+
 "@metamask/keyring-api@npm:23.0.1":
   version: 23.0.1
   resolution: "@metamask/keyring-api@npm:23.0.1"
