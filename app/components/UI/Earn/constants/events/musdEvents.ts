@@ -8,8 +8,7 @@ const EVENT_LOCATIONS = {
   HOME_CASH_SECTION: 'home_section',
   TOKEN_LIST_ITEM: 'token_list_item',
   ASSET_OVERVIEW: 'asset_overview',
-  ASSET_OVERVIEW_CLAIMABLE_BONUS_TOOLTIP:
-    'asset_overview_claimable_bonus_tooltip',
+  BONUS_CLAIM_TOOLTIP: 'bonus_claim_tooltip',
   CONVERSION_EDUCATION_SCREEN: 'conversion_education_screen',
   CUSTOM_AMOUNT_SCREEN: 'custom_amount_screen', // Single convert screen.
   BUY_SCREEN: 'buy_screen', // Buy mUSD screen.
@@ -20,8 +19,6 @@ const EVENT_LOCATIONS = {
   PERCENTAGE_ROW: 'percentage_row',
   /** CTA on full page Cash token list */
   MOBILE_TOKEN_LIST_PAGE: 'mobile-token-list-page',
-  /** Money Hub (CashTokensFullView) reached via education gate */
-  MONEY_HUB: 'money_hub',
 };
 
 const MUSD_CTA_TYPES = {

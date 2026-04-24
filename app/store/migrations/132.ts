@@ -1,74 +1,83 @@
-import { captureException } from '@sentry/react-native';
-import { hasProperty } from '@metamask/utils';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
-
+import { hasProperty, isObject } from '@metamask/utils';
+import { zeroAddress } from 'ethereumjs-util';
 import { ensureValidState } from './util';
-import { STORAGE_KEY_PREFIX } from '@metamask/storage-service';
 
-export const migrationVersion = 132;
+const CHAINS_TO_MIGRATE_NATIVE_BALANCE_TO_ZERO = [
+  '0x1079', // Tempo Mainnet
+  '0xa5bf', // Tempo Testnet Moderato
+];
 
-const CONTROLLER_NAME = 'TokenListController';
-const CACHE_KEY_PREFIX = 'tokensChainsCache';
+const ZERO_ADDRESS = zeroAddress();
+const ZERO_BALANCE = '0x0';
 
 /**
- * Migration 132: Remove tokensChainsCache from TokenListController.
+ * Migration 132:
  *
- * TokenDetectionController no longer reads from or writes to
- * TokenListController's tokensChainsCache. It now manages its own internal
- * token list cache and fetches token data directly from the token service API.
+ * On Tempo, there is no native token.
+ * However Tempo's RPC returns '0x9612084f0316e0ebd5182f398e5195a51b5ca47667d4c9b26c9b26c9b26c9b2'
+ * as balance to `getbalance` causing a huge number to be displayed in MetaMask.
  *
- * This migration removes the entire TokenListController entry from backgroundState
- * (the controller has been removed from the Engine entirely) and deletes all
- * per-chain cache files written by migration 114 under StorageService keys
- * like `storageService:TokenListController:tokensChainsCache:0x1`.
+ * The newest version of MetaMask hide this "non-existing native token" from everywhere in the UI.
+ * It also prevents that huge balance to be stored in the state.
+ * HOWEVER, if a user used Tempo before the latest version, their Tempo native balance may remain
+ * "cached" in `TokenBalancesController.tokenBalances`, causing the "total USD amount" (aggregated)
+ * to still show that huge number forever - since the native balance of the user will never change,
+ * it would never refresh.
  *
- * @param state - The persisted Redux state
- * @returns The migrated Redux state
+ * This one-time migration resets the native balance to 0 (`0x0`) on Tempo chains.
+ * Since the "hidding native" behavior is already in this version of MetaMask, the
+ * migration should only need to run once for those users that already used Tempo before.
+ *
  */
-export default async function migrate(stateAsync: unknown): Promise<unknown> {
-  const state = await stateAsync;
+const migration = (state: unknown): unknown => {
+  const migrationVersion = 132;
 
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  try {
-    // 1. Remove the entire TokenListController entry from backgroundState.
-    // The controller has been removed from the Engine entirely, so its persisted
-    // state is now orphaned. Deleting the key prevents stale data accumulating
-    // across upgrades.
-    if (hasProperty(state.engine.backgroundState, 'TokenListController')) {
-      delete (state.engine.backgroundState as Record<string, unknown>)
-        .TokenListController;
-    }
-
-    // 2. Delete per-chain cache files from FilesystemStorage
-    try {
-      const allKeys = await FilesystemStorage.getAllKeys();
-      const cacheKeyPrefix = `${STORAGE_KEY_PREFIX}${CONTROLLER_NAME}:${CACHE_KEY_PREFIX}:`;
-      const keysToRemove = (allKeys as string[]).filter((key) =>
-        key.startsWith(cacheKeyPrefix),
-      );
-
-      await Promise.all(
-        keysToRemove.map(async (key) => {
-          try {
-            await FilesystemStorage.removeItem(key);
-          } catch {
-            // Ignore individual key removal failures
-          }
-        }),
-      );
-    } catch {
-      // If we cannot enumerate keys, skip the storage cleanup — the state
-      // removal above is the critical part.
-    }
-
-    return state;
-  } catch (error) {
-    captureException(
-      new Error(`Migration ${migrationVersion} failed: ${String(error)}`),
-    );
+  if (
+    !hasProperty(state.engine.backgroundState, 'TokenBalancesController') ||
+    !isObject(state.engine.backgroundState.TokenBalancesController)
+  ) {
     return state;
   }
-}
+
+  const { TokenBalancesController } = state.engine.backgroundState;
+
+  if (
+    !hasProperty(TokenBalancesController, 'tokenBalances') ||
+    !isObject(TokenBalancesController.tokenBalances)
+  ) {
+    return state;
+  }
+
+  const { tokenBalances } = TokenBalancesController;
+
+  Object.values(tokenBalances).forEach((balancesPerChain) => {
+    if (!isObject(balancesPerChain)) {
+      return;
+    }
+    CHAINS_TO_MIGRATE_NATIVE_BALANCE_TO_ZERO.forEach((chainId) => {
+      if (
+        !hasProperty(balancesPerChain, chainId) ||
+        !isObject(balancesPerChain[chainId])
+      ) {
+        return;
+      }
+      const balancesForThisTempoChain = balancesPerChain[chainId] as Object;
+      if (
+        !hasProperty(balancesForThisTempoChain, ZERO_ADDRESS) ||
+        balancesForThisTempoChain[ZERO_ADDRESS] === ZERO_BALANCE
+      ) {
+        return;
+      }
+      // Assigns '0x0' (zero balance) if entry exists. We want balance to always be zero for those chains.
+      balancesForThisTempoChain[ZERO_ADDRESS] = ZERO_BALANCE;
+    });
+  });
+
+  return state;
+};
+
+export default migration;

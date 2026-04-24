@@ -441,6 +441,11 @@ import {
   type SocialServiceEvents,
 } from '@metamask/social-controllers';
 import {
+  AuthenticatedUserStorageService,
+  type AuthenticatedUserStorageActions,
+  type AuthenticatedUserStorageEvents,
+} from '@metamask/authenticated-user-storage';
+import {
   ComplianceController,
   ComplianceControllerActions,
   ComplianceControllerEvents,
@@ -577,6 +582,7 @@ type GlobalActions =
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
+  | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
   | TransakServiceActions;
@@ -660,6 +666,7 @@ type GlobalEvents =
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
+  | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
   | TransakServiceEvents;
@@ -787,6 +794,7 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  AuthenticatedUserStorageService: AuthenticatedUserStorageService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
   TransakService: TransakService;
@@ -987,6 +995,7 @@ export type MessengerClientsToInitialize =
   | 'AiDigestController'
   | 'SocialService'
   | 'SocialController'
+  | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController';
 

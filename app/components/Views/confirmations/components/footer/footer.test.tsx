@@ -26,6 +26,7 @@ import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { emptySignatureControllerMock } from '../../__mocks__/controllers/signature-controller-mock';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -78,6 +79,12 @@ jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
   })),
 }));
 
+jest.mock('../../hooks/gas/useIsGaslessLoading', () => ({
+  useIsGaslessLoading: jest.fn(() => ({
+    isGaslessLoading: false,
+  })),
+}));
+
 const mockTrackAlertMetrics = jest.fn();
 
 (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
@@ -101,6 +108,7 @@ describe('Footer', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
+  const useIsGaslessLoadingMock = jest.mocked(useIsGaslessLoading);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -124,6 +132,7 @@ describe('Footer', () => {
     });
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: false });
   });
 
   it('should render correctly', () => {
@@ -228,9 +237,29 @@ describe('Footer', () => {
     ).toBe(true);
   });
 
-  it('disables confirm button if quotes are loading', () => {
+  it('disables confirm button if transaction pay is loading', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
+    useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: false });
+    const state = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      emptySignatureControllerMock,
+      { securityAlerts: { alerts: {} } },
+    );
 
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+    ).toBe(true);
+  });
+
+  it('disables confirm button if gasless support is loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: true });
     const state = merge(
       {},
       simpleSendTransactionControllerMock,
