@@ -61,6 +61,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
    * state and race against the first real navigation.
    */
   const onReady = () => {
+    // End trace when navigation is ready
     endTrace({ name: TraceName.NavInit });
     dispatch(onNavigationReady());
     dispatchCurrentRoute();
