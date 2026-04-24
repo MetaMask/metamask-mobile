@@ -14,7 +14,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import OndoWinnerBanner from '../components/Campaigns/OndoWinnerBanner';
+import { OndoGmCampaignOutcomeBanner } from '../components/Campaigns/OndoCampaignOutcomeBanners';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,8 +35,8 @@ import { formatPercentChange, formatUsd } from '../utils/formatUtils';
 import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
-  isOndoCampaignWinner,
 } from '../utils/ondoCampaignConstants';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
@@ -184,7 +184,12 @@ const OndoCampaignStatsView: React.FC = () => {
     daysRemaining > 0 &&
     tierMinDeposit != null;
 
-  const isWinner = isOndoCampaignWinner(campaign, leaderboardPosition);
+  const isCampaignComplete =
+    campaign != null && getCampaignStatus(campaign) === 'complete';
+
+  const { outcome: participantOutcome } = useOndoCampaignParticipantOutcome(
+    isCampaignComplete && isOptedIn ? campaignId : undefined,
+  );
 
   const navigateToWinningView = useCallback(() => {
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
@@ -296,16 +301,19 @@ const OndoCampaignStatsView: React.FC = () => {
               </Box>
             )}
 
-            {/* ── Winning banner ── */}
-            {isWinner && (
-              <OndoWinnerBanner
-                campaignName={campaign?.name ?? routeCampaignName ?? ''}
-                onPress={navigateToWinningView}
+            {/* ── Outcome banner (campaign ended) ── */}
+            {isCampaignComplete && participantOutcome && (
+              <OndoGmCampaignOutcomeBanner
+                outcomeStatus={participantOutcome.outcomeStatus}
+                winnerVerificationCode={
+                  participantOutcome.winnerVerificationCode
+                }
+                onWinnerPress={navigateToWinningView}
               />
             )}
 
             {/* ── Qualify for rank card (static) ── */}
-            {!isWinner && showQualifyCard && (
+            {!isCampaignComplete && showQualifyCard && (
               <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
                 <Text
                   variant={TextVariant.BodyMd}
@@ -331,7 +339,7 @@ const OndoCampaignStatsView: React.FC = () => {
             )}
 
             {/* ── You're qualified card ── */}
-            {!isWinner &&
+            {!isCampaignComplete &&
               !isIneligible &&
               isQualified &&
               tierMinDeposit != null && (
@@ -355,7 +363,7 @@ const OndoCampaignStatsView: React.FC = () => {
               )}
 
             {/* ── Not eligible banner ── */}
-            {!isWinner && isIneligible && (
+            {!isCampaignComplete && isIneligible && (
               <Box
                 twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
                 testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}

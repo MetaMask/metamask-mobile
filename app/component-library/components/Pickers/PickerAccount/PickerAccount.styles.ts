@@ -39,9 +39,6 @@ const styleSheet = (params: {
       color: colors.text.alternative,
       textAlign: 'center',
     },
-    dropDownIcon: {
-      marginLeft: 8,
-    },
   });
 };
 

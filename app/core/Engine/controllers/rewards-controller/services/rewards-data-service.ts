@@ -34,6 +34,7 @@ import type {
   OndoGmPortfolioDto,
   PaginatedOndoGmActivityDto,
   OndoGmCampaignDepositsDto,
+  OndoGmCampaignParticipantOutcomeDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -257,9 +258,9 @@ export interface RewardsDataServiceGetOndoCampaignDepositsAction {
   handler: RewardsDataService['getOndoCampaignDeposits'];
 }
 
-export interface RewardsDataServiceGetOndoCampaignWinnerCodeAction {
-  type: `${typeof SERVICE_NAME}:getOndoCampaignWinnerCode`;
-  handler: RewardsDataService['getOndoCampaignWinnerCode'];
+export interface RewardsDataServiceGetOndoCampaignParticipantOutcomeAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignParticipantOutcome`;
+  handler: RewardsDataService['getOndoCampaignParticipantOutcome'];
 }
 
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
@@ -333,7 +334,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
   | RewardsDataServiceGetOndoCampaignDepositsAction
-  | RewardsDataServiceGetOndoCampaignWinnerCodeAction;
+  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -505,8 +506,8 @@ export class RewardsDataService {
       this.getOndoCampaignDeposits.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getOndoCampaignWinnerCode`,
-      this.getOndoCampaignWinnerCode.bind(this),
+      `${SERVICE_NAME}:getOndoCampaignParticipantOutcome`,
+      this.getOndoCampaignParticipantOutcome.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1701,32 +1702,22 @@ export class RewardsDataService {
     return (await response.json()) as OndoGmCampaignDepositsDto;
   }
 
-  /**
-   * Get the current user's winner code for an ended Ondo GM campaign.
-   * Authenticated endpoint: GET /ondo-gm/:campaignId/winner-code/me
-   * Returns plain text (`text/plain`). The API responds with 400 when the
-   * campaign is ineligible (e.g. not ended, wrong type, or user not top 5 in
-   * tier) and 404 when the user is eligible but no code row exists yet.
-   * @param campaignId - The campaign ID (UUID).
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The trimmed winner code from the response body.
-   */
-  async getOndoCampaignWinnerCode(
+  async getOndoCampaignParticipantOutcome(
     campaignId: string,
     subscriptionId: string,
-  ): Promise<string> {
+  ): Promise<OndoGmCampaignParticipantOutcomeDto> {
     const response = await this.makeRequest(
-      `/ondo-gm/${campaignId}/winner-code/me`,
+      `/ondo-gm/${campaignId}/outcome/me`,
       { method: 'GET' },
       subscriptionId,
     );
 
     if (!response.ok) {
       throw new Error(
-        `Get Ondo GM campaign winner code failed: ${response.status}`,
+        `Get Ondo GM participant outcome failed: ${response.status}`,
       );
     }
 
-    return (await response.text()).trim();
+    return (await response.json()) as OndoGmCampaignParticipantOutcomeDto;
   }
 }
