@@ -33,7 +33,7 @@ const FEATURE_AREA_DISPLAY_NAMES: Record<string, string> = {
   SmokeRamps: 'Buy/Sell (Ramps)',
   SmokeMultiChainAPI: 'Multi-Chain API (CAIP-25)',
   SmokePredictions: 'Predictions (Polymarket)',
-  FlaskBuildTests: 'Snaps (Flask)',
+  SmokeSnaps: 'Snaps',
   // Commit scope names (lowercase from conventional commits)
   card: 'Card',
   perps: 'Perps',
