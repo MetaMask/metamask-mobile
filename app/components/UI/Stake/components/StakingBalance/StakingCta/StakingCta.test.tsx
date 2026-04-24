@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
 import StakingCta from './StakingCta';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 

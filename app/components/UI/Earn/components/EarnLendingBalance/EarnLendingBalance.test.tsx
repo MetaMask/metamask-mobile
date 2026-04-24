@@ -462,14 +462,12 @@ describe('EarnLendingBalance', () => {
       tokens: [],
     });
 
-    const { queryByTestId } = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <EarnLendingBalance asset={mockDaiMainnet} />,
       { state: mockInitialState },
     );
 
-    expect(
-      queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
-    ).not.toBeOnTheScreen();
+    expect(toJSON()).toBeNull();
   });
 
   it('does render if pooled staking feature flag disabled', () => {
