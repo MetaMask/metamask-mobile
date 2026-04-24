@@ -7,11 +7,6 @@ import Logger from '../../../../../util/Logger';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './EarnMusdConversionEducationView.styles';
 import musdEducationBackgroundV2Dark from '../../../../../images/musd-conversion-education-screen-v2-dark-3x.png';
@@ -22,8 +17,9 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import {
-  Button as DesignSystemButton,
-  ButtonVariant as DesignSystemButtonVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -439,23 +435,23 @@ const EarnMusdConversionEducationView = () => {
 
       <View style={styles.buttonsContainer}>
         <Button
-          variant={ButtonVariants.Primary}
-          label={primaryButtonText}
+          variant={ButtonVariant.Primary}
           onPress={handleContinue}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON}
-        />
-        <DesignSystemButton
-          variant={DesignSystemButtonVariant.Tertiary}
+        >
+          {primaryButtonText}
+        </Button>
+        <Button
+          variant={ButtonVariant.Tertiary}
           isFullWidth
           onPress={handleNotNow}
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
+          textProps={{ twClassName: 'text-default' }}
         >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('earn.musd_conversion.education.secondary_button')}
-          </Text>
-        </DesignSystemButton>
+          {strings('earn.musd_conversion.education.secondary_button')}
+        </Button>
       </View>
     </SafeAreaView>
   );

@@ -20,12 +20,12 @@ import React, {
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+  IconName,
+} from '@metamask/design-system-react-native';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import ResourceToggle from '../../components/Tron/ResourceToggle';
 ///: END:ONLY_INCLUDE_IF
@@ -46,7 +46,6 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import { IconName } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
@@ -991,15 +990,15 @@ const EarnInputView = () => {
   const renderReviewButton = (isDisabled: boolean) => (
     <View style={styles.reviewButtonContainer}>
       <Button
-        label={buttonLabel}
         size={ButtonSize.Lg}
-        labelTextVariant={TextVariant.BodyMDMedium}
-        variant={ButtonVariants.Primary}
-        loading={isSubmittingStakeDepositTransaction}
+        variant={ButtonVariant.Primary}
+        isLoading={isSubmittingStakeDepositTransaction}
         isDisabled={isDisabled}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         onPress={handleEarnPress}
-      />
+      >
+        {buttonLabel}
+      </Button>
     </View>
   );
 
