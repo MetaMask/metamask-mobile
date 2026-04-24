@@ -244,6 +244,15 @@ jest.mock('../SDKConnect/utils/wait.util', () => ({
   waitForKeychainUnlocked: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
+
+import { analytics } from '../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../Analytics';
+
 describe('WC2Manager', () => {
   let manager: WC2Manager;
   let mockApproveSession: jest.SpyInstance;
@@ -2229,6 +2238,140 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal as any);
 
       expect(mockDisconnectSession).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Remote Connection Request analytics', () => {
+    const PROPOSAL_LOCK_TIMEOUT_MS = 60_000;
+
+    const buildProposal = (id: number) => ({
+      id,
+      params: {
+        id,
+        pairingTopic: `timeout-test-pairing-${id}`,
+        proposer: {
+          publicKey: 'test-public-key',
+          metadata: {
+            name: 'Test App',
+            description: 'Test App',
+            url: 'https://example.com',
+            icons: ['https://example.com/icon.png'],
+          },
+        },
+        expiryTimestamp: Date.now() + 300_000,
+        relays: [{ protocol: 'irn' }],
+        requiredNamespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged', 'accountsChanged'],
+          },
+        },
+        optionalNamespaces: {},
+      },
+      verifyContext: {
+        verified: {
+          verifyUrl: 'https://example.com',
+          validation: 'VALID' as const,
+          origin: 'https://example.com',
+        },
+      },
+    });
+
+    const wasFailedEventWithReason = (reason: string): boolean =>
+      (analytics.trackEvent as jest.Mock).mock.calls.some((args: unknown[]) => {
+        const event = args[0] as {
+          name?: string;
+          properties?: { failure_reason?: string };
+        };
+        return (
+          event?.name === 'Remote Connection Request Failed' &&
+          event?.properties?.failure_reason === reason
+        );
+      });
+
+    it('clears the proposal-lock timer and does not emit a failure event when the proposal resolves before the lock timeout fires', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'timeout-test-topic',
+        pairingTopic: 'timeout-test-pairing-1',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await manager.onSessionProposal(buildProposal(1) as any);
+
+        // The proposal-lock uses setTimeout(..., 60_000). Confirm it was
+        // registered and that its id is passed to clearTimeout on success —
+        // otherwise a spurious Remote Connection Request Failed fires 60s later.
+        const lockTimerIdx = setTimeoutSpy.mock.calls.findIndex(
+          (call) => call[1] === PROPOSAL_LOCK_TIMEOUT_MS,
+        );
+        expect(lockTimerIdx).toBeGreaterThanOrEqual(0);
+
+        const lockTimerId = setTimeoutSpy.mock.results[lockTimerIdx].value;
+        expect(clearTimeoutSpy).toHaveBeenCalledWith(lockTimerId);
+        expect(wasFailedEventWithReason('proposal_lock_timeout')).toBe(false);
+      } finally {
+        setTimeoutSpy.mockRestore();
+        clearTimeoutSpy.mockRestore();
+      }
+    });
+
+    it('emits Remote Connection Request Failed with proposal_lock_timeout when the lock timer fires', async () => {
+      // Capture the proposal-lock setTimeout callback so we can simulate the
+      // timer firing without waiting 60 seconds or breaking real-timer code
+      // paths with jest.useFakeTimers().
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      // Force the handler to hang so only the timeout branch can settle.
+      const handleSessionProposalSpy = jest
+        .spyOn(
+          manager as unknown as {
+            _handleSessionProposal: (proposal: unknown) => Promise<void>;
+          },
+          '_handleSessionProposal',
+        )
+        .mockImplementation(() => new Promise(() => undefined));
+
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const onProposal = manager.onSessionProposal(buildProposal(2) as any);
+
+        // Yield microtasks so proposalLock.then(handle) runs and setTimeout
+        // registers.
+        await Promise.resolve();
+        await Promise.resolve();
+
+        const lockTimerCall = setTimeoutSpy.mock.calls.find(
+          (call) => call[1] === PROPOSAL_LOCK_TIMEOUT_MS,
+        );
+        if (!lockTimerCall) {
+          throw new Error(
+            'expected proposal-lock setTimeout call was not registered',
+          );
+        }
+
+        // Invoke the timer callback directly to simulate the lock timing out.
+        const timerCallback = lockTimerCall[0] as () => void;
+        timerCallback();
+
+        await onProposal;
+
+        expect(wasFailedEventWithReason('proposal_lock_timeout')).toBe(true);
+      } finally {
+        handleSessionProposalSpy.mockRestore();
+        setTimeoutSpy.mockRestore();
+      }
     });
   });
 });

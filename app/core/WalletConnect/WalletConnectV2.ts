@@ -473,28 +473,41 @@ export class WC2Manager {
   }
 
   async onSessionProposal(proposal: WalletKitTypes.SessionProposal) {
-    const handle = () =>
-      Promise.race([
+    const handle = () => {
+      // Track the timeout id so we can cancel it when the real handler wins
+      // the race. Without this, `setTimeout` fires for every successful
+      // proposal after PROPOSAL_LOCK_TIMEOUT_MS, emitting a spurious
+      // REMOTE_CONNECTION_REQUEST_FAILED event per connection.
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+      const timeoutPromise = new Promise<void>((resolve) => {
+        timeoutId = setTimeout(() => {
+          console.warn(
+            `WC2::session_proposal lock timeout for id=${proposal.id}`,
+          );
+          analytics.trackEvent(
+            AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
+            )
+              .addProperties({
+                transport_type: 'walletconnect',
+                failure_reason: 'proposal_lock_timeout',
+              })
+              .build(),
+          );
+          resolve();
+        }, PROPOSAL_LOCK_TIMEOUT_MS);
+      });
+
+      return Promise.race([
         this._handleSessionProposal(proposal),
-        new Promise<void>((resolve) =>
-          setTimeout(() => {
-            console.warn(
-              `WC2::session_proposal lock timeout for id=${proposal.id}`,
-            );
-            analytics.trackEvent(
-              AnalyticsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
-              )
-                .addProperties({
-                  transport_type: 'walletconnect',
-                  failure_reason: 'proposal_lock_timeout',
-                })
-                .build(),
-            );
-            resolve();
-          }, PROPOSAL_LOCK_TIMEOUT_MS),
-        ),
-      ]);
+        timeoutPromise,
+      ]).finally(() => {
+        if (timeoutId !== undefined) {
+          clearTimeout(timeoutId);
+        }
+      });
+    };
 
     // Chain onto the lock. The error handler ensures a failed proposal
     // doesn't prevent subsequent proposals from being processed.
