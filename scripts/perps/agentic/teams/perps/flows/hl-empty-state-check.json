@@ -1,0 +1,62 @@
+{
+  "title": "HL — assert zero-balance empty-state rendering (TAT-3047)",
+  "description": "Switches to {{address}} (expected unfunded), asserts accountState exposes all-zero balances, and confirms PerpsMarketListView header renders the zero-balance surface (empty state or $0 readout) via PerpsMarketBalanceActions testID.",
+  "inputs": {
+    "address": {
+      "type": "string",
+      "description": "EVM address of an unfunded account"
+    },
+    "phaseLabel": {
+      "type": "string",
+      "default": "empty-state",
+      "description": "Short label surfaced in assertions"
+    }
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked"],
+      "entry": "select",
+      "nodes": {
+        "select": {
+          "action": "select_account",
+          "address": "{{address}}",
+          "next": "wait-account"
+        },
+        "wait-account": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({ready:!!r,phase:'{{phaseLabel}}'})}).catch(function(e){return JSON.stringify({ready:false,error:String(e)})})",
+          "assert": { "operator": "eq", "field": "ready", "value": true },
+          "timeout_ms": 30000,
+          "next": "assert-zero-fields"
+        },
+        "assert-zero-fields": {
+          "description": "accountState balance fields should all parse to zero for unfunded account",
+          "action": "eval_sync",
+          "expression": "(function(){var s=Engine.context.PerpsController.state.accountState||{};var spendable=parseFloat(s.spendableBalance||'0');var withdrawable=parseFloat(s.withdrawableBalance||'0');var total=parseFloat(s.totalBalance||'0');return JSON.stringify({phase:'{{phaseLabel}}',spendable:spendable,withdrawable:withdrawable,total:total,allZero:spendable<0.01&&withdrawable<0.01&&total<0.01})})()",
+          "assert": { "operator": "eq", "field": "allZero", "value": true },
+          "next": "nav-market-list"
+        },
+        "nav-market-list": {
+          "action": "navigate",
+          "target": "PerpsMarketListView",
+          "next": "wait-market-list"
+        },
+        "wait-market-list": {
+          "action": "wait_for",
+          "expression": "JSON.stringify({mounted:(function(){try{var r=__AGENTIC__.getRoute();return r&&r.name==='PerpsMarketListView'}catch(e){return false}})()})",
+          "assert": { "operator": "eq", "field": "mounted", "value": true },
+          "timeout_ms": 15000,
+          "next": "assert-empty-surface"
+        },
+        "assert-empty-surface": {
+          "description": "PerpsMarketBalanceActions switches to PerpsEmptyBalance (Add Funds affordance) when totalBalance is zero. Accept either the add-funds CTA or the $0 balance value testID.",
+          "action": "eval_sync",
+          "expression": "(function(){try{var a=globalThis.__AGENTIC__;var addFundsFiber=a&&a.findFiberByTestId&&a.findFiberByTestId('perps-market-add-funds-button');var balanceValueFiber=a&&a.findFiberByTestId&&a.findFiberByTestId('perps-market-balance-value');var balanceValueText='';try{balanceValueText=(a&&a.getTextByTestId&&a.getTextByTestId('perps-market-balance-value'))||''}catch(e){}var showsZero=balanceValueText.indexOf('$0')>=0||balanceValueText.indexOf('0.00')>=0;return JSON.stringify({phase:'{{phaseLabel}}',addFundsMounted:!!addFundsFiber,balanceValueMounted:!!balanceValueFiber,balanceValueText:balanceValueText,showsZero:showsZero,emptyStateOk:!!addFundsFiber||showsZero})}catch(e){return JSON.stringify({error:String(e)})}})()",
+          "assert": { "operator": "eq", "field": "emptyStateOk", "value": true },
+          "next": "done"
+        },
+        "done": { "action": "end", "status": "pass" }
+      }
+    }
+  }
+}

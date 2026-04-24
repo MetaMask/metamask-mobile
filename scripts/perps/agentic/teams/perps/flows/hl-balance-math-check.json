@@ -1,0 +1,56 @@
+{
+  "title": "HL — assert controller balance math matches raw HL REST (TAT-3047)",
+  "description": "Asserts PerpsController.accountState applies the spot-fold correctly on top of the per-DEX perps sum. Uses the controller's own subAccountBreakdown (pre-spot-fold per-DEX values) as the perps-side truth, and queries spotClearinghouseState via HL REST for the spot-side truth. Expected: spendable/withdrawable = Σ(breakdown[*].spendableBalance) + max(0, spot.total − spot.hold); total = Σ(breakdown[*].totalBalance) + spot.total − spot.hold; spendable === withdrawable. Works correctly for main-only accounts and HIP-3 multi-DEX accounts.",
+  "inputs": {
+    "address": {
+      "type": "string",
+      "description": "EVM address to query via HL REST and select in the app"
+    },
+    "phaseLabel": {
+      "type": "string",
+      "default": "math-check",
+      "description": "Short label surfaced in assertions"
+    },
+    "epsilon": {
+      "type": "number",
+      "default": 0.01,
+      "description": "Rounding tolerance when comparing controller fields vs REST-derived expected values"
+    }
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked"],
+      "entry": "select",
+      "nodes": {
+        "select": {
+          "action": "select_account",
+          "address": "{{address}}",
+          "next": "wait-account"
+        },
+        "wait-account": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({ready:!!r,phase:'{{phaseLabel}}'})}).catch(function(e){return JSON.stringify({ready:false,error:String(e)})})",
+          "assert": { "operator": "eq", "field": "ready", "value": true },
+          "timeout_ms": 30000,
+          "next": "assert-rest-vs-state"
+        },
+        "assert-rest-vs-state": {
+          "description": "Derive expected values from breakdown (perps-side truth, covers HIP-3) + HL REST spot; compare against controller fields",
+          "action": "eval_async",
+          "expression": "(function(){var addr='{{address}}'.toLowerCase();var eps={{epsilon}};var base='https://api.hyperliquid.xyz/info';return fetch(base,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'spotClearinghouseState',user:addr})}).then(function(r){return r.json()}).then(function(spot){var usdc=((spot&&spot.balances)||[]).find(function(b){return b.coin==='USDC'})||{};var t=parseFloat(usdc.total||'0');var h=parseFloat(usdc.hold||'0');var free=Math.max(0,t-h);var s=Engine.context.PerpsController.state.accountState||{};var breakdown=s.subAccountBreakdown||{};var sumSpendable=0;var sumWithdrawable=0;var sumTotal=0;Object.keys(breakdown).forEach(function(k){var e=breakdown[k]||{};sumSpendable+=parseFloat(e.spendableBalance||'0');sumWithdrawable+=parseFloat(e.withdrawableBalance||'0');sumTotal+=parseFloat(e.totalBalance||'0')});var expectedSpendable=sumSpendable+free;var expectedWithdrawable=sumWithdrawable+free;var expectedTotal=sumTotal+t-h;var actualSpendable=parseFloat(s.spendableBalance||'0');var actualWithdrawable=parseFloat(s.withdrawableBalance||'0');var actualTotal=parseFloat(s.totalBalance||'0');return JSON.stringify({phase:'{{phaseLabel}}',spot:{total:t,hold:h,free:free},breakdownPerpsSums:{spendable:sumSpendable,withdrawable:sumWithdrawable,total:sumTotal},expected:{spendable:expectedSpendable,withdrawable:expectedWithdrawable,total:expectedTotal},actual:{spendable:actualSpendable,withdrawable:actualWithdrawable,total:actualTotal},spendableMatches:Math.abs(actualSpendable-expectedSpendable)<=eps,withdrawableMatches:Math.abs(actualWithdrawable-expectedWithdrawable)<=eps,totalMatches:Math.abs(actualTotal-expectedTotal)<=eps,spendableEqualsWithdrawable:Math.abs(actualSpendable-actualWithdrawable)<=eps})})})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "spendableMatches", "value": true },
+              { "operator": "eq", "field": "withdrawableMatches", "value": true },
+              { "operator": "eq", "field": "totalMatches", "value": true },
+              { "operator": "eq", "field": "spendableEqualsWithdrawable", "value": true }
+            ]
+          },
+          "timeout_ms": 20000,
+          "next": "done"
+        },
+        "done": { "action": "end", "status": "pass" }
+      }
+    }
+  }
+}
