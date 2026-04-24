@@ -27,7 +27,6 @@ import Tag from '../../../../../component-library/components/Tags/Tag';
 import { TagProps } from '../../../../../component-library/components/Tags/Tag/Tag.types';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
 import AppConstants from '../../../../../core/AppConstants';
-import MusdBalanceCard from './components/MusdBalanceCard';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import Logger from '../../../../../util/Logger';
 import { useMusdBalance } from '../../hooks/useMusdBalance';
@@ -273,11 +272,7 @@ const MusdQuickConvertView = () => {
     ],
   );
 
-  const {
-    fiatBalanceFormattedByChain,
-    tokenBalanceByChain,
-    hasMusdBalanceOnAnyChain,
-  } = useMusdBalance();
+  const { hasMusdBalanceOnAnyChain } = useMusdBalance();
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: TokenSection }) => (
@@ -302,6 +297,7 @@ const MusdQuickConvertView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
         .addProperties({
+          // TODO: Remove QUICK_CONVERT_HOME_SCREEN location and all references to it
           location: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
           url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
         })
@@ -351,17 +347,6 @@ const MusdQuickConvertView = () => {
             >
               {strings('earn.musd_conversion.your_musd')}
             </Text>
-            {Object.keys(tokenBalanceByChain).map((chainId) => (
-              <View key={chainId} style={styles.balanceCardContainer}>
-                <MusdBalanceCard
-                  chainId={chainId as Hex}
-                  balance={
-                    fiatBalanceFormattedByChain[chainId as Hex] ??
-                    tokenBalanceByChain[chainId as Hex]
-                  }
-                />
-              </View>
-            ))}
           </View>
         )}
       </View>
