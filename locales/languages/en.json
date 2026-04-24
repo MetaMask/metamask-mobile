@@ -8444,12 +8444,12 @@
     },
     "ondo_outcome_toast": {
       "winner_verify": {
-        "title": "You won",
+        "title": "You won 💰",
         "description": "Claim your prize from the {{campaignName}}",
         "cta": "View details"
       },
       "participant_no_winner": {
-        "title": "The results are in.",
+        "title": "The results are in. 🏅",
         "description": "See your ranking in the {{campaignName}}",
         "cta": "View"
       }

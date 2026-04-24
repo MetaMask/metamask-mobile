@@ -107,7 +107,7 @@ export function useOndoOutcomeToast(): void {
         iconName: isWinner ? IconName.Star : IconName.Info,
         iconColor: isWinner
           ? theme.colors.warning.default
-          : theme.colors.icon.default,
+          : theme.colors.success.default,
         backgroundColor: 'transparent',
         hasNoTimeout: true,
         labelOptions: [
@@ -147,7 +147,7 @@ export function useOndoOutcomeToast(): void {
       targetCampaign,
       toastRef,
       theme.colors.warning.default,
-      theme.colors.icon.default,
+      theme.colors.success.default,
       handleCta,
       handleDismiss,
     ]),
