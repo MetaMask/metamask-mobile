@@ -1,5 +1,5 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { Json } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
 import {
   RELAY_RPC_METHOD,
   RelayStatus,
@@ -8,6 +8,7 @@ import {
   RelayWaitResponse,
   isRelaySupported,
   submitRelayTransaction,
+  validateRelayRequest,
   waitForRelayResult,
 } from './transaction-relay';
 
@@ -205,6 +206,105 @@ describe('Transaction Relay (mobile)', () => {
       });
 
       expect(global.fetch).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('validateRelayRequest', () => {
+    it('returns empty array for valid request', () => {
+      const request: RelaySubmitRequest = {
+        chainId: '0x1',
+        data: '0xabcdef',
+        to: '0x1234567890abcdef1234567890abcdef12345678',
+      };
+      expect(validateRelayRequest(request)).toEqual([]);
+    });
+
+    it('detects non-hex chainId', () => {
+      const request = {
+        chainId: 12345,
+        data: '0xabcdef',
+        to: '0x1234567890abcdef1234567890abcdef12345678',
+      } as unknown as RelaySubmitRequest;
+      const violations = validateRelayRequest(request);
+      expect(violations).toContainEqual(
+        expect.stringContaining('chainId: expected hex string, got number'),
+      );
+    });
+
+    it('detects non-hex data', () => {
+      const request = {
+        chainId: '0x1',
+        data: undefined,
+        to: '0x1234567890abcdef1234567890abcdef12345678',
+      } as unknown as RelaySubmitRequest;
+      const violations = validateRelayRequest(request);
+      expect(violations).toContainEqual(
+        expect.stringContaining('data: expected hex string'),
+      );
+    });
+
+    it('detects non-hex authorization list fields', () => {
+      const request: RelaySubmitRequest = {
+        chainId: '0x1',
+        data: '0xabcdef',
+        to: '0x1234567890abcdef1234567890abcdef12345678',
+        authorizationList: [
+          {
+            address: '0xabc',
+            chainId: 1 as unknown as Hex,
+            nonce: 3 as unknown as Hex,
+            r: '0xabc',
+            s: '0xdef',
+            yParity: 0 as unknown as Hex,
+          },
+        ],
+      };
+      const violations = validateRelayRequest(request);
+      expect(violations).toContainEqual(
+        expect.stringContaining('authorizationList[0].chainId'),
+      );
+      expect(violations).toContainEqual(
+        expect.stringContaining('authorizationList[0].nonce'),
+      );
+      expect(violations).toContainEqual(
+        expect.stringContaining('authorizationList[0].yParity'),
+      );
+    });
+
+    it('passes valid authorization list', () => {
+      const request: RelaySubmitRequest = {
+        chainId: '0x1',
+        data: '0xabcdef',
+        to: '0x1234567890abcdef1234567890abcdef12345678',
+        authorizationList: [
+          {
+            address: '0xabc',
+            chainId: '0x1',
+            nonce: '0x3',
+            r: '0xabc',
+            s: '0xdef',
+            yParity: '0x0',
+          },
+        ],
+      };
+      expect(validateRelayRequest(request)).toEqual([]);
+    });
+
+    it('detects key mismatch from undefined values dropped by JSON roundtrip', () => {
+      const request = {
+        chainId: '0x1',
+        data: '0xabcdef',
+        to: '0x1234',
+        someProp: undefined,
+      } as unknown as RelaySubmitRequest;
+      Object.defineProperty(request, 'someProp', {
+        value: undefined,
+        enumerable: true,
+      });
+      const violations = validateRelayRequest(request);
+      expect(violations).toContainEqual(
+        expect.stringContaining('key mismatch after roundtrip'),
+      );
     });
   });
 
