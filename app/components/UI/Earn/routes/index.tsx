@@ -37,10 +37,6 @@ const EarnScreenStack = () => {
         component={EarnMusdConversionEducationView}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name={Routes.EARN.MUSD.QUICK_CONVERT}
-        component={MusdQuickConvertView}
-      />
     </Stack.Navigator>
   );
 };
