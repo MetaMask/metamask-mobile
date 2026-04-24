@@ -133,6 +133,13 @@ describe('RootRPCMethodsUI', () => {
     });
 
     it('uses the shared hardware wallet execution flow for Ledger auto-sign', async () => {
+      mockExecuteHardwareWalletOperation.mockImplementationOnce(
+        async ({ execute }) => {
+          await execute();
+          return true;
+        },
+      );
+
       const mockNavigate = jest.fn();
       render(<RootRPCMethodsUI navigation={{ navigate: mockNavigate }} />);
 
@@ -160,10 +167,6 @@ describe('RootRPCMethodsUI', () => {
         execute: expect.any(Function),
         onRejected: expect.any(Function),
       });
-
-      const executeArg =
-        mockExecuteHardwareWalletOperation.mock.calls[0][0].execute;
-      await executeArg();
 
       expect(
         Engine.context.ApprovalController.acceptRequest,
