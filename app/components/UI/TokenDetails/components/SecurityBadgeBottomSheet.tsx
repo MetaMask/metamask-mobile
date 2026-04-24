@@ -197,7 +197,7 @@ const SecurityBadgeBottomSheet = () => {
               <DSText
                 variant={DSTextVariant.BodyMd}
                 color={DSTextColor.TextAlternative}
-                twClassName="text-center mb-4"
+                twClassName="text-center mb-1"
               >
                 {description}
               </DSText>
@@ -207,7 +207,7 @@ const SecurityBadgeBottomSheet = () => {
                 backgroundClass="bg-error-muted"
                 titleFontWeight={FontWeight.Bold}
                 testID="security-banner-malicious"
-                className="my-3 gap-4"
+                className="mb-1 mt-3 gap-4"
                 description={strings(
                   'security_trust.malicious_token_banner_description',
                   {
@@ -222,7 +222,7 @@ const SecurityBadgeBottomSheet = () => {
           <Box
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Start}
-            twClassName="self-stretch mb-4 mt-2"
+            twClassName="self-stretch mb-4"
             gap={4}
           >
             {featureTags.map((tag) => (
