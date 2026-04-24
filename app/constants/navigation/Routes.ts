@@ -114,6 +114,11 @@ const Routes = {
   REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW: 'RewardsOndoCampaignPortfolioView',
   REWARDS_ONDO_CAMPAIGN_STATS: 'RewardsOndoCampaignStats',
   REWARDS_CAMPAIGN_TOUR_STEP: 'RewardsCampaignTourStep',
+  REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW:
+    'RewardsPerpsTradingCampaignDetails',
+  REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
+    'RewardsPerpsTradingCampaignLeaderboard',
+  REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',

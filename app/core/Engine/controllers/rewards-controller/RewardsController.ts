@@ -29,6 +29,9 @@ import {
   type OndoGmPortfolioState,
   type OndoGmCampaignDepositsDto,
   type OndoGmCampaignParticipantOutcomeDto,
+  type PerpsTradingCampaignLeaderboardDto,
+  type PerpsTradingCampaignLeaderboardPositionDto,
+  type PerpsTradingCampaignPrizePoolDto,
   type PaginatedOndoGmActivityDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
@@ -139,6 +142,16 @@ const ONDO_CAMPAIGN_ACTIVITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cac
 
 // Campaign participant outcome cache threshold
 const ONDO_CAMPAIGN_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+
+// Perps Trading Campaign leaderboard cache threshold (HyperTracker refreshes every ~15 min)
+const PERPS_TRADING_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Perps Trading Campaign leaderboard position cache threshold
+const PERPS_TRADING_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS =
+  1000 * 60 * 5; // 5 minutes
+
+// Perps Trading Campaign prize pool cache threshold
+const PERPS_TRADING_CAMPAIGN_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -252,6 +265,24 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  perpsTradingCampaignLeaderboard: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  perpsTradingCampaignLeaderboardPositions: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  perpsTradingCampaignPrizePool: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -294,6 +325,9 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   ondoCampaignPortfolio: {},
   ondoCampaignActivity: {},
   ondoCampaignDeposits: {},
+  perpsTradingCampaignLeaderboard: {},
+  perpsTradingCampaignLeaderboardPositions: {},
+  perpsTradingCampaignPrizePool: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -408,6 +442,9 @@ const MESSENGER_EXPOSED_METHODS = [
   'getOndoCampaignActivity',
   'getOndoCampaignPortfolioPosition',
   'getOndoCampaignParticipantOutcome',
+  'getPerpsTradingCampaignLeaderboard',
+  'getPerpsTradingCampaignLeaderboardPosition',
+  'getPerpsTradingCampaignPrizePool',
   'getOptInStatus',
   'getPerpsDiscountForAccount',
   'getPointsEvents',
@@ -4402,5 +4439,196 @@ export class RewardsController extends BaseController<
       subscriptionId,
       seasonId || 'all seasons',
     );
+  }
+
+  /**
+   * Get the perps trading campaign leaderboard.
+   * This is a public endpoint - no authentication required.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get leaderboard for.
+   * @returns The leaderboard entries and metadata.
+   */
+  async getPerpsTradingCampaignLeaderboard(
+    campaignId: string,
+  ): Promise<PerpsTradingCampaignLeaderboardDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return { campaignId, computedAt: '', entries: [], totalParticipants: 0 };
+    }
+
+    const result = await wrapWithCache<PerpsTradingCampaignLeaderboardDto>({
+      key: campaignId,
+      ttl: PERPS_TRADING_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.perpsTradingCampaignLeaderboard[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            campaignId: cached.campaignId,
+            computedAt: cached.computedAt,
+            entries: cached.entries,
+            totalParticipants: cached.totalParticipants,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh perps trading campaign leaderboard via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getPerpsTradingCampaignLeaderboard',
+          campaignId,
+        )) as PerpsTradingCampaignLeaderboardDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.perpsTradingCampaignLeaderboard[k] = {
+            campaignId: payload.campaignId,
+            computedAt: payload.computedAt,
+            entries: payload.entries,
+            totalParticipants: payload.totalParticipants,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the current user's position on the perps trading campaign leaderboard.
+   * This is an authenticated endpoint.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get position for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's leaderboard position, or null if not found.
+   */
+  async getPerpsTradingCampaignLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PerpsTradingCampaignLeaderboardPositionDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const result =
+      await wrapWithCache<PerpsTradingCampaignLeaderboardPositionDto | null>({
+        key,
+        ttl: PERPS_TRADING_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS,
+        readCache: (k) => {
+          const cached = this.state.perpsTradingCampaignLeaderboardPositions[k];
+          if (!cached) return undefined;
+          if ('notFound' in cached) {
+            return { payload: null, lastFetched: cached.lastFetched };
+          }
+          return {
+            payload: {
+              rank: cached.rank,
+              pnl: cached.pnl,
+              notionalVolume: cached.notionalVolume,
+              marginDeployed: cached.marginDeployed,
+              qualified: cached.qualified,
+              neighbors: cached.neighbors,
+              computedAt: cached.computedAt,
+            },
+            lastFetched: cached.lastFetched,
+          };
+        },
+        fetchFresh: async () =>
+          this.#withAuthRetry(async () => {
+            Logger.log(
+              'RewardsController: Fetching fresh perps trading campaign leaderboard position via API call',
+            );
+            return (await this.messenger.call(
+              'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
+              campaignId,
+              subscriptionId,
+            )) as PerpsTradingCampaignLeaderboardPositionDto | null;
+          }, subscriptionId),
+        writeCache: (k, payload) => {
+          if (payload === null) {
+            this.update((state) => {
+              state.perpsTradingCampaignLeaderboardPositions[k] = {
+                notFound: true,
+                lastFetched: Date.now(),
+              };
+            });
+          } else {
+            this.update((state) => {
+              state.perpsTradingCampaignLeaderboardPositions[k] = {
+                rank: payload.rank,
+                pnl: payload.pnl,
+                notionalVolume: payload.notionalVolume,
+                marginDeployed: payload.marginDeployed,
+                qualified: payload.qualified,
+                neighbors: payload.neighbors,
+                computedAt: payload.computedAt,
+                lastFetched: Date.now(),
+              };
+            });
+          }
+        },
+      });
+    return result;
+  }
+
+  /**
+   * Get the perps trading campaign prize pool stats.
+   * This is a public endpoint - no authentication required.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get prize pool for.
+   * @returns The current prize pool state and milestones.
+   */
+  async getPerpsTradingCampaignPrizePool(
+    campaignId: string,
+  ): Promise<PerpsTradingCampaignPrizePoolDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        currentNotionalVolume: '0',
+        currentPrize: 0,
+        maxPrize: 0,
+        milestones: [],
+      };
+    }
+
+    const result = await wrapWithCache<PerpsTradingCampaignPrizePoolDto>({
+      key: campaignId,
+      ttl: PERPS_TRADING_CAMPAIGN_PRIZE_POOL_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.perpsTradingCampaignPrizePool[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            currentNotionalVolume: cached.currentNotionalVolume,
+            currentPrize: cached.currentPrize,
+            maxPrize: cached.maxPrize,
+            milestones: cached.milestones,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh perps trading campaign prize pool via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getPerpsTradingCampaignPrizePool',
+          campaignId,
+        )) as PerpsTradingCampaignPrizePoolDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.perpsTradingCampaignPrizePool[k] = {
+            currentNotionalVolume: payload.currentNotionalVolume,
+            currentPrize: payload.currentPrize,
+            maxPrize: payload.maxPrize,
+            milestones: payload.milestones,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
   }
 }

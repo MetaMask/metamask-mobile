@@ -94,6 +94,7 @@ export interface ApplyBonusCodeDto {
 export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
   SEASON_1 = 'SEASON_1',
+  PERPS_TRADING = 'PERPS_TRADING',
 }
 
 /**
@@ -689,6 +690,111 @@ export type OndoGmCampaignDepositsState = {
   totalUsdDeposited: string;
   lastFetched: number;
 };
+
+// ─── Perps Trading Campaign ────────────────────────────────────────────────
+
+/**
+ * A single entry in the Perps Trading Campaign leaderboard (no tiers).
+ */
+export interface PerpsTradingCampaignLeaderboardEntry {
+  rank: number;
+  referralCode: string;
+  /** Signed USD PnL for the campaign window */
+  pnl: number;
+  /** true when notional volume ≥ $25k AND margin deployed ≥ $1k */
+  qualified: boolean;
+}
+
+/**
+ * Response DTO for GET /perps-trading/:campaignId/leaderboard (public, no auth).
+ */
+export interface PerpsTradingCampaignLeaderboardDto {
+  campaignId: string;
+  /** ISO timestamp — display as "last updated" (refreshes ~every 15 min) */
+  computedAt: string;
+  entries: PerpsTradingCampaignLeaderboardEntry[];
+  totalParticipants: number;
+}
+
+/**
+ * Response DTO for GET /perps-trading/:campaignId/leaderboard/me (authenticated).
+ */
+export interface PerpsTradingCampaignLeaderboardPositionDto {
+  rank: number;
+  /** Signed USD PnL */
+  pnl: number;
+  /** Cumulative notional volume traded during the competition window (USD) */
+  notionalVolume: number;
+  /** Cumulative initial margin deployed during the competition window (USD) */
+  marginDeployed: number;
+  qualified: boolean;
+  neighbors: PerpsTradingCampaignLeaderboardEntry[];
+  computedAt: string;
+}
+
+/**
+ * Response DTO for GET /perps-trading/:campaignId/stats/prize-pool (public).
+ */
+export interface PerpsTradingCampaignPrizePoolDto {
+  /** Current aggregate notional volume across all participants (USD string) */
+  currentNotionalVolume: string;
+  currentPrize: number;
+  maxPrize: number;
+  milestones: { notionalVolume: number; prize: number }[];
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignLeaderboardState = {
+  campaignId: string;
+  computedAt: string;
+  entries: {
+    rank: number;
+    referralCode: string;
+    pnl: number;
+    qualified: boolean;
+  }[];
+  totalParticipants: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignLeaderboardPositionFoundState = {
+  rank: number;
+  pnl: number;
+  notionalVolume: number;
+  marginDeployed: number;
+  qualified: boolean;
+  neighbors: {
+    rank: number;
+    referralCode: string;
+    pnl: number;
+    qualified: boolean;
+  }[];
+  computedAt: string;
+  lastFetched: number;
+};
+
+/** Sentinel stored when the API returns null (user not on leaderboard), so the TTL is respected. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignLeaderboardPositionNotFoundState = {
+  notFound: true;
+  lastFetched: number;
+};
+
+export type PerpsTradingCampaignLeaderboardPositionState =
+  | PerpsTradingCampaignLeaderboardPositionFoundState
+  | PerpsTradingCampaignLeaderboardPositionNotFoundState;
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignPrizePoolState = {
+  currentNotionalVolume: string;
+  currentPrize: number;
+  maxPrize: number;
+  milestones: { notionalVolume: number; prize: number }[];
+  lastFetched: number;
+};
+
+// ─── End Perps Trading Campaign ────────────────────────────────────────────
 
 /**
  * State for cached leaderboard data in the controller
@@ -1839,6 +1945,18 @@ export type RewardsControllerState = {
   };
   /** Ondo campaign deposits keyed by campaignId (public endpoint). */
   ondoCampaignDeposits: { [campaignId: string]: OndoGmCampaignDepositsState };
+  /** Perps Trading Campaign leaderboard keyed by campaignId (public endpoint). */
+  perpsTradingCampaignLeaderboard: {
+    [campaignId: string]: PerpsTradingCampaignLeaderboardState;
+  };
+  /** Perps Trading Campaign leaderboard position keyed by compositeId (subscriptionId:campaignId). */
+  perpsTradingCampaignLeaderboardPositions: {
+    [compositeId: string]: PerpsTradingCampaignLeaderboardPositionState;
+  };
+  /** Perps Trading Campaign prize pool keyed by campaignId (public endpoint). */
+  perpsTradingCampaignPrizePool: {
+    [campaignId: string]: PerpsTradingCampaignPrizePoolState;
+  };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
