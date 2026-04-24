@@ -183,10 +183,18 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
 
       clearNoResponseTimeout();
       lastTrackingIdRef.current = candidate.trackingId;
+
+      // A fresh, displayable banner has passed all checks — the stale-cache
+      // guard is no longer needed for this session or the next cold start.
+      if (lastDismissedBrazeBannerRef.current !== null) {
+        lastDismissedBrazeBannerRef.current = null;
+        dispatch(setLastDismissedBrazeBanner(null));
+      }
+
       setBanner(candidate);
       setStatus('visible');
     },
-    [placementId, clearNoResponseTimeout],
+    [placementId, clearNoResponseTimeout, dispatch],
   );
 
   useEffect(() => {
