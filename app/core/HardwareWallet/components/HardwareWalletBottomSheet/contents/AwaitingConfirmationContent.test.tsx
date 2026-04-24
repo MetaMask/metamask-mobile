@@ -320,10 +320,15 @@ describe('AwaitingConfirmationContent', () => {
   });
 
   describe('scanner callbacks', () => {
-    const renderWithScanner = (overrides = {}) =>
+    const renderWithScanner = (
+      qrSigningContextOverrides: Partial<QRSigningContextValue> = {},
+      props: Partial<
+        React.ComponentProps<typeof AwaitingConfirmationContent>
+      > = {},
+    ) =>
       renderComponent(
-        { deviceType: HardwareWalletType.Qr, ...overrides },
-        qrSigningOverrides,
+        { deviceType: HardwareWalletType.Qr, ...props },
+        { ...qrSigningOverrides, ...qrSigningContextOverrides },
       );
 
     const openScanner = (getByTestId: (id: string) => ReactTestInstance) => {
@@ -344,6 +349,7 @@ describe('AwaitingConfirmationContent', () => {
           type: 'eth-signature',
         }),
       );
+      expect(setRequestCompleted).toHaveBeenCalled();
     });
 
     it('tracks error event on mismatched requestId', () => {

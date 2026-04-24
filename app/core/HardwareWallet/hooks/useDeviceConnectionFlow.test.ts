@@ -35,12 +35,14 @@ const createMockRefs = (): HardwareWalletRefs => ({
   isConnectingRef: { current: false },
   abortControllerRef: { current: null },
   targetWalletTypeRef: { current: null },
+  pendingOperationWalletTypeRef: { current: null },
 });
 
 const createMockSetters = (): HardwareWalletStateSetters => ({
   setConnectionState: jest.fn(),
   setDeviceId: jest.fn(),
   setTargetWalletType: jest.fn(),
+  setPendingOperationWalletType: jest.fn(),
 });
 
 const createDefaultOptions = (overrides = {}) => ({
@@ -134,6 +136,30 @@ describe('useDeviceConnectionFlow', () => {
         result.current.closeFlow();
         await readyPromise;
       });
+    });
+
+    it('uses pendingOperationWalletTypeRef before the render catches up', async () => {
+      const refs = createMockRefs();
+      refs.pendingOperationWalletTypeRef.current = HardwareWalletType.Qr;
+      const mockAdapter = createMockAdapter({
+        walletType: HardwareWalletType.Qr,
+        requiresDeviceDiscovery: false,
+      });
+      const createAdapterWithCallbacks = jest.fn().mockReturnValue(mockAdapter);
+      const options = createDefaultOptions({
+        refs,
+        walletType: HardwareWalletType.Ledger,
+        createAdapterWithCallbacks,
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      await expect(result.current.ensureDeviceReady()).resolves.toBe(true);
+
+      expect(createAdapterWithCallbacks).toHaveBeenCalledWith(
+        HardwareWalletType.Qr,
+      );
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith('default');
     });
 
     it('calls onFlowStart callback', async () => {

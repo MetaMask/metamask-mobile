@@ -45,16 +45,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const { state, refs, setters } = useHardwareWalletStateManager();
   const { connectionState, deviceId, walletType, targetWalletType } = state;
 
-  const [pendingOperationAddress, setPendingOperationAddress] = useState<
-    string | null
-  >(null);
-
-  const walletTypeFromPendingAddress = pendingOperationAddress
-    ? (getHardwareWalletTypeForAddress(pendingOperationAddress) ?? null)
-    : null;
+  const [pendingOperationWalletType, setPendingOperationWalletTypeState] =
+    useState<HardwareWalletType | null>(null);
 
   const effectiveWalletType =
-    targetWalletType ?? walletTypeFromPendingAddress ?? walletType;
+    targetWalletType ?? pendingOperationWalletType ?? walletType;
 
   const { handleDeviceEvent, handleError, updateConnectionState } =
     useDeviceEventHandlers({
@@ -202,11 +197,16 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     hideAwaitingConfirmation();
   }, [hideAwaitingConfirmation, refs.adapterRef]);
 
-  const setPendingOperationAddressWrapper = useCallback(
+  const setPendingOperationAddress = useCallback(
     (address: string | null) => {
-      setPendingOperationAddress(address);
+      const nextPendingOperationWalletType = address
+        ? (getHardwareWalletTypeForAddress(address) ?? null)
+        : null;
+
+      setters.setPendingOperationWalletType(nextPendingOperationWalletType);
+      setPendingOperationWalletTypeState(nextPendingOperationWalletType);
     },
-    [],
+    [setters],
   );
 
   const contextValue = useMemo(

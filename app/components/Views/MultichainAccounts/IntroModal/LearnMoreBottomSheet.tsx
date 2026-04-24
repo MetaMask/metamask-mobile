@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import {
   Text,
   ButtonIcon,
+  Checkbox,
   TextVariant,
   IconName,
   TextColor,
@@ -10,7 +11,6 @@ import {
   ButtonVariant,
   ButtonBaseSize,
 } from '@metamask/design-system-react-native';
-import Checkbox from '../../../../component-library/components/Checkbox';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -48,10 +48,6 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
-
-  const handleCheckboxToggle = useCallback(() => {
-    setIsCheckboxChecked(!isCheckboxChecked);
-  }, [isCheckboxChecked]);
 
   const handleConfirm = useCallback(() => {
     if (isCheckboxChecked) {
@@ -100,8 +96,8 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
           </Text>
 
           <Checkbox
-            isChecked={isCheckboxChecked}
-            onPress={handleCheckboxToggle}
+            isSelected={isCheckboxChecked}
+            onChange={setIsCheckboxChecked}
             label={strings('multichain_accounts.learn_more.checkbox_label')}
             testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX}
           />
