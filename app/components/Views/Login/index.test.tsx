@@ -833,7 +833,10 @@ describe('Login', () => {
       });
 
       // Assert
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: false,
+        captureSentryError: true,
+      });
       expect(mockUnlockWallet).toHaveBeenCalledWith({
         password: 'valid-password123',
       });
@@ -892,7 +895,10 @@ describe('Login', () => {
         expect(mockUnlockWallet).toHaveBeenCalled();
       });
       await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+          skipCache: false,
+          captureSentryError: true,
+        });
       });
     });
 
@@ -918,7 +924,10 @@ describe('Login', () => {
         expect(mockUnlockWallet).toHaveBeenCalled();
       });
       await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+          skipCache: false,
+          captureSentryError: true,
+        });
       });
     });
   });
@@ -1019,7 +1028,7 @@ describe('Login', () => {
       const errorMsg = 'Decrypt failed';
       mockUnlockWallet.mockReset().mockRejectedValue(new Error(errorMsg));
 
-      const { getByTestId } = renderWithProvider(<Login />);
+      const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
       await act(async () => {
@@ -1749,8 +1758,12 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      expect(loginButton).not.toBeDisabled();
+      await waitFor(() => {
+        expect(mockTrackErrorAsAnalytics).toHaveBeenCalledWith(
+          'Login: Invalid Password',
+          errorMsg,
+        );
+      });
     });
   });
 

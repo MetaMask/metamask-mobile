@@ -565,9 +565,9 @@ describe('useRewardOptinSummary', () => {
 
       renderHook(() => useRewardOptinSummary());
 
-      // Assert - should call addTraitsToUser with reward-enabled accounts count
+      // Assert - should call identify with reward-enabled accounts count
       await waitFor(() => {
-        expect(mockUseMetrics().addTraitsToUser).toHaveBeenCalledWith({
+        expect(mockUseAnalytics().identify).toHaveBeenCalledWith({
           reward_enabled_accounts_count: 2, // Account1 and Account3 are opted in
         });
       });

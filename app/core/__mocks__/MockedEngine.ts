@@ -26,6 +26,12 @@ export const mockedEngine = {
   },
   context: {
     AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+          selectedAccount: '',
+        },
+      },
       listAccounts: jest.fn(),
       listMultichainAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),

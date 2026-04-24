@@ -78,15 +78,36 @@ exports[`DepositInfoSection renders correctly 1`] = `
             >
               APR
             </Text>
-            <TouchableOpacity
+            <View
               accessibilityLabel="APR tooltip"
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              disabled={false}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -111,7 +132,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
                 }
                 width={16}
               />
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -341,15 +362,36 @@ exports[`DepositInfoSection renders correctly 1`] = `
             >
               Reward frequency
             </Text>
-            <TouchableOpacity
+            <View
               accessibilityLabel="Reward frequency tooltip"
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              disabled={false}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -374,7 +416,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
                 }
                 width={16}
               />
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -477,15 +519,36 @@ exports[`DepositInfoSection renders correctly 1`] = `
             >
               Withdrawal time
             </Text>
-            <TouchableOpacity
+            <View
               accessibilityLabel="Withdrawal time tooltip"
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              disabled={false}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -510,7 +573,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
                 }
                 width={16}
               />
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -613,15 +676,36 @@ exports[`DepositInfoSection renders correctly 1`] = `
             >
               Protocol
             </Text>
-            <TouchableOpacity
+            <View
               accessibilityLabel="Protocol tooltip"
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              disabled={false}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -646,7 +730,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
                 }
                 width={16}
               />
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>

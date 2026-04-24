@@ -4817,7 +4817,9 @@ describe('CardHome Component', () => {
         render();
 
         const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        expect(toggle.props.disabled).toBe(true);
+        expect(
+          toggle.props.accessibilityState?.disabled ?? toggle.props.disabled,
+        ).toBe(true);
       });
     });
   });

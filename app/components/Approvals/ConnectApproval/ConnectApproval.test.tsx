@@ -1,11 +1,21 @@
 import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import ConnectApproval from './ConnectApproval';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
+
+// Mock AccountApproval to avoid deep render tree accessing Engine.context
+jest.mock('../../UI/AccountApproval', () => {
+  const MockReact = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: MockReact.forwardRef(() => null),
+  };
+});
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +44,9 @@ describe('ConnectApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />);
+    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, {
+      state: { engine: { backgroundState } },
+    });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -42,7 +54,9 @@ describe('ConnectApproval', () => {
   it('sets isVisible to false if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />);
+    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, {
+      state: { engine: { backgroundState } },
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -51,7 +65,9 @@ describe('ConnectApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />);
+    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, {
+      state: { engine: { backgroundState } },
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 });

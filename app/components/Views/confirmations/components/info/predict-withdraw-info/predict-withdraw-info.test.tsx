@@ -34,7 +34,7 @@ describe('PredictWithdrawInfo', () => {
 
     expect(CustomAmountInfoMock).toHaveBeenCalledWith(
       expect.not.objectContaining({ hasMax: true }),
-      undefined,
+      {},
     );
   });
 });

@@ -10,6 +10,7 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../actions/onboardNetwork', () => ({
@@ -67,7 +68,9 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const { toJSON } = renderWithProvider(<SwitchChainApproval />);
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, {
+      state: { engine: { backgroundState } },
+    });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -75,7 +78,9 @@ describe('SwitchChainApproval', () => {
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const { toJSON } = renderWithProvider(<SwitchChainApproval />);
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, {
+      state: { engine: { backgroundState } },
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -84,7 +89,9 @@ describe('SwitchChainApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const { toJSON } = renderWithProvider(<SwitchChainApproval />);
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, {
+      state: { engine: { backgroundState } },
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -94,7 +101,9 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const { UNSAFE_getByType } = renderWithProvider(<SwitchChainApproval />);
+    const { UNSAFE_getByType } = renderWithProvider(<SwitchChainApproval />, {
+      state: { engine: { backgroundState } },
+    });
     const switchCustomNetwork = UNSAFE_getByType(SwitchCustomNetwork);
     fireEvent(switchCustomNetwork, 'confirm');
 

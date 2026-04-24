@@ -211,7 +211,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromTrending: true,
         }),
-        undefined,
+        {},
       );
     });
 
@@ -257,7 +257,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromPerps: true,
         }),
-        undefined,
+        {},
       );
     });
 
@@ -401,7 +401,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           linkType: 'deeplink',
         }),
-        undefined,
+        {},
       );
     });
   });

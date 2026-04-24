@@ -1,10 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OnboardingGeneralSettings should render correctly 1`] = `
-<View
+<RNCSafeAreaView
   edges={
     {
       "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
     }
   }
   style={
@@ -197,7 +200,6 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             Learn how we protect your privacy
           </Text>
         </Text>
-        <View />
       </View>
       <View
         style={
@@ -280,9 +282,34 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             click here.
           </Text>
         </Text>
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -292,6 +319,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
               "flexDirection": "row",
               "height": 32,
               "marginVertical": 16,
+              "opacity": 1,
               "paddingHorizontal": 8,
             }
           }
@@ -364,9 +392,9 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             testID="pickernetwork-arrow"
             width={12}
           />
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   </RCTScrollView>
-</View>
+</RNCSafeAreaView>
 `;

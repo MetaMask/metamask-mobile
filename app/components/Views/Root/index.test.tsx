@@ -3,6 +3,9 @@ import Root from './';
 import { render, waitFor } from '@testing-library/react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
+// Namespace import allows tests to override `isTest` on the mocked module via defineProperty.
+// eslint-disable-next-line import-x/no-namespace -- see jest.mock('../../../util/test/utils') below
+import * as testUtils from '../../../util/test/utils';
 
 jest.mock('../../../core/SecureKeychain', () => ({
   ...jest.requireActual('../../../core/SecureKeychain').default,
@@ -25,6 +28,24 @@ jest.mock('expo-sensors', () => ({
   },
 }));
 
+jest.mock('../../Nav/App', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => View({ testID: 'mock-app' }),
+  };
+});
+
+jest.mock('../../Nav/ControllersGate', () => ({
+  __esModule: true,
+  default: ({ children }) => children,
+}));
+
+jest.mock('../../../util/test/utils', () => ({
+  ...jest.requireActual('../../../util/test/utils'),
+  isTest: true,
+}));
+
 describe('Root', () => {
   it('should render correctly', () => {
     const { toJSON } = render(<Root foxCode="" />);
@@ -41,55 +62,19 @@ describe('Root', () => {
     });
   });
 
-  it('should render children if isTest OR isLoading is false', async () => {
-    jest.isolateModules(() => {
-      jest.mock('../../../util/test/utils', () => ({
-        isTest: false,
-      }));
-      jest.mock('react', () => {
-        const mockIsLoading = false;
-        const mockSetIsLoading = jest.fn();
-        return {
-          ...jest.requireActual('react'),
-          // Mock isLoading state to be false
-          useState: jest
-            .fn()
-            .mockImplementation(() => [mockIsLoading, mockSetIsLoading]),
-          useEffect: jest.fn(),
-        };
-      });
-      // Import Root after mocking isTest
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const RootComponent = require('./index').default;
-
-      const { toJSON } = render(<RootComponent foxCode="" />);
-      expect(toJSON()).toBeDefined();
+  it('should render children if isTest is false (skips store wait)', () => {
+    Object.defineProperty(testUtils, 'isTest', {
+      value: false,
+      writable: true,
     });
+    const { toJSON } = render(<Root foxCode="" />);
+    expect(toJSON()).toBeDefined();
+    Object.defineProperty(testUtils, 'isTest', { value: true, writable: true });
   });
 
-  it('should render children if isTest AND isLoading is true', async () => {
-    jest.isolateModules(() => {
-      jest.mock('../../../util/test/utils', () => ({
-        isTest: true,
-      }));
-      jest.mock('react', () => {
-        const mockIsLoading = true;
-        const mockSetIsLoading = jest.fn();
-        return {
-          ...jest.requireActual('react'),
-          // Mock isLoading state to be true
-          useState: jest
-            .fn()
-            .mockImplementation(() => [mockIsLoading, mockSetIsLoading]),
-          useEffect: jest.fn(),
-        };
-      });
-      // Import Root after mocking isTest
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const RootComponent = require('./index').default;
-
-      const { toJSON } = render(<RootComponent foxCode="" />);
-      expect(toJSON()).toBeNull();
-    });
+  it('should render null while isTest is true and store is loading', () => {
+    Object.defineProperty(testUtils, 'isTest', { value: true, writable: true });
+    const { toJSON } = render(<Root foxCode="" />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

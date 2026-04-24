@@ -1,8 +1,34 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`YouReceiveCard render matches snapshot 1`] = `
-<TouchableOpacity
-  disabled={true}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -10,6 +36,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
+      "opacity": 1,
       "padding": 16,
     }
   }
@@ -216,5 +243,5 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
       </Text>
     </View>
   </View>
-</TouchableOpacity>
+</View>
 `;

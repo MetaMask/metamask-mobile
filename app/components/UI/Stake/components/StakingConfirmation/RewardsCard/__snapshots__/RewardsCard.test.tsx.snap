@@ -1,8 +1,34 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RewardsCard render matches snapshot 1`] = `
-<TouchableOpacity
-  disabled={true}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -10,6 +36,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
+      "opacity": 1,
       "padding": 16,
     }
   }
@@ -69,15 +96,36 @@ exports[`RewardsCard render matches snapshot 1`] = `
           >
             Reward rate
           </Text>
-          <TouchableOpacity
+          <View
             accessibilityLabel="Reward rate tooltip"
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -102,7 +150,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
               }
               width={16}
             />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -329,15 +377,36 @@ exports[`RewardsCard render matches snapshot 1`] = `
           >
             Reward frequency
           </Text>
-          <TouchableOpacity
+          <View
             accessibilityLabel="Reward frequency tooltip"
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -362,7 +431,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
               }
               width={16}
             />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -410,12 +479,38 @@ exports[`RewardsCard render matches snapshot 1`] = `
       </View>
     </View>
   </View>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
-<TouchableOpacity
-  disabled={true}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -423,6 +518,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
+      "opacity": 1,
       "padding": 16,
     }
   }
@@ -482,15 +578,36 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
           >
             Reward rate
           </Text>
-          <TouchableOpacity
+          <View
             accessibilityLabel="Reward rate tooltip"
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -515,7 +632,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
               }
               width={16}
             />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -742,15 +859,36 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
           >
             Reward frequency
           </Text>
-          <TouchableOpacity
+          <View
             accessibilityLabel="Reward frequency tooltip"
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -775,7 +913,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
               }
               width={16}
             />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -823,12 +961,38 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
       </View>
     </View>
   </View>
-</TouchableOpacity>
+</View>
 `;
 
 exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
-<TouchableOpacity
-  disabled={true}
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -836,6 +1000,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
+      "opacity": 1,
       "padding": 16,
     }
   }
@@ -895,15 +1060,36 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
           >
             Reward rate
           </Text>
-          <TouchableOpacity
+          <View
             accessibilityLabel="Reward rate tooltip"
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -928,7 +1114,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
               }
               width={16}
             />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -1155,15 +1341,36 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
           >
             Reward frequency
           </Text>
-          <TouchableOpacity
+          <View
             accessibilityLabel="Reward frequency tooltip"
             accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -1188,7 +1395,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
               }
               width={16}
             />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -1236,5 +1443,5 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
       </View>
     </View>
   </View>
-</TouchableOpacity>
+</View>
 `;

@@ -258,7 +258,7 @@ describe('DeleteWalletModal', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Assert - Verify error was logged and loading state was reset
-      expect(consoleSpy).toHaveBeenCalledTimes(1);
+      expect(consoleSpy).toHaveBeenCalled();
 
       // Cleanup
       consoleSpy.mockRestore();

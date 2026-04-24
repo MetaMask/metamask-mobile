@@ -102,6 +102,64 @@ exports[`SeedphraseModal renders matches snapshot 1`] = `
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 8,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 32,
+                },
+                undefined,
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -331,13 +389,35 @@ exports[`SeedphraseModal renders matches snapshot 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -349,6 +429,7 @@ exports[`SeedphraseModal renders matches snapshot 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -368,7 +449,7 @@ exports[`SeedphraseModal renders matches snapshot 1`] = `
         >
           Got it
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </div>

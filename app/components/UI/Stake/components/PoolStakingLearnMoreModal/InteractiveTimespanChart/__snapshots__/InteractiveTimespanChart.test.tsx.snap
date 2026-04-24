@@ -16,8 +16,34 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -25,6 +51,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -44,9 +71,35 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       >
         Label 1
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -54,6 +107,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -73,9 +127,35 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       >
         Label 2
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -83,6 +163,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -102,7 +183,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       >
         Label 3
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -283,8 +364,34 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -292,6 +399,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -311,9 +419,35 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       >
         Label 1
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -321,6 +455,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -340,9 +475,35 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       >
         Label 2
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -350,6 +511,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -369,7 +531,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       >
         Label 3
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -546,8 +708,34 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -555,6 +743,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -574,9 +763,35 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       >
         Label 1
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -584,6 +799,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -603,9 +819,35 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       >
         Label 2
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -613,6 +855,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -632,7 +875,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       >
         Label 3
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -811,8 +1054,34 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -820,6 +1089,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -839,9 +1109,35 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       >
         Label 1
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -849,6 +1145,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -868,9 +1165,35 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       >
         Label 2
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -878,6 +1201,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -897,7 +1221,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       >
         Label 3
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -1076,8 +1400,34 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1085,6 +1435,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1104,9 +1455,35 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       >
         Label 1
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1114,6 +1491,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1133,9 +1511,35 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       >
         Label 2
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1143,6 +1547,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1162,7 +1567,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       >
         Label 3
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -1343,8 +1748,34 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1352,6 +1783,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1371,9 +1803,35 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       >
         Label 1
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1381,6 +1839,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1400,9 +1859,35 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       >
         Label 2
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1410,6 +1895,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
+          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 7,
         }
@@ -1429,7 +1915,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       >
         Label 3
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={

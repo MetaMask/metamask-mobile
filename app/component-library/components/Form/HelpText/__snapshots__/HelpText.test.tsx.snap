@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HelpText should render default settings correctly 1`] = `
+<Text
+  accessibilityRole="text"
+  style={
+    {
+      "color": "#131416",
+      "fontFamily": "Geist-Regular",
+      "fontSize": 14,
+      "letterSpacing": 0,
+      "lineHeight": 22,
+    }
+  }
+  testID="helptext"
+>
+  Sample HelpText text
+</Text>
+`;

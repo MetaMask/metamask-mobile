@@ -95,17 +95,15 @@ describe('BottomSheetDialog', () => {
       expect(onCloseMock).toHaveBeenCalled();
     });
   });
-  it('calls onClose only once when onCloseDialog is invoked twice rapidly', () => {
+  it('calls onClose only once when onCloseDialog is invoked twice rapidly', async () => {
     const onCloseMock = jest.fn();
     const TestComponent = () => {
       const ref = useRef<BottomSheetDialogRef>(null);
 
       useEffect(() => {
         if (ref.current) {
-          act(() => {
-            ref.current?.onCloseDialog();
-            ref.current?.onCloseDialog();
-          });
+          ref.current?.onCloseDialog();
+          ref.current?.onCloseDialog();
         }
       }, []);
 
@@ -117,10 +115,12 @@ describe('BottomSheetDialog', () => {
     };
 
     render(<TestComponent />);
-    expect(onCloseMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(onCloseMock).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('allows closing again after re-opening', () => {
+  it('allows closing again after re-opening', async () => {
     const onCloseMock = jest.fn();
     const onOpenMock = jest.fn();
     const TestComponent = () => {
@@ -128,11 +128,9 @@ describe('BottomSheetDialog', () => {
 
       useEffect(() => {
         if (ref.current) {
-          act(() => {
-            ref.current?.onCloseDialog();
-            ref.current?.onOpenDialog();
-            ref.current?.onCloseDialog();
-          });
+          ref.current?.onCloseDialog();
+          ref.current?.onOpenDialog();
+          ref.current?.onCloseDialog();
         }
       }, []);
 
@@ -144,19 +142,19 @@ describe('BottomSheetDialog', () => {
     };
 
     render(<TestComponent />);
-    expect(onCloseMock).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(onCloseMock).toHaveBeenCalledTimes(2);
+    });
   });
-  it('calls onClose only once when onCloseDialog is invoked twice rapidly', () => {
+  it('calls onClose only once when onCloseDialog is invoked twice rapidly', async () => {
     const onCloseMock = jest.fn();
     const TestComponent = () => {
       const ref = useRef<BottomSheetDialogRef>(null);
 
       useEffect(() => {
         if (ref.current) {
-          act(() => {
-            ref.current?.onCloseDialog();
-            ref.current?.onCloseDialog();
-          });
+          ref.current?.onCloseDialog();
+          ref.current?.onCloseDialog();
         }
       }, []);
 
@@ -168,10 +166,12 @@ describe('BottomSheetDialog', () => {
     };
 
     render(<TestComponent />);
-    expect(onCloseMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(onCloseMock).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('allows closing again after re-opening', () => {
+  it('allows closing again after re-opening', async () => {
     const onCloseMock = jest.fn();
     const onOpenMock = jest.fn();
     const TestComponent = () => {
@@ -179,11 +179,9 @@ describe('BottomSheetDialog', () => {
 
       useEffect(() => {
         if (ref.current) {
-          act(() => {
-            ref.current?.onCloseDialog();
-            ref.current?.onOpenDialog();
-            ref.current?.onCloseDialog();
-          });
+          ref.current?.onCloseDialog();
+          ref.current?.onOpenDialog();
+          ref.current?.onCloseDialog();
         }
       }, []);
 
@@ -195,7 +193,9 @@ describe('BottomSheetDialog', () => {
     };
 
     render(<TestComponent />);
-    expect(onCloseMock).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(onCloseMock).toHaveBeenCalledTimes(2);
+    });
   });
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
 

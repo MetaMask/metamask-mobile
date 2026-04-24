@@ -36,13 +36,40 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "opacity": 1,
         }
       }
     />
@@ -66,10 +93,78 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
     <View
       collapsable={false}
       enabled={true}
+      forwardedRef={[Function]}
       handlerTag={-1}
       handlerType="PanGestureHandler"
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "translateY": 844,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b4b4b566",
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
+            "borderWidth": 1,
+            "overflow": "hidden",
+          },
+          {
+            "maxHeight": 844,
+            "paddingBottom": 0,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
+          },
+          undefined,
+          {
+            "initial": {
+              "updater": [Function],
+              "value": {
+                "transform": [
+                  {
+                    "translateY": 844,
+                  },
+                ],
+              },
+            },
+            "jestAnimatedValues": {
+              "current": {
+                "value": {
+                  "transform": [
+                    {
+                      "translateY": 844,
+                    },
+                  ],
+                },
+              },
+            },
+            "viewDescriptors": {
+              "add": [Function],
+              "remove": [Function],
+              "shareableViewDescriptors": "SharedValue(<circular>)",
+            },
+          },
+        ]
+      }
       onGestureHandlerEvent={[Function]}
-      onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
       style={
         [
@@ -82,7 +177,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             "overflow": "hidden",
           },
           {
-            "maxHeight": 0,
+            "maxHeight": 844,
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
             "shadowOffset": {
@@ -96,7 +191,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           {
             "transform": [
               {
-                "translateY": 0,
+                "translateY": 844,
               },
             ],
           },
@@ -182,6 +277,76 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "backgroundColor": "#131416",
+                  "borderColor": "#b4b4b566",
+                  "borderWidth": 1,
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -285,6 +450,76 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "backgroundColor": "#131416",
+                  "borderColor": "#b4b4b566",
+                  "borderWidth": 1,
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -467,6 +702,71 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -647,13 +947,40 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "opacity": 1,
         }
       }
     />
@@ -677,10 +1004,78 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
     <View
       collapsable={false}
       enabled={true}
+      forwardedRef={[Function]}
       handlerTag={-1}
       handlerType="PanGestureHandler"
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "translateY": 844,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b4b4b566",
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
+            "borderWidth": 1,
+            "overflow": "hidden",
+          },
+          {
+            "maxHeight": 844,
+            "paddingBottom": 0,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
+          },
+          undefined,
+          {
+            "initial": {
+              "updater": [Function],
+              "value": {
+                "transform": [
+                  {
+                    "translateY": 844,
+                  },
+                ],
+              },
+            },
+            "jestAnimatedValues": {
+              "current": {
+                "value": {
+                  "transform": [
+                    {
+                      "translateY": 844,
+                    },
+                  ],
+                },
+              },
+            },
+            "viewDescriptors": {
+              "add": [Function],
+              "remove": [Function],
+              "shareableViewDescriptors": "SharedValue(<circular>)",
+            },
+          },
+        ]
+      }
       onGestureHandlerEvent={[Function]}
-      onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
       style={
         [
@@ -693,7 +1088,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             "overflow": "hidden",
           },
           {
-            "maxHeight": 0,
+            "maxHeight": 844,
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
             "shadowOffset": {
@@ -707,7 +1102,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           {
             "transform": [
               {
-                "translateY": 0,
+                "translateY": 844,
               },
             ],
           },
@@ -793,6 +1188,76 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "backgroundColor": "#131416",
+                  "borderColor": "#b4b4b566",
+                  "borderWidth": 1,
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -896,6 +1361,76 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "backgroundColor": "#131416",
+                  "borderColor": "#b4b4b566",
+                  "borderWidth": 1,
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -1078,6 +1613,71 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}

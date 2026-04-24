@@ -1,12 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -222,6 +224,69 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -305,6 +370,71 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -372,16 +502,18 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountBackupStep1 Snapshots android render matches snapshot with status bar height to zero 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -597,6 +729,69 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -680,6 +875,71 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -747,16 +1007,18 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
       </View>
     </View>
   </RCTScrollView>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -972,6 +1234,69 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -1055,6 +1380,71 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -1122,16 +1512,18 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by default (dark theme) 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -1347,6 +1739,69 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -1430,6 +1885,71 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -1497,16 +2017,18 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
       </View>
     </View>
   </RCTScrollView>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountBackupStep1 Theme appearance renders light SRP design image for light theme 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -1722,6 +2244,69 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -1805,6 +2390,71 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
             accessible={true}
             collapsable={false}
             focusable={true}
+            jestAnimatedProps={
+              {
+                "value": {},
+              }
+            }
+            jestAnimatedStyle={
+              {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              }
+            }
+            jestInlineStyle={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "width": "100%",
+                },
+                {
+                  "initial": {
+                    "updater": [Function],
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                  "jestAnimatedValues": {
+                    "current": {
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                  },
+                  "viewDescriptors": {
+                    "add": [Function],
+                    "remove": [Function],
+                    "shareableViewDescriptors": "SharedValue(<circular>)",
+                  },
+                },
+              ]
+            }
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -1872,5 +2522,5 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
       </View>
     </View>
   </RCTScrollView>
-</View>
+</RNCSafeAreaView>
 `;

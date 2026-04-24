@@ -72,8 +72,39 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       >
         per year on your tokens
       </Text>
-      <TouchableOpacity
-        onPress={[MockFunction]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
       >
         <SvgMock
           color="#66676a"
@@ -88,7 +119,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
           }
           width={16}
         />
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -98,13 +129,35 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[MockFunction]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -116,6 +169,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -135,7 +189,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       >
         Earn 4.5%
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -195,13 +249,35 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
   >
     per year on your tokens
   </Text>
-  <TouchableOpacity
+  <View
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={1}
-    onPress={[MockFunction]}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -213,6 +289,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
         "flexDirection": "row",
         "height": 40,
         "justifyContent": "center",
+        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -232,6 +309,6 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     >
       Earn 4.5%
     </Text>
-  </TouchableOpacity>
+  </View>
 </View>
 `;

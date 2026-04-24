@@ -435,10 +435,7 @@ describe('RewardOptInAccountGroupModal', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
       const linkButton = getByTestId('link-account-group-button');
-      const isDisabled =
-        linkButton.props.disabled === true ||
-        linkButton.props.accessibilityState?.disabled === true;
-      expect(isDisabled).toBe(true);
+      expect(linkButton).toBeDisabled();
     });
 
     it('updates local state after successful link', async () => {

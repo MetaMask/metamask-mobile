@@ -465,7 +465,7 @@ describe('NetworkDetailsView', () => {
     const saveButton = getByTestId(
       NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
     );
-    expect(saveButton.props.disabled).toBe(true);
+    expect(saveButton).toBeDisabled();
   });
 
   it('shows warning modal when showWarningModal is true', () => {

@@ -138,12 +138,38 @@ exports[`AddressList renders correctly 1`] = `
                     }
                   }
                 >
-                  <TouchableOpacity
-                    onLongPress={[Function]}
-                    onPress={[Function]}
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "flexDirection": "row",
+                        "opacity": 1,
                         "padding": 16,
                       }
                     }
@@ -200,13 +226,9 @@ exports[`AddressList renders correctly 1`] = `
                           <View
                             style={
                               [
-                                {},
-                                {
-                                  "backgroundColor": "#eee",
-                                },
-                                {
-                                  "backgroundColor": "#f3f3f4",
-                                },
+                                [Object],
+                                [Object],
+                                [Object],
                               ]
                             }
                           />
@@ -263,7 +285,7 @@ exports[`AddressList renders correctly 1`] = `
                         0xC4955...4D272
                       </Text>
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>

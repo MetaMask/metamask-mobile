@@ -1,13 +1,41 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SampleCounterPane matches rendered snapshot 1`] = `
-<TouchableOpacity
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
       "borderColor": "#949596",
       "borderRadius": 4,
       "borderWidth": 1,
+      "opacity": 1,
       "padding": 16,
       "width": "100%",
     }
@@ -43,13 +71,35 @@ exports[`SampleCounterPane matches rendered snapshot 1`] = `
   >
     Value: 42
   </Text>
-  <TouchableOpacity
+  <View
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={1}
-    onPress={[Function]}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -59,6 +109,7 @@ exports[`SampleCounterPane matches rendered snapshot 1`] = `
         "flexDirection": "row",
         "height": 40,
         "justifyContent": "center",
+        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
         "width": "100%",
@@ -80,6 +131,6 @@ exports[`SampleCounterPane matches rendered snapshot 1`] = `
     >
       Increment Redux Counter
     </Text>
-  </TouchableOpacity>
-</TouchableOpacity>
+  </View>
+</View>
 `;

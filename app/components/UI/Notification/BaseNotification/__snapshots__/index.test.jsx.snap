@@ -17,14 +17,41 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#0a0d1392",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
+          "opacity": 1,
           "padding": 16,
         }
       }
@@ -188,7 +215,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
         </Text>
       </View>
       <View />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -210,14 +237,41 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#0a0d1392",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
+          "opacity": 1,
           "padding": 16,
         }
       }
@@ -381,7 +435,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
         </Text>
       </View>
       <View />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -403,14 +457,41 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#0a0d1392",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
+          "opacity": 1,
           "padding": 16,
         }
       }
@@ -574,7 +655,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
         </Text>
       </View>
       <View />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -596,14 +677,41 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#0a0d1392",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
+          "opacity": 1,
           "padding": 16,
         }
       }
@@ -737,7 +845,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
         </Text>
       </View>
       <View />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -759,14 +867,41 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#0a0d1392",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
+          "opacity": 1,
           "padding": 16,
         }
       }
@@ -900,7 +1035,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
         </Text>
       </View>
       <View />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -922,14 +1057,41 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#0a0d1392",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
+          "opacity": 1,
           "padding": 16,
         }
       }
@@ -1063,7 +1225,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
         </Text>
       </View>
       <View />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -1085,14 +1247,41 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#0a0d1392",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
+          "opacity": 1,
           "padding": 16,
         }
       }
@@ -1226,7 +1415,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
         </Text>
       </View>
       <View />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -1248,14 +1437,41 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#0a0d1392",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
+          "opacity": 1,
           "padding": 16,
         }
       }
@@ -1389,7 +1605,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
         </Text>
       </View>
       <View />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -1411,14 +1627,41 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "backgroundColor": "#0a0d1392",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
+          "opacity": 1,
           "padding": 16,
         }
       }
@@ -1552,7 +1795,7 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
         </Text>
       </View>
       <View />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

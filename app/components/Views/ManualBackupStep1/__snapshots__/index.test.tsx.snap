@@ -1,10 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ManualBackupStep1 matches snapshot 1`] = `
-<View
+<RNCSafeAreaView
   edges={
     {
       "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
     }
   }
   style={
@@ -315,12 +318,38 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                 ]
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
-                  [
-                    "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
-                  ]
+                  {
+                    "opacity": 1,
+                  }
                 }
                 testID="blur-button"
               >
@@ -434,7 +463,7 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                     Make sure no one is watching your screen.
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -495,6 +524,62 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
           accessible={true}
           collapsable={false}
           focusable={true}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              [
+                "flex-row items-center justify-center gap-x-2",
+                "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
+                "h-12",
+                "opacity-50",
+                "w-full",
+                "bg-icon-default ",
+              ],
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -506,14 +591,12 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
           onStartShouldSetResponder={[Function]}
           style={
             [
-              [
-                "flex-row items-center justify-center gap-x-2",
-                "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
-                "h-12",
-                "opacity-50",
-                "w-full",
-                "bg-icon-default ",
-              ],
+              "flex-row items-center justify-center gap-x-2",
+              "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
+              "h-12",
+              "opacity-50",
+              "w-full",
+              "bg-icon-default ",
               {
                 "transform": [
                   {
@@ -548,14 +631,17 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
     </View>
   </View>
   <View />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
-<View
+<RNCSafeAreaView
   edges={
     {
       "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
     }
   }
   style={
@@ -866,12 +952,38 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                 ]
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
-                  [
-                    "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
-                  ]
+                  {
+                    "opacity": 1,
+                  }
                 }
                 testID="blur-button"
               >
@@ -985,7 +1097,7 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                     Make sure no one is watching your screen.
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -1046,6 +1158,62 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
           accessible={true}
           collapsable={false}
           focusable={true}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              [
+                "flex-row items-center justify-center gap-x-2",
+                "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
+                "h-12",
+                "opacity-50",
+                "w-full",
+                "bg-icon-default ",
+              ],
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -1057,14 +1225,12 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
           onStartShouldSetResponder={[Function]}
           style={
             [
-              [
-                "flex-row items-center justify-center gap-x-2",
-                "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
-                "h-12",
-                "opacity-50",
-                "w-full",
-                "bg-icon-default ",
-              ],
+              "flex-row items-center justify-center gap-x-2",
+              "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
+              "h-12",
+              "opacity-50",
+              "w-full",
+              "bg-icon-default ",
               {
                 "transform": [
                   {
@@ -1099,14 +1265,17 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
     </View>
   </View>
   <View />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`ManualBackupStep1 theme appearance renders with light theme on Android 1`] = `
-<View
+<RNCSafeAreaView
   edges={
     {
       "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
     }
   }
   style={
@@ -1417,12 +1586,38 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                 ]
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
-                  [
-                    "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
-                  ]
+                  {
+                    "opacity": 1,
+                  }
                 }
                 testID="blur-button"
               >
@@ -1536,7 +1731,7 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                     Make sure no one is watching your screen.
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -1597,6 +1792,62 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
           accessible={true}
           collapsable={false}
           focusable={true}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              [
+                "flex-row items-center justify-center gap-x-2",
+                "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
+                "h-12",
+                "opacity-50",
+                "w-full",
+                "bg-icon-default ",
+              ],
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -1608,14 +1859,12 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
           onStartShouldSetResponder={[Function]}
           style={
             [
-              [
-                "flex-row items-center justify-center gap-x-2",
-                "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
-                "h-12",
-                "opacity-50",
-                "w-full",
-                "bg-icon-default ",
-              ],
+              "flex-row items-center justify-center gap-x-2",
+              "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
+              "h-12",
+              "opacity-50",
+              "w-full",
+              "bg-icon-default ",
               {
                 "transform": [
                   {
@@ -1650,5 +1899,5 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
     </View>
   </View>
   <View />
-</View>
+</RNCSafeAreaView>
 `;

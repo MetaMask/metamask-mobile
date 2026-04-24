@@ -135,6 +135,7 @@ describe('MusdAggregatedRow', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        undefined,
       );
     });
 
@@ -145,7 +146,9 @@ describe('MusdAggregatedRow', () => {
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT, {
+        screen: Routes.MONEY.HOME,
+      });
     });
 
     it('navigates to education screen with returnTo when user has not seen education', () => {
@@ -174,6 +177,7 @@ describe('MusdAggregatedRow', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        undefined,
       );
     });
 
@@ -185,7 +189,15 @@ describe('MusdAggregatedRow', () => {
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          returnTo: {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        },
+      });
     });
   });
 });

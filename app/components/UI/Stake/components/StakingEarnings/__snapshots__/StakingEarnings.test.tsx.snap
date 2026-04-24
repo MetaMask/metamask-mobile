@@ -119,15 +119,36 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
         >
           Annual rate
         </Text>
-        <TouchableOpacity
+        <View
           accessibilityLabel="Annual rate tooltip"
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          disabled={false}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -152,7 +173,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
             }
             width={16}
           />
-        </TouchableOpacity>
+        </View>
       </View>
       <Text
         accessibilityRole="text"
@@ -309,13 +330,35 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
       </View>
     </View>
     <View>
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -327,6 +370,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -347,7 +391,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
         >
           View earnings history
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </View>
@@ -413,15 +457,36 @@ exports[`Staking Earnings should render correctly 1`] = `
         >
           Annual rate
         </Text>
-        <TouchableOpacity
+        <View
           accessibilityLabel="Annual rate tooltip"
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          disabled={false}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -446,7 +511,7 @@ exports[`Staking Earnings should render correctly 1`] = `
             }
             width={16}
           />
-        </TouchableOpacity>
+        </View>
       </View>
       <Text
         accessibilityRole="text"
@@ -603,13 +668,35 @@ exports[`Staking Earnings should render correctly 1`] = `
       </View>
     </View>
     <View>
-      <TouchableOpacity
+      <View
         accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -621,6 +708,7 @@ exports[`Staking Earnings should render correctly 1`] = `
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
+            "opacity": 1,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -641,7 +729,7 @@ exports[`Staking Earnings should render correctly 1`] = `
         >
           View earnings history
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </View>

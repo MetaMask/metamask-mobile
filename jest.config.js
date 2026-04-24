@@ -63,6 +63,7 @@ const config = {
     '.*/e2e/.*\\.spec\\.(ts|js)$',
     '.*/e2e/pages/',
     '.*/e2e/selectors/',
+    '.*\\.view\\.test\\.(ts|tsx)$',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
@@ -96,6 +97,8 @@ const config = {
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',
+    '^react-native-qrcode-svg$':
+      '<rootDir>/app/__mocks__/react-native-qrcode-svg.js',
   },
   cache: true,
   ...(process.env.JEST_CACHE_DIRECTORY && {

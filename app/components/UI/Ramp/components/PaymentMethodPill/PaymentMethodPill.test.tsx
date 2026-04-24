@@ -113,12 +113,11 @@ describe('PaymentMethodPill', () => {
     });
 
     it('does not render arrow icon', () => {
-      const { toJSON } = renderWithTheme(
+      const { queryByTestId } = renderWithTheme(
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
-      const json = JSON.stringify(toJSON());
 
-      expect(json).not.toContain('ArrowDown');
+      expect(queryByTestId('ArrowDown')).toBeNull();
     });
 
     it('applies loadingContainer style with centered content', () => {

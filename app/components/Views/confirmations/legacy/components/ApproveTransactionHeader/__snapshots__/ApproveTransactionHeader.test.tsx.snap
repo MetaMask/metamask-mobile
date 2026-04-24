@@ -73,7 +73,34 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       https://metamask.github.io
     </Text>
   </View>
-  <TouchableOpacity
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "backgroundColor": "#ffffff",
@@ -83,6 +110,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         "flexDirection": "row",
         "justifyContent": "space-between",
         "marginHorizontal": 10,
+        "opacity": 1,
         "padding": 16,
       }
     }
@@ -292,7 +320,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         </Text>
       </View>
     </View>
-  </TouchableOpacity>
+  </View>
 </View>
 `;
 
@@ -305,7 +333,34 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
     }
   }
 >
-  <TouchableOpacity
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "backgroundColor": "#ffffff",
@@ -315,6 +370,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
         "flexDirection": "row",
         "justifyContent": "space-between",
         "marginHorizontal": 10,
+        "opacity": 1,
         "padding": 16,
       }
     }
@@ -524,6 +580,6 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
         </Text>
       </View>
     </View>
-  </TouchableOpacity>
+  </View>
 </View>
 `;

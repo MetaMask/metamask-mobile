@@ -549,7 +549,7 @@ describe('ResetPassword', () => {
       const getNewPasswordTextInput = () =>
         within(newPasswordField).getByDisplayValue('NewPassword123');
 
-      expect(newPasswordField).toHaveProp('secureTextEntry', true);
+      expect(getNewPasswordTextInput().props.secureTextEntry).toBe(true);
 
       const showIcon = component.getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID,
@@ -557,7 +557,7 @@ describe('ResetPassword', () => {
       fireEvent.press(showIcon);
 
       await waitFor(() => {
-        expect(newPasswordField).toHaveProp('secureTextEntry', false);
+        expect(getNewPasswordTextInput().props.secureTextEntry).toBe(false);
       });
     });
 
@@ -574,7 +574,7 @@ describe('ResetPassword', () => {
       const getConfirmPasswordTextInput = () =>
         within(confirmPasswordField).getByDisplayValue('NewPassword123');
 
-      expect(confirmPasswordField).toHaveProp('secureTextEntry', true);
+      expect(getConfirmPasswordTextInput().props.secureTextEntry).toBe(true);
 
       const showIcon = component.getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID,
@@ -582,7 +582,7 @@ describe('ResetPassword', () => {
       fireEvent.press(showIcon);
 
       await waitFor(() => {
-        expect(confirmPasswordField).toHaveProp('secureTextEntry', false);
+        expect(getConfirmPasswordTextInput().props.secureTextEntry).toBe(false);
       });
     });
 

@@ -1,5 +1,5 @@
 import axios, { isAxiosError } from 'axios';
-import { BaanxService } from './BaanxService';
+import { BaanxService } from '../services/BaanxService';
 
 jest.mock('axios');
 jest.mock('../../../../../util/Logger');

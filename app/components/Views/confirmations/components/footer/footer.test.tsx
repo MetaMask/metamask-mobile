@@ -248,8 +248,8 @@ describe('Footer', () => {
     });
 
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
-    ).toBe(true);
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
   });
 
   it('disables confirm button if gasless support is loading', () => {

@@ -47,6 +47,31 @@ function render(Component: React.ComponentType) {
   );
 }
 
+jest.mock('../../components/LoadingAnimation', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockLoadingAnimation({
+    title,
+    finish,
+    onAnimationEnd,
+  }: {
+    title: string;
+    finish: boolean;
+    onAnimationEnd?: () => void;
+  }) {
+    ReactMock.useEffect(() => {
+      if (finish && onAnimationEnd) {
+        onAnimationEnd();
+      }
+    }, [finish, onAnimationEnd]);
+    return (
+      <View>
+        <Text>{title}</Text>
+      </View>
+    );
+  };
+});
+
 jest.unmock('react-redux');
 
 const mockSetOptions = jest.fn();

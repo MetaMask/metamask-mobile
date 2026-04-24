@@ -97,10 +97,27 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         https://example.com
       </Text>
     </View>
-    <TouchableOpacity
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
+      collapsable={false}
+      focusable={true}
       hitSlop={
         {
           "bottom": 8,
@@ -109,9 +126,13 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
           "top": 8,
         }
       }
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -139,7 +160,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         }
         width={20}
       />
-    </TouchableOpacity>
+    </View>
   </View>
   <View
     style={
@@ -149,7 +170,27 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
       hitSlop={
         {
           "bottom": 12,
@@ -158,11 +199,18 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
           "top": 12,
         }
       }
-      onPress={[Function]}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "justifyContent": "center",
           "marginRight": 16,
+          "opacity": 1,
         }
       }
       testID="cancel-url-button"
@@ -182,7 +230,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
       >
         Cancel
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -310,8 +358,34 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
       }
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -320,6 +394,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
           "marginLeft": 0,
           "marginRight": 16,
           "marginTop": 12,
+          "opacity": 1,
         }
       }
       testID="navbar-account-button"
@@ -344,7 +419,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
           }
         }
       />
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

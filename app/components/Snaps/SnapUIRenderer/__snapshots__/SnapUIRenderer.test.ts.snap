@@ -32,7 +32,25 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -85,7 +103,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               </Text>
             </Text>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
     <View
@@ -132,6 +150,74 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "flex": 1,
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -234,7 +320,25 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -350,7 +454,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
               </View>
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -393,7 +497,25 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -605,7 +727,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
               </View>
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -648,7 +770,25 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -858,7 +998,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
               </View>
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -901,7 +1041,25 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -954,7 +1112,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
               </Text>
             </Text>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -997,7 +1155,25 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -1316,7 +1492,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               </View>
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
     <View
@@ -1362,6 +1538,74 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "flex": 1,
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1445,6 +1689,73 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "backgroundColor": "#131416",
+              "flex": 1,
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1601,7 +1912,25 @@ exports[`SnapUIRenderer renders footers 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -1654,7 +1983,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               </Text>
             </Text>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
     <View
@@ -1700,6 +2029,74 @@ exports[`SnapUIRenderer renders footers 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "flex": 1,
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1783,6 +2180,73 @@ exports[`SnapUIRenderer renders footers 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "backgroundColor": "#131416",
+              "flex": 1,
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1946,7 +2410,25 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -2189,14 +2671,40 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     }
                     testID="textfield-endacccessory"
                   >
-                    <TouchableOpacity
-                      disabled={false}
-                      id="submit"
-                      onPress={[Function]}
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      nativeID="submit"
+                      onClick={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         {
                           "alignItems": "center",
                           "flexDirection": "row",
+                          "opacity": 1,
                         }
                       }
                     >
@@ -2216,13 +2724,13 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       >
                         Submit
                       </Text>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -2265,7 +2773,25 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -2381,7 +2907,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
               </View>
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -2424,7 +2950,25 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -2477,7 +3021,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               </Text>
             </Text>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
     <View
@@ -2523,6 +3067,74 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "flex": 1,
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -2606,6 +3218,73 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+            },
+            {
+              "backgroundColor": "#131416",
+              "flex": 1,
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}

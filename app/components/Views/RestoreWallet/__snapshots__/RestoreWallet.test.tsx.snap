@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RestoreWallet rendering renders component tree correctly 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "alignItems": "center",
@@ -126,6 +134,69 @@ exports[`RestoreWallet rendering renders component tree correctly 1`] = `
       accessible={true}
       collapsable={false}
       focusable={true}
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "100%",
+          },
+          {
+            "initial": {
+              "updater": [Function],
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            },
+            "jestAnimatedValues": {
+              "current": {
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+            },
+            "viewDescriptors": {
+              "add": [Function],
+              "remove": [Function],
+              "shareableViewDescriptors": "SharedValue(<circular>)",
+            },
+          },
+        ]
+      }
       onBlur={[Function]}
       onClick={[Function]}
       onFocus={[Function]}
@@ -187,5 +258,5 @@ exports[`RestoreWallet rendering renders component tree correctly 1`] = `
       </Text>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;

@@ -65,8 +65,34 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     }
   >
     <View>
-      <TouchableOpacity
-        disabled={true}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={false}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -76,6 +102,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             "flexDirection": "row",
             "height": 32,
             "marginBottom": 16,
+            "opacity": 1,
             "paddingHorizontal": 8,
           }
         }
@@ -130,7 +157,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         >
           Test Chain
         </Text>
-      </TouchableOpacity>
+      </View>
       <View
         style={
           {
@@ -197,13 +224,34 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -229,7 +277,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               }
               width={16}
             />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
       <Text
@@ -455,13 +503,35 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     }
     testID="bottomsheetfooter"
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -474,6 +544,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -494,14 +565,36 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       >
         Cancel
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -514,6 +607,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           "justifyContent": "center",
           "marginLeft": 16,
           "marginTop": 0,
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -534,7 +628,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       >
         Confirm
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -604,8 +698,34 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
     }
   >
     <View>
-      <TouchableOpacity
-        disabled={true}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={false}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -615,6 +735,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             "flexDirection": "row",
             "height": 32,
             "marginBottom": 16,
+            "opacity": 1,
             "paddingHorizontal": 8,
           }
         }
@@ -669,7 +790,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         >
           Test Chain
         </Text>
-      </TouchableOpacity>
+      </View>
       <Text
         accessibilityRole="text"
         style={
@@ -774,8 +895,39 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             >
               Network RPC URL
             </Text>
-            <TouchableOpacity
-              onPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "opacity": 1,
+                }
+              }
             >
               <View
                 style={
@@ -843,7 +995,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                   />
                 </View>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
           <Text
             accessibilityRole="text"
@@ -958,13 +1110,35 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
     }
     testID="bottomsheetfooter"
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -977,6 +1151,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -997,14 +1172,36 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
       >
         Cancel
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1017,6 +1214,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           "justifyContent": "center",
           "marginLeft": 16,
           "marginTop": 0,
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -1037,7 +1235,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
       >
         Confirm
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

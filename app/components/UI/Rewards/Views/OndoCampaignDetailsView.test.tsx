@@ -29,6 +29,7 @@ jest.mock('@react-navigation/native', () => ({
     isFocused: () => true,
   }),
   useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
+  useFocusEffect: jest.fn((cb) => cb()),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -1103,7 +1104,7 @@ describe('OndoCampaignDetailsView', () => {
       fireEvent.press(getByTestId('ondo-campaign-details-stats-pressable'));
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARDS_ONDO_CAMPAIGN_STATS,
-        { campaignId: 'campaign-1' },
+        { campaignId: 'campaign-1', campaignName: 'Test Campaign' },
       );
     });
   });

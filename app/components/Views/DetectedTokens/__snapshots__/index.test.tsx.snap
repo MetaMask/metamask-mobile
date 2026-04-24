@@ -55,13 +55,43 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
+        {
+          "opacity": 1,
+        }
+      }
+    >
+      <View
+        style={
           [
             {
               "borderRadius": 12,
@@ -76,21 +106,11 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             {
               "flex": 1,
             },
-          ],
-          null,
-        ]
-      }
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
+          ]
+        }
+      >
+        <Text
+          style={
             [
               {
                 "fontFamily": "Geist-SemiBold",
@@ -101,14 +121,13 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
                 "color": "blue",
               },
               undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Hide all
-      </Text>
-    </TouchableOpacity>
+            ]
+          }
+        >
+          Hide all
+        </Text>
+      </View>
+    </View>
     <View
       style={
         {
@@ -116,13 +135,44 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
         }
       }
     />
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": true,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={true}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
+        {
+          "opacity": 1,
+        }
+      }
+      testID="token-detection-import-button"
+    >
+      <View
+        style={
           [
             {
               "borderRadius": 12,
@@ -136,26 +186,11 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             {
               "flex": 1,
             },
-          ],
-          {
-            "opacity": 0.6,
-          },
-        ]
-      }
-      testID="token-detection-import-button"
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            {
-              "color": "#dcdcdc",
-            },
+          ]
+        }
+      >
+        <Text
+          style={
             [
               {
                 "fontFamily": "Geist-SemiBold",
@@ -166,16 +201,13 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
                 "color": "orange",
               },
               undefined,
-            ],
-            {
-              "opacity": 0.6,
-            },
-          ]
-        }
-      >
-        Import (0)
-      </Text>
-    </TouchableOpacity>
+            ]
+          }
+        >
+          Import (0)
+        </Text>
+      </View>
+    </View>
   </View>,
 ]
 `;
@@ -382,12 +414,39 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               >
                 Token address: 
               </Text>
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "flexDirection": "row",
+                    "opacity": 1,
                   }
                 }
               >
@@ -427,7 +486,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 >
                   
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
             <View
               style={
@@ -637,12 +696,39 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               >
                 Token address: 
               </Text>
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
                     "flexDirection": "row",
+                    "opacity": 1,
                   }
                 }
               >
@@ -682,7 +768,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 >
                   
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
             <View
               style={
@@ -759,13 +845,43 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
+        {
+          "opacity": 1,
+        }
+      }
+    >
+      <View
+        style={
           [
             {
               "borderRadius": 12,
@@ -780,21 +896,11 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             {
               "flex": 1,
             },
-          ],
-          null,
-        ]
-      }
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
+          ]
+        }
+      >
+        <Text
+          style={
             [
               {
                 "fontFamily": "Geist-SemiBold",
@@ -805,14 +911,13 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 "color": "blue",
               },
               undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Hide all
-      </Text>
-    </TouchableOpacity>
+            ]
+          }
+        >
+          Hide all
+        </Text>
+      </View>
+    </View>
     <View
       style={
         {
@@ -820,14 +925,44 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
         }
       }
     />
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      disabled={false}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
+        {
+          "opacity": 1,
+        }
+      }
+      testID="token-detection-import-button"
+    >
+      <View
+        style={
           [
             {
               "borderRadius": 12,
@@ -841,22 +976,11 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             {
               "flex": 1,
             },
-          ],
-          null,
-        ]
-      }
-      testID="token-detection-import-button"
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
+          ]
+        }
+      >
+        <Text
+          style={
             [
               {
                 "fontFamily": "Geist-SemiBold",
@@ -867,14 +991,13 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 "color": "orange",
               },
               undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Import (2)
-      </Text>
-    </TouchableOpacity>
+            ]
+          }
+        >
+          Import (2)
+        </Text>
+      </View>
+    </View>
   </View>,
 ]
 `;

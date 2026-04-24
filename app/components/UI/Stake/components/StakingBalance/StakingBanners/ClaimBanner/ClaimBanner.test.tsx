@@ -183,7 +183,10 @@ describe('ClaimBanner', () => {
       fireEvent.press(claimButton);
     });
 
-    expect(claimButton).toBeDisabled();
+    expect(
+      claimButton.props.accessibilityState?.disabled ??
+        claimButton.props.disabled,
+    ).toBe(true);
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();

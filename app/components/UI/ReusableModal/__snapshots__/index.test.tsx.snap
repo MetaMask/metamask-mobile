@@ -1,7 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ReusableModal should render correctly 1`] = `
-<View>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
+>
   <View
     style={
       {
@@ -13,14 +22,39 @@ exports[`ReusableModal should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "bottom": 0,
           "left": 0,
+          "opacity": 1,
           "position": "absolute",
           "right": 0,
           "top": 0,
@@ -28,6 +62,51 @@ exports[`ReusableModal should render correctly 1`] = `
       }
     >
       <View
+        collapsable={false}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "opacity": 0,
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "backgroundColor": "#0a0d135c",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "opacity": 0,
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "opacity": 0,
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         style={
           [
             {
@@ -39,20 +118,35 @@ exports[`ReusableModal should render correctly 1`] = `
               "top": 0,
             },
             {
-              "opacity": undefined,
+              "opacity": 0,
             },
           ]
         }
       />
-    </TouchableOpacity>
+    </View>
     <View
       collapsable={false}
       enabled={true}
+      forwardedRef={[Function]}
       handlerTag={-1}
       handlerType="PanGestureHandler"
-      onGestureHandlerEvent={[Function]}
-      onGestureHandlerStateChange={[Function]}
-      style={
+      jestAnimatedProps={
+        {
+          "value": {},
+        }
+      }
+      jestAnimatedStyle={
+        {
+          "value": {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        }
+      }
+      jestInlineStyle={
         [
           [
             {
@@ -63,17 +157,58 @@ exports[`ReusableModal should render correctly 1`] = `
               "top": 0,
             },
             {
-              "transform": [
-                {
-                  "translateY": 1334,
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "translateY": 1334,
+                    },
+                  ],
                 },
-              ],
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "translateY": 1334,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
             },
           ],
           undefined,
         ]
       }
+      onGestureHandlerEvent={[Function]}
+      style={
+        [
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+          undefined,
+        ]
+      }
     />
   </View>
-</View>
+</RNCSafeAreaView>
 `;

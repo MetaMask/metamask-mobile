@@ -1,0 +1,790 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonBase handles custom label color 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</View>
+`;
+
+exports[`ButtonBase handles custom label text variant 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-SemiBold",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</View>
+`;
+
+exports[`ButtonBase handles different sizes: ButtonBase with size 32 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 32,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</View>
+`;
+
+exports[`ButtonBase handles different sizes: ButtonBase with size 40 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</View>
+`;
+
+exports[`ButtonBase handles different sizes: ButtonBase with size 48 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 48,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</View>
+`;
+
+exports[`ButtonBase handles different widths 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+      "width": 200,
+    }
+  }
+>
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</View>
+`;
+
+exports[`ButtonBase renders when disabled 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 0.5,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</View>
+`;
+
+exports[`ButtonBase renders with basic props 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</View>
+`;
+
+exports[`ButtonBase renders with both start and end icons 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <SvgMock
+    color="#131416"
+    fill="currentColor"
+    height={16}
+    name="Add"
+    style={
+      {
+        "height": 16,
+        "marginRight": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+  <SvgMock
+    color="#131416"
+    fill="currentColor"
+    height={16}
+    name="ArrowRight"
+    style={
+      {
+        "height": 16,
+        "marginLeft": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
+</View>
+`;
+
+exports[`ButtonBase renders with custom label component 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <div>
+    Custom Label
+  </div>
+</View>
+`;
+
+exports[`ButtonBase renders with end icon 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+  <SvgMock
+    color="#131416"
+    fill="currentColor"
+    height={16}
+    name="Add"
+    style={
+      {
+        "height": 16,
+        "marginLeft": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
+</View>
+`;
+
+exports[`ButtonBase renders with start icon 1`] = `
+<View
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f3f4",
+      "borderRadius": 12,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 1,
+      "overflow": "hidden",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <SvgMock
+    color="#131416"
+    fill="currentColor"
+    height={16}
+    name="Add"
+    style={
+      {
+        "height": 16,
+        "marginRight": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#131416",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</View>
+`;

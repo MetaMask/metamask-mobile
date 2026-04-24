@@ -39,14 +39,39 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
               }
             }
           >
-            <TouchableOpacity
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "backgroundColor": "#ffffff",
                   "borderRadius": 32,
+                  "opacity": 1,
                   "paddingHorizontal": 14,
                   "paddingVertical": 7,
                   "width": "100%",
@@ -81,7 +106,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   7D
                 </Text>
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
           <View
             style={
@@ -92,14 +117,39 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
               }
             }
           >
-            <TouchableOpacity
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "backgroundColor": "#b4b4b528",
                   "borderRadius": 32,
+                  "opacity": 1,
                   "paddingHorizontal": 14,
                   "paddingVertical": 7,
                   "width": "100%",
@@ -134,7 +184,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   M
                 </Text>
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
           <View
             style={
@@ -145,14 +195,39 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
               }
             }
           >
-            <TouchableOpacity
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "backgroundColor": "#ffffff",
                   "borderRadius": 32,
+                  "opacity": 1,
                   "paddingHorizontal": 14,
                   "paddingVertical": 7,
                   "width": "100%",
@@ -187,7 +262,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   Y
                 </Text>
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View

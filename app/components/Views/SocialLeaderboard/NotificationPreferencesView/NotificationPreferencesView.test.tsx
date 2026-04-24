@@ -429,7 +429,9 @@ describe('NotificationPreferencesView', () => {
         const toggle = screen.getByTestId(
           NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE(trader.id),
         );
-        expect(toggle.props.disabled).toBe(true);
+        expect(
+          toggle.props.accessibilityState?.disabled ?? toggle.props.disabled,
+        ).toBe(true);
       });
     });
   });

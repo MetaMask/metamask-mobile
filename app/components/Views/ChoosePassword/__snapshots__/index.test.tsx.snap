@@ -1,10 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ChoosePassword renders correctly 1`] = `
-<View
+<RNCSafeAreaView
   edges={
     {
       "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
     }
   }
   style={
@@ -264,8 +267,39 @@ exports[`ChoosePassword renders correctly 1`] = `
                   value=""
                 />
               </View>
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "opacity": 1,
+                  }
+                }
               >
                 <SvgMock
                   fill="currentColor"
@@ -281,7 +315,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                     ]
                   }
                 />
-              </TouchableOpacity>
+              </View>
             </View>
             <Text
               accessibilityRole="text"
@@ -428,9 +462,39 @@ exports[`ChoosePassword renders correctly 1`] = `
                   value=""
                 />
               </View>
-              <TouchableOpacity
-                disabled={true}
-                onPress={[Function]}
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": true,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={false}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "opacity": 1,
+                  }
+                }
               >
                 <SvgMock
                   fill="currentColor"
@@ -446,7 +510,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                     ]
                   }
                 />
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
           <View
@@ -560,8 +624,34 @@ exports[`ChoosePassword renders correctly 1`] = `
                 </View>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "flex-start",
@@ -569,6 +659,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                   "flexWrap": "wrap",
                   "justifyContent": "flex-start",
                   "marginTop": -6,
+                  "opacity": 1,
                   "width": "90%",
                 }
               }
@@ -627,7 +718,7 @@ exports[`ChoosePassword renders correctly 1`] = `
                   </Text>
                 </Text>
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
           <View
             style={
@@ -668,6 +759,69 @@ exports[`ChoosePassword renders correctly 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 0.5,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -734,5 +888,5 @@ exports[`ChoosePassword renders correctly 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</View>
+</RNCSafeAreaView>
 `;

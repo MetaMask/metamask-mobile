@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import DiscoveryTab from './DiscoveryTab';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
@@ -9,10 +10,7 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 
 jest.mock(
   'react-native/Libraries/Components/Keyboard/KeyboardAvoidingView',
-  () => {
-    const { View } = require('react-native');
-    return { __esModule: true, default: View };
-  },
+  () => ({ __esModule: true, default: View }),
 );
 
 const mockNavigation = {
@@ -543,7 +541,7 @@ describe('DiscoveryTab', () => {
         expect.objectContaining({
           openNewTab: expect.any(Function),
         }),
-        undefined,
+        {},
       );
 
       // Call the newTab callback
@@ -672,7 +670,7 @@ describe('DiscoveryTab', () => {
           sessionENSNames: {},
           favicon: { uri: '' },
         }),
-        undefined,
+        {},
       );
     });
   });

@@ -96,6 +96,7 @@ jest.mock('../../../../hooks/usePooledStakes', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
 
 jest.mock('../../../../../../hooks/useAnalytics/useAnalytics');
 
@@ -126,6 +127,12 @@ describe('FooterButtonGroup', () => {
       addProperties: mockAddProperties,
       build: mockBuild,
     }));
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   afterEach(() => {

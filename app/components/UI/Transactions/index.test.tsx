@@ -2026,11 +2026,15 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.existingTx = { id: 'tx-1', chainId: '0x1' };
 
+    // Wrap rendered output in Provider since CancelSpeedupModal uses useSelector
+    const renderWithStore = (element: React.ReactElement) =>
+      render(<Provider store={store}>{element}</Provider>);
+
     // When both closed: modal mounted but not visible (exit animation can run)
     instance.state.speedUpIsOpen = false;
     instance.state.cancelIsOpen = false;
     let listResult = instance.renderList();
-    let { UNSAFE_getAllByType, unmount } = render(listResult);
+    let { UNSAFE_getAllByType, unmount } = renderWithStore(listResult);
     let modals = UNSAFE_getAllByType(CancelSpeedupModal);
     expect(modals).toHaveLength(1);
     expect(modals[0].props.isVisible).toBe(false);
@@ -2040,7 +2044,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.state.speedUpIsOpen = true;
     instance.state.cancelIsOpen = false;
     listResult = instance.renderList();
-    ({ UNSAFE_getAllByType, unmount } = render(listResult));
+    ({ UNSAFE_getAllByType, unmount } = renderWithStore(listResult));
     modals = UNSAFE_getAllByType(CancelSpeedupModal);
     expect(modals).toHaveLength(1);
     expect(modals[0].props.isVisible).toBe(true);
@@ -2051,7 +2055,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.state.speedUpIsOpen = false;
     instance.state.cancelIsOpen = true;
     listResult = instance.renderList();
-    ({ UNSAFE_getAllByType, unmount } = render(listResult));
+    ({ UNSAFE_getAllByType, unmount } = renderWithStore(listResult));
     modals = UNSAFE_getAllByType(CancelSpeedupModal);
     expect(modals).toHaveLength(1);
     expect(modals[0].props.isVisible).toBe(true);

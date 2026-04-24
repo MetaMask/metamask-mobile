@@ -97,8 +97,39 @@ exports[`BackupAlert render matches snapshot 1`] = `
             }
           }
         >
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
             testID="protect-your-wallet-button"
           >
             <Text
@@ -118,12 +149,39 @@ exports[`BackupAlert render matches snapshot 1`] = `
             >
               Protect wallet
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={[Function]}
+          </View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "flex": 1,
+                "opacity": 1,
               }
             }
           >
@@ -145,7 +203,7 @@ exports[`BackupAlert render matches snapshot 1`] = `
             >
               Remind me later
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

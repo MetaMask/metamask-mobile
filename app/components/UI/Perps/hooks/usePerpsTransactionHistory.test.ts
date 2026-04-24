@@ -598,8 +598,6 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getFunding).toHaveBeenCalledWith(
         {
           accountId: undefined,
-          startTime: undefined,
-          endTime: undefined,
         },
         { forceRefresh: true },
       );
@@ -634,17 +632,26 @@ describe('usePerpsTransactionHistory', () => {
       });
 
       // Verify accountId is passed to all provider methods
-      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
-        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-        aggregateByTime: false,
-      });
-      expect(mockProvider.getOrders).toHaveBeenCalledWith({
-        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-      });
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith(
+        {
+          accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+          aggregateByTime: false,
+        },
+        { forceRefresh: true },
+      );
+      expect(mockProvider.getOrders).toHaveBeenCalledWith(
+        {
+          accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        },
+        { forceRefresh: true },
+      );
       // startTime/endTime defaults are handled in HyperLiquidProvider via 30-day window
-      expect(mockProvider.getFunding).toHaveBeenCalledWith({
-        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-      });
+      expect(mockProvider.getFunding).toHaveBeenCalledWith(
+        {
+          accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        },
+        { forceRefresh: true },
+      );
     });
 
     it('passes accountId to useUserHistory hook', async () => {
@@ -694,8 +701,6 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getFunding).toHaveBeenCalledWith(
         {
           accountId: undefined,
-          startTime: undefined,
-          endTime: undefined,
         },
         { forceRefresh: true },
       );

@@ -80,7 +80,7 @@ describe('ModalMandatory', () => {
         onMessage: expect.any(Function),
         onScroll: expect.any(Function),
       }),
-      undefined,
+      {},
     );
   });
 

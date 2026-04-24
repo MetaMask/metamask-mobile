@@ -95,7 +95,34 @@ exports[`PhishingModal should render correctly 1`] = `
     , 
     but please do so at your own risk.
   </Text>
-  <TouchableOpacity
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -104,6 +131,7 @@ exports[`PhishingModal should render correctly 1`] = `
         "elevation": 2,
         "flexDirection": "row",
         "marginVertical": 8,
+        "opacity": 1,
         "padding": 16,
         "shadowColor": "#0000001a",
         "shadowOffset": {
@@ -152,9 +180,35 @@ exports[`PhishingModal should render correctly 1`] = `
     >
       Report a detection problem
     </Text>
-  </TouchableOpacity>
-  <TouchableOpacity
-    onPress={[Function]}
+  </View>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -163,6 +217,7 @@ exports[`PhishingModal should render correctly 1`] = `
         "elevation": 2,
         "flexDirection": "row",
         "marginVertical": 8,
+        "opacity": 1,
         "padding": 16,
         "shadowColor": "#0000001a",
         "shadowOffset": {
@@ -211,13 +266,36 @@ exports[`PhishingModal should render correctly 1`] = `
     >
       If you found this helpful, share on X!
     </Text>
-  </TouchableOpacity>
-  <TouchableOpacity
+  </View>
+  <View
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={1}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+    collapsable={false}
+    focusable={false}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -228,6 +306,7 @@ exports[`PhishingModal should render correctly 1`] = `
         "height": 48,
         "justifyContent": "center",
         "marginTop": 32,
+        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -247,6 +326,6 @@ exports[`PhishingModal should render correctly 1`] = `
     >
       Back to safety
     </Text>
-  </TouchableOpacity>
+  </View>
 </View>
 `;

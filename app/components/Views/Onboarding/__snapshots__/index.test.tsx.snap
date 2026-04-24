@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Onboarding applies compact gap and medium button size on medium device 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -107,6 +115,69 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -191,6 +262,69 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -302,11 +436,19 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
       ]
     }
   />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -412,6 +554,69 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -496,6 +701,69 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -726,14 +994,41 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
               }
             }
           >
-            <TouchableOpacity
-              activeOpacity={0.8}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={false}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "backgroundColor": "#0a0d1392",
                   "borderRadius": 8,
                   "flex": 1,
                   "flexDirection": "row",
+                  "opacity": 1,
                   "padding": 16,
                 }
               }
@@ -867,17 +1162,25 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                 </Text>
               </View>
               <View />
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding applies standard gap and large button size on non-medium device 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -983,6 +1286,69 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -1067,6 +1433,69 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -1178,11 +1607,19 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
       ]
     }
   />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding applies standard notification padding when not on iPhoneX 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -1288,6 +1725,69 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -1372,6 +1872,69 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -1602,14 +2165,41 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
               }
             }
           >
-            <TouchableOpacity
-              activeOpacity={0.8}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={false}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "backgroundColor": "#0a0d1392",
                   "borderRadius": 8,
                   "flex": 1,
                   "flexDirection": "row",
+                  "opacity": 1,
                   "padding": 16,
                 }
               }
@@ -1743,17 +2333,25 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                 </Text>
               </View>
               <View />
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding renders correctly 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -1859,6 +2457,69 @@ exports[`Onboarding renders correctly 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -1943,6 +2604,69 @@ exports[`Onboarding renders correctly 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -2054,11 +2778,19 @@ exports[`Onboarding renders correctly 1`] = `
       ]
     }
   />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding renders correctly with android 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -2164,6 +2896,69 @@ exports[`Onboarding renders correctly with android 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -2248,6 +3043,69 @@ exports[`Onboarding renders correctly with android 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -2359,11 +3217,19 @@ exports[`Onboarding renders correctly with android 1`] = `
       ]
     }
   />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -2469,6 +3335,69 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -2553,6 +3482,69 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -2664,11 +3656,19 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
       ]
     }
   />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding renders correctly with medium device and android 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#FFF2EB",
@@ -2774,6 +3774,69 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -2858,6 +3921,69 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
               accessible={true}
               collapsable={false}
               focusable={true}
+              jestAnimatedProps={
+                {
+                  "value": {},
+                }
+              }
+              jestAnimatedStyle={
+                {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                }
+              }
+              jestInlineStyle={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#131416",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "initial": {
+                      "updater": [Function],
+                      "value": {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    },
+                    "jestAnimatedValues": {
+                      "current": {
+                        "value": {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    "viewDescriptors": {
+                      "add": [Function],
+                      "remove": [Function],
+                      "shareableViewDescriptors": "SharedValue(<circular>)",
+                    },
+                  },
+                ]
+              }
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -2969,5 +4095,5 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
       ]
     }
   />
-</View>
+</RNCSafeAreaView>
 `;
