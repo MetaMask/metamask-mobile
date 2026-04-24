@@ -1,9 +1,9 @@
 import { AssetType } from '../../../../../Views/confirmations/types/token';
 
 /**
- * Props for the ConvertTokenRow component.
+ * Props for the MusdConversionAssetRow component.
  */
-export interface ConvertTokenRowProps {
+export interface MusdConversionAssetRowProps {
   token: AssetType;
   onMaxPress: (token: AssetType) => void;
   onEditPress: (token: AssetType) => void;
