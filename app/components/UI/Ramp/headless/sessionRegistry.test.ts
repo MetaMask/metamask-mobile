@@ -6,8 +6,24 @@ import {
   setStatus,
 } from './sessionRegistry';
 import type { HeadlessBuyCallbacks, HeadlessBuyParams } from './types';
+import type { Quote } from '../types';
+
+const mockQuote = {
+  provider: '/providers/transak-native',
+  quote: {
+    amountIn: 25,
+    amountOut: 0.01,
+    paymentMethod: '/payments/debit-credit-card',
+  },
+  providerInfo: {
+    id: '/providers/transak-native',
+    name: 'Transak',
+    type: 'native' as const,
+  },
+} as unknown as Quote;
 
 const baseParams: HeadlessBuyParams = {
+  quote: mockQuote,
   assetId: 'eip155:1/erc20:0xabc',
   amount: 25,
   paymentMethodId: '/payments/debit-credit-card',
