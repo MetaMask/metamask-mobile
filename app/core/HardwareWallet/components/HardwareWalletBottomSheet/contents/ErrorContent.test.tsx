@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import {
   HardwareWalletError,
   HardwareWalletType,
@@ -15,7 +16,13 @@ import {
   ERROR_CONTENT_TITLE_TEST_ID,
   ERROR_CONTENT_MESSAGE_TEST_ID,
   ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID,
+  ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID,
 } from './ErrorContent';
+import {
+  createQRHardwareScanError,
+  QRHardwareScanErrorType,
+} from '../../../errors';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 // Mock dependencies
 jest.mock('../../../../../util/theme', () => ({
@@ -34,6 +41,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../errors', () => ({
+  ...jest.requireActual('../../../errors/qrScan'),
   getIconForErrorCode: jest.fn().mockReturnValue('Danger'),
   getIconColorForErrorCode: jest.fn().mockReturnValue('Error'),
   getTitleForErrorCode: jest.fn().mockReturnValue('Error Title'),
@@ -126,6 +134,10 @@ describe('ErrorContent', () => {
       category: Category.Unknown,
       userMessage: userMessage ?? message,
     });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('renders with test ID', () => {
     const error = createError('Test error');
@@ -269,6 +281,88 @@ describe('ErrorContent', () => {
     }
     await waitFor(() => {
       expect(onContinue).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('renders QR scan error title without the generic icon', () => {
+    const error = createQRHardwareScanError({
+      errorType: QRHardwareScanErrorType.NonURQrScanned,
+      purpose: QrScanRequestType.SIGN,
+      isUrFormat: false,
+    });
+
+    const { queryByTestId, getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Qr} />,
+    );
+
+    expect(queryByTestId(ERROR_CONTENT_ICON_TEST_ID)).toBeNull();
+    expect(getByTestId(ERROR_CONTENT_TITLE_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('renders learn more button for QR scan errors', () => {
+    const error = createQRHardwareScanError({
+      errorType: QRHardwareScanErrorType.WrongURType,
+      purpose: QrScanRequestType.SIGN,
+      receivedUrType: 'crypto-account',
+      isUrFormat: true,
+    });
+
+    const { getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Qr} />,
+    );
+
+    expect(
+      getByTestId(ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens support article when learn more is pressed for QR scan errors', async () => {
+    const openUrlSpy = jest.spyOn(Linking, 'openURL');
+    openUrlSpy.mockResolvedValueOnce(undefined);
+    const error = createQRHardwareScanError({
+      errorType: QRHardwareScanErrorType.URDecodeError,
+      purpose: QrScanRequestType.SIGN,
+      isUrFormat: true,
+    });
+
+    const { getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Qr} />,
+    );
+
+    fireEvent.press(getByTestId(ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        'https://support.metamask.io/more-web3/wallets/hardware-wallet-hub/#qr-codean-gapped-wallets',
+      );
+    });
+
+    openUrlSpy.mockRestore();
+  });
+
+  it('calls onContinue when try again is pressed for QR scan errors', async () => {
+    const onContinue = jest.fn().mockResolvedValue(undefined);
+    const error = createQRHardwareScanError({
+      errorType: QRHardwareScanErrorType.NonURQrScanned,
+      purpose: QrScanRequestType.SIGN,
+      isUrFormat: false,
+    });
+
+    const { getByTestId } = render(
+      <ErrorContent
+        error={error}
+        onContinue={onContinue}
+        deviceType={HardwareWalletType.Qr}
+      />,
+    );
+
+    fireEvent.press(getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(onContinue).toHaveBeenCalled();
     });
   });
 });

@@ -40,11 +40,6 @@ interface ReplacementGasFeeParamsInput {
   } | null;
 }
 
-export type ReplacementGasFeeValues =
-  | GasPriceValue
-  | FeeMarketEIP1559Values
-  | undefined;
-
 /**
  * Extracts the medium-level gas fee estimate from various possible shapes of gas fee estimates.
  */
