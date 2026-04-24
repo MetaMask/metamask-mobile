@@ -88,7 +88,6 @@ const AddWallet = () => {
     <SafeAreaView style={tw`flex-1 bg-default`} edges={['top', 'bottom']}>
       <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
         <HeaderCompactStandard
-          includesTopInset
           backButtonProps={{
             onPress: handleBack,
             testID: AddWalletTestIds.BACK_BUTTON,
