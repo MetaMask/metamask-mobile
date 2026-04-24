@@ -38,9 +38,16 @@ const mockQrScanner = {
   resolvePendingScan: jest.fn(),
   rejectPendingScan: jest.fn(),
 };
+const mockShowHardwareWalletError = jest.fn();
 
 jest.mock('../../../../Engine', () => ({
   getQrKeyringScanner: jest.fn(() => mockQrScanner),
+}));
+
+jest.mock('../../../contexts/HardwareWalletContext', () => ({
+  useHardwareWallet: () => ({
+    showHardwareWalletError: mockShowHardwareWalletError,
+  }),
 }));
 
 jest.mock('uuid', () => ({
@@ -60,14 +67,28 @@ jest.mock('../../../../../components/UI/QRHardware/AnimatedQRScanner', () => ({
   default: ({
     hideModal,
     onScanError,
+    onQRHardwareScanError,
+    onModalHideComplete,
     onScanSuccess,
     visible,
   }: {
     hideModal: () => void;
     onScanError: (error: string) => void;
+    onQRHardwareScanError?: (error: unknown) => void;
+    onModalHideComplete?: () => void;
     onScanSuccess: (ur: { cbor: string; type: string }) => void;
     visible: boolean;
   }) => {
+    const ActualReact = jest.requireActual('react');
+    const wasVisibleRef = ActualReact.useRef(false);
+
+    ActualReact.useEffect(() => {
+      if (!visible && wasVisibleRef.current) {
+        onModalHideComplete?.();
+      }
+      wasVisibleRef.current = visible;
+    }, [visible, onModalHideComplete]);
+
     if (!visible) return null;
     return (
       <MockView testID="animated-qr-scanner-mock">
@@ -80,6 +101,11 @@ jest.mock('../../../../../components/UI/QRHardware/AnimatedQRScanner', () => ({
           testID="scanner-error-btn"
           title="onScanError"
           onPress={() => onScanError('scan failed')}
+        />
+        <MockButton
+          testID="scanner-qr-error-btn"
+          title="onQRHardwareScanError"
+          onPress={() => onQRHardwareScanError?.({ message: 'qr scan failed' })}
         />
         <MockButton
           testID="scanner-success-btn"
@@ -269,6 +295,21 @@ describe('AwaitingConfirmationContent', () => {
       expect(getByTestId('animated-qr-scanner-mock')).toBeOnTheScreen();
     });
 
+    it('auto-opens scanner when requested by the bottom sheet', () => {
+      const onQrScannerOpened = jest.fn();
+      const { getByTestId } = renderComponent(
+        {
+          deviceType: HardwareWalletType.Qr,
+          openQrScannerOnMount: true,
+          onQrScannerOpened,
+        },
+        qrSigningOverrides,
+      );
+
+      expect(getByTestId('animated-qr-scanner-mock')).toBeOnTheScreen();
+      expect(onQrScannerOpened).toHaveBeenCalled();
+    });
+
     it('renders spinner in QR flow when not signing QR object', () => {
       const { getByTestId, queryByTestId } = renderComponent(
         { deviceType: HardwareWalletType.Qr },
@@ -366,6 +407,17 @@ describe('AwaitingConfirmationContent', () => {
       fireEvent.press(getByTestId('scanner-error-btn'));
 
       expect(getByText('scan failed')).toBeOnTheScreen();
+    });
+
+    it('promotes QR scan errors to the hardware wallet error state', () => {
+      const { getByTestId } = renderWithScanner();
+
+      openScanner(getByTestId);
+      fireEvent.press(getByTestId('scanner-qr-error-btn'));
+
+      expect(mockShowHardwareWalletError).toHaveBeenCalledWith({
+        message: 'qr scan failed',
+      });
     });
 
     it('dismisses error message when alert is pressed', () => {

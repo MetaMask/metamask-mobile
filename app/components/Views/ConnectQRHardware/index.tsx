@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -35,11 +36,19 @@ import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { getChecksumAddress } from '@metamask/utils';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
+import { useHardwareWallet } from '../../../core/HardwareWallet/contexts/HardwareWalletContext';
+import {
+  HardwareWalletError,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  route?: any;
 }
 
 const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
@@ -84,13 +93,20 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
     },
   });
 
-const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
+const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const {
+    setTargetWalletType,
+    showHardwareWalletError,
+    setQrScanRetryHandler,
+  } = useHardwareWallet();
   const insets = useSafeAreaInsets();
   const styles = createStyles(colors, insets);
+  const hideMarketingContent = route?.params?.hideMarketingContent ?? false;
 
   const [isScanning, setIsScanning] = useState(false);
+  const pendingQrScanErrorRef = useRef<HardwareWalletError | null>(null);
 
   const KeyringController = useMemo(() => Engine.context.KeyringController, []);
 
@@ -104,6 +120,18 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, []);
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
+
+  useEffect(() => {
+    setTargetWalletType(HardwareWalletType.Qr);
+    setQrScanRetryHandler?.(() => {
+      setIsScanning(true);
+    });
+
+    return () => {
+      setQrScanRetryHandler?.(null);
+      setTargetWalletType(null);
+    };
+  }, [setQrScanRetryHandler, setTargetWalletType]);
 
   useEffect(() => {
     KeyringController.getAccounts().then((value: string[]) => {
@@ -163,6 +191,20 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     setErrorMsg(error);
     Engine.getQrKeyringScanner().rejectPendingScan(new Error(error));
   }, []);
+
+  const onQRHardwareScanError = useCallback((error: HardwareWalletError) => {
+    pendingQrScanErrorRef.current = error;
+    setIsScanning(false);
+  }, []);
+
+  const handleScannerModalHide = useCallback(() => {
+    const error = pendingQrScanErrorRef.current;
+    if (!error) {
+      return;
+    }
+    pendingQrScanErrorRef.current = null;
+    showHardwareWalletError(error);
+  }, [showHardwareWalletError]);
 
   const cancelScan = useCallback(() => {
     Engine.getQrKeyringScanner().rejectPendingScan(new Error('Scan cancelled'));
@@ -308,6 +350,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             onConnect={onConnectHardware}
             renderAlert={renderAlert}
             navigation={navigation}
+            hideMarketingContent={hideMarketingContent}
           />
         ) : (
           <AccountSelector
@@ -327,6 +370,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         purpose={QrScanRequestType.PAIR}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
+        onQRHardwareScanError={onQRHardwareScanError}
+        onModalHideComplete={handleScannerModalHide}
         hideModal={cancelScan}
       />
       <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>

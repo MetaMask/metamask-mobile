@@ -18,6 +18,30 @@ import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
+import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+
+/**
+ * Fire-and-forget analytics helper. Never throws — a broken analytics
+ * call must never abort connection establishment or error handling.
+ */
+function trackMwpEvent(
+  event: IMetaMetricsEvent,
+  properties: Record<string, unknown>,
+): void {
+  try {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+    );
+  } catch {
+    // Intentionally swallowed: analytics must not block MWP flows.
+  }
+}
 
 /**
  * Hard cap on the number of simultaneous active connections.
@@ -64,13 +88,18 @@ export class ConnectionRegistry {
 
   /**
    * One-time initialization to resume all persisted connections on app cold start.
+   *
+   * Connections are resumed sequentially so a user with N persisted sessions
+   * does not trigger N concurrent relay handshakes at cold start. A single
+   * failure is logged and does not stop subsequent connections from being
+   * processed.
    */
   private async initialize(): Promise<void> {
     await whenStoreReady();
 
     const persisted = await this.store.list().catch(() => []);
 
-    const promises = persisted.map(async (connInfo) => {
+    for (const connInfo of persisted) {
       try {
         const conn = await Connection.create(
           connInfo,
@@ -84,9 +113,7 @@ export class ConnectionRegistry {
       } catch (error) {
         logger.error('Failed to resume connection', connInfo.id, error);
       }
-    });
-
-    await Promise.allSettled(promises);
+    }
 
     await this.trimToCapacity();
 
@@ -151,8 +178,21 @@ export class ConnectionRegistry {
     const conn = await this.store.get(id);
 
     if (conn) {
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+        remote_session_id: conn.metadata?.analytics?.remote_session_id ?? id,
+        transport_type: TransportType.MWP,
+        sdk_version: conn.metadata?.sdk?.version,
+        sdk_platform: conn.metadata?.sdk?.platform,
+        found_in_store: true,
+      });
       return;
     }
+
+    trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+      remote_session_id: id,
+      transport_type: TransportType.MWP,
+      found_in_store: false,
+    });
 
     logger.error(
       'Failed to find connection in store for simple deeplink with id:',
@@ -206,9 +246,19 @@ export class ConnectionRegistry {
 
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
+    let connReq: ConnectionRequest | undefined;
 
     try {
-      const connReq = this.parseConnectionRequest(url);
+      connReq = this.parseConnectionRequest(url);
+
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+        remote_session_id:
+          connReq.metadata.analytics?.remote_session_id ??
+          connReq.sessionRequest.id,
+        transport_type: TransportType.MWP,
+        sdk_version: connReq.metadata.sdk.version,
+        sdk_platform: connReq.metadata.sdk.platform,
+      });
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
       // matches a known internal origin. This check is currently redundant
@@ -239,10 +289,25 @@ export class ConnectionRegistry {
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
+
       logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
+
+      // Track the failure before cleanup so the event fires even if
+      // disconnect() throws.
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
+        remote_session_id:
+          connReq?.metadata?.analytics?.remote_session_id ??
+          connReq?.sessionRequest?.id ??
+          'unknown',
+        transport_type: TransportType.MWP,
+        sdk_version: connReq?.metadata?.sdk?.version,
+        sdk_platform: connReq?.metadata?.sdk?.platform,
+        failure_reason: error instanceof Error ? error.message : String(error),
+      });
+
       if (conn) await this.disconnect(conn.id);
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
@@ -362,19 +427,22 @@ export class ConnectionRegistry {
   /**
    * Proactively refreshes all active connections. This is the primary mechanism
    * for preventing stale/zombie connections after the app was put in the background.
+   *
+   * Reconnections are processed sequentially so a user with N active sessions
+   * does not trigger N concurrent relay handshakes on every foreground event.
+   * A single failure is logged and does not stop subsequent connections from
+   * being processed.
    */
   private async reconnectAll(): Promise<void> {
     const connections = Array.from(this.connections.values());
 
-    const promises = connections.map((conn) =>
-      conn.client
-        .reconnect()
-        .then(() => logger.debug('Connection reconnected:', conn.id))
-        .catch((err: Error) =>
-          logger.error('Failed to reconnect connection:', err, conn.id),
-        ),
-    );
-
-    await Promise.allSettled(promises);
+    for (const conn of connections) {
+      try {
+        await conn.client.reconnect();
+        logger.debug('Connection reconnected:', conn.id);
+      } catch (err) {
+        logger.error('Failed to reconnect connection:', err, conn.id);
+      }
+    }
   }
 }

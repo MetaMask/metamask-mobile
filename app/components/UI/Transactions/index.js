@@ -74,6 +74,7 @@ import {
   useHardwareWallet,
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
+import { getReplacementGasFeeParams } from '../../../core/HardwareWallet/transactionReplacementParams';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 const createStyles = (colors) =>

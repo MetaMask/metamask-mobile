@@ -642,12 +642,7 @@ export class CardController extends BaseController<
 
   getCapabilities(): CardProviderCapabilities {
     const provider = this.getActiveProvider();
-    const pid = this.state.activeProviderId ?? '';
-    const provData = this.state.providerData[pid] as
-      | { location?: string }
-      | undefined;
-    const location = provData?.location ?? '';
-    return provider.resolveCapabilities?.(location) ?? provider.capabilities;
+    return provider.capabilities;
   }
 
   async getCardHomeData(address: string): Promise<CardHomeData> {
@@ -802,11 +797,16 @@ export class CardController extends BaseController<
     if (previous) {
       const reordered = reorderAssets(asset, allAssets);
       const newPrimary = pickPrimaryFromReordered(reordered);
+      const reorderedSupported = reorderAssets(
+        asset,
+        previous.availableFundingAssets,
+      );
       this.update((s) => {
         (s as unknown as CardControllerState).cardHomeData = {
           ...previous,
-          assets: reordered,
-          primaryAsset: newPrimary,
+          fundingAssets: reordered,
+          primaryFundingAsset: newPrimary,
+          availableFundingAssets: reorderedSupported,
         } as unknown as Record<string, Json>;
       });
     }

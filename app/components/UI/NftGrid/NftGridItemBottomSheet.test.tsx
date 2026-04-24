@@ -35,37 +35,28 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { forwardRef } = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: forwardRef(
-        (
-          {
-            children,
-            onClose,
-          }: { children: React.ReactNode; onClose?: () => void },
-          ref: React.Ref<{ onCloseBottomSheet: () => void }>,
-        ) => {
-          const { View } = jest.requireActual('react-native');
-          const React = jest.requireActual('react');
-          React.useImperativeHandle(ref, () => ({
-            onCloseBottomSheet: () => onClose?.(),
-          }));
-          return <View>{children}</View>;
-        },
-      ),
-    };
-  },
-);
-
 jest.mock('@metamask/design-system-react-native', () => {
+  const { forwardRef } = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     Box: ({ children }: { children: React.ReactNode }) => (
       <View>{children}</View>
+    ),
+    BottomSheet: forwardRef(
+      (
+        {
+          children,
+          onClose,
+        }: { children: React.ReactNode; onClose?: () => void },
+        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+      ) => {
+        const { View } = jest.requireActual('react-native');
+        const React = jest.requireActual('react');
+        React.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: () => onClose?.(),
+        }));
+        return <View>{children}</View>;
+      },
     ),
     BottomSheetHeader: ({
       children,

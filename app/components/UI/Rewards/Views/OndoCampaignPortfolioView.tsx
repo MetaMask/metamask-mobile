@@ -7,8 +7,10 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
+
 import {
   Box,
+  IconName,
   Skeleton,
   Text,
   TextColor,
@@ -24,7 +26,9 @@ import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import { useGetOndoCampaignActivity } from '../hooks/useGetOndoCampaignActivity';
 import { formatRewardsDateLabel } from '../utils/formatUtils';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 type ActivityListItem =
   | { kind: 'date-header'; dateKey: string; label: string }
@@ -44,6 +48,11 @@ const OndoCampaignPortfolioView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<PortfolioRouteParams>>();
   const { campaignId } = route.params;
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_activity',
+    campaign_id: campaignId,
+  });
 
   const {
     activityEntries,
@@ -178,6 +187,16 @@ const OndoCampaignPortfolioView: React.FC = () => {
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'campaign-portfolio-back-button' }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Question,
+              onPress: () =>
+                navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+                  campaignId,
+                }),
+              testID: 'campaign-portfolio-mechanics-button',
+            },
+          ]}
           includesTopInset
         />
 

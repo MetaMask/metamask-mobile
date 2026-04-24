@@ -203,6 +203,14 @@ describe('RewardsDataService', () => {
         'RewardsDataService:applyBonusCode',
         expect.any(Function),
       );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getBenefits',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:postBenefitImpression',
+        expect.any(Function),
+      );
     });
   });
 
@@ -4383,6 +4391,126 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getBenefits', () => {
+    const mockSubscriptionId = 'sub-benefits';
+    const mockToken = 'test-bearer-token';
+    const mockLimit = 200;
+    const mockBenefitsResponse = [
+      {
+        id: 1,
+        longTitle: 'Benefit title',
+        shortDescription: 'Short description',
+        longDescription: 'Long description',
+        thumbnail: 'https://example.com/thumb.png',
+        validFrom: '2026-01-01T00:00:00Z',
+        validTo: '2026-12-31T23:59:59Z',
+        url: 'https://example.com/claim',
+        actionDate: null,
+        chain: 'ethereum',
+        type: { id: 9, name: 'Partner' },
+      },
+    ];
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({ results: mockBenefitsResponse }),
+      } as unknown as Response);
+    });
+
+    it('fetches benefits using the expected endpoint and auth headers', async () => {
+      const result = await service.getBenefits(mockSubscriptionId, mockLimit);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/benefits?limit=200&offset=0',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockBenefitsResponse);
+    });
+
+    it('throws when get benefits response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(
+        service.getBenefits(mockSubscriptionId, mockLimit),
+      ).rejects.toThrow('Get benefits failed: 500');
+    });
+  });
+
+  describe('postBenefitImpression', () => {
+    const mockSubscriptionId = 'sub-benefits';
+    const mockBenefitId = 42;
+    const mockBenefitType = 7;
+    const mockToken = 'test-bearer-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+      } as Response);
+    });
+
+    it('posts benefit impression using expected endpoint and payload', async () => {
+      await service.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+      );
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/benefits/impression',
+        expect.objectContaining({
+          method: 'POST',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+          body: JSON.stringify({
+            benefitId: mockBenefitId,
+            benefitType: mockBenefitType,
+          }),
+        }),
+      );
+    });
+
+    it('throws when post benefit impression response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+      } as Response);
+
+      await expect(
+        service.postBenefitImpression(
+          mockSubscriptionId,
+          mockBenefitId,
+          mockBenefitType,
+        ),
+      ).rejects.toThrow('Post benefit impression failed: 401');
+    });
+  });
+
   describe('optInToCampaign', () => {
     const mockSubscriptionId = 'sub-456';
     const mockCampaignId = 'campaign-789';
@@ -4902,6 +5030,60 @@ describe('RewardsDataService', () => {
       await expect(
         service.getOndoCampaignDeposits(mockCampaignId),
       ).rejects.toThrow('Get campaign deposits failed: 500');
+    });
+  });
+
+  describe('getOndoCampaignParticipantOutcome', () => {
+    const mockCampaignId = 'campaign-outcome-123';
+    const mockSubscriptionId = 'sub-outcome-1';
+    const mockToken = 'test-bearer-token';
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'finalized',
+      winnerVerificationCode: 'WINNER-XYZ',
+      tierRank: 1,
+      tier: 'gold',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('calls the authenticated outcome endpoint and returns data', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOutcome),
+      } as unknown as Response);
+
+      const result = await service.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/outcome/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockOutcome);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Get Ondo GM participant outcome failed: 500');
     });
   });
 });

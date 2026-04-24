@@ -1467,7 +1467,7 @@ describe('transactionTransforms', () => {
       expect(result[0].fundingAmount.feeNumber).toBe(-3.5);
     });
 
-    it('sorts funding by timestamp descending', () => {
+    it('preserves input order (sorting is handled by the consumer)', () => {
       const funding1 = { ...mockFunding, timestamp: 1000 };
       const funding2 = { ...mockFunding, timestamp: 2000 };
       const funding3 = { ...mockFunding, timestamp: 1500 };
@@ -1478,9 +1478,9 @@ describe('transactionTransforms', () => {
         funding3,
       ]);
 
-      expect(result[0].timestamp).toBe(2000);
-      expect(result[1].timestamp).toBe(1500);
-      expect(result[2].timestamp).toBe(1000);
+      expect(result[0].timestamp).toBe(1000);
+      expect(result[1].timestamp).toBe(2000);
+      expect(result[2].timestamp).toBe(1500);
     });
 
     it('strips hip3 prefix from symbol in subtitle', () => {

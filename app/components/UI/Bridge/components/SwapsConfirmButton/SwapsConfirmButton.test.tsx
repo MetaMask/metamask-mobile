@@ -581,6 +581,33 @@ describe('SwapsConfirmButton', () => {
       expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
+    it('is disabled when active quote is for a different token pair (stale quote during token change)', () => {
+      // Regression: after flipping tokens or changing the destination token the
+      // bridge controller keeps the previous quote in state until the first new
+      // quote arrives. isActiveQuoteForCurrentTokenPair catches this mismatch.
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockQuoteWithMetadata,
+          isLoading: true,
+          isActiveQuoteForCurrentTokenPair: false,
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+    });
+
     it('does not show loading when source amount is empty', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
@@ -1243,6 +1270,42 @@ describe('SwapsConfirmButton', () => {
       });
     });
 
+    it('shows the token warning modal before the missing price modal when both warnings are present', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: undefined,
+            },
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.anything(),
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: expect.anything(),
+      });
+    });
+
     it('proceeds to normal flow when no token warning is present', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
@@ -1263,6 +1326,71 @@ describe('SwapsConfirmButton', () => {
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
       });
+    });
+  });
+
+  describe('handleContinue — missing price routing', () => {
+    it('navigates to MissingPriceModal when price data is unavailable', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: undefined,
+            },
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: mockState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: {
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
+      });
+    });
+
+    it('does not submit the transaction when navigating to MissingPriceModal', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: undefined,
+            },
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: mockState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
   });
 
@@ -1418,8 +1546,7 @@ describe('SwapsConfirmButton', () => {
       });
     });
 
-    it('submits the transaction when priceImpact is undefined', async () => {
-      // Falsy priceImpact defaults to 0, which is not >= 0.25
+    it('navigates to MissingPriceModal when priceImpact is undefined', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1449,9 +1576,13 @@ describe('SwapsConfirmButton', () => {
         fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
       });
 
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: {
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
       });
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
     it('submits the transaction when priceImpact is not a finite number', async () => {

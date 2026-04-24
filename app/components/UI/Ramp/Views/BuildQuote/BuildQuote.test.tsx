@@ -115,12 +115,8 @@ jest.mock('../../hooks/useRampsQuotes', () => ({
   useRampsQuotes: jest.fn(),
 }));
 
-jest.mock('../../hooks/useTransakController', () => ({
-  useTransakController: jest.fn(),
-}));
-
-jest.mock('../../hooks/useTransakRouting', () => ({
-  useTransakRouting: jest.fn(),
+jest.mock('../../hooks/useContinueWithQuote', () => ({
+  useContinueWithQuote: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -144,32 +140,6 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/device', () => {
-  const mockIsAndroid = jest.fn();
-  const mockIsIos = jest.fn(() => true);
-  return {
-    __esModule: true,
-    default: {
-      isAndroid: mockIsAndroid,
-      isIos: mockIsIos,
-    },
-    isAndroid: mockIsAndroid,
-    isIos: mockIsIos,
-  };
-});
-
-jest.mock('react-native-inappbrowser-reborn', () => ({
-  openAuth: jest.fn(),
-  closeAuth: jest.fn(),
-  isAvailable: jest.fn(),
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeEventListener: jest.fn(),
-}));
-
 jest.mock('../../../../hooks/useStyles', () => ({
   useStyles: () => ({ styles: {} }),
 }));
@@ -181,7 +151,7 @@ jest.mock('../../../../hooks/useFormatters', () => ({
 }));
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: (value: number) => value,
+  useDebouncedValue: jest.fn((value: number) => value),
 }));
 
 jest.mock('../../hooks/useBlinkingCursor', () => ({
@@ -195,12 +165,9 @@ const mockUseRampsController = jest.requireMock(
 const mockUseRampsQuotes = jest.requireMock('../../hooks/useRampsQuotes')
   .useRampsQuotes as jest.Mock;
 
-const mockUseTransakController = jest.requireMock(
-  '../../hooks/useTransakController',
-).useTransakController as jest.Mock;
-
-const mockUseTransakRouting = jest.requireMock('../../hooks/useTransakRouting')
-  .useTransakRouting as jest.Mock;
+const mockUseContinueWithQuote = jest.requireMock(
+  '../../hooks/useContinueWithQuote',
+).useContinueWithQuote as jest.Mock;
 
 const mockUseParams = jest.requireMock(
   '../../../../../util/navigation/navUtils',
@@ -210,14 +177,9 @@ const mockUseAnalytics = jest.requireMock(
   '../../../../hooks/useAnalytics/useAnalytics',
 ).useAnalytics as jest.Mock;
 
-const mockDeviceIsAndroid = jest.requireMock('../../../../../util/device')
-  .isAndroid as jest.Mock;
-
-const mockLinkingOpenURL = jest.requireMock(
-  'react-native/Libraries/Linking/Linking',
-).openURL as jest.Mock;
-
-const mockInAppBrowser = jest.requireMock('react-native-inappbrowser-reborn');
+const mockUseDebouncedValue = jest.requireMock(
+  '../../../../hooks/useDebouncedValue',
+).useDebouncedValue as jest.Mock;
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -230,9 +192,7 @@ const mockGetBuyWidgetData = jest.fn();
 const mockAddOrder = jest.fn();
 const mockGetOrderFromCallback = jest.fn();
 const mockAddPrecreatedOrder = jest.fn();
-const mockCheckExistingToken = jest.fn();
-const mockGetBuyQuote = jest.fn();
-const mockRouteAfterAuth = jest.fn();
+const mockContinueWithQuote = jest.fn();
 
 const WIDGET_PROVIDER_QUOTE = {
   provider: 'moonpay',
@@ -243,18 +203,6 @@ const WIDGET_PROVIDER_QUOTE = {
   outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   quote: {
     buyWidget: { browser: 'IN_APP_OS_BROWSER' as const },
-    buyURL: 'https://widget.example.com/checkout',
-  },
-};
-
-const IN_APP_CHECKOUT_QUOTE = {
-  provider: 'moonpay',
-  id: 'quote-inapp-1',
-  inputAmount: 100,
-  inputCurrency: 'USD',
-  outputAmount: '0.05',
-  outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
-  quote: {
     buyURL: 'https://widget.example.com/checkout',
   },
 };
@@ -271,24 +219,6 @@ const NATIVE_PROVIDER = {
   name: 'Transak',
   supportedCryptoCurrencies: { 'eip155:1/slip44:60': true },
   links: [],
-};
-
-const NATIVE_PROVIDER_QUOTE = {
-  provider: 'transak',
-  id: 'quote-transak-1',
-  inputAmount: 100,
-  inputCurrency: 'USD',
-  outputAmount: '0.05',
-  outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
-  providerInfo: { type: 'native' as const, name: 'Transak', id: 'transak' },
-};
-
-const MOCK_TRANSAK_QUOTE = {
-  id: 'transak-quote-1',
-  fiatAmount: 100,
-  fiatCurrency: 'USD',
-  cryptoAmount: '0.05',
-  cryptoCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
 };
 
 const SELECTED_TOKEN = {
@@ -314,6 +244,39 @@ const USER_REGION = {
   },
   regionCode: 'us-ca',
 };
+
+const buildProviderWithLimits = (limits: {
+  minAmount: number;
+  maxAmount: number;
+  feeFixedRate?: number;
+  feeDynamicRate?: number;
+}) => ({
+  ...WIDGET_PROVIDER,
+  limits: {
+    fiat: {
+      usd: {
+        [SELECTED_PAYMENT_METHOD.id]: {
+          feeFixedRate: 0,
+          feeDynamicRate: 0,
+          ...limits,
+        },
+      },
+    },
+  },
+});
+
+const defaultQuotesHookResult = (options?: unknown) =>
+  options
+    ? {
+        data: { success: [WIDGET_PROVIDER_QUOTE] },
+        loading: false,
+        error: null,
+      }
+    : {
+        data: null,
+        loading: false,
+        error: null,
+      };
 
 describe('isBailedOrderStatus', () => {
   it('returns true for Precreated, IdExpired, Unknown', () => {
@@ -354,41 +317,52 @@ describe('createBuildQuoteNavDetails', () => {
       nativeFlowError: 'error',
     });
   });
+
+  it('forwards headlessSessionId for headless buy attempts', () => {
+    const result = createBuildQuoteNavDetails({
+      assetId: 'eip155:1/slip44:60',
+      amount: 25,
+      headlessSessionId: 'headless-abc',
+    });
+    expect(result[1].params.params).toEqual({
+      assetId: 'eip155:1/slip44:60',
+      amount: 25,
+      headlessSessionId: 'headless-abc',
+    });
+  });
 });
 
 const mockSetSelectedProvider = jest.fn();
+
+const buildRampsControllerResult = (overrides = {}) => ({
+  userRegion: USER_REGION,
+  providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
+  selectedProvider: WIDGET_PROVIDER,
+  setSelectedProvider: mockSetSelectedProvider,
+  selectedToken: SELECTED_TOKEN,
+  paymentMethods: [SELECTED_PAYMENT_METHOD],
+  getBuyWidgetData: mockGetBuyWidgetData,
+  addPrecreatedOrder: mockAddPrecreatedOrder,
+  addOrder: mockAddOrder,
+  getOrderFromCallback: mockGetOrderFromCallback,
+  paymentMethodsLoading: false,
+  paymentMethodsFetching: false,
+  paymentMethodsStatus: 'success',
+  selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+  ...overrides,
+});
 
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({});
-    mockUseRampsController.mockReturnValue({
-      userRegion: USER_REGION,
-      providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
-      selectedProvider: WIDGET_PROVIDER,
-      setSelectedProvider: mockSetSelectedProvider,
-      selectedToken: SELECTED_TOKEN,
-      paymentMethods: [SELECTED_PAYMENT_METHOD],
-      getBuyWidgetData: mockGetBuyWidgetData,
-      addPrecreatedOrder: mockAddPrecreatedOrder,
-      addOrder: mockAddOrder,
-      getOrderFromCallback: mockGetOrderFromCallback,
-      paymentMethodsLoading: false,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'success',
-      selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-    });
-    mockUseRampsQuotes.mockReturnValue({
-      data: { success: [WIDGET_PROVIDER_QUOTE] },
-      loading: false,
-      error: null,
-    });
-    mockUseTransakController.mockReturnValue({
-      checkExistingToken: mockCheckExistingToken,
-      getBuyQuote: mockGetBuyQuote,
-    });
-    mockUseTransakRouting.mockReturnValue({
-      routeAfterAuthentication: mockRouteAfterAuth,
+    mockUseRampsController.mockReturnValue(buildRampsControllerResult());
+    mockUseDebouncedValue.mockImplementation((value: number) => value);
+    mockUseRampsQuotes.mockImplementation((options) =>
+      defaultQuotesHookResult(options),
+    );
+    mockUseContinueWithQuote.mockReturnValue({
+      continueWithQuote: mockContinueWithQuote,
     });
     mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -440,81 +414,6 @@ describe('BuildQuote', () => {
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
       expect(amountInput.props.children).toContain('50');
-    });
-  });
-
-  describe('navigateAfterExternalBrowser', () => {
-    it('resets to BuildQuote when returnDestination is buildQuote (Android external browser path)', async () => {
-      mockDeviceIsAndroid.mockReturnValue(true);
-      mockGetBuyWidgetData.mockResolvedValue({
-        url: 'https://widget.example.com/checkout',
-        browser: 'IN_APP_OS_BROWSER',
-      });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      await waitFor(() => {
-        expect(mockLinkingOpenURL).toHaveBeenCalledWith(
-          'https://widget.example.com/checkout',
-        );
-        expect(mockNavigationReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [
-            {
-              name: Routes.RAMP.BUILD_QUOTE,
-              params: {},
-            },
-          ],
-        });
-      });
-    });
-
-    it('resets to order details when returnDestination is order (InAppBrowser success path)', async () => {
-      mockDeviceIsAndroid.mockReturnValue(false);
-      mockInAppBrowser.isAvailable.mockResolvedValue(true);
-      mockInAppBrowser.openAuth.mockResolvedValue({
-        type: 'success',
-        url: 'metamask://on-ramp/providers/moonpay?orderId=ord-123',
-      });
-      mockGetBuyWidgetData.mockResolvedValue({
-        url: 'https://widget.example.com/checkout',
-        browser: 'IN_APP_OS_BROWSER',
-        orderId: 'ord-123',
-      });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      await waitFor(() => {
-        expect(mockAddOrder).not.toHaveBeenCalled();
-        expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
-        expect(mockNavigationReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [
-            {
-              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-              params: {
-                callbackUrl:
-                  'metamask://on-ramp/providers/moonpay?orderId=ord-123',
-                providerCode: 'moonpay',
-                walletAddress: '0x1234567890123456789012345678901234567890',
-                showCloseButton: true,
-              },
-            },
-          ],
-        });
-      });
     });
   });
 
@@ -699,6 +598,242 @@ describe('BuildQuote', () => {
     });
   });
 
+  describe('client-side buy limits', () => {
+    it('shows a below-min inline error and skips quote fetching', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 120,
+        maxAmount: 1000,
+      });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Minimum purchase is $120.00')).toBeOnTheScreen();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(
+        continueButton.props.isDisabled ??
+          continueButton.props.disabled ??
+          continueButton.props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('shows an above-max inline error and skips quote fetching', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 10,
+        maxAmount: 80,
+      });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Maximum purchase is $80.00')).toBeOnTheScreen();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(
+        continueButton.props.isDisabled ??
+          continueButton.props.disabled ??
+          continueButton.props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('fetches quotes normally when the amount is within provider limits', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 50,
+        maxAmount: 200,
+      });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 100,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
+
+    it('keeps quote fetch enabled while debounce settles after returning to a valid range', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 10,
+        maxAmount: 200,
+      });
+      let debouncedAmount = 100;
+      mockUseDebouncedValue.mockImplementation(() => debouncedAmount);
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { getByTestId, getByText, queryByText, rerender } =
+        renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 100,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+
+      fireEvent.press(getByTestId('keypad-trigger-string'));
+
+      expect(getByText('Maximum purchase is $200.00')).toBeOnTheScreen();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      debouncedAmount = 250;
+      rerender(<BuildQuote />);
+
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      fireEvent.press(getByTestId('keypad-trigger-back'));
+
+      // Amount 10 is valid — quote fetch stays enabled with
+      // stale debounced params so the UI does not flash.
+      expect(queryByText('Maximum purchase is $200.00')).not.toBeOnTheScreen();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 250,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+
+      debouncedAmount = 10;
+      rerender(<BuildQuote />);
+
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 10,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
+
+    it('treats amount equal to minAmount as valid (inclusive lower bound)', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 50,
+        maxAmount: 200,
+      });
+      mockUseParams.mockReturnValue({ amount: 50 });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText(/Minimum purchase/)).not.toBeOnTheScreen();
+      expect(queryByText(/Maximum purchase/)).not.toBeOnTheScreen();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 50,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
+
+    it('treats amount equal to maxAmount as valid (inclusive upper bound)', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 50,
+        maxAmount: 200,
+      });
+      mockUseParams.mockReturnValue({ amount: 200 });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText(/Minimum purchase/)).not.toBeOnTheScreen();
+      expect(queryByText(/Maximum purchase/)).not.toBeOnTheScreen();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 200,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
+
+    it('does not crash when provider has no limits field', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
+          selectedProvider: WIDGET_PROVIDER,
+        }),
+      );
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText(/Minimum purchase/)).not.toBeOnTheScreen();
+      expect(queryByText(/Maximum purchase/)).not.toBeOnTheScreen();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 100,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
+  });
+
   describe('quoteFetchError', () => {
     it('tracks RAMPS_QUOTE_ERROR and shows BannerAlert when quote fetch fails', () => {
       mockUseRampsQuotes.mockReturnValue({
@@ -722,159 +857,271 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('handleNativeProviderContinue', () => {
-    beforeEach(() => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        selectedProvider: NATIVE_PROVIDER,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-      });
+  describe('provider quote error (out-of-bounds / limits)', () => {
+    it('shows provider error message when quotes response has errors and no successful quotes', () => {
       mockUseRampsQuotes.mockReturnValue({
-        data: { success: [NATIVE_PROVIDER_QUOTE] },
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
         loading: false,
         error: null,
       });
+
+      const { getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Minimum order amount is $30.00 USD')).toBeOnTheScreen();
     });
 
-    it('routes after auth when user has token', async () => {
-      mockCheckExistingToken.mockResolvedValue(true);
-      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
-      mockRouteAfterAuth.mockResolvedValue(undefined);
+    it('shows generic no-quotes error via TruncatedError when quotes response has errors without messages', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [{ provider: 'moonpay' }],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText, getByLabelText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(
+        getByText(/problem fetching quotes|No providers available/i),
+      ).toBeOnTheScreen();
+      // Generic errors still use TruncatedError with info icon
+      expect(getByLabelText('View error details')).toBeOnTheScreen();
+    });
+
+    it('disables continue button when provider returns a limit error', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Maximum order amount is $10,000 USD',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(
+        continueButton.props.isDisabled ??
+          continueButton.props.disabled ??
+          continueButton.props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('renders provider limit error as plain text without info icon', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
       });
 
-      expect(mockCheckExistingToken).toHaveBeenCalled();
-      expect(mockGetBuyQuote).toHaveBeenCalledWith(
-        'USD',
-        'eip155:1/slip44:60',
-        'eip155:1',
-        '/payments/debit-credit-card',
-        '100',
+      const { getByText, queryByLabelText } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
+
+      expect(getByText('Minimum order amount is $30.00 USD')).toBeOnTheScreen();
+      // Provider limit errors are plain text — no info icon or modal
+      expect(queryByLabelText('View error details')).not.toBeOnTheScreen();
     });
 
-    it('navigates to VerifyIdentity when user has no token', async () => {
-      mockCheckExistingToken.mockResolvedValue(false);
+    it('shows change-provider option for generic errors without provider message', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [{ provider: 'moonpay' }],
+        },
+        loading: false,
+        error: null,
+      });
 
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+      const { getByLabelText } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
+      fireEvent.press(getByLabelText('View error details'));
 
-      expect(mockCheckExistingToken).toHaveBeenCalled();
-      expect(mockGetBuyQuote).not.toHaveBeenCalled();
-      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
+        expect.anything(),
         expect.objectContaining({
-          amount: '100',
-          currency: 'USD',
-          assetId: 'eip155:1/slip44:60',
+          params: expect.objectContaining({
+            showChangeProvider: true,
+          }),
         }),
       );
     });
 
-    it('sets rampsError when quote is null', async () => {
-      mockCheckExistingToken.mockResolvedValue(true);
-      mockGetBuyQuote.mockResolvedValue(null);
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('sets rampsError when transakCheckExistingToken throws', async () => {
-      mockCheckExistingToken.mockRejectedValue(new Error('Network error'));
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(mockGetBuyQuote).not.toHaveBeenCalled();
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('sets rampsError when transakRouteAfterAuth throws', async () => {
-      mockCheckExistingToken.mockResolvedValue(true);
-      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
-      mockRouteAfterAuth.mockRejectedValue(new Error('Routing failed'));
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('handleWidgetProviderContinue', () => {
-    it('sets rampsError when getBuyWidgetData returns no URL', async () => {
-      mockGetBuyWidgetData.mockResolvedValue({});
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(mockGetBuyWidgetData).toHaveBeenCalled();
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigates to Checkout when useExternalBrowser is false', async () => {
+    it('does not navigate to error details modal for provider limit errors', () => {
       mockUseRampsQuotes.mockReturnValue({
-        data: { success: [IN_APP_CHECKOUT_QUOTE] },
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
         loading: false,
         error: null,
       });
-      mockGetBuyWidgetData.mockResolvedValue({
-        url: 'https://checkout.example.com/embed',
-        orderId: 'ord-456',
+
+      renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      // No info icon to press — limit errors are plain text
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          screen: expect.stringContaining('Error'),
+        }),
+      );
+    });
+
+    it('shows first provider error when multiple providers return errors', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+            {
+              provider: 'transak',
+              error: 'Amount too low for this provider',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Minimum order amount is $30.00 USD')).toBeOnTheScreen();
+      expect(
+        queryByText('Amount too low for this provider'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show provider error when some quotes succeed', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [WIDGET_PROVIDER_QUOTE],
+          error: [
+            {
+              provider: 'transak',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(
+        queryByText('Minimum order amount is $30.00 USD'),
+      ).not.toBeOnTheScreen();
+      expect(queryByText(/encountered an error/i)).not.toBeOnTheScreen();
+    });
+
+    it('does not show provider error while quotes are loading', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
+        loading: true,
+        error: null,
+      });
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(
+        queryByText('Minimum order amount is $30.00 USD'),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('handleContinuePress wiring', () => {
+    it('calls continueWithQuote with the selected quote and { amount, assetId }', async () => {
+      mockContinueWithQuote.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockContinueWithQuote).toHaveBeenCalledTimes(1);
+      expect(mockContinueWithQuote).toHaveBeenCalledWith(
+        WIDGET_PROVIDER_QUOTE,
+        { amount: 100, assetId: 'eip155:1/slip44:60' },
+      );
+    });
+
+    it('fires RAMPS_CONTINUE_BUTTON_CLICKED before calling continueWithQuote', async () => {
+      mockContinueWithQuote.mockResolvedValue(undefined);
+      const callOrder: string[] = [];
+      mockCreateEventBuilder.mockImplementation((category) => {
+        const cat =
+          typeof category === 'object' && category !== null
+            ? (category as { category?: string }).category
+            : undefined;
+        if (cat === 'Ramps Continue Button Clicked') {
+          callOrder.push('analytics');
+        }
+        return { addProperties: mockAddProperties, build: mockBuild };
+      });
+      mockContinueWithQuote.mockImplementation(async () => {
+        callOrder.push('continueWithQuote');
       });
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
@@ -885,16 +1132,28 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(mockGetBuyWidgetData).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalled();
-      const navigateArgs = JSON.stringify(mockNavigate.mock.calls);
-      expect(navigateArgs).toContain('https://checkout.example.com/embed');
-      expect(navigateArgs).toContain('MoonPay');
+      expect(callOrder).toEqual(['analytics', 'continueWithQuote']);
     });
 
-    it('sets rampsError when getBuyWidgetData throws', async () => {
-      mockGetBuyWidgetData.mockRejectedValue(
-        new Error('Network request failed'),
+    it('surfaces continueWithQuote rejection as the rampsError banner text', async () => {
+      mockContinueWithQuote.mockRejectedValue(
+        new Error('An unexpected error occurred.'),
+      );
+
+      const { getByTestId, getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(getByText('An unexpected error occurred.')).toBeOnTheScreen();
+    });
+
+    it('does not call continueWithQuote when selectedProvider is null', async () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedProvider: null }),
       );
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
@@ -905,9 +1164,7 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
+      expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
   });
 
@@ -1121,7 +1378,7 @@ describe('BuildQuote', () => {
     });
 
     it('navigates to token unavailable modal after debounce when payment methods are empty', () => {
-      mockUnavailableController({});
+      mockUnavailableController({ providers: [transakProvider] });
       renderWithProvider(<BuildQuote />, { state: initialRootState });
       act(() => {
         jest.advanceTimersByTime(650);
@@ -1184,7 +1441,7 @@ describe('BuildQuote', () => {
         assetId: TOKEN_ASSET,
         buyFlowOrigin: 'tokenInfo' as const,
       });
-      mockUnavailableController({});
+      mockUnavailableController({ providers: [transakProvider] });
       renderWithProvider(<BuildQuote />, { state: initialRootState });
       act(() => {
         jest.advanceTimersByTime(650);
@@ -1220,16 +1477,18 @@ describe('BuildQuote', () => {
     });
 
     it('navigates when token is missing from supportedCryptoCurrencies', () => {
-      mockUnavailableController({
-        selectedProvider: {
-          id: '/providers/banxa',
-          name: 'Banxa',
-          supportedCryptoCurrencies: {
-            // TOKEN_ASSET is NOT in the map — treated as unsupported
-            'eip155:1/erc20:0xsomeother': true,
-          },
-          links: [],
+      const banxaProvider = {
+        id: '/providers/banxa',
+        name: 'Banxa',
+        supportedCryptoCurrencies: {
+          // TOKEN_ASSET is NOT in the map — treated as unsupported
+          'eip155:1/erc20:0xsomeother': true,
         },
+        links: [],
+      };
+      mockUnavailableController({
+        selectedProvider: banxaProvider,
+        providers: [banxaProvider],
       });
       renderWithProvider(<BuildQuote />, { state: initialRootState });
       act(() => {
@@ -1244,13 +1503,15 @@ describe('BuildQuote', () => {
     });
 
     it('re-navigates when provider id changes', () => {
+      const providerA = {
+        id: '/providers/a',
+        name: 'A',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+        links: [],
+      };
       mockUnavailableController({
-        selectedProvider: {
-          id: '/providers/a',
-          name: 'A',
-          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
-          links: [],
-        },
+        selectedProvider: providerA,
+        providers: [providerA],
       });
       const { rerender } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -1260,13 +1521,15 @@ describe('BuildQuote', () => {
       });
       expect(mockNavigate).toHaveBeenCalled();
       mockNavigate.mockClear();
+      const providerB = {
+        id: '/providers/b',
+        name: 'B',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+        links: [],
+      };
       mockUnavailableController({
-        selectedProvider: {
-          id: '/providers/b',
-          name: 'B',
-          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
-          links: [],
-        },
+        selectedProvider: providerB,
+        providers: [providerB],
       });
       rerender(<BuildQuote />);
       act(() => {
@@ -1280,7 +1543,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    describe('auto-switch when providerAutoSelected', () => {
+    describe('auto-switch when current provider does not support selected token', () => {
       const BTC_ASSET = 'eip155:1/slip44:0';
 
       const paypalProvider = {
@@ -1365,7 +1628,7 @@ describe('BuildQuote', () => {
         );
       });
 
-      it('shows modal when provider was not auto-selected', () => {
+      it('auto-switches even when provider was manually selected', () => {
         mockUnavailableController({
           selectedProvider: paypalProvider,
           providers: [paypalProvider, coinbaseProvider],
@@ -1382,25 +1645,130 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
+          autoSelected: true,
+        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
             screen: 'RampTokenNotAvailableModal',
           }),
         );
       });
+
+      it('skips quote fetch while the current provider does not support the selected token', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+          selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+          paymentMethods: [SELECTED_PAYMENT_METHOD],
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+        expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+      });
+
+      it('does not render "Powered by" for the outgoing provider while the token is unavailable', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+          selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+          paymentMethods: [SELECTED_PAYMENT_METHOD],
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        // No quotes response yet — isolates the isTokenUnavailable gate from
+        // the hasGenericNoQuotes branch so this test exercises the gate directly.
+        mockUseRampsQuotes.mockReturnValue({
+          data: null,
+          loading: false,
+          error: null,
+        });
+
+        const { queryByText } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        expect(queryByText('Powered by PayPal')).not.toBeOnTheScreen();
+      });
+
+      it('shows Continue button as loading (not just disabled) while the switch is pending', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+          selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+          paymentMethods: [SELECTED_PAYMENT_METHOD],
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        mockUseRampsQuotes.mockReturnValue({
+          data: null,
+          loading: false,
+          error: null,
+        });
+
+        const { getByTestId } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+        expect(continueButton.props.accessibilityState?.busy).toBe(true);
+      });
+    });
+
+    describe('Powered by during controller sync gap', () => {
+      it('does not render "Powered by" while nav params assetId does not match controller-selected token', () => {
+        // Simulates the window where the user navigated back to BuildQuote with
+        // a new nav params.assetId but the controller has not yet updated
+        // selectedToken. tokenStateIsSettled is false during this render.
+        mockUseParams.mockReturnValue({ assetId: 'eip155:1/slip44:999' });
+
+        const { queryByText } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        expect(queryByText('Powered by MoonPay')).not.toBeOnTheScreen();
+      });
+
+      it('shows Continue button as loading while nav params have not caught up to controller-selected token', () => {
+        mockUseParams.mockReturnValue({ assetId: 'eip155:1/slip44:999' });
+
+        const { getByTestId } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+        expect(continueButton.props.accessibilityState?.busy).toBe(true);
+      });
     });
   });
 
   describe('selectedQuote matching', () => {
+    const noQuotesErrorPattern =
+      /We encountered a problem fetching quotes from/i;
+
     it('shows Powered by text when quote provider matches selected provider', () => {
       const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
 
     it('shows no-quotes error when quote provider does not match selected provider', () => {
@@ -1416,7 +1784,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText("We've encountered an error")).toBeOnTheScreen();
+      expect(getByText(noQuotesErrorPattern)).toBeOnTheScreen();
     });
 
     it('shows no-quotes error when quotes response has no entries', () => {
@@ -1430,7 +1798,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText("We've encountered an error")).toBeOnTheScreen();
+      expect(getByText(noQuotesErrorPattern)).toBeOnTheScreen();
     });
 
     it('does not show error when quotes are still loading', () => {
@@ -1444,7 +1812,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
 
     it('continue button is disabled when no matching quote', () => {
@@ -1489,7 +1857,7 @@ describe('BuildQuote', () => {
       });
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
 
     it('matches quote when selected provider has prefixed ID and quote has short ID', () => {
@@ -1518,7 +1886,7 @@ describe('BuildQuote', () => {
       });
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
 
     it('finds matching quote even if it is not the first in the array', () => {
@@ -1538,7 +1906,7 @@ describe('BuildQuote', () => {
       });
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
   });
 });
