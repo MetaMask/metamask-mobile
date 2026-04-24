@@ -1075,7 +1075,9 @@ export class HyperLiquidSubscriptionService {
   #getAbstractionModeForUser(
     userAddress: string | null,
   ): HyperLiquidAbstractionMode | null {
-    if (!userAddress) {return null;}
+    if (!userAddress) {
+      return null;
+    }
     if (
       this.#cachedAbstractionModeUserAddress?.toLowerCase() !==
       userAddress.toLowerCase()
@@ -1107,8 +1109,23 @@ export class HyperLiquidSubscriptionService {
     try {
       const infoClient = this.#clientService.getInfoClient();
       const mode = await infoClient.userAbstraction({ user: userAddress });
+      const previousMode = this.#cachedAbstractionMode;
+      const previousUser = this.#cachedAbstractionModeUserAddress;
       this.#cachedAbstractionMode = mode;
       this.#cachedAbstractionModeUserAddress = userAddress;
+
+      // If the fold semantics actually changed for this user, trigger a
+      // re-aggregation so balance-dependent UI (withdraw cap, order-entry
+      // validation) picks up the new mode immediately — otherwise a
+      // Unified→Standard flip can stay folded with old semantics until the
+      // next spot/account event happens to arrive.
+      const foldChanged =
+        previousUser === userAddress &&
+        hyperLiquidModeFoldsSpot(previousMode) !==
+          hyperLiquidModeFoldsSpot(mode);
+      if (foldChanged && this.#dexAccountCache.size > 0) {
+        this.#aggregateAndNotifySubscribers();
+      }
     } catch (error) {
       // Non-fatal — preserve the last known mode for this user. Reset
       // throttle to retry sooner on transient failures.
