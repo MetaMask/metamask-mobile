@@ -20,7 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import CrownIcon from '../../../../../images/rewards/crown.svg';
-import { PendingTag } from './CampaignStatsSummary';
+import { PendingTag } from './OndoCampaignStatsSummary';
 import {
   formatRateOfReturn,
   formatTierDisplayName,
@@ -37,6 +37,7 @@ export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
   ERROR: 'campaign-leaderboard-error',
   EMPTY: 'campaign-leaderboard-empty',
   NOT_YET_COMPUTED: 'campaign-leaderboard-not-yet-computed',
+  LAST_COMPUTED: 'campaign-leaderboard-last-computed',
 } as const;
 
 const MAX_ENTRIES_LIMIT = 20;

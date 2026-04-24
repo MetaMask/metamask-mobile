@@ -116,6 +116,7 @@ const OndoLeaderboardView: React.FC = () => {
     isLoading: isLeaderboardLoading,
     hasError: hasLeaderboardError,
     isLeaderboardNotYetComputed,
+    computedAt: leaderboardComputedAt,
     refetch: refetchLeaderboard,
   } = useGetOndoLeaderboard(campaignId, {
     defaultTier: position?.projectedTier,
@@ -267,6 +268,7 @@ const OndoLeaderboardView: React.FC = () => {
               hideTierHeader
             />
           </Box>
+      
         </ScrollView>
       </SafeAreaView>
     </ErrorBoundary>

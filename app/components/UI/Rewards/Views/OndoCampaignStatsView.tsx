@@ -21,8 +21,8 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import {
   StatCell,
-  CAMPAIGN_STATS_SUMMARY_TEST_IDS,
-} from '../components/Campaigns/CampaignStatsSummary';
+  ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS,
+} from '../components/Campaigns/OndoCampaignStatsSummary';
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
@@ -47,6 +47,7 @@ type OndoCampaignStatsRouteParams = {
 
 export const ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS = {
   CONTAINER: 'ondo-campaign-stats-view-container',
+  LAST_COMPUTED: 'ondo-campaign-stats-view-last-computed',
 } as const;
 
 const CheckIcon: React.FC = () => (
@@ -177,6 +178,36 @@ const OndoCampaignStatsView: React.FC = () => {
       campaignName: campaign?.name ?? routeCampaignName ?? '',
     });
   }, [navigation, campaignId, campaign, routeCampaignName]);
+
+  const ondoLastComputedIso = useMemo(() => {
+    const p = portfolioData?.computedAt;
+    const l = leaderboardPosition?.computedAt;
+    if (!p && !l) {
+      return null;
+    }
+    if (!p) {
+      return l ?? null;
+    }
+    if (!l) {
+      return p;
+    }
+    const dP = new Date(p).getTime();
+    const dL = new Date(l).getTime();
+    if (Number.isNaN(dP) && Number.isNaN(dL)) {
+      return null;
+    }
+    if (Number.isNaN(dP)) {
+      return l;
+    }
+    if (Number.isNaN(dL)) {
+      return p;
+    }
+    return dP >= dL ? p : l;
+  }, [portfolioData?.computedAt, leaderboardPosition?.computedAt]);
+
+  const lastComputedSubtext = ondoLastComputedIso
+    ? formatComputedAt(ondoLastComputedIso)
+    : '';
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignStatsView">
@@ -346,7 +377,9 @@ const OndoCampaignStatsView: React.FC = () => {
             {!isCampaignComplete && isIneligible && (
               <Box
                 twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
-                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
+                testID={
+                  ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER
+                }
               >
                 <Text
                   variant={TextVariant.BodyMd}
@@ -397,6 +430,18 @@ const OndoCampaignStatsView: React.FC = () => {
               />
             )}
           </Box>
+          {lastComputedSubtext.length > 0 && (
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+                testID={ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS.LAST_COMPUTED}
+              >
+                {lastComputedSubtext}
+              </Text>
+            </Box>
+          )}
         </ScrollView>
       </SafeAreaView>
     </ErrorBoundary>

@@ -9,13 +9,20 @@ import {
 import type { CampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, string>) => {
     const t: Record<string, string> = {
       'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
       'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
       'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
+      'rewards.perps_trading_campaign.last_updated': 'Last updated: {{time}}',
     };
-    return t[key] ?? key;
+    let template = t[key] ?? key;
+    if (params) {
+      for (const [paramKey, value] of Object.entries(params)) {
+        template = template.split(`{{${paramKey}}}`).join(value);
+      }
+    }
+    return template;
   },
   default: { locale: 'en-US' },
 }));

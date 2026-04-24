@@ -8,7 +8,7 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import I18n from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
 import formatFiat from '../../../../util/formatFiat';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -367,10 +367,10 @@ export const formatCompactUsd = (value: number): string => {
  * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
  * @example formatSignedUsd(null)           // '—'
  */
-export const formatSignedUsd = (value: string | null): string => {
+export const formatSignedUsd = (value: string | number | null): string => {
   if (value === null) return '—';
-  const num = parseFloat(value);
-  if (Number.isNaN(num)) return value;
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  if (Number.isNaN(num)) return '—';
   const sign = num > 0 ? '+' : '';
   return `${sign}${formatUsd(value)}`;
 };
@@ -428,17 +428,21 @@ export function formatOrdinalRank(rank: number): string {
 // ── Timestamp formatting ────────────────────────────────────────────────
 
 /**
- * Formats an ISO 8601 timestamp to `HH:MM:SS`.
+ * Formats an ISO 8601 timestamp for display, e.g. `Last updated: 2:30 PM` (locale-aware time).
  * Returns '' for null or unparseable values.
  */
 export const formatComputedAt = (isoString: string | null): string => {
   if (!isoString) return '';
   const date = new Date(isoString);
   if (isNaN(date.getTime())) return '';
-  const h = date.getHours().toString().padStart(2, '0');
-  const m = date.getMinutes().toString().padStart(2, '0');
-  const s = date.getSeconds().toString().padStart(2, '0');
-  return `${h}:${m}:${s}`;
+  const timeLabel = new Intl.DateTimeFormat(I18n.locale, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+  return strings('rewards.perps_trading_campaign.last_updated', {
+    time: timeLabel,
+  });
 };
 
 // ── CAIP-19 / address helpers ───────────────────────────────────────────

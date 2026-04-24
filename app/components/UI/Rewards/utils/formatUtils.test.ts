@@ -44,24 +44,33 @@ jest.mock('../../../../util/date', () => ({
 
 // Mock i18n strings
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const t: Record<string, string> = {
-      'rewards.events.to': 'to',
-      'rewards.events.type.swap': 'Swap',
-      'rewards.events.type.referral_action': 'Referral action',
-      'rewards.events.type.sign_up_bonus': 'Sign up bonus',
-      'rewards.events.type.loyalty_bonus': 'Loyalty bonus',
-      'rewards.events.type.one_time_bonus': 'One-time bonus',
-      'rewards.events.type.open_position': 'Opened position',
-      'rewards.events.type.close_position': 'Closed position',
-      'rewards.events.type.take_profit': 'Take profit',
-      'rewards.events.type.stop_loss': 'Stop loss',
-      'rewards.events.type.uncategorized_event': 'Uncategorized event',
-      'perps.market.long': 'Long',
-      'perps.market.short': 'Short',
-    };
-    return t[key] || key;
-  }),
+  strings: jest.fn(
+    (key: string, params: Record<string, string> | undefined) => {
+      const t: Record<string, string> = {
+        'rewards.events.to': 'to',
+        'rewards.events.type.swap': 'Swap',
+        'rewards.events.type.referral_action': 'Referral action',
+        'rewards.events.type.sign_up_bonus': 'Sign up bonus',
+        'rewards.events.type.loyalty_bonus': 'Loyalty bonus',
+        'rewards.events.type.one_time_bonus': 'One-time bonus',
+        'rewards.events.type.open_position': 'Opened position',
+        'rewards.events.type.close_position': 'Closed position',
+        'rewards.events.type.take_profit': 'Take profit',
+        'rewards.events.type.stop_loss': 'Stop loss',
+        'rewards.events.type.uncategorized_event': 'Uncategorized event',
+        'perps.market.long': 'Long',
+        'perps.market.short': 'Short',
+        'rewards.perps_trading_campaign.last_updated': 'Last updated: {{time}}',
+      };
+      let template = t[key] ?? key;
+      if (params) {
+        for (const [paramKey, value] of Object.entries(params)) {
+          template = template.split(`{{${paramKey}}}`).join(value);
+        }
+      }
+      return template;
+    },
+  ),
   default: {
     locale: 'en-US',
   },
@@ -1454,9 +1463,12 @@ describe('formatUtils', () => {
       expect(formatComputedAt('')).toBe('');
     });
 
-    it('returns HH:MM:SS for a valid ISO timestamp', () => {
+    it('returns Last updated with locale-aware time for a valid ISO timestamp', () => {
       const result = formatComputedAt('2026-03-28T14:30:45.000Z');
-      expect(result).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+      expect(result.startsWith('Last updated: ')).toBe(true);
+      const timePortion = result.slice('Last updated: '.length);
+      expect(timePortion.length).toBeGreaterThan(0);
+      expect(timePortion).toMatch(/^\d{1,2}:\d{2}\s?[AP]M$/i);
     });
 
     it('returns empty string for unparseable value', () => {
@@ -1611,8 +1623,20 @@ describe('formatUtils', () => {
       expect(formatSignedUsd('0')).toBe('$0.00');
     });
 
-    it('returns raw string for non-numeric input', () => {
-      expect(formatSignedUsd('abc')).toBe('abc');
+    it('prepends + for positive number input', () => {
+      expect(formatSignedUsd(5000)).toBe('+$5,000.00');
+    });
+
+    it('formats negative number input', () => {
+      expect(formatSignedUsd(-1250.5)).toBe('$-1,250.50');
+    });
+
+    it('returns em dash for non-numeric string', () => {
+      expect(formatSignedUsd('abc')).toBe('—');
+    });
+
+    it('returns em dash for empty string', () => {
+      expect(formatSignedUsd('')).toBe('—');
     });
   });
 
