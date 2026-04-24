@@ -265,32 +265,38 @@ const OndoCampaignStatsView: React.FC = () => {
             </Box>
 
             {/* Net inflow | Outflow (or Days held when no outflow) */}
-            <Box flexDirection={BoxFlexDirection.Row}>
-              <StatCell
-                label={strings('rewards.ondo_campaign_stats.label_net_inflow')}
-                value={netInflowValue}
-                isLoading={portfolioLoading}
-                suffix={isQualified ? <CheckIcon /> : undefined}
-              />
-              {hasCashedOut ? (
+            {!isCampaignComplete && (
+              <Box flexDirection={BoxFlexDirection.Row}>
                 <StatCell
-                  label={strings('rewards.ondo_campaign_stats.label_outflow')}
-                  value={outflowValue}
+                  label={strings(
+                    'rewards.ondo_campaign_stats.label_net_inflow',
+                  )}
+                  value={netInflowValue}
                   isLoading={portfolioLoading}
-                />
-              ) : (
-                <StatCell
-                  label={strings('rewards.ondo_campaign_stats.label_days_held')}
-                  value={daysHeldValue}
-                  isLoading={leaderboardLoading}
-                  valueColor={TextColor.TextDefault}
                   suffix={isQualified ? <CheckIcon /> : undefined}
                 />
-              )}
-            </Box>
+                {hasCashedOut ? (
+                  <StatCell
+                    label={strings('rewards.ondo_campaign_stats.label_outflow')}
+                    value={outflowValue}
+                    isLoading={portfolioLoading}
+                  />
+                ) : (
+                  <StatCell
+                    label={strings(
+                      'rewards.ondo_campaign_stats.label_days_held',
+                    )}
+                    value={daysHeldValue}
+                    isLoading={leaderboardLoading}
+                    valueColor={TextColor.TextDefault}
+                    suffix={isQualified ? <CheckIcon /> : undefined}
+                  />
+                )}
+              </Box>
+            )}
 
             {/* Days held (when outflow row present) */}
-            {hasCashedOut && (
+            {!isCampaignComplete && hasCashedOut && (
               <Box flexDirection={BoxFlexDirection.Row}>
                 <StatCell
                   label={strings('rewards.ondo_campaign_stats.label_days_held')}

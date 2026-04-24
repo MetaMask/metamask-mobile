@@ -799,6 +799,66 @@ describe('OndoCampaignStatsView', () => {
     ).toBeDefined();
   });
 
+  describe('completed campaign portfolio display', () => {
+    const setupComplete = () => {
+      mockGetCampaignStatus.mockReturnValue('complete');
+      mockRewardsState.campaigns = [createTestCampaign()];
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: makeQualifiedPosition({ rank: 5 }),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        ...portfolioDefaults,
+        portfolio: {
+          positions: [],
+          summary: {
+            totalCurrentValue: '12000',
+            totalBookValue: '11000',
+            totalUsdDeposited: '11000',
+            netDeposit: '10500',
+            totalCashedOut: '250',
+            portfolioPnl: '1000',
+            portfolioPnlPercent: '0.09',
+          },
+          computedAt: '2024-01-01T00:00:00Z',
+        },
+      });
+    };
+
+    it('shows only rate of return and hides net inflow when campaign is complete', () => {
+      setupComplete();
+      const { getByText, queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        getByText('rewards.ondo_campaign_stats.label_return'),
+      ).toBeDefined();
+      expect(
+        queryByText('rewards.ondo_campaign_stats.label_net_inflow'),
+      ).toBeNull();
+    });
+
+    it('hides outflow when campaign is complete', () => {
+      setupComplete();
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_stats.label_outflow'),
+      ).toBeNull();
+    });
+
+    it('hides days held when campaign is complete', () => {
+      setupComplete();
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_stats.label_days_held'),
+      ).toBeNull();
+    });
+  });
+
   describe('ineligible state', () => {
     const makeIneligibleCampaign = (): CampaignDto => {
       const now = new Date();
