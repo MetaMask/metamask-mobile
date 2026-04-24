@@ -39,6 +39,11 @@ interface MoneyOnboardingCardProps {
    * Total number of onboarding steps. Defaults to 2.
    */
   totalSteps?: number;
+  /**
+   * Controls step 2 content: 'get-card' (default) shows card acquisition,
+   * 'link-card' shows card linking messaging.
+   */
+  variant?: 'get-card' | 'link-card';
 }
 
 const STEP_CONTENT = {
@@ -54,14 +59,24 @@ const STEP_CONTENT = {
   },
 } as const;
 
+const STEP_2_LINK_CARD = {
+  title: 'money.onboarding.link_card_title',
+  description: 'money.onboarding.link_card_description',
+  cta: 'money.onboarding.link_card_cta',
+} as const;
+
 const MoneyOnboardingCard = ({
   onCtaPress,
   onAddPress,
   currentStep = 1,
   totalSteps = 2,
+  variant = 'get-card',
 }: MoneyOnboardingCardProps) => {
-  const content =
-    STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ?? STEP_CONTENT[1];
+  const isLinkCard = variant === 'link-card' && currentStep === 2;
+  const content = isLinkCard
+    ? STEP_2_LINK_CARD
+    : (STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ??
+      STEP_CONTENT[1]);
   const handleCtaPress = onCtaPress ?? onAddPress ?? NOOP;
 
   return (
