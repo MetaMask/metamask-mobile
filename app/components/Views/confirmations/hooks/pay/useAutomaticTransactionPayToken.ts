@@ -4,12 +4,16 @@ import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { isHardwareAccount } from '../../../../../util/address';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import {
   getPostQuoteTransactionType,
+  hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
 import { useSelector } from 'react-redux';
@@ -78,6 +82,9 @@ export function useAutomaticTransactionPayToken({
   );
 
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
   );
@@ -95,6 +102,7 @@ export function useAutomaticTransactionPayToken({
     () =>
       getBestToken({
         isHardwareWallet,
+        isMoneyAccountWithdraw,
         isWithdraw,
         lastWithdrawToken,
         targetToken,
@@ -105,6 +113,7 @@ export function useAutomaticTransactionPayToken({
       }),
     [
       isHardwareWallet,
+      isMoneyAccountWithdraw,
       isWithdraw,
       lastWithdrawToken,
       payTokensFlags.minimumRequiredTokenBalance,
@@ -170,6 +179,7 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
+  isMoneyAccountWithdraw,
   isWithdraw,
   lastWithdrawToken,
   preferredToken,
@@ -179,6 +189,7 @@ function getBestToken({
   tokens,
 }: {
   isHardwareWallet: boolean;
+  isMoneyAccountWithdraw: boolean;
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
   preferredToken?: SetPayTokenRequest;
@@ -196,6 +207,20 @@ function getBestToken({
 
   if (isHardwareWallet) {
     return targetTokenFallback;
+  }
+
+  // Money account withdraws always default to mUSD (passed in via preferredToken),
+  // ignoring the user's last-used withdraw token.
+  if (isMoneyAccountWithdraw && preferredToken) {
+    const preferredTokenAvailable = tokens.some(
+      (token) =>
+        token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
+        token.chainId?.toLowerCase() === preferredToken.chainId.toLowerCase(),
+    );
+
+    if (preferredTokenAvailable) {
+      return preferredToken;
+    }
   }
 
   if (isWithdraw && lastWithdrawToken) {

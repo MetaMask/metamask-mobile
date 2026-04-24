@@ -590,6 +590,86 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
+  it('prefers preferred token over last used token for money account withdraw', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          balance: '1',
+          chainId: CHAIN_ID_2_MOCK,
+          symbol: 'USDC',
+        },
+        {
+          address: PREFERRED_TOKEN_ADDRESS_MOCK,
+          balance: '1',
+          chainId: PREFERRED_CHAIN_ID_MOCK,
+          symbol: 'mUSD',
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    jest.mocked(selectLastWithdrawTokenByType).mockReturnValue({
+      address: TOKEN_ADDRESS_2_MOCK as Hex,
+      chainId: CHAIN_ID_2_MOCK as Hex,
+    });
+
+    runHook({
+      preferredToken: {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
+        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+      },
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: PREFERRED_TOKEN_ADDRESS_MOCK,
+      chainId: PREFERRED_CHAIN_ID_MOCK,
+    });
+  });
+
+  it('falls back to last used token for money account withdraw when preferred token is unavailable', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          balance: '1',
+          chainId: CHAIN_ID_2_MOCK,
+          symbol: 'USDC',
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    jest.mocked(selectLastWithdrawTokenByType).mockReturnValue({
+      address: TOKEN_ADDRESS_2_MOCK as Hex,
+      chainId: CHAIN_ID_2_MOCK as Hex,
+    });
+
+    runHook({
+      preferredToken: {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
+        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+      },
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
+    });
+  });
+
   it('selects last used token for predict withdraw from nested transaction history', () => {
     const predictWithdrawStateMock = merge(
       {},
