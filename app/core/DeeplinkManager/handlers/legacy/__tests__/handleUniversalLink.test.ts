@@ -2070,13 +2070,12 @@ describe('handleUniversalLink', () => {
       };
       analytics.trackEvent = mockAnalytics.trackEvent;
 
-      mockCreateEventBuilder = jest.fn(
-        (_context: DeepLinkAnalyticsContext) =>
-          Promise.resolve({
-            addProperties: jest.fn().mockReturnThis(),
-            addSensitiveProperties: jest.fn().mockReturnThis(),
-            build: jest.fn().mockReturnValue({ eventName: 'DEEP_LINK_USED' }),
-          }),
+      mockCreateEventBuilder = jest.fn((_context: DeepLinkAnalyticsContext) =>
+        Promise.resolve({
+          addProperties: jest.fn().mockReturnThis(),
+          addSensitiveProperties: jest.fn().mockReturnThis(),
+          build: jest.fn().mockReturnValue({ eventName: 'DEEP_LINK_USED' }),
+        }),
       ) as typeof mockCreateEventBuilder;
       createDeepLinkUsedEventBuilder.mockImplementation(mockCreateEventBuilder);
     });
