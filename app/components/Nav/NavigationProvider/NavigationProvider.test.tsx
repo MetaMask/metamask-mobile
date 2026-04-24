@@ -3,7 +3,10 @@ import { render } from '@testing-library/react-native';
 import NavigationProvider from './NavigationProvider';
 import { useDispatch } from 'react-redux';
 import { View, Text } from 'react-native';
-import { onNavigationReady } from '../../../actions/navigation';
+import {
+  onNavigationReady,
+  setCurrentRoute,
+} from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
 import {
   NavigationContainerRef,
@@ -72,6 +75,26 @@ describe('NavigationProvider', () => {
     );
 
     expect(mockDispatch).toHaveBeenCalledWith(onNavigationReady());
+  });
+
+  it('seeds setCurrentRoute from onReady with the initial focused route', () => {
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    // The deeplink saga gates on `navigation.currentRoute`; it must be
+    // populated as soon as React Navigation is ready so cold-start
+    // deeplinks don't parse against an unmounted navigator.
+    const currentRouteCall = mockDispatch.mock.calls.find(
+      ([action]) =>
+        typeof action === 'object' &&
+        action !== null &&
+        action.type === setCurrentRoute('x').type,
+    );
+    expect(currentRouteCall).toBeDefined();
+    expect(currentRouteCall?.[0].payload.route).toEqual(expect.any(String));
   });
 
   it('sets navigation reference correctly', () => {
