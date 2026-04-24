@@ -21,6 +21,7 @@ interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
   positionSize: string;
   assetPrice: number;
+  /** Max USD that can collateralize a new position (mirrors AccountState.spendableBalance). */
   spendableBalance: number;
   marginRequired: string;
   existingPositionLeverage?: number;

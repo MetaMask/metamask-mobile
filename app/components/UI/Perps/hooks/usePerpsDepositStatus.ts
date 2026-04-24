@@ -36,7 +36,7 @@ export const usePerpsDepositStatus = () => {
 
   // Track if we're expecting a deposit
   const expectingDepositRef = useRef(false);
-  const prevAvailableBalanceRef = useRef<string>('0');
+  const prevSpendableBalanceRef = useRef<string>('0');
 
   // Get deposit state from controller
   const depositInProgress = useSelector(
@@ -79,7 +79,7 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.status === TransactionStatus.approved
       ) {
         expectingDepositRef.current = true;
-        prevAvailableBalanceRef.current = liveAccount?.spendableBalance || '0';
+        prevSpendableBalanceRef.current = liveAccount?.spendableBalance || '0';
 
         const processingTimeSeconds = isArbUSDCDeposit ? 0 : 60; // hardcoded to 1 minute to avoid estimation failures of multiple bridges
 
@@ -119,7 +119,7 @@ export const usePerpsDepositStatus = () => {
     const currentBalance = Number.parseFloat(
       liveAccount.spendableBalance || '0',
     );
-    const previousBalance = Number.parseFloat(prevAvailableBalanceRef.current);
+    const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
     // Check if balance increased
     if (currentBalance > previousBalance) {
       // Show success toast
@@ -131,7 +131,7 @@ export const usePerpsDepositStatus = () => {
 
       // Reset state
       expectingDepositRef.current = false;
-      prevAvailableBalanceRef.current = liveAccount.spendableBalance;
+      prevSpendableBalanceRef.current = liveAccount.spendableBalance;
     }
   }, [liveAccount, showToast, PerpsToastOptions.accountManagement.deposit]);
 

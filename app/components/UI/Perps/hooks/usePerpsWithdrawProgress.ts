@@ -16,7 +16,7 @@ export const usePerpsWithdrawProgress = () => {
 
   // Track if we're expecting a withdrawal
   const [isWithdrawInProgress, setIsWithdrawInProgress] = useState(false);
-  const prevAvailableBalanceRef = useRef<string>('0');
+  const prevWithdrawableBalanceRef = useRef<string>('0');
   const liveAccountRef = useRef(liveAccount);
 
   // Get withdrawal progress state from controller
@@ -35,7 +35,7 @@ export const usePerpsWithdrawProgress = () => {
     if (withdrawInProgress) {
       // Withdrawal started - set progress state and capture current balance
       setIsWithdrawInProgress(true);
-      prevAvailableBalanceRef.current =
+      prevWithdrawableBalanceRef.current =
         liveAccountRef.current?.withdrawableBalance || '0';
     } else {
       // Withdrawal completed or failed - clear progress state
@@ -50,13 +50,13 @@ export const usePerpsWithdrawProgress = () => {
     }
 
     const currentBalance = parseFloat(liveAccount.withdrawableBalance || '0');
-    const previousBalance = parseFloat(prevAvailableBalanceRef.current);
+    const previousBalance = parseFloat(prevWithdrawableBalanceRef.current);
 
     // Check if balance decreased (funds withdrawn)
     if (currentBalance < previousBalance) {
       // Withdrawal completed successfully
       setIsWithdrawInProgress(false);
-      prevAvailableBalanceRef.current = liveAccount.withdrawableBalance;
+      prevWithdrawableBalanceRef.current = liveAccount.withdrawableBalance;
     }
   }, [isWithdrawInProgress, liveAccount]);
 

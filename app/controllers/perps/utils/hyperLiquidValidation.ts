@@ -288,7 +288,7 @@ export function validateAssetSupport(
  * Validate balance against withdrawal amount.
  *
  * @param withdrawAmount - The amount to withdraw
- * @param withdrawableBalance - The available balance
+ * @param withdrawableBalance - Max USD that can leave the venue right now
  * @param debugLogger - Optional debug logger for detailed logging
  * @returns Validation result with isValid flag and optional error message
  */

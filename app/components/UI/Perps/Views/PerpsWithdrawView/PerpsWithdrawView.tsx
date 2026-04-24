@@ -237,7 +237,7 @@ const PerpsWithdrawView: React.FC = () => {
       DevLogger.log(
         `Percentage selected: ${
           percentage * 100
-        }%, Amount: ${formattedAmount}, Available Perps Balance: ${withdrawableBalance}`,
+        }%, Amount: ${formattedAmount}, Withdrawable Balance: ${withdrawableBalance}`,
       );
     },
     [withdrawableBalance, hasPositiveBalance],
