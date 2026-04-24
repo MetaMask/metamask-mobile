@@ -13,8 +13,7 @@ import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { useBrazeBanner } from './useBrazeBanner';
 import { isAllowedBrazeDeeplink } from './isAllowedBrazeDeeplink';
 import BrazeBannerCard from './BrazeBannerCard';
-
-const BANNER_HEIGHT = 96;
+import { BANNER_HEIGHT } from './BrazeBanner.constants';
 
 interface BrazeBannerProps {
   placementId: string;
@@ -86,7 +85,6 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
           onPress={handlePress}
         >
           <BrazeBannerCard
-            height={BANNER_HEIGHT}
             title={title}
             body={body}
             imageUrl={imageUrl}
