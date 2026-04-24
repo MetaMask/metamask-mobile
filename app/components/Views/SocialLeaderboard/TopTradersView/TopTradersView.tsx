@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   FlatList,
   Pressable,
@@ -40,6 +46,11 @@ import {
   MAINNET_DISPLAY_NAME,
   SOLANA_DISPLAY_NAME,
 } from '../../../../core/Engine/constants';
+import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
+import TopTradersNotificationsSetupBottomSheet, {
+  type TopTradersNotificationsSetupBottomSheetRef,
+} from '../TraderProfileView/components/TopTradersNotificationsSetupBottomSheet';
+import { useFirstFollowSetupPrompt } from '../hooks/useFirstFollowSetupPrompt';
 
 const SKELETON_COUNT = 5;
 const SKELETON_KEYS = Array.from(
@@ -137,6 +148,22 @@ const TopTradersView = () => {
   const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
     limit: 250,
     enabled: isEnabled,
+  });
+
+  const {
+    preferences,
+    isLoading: isLoadingPreferences,
+    setEnabled,
+    setTxAmountLimit,
+  } = useNotificationPreferences();
+
+  const setupSheetRef =
+    useRef<TopTradersNotificationsSetupBottomSheetRef>(null);
+
+  useFirstFollowSetupPrompt({
+    sheetRef: setupSheetRef,
+    preferences,
+    isLoadingPreferences,
   });
 
   useEffect(() => {
@@ -280,6 +307,13 @@ const TopTradersView = () => {
           }
         />
       )}
+
+      <TopTradersNotificationsSetupBottomSheet
+        ref={setupSheetRef}
+        preferences={preferences}
+        setEnabled={setEnabled}
+        setTxAmountLimit={setTxAmountLimit}
+      />
     </SafeAreaView>
   );
 };

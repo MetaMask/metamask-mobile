@@ -79,6 +79,26 @@ jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
   useTopTraders: () => mockUseTopTradersHook(),
 }));
 
+jest.mock('../NotificationPreferencesView/hooks', () => ({
+  useNotificationPreferences: () => ({
+    preferences: {
+      enabled: false,
+      txAmountLimit: 500,
+      mutedTraderProfileIds: [],
+    },
+    isLoading: false,
+    error: null,
+    setEnabled: jest.fn(),
+    setTxAmountLimit: jest.fn(),
+    toggleTraderNotification: jest.fn(),
+    isTraderNotificationEnabled: () => true,
+  }),
+}));
+
+jest.mock('../hooks/useFirstFollowSetupPrompt', () => ({
+  useFirstFollowSetupPrompt: jest.fn(),
+}));
+
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();

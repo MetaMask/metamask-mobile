@@ -46,6 +46,7 @@ import TraderNotificationsBottomSheet, {
 import TopTradersNotificationsSetupBottomSheet, {
   type TopTradersNotificationsSetupBottomSheetRef,
 } from './components/TopTradersNotificationsSetupBottomSheet';
+import { useFirstFollowSetupPrompt } from '../hooks/useFirstFollowSetupPrompt';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -114,6 +115,12 @@ const TraderProfileView = () => {
   const notificationsSheetRef = useRef<TraderNotificationsBottomSheetRef>(null);
   const setupSheetRef =
     useRef<TopTradersNotificationsSetupBottomSheetRef>(null);
+
+  useFirstFollowSetupPrompt({
+    sheetRef: setupSheetRef,
+    preferences,
+    isLoadingPreferences,
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
