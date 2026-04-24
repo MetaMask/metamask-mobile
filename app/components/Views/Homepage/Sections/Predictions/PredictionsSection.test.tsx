@@ -10,7 +10,7 @@ const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
 
 const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
-  { key: string; value: string }[] | undefined,
+  { key: string; value: string; key_value_pair?: string }[] | undefined,
   []
 >(() => undefined);
 
@@ -936,7 +936,11 @@ describe('PredictionsSection', () => {
 
     it('passes transactionActiveAbTests when trending-only and experiment is active', () => {
       const abTests = [
-        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
       ];
       mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
       mockUsePredictMarketsForHomepage.mockReturnValue({

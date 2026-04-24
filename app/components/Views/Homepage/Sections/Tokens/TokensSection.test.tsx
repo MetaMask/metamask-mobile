@@ -108,7 +108,7 @@ jest.mock(
 );
 
 const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
-  { key: string; value: string }[] | undefined,
+  { key: string; value: string; key_value_pair?: string }[] | undefined,
   []
 >(() => undefined);
 
@@ -165,7 +165,11 @@ jest.mock(
         transactionActiveAbTests,
       }: {
         token: { assetId: string; name: string };
-        transactionActiveAbTests?: { key: string; value: string }[];
+        transactionActiveAbTests?: {
+          key: string;
+          value: string;
+          key_value_pair?: string;
+        }[];
       }) =>
         ReactActual.createElement(
           TouchableOpacity,
@@ -1058,7 +1062,11 @@ describe('TokensSection', () => {
         fetch: mockFetchTrendingTokens,
       });
       mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue([
-        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
       ]);
 
       renderWithProvider(

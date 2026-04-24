@@ -8,7 +8,7 @@
 - [x] **Phase 2** — Implement `useHeadlessBuy` v0 read-only facade (tokens, providers, payment methods, `getQuotes`) and wire playground inputs/quotes list
 - [x] **Phase 3** — Add headless session registry + `startHeadlessBuy` API that navigates into existing BuildQuote with `headlessSessionId`
 - [x] **Phase 3.1** — Move pre-seed out of `useHeadlessBuy` — keep params on the session only and let the destination resolve them from the catalog
-- [ ] **Phase 4** — Extract `handleWidgetProviderContinue` / `handleNativeProviderContinue` into `useContinueWithQuote(quote, ctx)` so both BuildQuote and headless callers can reuse it
+- [x] **Phase 4** — Extract `handleWidgetProviderContinue` / `handleNativeProviderContinue` into `useContinueWithQuote(quote, ctx)` so both BuildQuote and headless callers can reuse it
 - [ ] **Phase 4b** — Introduce Headless Host screen as stack base for the headless flow + parameterize `useTransakRouting` reset helpers with `baseRoute`
 - [ ] **Phase 5** — Skip BuildQuote in headless mode — Headless Host fetches the quote, picks one, calls `continueWithQuote`, and re-orchestrates after auth loops return to it
 - [ ] **Phase 5b** — Quote-first headless start path — `startHeadlessBuy({ quote })` skips quoting entirely and routes straight through `useContinueWithQuote`

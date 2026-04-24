@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
-import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import type { Hex } from '@metamask/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
@@ -38,7 +38,6 @@ import { calcTokenValue } from '../../../../../../util/transactions';
 
 export interface UseQuickBuyBottomSheetResult {
   // refs
-  bottomSheetRef: React.RefObject<BottomSheetRef>;
   hiddenInputRef: React.RefObject<TextInput>;
   // setup
   destToken: BridgeToken | undefined;
@@ -74,7 +73,7 @@ export interface UseQuickBuyBottomSheetResult {
   hasError: boolean;
   hasValidAmount: boolean;
   isConfirmDisabled: boolean;
-  isConfirmLoading: boolean;
+  confirmButtonState: 'idle' | 'loading' | 'success';
   getButtonLabel: () => string;
   // handlers
   handleClose: () => void;
@@ -88,12 +87,12 @@ export function useQuickBuyBottomSheet(
   position: Position,
   onClose: () => void,
 ): UseQuickBuyBottomSheetResult {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
   const [usdAmount, setUsdAmount] = useState('');
+  const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
@@ -215,11 +214,6 @@ export function useQuickBuyBottomSheet(
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
 
-  // Open bottom sheet on mount
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-  }, []);
-
   // Cleanup bridge state on unmount
   useEffect(
     () => () => {
@@ -258,11 +252,14 @@ export function useQuickBuyBottomSheet(
     try {
       dispatch(setIsSubmittingTx(true));
       await submitBridgeTx({ quoteResponse: activeQuote });
+      setTxPhase('success');
+      notificationAsync(NotificationFeedbackType.Success);
+      await new Promise((resolve) => setTimeout(resolve, 800));
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
-      // Keep sheet open on error
+      notificationAsync(NotificationFeedbackType.Error);
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
@@ -353,23 +350,18 @@ export function useQuickBuyBottomSheet(
     isPendingQuoteRefresh ||
     (isQuoteLoading && !activeQuote && hasCompleteQuoteInputs);
 
+  const confirmButtonState: 'idle' | 'loading' | 'success' =
+    txPhase === 'success' ? 'success' : isConfirmLoading ? 'loading' : 'idle';
+
   const getButtonLabel = useCallback(() => {
-    if (isSetupLoading) return strings('social_leaderboard.quick_buy.loading');
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (hasSufficientGas === false) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     if (hasError) return strings('social_leaderboard.quick_buy.unavailable');
     return strings('social_leaderboard.trader_position.buy');
-  }, [
-    isSetupLoading,
-    hasInsufficientBalance,
-    hasSufficientGas,
-    isSubmittingTx,
-    hasError,
-  ]);
+  }, [hasInsufficientBalance, hasSufficientGas, isSubmittingTx, hasError]);
 
   return {
-    bottomSheetRef,
     hiddenInputRef,
     destToken,
     isSetupLoading,
@@ -397,7 +389,7 @@ export function useQuickBuyBottomSheet(
     hasError,
     hasValidAmount,
     isConfirmDisabled,
-    isConfirmLoading,
+    confirmButtonState,
     getButtonLabel,
     handleClose,
     handlePresetPress,

@@ -231,7 +231,7 @@ describe('TokenWarningModal', () => {
       });
     });
 
-    it('calls confirmBridge when activeQuote has no priceImpact', async () => {
+    it('navigates to MissingPriceModal when activeQuote has no priceImpact', async () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
           quote: { priceData: { priceImpact: undefined } },
@@ -242,8 +242,35 @@ describe('TokenWarningModal', () => {
       fireEvent.press(getByTestId('footer-secondary-button'));
 
       await waitFor(() => {
-        expect(mockConfirmBridge).toHaveBeenCalledTimes(1);
+        expect(mockReplace).toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+          {
+            location: MetaMetricsSwapsEventSource.MainView,
+          },
+        );
       });
+      expect(mockConfirmBridge).not.toHaveBeenCalled();
+    });
+
+    it('navigates to MissingPriceModal when price data is unavailable', async () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        activeQuote: {
+          quote: { priceData: undefined },
+        },
+      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+
+      const { getByTestId } = renderModal();
+      fireEvent.press(getByTestId('footer-secondary-button'));
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+          {
+            location: MetaMetricsSwapsEventSource.MainView,
+          },
+        );
+      });
+      expect(mockConfirmBridge).not.toHaveBeenCalled();
     });
 
     it('navigates to PriceImpactModal when price impact meets error threshold', async () => {
