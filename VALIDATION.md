@@ -56,6 +56,7 @@ Note on dev2 ledger drift: `userSetAbstraction` flipping a Unified account to St
 - **Portfolio margin mode** (pre-alpha): no fixture available; behaviour expected to match Unified for borrowable-asset accounts.
 - **DEX-abstraction mode** (deprecated by HL): out of scope.
 - **Open positions on Standard mode**: would require opening a position after the flip. Not exercised — contract shape is mode-agnostic per our refactor, and the position-open path is covered separately in Trading (Unified with HIP-3 position).
+- **Cold-start inflation window for Standard-mode users**: the mode cache starts empty, and `hyperLiquidModeFoldsSpot(null)` intentionally returns `true` (Unified default — see JSDoc on the helper). For Standard-mode users on a fresh app launch, the _first_ spot WS tick can surface a spot-folded `spendableBalance` / `withdrawableBalance` until `userAbstraction` REST completes (typically sub-second). `getAccountState` (REST-driven) is unaffected because it awaits `userAbstraction` in `Promise.allSettled`. Explicit trade-off: under-reporting Unified on transient endpoint failure was judged a worse trust break than a brief over-report on the minority Standard population. HL rejects bad submits cleanly; no data-loss risk. Sentry logging now surfaces sustained `userAbstraction` failures so ops can track the rate.
 
 ### Standard-mode correctness — fixed
 

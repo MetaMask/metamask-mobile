@@ -1148,16 +1148,18 @@ export class HyperLiquidSubscriptionService {
       } catch (error) {
         // Non-fatal — preserve the last known mode for this user. Leave
         // timestamp at its previous value so a genuine retry on the next
-        // WS tick is allowed (no forward ratchet on slow failures).
-        this.#deps.debugLogger.log(
-          'HyperLiquidSubscriptionService: userAbstraction WS refresh failed; keeping last known mode',
-          {
+        // WS tick is allowed (no forward ratchet on slow failures). Route
+        // through the shared Sentry helper so repeated failures become
+        // visible on the perps ops dashboard (consistent with other async
+        // boundary errors in this file, e.g. #refreshSpotState).
+        this.#logErrorUnlessClearing(
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.refreshAbstractionModeThrottled',
+          ),
+          this.#getErrorContext('refreshAbstractionModeThrottled', {
             user: normalizedUser,
-            error: ensureError(
-              error,
-              'HyperLiquidSubscriptionService.refreshAbstractionModeThrottled',
-            ).message,
-          },
+          }),
         );
       } finally {
         this.#abstractionModeInflight = null;
