@@ -7,6 +7,68 @@ import { strings } from '../../../../../locales/i18n';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
+const createDefaultRouteParams = () => ({
+  address: '0x1234567890abcdef',
+  chainId: '0x1',
+  symbol: 'TEST',
+  decimals: 18,
+  name: 'Test Token',
+  isNative: false,
+  securityData: {
+    resultType: 'Verified',
+    maliciousScore: '0',
+    features: [
+      {
+        featureId: 'VERIFIED_CONTRACT',
+        type: 'Info',
+        description: 'Contract is verified',
+      },
+      {
+        featureId: 'HIGH_REPUTATION_TOKEN',
+        type: 'Benign',
+        description: 'Token has high reputation',
+      },
+    ],
+    fees: {
+      buy: 1,
+      sell: 2,
+      transfer: 0,
+      transferFeeMaxAmount: null,
+    },
+    financialStats: {
+      supply: 1000000000000000000000000,
+      holdersCount: 5000,
+      topHolders: [
+        {
+          label: 'Holder 1',
+          name: null,
+          address: '0xholder1',
+          holdingPercentage: 15,
+        },
+        {
+          label: 'Holder 2',
+          name: null,
+          address: '0xholder2',
+          holdingPercentage: 10,
+        },
+      ],
+      tradeVolume24h: 1000000,
+      lockedLiquidityPct: 80,
+      markets: [],
+    },
+    metadata: {
+      externalLinks: {
+        homepage: 'https://example.com',
+        twitterPage: 'testtoken',
+        telegramChannelId: 'testtoken',
+      },
+    },
+    created: '2023-01-01T00:00:00Z',
+  },
+});
+
+let mockRouteParams = createDefaultRouteParams();
+
 jest.mock('react-native', () => {
   const actual = jest.requireActual('react-native');
   return {
@@ -25,65 +87,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
   }),
   useRoute: () => ({
-    params: {
-      address: '0x1234567890abcdef',
-      chainId: '0x1',
-      symbol: 'TEST',
-      decimals: 18,
-      name: 'Test Token',
-      isNative: false,
-      securityData: {
-        resultType: 'Verified',
-        maliciousScore: '0',
-        features: [
-          {
-            featureId: 'VERIFIED_CONTRACT',
-            type: 'Info',
-            description: 'Contract is verified',
-          },
-          {
-            featureId: 'HIGH_REPUTATION_TOKEN',
-            type: 'Benign',
-            description: 'Token has high reputation',
-          },
-        ],
-        fees: {
-          buy: 1,
-          sell: 2,
-          transfer: 0,
-          transferFeeMaxAmount: null,
-        },
-        financialStats: {
-          supply: 1000000000000000000000000,
-          holdersCount: 5000,
-          topHolders: [
-            {
-              label: 'Holder 1',
-              name: null,
-              address: '0xholder1',
-              holdingPercentage: 15,
-            },
-            {
-              label: 'Holder 2',
-              name: null,
-              address: '0xholder2',
-              holdingPercentage: 10,
-            },
-          ],
-          tradeVolume24h: 1000000,
-          lockedLiquidityPct: 80,
-          markets: [],
-        },
-        metadata: {
-          externalLinks: {
-            homepage: 'https://example.com',
-            twitterPage: 'testtoken',
-            telegramChannelId: 'testtoken',
-          },
-        },
-        created: '2023-01-01T00:00:00Z',
-      },
-    },
+    params: mockRouteParams,
   }),
 }));
 
@@ -109,14 +113,23 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/useBlockExplorer', () => ({
-  __esModule: true,
-  default: () => ({
-    getBlockExplorerTokenUrl: (address: string) =>
-      `https://etherscan.io/address/${address}`,
-    getBlockExplorerName: () => 'Etherscan',
-  }),
-}));
+jest.mock('../../../hooks/useBlockExplorer', () => {
+  const mockGetBlockExplorerTokenUrl = jest.fn(
+    (address: string) => `https://etherscan.io/address/${address}`,
+  );
+  return {
+    __esModule: true,
+    default: () => ({
+      getBlockExplorerTokenUrl: mockGetBlockExplorerTokenUrl,
+      getBlockExplorerName: () => 'Etherscan',
+    }),
+    mockGetBlockExplorerTokenUrl,
+  };
+});
+
+const { mockGetBlockExplorerTokenUrl } = jest.requireMock(
+  '../../../hooks/useBlockExplorer',
+) as { mockGetBlockExplorerTokenUrl: jest.Mock };
 
 jest.mock('../../TokenDetails/components/TokenDetailsStickyFooter', () => ({
   __esModule: true,
@@ -134,6 +147,7 @@ jest.mock('../../TokenDetails/hooks/useTokenActions', () => ({
 
 describe('SecurityTrustScreen', () => {
   beforeEach(() => {
+    mockRouteParams = createDefaultRouteParams();
     jest.clearAllMocks();
   });
 
@@ -256,5 +270,28 @@ describe('SecurityTrustScreen', () => {
 
     expect(getByText('Published contract')).toBeTruthy();
     expect(getByText('Established reputation')).toBeTruthy();
+  });
+
+  it('passes EVM token address unchanged to getBlockExplorerTokenUrl', () => {
+    render(<SecurityTrustScreen />);
+
+    expect(mockGetBlockExplorerTokenUrl).toHaveBeenCalledWith(
+      '0x1234567890abcdef',
+      '0x1',
+    );
+  });
+
+  it('extracts asset reference from Solana CAIP asset type for block explorer URL', () => {
+    const solanaMint = 'USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB';
+    const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    mockRouteParams.address = `${solanaChainId}/token:${solanaMint}`;
+    mockRouteParams.chainId = solanaChainId;
+
+    render(<SecurityTrustScreen />);
+
+    expect(mockGetBlockExplorerTokenUrl).toHaveBeenCalledWith(
+      solanaMint,
+      solanaChainId,
+    );
   });
 });

@@ -317,6 +317,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                 <>
                   <Box twClassName="p-4">
                     <Pressable
+                      testID="ondo-campaign-details-stats-pressable"
                       onPress={() =>
                         navigation.navigate(
                           Routes.REWARDS_ONDO_CAMPAIGN_STATS,
@@ -352,7 +353,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                         hasError: hasPortfolioError,
                         refetch: refetchPortfolio,
                       }}
-                      showHeader={false}
                       tierMinDeposit={tierMinDeposit}
                       isIneligible={notEligibleForCampaign}
                     />

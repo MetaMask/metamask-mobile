@@ -124,7 +124,6 @@ interface CampaignStatsSummaryProps {
   portfolioSummary: OndoGmPortfolioSummaryDto | null;
   leaderboard: DataSourceState;
   portfolio: DataSourceState;
-  showHeader?: boolean;
   /** Minimum deposit (USD) for the user's projected tier — enables the "Qualify for this rank" card */
   tierMinDeposit?: number | null;
   /** User joined too late to ever accumulate enough qualifying days */
@@ -136,7 +135,6 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
   portfolioSummary,
   leaderboard,
   portfolio,
-  showHeader = true,
   tierMinDeposit,
   isIneligible = false,
 }) => {
@@ -177,12 +175,6 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
 
   return (
     <Box twClassName="gap-3" testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER}>
-      {showHeader && (
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.ondo_campaign_stats.title')}
-        </Text>
-      )}
-
       {/* Rank | Tier */}
       <Box flexDirection={BoxFlexDirection.Row}>
         <StatCell

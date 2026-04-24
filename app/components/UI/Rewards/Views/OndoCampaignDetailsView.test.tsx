@@ -1099,8 +1099,8 @@ describe('OndoCampaignDetailsView', () => {
         hasFetched: true,
         refetch: jest.fn(),
       });
-      const { getByText } = render(<OndoCampaignDetailsView />);
-      fireEvent.press(getByText('rewards.ondo_campaign_stats.title'));
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      fireEvent.press(getByTestId('ondo-campaign-details-stats-pressable'));
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARDS_ONDO_CAMPAIGN_STATS,
         { campaignId: 'campaign-1' },

@@ -276,6 +276,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           return;
         }
         handlePerpsAction?.('long');
+      }).finally(() => {
+        // Release the TokenDetailsActions nav lock whenever gate() settles
+        // without navigating (compliance block modal or geo-block tooltip).
+        // Safe no-op if handlePerpsAction navigated since the focus/state
+        // listeners also clear the lock.
+        resetNavigationLockRef.current?.();
       }),
     [gate, isEligible, track, handlePerpsAction],
   );
@@ -294,6 +300,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           return;
         }
         handlePerpsAction?.('short');
+      }).finally(() => {
+        resetNavigationLockRef.current?.();
       }),
     [gate, isEligible, track, handlePerpsAction],
   );
@@ -545,25 +553,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       assetIdentifier: marketInsightsCaip19Id,
       tokenImageUrl: token.image || token.logo,
       pricePercentChange: percentChange,
-      // Pass token data needed for swap navigation
-      tokenAddress: token.address,
-      tokenDecimals: token.decimals,
-      tokenName: token.name,
-      tokenChainId: token.chainId,
+      token,
     });
   }, [
     navigation,
     trackEvent,
     createEventBuilder,
-    token.symbol,
+    token,
     marketInsightsCaip19Id,
     marketInsightsReport,
-    token.image,
-    token.logo,
-    token.address,
-    token.decimals,
-    token.name,
-    token.chainId,
     priceDiff,
     comparePrice,
   ]);

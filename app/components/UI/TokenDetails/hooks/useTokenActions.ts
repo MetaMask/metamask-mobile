@@ -105,6 +105,8 @@ export interface UseTokenActionsParams {
   networkName?: string;
   /** Optional up-to-date token balance from Token Details balance hook */
   currentTokenBalance?: string;
+  /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
+  sourcePage?: string;
 }
 
 /**
@@ -115,6 +117,7 @@ export const useTokenActions = ({
   token,
   networkName,
   currentTokenBalance,
+  sourcePage = 'MainView',
 }: UseTokenActionsParams): UseTokenActionsResult => {
   const navigation = useNavigation();
 
@@ -150,7 +153,7 @@ export const useTokenActions = ({
     'source' in token && token.source === TokenDetailsSource.Swap;
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenView,
-    sourcePage: 'MainView',
+    sourcePage,
     sourceToken,
     destToken,
     abTestContext: {},

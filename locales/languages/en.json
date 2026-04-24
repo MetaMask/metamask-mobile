@@ -2238,6 +2238,7 @@
       "corners": "Corners"
     },
     "sell_position": "Sell position",
+    "odds": "Odds",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
@@ -2399,6 +2400,8 @@
       "view": "View",
       "yes_buy": "Yes, buy",
       "yes_sell": "Yes, sell",
+      "confirm": "Confirm",
+      "cashout_failed": "Failed to cash out",
       "predict_balance_first": "Your Predict balance will be used first"
     },
     "withdraw": {
@@ -6233,6 +6236,7 @@
         }
       },
       "percentage_bonus": "{{percentage}}% bonus",
+      "claim_percentage_bonus": "Claim {{percentage}}% bonus",
       "rate": "Rate"
     },
     "bonus_claim": {
@@ -6982,6 +6986,19 @@
     "ios_need_update_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
     "ios_need_update_description2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We also advise backing up your Secret Recovery Phrase if you are proceeding without updating iOS.",
     "ios_need_update_button": "Continue",
+    "ios_need_update_reminder_title": "iOS update required",
+    "ios_need_update_reminder_description": "MetaMask Google Sign-In will soon require ",
+    "ios_need_update_reminder_description_version": "iOS 17.4 or later",
+    "ios_need_update_reminder_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
+    "ios_need_update_reminder_description_2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We strongly recommend backing up your Secret Recovery Phrase.",
+    "ios_need_update_reminder_button": "Got it",
+    "ios_google_login_unsupported_error_title": "Google Sign-In no longer supported on this iOS version",
+    "ios_google_login_unsupported_error_description": "MetaMask Google Sign-In now requires ",
+    "ios_google_login_unsupported_error_description_2": ". Your current session is not affected, but if you are signed out, you will not be able to sign back in with Google on this device.",
+    "ios_google_login_unsupported_error_description_3": "To avoid losing access to your wallet:",
+    "ios_google_login_unsupported_error_description_4": "Update your iPhone to ",
+    "ios_google_login_unsupported_error_description_5": "Or back up your Secret Recovery Phrase so you can restore your wallet anytime",
+    "ios_google_login_unsupported_error_button": "Got it",
     "ios_google_login_unsupported_blocking_title": "Update iOS to create a wallet with Google",
     "ios_google_login_unsupported_blocking_description": "MetaMask's Google Sign-In requires iOS 17.4 or later. Update your iPhone to continue creating a wallet with Google.",
     "ios_google_login_unsupported_blocking_description_2": "Alternatively, you can create a wallet using a Secret Recovery Phrase instead.",
@@ -7902,6 +7919,7 @@
       "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
       "intro_confirm_geo_loading": "Checking region...",
       "step_confirm": "Next",
+      "step_finish": "Let's go",
       "step_skip": "Skip",
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_input_error": "Invalid referral code",
@@ -8002,7 +8020,7 @@
       },
       "info": {
         "title": "Share your code with friends",
-        "description": "Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm."
+        "description": "Referral bonuses vary by campaign. Check each one for details."
       },
       "referral_code_copied": "Referral code copied to clipboard"
     },
@@ -8116,7 +8134,7 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize Pool",
+      "title": "Prize pool",
       "current_label": "Current",
       "next_label": "Next",
       "volume_subtext": "{{current}} of {{target}} volume",
@@ -8178,7 +8196,7 @@
       "stats_error_description": "We had a problem loading your stats. Please try again later.",
       "retry": "Retry",
       "label_return": "Return",
-      "label_market_value": "Market Value",
+      "label_market_value": "Market value",
       "label_rank": "Rank",
       "label_tier": "Tier",
       "label_your_rank": "Your rank",

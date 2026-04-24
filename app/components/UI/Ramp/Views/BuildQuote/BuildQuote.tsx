@@ -1,3 +1,23 @@
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import {
+  normalizeProviderCode,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
+import type { CaipChainId } from '@metamask/utils';
+import {
+  useFocusEffect,
+  useIsFocused,
+  useNavigation,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -5,15 +25,47 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, Animated, View } from 'react-native';
-import {
-  useNavigation,
-  useFocusEffect,
-  useIsFocused,
-} from '@react-navigation/native';
-import type { CaipChainId } from '@metamask/utils';
+import { Animated, Linking, View } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import Routes from '../../../../../constants/navigation/Routes';
+import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../../reducers/fiatOrders';
+import Device from '../../../../../util/device';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { useFormatters } from '../../../../hooks/useFormatters';
+import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import PaymentMethodPill from '../../components/PaymentMethodPill';
+import QuickAmounts from '../../components/QuickAmounts';
+import TruncatedError from '../../components/TruncatedError';
+import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
+import { useProviderLimits } from '../../hooks/useProviderLimits';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
+import { useRampsController } from '../../hooks/useRampsController';
+import { useRampsQuotes } from '../../hooks/useRampsQuotes';
+import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
+import { useTransakController } from '../../hooks/useTransakController';
+import { useTransakRouting } from '../../hooks/useTransakRouting';
+import {
+  getQuoteBuyUserAgent,
+  getQuoteProviderName,
+  isCustomAction,
+  isNativeProvider,
+} from '../../types';
 import {
   buildQuoteWithRedirectUrl,
   getCheckoutContext,
@@ -21,72 +73,19 @@ import {
 } from '../../utils/buildQuoteWithRedirectUrl';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
+import { normalizeAssetIdForApi } from '../../utils/normalizeAssetIdForApi';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
-import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
-import { useProviderLimits } from '../../hooks/useProviderLimits';
-import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
-import PaymentMethodPill from '../../components/PaymentMethodPill';
-import QuickAmounts from '../../components/QuickAmounts';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  IconName,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './BuildQuote.styles';
-import { getFontSizeForInputLength } from './getFontSizeForInputLength';
-import { useFormatters } from '../../../../hooks/useFormatters';
-import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import {
-  RampsOrderStatus,
-  normalizeProviderCode,
-} from '@metamask/ramps-controller';
-import { useRampsController } from '../../hooks/useRampsController';
-import { useRampsQuotes } from '../../hooks/useRampsQuotes';
-import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
-import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
-import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
-import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
-import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
-import {
-  isNativeProvider,
-  isCustomAction,
-  getQuoteProviderName,
-  getQuoteBuyUserAgent,
-} from '../../types';
-import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
+import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
+import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import { useTransakController } from '../../hooks/useTransakController';
-import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2VerifyIdentityNavDetails } from '../NativeFlow/VerifyIdentity';
-import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useSelector } from 'react-redux';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
-import { selectProviderAutoSelected } from '../../../../../selectors/rampsController';
-import Device from '../../../../../util/device';
-import TruncatedError from '../../components/TruncatedError';
-import { PROVIDER_LINKS } from '../../Aggregator/types';
+import styleSheet from './BuildQuote.styles';
+import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
+import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -189,7 +188,6 @@ function BuildQuote() {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const providerAutoSelected = useSelector(selectProviderAutoSelected);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -288,17 +286,16 @@ function BuildQuote() {
     setSelectedProvider,
   ]);
 
-  // When the selected token is unavailable for the current provider:
-  // - If the provider was auto-selected (soft), silently switch to the best
-  //   provider that supports the token.
-  // - Otherwise, show the "Token Not Available" modal so the user can decide.
+  // When the selected token is unavailable for the current provider, silently
+  // switch to any other provider that supports the token. Only fall through to
+  // the "Token Not Available" modal when no provider supports the token.
   useEffect(() => {
     if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
       lastShownUnavailableKeyRef.current = '';
       return;
     }
 
-    if (providerAutoSelected && effectiveAssetId) {
+    if (effectiveAssetId) {
       const supportingProvider = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
@@ -332,7 +329,6 @@ function BuildQuote() {
     navigation,
     selectedProvider?.id,
     focusTrigger,
-    providerAutoSelected,
     providers,
     setSelectedProvider,
   ]);
@@ -436,7 +432,7 @@ function BuildQuote() {
       selectedPaymentMethod &&
       selectedProvider
         ? {
-            assetId: selectedToken.assetId,
+            assetId: normalizeAssetIdForApi(selectedToken.assetId),
             amount: debouncedPollingAmount,
             walletAddress,
             redirectUrl: getRampCallbackBaseUrl(),

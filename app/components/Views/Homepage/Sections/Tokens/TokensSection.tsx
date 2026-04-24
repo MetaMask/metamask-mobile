@@ -269,7 +269,6 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                     privacyMode={privacyMode}
                     showPercentageChange
                     shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-                    isVisible
                   />
                 ))
               )}
