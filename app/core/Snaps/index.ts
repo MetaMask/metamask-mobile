@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import SnapBridge from './SnapBridge';
 import {
   ExcludedSnapPermissions,

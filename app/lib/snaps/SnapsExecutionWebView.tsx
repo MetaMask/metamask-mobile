@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { Component } from 'react';
 import { View } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
