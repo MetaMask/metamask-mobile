@@ -66,6 +66,7 @@ export const usePredictBuyActions = ({
   const { activeOrder, clearActiveOrderTransactionId } =
     usePredictActiveOrder();
   const { placeOrder, initPayWithAnyToken } = usePredictTrading();
+  const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
   const payWithAnyTokenEnabled = useSelector(

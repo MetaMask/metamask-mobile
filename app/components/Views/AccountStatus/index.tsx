@@ -8,7 +8,6 @@ import {
   useNavigation,
   useRoute,
   RouteProp,
-  useRoute,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { AccountStatusSelectorIDs } from './AccountStatus.testIds';

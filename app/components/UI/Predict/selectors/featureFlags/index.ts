@@ -183,24 +183,6 @@ export const selectPredictBottomSheetEnabledFlag = createSelector(
 );
 
 /**
- * Selector for Predict CLOB v2 enablement
- *
- * Uses version-gated feature flag `predictClobV2` from remote config.
- * Falls back to `false` if remote flag is unavailable or invalid.
- *
- * @returns {boolean} True if CLOB v2 is enabled and version requirement is met
- */
-export const selectPredictClobV2EnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    validatedVersionGatedFeatureFlag(
-      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-        remoteFeatureFlags?.predictClobV2,
-      ),
-    ) ?? false,
-);
-
-/**
  * Selector for Predict CLOB v2 legacy host override.
  *
  * When `predictClobV2` is enabled and `predictClobV2UseLegacyClobHost` is also enabled,
@@ -210,20 +192,6 @@ export const selectPredictClobV2EnabledFlag = createSelector(
  * @returns {string | undefined} The legacy v2 CLOB host URL, or undefined.
  */
 export const selectPredictClobV2ClobBaseUrlFlag = createSelector(
-  selectPredictClobV2EnabledFlag,
-  selectRemoteFeatureFlags,
-  (predictClobV2Enabled, remoteFeatureFlags) => {
-    if (!predictClobV2Enabled) {
-      return undefined;
-    }
-
-    const useLegacy =
-      validatedVersionGatedFeatureFlag(
-        unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-          remoteFeatureFlags?.predictClobV2UseLegacyClobHost,
-        ),
-      ) ?? false;
-
-    return useLegacy ? LEGACY_V2_CLOB_BASE_URL : undefined;
-  },
+  selectPredictFeatureFlags,
+  (flags) => flags.predictClobV2ClobBaseUrl,
 );
