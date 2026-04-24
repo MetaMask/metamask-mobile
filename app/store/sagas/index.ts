@@ -1,4 +1,14 @@
-import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
+import {
+  fork,
+  take,
+  cancel,
+  put,
+  call,
+  all,
+  select,
+  race,
+  delay,
+} from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -7,7 +17,11 @@ import {
   LoginAction,
   CheckForDeeplinkAction,
 } from '../../actions/user';
-import { NavigationActionType } from '../../actions/navigation';
+import {
+  NavigationActionType,
+  SetCurrentRouteAction,
+} from '../../actions/navigation';
+import { selectCurrentRoute } from '../../reducers/navigation/selectors';
 import { EventChannel, Task, eventChannel } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
@@ -37,6 +51,70 @@ import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAna
 import { providerErrors } from '@metamask/rpc-errors';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
+
+/**
+ * Routes whose presence as the focused leaf means the main screen stack
+ * hasn't mounted yet, so `navigate('SomeScreen')` would be dropped by
+ * React Navigation ("NAVIGATE was not handled by any navigator").
+ * Covers pre-login auth screens and post-login container routes that
+ * briefly focus before their child stacks register their screens.
+ */
+const NAV_NOT_READY_ROUTES: ReadonlySet<string> = new Set<string>([
+  Routes.LOCK_SCREEN,
+  Routes.ONBOARDING.LOGIN,
+  Routes.ONBOARDING.REHYDRATE,
+  Routes.ONBOARDING.HOME_NAV,
+  Routes.ONBOARDING.ROOT_NAV,
+  Routes.ONBOARDING.NAV,
+  Routes.FOX_LOADER,
+  'Main',
+]);
+
+/**
+ * Safety ceiling: if navigation never settles, parse the deeplink anyway.
+ * A late deeplink is better than a silently dropped one.
+ */
+const NAV_READY_WAIT_TIMEOUT_MS = 3000;
+
+/**
+ * Waits until the focused navigation leaf is a route where `navigate(...)`
+ * can succeed (see {@link NAV_NOT_READY_ROUTES}), then parses the deeplink.
+ * Event-driven via `SET_CURRENT_ROUTE`, which `NavigationProvider` dispatches
+ * from React Navigation's `onStateChange` (seeded once from `onReady`).
+ */
+export function* parseDeeplinkAfterNavReady(
+  deeplink: string,
+  origin: string,
+) {
+  const currentRoute: string | undefined = yield select(selectCurrentRoute);
+
+  if (currentRoute && !NAV_NOT_READY_ROUTES.has(currentRoute)) {
+    SharedDeeplinkManager.parse(deeplink, { origin });
+    return;
+  }
+
+  const { timedOut } = yield race({
+    navSettled: call(function* waitForReadyRoute() {
+      while (true) {
+        const action: SetCurrentRouteAction = yield take(
+          NavigationActionType.SET_CURRENT_ROUTE,
+        );
+        if (!NAV_NOT_READY_ROUTES.has(action.payload.route)) {
+          return;
+        }
+      }
+    }),
+    timedOut: delay(NAV_READY_WAIT_TIMEOUT_MS),
+  });
+
+  if (timedOut) {
+    Logger.log(
+      'parseDeeplinkAfterNavReady: timed out waiting for navigation, parsing anyway',
+    );
+  }
+
+  SharedDeeplinkManager.parse(deeplink, { origin });
+}
 
 /**
  * Creates a channel to listen to app state changes.
@@ -191,10 +269,12 @@ export function* basicFunctionalityToggle() {
 
 export function* initializeSDKServices() {
   try {
-    // Initialize WalletConnect
-    yield call(() => WC2Manager.init({}));
-    // Initialize SDKConnect
-    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
+    // Init WC2 and SDKConnect in parallel — they are independent and each
+    // takes ~1-3 s on cold start; serialising them blocked deeplink parsing.
+    yield all([
+      call(() => WC2Manager.init({})),
+      call(() => SDKConnect.init({ context: 'Nav/App' })),
+    ]);
   } catch (e) {
     Logger.log('Failed to initialize services', e);
   }
@@ -231,11 +311,9 @@ export function* handleDeeplinkSaga() {
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
-        setTimeout(() => {
-          SharedDeeplinkManager.parse(url.href, {
-            origin: storedSource,
-          });
-        }, 200);
+        // Fork so the saga loop keeps listening for new deeplink events
+        // while parseDeeplinkAfterNavReady waits for navigation to settle.
+        yield fork(parseDeeplinkAfterNavReady, url.href, storedSource);
         AppStateEventProcessor.clearPendingDeeplink();
         continue;
       }
@@ -249,9 +327,10 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
-    // Initialize SDK services
+    // Initialize SDK services (non-blocking so deeplink parsing is not gated
+    // on 3-5 s of WC2/SDKConnect init work).
     if (!hasInitializedSDKServices) {
-      yield call(initializeSDKServices);
+      yield fork(initializeSDKServices);
       hasInitializedSDKServices = true;
     }
 
@@ -261,12 +340,9 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
-      // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
-      setTimeout(() => {
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: deeplinkSource,
-        });
-      }, 200);
+      // Fork so the saga loop keeps listening for new deeplink events
+      // while parseDeeplinkAfterNavReady waits for navigation to settle.
+      yield fork(parseDeeplinkAfterNavReady, deeplink, deeplinkSource);
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }
