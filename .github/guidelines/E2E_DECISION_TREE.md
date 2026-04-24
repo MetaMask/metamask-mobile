@@ -10,7 +10,7 @@ flowchart TD
     GR -->|PR label: pr-not-ready-for-e2e| L2[No E2E]
     L2 -->|while label present in PR| Skip2[Merge blocked]
     GR -->|PR ignorable-only changes| Ignorable[No E2E]
-    GR -->|PR has android-only changes| Android[Android Build + Tests needed]
+    GR -->|PR has Android-only changes| Android[Android Build + Tests needed]
     GR -->|PR has iOS-only changes| iOS[iOS Build + Test needed]
     GR -->|PR other files changed| Both[Both Build + Tests needed]
     GR -->|Scheduled / Push to main / Release branches| Full[Run all E2E Suites for Both]
