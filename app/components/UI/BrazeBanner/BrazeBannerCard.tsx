@@ -16,8 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
-
-const IMAGE_SIZE = 72;
+import { BANNER_HEIGHT } from './BrazeBanner.constants';
 
 interface BrazeBannerCardProps {
   title: string | null;
@@ -25,23 +24,14 @@ interface BrazeBannerCardProps {
   imageUrl: string | null;
   ctaLabel: string | null;
   onDismiss: () => void;
-  height: number;
 }
 
 /**
  * Title + body variant. Body uses the muted `text-alternative` colour to give
  * the title visual priority. CTA label is intentionally not rendered here.
  */
-const BannerWithTitle = ({
-  title,
-  body,
-  height,
-}: {
-  title: string;
-  body: string;
-  height: number;
-}) => (
-  <Box twClassName="flex-1 self-center relative" style={{ height }}>
+const BannerWithTitle = ({ title, body }: { title: string; body: string }) => (
+  <Box twClassName="flex-1 h-full justify-center">
     <Text
       testID={BRAZE_BANNER_TEST_IDS.TITLE}
       variant={TextVariant.BodySm}
@@ -67,13 +57,11 @@ const BannerWithTitle = ({
 const BannerWithCta = ({
   body,
   ctaLabel,
-  height,
 }: {
   body: string;
   ctaLabel: string | null;
-  height: number;
 }) => (
-  <Box twClassName="flex-1 self-center relative pr-6" style={{ height }}>
+  <Box twClassName="flex-1 h-full justify-center pr-6">
     <Text
       testID={BRAZE_BANNER_TEST_IDS.BODY}
       variant={TextVariant.BodySm}
@@ -113,7 +101,6 @@ const BrazeBannerCard = ({
   imageUrl,
   ctaLabel,
   onDismiss,
-  height,
 }: BrazeBannerCardProps) => {
   const tw = useTailwind();
   return (
@@ -123,27 +110,27 @@ const BrazeBannerCard = ({
       alignItems={BoxAlignItems.Center}
       backgroundColor={BoxBackgroundColor.BackgroundMuted}
       gap={4}
-      twClassName="w-ful h-full flex-row items-center gap-4 rounded-xl px-4 py-3"
-      style={{ height }}
+      twClassName="w-full rounded-xl px-4 py-3"
+      style={{ height: BANNER_HEIGHT }}
     >
       {imageUrl && (
         <Box
-          twClassName="overflow-hidden justify-center items-center self-center rounded-xl"
-          style={{ width: IMAGE_SIZE, height: IMAGE_SIZE }}
+          twClassName="self-stretch h-full overflow-hidden rounded-xl"
+          style={tw.style('aspect-square')}
         >
           <RNImage
             testID={BRAZE_BANNER_TEST_IDS.IMAGE}
             source={{ uri: imageUrl }}
-            style={{ width: IMAGE_SIZE, height: IMAGE_SIZE }}
+            style={tw.style('flex-1')}
             resizeMode="contain"
           />
         </Box>
       )}
 
       {title ? (
-        <BannerWithTitle title={title} body={body} height={IMAGE_SIZE} />
+        <BannerWithTitle title={title} body={body} />
       ) : (
-        <BannerWithCta body={body} ctaLabel={ctaLabel} height={IMAGE_SIZE} />
+        <BannerWithCta body={body} ctaLabel={ctaLabel} />
       )}
 
       <Pressable
