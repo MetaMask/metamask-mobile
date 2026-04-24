@@ -238,6 +238,7 @@ describe('ConfirmationsDeveloperOptions', () => {
           {
             params: {
               to: MOCK_PROXY_ADDRESS,
+              data: '0x',
               value: '0x1',
             },
           },
@@ -311,6 +312,7 @@ describe('ConfirmationsDeveloperOptions', () => {
           {
             params: {
               to: MOCK_PROXY_ADDRESS,
+              data: '0x',
               value: '0x1',
             },
           },

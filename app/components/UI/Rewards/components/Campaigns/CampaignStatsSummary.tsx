@@ -16,6 +16,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type {
   CampaignLeaderboardPositionDto,
+  OndoGmCampaignParticipantOutcomeStatus,
   OndoGmPortfolioSummaryDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
@@ -23,7 +24,7 @@ import { formatPercentChange, formatUsd } from '../../utils/formatUtils';
 import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../../utils/ondoCampaignConstants';
 import { formatTierDisplayName } from './OndoLeaderboard.utils';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import OndoWinnerBanner from './OndoWinnerBanner';
+import { OndoGmCampaignOutcomeBanner } from './OndoCampaignOutcomeBanners';
 
 const CELL_STYLE = { flex: 1 } as const;
 
@@ -87,7 +88,6 @@ export const CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   QUALIFIED_TAG: 'campaign-stats-summary-qualified-tag',
   INELIGIBLE_TAG: 'campaign-stats-summary-ineligible-tag',
   NOT_ELIGIBLE_BANNER: 'campaign-stats-summary-not-eligible-banner',
-  WINNING_BANNER: 'campaign-stats-summary-winning-banner',
   STATS_ERROR: 'campaign-stats-summary-stats-error',
 } as const;
 
@@ -130,11 +130,10 @@ interface CampaignStatsSummaryProps {
   tierMinDeposit?: number | null;
   /** User joined too late to ever accumulate enough qualifying days */
   isIneligible?: boolean;
-  /** Campaign has ended and user is among the winners */
-  isWinner?: boolean;
-  campaignName?: string;
-  /** Called when the user taps the winner banner */
-  onWinnerBannerPress?: () => void;
+  isCampaignComplete?: boolean;
+  outcomeStatus?: OndoGmCampaignParticipantOutcomeStatus;
+  winnerVerificationCode?: string | null;
+  onWinnerPress?: () => void;
 }
 
 const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
@@ -144,9 +143,10 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
   portfolio,
   tierMinDeposit,
   isIneligible = false,
-  isWinner = false,
-  campaignName = '',
-  onWinnerBannerPress,
+  isCampaignComplete = false,
+  outcomeStatus,
+  winnerVerificationCode,
+  onWinnerPress,
 }) => {
   const leaderboardLoading = leaderboard.isLoading && !leaderboardPosition;
   const portfolioLoading = portfolio.isLoading && !portfolioSummary;
@@ -237,31 +237,37 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
         />
       </Box>
 
-      {/* Winning banner */}
-      {isWinner && (
-        <OndoWinnerBanner
-          campaignName={campaignName}
-          onPress={onWinnerBannerPress}
-          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.WINNING_BANNER}
+      {/* Outcome banner (campaign ended) */}
+      {isCampaignComplete && outcomeStatus != null && onWinnerPress != null && (
+        <OndoGmCampaignOutcomeBanner
+          outcomeStatus={outcomeStatus}
+          winnerVerificationCode={winnerVerificationCode ?? null}
+          onWinnerPress={onWinnerPress}
         />
       )}
 
       {/* You're qualified card */}
-      {!isWinner && !isIneligible && isQualified && tierMinDeposit != null && (
-        <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('rewards.ondo_campaign_stats.qualified_title')}
-          </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('rewards.ondo_campaign_stats.qualified_description', {
-              minNetDeposit: formatUsd(tierMinDeposit),
-            })}
-          </Text>
-        </Box>
-      )}
+      {!isCampaignComplete &&
+        !isIneligible &&
+        isQualified &&
+        tierMinDeposit != null && (
+          <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('rewards.ondo_campaign_stats.qualified_title')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('rewards.ondo_campaign_stats.qualified_description', {
+                minNetDeposit: formatUsd(tierMinDeposit),
+              })}
+            </Text>
+          </Box>
+        )}
 
       {/* Not eligible banner */}
-      {!isWinner && isIneligible && (
+      {!isCampaignComplete && isIneligible && (
         <Box
           twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
@@ -278,7 +284,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
       )}
 
       {/* Qualify for rank card */}
-      {!isWinner &&
+      {!isCampaignComplete &&
         !isIneligible &&
         isPending &&
         tierMinDeposit != null &&

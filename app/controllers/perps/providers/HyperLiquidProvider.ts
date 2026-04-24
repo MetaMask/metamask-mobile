@@ -1,5 +1,6 @@
 import { CaipAccountId, hasProperty } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
+import type { ExchangeClient } from '@nktkas/hyperliquid';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { CandlePeriod } from '../constants/chartConfig';
@@ -99,6 +100,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
   RawLedgerUpdate,
+  PerpsReadOptions,
 } from '../types';
 import type {
   SDKOrderParams,
@@ -4921,9 +4923,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Get historical user fills (trade executions)
    *
    * @param params - The operation parameters.
+   * @param options - Optional cache-control modifiers for this read.
    * @returns A promise that resolves to the result.
    */
-  async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
+  async getOrderFills(
+    params?: GetOrderFillsParams,
+    options?: PerpsReadOptions,
+  ): Promise<OrderFill[]> {
     try {
       this.#deps.debugLogger.log(
         'Getting user fills via HyperLiquid SDK:',
@@ -4960,16 +4966,20 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Start fetching historical orders in parallel with fill transformation.
       // The fills API does not return order type, so we cross-reference
       // with historical orders to enable TP/SL pill rendering in activity.
-      const historicalOrdersPromise = (
-        infoClient.historicalOrders?.({ user: userAddress }) ??
-        Promise.resolve(null)
-      ).catch((enrichError: unknown) => {
-        this.#deps.debugLogger.log(
-          'Warning: failed to enrich fills with order types:',
-          enrichError,
-        );
-        return null;
-      });
+      // Routed through the client-service coalesce so the enrichment sidecar
+      // rides the same cache as an explicit getOrders call, preventing a
+      // second REST fire under rapid market switching.
+      const historicalOrdersPromise = this.#clientService
+        .fetchHistoricalOrders(userAddress, {
+          forceRefresh: options?.forceRefresh,
+        })
+        .catch((enrichError: unknown) => {
+          this.#deps.debugLogger.log(
+            'Warning: failed to enrich fills with order types:',
+            enrichError,
+          );
+          return null;
+        });
 
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
@@ -5038,9 +5048,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Get historical orders (order lifecycle)
    *
    * @param params - The operation parameters.
+   * @param options - Optional cache-control modifiers for this read.
    * @returns A promise that resolves to the result.
    */
-  async getOrders(params?: GetOrdersParams): Promise<Order[]> {
+  async getOrders(
+    params?: GetOrdersParams,
+    options?: PerpsReadOptions,
+  ): Promise<Order[]> {
     try {
       this.#deps.debugLogger.log(
         'Getting user orders via HyperLiquid SDK:',
@@ -5051,14 +5065,14 @@ export class HyperLiquidProvider implements PerpsProvider {
       await this.#ensureClientsInitialized();
       this.#clientService.ensureInitialized();
 
-      const infoClient = this.#clientService.getInfoClient();
       const userAddress = await this.#walletService.getUserAddressWithDefault(
         params?.accountId,
       );
 
-      const rawOrders = await infoClient.historicalOrders({
-        user: userAddress,
-      });
+      const rawOrders = await this.#clientService.fetchHistoricalOrders(
+        userAddress,
+        { forceRefresh: options?.forceRefresh },
+      );
 
       this.#deps.debugLogger.log('User orders received:', {
         count: rawOrders?.length ?? 0,
@@ -5256,9 +5270,14 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Get user funding history
    *
    * @param params - The operation parameters.
+   * @param _options - Cache-control modifiers (unused — funding has no
+   * provider-internal cache; coalescing happens at MarketDataService).
    * @returns A promise that resolves to the result.
    */
-  async getFunding(params?: GetFundingParams): Promise<Funding[]> {
+  async getFunding(
+    params?: GetFundingParams,
+    _options?: PerpsReadOptions,
+  ): Promise<Funding[]> {
     try {
       this.#deps.debugLogger.log(
         'Getting user funding via HyperLiquid SDK:',
@@ -5416,6 +5435,19 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       return [];
     }
+  }
+
+  /**
+   * Resolve the provider's currently active CAIP account identifier.
+   * Used by the MarketDataService REST coalesce layer so cached payloads
+   * are keyed by the actual resolved address rather than a shared
+   * "default" sentinel — prevents one account's data from being served
+   * after an account switch within the coalesce TTL window.
+   *
+   * @returns CAIP account id for the currently selected HyperLiquid account.
+   */
+  async getCurrentAccountId(): Promise<CaipAccountId> {
+    return this.#walletService.getCurrentAccountId();
   }
 
   /**
@@ -7770,6 +7802,19 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#userFeeCache.clear();
       this.#deps.debugLogger.log('Cleared all fee cache');
     }
+  }
+
+  /**
+   * Escape hatch for agentic validation flows and test harnesses that drive
+   * HL mutations directly. NOT part of the PerpsProvider interface.
+   * Production code paths must go through the provider's own methods.
+   *
+   * @returns A promise resolving to the underlying HyperLiquid SDK
+   * ExchangeClient. Promise shape matches the existing agentic flows
+   * (hl-provision-fixture) that chain `.then` on the result.
+   */
+  public async getExchangeClient(): Promise<ExchangeClient> {
+    return this.#clientService.getExchangeClient();
   }
 
   /**
