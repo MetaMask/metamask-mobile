@@ -33,7 +33,6 @@ export const ALLOWLISTED_URLS = [
   // Temporarily allow existing live requests during migration
   'https://clients3.google.com/generate_204',
   'https://api.avax.network/ext/bc/C/rpc',
-  'https://chainid.network/chains.json',
   // Token SVGs in notifications list
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usdc.svg',
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/shib.svg',

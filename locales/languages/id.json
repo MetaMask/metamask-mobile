@@ -177,8 +177,6 @@
     "deceptive_request_title": "Ini adalah permintaan tipuan",
     "failed_title": "Permintaan mungkin tidak aman",
     "failed_description": "Karena terjadi kesalahan, permintaan ini tidak diverifikasi oleh penyedia keamanan. Lanjutkan dengan hati-hati.",
-    "loading_title": "Memeriksa peringatan keamanan...",
-    "loading_complete_title": "Tidak menerima peringatan. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
     "malicious_domain_description": "Anda berinteraksi dengan domain berbahaya. Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "other_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
@@ -484,10 +482,6 @@
     "biometric_changed": "Biometrik Diubah",
     "biometric_changed_alert_desc": "Biometrik Anda telah diubah. Aktifkan kembali biometrik dari pengaturan.",
     "biometric_changed_alert_confirm": "Konfirmasikan"
-  },
-  "connect_hardware": {
-    "title_select_hardware": "Hubungkan dompet perangkat keras",
-    "select_hardware": "Pilih dompet perangkat keras yang ingin digunakan"
   },
   "connect_hardware": {
     "title_select_hardware": "Hubungkan dompet perangkat keras",

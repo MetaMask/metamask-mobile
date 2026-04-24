@@ -92,7 +92,6 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: mockAddProperties,
   build: mockBuild,
 });
-const mockAddTraitsToUser = jest.fn();
 
 analytics.trackEvent = mockTrackEvent;
 analytics.identify = mockIdentify;

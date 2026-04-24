@@ -434,9 +434,6 @@ prebuild_ios(){
 }
 
 prebuild_android(){
-	# Install ICU libraries if on Linux
-	installICULibraries
-	
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset

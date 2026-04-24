@@ -150,22 +150,6 @@ describe('useConfirmationAlerts', () => {
       severity: Severity.Danger,
     },
   ];
-  const mockBurnAddressAlert: Alert[] = [
-    {
-      key: 'BurnAddressAlert',
-      title: 'Test Burn Address Alert',
-      message: ALERT_MESSAGE_MOCK,
-      severity: Severity.Danger,
-    },
-  ];
-  const mockBurnAddressAlert: Alert[] = [
-    {
-      key: 'BurnAddressAlert',
-      title: 'Test Burn Address Alert',
-      message: ALERT_MESSAGE_MOCK,
-      severity: Severity.Danger,
-    },
-  ];
 
   const mockTokenTrustSignalAlerts: Alert[] = [
     {
@@ -299,7 +283,6 @@ describe('useConfirmationAlerts', () => {
     (useTokenContractAlert as jest.Mock).mockReturnValue(
       mockTokenContractAlert,
     );
-    (useBurnAddressAlert as jest.Mock).mockReturnValue(mockBurnAddressAlert);
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });

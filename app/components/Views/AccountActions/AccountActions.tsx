@@ -97,15 +97,6 @@ const AccountActions = () => {
     [selectedAccount],
   );
 
-  const blockExplorer = useMemo(() => {
-    if (providerConfig?.rpcTarget && providerConfig.type === RPC) {
-      return findBlockExplorerForRpc(providerConfig.rpcTarget, frequentRpcList);
-    }
-    return null;
-  }, [frequentRpcList, providerConfig.rpcTarget, providerConfig.type]);
-
-  const blockExplorerName = getBlockExplorerName(blockExplorer);
-
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
       screen: 'SimpleWebview',

@@ -177,8 +177,6 @@
     "deceptive_request_title": "Bu, aldatıcı bir taleptir",
     "failed_title": "Talep güvenli olmayabilir",
     "failed_description": "Bu talep bir hatadan dolayı güvenlik sağlayıcısı tarafından doğrulanmadı. Dikkatli bir şekilde ilerleyin.",
-    "loading_title": "Güvenlik uyarıları kontrol ediliyor...",
-    "loading_complete_title": "Herhangi bir uyarı alınmadı. Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
     "malicious_domain_description": "Kötü niyetli bir alanla etkileşimde bulunuyorsunuz. Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "other_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "raw_signature_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
@@ -484,10 +482,6 @@
     "biometric_changed": "Biyometri Değiştirildi",
     "biometric_changed_alert_desc": "Biyometriniz değiştirildi. Lütfen ayarlar bölümünden biyometriyi tekrar etkinleştirin.",
     "biometric_changed_alert_confirm": "Onayla"
-  },
-  "connect_hardware": {
-    "title_select_hardware": "Bir donanım cüzdanı bağlayın",
-    "select_hardware": "Kullanmak istediğiniz donanım cüzdanını seçin"
   },
   "connect_hardware": {
     "title_select_hardware": "Bir donanım cüzdanı bağlayın",

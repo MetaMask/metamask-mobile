@@ -500,59 +500,6 @@ describe('getPreferredTokensForTransactionType', () => {
       defaultTokens,
     );
   });
-
-  it('returns remote flag values when confirmation_redesign flags are set', () => {
-    testFlagValues(
-      selectConfirmationRedesignFlags(mockedStateWithConfirmationFlags),
-      mockedConfirmationRedesignFlags
-    );
-  });
-
-  it('returns mix of remote and default values when only some flags are set', () => {
-    const expected: ConfirmationRedesignRemoteFlags = {
-      signatures: false, // explicitly set to false
-      staking_confirmations: true, // undefined, defaults to true
-      contract_interaction: true, // undefined, defaults to true
-      transfer: true, // undefined, defaults to true
-    };
-
-    testFlagValues(
-      selectConfirmationRedesignFlags(mockedStateWithPartialFlags),
-      expected
-    );
-  });
-
-  it('handles kill switch behavior - remote false overrides default true', () => {
-    const killSwitchState = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              confirmation_redesign: {
-                signatures: false, // Kill switch - disables the feature
-                staking_confirmations: false,
-                contract_interaction: false,
-                transfer: false,
-              }
-            },
-            cacheTimestamp: 0,
-          }
-        }
-      }
-    };
-
-    const expectedKillSwitchValues: ConfirmationRedesignRemoteFlags = {
-      signatures: false,
-      staking_confirmations: false,
-      contract_interaction: false,
-      transfer: false,
-    };
-
-    testFlagValues(
-      selectConfirmationRedesignFlags(killSwitchState),
-      expectedKillSwitchValues
-    );
-  });
 });
 
 describe('selectMetaMaskPayFiatFlags', () => {

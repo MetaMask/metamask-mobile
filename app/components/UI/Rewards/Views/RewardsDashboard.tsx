@@ -109,20 +109,6 @@ const RewardsDashboard: React.FC = () => {
     }, [wasInterrupted, isRunning, resumeBulkLink]),
   );
 
-  const tabsListProps = useMemo(
-    () => ({
-      ref: tabsListRef,
-      initialActiveIndex: getActiveIndex(),
-      onChangeTab: handleTabChange,
-      testID: REWARDS_VIEW_SELECTORS.TAB_CONTROL,
-      tabsBarProps: {
-        twClassName: 'px-4',
-      },
-      tabsListContentTwClassName: 'px-0',
-    }),
-    [getActiveIndex, handleTabChange],
-  );
-
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
   // This effect runs whenever key dependencies change and determines which informational
   // modal should be shown to guide the user. Each modal type is only shown once per app session.

@@ -65,8 +65,6 @@ export const EditMultichainAccountName = () => {
   const [accountName, setAccountName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
 
-  const keyboardHeight = useKeyboardHeight();
-
   const handleAccountNameChange = useCallback(() => {
     // Validate that account name is not empty
     if (!accountName || accountName.trim() === '') {

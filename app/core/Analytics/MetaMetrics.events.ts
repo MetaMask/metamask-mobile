@@ -384,13 +384,6 @@ enum EVENT_NAME {
   SEND_RECIPIENT_SELECTED = 'Send Recipient Selected',
   SEND_EXIT = 'Send Flow Exited',
 
-  // Send Flow
-  SEND_ASSET_SELECTED = 'Send Asset Selected',
-  SEND_STARTED = 'Send Started',
-  SEND_AMOUNT_SELECTED = 'Send Amount Selected',
-  SEND_RECIPIENT_SELECTED = 'Send Recipient Selected',
-  SEND_EXIT = 'Send Flow Exited',
-
   // Swaps
   SWAPS_OPENED = 'Swaps Opened',
   SWAP_TRACKING_FAILED = 'Swap Tracking Failed',

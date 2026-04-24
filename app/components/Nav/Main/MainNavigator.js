@@ -1234,13 +1234,6 @@ const MainNavigator = () => {
             }}
           />
           <Stack.Screen
-            name={Routes.PERPS.TUTORIAL}
-            component={PerpsTutorialCarousel}
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
             options={{

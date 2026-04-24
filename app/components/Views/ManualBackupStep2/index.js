@@ -81,6 +81,7 @@ const ManualBackupStep2 = ({
     ),
     [navigation, tw],
   );
+
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(route, { headerLeft }, colors, false),

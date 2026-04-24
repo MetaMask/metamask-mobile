@@ -201,10 +201,6 @@ class AdvancedSettings extends PureComponent {
      */
     showHexData: PropTypes.bool,
     /**
-     * Allow dapp api requests to eth_sign
-     */
-    enableEthSign: PropTypes.bool,
-    /**
      * Called to toggle show hex data
      */
     setShowHexData: PropTypes.func,
@@ -274,11 +270,6 @@ class AdvancedSettings extends PureComponent {
   downloadStateLogs = async () => {
     const { fullState } = this.props;
     downloadStateLogs(fullState);
-  };
-
-  setEnableEthSign = (enabled) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setDisabledRpcMethodPreference('eth_sign', enabled);
   };
 
   toggleTokenDetection = (detectionStatus) => {

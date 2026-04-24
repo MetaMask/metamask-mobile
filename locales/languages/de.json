@@ -177,8 +177,6 @@
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
-    "loading_title": "Suche nach Sicherheitsbenachrichtigungen ...",
-    "loading_complete_title": "Führen Sie immer Ihre eigene Due-Diligence-Prüfung durch, bevor Sie Anfragen genehmigen.",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -484,10 +482,6 @@
     "biometric_changed": "Biometrisch geändert",
     "biometric_changed_alert_desc": "Ihre Biometrie wurde geändert. Aktivieren Sie bitte die biometrischen Daten in den Einstellungen erneut.",
     "biometric_changed_alert_confirm": "Bestätigen"
-  },
-  "connect_hardware": {
-    "title_select_hardware": "Verbinden Sie eine Hardware-Wallet",
-    "select_hardware": "Wählen Sie eine Hardware-Wallet aus, die Sie verwenden möchten"
   },
   "connect_hardware": {
     "title_select_hardware": "Verbinden Sie eine Hardware-Wallet",
