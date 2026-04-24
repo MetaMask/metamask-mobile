@@ -1511,7 +1511,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       { state: mockInitialState },
     );
 
-    expect(getAllByText('$4.99')).toBeOnTheScreen();
+    expect(getAllByText('$4.99').length).toBeGreaterThan(0);
     expect(getByText('5 aUSDC')).toBeOnTheScreen();
     expect(getByText('5 USDC')).toBeOnTheScreen();
   });

@@ -766,7 +766,7 @@ describe('EarnTokenList', () => {
       );
 
       // Both USDC tokens should be shown (non-ETH tokens)
-      expect(getAllByText('USDC')).toBeDefined();
+      expect(getAllByText('USDC')).toHaveLength(2);
     });
   });
 
