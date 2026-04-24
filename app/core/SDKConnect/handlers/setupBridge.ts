@@ -100,6 +100,7 @@ export const setupBridge = ({
           transport: TransportType.SOCKET_RELAY,
           platform:
             originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
+          remote_session_id: originatorInfo?.anonId ?? '',
         },
       });
     },

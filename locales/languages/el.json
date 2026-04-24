@@ -1016,32 +1016,57 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Κορυφαίοι Traders"
+      "title": "Κορυφαίοι Traders",
+      "chain_filter": {
+        "all": "Όλα"
+      }
     },
-    "follow": "Follow",
-    "following": "Following",
+    "notification_preferences": {
+      "title": "Top Traders",
+      "allow_push_notifications": "Allow push notifications",
+      "trades_over_label": "Get notified of trades over:",
+      "traders_you_follow": "Traders you follow",
+      "traders_you_follow_desc": "Choose who you get notifications about",
+      "traders_you_follow_empty": "You aren't following any traders yet.",
+      "error_loading_followed": "Unable to load the traders you follow."
+    },
+    "follow": "Ακολουθήστε",
+    "following": "Ακολουθείτε",
     "all_networks": "Όλα τα δίκτυα",
     "trader_profile": {
-      "followers_count": "{{count}} follower",
-      "followers_count_plural": "{{count}} followers",
-      "win_rate": "win rate",
-      "pnl_30d": "30D P&L",
-      "avg_hold": "avg. hold",
-      "hold_time_minutes": "{{count}}m",
-      "hold_time_hours": "{{count}} hrs",
-      "hold_time_days": "{{count}} days",
+      "followers_count": "{{count}} ακόλουθος",
+      "followers_count_plural": "{{count}} ακόλουθοι",
+      "win_rate": "ποσοστό νικών",
+      "pnl_30d": "Κέρδη και ζημίες 30 ημερών",
+      "hold_time": "χρόνος παραμονής",
+      "hold_time_minutes": "{{count}}λ",
+      "hold_time_hours": "{{count}} ώρες",
+      "hold_time_days": "{{count}} ημέρες",
       "open": "Άνοιγμα",
-      "closed": "Closed",
+      "closed": "Έκλεισε",
       "no_positions": "Δεν υπάρχουν θέσεις ακόμα",
-      "error_loading_profile": "Couldn't load profile"
+      "error_loading_profile": "Δεν ήταν δυνατή η φόρτωση του προφίλ"
     },
     "trader_position": {
-      "market_cap": "Market cap",
-      "position": "Position",
-      "trades": "Trades",
-      "buy": "Buy",
-      "bought": "{{name}} bought",
-      "sold": "{{name}} sold"
+      "market_cap": "Κεφαλαιοποίηση αγοράς",
+      "position": "Θέση",
+      "trades": "Συναλλαγές",
+      "buy": "Αγορά",
+      "bought": "Ο/Η {{name}} αγόρασε",
+      "sold": "Ο/Η {{name}} πούλησε",
+      "no_trades": "No trades for this interval",
+      "closed_position": "Closed position"
+    },
+    "quick_buy": {
+      "title": "Αγορά {{symbol}}",
+      "market_cap_label": "Κεφαλαιοποίηση αγοράς",
+      "pay_with": "Πληρωμή με",
+      "total": "Σύνολο",
+      "est_points": "Εκτ. πόντοι",
+      "no_quotes": "Δεν υπάρχουν διαθέσιμες προσφορές για αυτό το token",
+      "loading": "Φόρτωση...",
+      "unavailable": "Η ανταλλαγή δεν είναι διαθέσιμη",
+      "unsupported_chain": "Αυτή η αλυσίδα δεν υποστηρίζει ακόμη την Γρήγορη Αγορά"
     }
   },
   "perps": {
@@ -1253,6 +1278,7 @@
       "open_orders": "Εντολές",
       "max": "μεγ",
       "cancel_order": "Ακύρωση εντολής",
+      "no_orders": "Δεν έχετε καμία ανοιχτή εντολή",
       "filled": "εκτελέστηκε",
       "reduce_only": "Μόνο μείωση",
       "yes": "Ναι",
@@ -1837,13 +1863,13 @@
       "market_hours": {
         "title": "Ώρες αγοράς",
         "closes_in": "Κλείνει σε {{time}}",
-        "content": "You're trading within regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "Κάνετε συναλλαγές εντός του κανονικού ωραρίου αγοράς (9:30 π.μ. – 4 μ.μ. EST). Όταν οι αγορές είναι κλειστές, υπάρχει κίνδυνος για μεγαλύτερα spreads, μεταβολές τιμών και υψηλότερες χρεώσεις χρηματοδότησης."
       },
       "after_hours_trading": {
         "title": "Συναλλαγές εκτός ωραρίου αγοράς",
         "reopens_in": "Ανοίγει ξανά σε {{time}}",
-        "reopens_in_label": "Reopens in",
-        "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "reopens_in_label": "Ανοίγει ξανά σε",
+        "content": "Κάνετε συναλλαγές εκτός του κανονικού ωραρίου αγοράς (9:30 π.μ.–4 μ.μ. EST). Όταν οι αγορές είναι κλειστές, υπάρχει κίνδυνος για μεγαλύτερα spreads, μεταβολές τιμών και υψηλότερες χρεώσεις χρηματοδότησης."
       },
       "spread": {
         "title": "Σπρεντ",
@@ -2221,21 +2247,52 @@
       "outcomes": "Αποτελέσματα"
     },
     "outcome_groups": {
-      "game_lines": "Game Lines",
-      "assists": "Assists",
+      "game_lines": "Στοιχήματα Αγώνων",
+      "first_half": "1ο Ημίχρονο",
+      "team_totals": "Σύνολα ομάδας",
+      "touchdowns": "Touchdowns",
+      "rushing": "Rushing",
+      "receiving": "Λήψη",
       "points": "Πόντοι",
-      "rebounds": "Rebounds",
-      "goals": "Goals",
-      "first_half": "1st Half",
-      "totals": "Totals",
-      "spreads": "Spreads",
-      "both_teams_to_score": "Both Teams to Score",
-      "goalscorers": "Goalscorers",
-      "exact_score": "Exact Score",
-      "halftime_result": "Halftime Result",
-      "corners": "Corners"
+      "assists": "Ασιστ",
+      "rebounds": "Ριμπάουντ",
+      "goals": "Γκολ",
+      "goalscorers": "Σκόρερ",
+      "exact_score": "Ακριβές Σκορ",
+      "halftime": "Ημίχρονο",
+      "halftime_result": "Αποτέλεσμα Ημιχρόνου",
+      "corners": "Κόρνερ",
+      "totals": "Σύνολο",
+      "spreads": "Χάντικαπ",
+      "both_teams_to_score": "Και οι δύο ομάδες να σκοράρουν"
+    },
+    "sports_market_types": {
+      "moneyline": "Moneyline",
+      "spreads": "Χάντικαπ",
+      "totals": "Σύνολο",
+      "both_teams_to_score": "Και οι δύο ομάδες να σκοράρουν",
+      "first_half_moneyline": "Moneyline 1ου ημιχρόνου",
+      "first_half_spreads": "Χάντικαπ 1ου ημιχρόνου",
+      "first_half_totals": "Σύνολα 1ου ημιχρόνου",
+      "points": "Πόντοι",
+      "assists": "Ασιστ",
+      "rebounds": "Ριμπάουντ",
+      "goalscorers": "Σκόρερ",
+      "exact_score": "Ακριβές Σκορ",
+      "halftime_result": "Αποτέλεσμα Ημιχρόνου",
+      "corners": "Κόρνερ",
+      "team_totals": "Σύνολα ομάδας",
+      "anytime_touchdowns": "Touchdowns",
+      "first_touchdowns": "1ο Touchdown",
+      "rushing_yards": "Rushing Yards",
+      "receiving_yards": "Receiving Yards",
+      "soccer_anytime_goalscorer": "Σκόρερ",
+      "soccer_exact_score": "Ακριβές Σκορ",
+      "soccer_halftime_result": "Αποτέλεσμα Ημιχρόνου",
+      "total_corners": "Κόρνερ"
     },
     "sell_position": "Πώληση θέσης",
+    "odds": "Αποδόσεις",
     "cash_out": "Εξαργύρωση",
     "cash_out_info": "Τα χρήματα θα προστεθούν στο διαθέσιμο υπόλοιπό σας",
     "buy_preview_outcome_at_price": "{{outcome}} με {{price}}",
@@ -2397,6 +2454,8 @@
       "view": "Προβολή",
       "yes_buy": "Ναι, αγοράστε",
       "yes_sell": "Ναι, πουλήστε",
+      "confirm": "Επιβεβαίωση",
+      "cashout_failed": "Αποτυχία εξαργύρωσης",
       "predict_balance_first": "Το υπόλοιπό σας από τις Προβλέψεις θα χρησιμοποιηθεί πρώτα"
     },
     "withdraw": {
@@ -2462,6 +2521,14 @@
     "sports": {
       "halftime": "Ημίχρονο",
       "final": "Λήξη"
+    }
+  },
+  "rwa": {
+    "unavailable": {
+      "title": "Μη διαθέσιμη στην περιοχή σας",
+      "description": "Οι μετοχές σε token και ETF δεν είναι διαθέσιμα στην περιοχή σας λόγω νομικών περιορισμών.",
+      "link": "Δείτε τις απαιτήσεις επιλεξιμότητας για το Ondo",
+      "button": "Κατανοητό"
     }
   },
   "receive": {
@@ -2745,7 +2812,7 @@
     "description_content_2": "Όταν συγκεντρώνουμε μετρήσεις, θα είναι πάντα...",
     "description_content_3": "Μάθετε πώς προστατεύουμε το απόρρητό σας ενώ συλλέγουμε δεδομένα χρήσης από το προφίλ σας.",
     "gather_basic_usage_title": "Συλλογή βασικών δεδομένων χρήσης",
-    "gather_basic_usage_description": "We'll collect basic product usage data. We may associate this information with on-chain data.",
+    "gather_basic_usage_description": "Θα συλλέξουμε βασικά δεδομένα χρήσης του προϊόντος. Ενδέχεται να συσχετίσουμε αυτές τις πληροφορίες με δεδομένα εντός αλυσίδας.",
     "gather_basic_usage_learn_more": "Μάθετε περισσότερα",
     "checkbox_marketing": "Ενημερώσεις μάρκετινγκ",
     "checkbox": "Θα χρησιμοποιήσουμε αυτά τα δεδομένα για να μάθουμε πώς αλληλεπιδράτε με τις διαφημιστικές επικοινωνίες μας. Ενδέχεται να κοινοποιήσουμε σχετικές ειδήσεις (όπως χαρακτηριστικά προϊόντων).",
@@ -3097,7 +3164,7 @@
     "general_title": "Γενικά",
     "general_desc": "Μετατροπή νομίσματος, πρωτεύον νόμισμα, γλώσσα και μηχανή αναζήτησης.",
     "advanced_title": "Για Προχωρημένους",
-    "advanced_desc": "Πρόσβαση σσε λειτουργίες για προγραμματιστές, επαναφορά λογαριασμού, ρύθμιση testnets, αρχεία καταγραφής κατάστασης, πύλη IPFS και προσαρμοσμένο RPC.",
+    "advanced_desc": "Πρόσβαση σε λειτουργίες προγραμματιστή, επαναφορά λογαριασμού, ρύθμιση testnets, καταγραφές κατάστασης και προσαρμοσμένα RPC.",
     "notifications_title": "Ειδοποιήσεις",
     "notifications_desc": "Διαχειριστείτε τις ειδοποιήσεις σας",
     "allow_notifications": "Επιτρέψτε τις ειδοποιήσεις",
@@ -3128,7 +3195,7 @@
     "no_permissions_desc": "Εάν συνδέσετε έναν λογαριασμό σε έναν ιστότοπο ή μια εφαρμογή, θα τον δείτε εδώ.",
     "security_title": "Ασφάλεια και ιδιωτικότητα",
     "back": "Πίσω",
-    "security_desc": "Ρυθμίσεις απορρήτου, MetaMetrics, ιδιωτικό κλειδί και Μυστική Φράση Ανάκτησης.",
+    "security_desc": "Ρυθμίσεις απορρήτου, MetaMetrics, ιδιωτικό κλειδί, Μυστική Φράση Ανάκτησης και πύλη IPFS.",
     "networks_title": "Δίκτυα",
     "networks_default_title": "Προεπιλεγμένο δίκτυο",
     "network_delete": "Εάν διαγράψετε αυτό το δίκτυο, θα πρέπει να το προσθέσετε ξανά για να δείτε τα περιουσιακά σας στοιχεία σε αυτό το δίκτυο",
@@ -3289,7 +3356,74 @@
       "update": "Ενημέρωση",
       "cancel": "Ακύρωση",
       "deposit_provider_logout_button": "Αποσύνδεση από το {{depositProviderName}}",
-      "deposit_provider_logged_out": "Αποσυνδεθήκατε από το {{depositProviderName}}"
+      "deposit_provider_logged_out": "Αποσυνδεθήκατε από το {{depositProviderName}}",
+      "headless_playground": {
+        "title": "Headless Buy playground",
+        "entry_button": "Open Headless Buy playground",
+        "selected_values": "Selected values",
+        "selected_user_region": "User region",
+        "selected_provider": "Selected provider",
+        "selected_token": "Selected token",
+        "selected_payment_method": "Selected payment method",
+        "providers": "Providers",
+        "tokens": "Tokens",
+        "payment_methods": "Payment methods",
+        "countries": "Countries",
+        "no_data": "No data",
+        "none_selected": "None selected",
+        "loading": "Loading…",
+        "error": "Error",
+        "count": "{{count}} item(s)",
+        "summary": "Summary",
+        "summary_token": "Token",
+        "summary_provider": "Provider",
+        "amount_label": "Amount (fiat)",
+        "amount_placeholder": "e.g. 25",
+        "get_quotes": "Get quotes",
+        "get_quotes_disabled_hint": "Enter a positive amount",
+        "headless_section_badge": "⚠️ HEADLESS CONSUMER SIMULATION",
+        "headless_section_title": "useHeadlessBuy sandbox",
+        "headless_section_warning": "Inputs default to hardcoded sim values. Pick a different token, payment method or provider in the accordions above to override — tap Reset here to switch back to the hardcoded value.",
+        "headless_section_asset_id": "Asset ID",
+        "headless_section_payment_method_id": "Payment method ID",
+        "headless_section_provider_id": "Provider ID",
+        "headless_section_resolved": "Resolved via useHeadlessBuy",
+        "headless_section_unresolved": "Not in catalog yet",
+        "headless_section_meta_hardcoded": "Hardcoded default",
+        "headless_section_meta_overridden": "Override (tap Reset to clear)",
+        "headless_section_reset": "Reset",
+        "quotes": "Quotes",
+        "quotes_idle": "Press \"Get quotes\" to fetch",
+        "quotes_no_results": "No quotes returned",
+        "quote_amount_out": "{{amount}} {{symbol}}",
+        "quote_amount_in": "for {{amount}} {{currency}}",
+        "quote_provider": "via {{provider}}",
+        "quote_payment_method": "Payment: {{paymentMethod}}",
+        "quote_errors_title": "Errored providers ({{count}})",
+        "quote_error_item": "{{provider}}: {{message}}",
+        "quote_you_pay": "You pay",
+        "quote_you_get": "You get",
+        "quote_payment_method_label": "Payment method",
+        "quote_fees": "Fees",
+        "quote_fees_total": "{{total}} total",
+        "quote_fees_breakdown": "(network {{network}} + provider {{provider}})",
+        "quote_reliability": "Reliability",
+        "quote_reliability_value": "{{score}}/100",
+        "quote_tag_best_rate": "Best rate",
+        "quote_tag_most_reliable": "Most reliable",
+        "quote_unknown_provider": "Unknown provider",
+        "start_headless_buy": "Start headless buy",
+        "start_headless_buy_disabled_hint": "Enter a valid amount to enable",
+        "start_headless_buy_pending": "Headless session active — open BuildQuote",
+        "cancel_headless_buy": "Cancel headless session",
+        "event_log_title": "Event log",
+        "event_log_empty": "No events yet — start a headless session and watch this space.",
+        "event_log_started": "started session {{sessionId}} (asset={{assetId}}, amount={{amount}}, payment={{paymentMethodId}}{{providerSuffix}})",
+        "event_log_order_created": "onOrderCreated → {{orderId}}",
+        "event_log_error": "onError → {{code}}{{messageSuffix}}",
+        "event_log_close": "onClose → {{reason}}",
+        "event_log_cancelled": "consumer-cancelled session {{sessionId}}"
+      }
     },
     "request_feature": "Ζητήστε μια λειτουργία",
     "contact_support": "Επικοινωνήστε με την υποστήριξη",
@@ -3572,6 +3706,7 @@
     "add_collectible_button": "Προσθήκη",
     "info": "Πληροφορίες",
     "swap": "Ανταλλαγή",
+    "convert": "Μετατροπή",
     "bridge": "Διασύνδεση",
     "earn": "Κερδίστε",
     "convert_to_musd": "Μετατροπή σε mUSD",
@@ -4878,7 +5013,7 @@
   },
   "transaction_update_toast": {
     "title": "Η ενημέρωση της συναλλαγής απέτυχε",
-    "already_confirmed": "This transaction has already been confirmed and cannot be modified."
+    "already_confirmed": "Αυτή η συναλλαγή έχει ήδη επιβεβαιωθεί και δεν μπορεί να τροποποιηθεί."
   },
   "payment_request": {
     "title": "Αίτημα",
@@ -5100,8 +5235,8 @@
     "got_it": "Κατανοητό",
     "encountered_error": "Παρουσιάστηκε σφάλμα",
     "no_quotes_error": "Παρουσιάστηκε πρόβλημα κατά την ανάκτηση προσφορών από {{provider}}. Προσπαθήστε με διαφορετικό ποσό ή αλλάξτε πάροχο.",
-    "min_purchase_limit": "Minimum purchase is {{amount}}",
-    "max_purchase_limit": "Maximum purchase is {{amount}}",
+    "min_purchase_limit": "Ελάχιστη αγορά: {{amount}}",
+    "max_purchase_limit": "Μέγιστη αγορά: {{amount}}",
     "change_provider_button": "Αλλαγή παρόχου"
   },
   "fiat_on_ramp_aggregator": {
@@ -5995,7 +6130,7 @@
     "account_name_existed": "Ο λογαριασμός {{accountName}} υπάρχει ήδη"
   },
   "account_actions": {
-    "add_wallet": "Add a wallet",
+    "add_wallet": "Προσθήκη πορτοφολιού",
     "edit_name": "Επεξεργασία ονόματος λογαριασμού",
     "add_account_or_hardware_wallet": "Προσθήκη λογαριασμού ή πορτοφολιού υλικού",
     "connect_hardware_wallet": "Σύνδεση ενός λογαριασμού",
@@ -6085,7 +6220,7 @@
     "your_bonus_tooltip_your_bonus": "Το μπόνους σας",
     "your_bonus_tooltip_your_bonus_desc": ":  {{percentage}}% ετήσιο μπόνους που κερδίζετε απλώς επειδή διατηρείτε τα mUSD. Μπορείτε να το εξαργυρώσετε καθημερινά στο δίκτυο Linea. ",
     "your_bonus_tooltip_annual_bonus": "Εκτιμώμενο ετήσιο μπόνους: ",
-    "your_bonus_tooltip_annual_bonus_desc": "A projection of what you'd earn over a year based on your current balance and rate. Rate is variable and may change.",
+    "your_bonus_tooltip_annual_bonus_desc": "Μια εκτίμηση των ετήσιων κερδών σας, με βάση το τρέχον υπόλοιπο και τον ρυθμό απόδοσης. Ο ρυθμός απόδοσης είναι μεταβλητή τιμή και ενδέχεται να αλλάξει.",
     "your_bonus_tooltip_lifetime_bonus": "Εφάπαξ μπόνους που εξαργυρώθηκε: ",
     "your_bonus_tooltip_lifetime_bonus_desc": "Το συνολικό μπόνους που έχετε εξαργυρώσει από τότε που ξεκινήσατε.",
     "learn_more": "Μάθετε περισσότερα",
@@ -6222,6 +6357,7 @@
         }
       },
       "percentage_bonus": "{{percentage}}% μπόνους",
+      "claim_percentage_bonus": "Διεκδικήστε {{percentage}}% μπόνους",
       "rate": "Χρέωση"
     },
     "bonus_claim": {
@@ -6245,12 +6381,15 @@
   "money": {
     "title": "Money",
     "apy_label": "{{percentage}}% APY",
-    "apy_info_label": "APY info",
+    "apy_info_label": "Πληροφορίες για την Ετήσια Ποσοστιαία Απόδοση (APY)",
     "onboarding": {
-      "step_progress": "Step {{current}} of {{total}}",
-      "title": "Add money",
-      "description": "Buy mUSD and start earning APY today.",
-      "add": "Add"
+      "step_progress": "Βήμα {{current}} από {{total}}",
+      "title": "Προσθήκη χρημάτων",
+      "description": "Αγοράστε mUSD και αρχίστε να κερδίζετε από την Ετήσια Ποσοστιαία Απόδοση (APY) σήμερα.",
+      "add": "Προσθήκη",
+      "step2_title": "Get your MetaMask Card",
+      "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
+      "step2_cta": "Get card"
     },
     "action": {
       "add": "Προσθήκη",
@@ -6258,24 +6397,25 @@
       "card": "Κάρτα"
     },
     "earnings": {
-      "title": "Earnings",
-      "lifetime": "Lifetime earnings",
-      "projected": "Projected earnings"
+      "title": "Κέρδη",
+      "lifetime": "Συνολικά κέρδη",
+      "projected": "Εκτιμώμενα κέρδη"
     },
     "how_it_works": {
       "title": "Πώς λειτουργεί",
-      "description_prefix": "Hold mUSD in your Money Account and auto-earn ",
-      "description_suffix": ". It's dollar-backed, always liquid, and ready to spend, trade, or send anytime."
+      "description_prefix": "Hold mUSD in your Money Account and auto-earn",
+      "description_suffix": ". Υποστηρίζεται από το δολάριο, έχει πάντα ρευστότητα και έτοιμο για χρήση, συναλλαγές ή αποστολή οποιαδήποτε στιγμή."
     },
     "musd_row": {
-      "add": "Add"
+      "add": "Προσθήκη"
     },
     "potential_earnings": {
-      "title": "Earn on your crypto",
+      "title": "Κερδίστε από τα κρυπτονομίσματά σας",
       "description": "Δείτε πώς τα χρήματά σας μπορούν να αυξηθούν με τον χρόνο, μετατρέποντας τα κρυπτονομίσματά σας σε mUSD.",
       "convert": "Μετατροπή",
-      "no_fee": "No MetaMask fee",
-      "view_all": "View all"
+      "no_fee": "Χωρίς χρεώσεις από το MetaMask",
+      "view_all": "Προβολή όλων",
+      "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
       "title": "MetaMask Card",
@@ -6286,15 +6426,15 @@
       "get_now": "Αποκτήστε την τώρα"
     },
     "what_you_get": {
-      "title": "What you get",
-      "benefit_auto_earn": "Auto-earn ",
-      "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
-      "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
-      "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
-      "benefit_spend_cashback": "1-3% cashback",
-      "benefit_transfer": "Transfer money to any of your wallets across MetaMask",
-      "benefit_global": "Send and receive money globally",
-      "learn_more": "Learn more"
+      "title": "Τι σας προσφέρει",
+      "benefit_auto_earn": "Αυτόματη απόδοση ",
+      "benefit_dollar_backed": "Κρατήστε τα χρήματά σας ασφαλή σε mUSD, ένα stablecoin με αναλογία 1:1 σε δολάρια",
+      "benefit_liquidity": "Πλήρης ρευστότητα χωρίς δεσμεύσεις, ώστε να μπορείτε να κάνετε συναλλαγές ή ανάληψη οποιαδήποτε στιγμή",
+      "benefit_spend_prefix": "Κάντε αγορές με τη MetaMask Card σε 150M+ σημεία και κερδίστε ",
+      "benefit_spend_cashback": "1–3% επιστροφή χρημάτων",
+      "benefit_transfer": "Μεταφέρετε χρήματα σε οποιοδήποτε από τα πορτοφόλια σας στο MetaMask",
+      "benefit_global": "Στείλτε και λάβετε χρήματα παγκοσμίως",
+      "learn_more": "Μάθετε περισσότερα"
     },
     "footer": {
       "add_money": "Προσθήκη χρημάτων"
@@ -6307,14 +6447,22 @@
       "filter_deposits": "Καταθέσεις",
       "filter_transfers": "Μεταφορές"
     },
+    "condensed_cards": {
+      "how_it_works_title": "How it works",
+      "how_it_works_subtitle": "See how your money works for you",
+      "musd_title": "MetaMask USD",
+      "musd_subtitle": "Learn more about mUSD",
+      "what_you_get_title": "What you get",
+      "what_you_get_subtitle": "Explore your benefits"
+    },
     "transaction": {
       "added": "Προστέθηκε",
-      "deposited": "Deposited",
+      "deposited": "Κατατέθηκε",
       "received": "Ελήφθη",
       "sent": "Εστάλη",
-      "transferred": "Transferred",
-      "card_transaction": "Card transaction",
-      "converted": "Converted"
+      "transferred": "Μεταφέρθηκε",
+      "card_transaction": "Συναλλαγή με κάρτα",
+      "converted": "Μετατράπηκε"
     },
     "convert_stablecoins": {
       "title": "Μετατρέψτε τα stablecoins σας",
@@ -6329,6 +6477,25 @@
       "learn_more": "Μάθετε περισσότερα",
       "swap": "Ανταλλαγή",
       "buy": "Αγορά"
+    },
+    "how_it_works_page": {
+      "header_title": "Money",
+      "section_title": "How it works",
+      "description_1": "Your Money account earns 4% APY (variable) automatically. Funds go into a curated DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
+      "faq_title": "FAQ",
+      "faq_placeholder_answer": "Coming soon.",
+      "faq_q1": "What is the Money account?",
+      "faq_q2": "What is mUSD?",
+      "faq_q3": "Where does the yield come from?",
+      "faq_q4": "Is my money locked? Can I withdraw anytime?",
+      "faq_q5": "How does spending with the MetaMask Card work?",
+      "faq_q6": "Are there any fees?",
+      "faq_q7": "Does the APY rate change?",
+      "faq_q8": "Is this a savings account or a spending account?",
+      "faq_q9": "Who controls my money?",
+      "faq_q10": "What cash back do I get with the MetaMask Card?",
+      "sounds_good": "Sounds good"
     }
   },
   "stake": {
@@ -6349,7 +6516,7 @@
       "fiat_unavailable": "Οι αξίες σε παραδοσιακά νομίσματα είναι προσωρινά μη διαθέσιμες.",
       "estimated_annual_reward": "Εκτ. ετήσια ανταμοιβή",
       "trx_locked_for": "Τα TRX κλειδωμένα για",
-      "trx_locked_for_minimum_time": "~3 ημέρες",
+      "trx_locked_for_minimum_time": "~14 ημέρες",
       "trx_released_in": "Τα TRX θα είναι διαθέσιμα σε",
       "trx_released_in_minimum_time": "~14 ημέρες",
       "fee": "Τέλη",
@@ -6848,6 +7015,8 @@
     "fetching_quote": "Λήψη προσφοράς",
     "fee_disclaimer": "Περιλαμβάνει προμήθεια {{feePercentage}}% MetaMask.",
     "no_mm_fee": "Χωρίς προμήθεια MM",
+    "token_suspicious": "Suspicious",
+    "token_malicious": "Malicious",
     "no_mm_fee_disclaimer": "Χωρίς προμήθεια MetaMask για ανταλλαγή σε {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Τα πορτοφόλια υλικού δεν υποστηρίζονται ακόμη. Χρησιμοποιήστε ένα θερμό πορτοφόλι για να συνεχίσετε.",
     "hardware_wallet_not_supported_solana": "Τα πορτοφόλια υλικού δεν υποστηρίζουν ακόμα την Solana. Χρησιμοποιήστε ένα θερμό πορτοφόλι για να συνεχίσετε.",
@@ -6971,6 +7140,19 @@
     "ios_need_update_description_end": ". Μπορείτε προς το παρόν να συνεχίσετε να χρησιμοποιείτε τη σύνδεση μέσω Google σε αυτή τη συσκευή, αλλά σύντομα δεν θα υποστηρίζεται σε επόμενη ενημέρωση.",
     "ios_need_update_description2": "Μπορείτε να συνεχίσετε να έχετε πρόσβαση στο πορτοφόλι σας χρησιμοποιώντας τον ίδιο λογαριασμό Google σε μια υποστηριζόμενη συσκευή ή μέσω της επέκτασης του MetaMask. Συνιστούμε επίσης να δημιουργήσετε αντίγραφο ασφαλείας της Μυστικής Φράσης Ανάκτησής σας αν συνεχίσετε χωρίς να ενημερώσετε το iOS.",
     "ios_need_update_button": "Συνεχίστε",
+    "ios_need_update_reminder_title": "Απαιτείται ενημέρωση του iOS",
+    "ios_need_update_reminder_description": "Η σύνδεση μέσω Google στο MetaMask θα απαιτεί σύντομα ",
+    "ios_need_update_reminder_description_version": "iOS 17.4 ή νεότερο",
+    "ios_need_update_reminder_description_end": ". Μπορείτε προς το παρόν να συνεχίσετε να χρησιμοποιείτε τη σύνδεση μέσω Google σε αυτή τη συσκευή, αλλά σύντομα δεν θα υποστηρίζεται σε επόμενη ενημέρωση.",
+    "ios_need_update_reminder_description_2": "Μπορείτε να εξακολουθείτε να έχετε πρόσβαση στο πορτοφόλι σας χρησιμοποιώντας τον ίδιο λογαριασμό Google σε υποστηριζόμενη συσκευή ή μέσω της επέκτασης στο MetaMask. Σας συνιστούμε ανεπιφύλακτα να δημιουργήσετε αντίγραφο ασφαλείας της Μυστικής Φράσης Ανάκτησής σας.",
+    "ios_need_update_reminder_button": "Κατανοητό",
+    "ios_google_login_unsupported_error_title": "Η σύνδεση μέσω Google δεν υποστηρίζεται πλέον σε αυτήν την έκδοση iOS",
+    "ios_google_login_unsupported_error_description": "Η σύνδεση μέσω Google στο MetaMask απαιτεί πλέον ",
+    "ios_google_login_unsupported_error_description_2": ". Η τρέχουσα συνεδρία σας δεν επηρεάζεται, αλλά αν αποσυνδεθείτε, δεν θα μπορείτε να συνδεθείτε ξανά μέσω Google σε αυτήν τη συσκευή.",
+    "ios_google_login_unsupported_error_description_3": "Για να αποφύγετε την απώλεια πρόσβασης στο πορτοφόλι σας:",
+    "ios_google_login_unsupported_error_description_4": "Ενημερώστε το iPhone σας σε ",
+    "ios_google_login_unsupported_error_description_5": "Ή δημιουργήστε αντίγραφο ασφαλείας της Μυστικής Φράσης Ανάκτησής σας, ώστε να μπορείτε να επαναφέρετε το πορτοφόλι σας οποιαδήποτε στιγμή",
+    "ios_google_login_unsupported_error_button": "Κατανοητό",
     "ios_google_login_unsupported_blocking_title": "Ενημερώστε το iOS για να δημιουργήσετε πορτοφόλι με την Google",
     "ios_google_login_unsupported_blocking_description": "Η σύνδεση με Google στο MetaMask απαιτεί iOS 17.4 ή νεότερο. Ενημερώστε το iPhone σας για να συνεχίσετε στη δημιουργία πορτοφολιού με την Google.",
     "ios_google_login_unsupported_blocking_description_2": "Εναλλακτικά, μπορείτε να δημιουργήσετε ένα πορτοφόλι χρησιμοποιώντας την Μυστική Φράση Ανάκτησης.",
@@ -7066,9 +7248,9 @@
       "confirm_button": "Επιβεβαίωση"
     },
     "add_wallet": "Προσθήκη πορτοφολιού",
-    "add_wallet_srp_description": "Using a 12, 18 or 24-word seed phrase",
-    "add_wallet_private_key_description": "Via a private key",
-    "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
+    "add_wallet_srp_description": "Χρησιμοποιώντας φράση ανάκτησης 12, 18 ή 24 λέξεων",
+    "add_wallet_private_key_description": "Μέσω ιδιωτικού κλειδιού",
+    "add_wallet_hardware_description": "Χρησιμοποιώντας Bluetooth ή QR κωδικό",
     "add_hardware_wallet": "Προσθέστε ένα πορτοφόλι υλικού",
     "syncing": "Συγχρονισμός",
     "account_details": {
@@ -7582,7 +7764,9 @@
         "unfreeze_card_description": "Συνέχιση όλων των δαπανών στην κάρτα σας",
         "freeze_error": "Αποτυχία δημιουργίας πληρωμής. Παρακαλούμε δοκιμάστε ξανά.",
         "freeze_success": "Η κάρτα πάγωσε επιτυχώς",
-        "unfreeze_success": "Η κάρτα ξεπαγώθηκε με επιτυχία"
+        "unfreeze_success": "Η κάρτα ξεπαγώθηκε με επιτυχία",
+        "change_asset": "Αλλαγή περιουσιακού στοιχείου",
+        "change_asset_description": "Επιλέξτε διαφορετικό token"
       }
     },
     "card_spending_limit": {
@@ -7653,7 +7837,7 @@
     },
     "card_authentication": {
       "title": "Συνδεθείτε στον λογαριασμό της κάρτας σας",
-      "auth_prompt_info": "Log in to your card account to access this feature.",
+      "auth_prompt_info": "Συνδεθείτε στον λογαριασμό της κάρτας σας για να χρησιμοποιήσετε αυτή τη λειτουργία.",
       "location_button_text": "Διεθνής",
       "location_button_text_us": "Ηνωμένες Πολιτείες",
       "email_label": "Email",
@@ -7742,8 +7926,6 @@
     "auth_fail_title": "Άγνωστο σφάλμα.",
     "auth_fail_description": "Παρουσιάστηκε ένα άγνωστο σφάλμα κατά την ταυτοποίηση αυτού του λογαριασμού με το MetaMask Rewards. Προσπαθήστε ξανά αργότερα.",
     "failed_to_authenticate": "Αποτυχία ταυτοποίησης με το MetaMask Rewards",
-    "not_implemented": "Προσεχώς",
-    "not_implemented_season_summary": "Η σύνοψη της περιόδου έρχεται σύντομα",
     "optin_error": {
       "title": "Αποτυχία συμμετοχής",
       "description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά."
@@ -7760,8 +7942,7 @@
     },
     "season_status_error": {
       "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση του υπολοίπου της περιόδου",
-      "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
-      "retry_button": "Επανάληψη"
+      "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά."
     },
     "active_boosts_error": {
       "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση των ενισχύσεων",
@@ -7779,8 +7960,7 @@
     },
     "upcoming_rewards_error": {
       "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση των ανταμοιβών",
-      "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
-      "retry_button": "Επανάληψη"
+      "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά."
     },
     "referral_details_error": {
       "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση των στοιχείων παραπομπής",
@@ -7815,7 +7995,6 @@
       "title": "Η ενεργοποίηση της ανταμοιβής απέτυχε"
     },
     "metal_card_claim": {
-      "title": "Εξαργυρώστε την ανταμοιβή σας",
       "description": "Η MetaMask Metal Card υπόκειται σε κριτήρια επιλεξιμότητας και δεν είναι διαθέσιμη σε όλες τις περιοχές. Εάν δεν πληροίτε τις προϋποθέσεις, θα λάβετε ως ανταμοιβή αποκλειστικά premium προϊόντα της εταιρείας.",
       "contact_info": "Δώστε τα στοιχεία επικοινωνίας σας και θα λάβετε απάντηση εντός 2 εβδομάδων από τον @MidwitMilhouse στο Telegram ή από το christian.montoya@consensys.net.",
       "email_label": "Email",
@@ -7828,21 +8007,14 @@
       "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
       "retry_button": "Επανάληψη"
     },
-    "referral_rewards_title": "Συστάσεις",
-    "level": "Επίπεδο",
-    "season_ends": "Η σεζόν τελειώνει",
-    "season_ended": "Η σεζόν τελείωσε",
     "main_title": "Ανταμοιβές",
     "referral_title": "Συστάσεις",
-    "tab_overview_title": "Επισκόπηση",
-    "tab_activity_title": "Δραστηριότητα",
     "referral_stats_earned_from_referrals": "Κερδίσατε από συστάσεις",
     "referral_stats_referrals": "Συστάσεις",
     "loading_activity": "Φόρτωση δραστηριότητας…",
     "error_loading_activity": "Σφάλμα κατά τη φόρτωση της δραστηριότητας",
     "activity_empty_title": "Δεν υπάρχει πρόσφατη δραστηριότητα.",
     "activity_empty_description": "Χρησιμοποιήστε το MetaMask για να κερδίζετε πόντους, να ανεβαίνετε επίπεδο και να ξεκλειδώνετε ανταμοιβές.",
-    "activity_empty_link": "Δείτε τρόπους για να κερδίσετε",
     "filter_title": "Φιλτράρισμα ανά τύπο δραστηριότητας",
     "filter_all": "Όλα",
     "events": {
@@ -7881,19 +8053,10 @@
     },
     "previous_season_summary": {
       "title": "Αποτελέσματα {{seasonName}}",
-      "update_metamask_version": "Ενημερώστε το MetaMask στην έκδοση {{version}}",
-      "to_claim_rewards": " για να διεκδικήσετε τις ανταμοιβές",
-      "check_back_soon": "Επιστρέψτε σύντομα για να εξαργυρώσετε τις ανταμοιβές σας",
       "point_earned": "πόντο κερδίσατε",
       "points_earned": "πόντους κερδίσατε",
       "no_end_of_season_rewards": "Δεν κερδίσατε ανταμοιβές αυτή την περίοδο, αλλά υπάρχει πάντα η επόμενη φορά.",
       "verifying_rewards": "Βεβαιωνόμαστε ότι όλα είναι σωστά πριν διεκδικήσετε τις ανταμοιβές σας."
-    },
-    "previous_season_view": {
-      "title": "Προηγούμενη περίοδος"
-    },
-    "season_status": {
-      "points_earned": "Πόντοι που κερδίσατε"
     },
     "onboarding": {
       "not_supported_region_title": "Η περιοχή δεν υποστηρίζεται",
@@ -7910,26 +8073,27 @@
       "geo_check_fail_description": "Δεν μπορούμε να καθορίσουμε αν η περιοχή σας επιτρέπει την εγγραφή στο πρόγραμμα ανταμοιβών. Παρακαλώ ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.",
       "intro_confirm_geo_loading": "Έλεγχος περιοχής…",
       "step_confirm": "Επόμενο",
+      "step_finish": "Ας ξεκινήσουμε",
       "step_skip": "Παράλειψη",
       "step4_title_referral_validating": "Έλεγχος κωδικού παραπομπής…",
       "step4_referral_input_error": "Μη έγκυρος κωδικός παραπομπής",
-      "title": "Start earning rewards",
-      "description": "Join campaigns and find claimable benefits",
-      "sign_up": "Join Rewards",
-      "sign_up_loading": "Joining...",
-      "legal_disclaimer_1": "By joining, you agree to the",
-      "legal_disclaimer_2": "Terms",
-      "legal_disclaimer_3": ". All accounts on this device will be opted in.",
-      "legal_disclaimer_4": "Learn more",
-      "referral_prompt": "Have a referral code?",
-      "referral_hide": "Hide code",
-      "referral_placeholder": "Referral code (optional)",
-      "referral_label": "Referral code"
+      "title": "Ξεκινήστε να κερδίζετε ανταμοιβές",
+      "description": "Συμμετέχετε σε καμπάνιες και βρείτε ανταμοιβές που μπορείτε να διεκδικήσετε",
+      "sign_up": "Εγγραφείτε για Ανταμοιβές",
+      "sign_up_loading": "Εγγραφή...",
+      "legal_disclaimer_1": "Με τη συμμετοχή σας, συμφωνείτε με τους",
+      "legal_disclaimer_2": "Όρους",
+      "legal_disclaimer_3": ". Όλοι οι λογαριασμοί σε αυτή τη συσκευή θα συμμετέχουν.",
+      "legal_disclaimer_4": "Μάθετε περισσότερα",
+      "referral_prompt": "Έχετε κωδικό παραπομπής;",
+      "referral_hide": "Απόκρυψη κωδικού",
+      "referral_placeholder": "Κωδικός παραπομπής (προαιρετικά)",
+      "referral_label": "Κωδικός παραπομπής"
     },
     "settings": {
       "title": "Ρυθμίσεις ανταμοιβών",
       "subtitle": "Λογαριασμοί",
-      "description": "Add multiple accounts to combine your progress and unlock rewards faster.",
+      "description": "Προσθέστε πολλαπλούς λογαριασμούς για να συνδυάσετε την πρόοδό σας και να ξεκλειδώσετε ανταμοιβές πιο γρήγορα.",
       "tab_linked_accounts": "Προστέθηκαν ({{count}})",
       "tab_unlinked_accounts": "Δεν προστέθηκαν ({{count}})",
       "no_linked_accounts": "Κανένας λογαριασμός δεν συμμετέχει ακόμη",
@@ -7960,8 +8124,7 @@
       "description_linked": "Ο κωδικός πρόσκλησης έχει πλέον ενεργοποιηθεί, ώστε ο χρήστης που σας παρέπεμψε να κερδίζει ανταμοιβές όταν κάνετε συναλλαγές.",
       "description_not_linked": "Εγγραφήκατε πριν προλάβει ο φίλος σας να σας στείλει τον κωδικό; Πληκτρολογήστε τον παρακάτω και θα ενεργοποιηθεί.",
       "input_placeholder": "Πληκτρολογήστε τον κωδικό παραπομπής",
-      "invalid_code": "Μη έγκυρος κωδικός παραπομπής",
-      "apply_button": "Εφαρμογή κωδικού παραπομπής"
+      "invalid_code": "Μη έγκυρος κωδικός παραπομπής"
     },
     "bonus_code": {
       "input_placeholder": "Πληκτρολογήστε τον κωδικό μπόνους",
@@ -7969,7 +8132,7 @@
     },
     "optout": {
       "title": "Διαγραφή προόδου Ανταμοιβών",
-      "description": "This will remove your accounts from the Rewards program and erase your progress. You won't be able to undo this.",
+      "description": "Αυτό θα αφαιρέσει τους λογαριασμούς σας από το πρόγραμμα Ανταμοιβών και θα διαγράψει την πρόοδό σας. Δεν θα μπορείτε να το αναιρέσετε.",
       "confirm": "Διαγραφή",
       "modal": {
         "confirmation_title": "Είστε σίγουροι;",
@@ -7994,8 +8157,8 @@
       },
       "account_not_supported": {
         "title": "Ο λογαριασμός δεν υποστηρίζεται",
-        "description_hardware": "Hardware wallet accounts are not yet eligible. Please switch to a different account to proceed.",
-        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Please switch to a different account to proceed.",
+        "description_hardware": "Οι λογαριασμοί με πορτοφόλι υλικού δεν είναι ακόμη επιλέξιμοι. Παρακαλούμε αλλάξτε λογαριασμό για να συνεχίσετε.",
+        "description_general": "Προς το παρόν, μόνο οι εσωτερικοί λογαριασμοί Ethereum και Solana χωρίς πορτοφόλι υλικού είναι επιλέξιμοι. Παρακαλούμε αλλάξτε λογαριασμό για να συνεχίσετε.",
         "confirm": "Πίσω"
       }
     },
@@ -8010,8 +8173,8 @@
         "share_referral_subject": "Συμμετάσχετε στο MetaMask Rewards"
       },
       "info": {
-        "title": "Share your code with friends",
-        "description": "Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm."
+        "title": "Κοινοποιήστε τον κωδικό σας με φίλους",
+        "description": "Τα μπόνους παραπομπής διαφέρουν ανά καμπάνια. Ελέγξτε κάθε καμπάνια για λεπτομέρειες."
       },
       "referral_code_copied": "Ο κωδικός παραπομπής αντιγράφηκε στο πρόχειρο"
     },
@@ -8058,11 +8221,11 @@
       "expired": "Έληξε"
     },
     "benefits": {
-      "title": "Benefits",
+      "title": "Ανταμοιβές",
       "list_header": "Διαθέσιμο",
-      "title_claim": "Claim Benefit",
+      "title_claim": "Εξαργύρωση ανταμοιβών",
       "action": "Εξαργύρωση",
-      "empty-list": "You don’t have any benefits right now.",
+      "empty-list": "Δεν έχετε διαθέσιμες ανταμοιβές αυτή τη στιγμή.",
       "powered_by": "Με την υποστήριξη του"
     },
     "end_of_season_rewards": {
@@ -8088,14 +8251,18 @@
       "pill_up_next": "Προσεχώς",
       "pill_active": "Ζωντανά",
       "pill_complete": "Ολοκληρώθηκε",
-      "enter": "Enter",
+      "enter": "Είσοδος",
       "entered": "Έχετε συμμετάσχει",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Εγγραφή",
       "opt_in_sheet_title": "Συμμετάσχετε στην καμπάνια",
       "geo_restriction_banner_title": "Δεν είναι διαθέσιμη στην περιοχή σας",
       "geo_restriction_banner_description": "Αυτή η καμπάνια δεν είναι διαθέσιμη στην περιοχή σας λόγω τοπικών κανονισμών.",
-      "opt_in_success_toast": "Τα καταφέρατε!"
+      "opt_in_success_toast": "Τα καταφέρατε!",
+      "geo_locked_toast_title": "Δεν είναι διαθέσιμη στην περιοχή σας",
+      "geo_locked_toast_description": "Αυτή η καμπάνια δεν είναι διαθέσιμη στην περιοχή σας. Επιστρέψτε αργότερα για νέες καμπάνιες.",
+      "geo_locked_cta": "Έλεγχος επιλεξιμότητας",
+      "geo_loading": "Έλεγχος περιοχής…"
     },
     "campaign_mechanics": {
       "title": "Κανόνες"
@@ -8113,7 +8280,7 @@
       "checking_opt_in_status": "Έλεγχος κατάστασης εγγραφής",
       "swap": "Ανταλλαγή",
       "swap_ondo_assets": "Ανταλλαγή με ψηφιακά περιουσιακά στοιχεία στην πλατφόρμα Ondo",
-      "open_position": "Open Position",
+      "open_position": "Ανοιχτή Θέση",
       "how_it_works": "Πώς λειτουργεί",
       "ondo": {
         "entries_closed_title": "Οι συμμετοχές έκλεισαν",
@@ -8121,36 +8288,17 @@
       }
     },
     "ondo_campaign_prize_pool": {
-      "title": "Prize pool",
+      "title": "Σύνολο επάθλων",
       "current_label": "Τρέχουσα",
       "next_label": "Επόμενο",
-      "volume_subtext": "{{current}} of {{target}} volume",
-      "max_tier_subtext": "{{maxThreshold}}+ TVL — all milestones reached",
-      "max_badge": "Max",
-      "error_title": "Failed to load prize pool",
-      "error_description": "There was an error loading the prize pool. Please try again.",
+      "volume_subtext": "{{current}} από {{target}} όγκο συναλλαγών",
+      "max_tier_subtext": "{{maxThreshold}}+ TVL — όλα τα ορόσημα επιτεύχθηκαν",
+      "max_badge": "Μεγ",
+      "error_title": "Δεν ήταν δυνατή η φόρτωση του συνόλου επάθλων",
+      "error_description": "Παρουσιάστηκε σφάλμα κατά τη φόρτωση του συνόλου επάθλων. Παρακαλούμε προσπαθήστε ξανά.",
       "retry_button": "Επανάληψη"
     },
-    "ondo_campaign_leaderboard_position": {
-      "title": "Η θέση σας",
-      "rank": "Η κατάταξή μου",
-      "tier": "Το επίπεδό μου",
-      "rate_of_return": "Επιστροφή",
-      "total_deposited": "Συνολικά ποσά που κατατέθηκαν",
-      "current_value": "Τρέχουσα αποτίμηση",
-      "not_found": "Δεν βρίσκεστε ακόμη στον πίνακα κατάταξης. Παρακαλούμε ελέγξτε ξανά αργότερα.",
-      "updated_at": "Τελευταία ενημέρωση: {{time}}",
-      "error_loading": "Δεν ήταν δυνατή η φόρτωση της θέσης σας",
-      "error_loading_description": "Παρουσιάστηκε σφάλμα κατά τη φόρτωση της θέσης σας στον πίνακα κατάταξης. Παρακαλούμε προσπαθήστε πάλι.",
-      "retry": "Επανάληψη"
-    },
     "ondo_campaign_portfolio": {
-      "total_value": "Συνολική αξία",
-      "portfolio_pnl": "Κ&Ζ",
-      "portfolio_pnl_percent": "Κ&Ζ (%)",
-      "summary_cost_basis": "Κόστος κτήσης",
-      "summary_net_deposit": "Καθαρή κατάθεση",
-      "summary_cashed_out": "Εξαργυρώθηκε",
       "position_current_value": "Αξία",
       "position_unrealized_pnl": "Κ&Ζ",
       "updated_at": "Τελευταία ενημέρωση: {{time}}",
@@ -8178,7 +8326,6 @@
     },
     "ondo_campaign_leaderboard": {
       "title": "Πίνακας κατάταξης",
-      "of_total": "από {{total}} συμμετέχοντες",
       "total_participants": "{{count}} συμμετέχοντες",
       "updated_at": "Τελευταία ενημέρωση: {{time}}",
       "error_loading": "Δεν ήταν δυνατή η φόρτωση του πίνακα κατάταξης",
@@ -8191,43 +8338,37 @@
       "tier_starter": "Bronze",
       "tier_mid": "Silver",
       "tier_upper": "Platinum",
-      "select_tier": "Select Tier",
+      "select_tier": "Επιλέξτε επίπεδο",
       "pending": "Εκκρεμεί",
-      "qualified": "Qualified",
-      "ineligible": "Ineligible",
-      "pending_sheet_title": "Εκκρεμεί",
-      "pending_sheet_tier_label": "Tier",
-      "pending_sheet_net_deposit_label": "Net Deposit",
-      "pending_sheet_own_body": "Hold a minimum balance of {{minNetDeposit}} for {{daysRemaining}} more day(s) to qualify for this tier.",
-      "pending_sheet_other_body": "This participant hasn't yet met the holding requirement for their projected tier.",
-      "pending_sheet_cta": "Κατανοητό",
-      "qualify_for_rank_title": "Qualify for this rank",
-      "qualify_for_rank_description": "Keep your deposit above {{minNetDeposit}} for {{daysRemaining}} more days, including the final day."
+      "ineligible": "Δεν πληροίτε τις προϋποθέσεις",
+      "qualify_for_rank_title": "Πληροίτε τα κριτήρια για αυτή την κατηγορία",
+      "qualify_for_rank_description": "Διατηρήστε τις καθαρές εισροές σας πάνω από {{minNetDeposit}} για ακόμη {{daysRemaining}} ημέρες, για να μπορείτε να συμμετέχετε.στον διαγωνισμό."
     },
     "ondo_campaign_stats": {
       "title": "Στατιστικά",
-      "stats_error_title": "Unable to load all stats",
-      "stats_error_description": "We had a problem loading your stats. Please try again later.",
+      "stats_error_title": "Δεν ήταν δυνατή η φόρτωση όλων των στατιστικών",
+      "stats_error_description": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των στατιστικών σας. Παρακαλούμε προσπαθήστε ξανά αργότερα.",
       "retry": "Επανάληψη",
       "label_return": "Επιστροφή",
-      "label_market_value": "Market value",
+      "label_market_value": "Τρέχουσα αξία",
       "label_rank": "Κατάταξη",
-      "label_tier": "Tier",
-      "label_your_return": "Your return",
-      "label_your_rank": "Your rank",
-      "label_net_deposit": "Καθαρή κατάθεση",
-      "label_days_held": "Days held",
-      "qualified_title": "You're qualified",
-      "qualified_description": "Keep your net deposit above {{minNetDeposit}} through the final day to stay eligible.",
-      "not_eligible_title": "Not eligible",
-      "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier."
+      "label_tier": "Επίπεδο",
+      "label_your_rank": "Η κατάταξή σας",
+      "label_portfolio": "Portfolio",
+      "label_net_inflow": "Καθαρές εισροές",
+      "label_outflow": "Εκροές",
+      "label_days_held": "Ημέρες διακράτησης",
+      "qualified_title": "Πληροίτε τις προϋποθέσεις",
+      "qualified_description": "Αυξήστε τις καθαρές εισροές σας για να φτάσετε σε υψηλότερο επιπέδο και να διεκδικήσετε μεγαλύτερες ανταμοιβές.",
+      "not_eligible_title": "Δεν πληροίτε τις προϋποθέσεις",
+      "not_eligible_description": "Συναλλαγές που ανοίγουν πολύ αργά για να καλύψουν την απαίτηση διακράτησης {{days}} ημερών δεν θα υπολογίζονται στην κατάταξη ή το επίπεδο σας."
     },
     "ondo_campaign_activity": {
       "title": "Όλη η δραστηριότητα",
-      "type_deposit": "Inflow",
-      "type_withdraw": "Outflow",
+      "type_deposit": "Εισροές",
+      "type_withdraw": "Εκροές",
       "type_rebalance": "Ανακατανομή",
-      "type_external_outflow": "Outflow",
+      "type_external_outflow": "Εκροές",
       "error_title": "Δεν ήταν δυνατή η φόρτωση της δραστηριότητας",
       "error_description": "Κάτι πήγε στραβά κατά τη φόρτωση της δραστηριότητας. Προσπαθήστε ξανά.",
       "retry_button": "Επανάληψη",
@@ -8236,13 +8377,13 @@
     },
     "ondo_campaign_after_hours_trading": {
       "title": "Συναλλαγές εκτός ωραρίου αγοράς",
-      "reopens_in_label": "Reopens in",
-      "content": "You're trading outside of regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates.",
+      "reopens_in_label": "Ανοίγει ξανά σε",
+      "content": "Κάνετε συναλλαγές εκτός του κανονικού ωραρίου αγοράς (9:30 π.μ.–4 μ.μ. EST). Όταν οι αγορές είναι κλειστές, ορισμένα ψηφιακά περιουσιακά στοιχεία μπορεί να έχουν μειωμένη ρευστότητα και υψηλότερα spreads.",
       "got_it_button": "Κατανοητό"
     },
     "ondo_campaign_not_eligible": {
-      "title": "Not eligible",
-      "body": "This position won't be entered in the campaign. It won't meet the {{days}}-day hold requirement.",
+      "title": "Δεν πληροίτε τις προϋποθέσεις",
+      "body": "Αυτή η θέση δεν θα συμμετάσχει στην καμπάνια. Δεν θα καλύψει την απαίτηση διακράτησης {{days}} ημερών.",
       "cancel": "Ακύρωση",
       "confirm": "Κατανοώ"
     },
@@ -8255,7 +8396,7 @@
       "title": "Κερδίστε ανταμοιβές",
       "musd_title": "Έως 3% μπόνους σε stables",
       "musd_subtitle": "Υπολογίστε το μπόνους σας σε mUSD",
-      "card_title": "Up to 3% back on spend",
+      "card_title": "Έως 3% επιστροφή σε κάθε αγορά",
       "card_subtitle": "Αποκτήστε τώρα την MetaMask Card",
       "card_subtitle_cardholder": "Δείτε τα προνόμια της MetaMask Card"
     },
@@ -8269,6 +8410,24 @@
       "error_description": "Δεν μπορέσαμε να φορτώσουμε τις καμπάνιες. Προσπαθήστε ξανά.",
       "retry_button": "Επανάληψη",
       "refreshing": "Ανανεώνεται..."
+    },
+    "ondo_winning_banner": {
+      "title": "You won the {{campaignName}}",
+      "description": "Claim your prize now!"
+    },
+    "ondo_campaign_winning": {
+      "you_won": "You won",
+      "rank_label": "{{place}} place",
+      "email_instructions": "Email ondocampaign@consensys.net with your code to claim your prize.",
+      "open_mail": "Open mail",
+      "skip_for_now": "Skip for now",
+      "mail_subject": "Ondo campaign prize claim",
+      "mail_body": "My winning code: {{code}}",
+      "winning_code": "Winning code",
+      "close_a11y": "Close",
+      "error_title": "Could not load your winning code",
+      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
+      "error_retry": "Try again"
     }
   },
   "time": {
@@ -8421,7 +8580,10 @@
       "tip_enable_bluetooth": "Το Bluetooth είναι ενεργοποιημένο",
       "tip_bluetooth_permission": "Η άδεια τοποθεσίας και Bluetooth έχει δοθεί",
       "tip_bluetooth_permission_v12": "Η άδεια για κοντινές συσκευές έχει δοθεί",
-      "tip_stay_close": "Η συσκευή σας πρέπει να βρίσκεται κοντά στο τηλέφωνό σας"
+      "tip_stay_close": "Η συσκευή σας πρέπει να βρίσκεται κοντά στο τηλέφωνό σας",
+      "qr_tip_scan": "Your camera is ready to scan the QR code",
+      "qr_tip_align": "Align the QR code within the frame",
+      "qr_tip_lighting": "Ensure good lighting for clear scanning"
     },
     "awaiting_app": {
       "title": "Ανοίξτε την εφαρμογή {{app}}",

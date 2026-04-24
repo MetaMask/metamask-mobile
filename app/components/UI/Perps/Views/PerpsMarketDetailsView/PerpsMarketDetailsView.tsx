@@ -143,6 +143,10 @@ import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
@@ -153,6 +157,7 @@ interface MarketDetailsRouteParams {
   monitoringIntent?: Partial<DataMonitorParams>;
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
@@ -189,7 +194,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market: routeMarket, monitoringIntent, source } = route.params || {};
+  const {
+    market: routeMarket,
+    monitoringIntent,
+    source,
+    transactionActiveAbTests,
+  } = route.params || {};
   const { track } = usePerpsEventTracking();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
@@ -436,17 +446,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const availableBalance = Number.parseFloat(
-    account?.availableBalance?.toString() ?? '0',
+  const tradeableBalance = Number.parseFloat(
+    account?.availableToTradeBalance?.toString() ??
+      account?.availableBalance?.toString() ??
+      '0',
   );
-  const showAddFundsCTA =
-    isEligible &&
-    !isLoadingPosition &&
-    !existingPosition &&
-    !isAtOICap &&
+  const hasDirectOrderFundingPath =
     !isLoadingAccount &&
-    availableBalance < PERPS_MIN_BALANCE_THRESHOLD &&
-    defaultPayTokenWhenNoPerpsBalance === null;
+    (tradeableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
+      defaultPayTokenWhenNoPerpsBalance !== null);
 
   const handleAddFunds = useCallback(async () => {
     if (!isEligible) {
@@ -461,13 +469,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
     try {
       navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-      await depositWithConfirmation();
+      await withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
+        depositWithConfirmation(),
+      );
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
         tags: { feature: PERPS_CONSTANTS.FeatureName },
       });
     }
-  }, [isEligible, track, navigateToConfirmation, depositWithConfirmation]);
+  }, [
+    isEligible,
+    track,
+    navigateToConfirmation,
+    depositWithConfirmation,
+    transactionActiveAbTests,
+  ]);
 
   // Keep current position ref in sync for callbacks stored in route params
   // This must be after useHasExistingPosition since it depends on existingPosition
@@ -1175,9 +1191,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const shouldShowNewPositionActions =
     hasLongShortButtons && !existingPosition && !isAtOICap;
   const shouldShowAddFundsCTASection =
-    shouldShowNewPositionActions && showAddFundsCTA;
+    shouldShowNewPositionActions &&
+    isEligible &&
+    !isLoadingAccount &&
+    !isLoadingPosition &&
+    !hasDirectOrderFundingPath;
   const shouldShowLongShortButtonsOnly =
-    shouldShowNewPositionActions && !showAddFundsCTA;
+    shouldShowNewPositionActions && !shouldShowAddFundsCTASection;
 
   const shouldShowPerpsMarketInsights =
     isPerpsInsightsEnabled &&

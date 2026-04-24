@@ -528,6 +528,11 @@ export type RewardsControllerGetOndoCampaignLeaderboardPositionAction = {
   handler: RewardsController['getOndoCampaignLeaderboardPosition'];
 };
 
+export type RewardsControllerGetOndoCampaignParticipantOutcomeAction = {
+  type: `RewardsController:getOndoCampaignParticipantOutcome`;
+  handler: RewardsController['getOndoCampaignParticipantOutcome'];
+};
+
 /**
  * Get the current user's Ondo GM portfolio for a campaign.
  * This is an authenticated endpoint.
@@ -752,6 +757,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
+  | RewardsControllerGetOndoCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
   | RewardsControllerGetOndoCampaignActivityAction
   | RewardsControllerGetActivityIfChangedAction

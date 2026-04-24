@@ -406,7 +406,11 @@ const PerpsWithdrawView: React.FC = () => {
                 ]}
               />
             </Box>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              testID={PerpsWithdrawViewSelectorsIDs.AVAILABLE_BALANCE_TEXT}
+            >
               {strings('perps.withdrawal.available_balance', {
                 amount: formattedBalance,
               })}
@@ -497,11 +501,15 @@ const PerpsWithdrawView: React.FC = () => {
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.networkFee || '$1.00',
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.FEE_VALUE}
+                >
+                  {formattedQuoteData?.networkFee || '$1.00'}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -526,11 +534,15 @@ const PerpsWithdrawView: React.FC = () => {
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.estimatedTime,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.TIME_VALUE}
+                >
+                  {formattedQuoteData?.estimatedTime}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -545,10 +557,14 @@ const PerpsWithdrawView: React.FC = () => {
               },
             }}
             value={{
-              label: {
-                text: formatReceiveAmount,
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  testID={PerpsWithdrawViewSelectorsIDs.RECEIVE_VALUE}
+                >
+                  {formatReceiveAmount}
+                </Text>
+              ),
             }}
           />
         </Box>

@@ -16,6 +16,15 @@ const {
 } = require('./lib/workflow');
 const { backgroundApp, foregroundApp, restartApp } = require('./lib/app-lifecycle');
 const {
+  applyAllowlist,
+  captureFromMetro,
+  computeReview,
+  countByLevel,
+  dedupeIssues,
+  normalizeAppBufferEntries,
+  writeArtifacts: writeIssueArtifacts,
+} = require('./lib/recipe-issues');
+const {
   getAppRoot,
   getTeamsDir,
   inferTeamFromPath,
@@ -568,6 +577,7 @@ function ensureRunArtifacts(runOptions, recipePath) {
     screenshotsDir: path.join(rootDir, 'screenshots'),
     failuresDir: path.join(rootDir, 'failures'),
     logsDir: path.join(rootDir, 'logs'),
+    tracesDir: path.join(rootDir, 'traces'),
     tracePath: path.join(rootDir, 'trace.json'),
     workflowPath: path.join(rootDir, 'workflow.json'),
     workflowMermaidPath: path.join(rootDir, 'workflow.mmd'),
@@ -575,11 +585,115 @@ function ensureRunArtifacts(runOptions, recipePath) {
     runLogPath: path.join(rootDir, 'run.log'),
   };
 
-  [artifacts.rootDir, artifacts.screenshotsDir, artifacts.failuresDir, artifacts.logsDir]
+  [artifacts.rootDir, artifacts.screenshotsDir, artifacts.failuresDir, artifacts.logsDir, artifacts.tracesDir]
     .forEach((dirPath) => fs.mkdirSync(dirPath, { recursive: true }));
 
   state.artifacts = artifacts;
   return artifacts;
+}
+
+function resolveMetroLogPath(runOptions) {
+  if (process.env.METRO_LOG) {
+    return process.env.METRO_LOG;
+  }
+  return path.join(runOptions.appRoot, '.agent', 'metro.log');
+}
+
+function armIssueTracker(runOptions) {
+  const state = ensureExecutionState(runOptions);
+  if (state.issueTracker || runOptions.dryRun) {
+    return state.issueTracker;
+  }
+
+  const metroLogPath = resolveMetroLogPath(runOptions);
+  let startOffset = 0;
+  try {
+    startOffset = fs.existsSync(metroLogPath) ? fs.statSync(metroLogPath).size : 0;
+  } catch {
+    startOffset = 0;
+  }
+
+  // Install in-app console/exception hooks. Best-effort: if the CDP bridge
+  // isn't reachable yet (app booting, port not bound) we still fall back to
+  // metro-log scraping at collection time.
+  let armed = false;
+  try {
+    const armResponse = trySpawnBridge(runOptions.appRoot, ['issues-arm']);
+    if (armResponse && armResponse.ok && armResponse.result?.installed) {
+      armed = true;
+    }
+  } catch {
+    armed = false;
+  }
+
+  state.issueTracker = { metroLogPath, startOffset, armed };
+  return state.issueTracker;
+}
+
+function collectRecipeIssues(runOptions, document) {
+  const state = ensureExecutionState(runOptions);
+  const tracker = state.issueTracker;
+  if (!tracker || runOptions.dryRun) {
+    return null;
+  }
+
+  // Pull the in-app buffer (best-effort). Failures here don't mask the metro
+  // log — we still synthesize review from whatever channel reported.
+  let appEntries = [];
+  if (tracker.armed) {
+    try {
+      const resp = trySpawnBridge(runOptions.appRoot, ['issues-collect']);
+      if (resp && resp.ok && Array.isArray(resp.result?.entries)) {
+        appEntries = resp.result.entries;
+      }
+    } catch {
+      appEntries = [];
+    }
+  }
+
+  const metroIssues = captureFromMetro(tracker.metroLogPath, tracker.startOffset);
+  const appIssues = normalizeAppBufferEntries(appEntries);
+  const allIssues = [...appIssues, ...metroIssues];
+
+  const failOn =
+    document && typeof document.fail_on_unexpected === 'object'
+      ? document.fail_on_unexpected
+      : null;
+  const allowlist = failOn && Array.isArray(failOn.allowlist) ? failOn.allowlist : [];
+
+  const { unexpected, informational } = applyAllowlist(allIssues, allowlist);
+  const review = computeReview(unexpected, informational, failOn, {});
+
+  const runDir = state.artifacts?.rootDir;
+  let artifactFiles = {};
+  if (runDir) {
+    try {
+      artifactFiles = writeIssueArtifacts(runDir, { unexpected, informational, review });
+    } catch (error) {
+      console.error(`recipe-issues artifact write failed: ${String(error.message || error)}`);
+      artifactFiles = {};
+    }
+  }
+  review.artifactFiles = artifactFiles;
+
+  const captured = countByLevel(dedupeIssues(allIssues));
+  const unexpectedCounts = countByLevel(dedupeIssues(unexpected));
+
+  const recipeIssues = {
+    captured,
+    unexpected: unexpectedCounts,
+    failOn: {
+      levels: failOn && Array.isArray(failOn.levels) ? failOn.levels.slice() : [],
+      textMatches:
+        failOn && Array.isArray(failOn.textMatches)
+          ? failOn.textMatches.slice()
+          : [],
+    },
+    review,
+  };
+
+  state.recipeIssues = recipeIssues;
+  return recipeIssues;
 }
 
 function writeRunSummary(runOptions, summary) {
@@ -1292,6 +1406,22 @@ async function runExecutableNode(node, context, options = {}) {
     case 'switch_provider':
       bridgeResult = handleSwitchProvider(node, appRoot);
       break;
+    case 'trace_start':
+      bridgeResult = spawnBridge(appRoot, ['profiler-start']);
+      break;
+    case 'trace_stop': {
+      const artifacts = ensureRunArtifacts(runOptions, context.recipePath);
+      const traceLabel = sanitizeFileSegment(node.label || node.id || 'trace');
+      const outPath = artifacts && artifacts.tracesDir
+        ? path.join(artifacts.tracesDir, `trace-${traceLabel}.cpuprofile`)
+        : '';
+      const stopArgs = ['profiler-stop', '--label', traceLabel];
+      if (outPath) {
+        stopArgs.push('--out', outPath);
+      }
+      bridgeResult = spawnBridge(appRoot, stopArgs);
+      break;
+    }
     default:
       throw new Error(`Unknown action "${node.action}"`);
   }
@@ -1504,6 +1634,9 @@ async function runRecipe(recipePath, runOptions, flowParams = {}, depth = 0) {
   if (!runOptions.dryRun) {
     ensureRunArtifacts(runOptions, recipePath);
     writeWorkflowArtifacts(context);
+    if (depth === 0) {
+      armIssueTracker(runOptions);
+    }
   }
 
   console.log(`${prefix}Running recipe: ${document.title || 'Untitled'}`);
@@ -1620,6 +1753,14 @@ async function runRecipe(recipePath, runOptions, flowParams = {}, depth = 0) {
   if (depth === 0 && !runOptions.dryRun) {
     clearHudStep(appRoot, runOptions);
     writeTraceArtifacts(context);
+    const recipeIssues = collectRecipeIssues(runOptions, document);
+    const gatingTriggered =
+      !!recipeIssues && recipeIssues.review?.status === 'gating';
+    if (gatingTriggered && !failureError) {
+      failureError = new Error(
+        `Recipe issue review gating: ${recipeIssues.review?.note || 'fail_on_unexpected matched'}`
+      );
+    }
     writeRunSummary(runOptions, {
       status: failureError ? 'FAIL' : 'PASS',
       title: document.title || '',
@@ -1630,7 +1771,20 @@ async function runRecipe(recipePath, runOptions, flowParams = {}, depth = 0) {
       workflowMermaidPath: state.artifacts?.workflowMermaidPath || '',
       workflowPath: state.artifacts?.workflowPath || '',
       availableEvalRefs: listEvalRefs(appRoot).map((entry) => entry.ref),
+      ...(recipeIssues ? { recipeIssues } : {}),
     });
+    if (recipeIssues) {
+      const { review } = recipeIssues;
+      if (review.status === 'review') {
+        console.log(
+          `recipe-issues: review — ${review.observed.total} unexpected event(s). See ${review.artifactFiles?.reviewMd || ''}`
+        );
+      } else if (review.status === 'gating') {
+        console.log(
+          `recipe-issues: GATING — ${review.gating.total} event(s) matched fail_on_unexpected. See ${review.artifactFiles?.reviewMd || ''}`
+        );
+      }
+    }
   }
 
   if (failureError) {

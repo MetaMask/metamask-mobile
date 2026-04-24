@@ -344,7 +344,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RN_PLAYGROUND_APK_VERSION: ${{ vars.RN_PLAYGROUND_APK_VERSION || '' }}
-        run: ./scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
+        run: ./tests/scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
 
       - name: Upload playground APK to BrowserStack
         id: upload-playground
@@ -376,7 +376,7 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '') && needs.fetch-rn-playground-apk-upload-to-browserstack.result == 'success'
+    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: android
       build_type: mm-connect
@@ -422,7 +422,7 @@ jobs:
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
-          node scripts/aggregate-performance-reports.mjs
+          node tests/scripts/aggregate-performance-reports.mjs
           echo "Aggregation completed"
 
       - name: Upload Final Combined Results
@@ -466,7 +466,7 @@ jobs:
         run: |
           {
             echo "summary<<EOF"
-            ./scripts/generate-slack-summary.sh aggregated-reports/summary.json
+            ./tests/scripts/generate-slack-summary.sh aggregated-reports/summary.json
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 

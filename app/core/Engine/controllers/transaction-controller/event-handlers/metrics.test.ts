@@ -17,6 +17,7 @@ import {
 import { TransactionEventHandlerRequest } from '../types';
 import { enabledSmartTransactionsState } from '../data-helpers';
 import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
+import { registerPendingTransactionActiveAbTestsForTransactionIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
@@ -42,6 +43,18 @@ jest.mock('../../../../Analytics/MetricsEventBuilder', () => ({
 }));
 
 jest.mock('../../../../../util/analytics/AnalyticsEventBuilder');
+
+jest.mock(
+  '../../../../../util/transactions/transaction-active-ab-test-attribution-registry',
+  () => ({
+    ...jest.requireActual<
+      typeof import('../../../../../util/transactions/transaction-active-ab-test-attribution-registry')
+    >(
+      '../../../../../util/transactions/transaction-active-ab-test-attribution-registry',
+    ),
+    registerPendingTransactionActiveAbTestsForTransactionIds: jest.fn(),
+  }),
+);
 
 jest.mock('../../../Engine', () => ({
   context: {},
@@ -196,6 +209,29 @@ describe('Transaction Metric Event Handlers', () => {
       );
     },
   );
+
+  it('registers pending transaction A/B tests before TRANSACTION_ADDED metric builders run', async () => {
+    const mockRegisterPending = jest.mocked(
+      registerPendingTransactionActiveAbTestsForTransactionIds,
+    );
+    await handleTransactionAddedEventForMetrics(
+      mockTransactionMeta,
+      mockTransactionMetricRequest,
+    );
+    expect(mockRegisterPending).toHaveBeenCalledWith([mockTransactionMeta.id]);
+  });
+
+  it('does not register pending transaction A/B tests for TRANSACTION_APPROVED', async () => {
+    const mockRegisterPending = jest.mocked(
+      registerPendingTransactionActiveAbTestsForTransactionIds,
+    );
+    mockRegisterPending.mockClear();
+    await handleTransactionApprovedEventForMetrics(
+      mockTransactionMeta,
+      mockTransactionMetricRequest,
+    );
+    expect(mockRegisterPending).not.toHaveBeenCalled();
+  });
 
   it('handles missing transaction metrics properties', async () => {
     mockGetState.mockReturnValueOnce({

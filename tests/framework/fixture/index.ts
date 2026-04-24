@@ -27,6 +27,7 @@ export interface CurrentDeviceDetails {
   packageName?: string;
   appId?: string;
   launchableActivity?: string;
+  isBrowserstack: boolean;
 }
 
 interface TestLevelFixtures {
@@ -72,6 +73,8 @@ export const test = base.extend<TestLevelFixtures>({
     const packageName = project.use.app?.packageName;
     const appId = project.use.app?.appId;
     const launchableActivity = project.use.app?.launchableActivity;
+    const buildPath = project.use.buildPath;
+    const isBrowserstack = buildPath?.startsWith('bs://') ?? false;
 
     const missingFields = [
       ...(!platform ? ['"use.platform"'] : []),
@@ -90,6 +93,7 @@ export const test = base.extend<TestLevelFixtures>({
       packageName,
       appId,
       launchableActivity,
+      isBrowserstack,
     };
 
     await use(deviceDetails);
@@ -196,11 +200,16 @@ export const test = base.extend<TestLevelFixtures>({
   },
 
   performanceTracker: async ({ deviceProvider }, use, testInfo) => {
+    const isSystemTestMode = process.env.SYSTEM_TEST_MODE === 'true';
     const testId = getTestId(testInfo);
 
     // Skip retry if previous attempt failed due to quality gates
     // Quality gate failures should NOT be retried - the measurement was valid, only threshold exceeded
-    if (testInfo.retry > 0 && hasQualityGateFailure(testId)) {
+    if (
+      !isSystemTestMode &&
+      testInfo.retry > 0 &&
+      hasQualityGateFailure(testId)
+    ) {
       console.log(
         `⏭️ Skipping retry for "${testInfo.title}" - previous attempt failed due to Quality Gates (threshold exceeded, not a test execution error)`,
       );
@@ -224,6 +233,10 @@ export const test = base.extend<TestLevelFixtures>({
 
     // Provide the tracker to the test
     await use(performanceTracker);
+
+    if (isSystemTestMode) {
+      return;
+    }
 
     // After test completes, handle performance metrics and session cleanup
     console.log('🔍 Post-test cleanup: attaching performance metrics...');
