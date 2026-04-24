@@ -75,9 +75,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          echo "SKIP_E2E=false" >> "$GITHUB_OUTPUT"
-          echo "BLOCK_MERGE=false" >> "$GITHUB_OUTPUT"
-          echo "SKIP_SMART_SELECTION=false" >> "$GITHUB_OUTPUT"
+          {
+            echo "SKIP_E2E=false"
+            echo "BLOCK_MERGE=false"
+            echo "SKIP_SMART_SELECTION=false"
+          } >> "$GITHUB_OUTPUT"
 
           LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
 
@@ -87,8 +89,10 @@ jobs:
           fi
 
           if echo "$LABELS" | grep -qx "pr-not-ready-for-e2e"; then
-            echo "SKIP_E2E=true" >> "$GITHUB_OUTPUT"
-            echo "BLOCK_MERGE=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "SKIP_E2E=true"
+              echo "BLOCK_MERGE=true"
+            } >> "$GITHUB_OUTPUT"
             echo "-> SKIP_E2E=true and BLOCK_MERGE=true due to 'pr-not-ready-for-e2e' label on PR"
           fi
 
