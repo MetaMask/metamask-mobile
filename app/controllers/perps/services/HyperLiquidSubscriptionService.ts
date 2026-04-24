@@ -2362,6 +2362,11 @@ export class HyperLiquidSubscriptionService {
       this.#cachedAbstractionMode = null;
       this.#cachedAbstractionModeUserAddress = null;
       this.#abstractionModeLastFetchedAt = 0;
+      // Drop the in-flight refresh handle so a stale hanging userAbstraction
+      // request from the prior account/connection can't be awaited by future
+      // #refreshAbstractionModeThrottled calls — that would block live mode
+      // flips from propagating post-reconnect or post-account-switch.
+      this.#abstractionModeInflight = null;
       // Bump generation so any in-flight spot fetch from a prior user discards
       // its result instead of re-populating the cache post-cleanup.
       this.#spotStateGeneration += 1;
@@ -4143,6 +4148,7 @@ export class HyperLiquidSubscriptionService {
     this.#cachedAbstractionMode = null;
     this.#cachedAbstractionModeUserAddress = null;
     this.#abstractionModeLastFetchedAt = 0;
+    this.#abstractionModeInflight = null;
     this.#spotStateGeneration += 1;
     this.#spotStatePromise = undefined;
     this.#spotStatePromiseUserAddress = undefined;
