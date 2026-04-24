@@ -7741,7 +7741,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-api@npm:^1.0.3":
+"@metamask/account-api@npm:^1.0.0":
   version: 1.0.3
   resolution: "@metamask/account-api@npm:1.0.3"
   dependencies:
@@ -8949,7 +8949,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^21.3.0, @metamask/keyring-api@npm:^21.4.0, @metamask/keyring-api@npm:^21.5.0, @metamask/keyring-api@npm:^21.6.0":
+"@metamask/keyring-api@npm:21.6.0":
   version: 21.6.0
   resolution: "@metamask/keyring-api@npm:21.6.0"
   dependencies:
@@ -8966,19 +8966,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^22.0.0":
-  version: 22.0.0
-  resolution: "@metamask/keyring-api@npm:22.0.0"
-  dependencies:
-    "@metamask/keyring-utils": "npm:^3.2.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.1.0"
-    bitcoin-address-validation: "npm:^2.2.3"
-  checksum: 10/ff1e9537c7219fb906b61d6755de28890239ec44f634732bd8571801c662e8b801671e98961a1c5047e079cef314353297499a52f7091a2b5391325d575ec4f9
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-api@npm:^23.0.1":
+"@metamask/keyring-api@npm:23.0.1":
   version: 23.0.1
   resolution: "@metamask/keyring-api@npm:23.0.1"
   dependencies:
@@ -35873,7 +35861,7 @@ __metadata:
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
     "@metamask/abi-utils": "npm:^3.0.0"
-    "@metamask/account-api": "npm:^1.0.3"
+    "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^7.1.0"
     "@metamask/accounts-controller": "npm:^37.2.0"
     "@metamask/address-book-controller": "npm:^7.1.0"
@@ -35930,7 +35918,7 @@ __metadata:
     "@metamask/json-rpc-engine": "npm:^10.2.3"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
-    "@metamask/keyring-api": "npm:^23.0.1"
+    "@metamask/keyring-api": "npm:^21.6.0"
     "@metamask/keyring-controller": "npm:^25.2.0"
     "@metamask/keyring-internal-api": "npm:^10.0.0"
     "@metamask/keyring-sdk": "npm:^1.1.0"

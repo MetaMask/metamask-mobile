@@ -1,4 +1,5 @@
-import { EntropySourceId } from '@metamask/keyring-api';
+import { Bip44Account } from '@metamask/account-api';
+import { EntropySourceId, KeyringAccount } from '@metamask/keyring-api';
 import { MultichainAccountWallet } from '@metamask/multichain-account-service';
 import Engine from '../core/Engine';
 import { trace, TraceOperation, TraceName } from '../util/trace';
@@ -28,8 +29,7 @@ async function _discoverAccounts(
   const wallet =
     Engine.context.MultichainAccountService.getMultichainAccountWallet({
       entropySource,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as MultichainAccountWallet<any>;
+    }) as MultichainAccountWallet<Bip44Account<KeyringAccount>>;
 
   const result = await wallet.discoverAccounts();
 
