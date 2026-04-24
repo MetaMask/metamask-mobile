@@ -28,7 +28,6 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import {
   selectIsMusdConversionFlowEnabledFlag,
-  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import {
@@ -178,7 +177,6 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
 }));
 
@@ -190,11 +188,6 @@ const mockSelectIsMusdConversionFlowEnabledFlag =
 const mockSelectStablecoinLendingEnabledFlag =
   selectStablecoinLendingEnabledFlag as jest.MockedFunction<
     typeof selectStablecoinLendingEnabledFlag
-  >;
-
-const mockSelectMusdQuickConvertEnabledFlag =
-  selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
-    typeof selectMusdQuickConvertEnabledFlag
   >;
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -318,7 +311,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     asset?: TokenI;
     pricePercentChange1d?: number;
     isMusdConversionEnabled?: boolean;
-    isQuickConvertEnabled?: boolean;
     isTokenWithCta?: boolean;
     isGeoEligible?: boolean;
     isStockToken?: boolean;
@@ -336,7 +328,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     asset,
     pricePercentChange1d = 5.67,
     isMusdConversionEnabled = false,
-    isQuickConvertEnabled = false,
     isTokenWithCta = false,
     isGeoEligible = true,
     isStockToken = false,
@@ -373,9 +364,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     mockSelectIsMusdConversionFlowEnabledFlag.mockReturnValue(
       isMusdConversionEnabled,
     );
-    mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(
-      isQuickConvertEnabled,
-    );
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
       hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
@@ -403,10 +391,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectStablecoinLendingEnabledFlag) {
           return isStablecoinLendingEnabled;
-        }
-
-        if (selector === selectMusdQuickConvertEnabledFlag) {
-          return isQuickConvertEnabled;
         }
 
         if (selector === selectTokenMarketData) {
@@ -789,6 +773,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
             chainId: toHex('0x1'),
           },
           navigationStack: Routes.EARN.ROOT,
+          // TODO: Remove navigation override and all references to it
           navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
@@ -927,80 +912,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'token_list_item',
         redirects_to: 'custom_amount_screen',
-        cta_type: 'musd_conversion_secondary_cta',
-        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
-          percentage: MUSD_CONVERSION_APY,
-        }),
-        network_chain_id: usdcAsset.chainId,
-        network_name: 'Ethereum Mainnet',
-        asset_symbol: usdcAsset.symbol,
-      });
-
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
-    }, 10000);
-
-    it('tracks mUSD conversion CTA clicked event with quick convert redirect when education screen has been seen and quick convert is enabled', async () => {
-      // Arrange
-      mockHasSeenConversionEducationScreen = true;
-      prepareMocks({
-        asset: usdcAsset,
-        isMusdConversionEnabled: true,
-        isQuickConvertEnabled: true,
-        isTokenWithCta: true,
-      });
-
-      const convertAssetKey: FlashListAssetKey = {
-        address: usdcAsset.address,
-        chainId: usdcAsset.chainId,
-        isStaked: false,
-      };
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={convertAssetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-        />,
-      );
-
-      await waitFor(
-        () => {
-          expect(getByText('Get 3% mUSD bonus')).toBeOnTheScreen();
-        },
-        { timeout: 3000 },
-      );
-
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
-      mockBuild.mockClear();
-
-      // Act
-      await act(async () => {
-        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
-      });
-
-      // Assert
-      await waitFor(
-        () => {
-          expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-        },
-        { timeout: 3000 },
-      );
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location: 'token_list_item',
-        redirects_to: 'quick_convert_home_screen',
         cta_type: 'musd_conversion_secondary_cta',
         cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
           percentage: MUSD_CONVERSION_APY,

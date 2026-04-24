@@ -37,7 +37,6 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
-import { selectMusdQuickConvertEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import { RootState } from '../../../../../reducers';
@@ -116,7 +115,6 @@ const CashGetMusdEmptyState = ({
   } = useMusdConversionFlowData();
   const { initiateCustomConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const networkName = useNetworkName(MUSD_CONVERSION_DEFAULT_CHAIN_ID);
 
@@ -208,9 +206,8 @@ const CashGetMusdEmptyState = ({
         if (!hasSeenConversionEducationScreen) {
           return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
         }
-        return isQuickConvertEnabled
-          ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-          : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+
+        return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
       }
       return EVENT_LOCATIONS.BUY_SCREEN;
     };
@@ -243,9 +240,6 @@ const CashGetMusdEmptyState = ({
       try {
         await initiateCustomConversion({
           preferredPaymentToken: paymentToken,
-          navigationOverride: isQuickConvertEnabled
-            ? MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT
-            : undefined,
         });
         return;
       } catch (error) {
@@ -270,7 +264,6 @@ const CashGetMusdEmptyState = ({
     hasConvertibleTokens,
     hasSeenConversionEducationScreen,
     isFullView,
-    isQuickConvertEnabled,
     getPaymentTokenForSelectedNetwork,
     goToBuy,
     initiateCustomConversion,

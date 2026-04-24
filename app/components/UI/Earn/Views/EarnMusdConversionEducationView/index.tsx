@@ -44,7 +44,6 @@ import {
   MUSD_CONVERSION_NAVIGATION_OVERRIDE,
   MusdNavigationTarget,
 } from '../../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
@@ -86,7 +85,6 @@ interface EarnMusdConversionEducationViewRouteParams {
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const { initiateCustomConversion } = useMusdConversion();
@@ -219,9 +217,7 @@ const EarnMusdConversionEducationView = () => {
   }, [submitScreenViewedEvent]);
 
   const submitContinuePressedEvent = useCallback(() => {
-    let redirectsTo = isQuickConvertEnabled
-      ? MUSD_EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-      : MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+    let redirectsTo = MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     if (returnTo) {
       redirectsTo = MONEY_EVENT_LOCATIONS.MONEY_HUB;
     } else if (deeplinkState?.action === 'navigate_money_hub') {
@@ -245,9 +241,7 @@ const EarnMusdConversionEducationView = () => {
         .build(),
     );
   }, [
-    isQuickConvertEnabled,
     returnTo,
-    MUSD_EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
     MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
     MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
     MUSD_EVENT_LOCATIONS.HOME_SCREEN,
@@ -325,6 +319,7 @@ const EarnMusdConversionEducationView = () => {
           await initiateCustomConversion({
             preferredPaymentToken: deeplinkState.paymentToken,
             skipEducationCheck: true,
+            // TODO: Remove navigation override and all references to it
             navigationOverride:
               MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
           });
@@ -340,6 +335,7 @@ const EarnMusdConversionEducationView = () => {
           skipEducationCheck: true,
           navigationOverride:
             callerNavigationOverride ??
+            // TODO: Remove navigation override and all references to it
             MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         return;
