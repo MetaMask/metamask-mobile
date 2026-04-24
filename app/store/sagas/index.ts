@@ -67,7 +67,7 @@ const NAV_NOT_READY_ROUTES: ReadonlySet<string> = new Set<string>([
   Routes.ONBOARDING.ROOT_NAV,
   Routes.ONBOARDING.NAV,
   Routes.FOX_LOADER,
-  'Main',
+  Routes.MAIN_FLOW,
 ]);
 
 /**
@@ -82,10 +82,7 @@ const NAV_READY_WAIT_TIMEOUT_MS = 3000;
  * Event-driven via `SET_CURRENT_ROUTE`, which `NavigationProvider` dispatches
  * from React Navigation's `onStateChange` (seeded once from `onReady`).
  */
-export function* parseDeeplinkAfterNavReady(
-  deeplink: string,
-  origin: string,
-) {
+export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
   const currentRoute: string | undefined = yield select(selectCurrentRoute);
 
   if (currentRoute && !NAV_NOT_READY_ROUTES.has(currentRoute)) {

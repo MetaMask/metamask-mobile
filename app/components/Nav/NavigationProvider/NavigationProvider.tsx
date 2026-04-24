@@ -48,8 +48,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
    * `take(SET_CURRENT_ROUTE)` instead of polling the navigation ref.
    */
   const dispatchCurrentRoute = () => {
-    const routeName =
-      NavigationService.navigation?.getCurrentRoute?.()?.name;
+    const routeName = NavigationService.navigation?.getCurrentRoute?.()?.name;
     if (routeName) {
       dispatch(setCurrentRoute(routeName));
     }

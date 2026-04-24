@@ -71,6 +71,7 @@ import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
 } from '../../../constants/network';
+import Routes from '../../../constants/navigation/Routes';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
 import {
@@ -518,13 +519,13 @@ const MainFlow = () => {
   const { colors } = useTheme();
   return (
     <Stack.Navigator
-      initialRouteName={'Main'}
+      initialRouteName={Routes.MAIN_FLOW}
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name={'Main'} component={ConnectedMain} />
+      <Stack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
       <Stack.Screen
         name={'ReviewModal'}
         component={ReviewModal}
