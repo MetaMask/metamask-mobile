@@ -52,7 +52,7 @@ e2e_workflows:
   - '.github/workflows/build-android-upload-to-browserstack.yml'
   - '.github/workflows/build-ios-upload-to-browserstack.yml'
   - '.github/workflows/post-merge-validation.yml'
-  - '.github/workflows/rerun-ci-on-skipped-e2e-labels.yml'
+  - '.github/workflows/retrigger-ci-on-e2e-label.yml'
   - '.github/scripts/**'
 
 # ── Platform-specific ────────────────────────────────────────────────────────

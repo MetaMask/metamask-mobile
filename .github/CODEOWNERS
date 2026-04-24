@@ -336,6 +336,7 @@ tests/websocket/                                                @MetaMask/qa
 # QA Team - CI
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
 .github/workflows/ai-pr-risk-analysis.yml                       @MetaMask/qa
+.github/workflows/auto-label-not-ready-for-e2e.yml              @MetaMask/qa
 .github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
 .github/workflows/run-e2e-regression-tests-android.yml          @MetaMask/qa
@@ -344,7 +345,7 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-android-flask.yml         @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-ios.yml                   @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-ios-flask.yml             @MetaMask/qa
-.github/workflows/rerun-ci-on-skipped-e2e-labels.yml            @MetaMask/qa
+.github/workflows/retrigger-ci-on-e2e-label.yml                 @MetaMask/qa
 .github/workflows/update-e2e-fixtures.yml                       @MetaMask/qa
 .github/workflows/qa-stats.yml                                  @MetaMask/qa
 .github/workflows/flaky-test-report.yml                         @MetaMask/qa

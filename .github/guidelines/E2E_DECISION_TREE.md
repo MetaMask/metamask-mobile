@@ -25,7 +25,7 @@ flowchart TD
 
 ## E2E tests skipped by default on new PRs
 
-To save infra resources and allow static analysis checks and fixes:
+To save infra resources while waiting for static analysis findings and potential fixes/iterations:
 
 - Label `pr-not-ready-for-e2e` is applied to the PR automatically when it is created.
 - Block merge until the label is removed.
