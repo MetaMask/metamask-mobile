@@ -14,7 +14,7 @@ const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 
 const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
-  { key: string; value: string }[] | undefined,
+  { key: string; value: string; key_value_pair?: string }[] | undefined,
   []
 >(() => undefined);
 
@@ -1571,7 +1571,11 @@ describe('PerpsSection', () => {
 
     it('includes transactionActiveAbTests in market details params when trending-only and experiment is active', () => {
       const abTests = [
-        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
       ];
       mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
       const market = makeTrendingMarket({ symbol: 'BTC' });

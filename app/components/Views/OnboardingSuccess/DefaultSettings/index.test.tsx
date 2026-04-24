@@ -26,8 +26,10 @@ describe('DefaultSettings', () => {
   });
 
   it('should render correctly', () => {
-    const tree = render(<DefaultSettings />).toJSON();
-    expect(tree).toMatchSnapshot();
+    const { getByText } = render(<DefaultSettings />);
+    expect(
+      getByText(strings('default_settings.drawer_general_title')),
+    ).toBeOnTheScreen();
   });
 
   it('opens privacy best practices link when "Learn more" is pressed', () => {
