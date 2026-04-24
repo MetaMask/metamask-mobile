@@ -148,7 +148,7 @@ const MoneyAddMoneySheet: React.FC = () => {
         testID={MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW}
       >
         <Icon
-          name={IconName.ArrowDown}
+          name={IconName.Received}
           size={IconSize.Lg}
           color={IconColor.IconMuted}
         />
