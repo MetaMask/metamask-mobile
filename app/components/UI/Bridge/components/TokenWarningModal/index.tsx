@@ -25,6 +25,7 @@ import {
   exceedsPriceImpactErrorThreshold,
   parsePriceImpact,
 } from '../../utils/getPriceImpactViewData';
+import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import {
   BottomSheetFooter,
   BottomSheetHeader,
@@ -78,6 +79,13 @@ export const TokenWarningModal = () => {
   }, []);
 
   const handleProceed = useCallback(async () => {
+    if (hasMissingPriceData(activeQuote)) {
+      navigation.replace(Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL, {
+        location,
+      });
+      return;
+    }
+
     const priceImpact = parsePriceImpact(
       activeQuote?.quote.priceData?.priceImpact,
     );
