@@ -400,6 +400,10 @@ describe('useDeviceConnectionFlow', () => {
         { flushMicrotaskInAct: false },
       );
 
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Connecting,
+      });
+
       // QR path resolves the pending promise directly on success
       const resolved = await readyPromise;
       expect(resolved).toBe(true);
