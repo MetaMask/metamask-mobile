@@ -1,11 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import {
-  Icon,
+import Icon, {
   IconName,
   IconSize,
   IconColor,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -132,7 +131,7 @@ const MoneyAddMoneySheet: React.FC = () => {
             <Icon
               name={item.icon}
               size={IconSize.Lg}
-              color={IconColor.IconDefault}
+              color={IconColor.Default}
             />
             <Text variant={TextVariant.BodyMDMedium}>{item.label}</Text>
           </TouchableOpacity>
@@ -142,9 +141,9 @@ const MoneyAddMoneySheet: React.FC = () => {
           testID={MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW}
         >
           <Icon
-            name={IconName.Received}
+            name={IconName.Arrow2Down}
             size={IconSize.Lg}
-            color={IconColor.IconMuted}
+            color={IconColor.Muted}
           />
           <View style={styles.disabledRowContent}>
             <Text
