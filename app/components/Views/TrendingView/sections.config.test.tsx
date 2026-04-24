@@ -86,6 +86,24 @@ jest.mock(
 );
 jest.mock('./components/Sections/SectionTypes/TileSection', () => () => null);
 jest.mock(
+  './components/Sections/SectionTypes/SiteRecentsTileRowItem/SiteRecentsTileRowItem',
+  () => () => null,
+);
+jest.mock(
+  './components/Sections/SectionTypes/SiteRecentsTileRowItem/SiteRecentsTileSkeleton',
+  () => () => null,
+);
+jest.mock(
+  '../../UI/Sites/hooks/useBrowserRecentsSites/useBrowserRecentsSites',
+  () => ({
+    useBrowserRecentsSites: jest.fn(() => ({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    })),
+  }),
+);
+jest.mock(
   './components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCard',
   () => () => null,
 );
@@ -228,6 +246,20 @@ describe('SECTIONS_CONFIG getItemIdentifier', () => {
       const result = SECTIONS_CONFIG.predictions.getItemIdentifier(item);
 
       expect(result).toBe('market-42');
+    });
+  });
+
+  describe('dapps_recents section', () => {
+    it('extracts url from a site item', () => {
+      const item = {
+        url: 'https://portfolio.metamask.io',
+        name: 'MetaMask Portfolio',
+        displayUrl: 'portfolio.metamask.io',
+      };
+
+      const result = SECTIONS_CONFIG.dapps_recents.getItemIdentifier(item);
+
+      expect(result).toBe('https://portfolio.metamask.io');
     });
   });
 

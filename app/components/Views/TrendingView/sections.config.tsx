@@ -50,6 +50,7 @@ import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem
 import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
+import { useBrowserRecentsSites } from '../../UI/Sites/hooks/useBrowserRecentsSites/useBrowserRecentsSites';
 import { useTrendingSearch } from '../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import {
   TimeOption,
@@ -65,6 +66,8 @@ import CryptoMoversPillItem from './components/Sections/SectionTypes/CryptoMover
 import TileSection from './components/Sections/SectionTypes/TileSection';
 import TrendingTokenTileCard from './components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCard';
 import TrendingTokenTileCardSkeleton from './components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCardSkeleton';
+import SiteRecentsTileRowItem from './components/Sections/SectionTypes/SiteRecentsTileRowItem/SiteRecentsTileRowItem';
+import SiteRecentsTileSkeleton from './components/Sections/SectionTypes/SiteRecentsTileRowItem/SiteRecentsTileSkeleton';
 import { useTrendingTokenTileSparklines } from './components/Sections/SectionTypes/TrendingTokenTileCard/useTrendingTokenTileSparklines';
 import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
@@ -90,7 +93,8 @@ export type SectionId =
   | 'macro_stocks_commodity_perps'
   | 'crypto_perps'
   | 'stocks'
-  | 'sites';
+  | 'sites'
+  | 'dapps_recents';
 
 export type SectionIcon =
   | { source: 'local'; name: LocalIconName }
@@ -106,6 +110,16 @@ export interface SectionConfig {
   title: string;
   icon: SectionIcon;
   viewAllAction: (navigation: AppNavigationProp) => void;
+  /**
+   * When false, the section title is not tappable and no trailing chevron is shown.
+   * @default true
+   */
+  showViewAllInHeader?: boolean;
+  /**
+   * For {@link TileSection} only: when false, the trailing "view more" tile is omitted.
+   * @default true
+   */
+  showViewMoreTile?: boolean;
   /** Returns a stable identifier for an item (e.g. assetId, symbol, url) used in analytics */
   getItemIdentifier: (item: unknown) => string;
   RowItem: React.ComponentType<{
@@ -1087,6 +1101,24 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       return { data: filteredData, isLoading: isFetching, refetch };
     },
   },
+  dapps_recents: {
+    id: 'dapps_recents',
+    title: strings('autocomplete.recents'),
+    icon: { source: 'design-system', name: DSIconName.Global },
+    showViewAllInHeader: false,
+    showViewMoreTile: false,
+    viewAllAction: (_navigation) => {
+      /* Section has no "view all" — required by config shape */
+    },
+    getItemIdentifier: (item) => (item as Partial<SiteData>).url ?? '',
+    RowItem: SiteRecentsTileRowItem,
+    Skeleton: SiteRecentsTileSkeleton,
+    Section: TileSection,
+    useSectionData: () => {
+      const { data, isLoading, refetch } = useBrowserRecentsSites();
+      return { data, isLoading, refetch };
+    },
+  },
   sites: {
     id: 'sites',
     title: strings('trending.sites'),
@@ -1217,7 +1249,7 @@ export const useSportsSections = (): (SectionConfig & { id: SectionId })[] =>
  * Dapps tab: reuses the same **sites** section as explore search / Crypto (`SECTIONS_CONFIG.sites`).
  */
 export const useDappsSections = (): (SectionConfig & { id: SectionId })[] =>
-  useMemo(() => [SECTIONS_CONFIG.sites], []);
+  useMemo(() => [SECTIONS_CONFIG.dapps_recents, SECTIONS_CONFIG.sites], []);
 
 export const useSearchSectionsArray = (): (SectionConfig & {
   id: SectionId;

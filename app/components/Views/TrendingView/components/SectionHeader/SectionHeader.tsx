@@ -18,12 +18,15 @@ export interface SectionHeaderProps {
 const TrendingSectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const sectionConfig = SECTIONS_CONFIG[sectionId];
+  const showViewAll = sectionConfig.showViewAllInHeader !== false;
 
   return (
     <SectionHeader
       testID={`section-header-view-all-${sectionId}`}
       title={sectionConfig.title}
-      onPress={() => sectionConfig.viewAllAction(navigation)}
+      onPress={
+        showViewAll ? () => sectionConfig.viewAllAction(navigation) : undefined
+      }
       twClassName="px-0 mb-2"
     />
   );

@@ -26,6 +26,7 @@ const TileSection: React.FC<TileSectionProps> = ({
 
   const displayItems = useMemo(() => data.slice(0, MAX_ITEMS), [data]);
   const extra = section.useTileExtra?.(displayItems) ?? {};
+  const showViewMoreTile = section.showViewMoreTile !== false;
 
   return (
     <Box twClassName="-mx-4 mb-6">
@@ -49,11 +50,13 @@ const TileSection: React.FC<TileSectionProps> = ({
               extra={extra}
             />
           ))}
-          <ViewMoreCard
-            onPress={() => section.viewAllAction(navigation)}
-            twClassName="w-[180px] flex-1"
-            testID={`${sectionId}-view-more-card`}
-          />
+          {showViewMoreTile && (
+            <ViewMoreCard
+              onPress={() => section.viewAllAction(navigation)}
+              twClassName="w-[180px] flex-1"
+              testID={`${sectionId}-view-more-card`}
+            />
+          )}
         </ScrollView>
       )}
     </Box>
