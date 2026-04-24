@@ -31,7 +31,7 @@ export const chompApiServiceInit: MessengerClientInitFunction<
     'RemoteFeatureFlagController:getState',
   );
   const chompApiConfig = parseChompApiConfig(
-    featureState.remoteFeatureFlags?.chompApiConfig,
+    featureState.remoteFeatureFlags?.earnChompApiConfig,
   );
 
   let baseUrl: string;
