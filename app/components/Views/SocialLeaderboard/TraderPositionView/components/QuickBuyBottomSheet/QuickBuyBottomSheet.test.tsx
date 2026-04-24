@@ -153,6 +153,7 @@ const buildHookResult = (
   hasError: false,
   hasValidAmount: false,
   isConfirmDisabled: true,
+  confirmButtonState: 'idle',
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',
   handleClose: jest.fn(),
   handlePresetPress: jest.fn(),
