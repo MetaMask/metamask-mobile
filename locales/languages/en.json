@@ -6442,10 +6442,12 @@
     },
     "add_money_sheet": {
       "title": "Add money",
-      "convert_tokens": "Convert tokens",
-      "convert_tokens_description": "Use crypto you already have",
-      "buy_with_fiat": "Buy with fiat",
-      "buy_with_fiat_description": "Use debit or credit card"
+      "convert_crypto": "Convert crypto",
+      "deposit_funds": "Deposit funds",
+      "move_musd": "Move your {{amount}} mUSD",
+      "move_musd_no_amount": "Move your mUSD",
+      "receive_external": "Receive from external wallet",
+      "coming_soon": "Coming soon"
     },
     "activity": {
       "title": "Activity",
