@@ -231,15 +231,8 @@ runs:
               seenRunIds.add(runIdStr);
 
               if (tier.skipHeadBranch && run.head_branch === tier.skipHeadBranch) continue;
+              
               if (run.status !== 'completed' && run.status !== 'in_progress') continue;
-              if (
-                run.status === 'completed' &&
-                run.conclusion &&
-                run.conclusion !== 'success' &&
-                run.conclusion !== 'neutral'
-              ) {
-                continue;
-              }
 
               const fingerprint = await getFingerprintForSha(run.head_sha);
               if (!fingerprint) continue;
