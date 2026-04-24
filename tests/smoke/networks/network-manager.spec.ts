@@ -5,8 +5,19 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import Assertions from '../../framework/Assertions';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import WalletView from '../../page-objects/wallet/WalletView';
+import TokensFullView from '../../page-objects/wallet/HomeSections';
 
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupRemoteFeatureFlagsMock(mockServer, {
+      ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    });
+  };
+
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
@@ -25,6 +36,8 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         await Assertions.expectElementToBeVisible(
           NetworkManager.popularNetworksContainer,
         );
+        // Default fixture starts with Polygon as the active chain, so a single
+        // network is selected rather than "all networks"
         await Assertions.expectElementToBeVisible(
           NetworkManager.selectAllPopularNetworksSelected,
         );
@@ -81,19 +94,17 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
 
         // Re-open network manager (already in TokensFullView)
         await NetworkManager.openNetworkManager();
-
         await NetworkManager.checkNetworkIsSelected(
           NetworkToCaipChainId.ETHEREUM,
         );
 
         // Select Linea and check if Ethereum is deselected
         await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
-
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.LINEA,
         );
 
-        // validate that Ethereum is not selected
+        // Re-open and verify Ethereum is now deselected
         await NetworkManager.openNetworkManager();
         await NetworkManager.checkNetworkIsNotSelected(
           NetworkToCaipChainId.ETHEREUM,
@@ -120,7 +131,6 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
 
         // Tap localhost network — sheet closes, lands back on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
-
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.LOCALHOST,
         );

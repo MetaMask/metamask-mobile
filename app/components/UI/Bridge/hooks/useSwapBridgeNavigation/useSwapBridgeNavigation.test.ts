@@ -1273,7 +1273,11 @@ describe('useSwapBridgeNavigation', () => {
 
     it('passes transactionActiveAbTests in bridge route params when caller provides them', () => {
       const abTests = [
-        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
       ];
 
       const { result } = renderHookWithProvider(
