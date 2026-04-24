@@ -3,13 +3,17 @@ import { StyleSheet } from 'react-native';
 
 export const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    disabledRow: {
+    list: {
+      paddingBottom: 16,
+      backgroundColor: theme.colors.background.default,
+    },
+    row: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 16,
       paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: theme.colors.background.default,
+      paddingVertical: 8,
+      minHeight: 59,
     },
     disabledRowContent: {
       flex: 1,

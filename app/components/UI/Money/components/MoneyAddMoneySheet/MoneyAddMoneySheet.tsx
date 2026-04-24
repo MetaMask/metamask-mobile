@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { TouchableOpacity, View } from 'react-native';
 import {
   Icon,
   IconName,
@@ -15,8 +14,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
-import ListItemColumn from '../../../../../component-library/components/List/ListItemColumn';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
@@ -96,7 +93,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     },
     {
       label: strings('money.add_money_sheet.deposit_funds'),
-      icon: IconName.Money,
+      icon: IconName.AttachMoney,
       onPress: handleDepositFunds,
       testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
     },
@@ -124,42 +121,40 @@ const MoneyAddMoneySheet: React.FC = () => {
           {strings('money.add_money_sheet.title')}
         </Text>
       </BottomSheetHeader>
-      <FlatList
-        scrollEnabled={false}
-        data={options}
-        renderItem={({ item }) => (
-          <ListItemSelect onPress={item.onPress} testID={item.testID}>
-            <ListItemColumn>
-              <Icon
-                name={item.icon}
-                size={IconSize.Lg}
-                color={IconColor.IconDefault}
-              />
-            </ListItemColumn>
-            <ListItemColumn>
-              <Text variant={TextVariant.BodyMDMedium}>{item.label}</Text>
-            </ListItemColumn>
-          </ListItemSelect>
-        )}
-        keyExtractor={(item) => item.testID}
-      />
-      <View
-        style={styles.disabledRow}
-        testID={MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW}
-      >
-        <Icon
-          name={IconName.Received}
-          size={IconSize.Lg}
-          color={IconColor.IconMuted}
-        />
-        <View style={styles.disabledRowContent}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
+      <View style={styles.list}>
+        {options.map((item) => (
+          <TouchableOpacity
+            key={item.testID}
+            onPress={item.onPress}
+            style={styles.row}
+            testID={item.testID}
           >
-            {strings('money.add_money_sheet.receive_external')}
-          </Text>
-          <Tag label={strings('money.add_money_sheet.coming_soon')} />
+            <Icon
+              name={item.icon}
+              size={IconSize.Lg}
+              color={IconColor.IconDefault}
+            />
+            <Text variant={TextVariant.BodyMDMedium}>{item.label}</Text>
+          </TouchableOpacity>
+        ))}
+        <View
+          style={styles.row}
+          testID={MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW}
+        >
+          <Icon
+            name={IconName.Received}
+            size={IconSize.Lg}
+            color={IconColor.IconMuted}
+          />
+          <View style={styles.disabledRowContent}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('money.add_money_sheet.receive_external')}
+            </Text>
+            <Tag label={strings('money.add_money_sheet.coming_soon')} />
+          </View>
         </View>
       </View>
     </BottomSheet>
