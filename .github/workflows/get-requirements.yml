@@ -59,9 +59,11 @@ jobs:
       - name: Check skip commit tag
         id: skip-tag
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: |
           echo "SKIP=false" >> "$GITHUB_OUTPUT"
-          if [[ "${{ github.event_name }}" == "pull_request" ]] || [[ "${{ github.event_name }}" == "merge_group" ]]; then
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]] || [[ "$GITHUB_EVENT_NAME" == "merge_group" ]]; then
             if git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}" | grep --fixed-strings --quiet '[skip-e2e]'; then
               echo "SKIP=true" >> "$GITHUB_OUTPUT"
               echo "-> SKIP=true due to [skip-e2e] tag in last commit message"
