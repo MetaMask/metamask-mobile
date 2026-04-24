@@ -25,6 +25,7 @@ import {
 import { RootState } from '../../../../../reducers';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -85,6 +86,7 @@ export function useAutomaticTransactionPayToken({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
   );
@@ -159,12 +161,17 @@ export function useAutomaticTransactionPayToken({
     transactionId,
   ]);
 
-  const prevFromRef = useRef(from);
+  // Re-select the pay token whenever the signer address (`from`) or the
+  // account selected in the PayAccountSelector (`accountOverride`) changes.
+  // `accountOverride` is what switches money-account deposit/withdraw flows to
+  // a different user-selected account without touching `txParams.from`.
+  const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
   useEffect(() => {
-    if (disable || !from || from === prevFromRef.current) {
+    const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
+    if (disable || !from || prevAccountKeyRef.current === accountKey) {
       return;
     }
-    prevFromRef.current = from;
+    prevAccountKeyRef.current = accountKey;
 
     const automaticToken = selectBestToken();
     if (automaticToken) {
@@ -174,7 +181,7 @@ export function useAutomaticTransactionPayToken({
       });
       log('Re-selected pay token after account change', automaticToken);
     }
-  }, [disable, from, selectBestToken, setPayToken]);
+  }, [accountOverride, disable, from, selectBestToken, setPayToken]);
 }
 
 function getBestToken({

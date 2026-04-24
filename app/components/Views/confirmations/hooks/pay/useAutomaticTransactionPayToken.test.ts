@@ -23,9 +23,11 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { AssetType } from '../../types/token';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../transactions/useTransactionAccountOverride');
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../../util/address');
 jest.mock('../../../../../selectors/transactionPayController');
@@ -105,6 +107,9 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useTransactionAccountOverrideMock = jest.mocked(
+    useTransactionAccountOverride,
+  );
 
   const setPayTokenMock: jest.MockedFn<
     ReturnType<typeof useTransactionPayToken>['setPayToken']
@@ -145,6 +150,8 @@ describe('useAutomaticTransactionPayToken', () => {
       type: TransactionType.perpsDeposit,
       txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
     } as never);
+
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
   });
 
   it('selects first token', () => {
@@ -880,6 +887,42 @@ describe('useAutomaticTransactionPayToken', () => {
       type: TransactionType.perpsDeposit,
       txParams: { from: '0xAddress2' },
     } as never);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
+    });
+  });
+
+  it('re-selects pay token when accountOverride changes', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xAddress1' },
+    } as never);
+
+    const { rerender } = runHook();
+
+    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+    setPayTokenMock.mockClear();
+
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
 
     rerender(undefined);
 

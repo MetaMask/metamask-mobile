@@ -25,7 +25,7 @@ import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '../../store';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 ///: END:ONLY_INCLUDE_IF
@@ -638,7 +638,7 @@ export class BackgroundBridge extends EventEmitter {
     // Sentry tracing middleware
     engine.push(createTracingMiddleware());
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // These Snaps RPC methods are disabled in WalletConnect and SDK for now
     if (this.isMMSDK || this.isWalletConnect) {
       engine.push((req, _res, next, end) => {
@@ -652,7 +652,7 @@ export class BackgroundBridge extends EventEmitter {
     }
     ///: END:ONLY_INCLUDE_IF
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // The Snaps middleware is disabled in WalletConnect and SDK for now.
     if (!this.isMMSDK && !this.isWalletConnect) {
       engine.push(

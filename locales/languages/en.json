@@ -3838,7 +3838,64 @@
     "suspicious": "Suspicious",
     "malicious_label": "Malicious",
     "more": "more",
-    "evaluation_disclaimer": "This security review is for evaluation only and does not constitute an endorsement or recommendation to trade."
+    "evaluation_disclaimer": "This security review is for evaluation only and does not constitute an endorsement or recommendation to trade.",
+    "features": {
+      "positive": {
+        "high_reputation_token": "Established reputation",
+        "listed_on_centralized_exchange": "Listed on exchange",
+        "verified_contract": "Published contract",
+        "high_trade_volume": "High trading volume"
+      },
+      "negative": {
+        "known_malicious": "Known malicious",
+        "metadata": "Suspicious metadata",
+        "impersonator_sensitive_asset": "Impersonates a sensitive asset",
+        "static_code_signature": "Suspicious code",
+        "rugpull": "Rugpull risk",
+        "high_transfer_fee": "High transfer fee",
+        "high_buy_fee": "High buy fee",
+        "high_sell_fee": "High sell fee",
+        "unsellable_token": "Unsellable token",
+        "sanctioned_creator": "Sanctioned creator",
+        "similar_malicious_contract": "Resembles malicious contract",
+        "token_backdoor": "Token backdoor",
+        "post_dump": "Possible price manipulation",
+        "impersonator_high_confidence": "Likely impersonator",
+        "impersonator_medium_confidence": "Possible impersonator",
+        "airdrop_pattern": "Suspicious airdrop",
+        "impersonator": "Impersonator",
+        "inorganic_volume": "Artificial volume",
+        "dynamic_analysis": "Suspicious behavior",
+        "unstable_token_price": "Unstable price",
+        "inappropriate_content": "Inappropriate content",
+        "honeypot": "Honeypot risk",
+        "spam_text": "Spam text",
+        "insufficient_locked_liquidity": "Low locked liquidity",
+        "concentrated_supply_distribution": "Concentrated supply",
+        "wash_trading": "Wash trading",
+        "fake_volume": "Fake volume",
+        "hidden_supply_by_key_holder": "Undisclosed supply",
+        "heavily_sniped": "Heavy bot activity",
+        "fake_trade_maker_count": "Inflated trader count",
+        "low_reputation_creator": "Creator has low reputation",
+        "snipe_at_mint": "Bot activity at launch",
+        "impersonator_low_confidence": "Unconfirmed impersonator",
+        "is_mintable": "Mintable",
+        "can_blacklist": "Can blacklist",
+        "can_whitelist": "Can whitelist",
+        "has_trading_cooldown": "Trading cooldown",
+        "external_functions": "External calls",
+        "hidden_owner": "Hidden owner",
+        "transfer_pauseable": "Transfers pauseable",
+        "proxy_contract": "Proxy contract",
+        "modifiable_taxes": "Modifiable taxes",
+        "owner_can_change_balance": "Owner can change balance",
+        "transfer_from_reverts": "Transfer reversals enabled",
+        "transfer_hook_enabled": "Transfer hook enabled",
+        "confidential_transfers_enabled": "Confidential transfers",
+        "non_transerable": "Non-transferable"
+      }
+    }
   },
   "account_details": {
     "title": "Account details",
@@ -6393,7 +6450,10 @@
       "add": "Add",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "Add",
@@ -6427,7 +6487,12 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% cashback",
-      "get_now": "Get now"
+      "get_now": "Get now",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "What you get",
@@ -7080,6 +7145,11 @@
     "token_warning_malicious_banner": "{{token}} is a malicious token. Be cautious interacting with this token.",
     "token_warning_modal_suspicious_title": "Suspicious token",
     "token_warning_modal_malicious_title": "Malicious token",
+    "token_warning_modal_suspicious_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "token_warning_modal_malicious_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "token_warning_modal_suspicious_feature_title": "Suspicious activity",
+    "token_warning_modal_malicious_feature_title": "Malicious activity",
+    "token_warning_modal_continue_anyway": "Continue anyway",
     "price_impact_fiat_alert": "You will lose {{priceImpactFiat}} on this trade"
   },
   "quote_expired_modal": {
@@ -8444,6 +8514,18 @@
       "winner_finalized": {
         "title": "You're a confirmed winner!",
         "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
       }
     }
   },
