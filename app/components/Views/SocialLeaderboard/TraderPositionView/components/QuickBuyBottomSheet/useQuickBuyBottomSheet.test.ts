@@ -81,11 +81,18 @@ jest.mock('../../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
 }));
 
+jest.mock('../../../../confirmations/hooks/gas/useGasFeeEstimates', () => ({
+  useGasFeeEstimates: jest.fn(),
+}));
+
 jest.mock('../../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       BridgeController: { resetState: jest.fn() },
+      NetworkController: {
+        findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+      },
     },
   },
 }));

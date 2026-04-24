@@ -54,6 +54,11 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     usdAmount,
     estimatedReceiveAmount,
     sourceBalanceFiat,
+    formattedNetworkFee,
+    formattedSlippage,
+    formattedMinimumReceived,
+    formattedPriceImpact,
+    totalAmountUsd,
     isQuoteLoading,
     estimatedPoints,
     isRewardsLoading,
@@ -98,6 +103,11 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
 
           <QuickBuyFooter
             usdAmount={usdAmount}
+            formattedNetworkFee={formattedNetworkFee}
+            formattedSlippage={formattedSlippage}
+            formattedMinimumReceived={formattedMinimumReceived}
+            formattedPriceImpact={formattedPriceImpact}
+            totalAmountUsd={totalAmountUsd}
             sourceToken={sourceToken}
             sourceChainId={sourceChainId}
             sourceTokenOptions={sourceTokenOptions}

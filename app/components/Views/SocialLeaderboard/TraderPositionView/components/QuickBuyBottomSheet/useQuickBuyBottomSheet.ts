@@ -9,6 +9,10 @@ import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
+import { isNumberValue } from '../../../../../../util/number';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
+import { useGasFeeEstimates } from '../../../../confirmations/hooks/gas/useGasFeeEstimates';
 import {
   setSourceAmount,
   setSourceToken,
@@ -56,6 +60,11 @@ export interface UseQuickBuyBottomSheetResult {
   usdAmount: string;
   estimatedReceiveAmount: string | undefined;
   sourceBalanceFiat: string | undefined;
+  formattedNetworkFee: string;
+  formattedSlippage: string;
+  formattedMinimumReceived: string;
+  formattedPriceImpact: string;
+  totalAmountUsd: string;
   // quote state
   isQuoteLoading: boolean;
   isSubmittingTx: boolean;
@@ -121,6 +130,22 @@ export function useQuickBuyBottomSheet(
   const sourceToken = selectedSourceToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
 
+  // BridgeController.fetchQuotes does not start gas fee polling, so estimates
+  // for the source chain may be missing when selectBridgeQuotesBase enriches
+  // the quote — producing a $0 network fee. Poll explicitly for the source
+  // chain's network client.
+  const sourceNetworkClientId = useMemo(() => {
+    if (!sourceChainId || isNonEvmChainId(sourceChainId)) return undefined;
+    try {
+      return Engine.context.NetworkController.findNetworkClientIdByChainId(
+        sourceChainId,
+      );
+    } catch {
+      return undefined;
+    }
+  }, [sourceChainId]);
+  useGasFeeEstimates(sourceNetworkClientId);
+
   useRefreshSmartTransactionsLiveness(sourceChainId);
   useIsGasIncludedSTXSendBundleSupported(sourceChainId);
   useInitialSlippage();
@@ -171,6 +196,55 @@ export function useQuickBuyBottomSheet(
     destToken,
     sourceTokenAmount,
   });
+
+  const networkFeeRawUsd = useMemo(() => {
+    if (!activeQuote) return null;
+    if (isGaslessQuote(activeQuote.quote)) {
+      const v = activeQuote.includedTxFees?.valueInCurrency;
+      return v != null && isNumberValue(v) ? parseFloat(v) : null;
+    }
+    const total = activeQuote.totalNetworkFee?.valueInCurrency;
+    if (total != null && isNumberValue(total)) return parseFloat(total);
+    const effective = activeQuote.gasFee?.effective?.valueInCurrency;
+    if (effective != null && isNumberValue(effective))
+      return parseFloat(effective);
+    return null;
+  }, [activeQuote]);
+
+  const formattedNetworkFee = useMemo(() => {
+    if (networkFeeRawUsd === null) return '-';
+    return `$${networkFeeRawUsd.toFixed(2)}`;
+  }, [networkFeeRawUsd]);
+
+  const formattedSlippage = useMemo(() => {
+    const quoteSlippage = activeQuote?.quote?.slippage;
+    if (quoteSlippage == null) return '-';
+    return `${quoteSlippage}%`;
+  }, [activeQuote]);
+
+  const formattedMinimumReceived = useMemo(() => {
+    const amount = activeQuote?.minToTokenAmount?.amount;
+    const symbol = destToken?.symbol;
+    if (!amount || !symbol) return '-';
+    const num = parseFloat(amount);
+    if (isNaN(num)) return '-';
+    const floored = Math.floor(num * 1e8) / 1e8;
+    const formatted = floored.toFixed(8).replace(/\.?0+$/, '') || '0';
+    return `${formatted} ${symbol}`;
+  }, [activeQuote, destToken]);
+
+  const formattedPriceImpact = useMemo(() => {
+    const priceImpact = activeQuote?.quote?.priceData?.priceImpact;
+    if (!priceImpact) return '-';
+    return `${(Number(priceImpact) * 100).toFixed(2)}%`;
+  }, [activeQuote]);
+
+  const totalAmountUsd = useMemo(() => {
+    const inputNum = parseFloat(usdAmount);
+    if (!usdAmount || isNaN(inputNum)) return '$0';
+    if (networkFeeRawUsd === null) return `$${inputNum.toFixed(2)}`;
+    return `$${(inputNum + networkFeeRawUsd).toFixed(2)}`;
+  }, [usdAmount, networkFeeRawUsd]);
 
   const {
     estimatedPoints,
@@ -368,6 +442,11 @@ export function useQuickBuyBottomSheet(
     usdAmount,
     estimatedReceiveAmount,
     sourceBalanceFiat,
+    formattedNetworkFee,
+    formattedSlippage,
+    formattedMinimumReceived,
+    formattedPriceImpact,
+    totalAmountUsd,
     isQuoteLoading,
     isSubmittingTx,
     estimatedPoints,
