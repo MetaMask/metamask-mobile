@@ -1,70 +1,69 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
-import { Hex, toCaipAssetType } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
-import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
-import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
-import { BridgeFeeRow } from '../../rows/bridge-fee-row';
-import { BridgeTimeRow } from '../../rows/bridge-time-row';
-import { TotalRow } from '../../rows/total-row';
-import { ReceiveRow } from '../../rows/receive-row';
-import { PercentageRow } from '../../rows/percentage-row';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
-  DepositKeyboard,
-  DepositKeyboardSkeleton,
-} from '../../deposit-keyboard';
-import { Box } from '../../../../../UI/Box/Box';
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
+import { TransactionType } from '@metamask/transaction-controller';
+import { toCaipAssetType } from '@metamask/utils';
+
+import { strings } from '../../../../../../../locales/i18n';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import Engine from '../../../../../../core/Engine';
+import EngineService from '../../../../../../core/EngineService';
 import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './custom-amount-info.styles';
-import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
-import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
-import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
+import { Box } from '../../../../../UI/Box/Box';
+import { AlignItems } from '../../../../../UI/Box/box.types';
+import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
+import { AlertKeys } from '../../../constants/alerts';
+import { useAlerts } from '../../../context/alert-system-context';
 import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
-import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
-import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { AlertMessage } from '../../alerts/alert-message';
-import {
-  CustomAmount,
-  CustomAmountSkeleton,
-} from '../../transactions/custom-amount';
 import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
-import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { AlignItems } from '../../../../../UI/Box/box.types';
-import { strings } from '../../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../utils/transaction';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
-import { useAlerts } from '../../../context/alert-system-context';
-import { AlertKeys } from '../../../constants/alerts';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
-import EngineService from '../../../../../../core/EngineService';
-import Engine from '../../../../../../core/Engine';
-import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
+import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { useSelector } from 'react-redux';
-import AccountSelector from '../../AccountSelector';
-import { updateEditableParams } from '../../../../../../util/transaction-controller';
-import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
+import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
+import { hasTransactionType } from '../../../utils/transaction';
+import { AlertMessage } from '../../alerts/alert-message';
+import {
+  DepositKeyboard,
+  DepositKeyboardSkeleton,
+} from '../../deposit-keyboard';
+import PayAccountSelector from '../../PayAccountSelector';
+import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
+import { BridgeFeeRow } from '../../rows/bridge-fee-row';
+import { BridgeTimeRow } from '../../rows/bridge-time-row';
+import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
+import { PercentageRow } from '../../rows/percentage-row';
+import { ReceiveRow } from '../../rows/receive-row';
+import { TotalRow } from '../../rows/total-row';
+import {
+  CustomAmount,
+  CustomAmountSkeleton,
+} from '../../transactions/custom-amount';
+import styleSheet from './custom-amount-info.styles';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -85,6 +84,10 @@ export interface CustomAmountInfoProps {
    * When true, the confirm/continue button is disabled regardless of alert state.
    */
   disableConfirm?: boolean;
+  /**
+   * When true, the account selector is shown.
+   */
+  supportAccountSelection?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -98,6 +101,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     hidePayTokenAmount,
     preferredToken,
     footerText,
+    supportAccountSelection,
   }) => {
     useClearConfirmationOnBackSwipe();
 
@@ -118,49 +122,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
-
-    const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountWithdraw,
-    ]);
-    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]);
-    const [selectedRecipientAddress, setSelectedRecipientAddress] = useState<
-      string | undefined
-    >(undefined);
-
-    const globalSelectedAddress = useSelector(
-      selectSelectedInternalAccountAddress,
-    );
-    const initialFromAddress =
-      (transactionMeta?.txParams?.from as string | undefined) ??
-      globalSelectedAddress;
-    const [selectedFromAddress, setSelectedFromAddress] = useState<
-      string | undefined
-    >(initialFromAddress);
-
-    const handleRecipientAccountSelected = useCallback(
-      (address: string) => {
-        if (transactionId) {
-          updateEditableParams(transactionId, { to: address as Hex });
-        }
-        setSelectedRecipientAddress(address);
-      },
-      [transactionId],
-    );
-
-    const handleFromAccountSelected = useCallback(
-      (address: string) => {
-        if (transactionId) {
-          updateEditableParams(transactionId, { from: address as Hex });
-        }
-        setSelectedFromAddress(address);
-      },
-      [transactionId],
-    );
-
-    const isRecipientMissing =
-      isMoneyAccountWithdraw && !selectedRecipientAddress;
+    const accountOverride = useTransactionAccountOverride();
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -219,6 +181,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       setIsKeyboardVisible(true);
     }, []);
 
+    const isAccountSelectionNeeded =
+      supportAccountSelection && !accountOverride;
+
     return (
       <Box style={styles.container}>
         <Box style={styles.inputContainer}>
@@ -230,29 +195,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             disabled={!hasTokens}
           />
           {!hidePayTokenAmount && disablePay !== true && (
-            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+            <PayTokenAmount
+              amountHuman={amountHuman}
+              disabled={!hasTokens || isAccountSelectionNeeded}
+            />
           )}
           {!hidePayTokenAmount && children}
         </Box>
         <Box gap={16}>
           <AlertMessage alertMessage={alertMessage} />
-          {!hidePayTokenAmount && (
-            <>
-              {isMoneyAccountDeposit && (
-                <AccountSelector
-                  label={strings('confirm.label.from')}
-                  selectedAddress={selectedFromAddress}
-                  onAccountSelected={handleFromAccountSelected}
-                />
-              )}
-              {isMoneyAccountWithdraw && (
-                <AccountSelector
-                  selectedAddress={selectedRecipientAddress}
-                  onAccountSelected={handleRecipientAccountSelected}
-                />
-              )}
-            </>
-          )}
+          {supportAccountSelection && <PayAccountSelector />}
           {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
           {isResultReady && (
             <Box>
@@ -296,7 +248,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm || isRecipientMissing}
+              disableConfirm={disableConfirm || isAccountSelectionNeeded}
             />
           )}
         </Box>

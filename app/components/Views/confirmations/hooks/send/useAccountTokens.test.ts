@@ -14,7 +14,7 @@ import { isTestNet } from '../../../../../util/networks';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import { Hex } from '@metamask/utils';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
@@ -39,11 +39,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../transactions/useTransactionMetadataRequest', () => ({
-  useTransactionMetadataRequest: jest.fn(),
+jest.mock('../transactions/useTransactionAccountOverride', () => ({
+  useTransactionAccountOverride: jest.fn(),
 }));
-const useTransactionMetadataRequestMock = jest.mocked(
-  useTransactionMetadataRequest,
+const useTransactionAccountOverrideMock = jest.mocked(
+  useTransactionAccountOverride,
 );
 
 jest.mock('../../../../../selectors/accountsController', () => ({
@@ -116,7 +116,7 @@ describe('useAccountTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    useTransactionMetadataRequestMock.mockReturnValue(undefined);
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockSelectAssetsBySelectedAccountGroup.mockReturnValue(mockAssets as any);
@@ -802,7 +802,7 @@ describe('useAccountTokens', () => {
     });
   });
 
-  describe('txParams.from override', () => {
+  describe('accountOverride', () => {
     const overrideAssets = {
       '0x89': [
         {
@@ -815,10 +815,10 @@ describe('useAccountTokens', () => {
       ],
     };
 
-    it('uses from account assets when txParams.from resolves to an account group', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        txParams: { from: '0xFromAddress' },
-      } as ReturnType<typeof useTransactionMetadataRequest>);
+    it('uses accountOverride assets when it resolves to an account group', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(
+        '0xFromAddress' as never,
+      );
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectAssetsBySelectedAccountGroup) {
@@ -846,8 +846,8 @@ describe('useAccountTokens', () => {
       expect(result.current[0].symbol).toBe('OVERRIDE');
     });
 
-    it('falls back to global assets when txParams.from is not available', () => {
-      useTransactionMetadataRequestMock.mockReturnValue(undefined);
+    it('falls back to global assets when accountOverride is undefined', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(undefined);
 
       const { result } = renderHook(() => useAccountTokens());
 

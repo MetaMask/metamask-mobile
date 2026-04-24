@@ -142,7 +142,6 @@ function MoneyAccountDeposit() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountDeposit,
-      recipient: PROXY_ADDRESS,
     });
   }, [addTransactionBatchAndNavigate]);
 
@@ -164,7 +163,6 @@ function MoneyAccountWithdraw() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountWithdraw,
-      recipient: PROXY_ADDRESS,
     });
   }, [addTransactionBatchAndNavigate]);
 
@@ -192,7 +190,7 @@ function useAddTransactionBatch() {
 
   const transferData = generateTransferData('transfer', {
     toAddress: PROXY_ADDRESS,
-    amount: '0x0',
+    amount: '0xF4240',
   }) as Hex;
 
   const addTransactionBatchAndNavigate = useCallback(
@@ -200,12 +198,10 @@ function useAddTransactionBatch() {
       headerShown,
       loader,
       transactionType,
-      recipient = POLYGON_USDCE_ADDRESS,
     }: {
       headerShown?: boolean;
       loader?: ConfirmationLoader;
       transactionType: TransactionType;
-      recipient?: Hex;
     }) => {
       navigateToConfirmation({
         headerShown,
@@ -228,7 +224,7 @@ function useAddTransactionBatch() {
           },
           {
             params: {
-              to: recipient,
+              to: POLYGON_USDCE_ADDRESS,
               data: transferData,
             },
             type: transactionType,

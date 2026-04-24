@@ -5,6 +5,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
@@ -26,6 +27,7 @@ jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
+jest.mock('../../../hooks/pay/useMoneyAccountPayToken');
 jest.mock('../../../../../../util/address');
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
 
@@ -62,6 +64,7 @@ describe('PayWithRow', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useMoneyAccountPayTokenMock = jest.mocked(useMoneyAccountPayToken);
   const mockSetConfirmationMetric = jest.fn();
 
   beforeEach(() => {
@@ -101,6 +104,13 @@ describe('PayWithRow', () => {
     } as never);
 
     isHardwareAccountMock.mockReturnValue(false);
+
+    useMoneyAccountPayTokenMock.mockReturnValue({
+      displayToken: undefined,
+      isAwaitingAccountSelection: false,
+      isMoneyAccountDeposit: false,
+      isMoneyAccountWithdraw: false,
+    });
   });
 
   it('renders selected pay token', async () => {
@@ -248,6 +258,61 @@ describe('PayWithRow', () => {
     });
   });
 
+  describe('money account', () => {
+    it('renders awaiting account selection placeholder when isAwaitingAccountSelection is true', () => {
+      useMoneyAccountPayTokenMock.mockReturnValue({
+        displayToken: undefined,
+        isAwaitingAccountSelection: true,
+        isMoneyAccountDeposit: true,
+        isMoneyAccountWithdraw: false,
+      });
+
+      const { getByTestId } = render();
+
+      expect(getByTestId('pay-with')).toBeOnTheScreen();
+    });
+
+    it('does not navigate when isAwaitingAccountSelection is true and row is pressed', async () => {
+      useMoneyAccountPayTokenMock.mockReturnValue({
+        displayToken: undefined,
+        isAwaitingAccountSelection: true,
+        isMoneyAccountDeposit: true,
+        isMoneyAccountWithdraw: false,
+      });
+
+      const { getByTestId } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('pay-with'));
+      });
+
+      expect(navigateMock).not.toHaveBeenCalled();
+    });
+
+    it('uses moneyAccountDisplayToken when provided, taking priority over payToken', () => {
+      const MONEY_ACCOUNT_ADDRESS = '0xMoneyAccountToken1234567890abcdef123456';
+      const MONEY_ACCOUNT_CHAIN_ID = '0x1';
+
+      useMoneyAccountPayTokenMock.mockReturnValue({
+        displayToken: {
+          address: MONEY_ACCOUNT_ADDRESS,
+          chainId: MONEY_ACCOUNT_CHAIN_ID,
+          symbol: 'mUSD',
+          decimals: 18,
+        },
+        isAwaitingAccountSelection: false,
+        isMoneyAccountDeposit: false,
+        isMoneyAccountWithdraw: true,
+      });
+
+      const { getByText } = render();
+
+      expect(
+        getByText(`${MONEY_ACCOUNT_ADDRESS} ${MONEY_ACCOUNT_CHAIN_ID}`),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('from address change', () => {
     beforeEach(() => {
       useTransactionMetadataRequestMock.mockReturnValue({
@@ -255,7 +320,7 @@ describe('PayWithRow', () => {
       } as never);
     });
 
-    it('completes reselecting cycle when from changes and payToken stays set', async () => {
+    it('navigates to token picker after from address changes', async () => {
       const { rerender, getByText } = render();
 
       useTransactionMetadataRequestMock.mockReturnValue({
@@ -275,7 +340,7 @@ describe('PayWithRow', () => {
       );
     });
 
-    it('shows skeleton when payToken clears during from address change', async () => {
+    it('shows skeleton when payToken clears after from address change', async () => {
       const { rerender, getByTestId } = render();
 
       useTransactionMetadataRequestMock.mockReturnValue({
@@ -292,51 +357,6 @@ describe('PayWithRow', () => {
       });
 
       expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
-    });
-
-    it('re-enables row when new payToken arrives after from change', async () => {
-      const { rerender, getByText, getByTestId } = render();
-
-      useTransactionMetadataRequestMock.mockReturnValue({
-        txParams: { from: '0xDifferentAddress' },
-      } as never);
-
-      jest.mocked(useTransactionPayToken).mockReturnValue({
-        payToken: undefined,
-        setPayToken: jest.fn(),
-      });
-
-      await act(async () => {
-        rerender(<PayWithRow />);
-      });
-
-      expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
-
-      jest.mocked(useTransactionPayToken).mockReturnValue({
-        payToken: {
-          address: ADDRESS_MOCK,
-          balanceHuman: '0',
-          balanceFiat: '$0',
-          balanceRaw: '0',
-          balanceUsd: '0',
-          chainId: CHAIN_ID_MOCK,
-          decimals: 4,
-          symbol: 'test',
-        },
-        setPayToken: jest.fn(),
-      });
-
-      await act(async () => {
-        rerender(<PayWithRow />);
-      });
-
-      await act(async () => {
-        fireEvent.press(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`));
-      });
-
-      expect(navigateMock).toHaveBeenCalledWith(
-        Routes.CONFIRMATION_PAY_WITH_MODAL,
-      );
     });
   });
 });
