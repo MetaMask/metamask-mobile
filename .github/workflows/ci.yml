@@ -572,6 +572,7 @@ jobs:
     name: 'Build Android APKs'
     if: >-
       ${{
+        !cancelled() &&
         needs.needs_e2e_build.result == 'success' &&
         needs.smart-e2e-selection.result == 'success' &&
         github.event_name != 'merge_group' &&
@@ -615,6 +616,7 @@ jobs:
     name: 'Build iOS Apps'
     if: >-
       ${{
+        !cancelled() &&
         needs.needs_e2e_build.result == 'success' &&
         needs.smart-e2e-selection.result == 'success' &&
         github.event_name != 'merge_group' &&
