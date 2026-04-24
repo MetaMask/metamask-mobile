@@ -48,6 +48,7 @@ export enum ACTIONS {
   TRENDING = 'trending',
   EARN_MUSD = 'earn-musd',
   NFT = 'nft',
+  SOCIAL_TRADER_POSITION = 'social-trader-position',
 }
 
 export const PREFIXES = {
@@ -82,5 +83,6 @@ export const PREFIXES = {
   [ACTIONS.TRENDING]: '',
   [ACTIONS.EARN_MUSD]: '',
   [ACTIONS.NFT]: '',
+  [ACTIONS.SOCIAL_TRADER_POSITION]: '',
   METAMASK: 'metamask://',
 };
