@@ -75,7 +75,6 @@ jest.mock('../../../../../actions/money', () => ({
   upgradeMoneyAccount: jest.fn(() => () => undefined),
 }));
 
-
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
