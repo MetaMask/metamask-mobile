@@ -27,6 +27,7 @@ import {
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
+import { closeSession, getSession } from '../../headless/sessionRegistry';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
@@ -56,6 +57,14 @@ interface CheckoutParams {
   providerType?: FIAT_ORDER_PROVIDERS;
   /** Optional callback invoked on navigation state changes after URL de-duplication (e.g. redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
+  /**
+   * When set, Checkout is participating in a headless buy session. On
+   * successful callback the screen fires the session's `onOrderCreated`
+   * callback, closes the session, and pops the ramp stack instead of
+   * resetting to `RAMPS_ORDER_DETAILS`. The `showV2OrderToast` surface is
+   * also suppressed — headless consumers drive their own UI.
+   */
+  headlessSessionId?: string;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -87,6 +96,7 @@ const Checkout = () => {
     network,
     userAgent,
     onNavigationStateChange,
+    headlessSessionId,
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
@@ -178,6 +188,26 @@ const Checkout = () => {
         addOrder(rampsOrder);
         dispatch(protectWalletModalVisible());
 
+        // Headless mode: hand the orderId to the consumer, close the
+        // session, and unwind out of the ramp stack so the caller regains
+        // foreground. Skip the toast + RAMPS_ORDER_DETAILS reset — both
+        // are user-facing UI the headless consumer didn't ask for.
+        const session = getSession(headlessSessionId);
+        if (headlessSessionId && session) {
+          try {
+            session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
+          } catch (callbackError) {
+            Logger.error(
+              callbackError as Error,
+              'UnifiedCheckout: onOrderCreated callback threw',
+            );
+          }
+          closeSession(headlessSessionId, { reason: 'completed' });
+          // @ts-expect-error navigation prop mismatch
+          navigation.getParent()?.pop();
+          return;
+        }
+
         if (isV2Enabled) {
           showV2OrderToast({
             orderId: rampsOrder.providerOrderId,
@@ -217,6 +247,7 @@ const Checkout = () => {
       getOrderFromCallback,
       isV2Enabled,
       params?.cryptocurrency,
+      headlessSessionId,
     ],
   );
 
