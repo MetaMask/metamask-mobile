@@ -1,12 +1,26 @@
-import React, { PropsWithChildren, useContext, useMemo } from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useMemo,
+} from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
-import type { NavigationProp } from '@react-navigation/native';
+import { StackActions, type NavigationProp } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { isCaipChainId, type CaipChainId } from '@metamask/utils';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import TrendingTokenRowItem from '../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
+import TrendingTokenRowItem, {
+  getAssetNavigationParams,
+} from '../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
+import { getPriceChangeFieldKey } from '../../UI/Trending/components/TrendingTokenRowItem/utils';
+import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
+import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { TokenDetailsSource } from '../../UI/TokenDetails/constants/constants';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import TrendingTokensSkeleton from '../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import PerpsMarketRowItem from '../../UI/Perps/components/PerpsMarketRowItem';
 import PerpsRowSkeleton from '../../UI/Perps/components/PerpsRowSkeleton';
@@ -45,13 +59,17 @@ import {
 import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
+import TileSection from './components/Sections/SectionTypes/TileSection';
+import TrendingTokenTileCard from './components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCard';
+import { useTrendingTokenTileSparklines } from './components/Sections/SectionTypes/TrendingTokenTileCard/useTrendingTokenTileSparklines';
 import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
 import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 import PerpsMarketTileCard from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCard';
 import PerpsMarketTileCardSkeleton from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
-import PerpsExploreSection from './components/Sections/SectionTypes/PerpsExploreSection';
+import { useHomepageSparklines } from '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
+import { selectPerpsWatchlistMarkets } from '../../UI/Perps/selectors/perpsController';
 import PillToggledCardSection, {
   type PillToggledTab,
 } from './components/Sections/SectionTypes/PillToggledCardSection';
@@ -90,12 +108,15 @@ export interface SectionConfig {
     item: unknown;
     index: number;
     navigation: AppNavigationProp;
+    extra?: unknown;
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
     index?: number;
     navigation: AppNavigationProp;
   }>;
+  /** Batches any per-tile subscriptions (sparklines, watchlist) for the slice of items shown in the carousel. */
+  useTileExtra?: (items: unknown[]) => unknown;
   Skeleton: React.ComponentType;
   OverrideSkeletonSearch?: React.ComponentType;
   Section: React.ComponentType<{
@@ -176,7 +197,7 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
  * Default filter context for tokens in the Trending View home section.
  * Used for analytics tracking of token clicks from the home page.
  */
-const DEFAULT_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
+export const DEFAULT_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
   timeFilter: TimeOption.TwentyFourHours,
   sortOption: PriceChangeOption.PriceChange,
   networkFilter: 'all',
@@ -343,6 +364,120 @@ const pillToggledRwaPerps: React.FC<{
   />
 );
 
+const usePerpsMarketTileExtra = (items: unknown[]) => {
+  const symbols = useMemo(
+    () => (items as PerpsMarketData[]).map((m) => m.symbol),
+    [items],
+  );
+  const { sparklines } = useHomepageSparklines(symbols);
+  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets) ?? [];
+  return { sparklines, watchlistSymbols };
+};
+
+const makePerpsMarketTileRowItem =
+  (testIDPrefix: string): SectionConfig['RowItem'] =>
+  ({ item, index: _index, navigation, extra }) => {
+    const { sparklines = {}, watchlistSymbols = [] } = (extra ?? {}) as {
+      sparklines?: Record<string, number[]>;
+      watchlistSymbols?: string[];
+    };
+    const market = item as PerpsMarketData;
+    return (
+      <PerpsMarketTileCard
+        market={market}
+        sparklineData={sparklines[market.symbol]}
+        showFavoriteTag={watchlistSymbols.includes(market.symbol)}
+        testID={`${testIDPrefix}-${market.symbol}`}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
+            },
+          );
+        }}
+      />
+    );
+  };
+
+const sessionManager = TrendingFeedSessionManager.getInstance();
+
+const TrendingTokenTileItem: React.FC<{
+  item: unknown;
+  index: number;
+  navigation: AppNavigationProp;
+  extra?: unknown;
+}> = ({ item, index, navigation, extra }) => {
+  const token = item as TrendingAsset;
+  const sparklines =
+    (extra as { sparklines?: Record<string, number[]> })?.sparklines ?? {};
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+  const { addPopularNetwork } = useAddPopularNetwork();
+
+  const onPress = useCallback(async () => {
+    const assetParams = getAssetNavigationParams(
+      token,
+      TokenDetailsSource.Trending,
+    );
+    if (!assetParams) return;
+
+    const caipChainId = token.assetId.split('/')[0];
+    const key = getPriceChangeFieldKey(TimeOption.TwentyFourHours);
+    const rawPct = token.priceChangePct?.[key];
+    const pricePercentChange = rawPct ? parseFloat(String(rawPct)) : 0;
+
+    sessionManager.trackTokenClick({
+      token_symbol: token.symbol,
+      token_address: assetParams.address,
+      token_name: token.name,
+      chain_id: assetParams.chainId,
+      position: index,
+      price_usd: parseFloat(token.price) || 0,
+      price_change_pct: pricePercentChange,
+      time_filter: DEFAULT_TOKENS_FILTER_CONTEXT.timeFilter,
+      sort_option:
+        DEFAULT_TOKENS_FILTER_CONTEXT.sortOption ??
+        PriceChangeOption.PriceChange,
+      network_filter: DEFAULT_TOKENS_FILTER_CONTEXT.networkFilter,
+      is_search_result: DEFAULT_TOKENS_FILTER_CONTEXT.isSearchResult,
+    });
+
+    const isNetworkAdded = isCaipChainId(caipChainId)
+      ? Boolean(networkConfigurations[caipChainId as CaipChainId])
+      : true;
+    if (!isNetworkAdded) {
+      const popularNetwork = PopularList.find(
+        (n) => n.chainId === assetParams.chainId,
+      );
+      if (popularNetwork) {
+        try {
+          await addPopularNetwork(popularNetwork);
+        } catch (error) {
+          console.error('Failed to add network:', error);
+          return;
+        }
+      }
+    }
+
+    navigation.dispatch(StackActions.push('Asset', assetParams));
+  }, [token, index, navigation, networkConfigurations, addPopularNetwork]);
+
+  return (
+    <TrendingTokenTileCard
+      token={token}
+      sparklineData={sparklines[token.assetId]}
+      onPress={onPress}
+      testID={`trending-token-tile-card-${token.assetId}`}
+    />
+  );
+};
+
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
@@ -352,13 +487,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
     getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
-    RowItem: ({ item, index }) => (
-      <TrendingTokenRowItem
-        token={item as TrendingAsset}
-        position={index}
-        filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
-      />
-    ),
+    RowItem: TrendingTokenTileItem,
     OverrideRowItemSearch: ({ item, index }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
@@ -366,8 +495,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
       />
     ),
+    useTileExtra: (items) => {
+      const { sparklines } = useTrendingTokenTileSparklines(
+        items as TrendingAsset[],
+      );
+      return { sparklines };
+    },
     Skeleton: TrendingTokensSkeleton,
-    Section: SectionCard,
+    Section: TileSection,
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch({
         searchQuery,
@@ -451,24 +586,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     getItemIdentifier: (item) =>
       (item as Partial<PerpsMarketData>).symbol ?? '',
-    RowItem: ({ item, index: _index, navigation }) => (
-      <PerpsMarketTileCard
-        market={item as PerpsMarketData}
-        testID={`perps-market-tile-card-${(item as PerpsMarketData).symbol}`}
-        onPress={() => {
-          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
-            Routes.PERPS.ROOT,
-            {
-              screen: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: item as PerpsMarketData,
-                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
-              },
-            },
-          );
-        }}
-      />
-    ),
+    RowItem: makePerpsMarketTileRowItem('perps-market-tile-card'),
     OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
@@ -488,7 +606,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         compact
       />
     ),
-
+    useTileExtra: usePerpsMarketTileExtra,
     Skeleton: PerpsMarketTileCardSkeleton,
     OverrideSkeletonSearch: TrendingTokensSkeleton,
     SectionWrapper: ({ children }) => (
@@ -496,7 +614,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
-    Section: PerpsExploreSection,
+    Section: TileSection,
     useSectionData: (searchQuery) => {
       const connectionContext = useContext(PerpsConnectionContext);
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
@@ -727,24 +845,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     getItemIdentifier: (item) =>
       (item as Partial<PerpsMarketData>).symbol ?? '',
-    RowItem: ({ item, index: _index, navigation }) => (
-      <PerpsMarketTileCard
-        market={item as PerpsMarketData}
-        testID={`crypto-tab-perps-market-tile-card-${(item as PerpsMarketData).symbol}`}
-        onPress={() => {
-          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
-            Routes.PERPS.ROOT,
-            {
-              screen: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: item as PerpsMarketData,
-                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
-              },
-            },
-          );
-        }}
-      />
-    ),
+    RowItem: makePerpsMarketTileRowItem('crypto-tab-perps-market-tile-card'),
     OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
@@ -764,6 +865,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         compact
       />
     ),
+    useTileExtra: usePerpsMarketTileExtra,
     Skeleton: PerpsMarketTileCardSkeleton,
     OverrideSkeletonSearch: TrendingTokensSkeleton,
     SectionWrapper: ({ children }) => (
@@ -771,7 +873,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
-    Section: PerpsExploreSection,
+    Section: TileSection,
     useSectionData: (searchQuery) => {
       const connectionContext = useContext(PerpsConnectionContext);
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();

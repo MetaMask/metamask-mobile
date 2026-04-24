@@ -84,10 +84,48 @@ jest.mock(
   './components/Sections/SectionTypes/SectionCarrousel',
   () => () => null,
 );
+jest.mock('./components/Sections/SectionTypes/TileSection', () => () => null);
 jest.mock(
-  './components/Sections/SectionTypes/PerpsExploreSection',
+  './components/Sections/SectionTypes/TrendingTokenTileCard',
   () => () => null,
 );
+jest.mock(
+  './components/Sections/SectionTypes/useTrendingTokenTileSparklines',
+  () => ({
+    useTrendingTokenTileSparklines: jest.fn(() => ({ sparklines: {} })),
+  }),
+);
+jest.mock(
+  '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
+  () => ({
+    useHomepageSparklines: jest.fn(() => ({ sparklines: {} })),
+  }),
+);
+jest.mock('../../UI/Perps/selectors/perpsController', () => ({
+  selectPerpsWatchlistMarkets: jest.fn(),
+}));
+jest.mock('@metamask/utils', () => ({
+  isCaipChainId: jest.fn(() => false),
+}));
+jest.mock('../../../selectors/networkController', () => ({
+  selectNetworkConfigurationsByCaipChainId: jest.fn(),
+}));
+jest.mock('../../UI/Trending/components/TrendingTokenRowItem/utils', () => ({
+  getPriceChangeFieldKey: jest.fn(() => 'priceChange24h'),
+}));
+jest.mock('../../UI/Trending/services/TrendingFeedSessionManager', () => ({
+  __esModule: true,
+  default: { getInstance: jest.fn(() => ({ trackTokenClick: jest.fn() })) },
+}));
+jest.mock('../../hooks/useAddPopularNetwork', () => ({
+  useAddPopularNetwork: jest.fn(() => ({ addPopularNetwork: jest.fn() })),
+}));
+jest.mock('../../../util/networks/customNetworks', () => ({
+  PopularList: [],
+}));
+jest.mock('../../UI/TokenDetails/constants/constants', () => ({
+  TokenDetailsSource: { Trending: 'trending' },
+}));
 jest.mock('../../UI/Predict/components/PredictMarket', () => () => null);
 jest.mock(
   '../../UI/Predict/components/PredictMarketSkeleton',

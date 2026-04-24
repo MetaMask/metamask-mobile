@@ -165,7 +165,7 @@ interface TrendingTokenRowItemProps {
 /**
  * Converts a TrendingAsset to Asset navigation params
  */
-const getAssetNavigationParams = (
+export const getAssetNavigationParams = (
   token: TrendingAsset,
   source: TokenDetailsSource,
   transactionActiveAbTests?: TransactionActiveAbTestEntry[],
