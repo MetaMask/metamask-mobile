@@ -74,7 +74,7 @@ import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
@@ -411,7 +411,7 @@ const ExploreHome = () => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -617,7 +617,8 @@ const SettingsFlow = () => {
         options={{ headerShown: false }}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        // TODO: Hide with runtime FF
       }
       <Stack.Screen
         name={Routes.SNAPS.SNAPS_SETTINGS_LIST}

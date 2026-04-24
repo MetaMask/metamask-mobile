@@ -272,7 +272,7 @@ export function* handleDeeplinkSaga() {
   }
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /**
  * Handles updating the Snaps registry when the user has booted the app and is onboarded
  */
@@ -350,7 +350,7 @@ export function* rootSaga() {
   yield fork(backfillSocialLoginMarketingConsentSaga);
 
   yield fork(promptIosGoogleWarningSheetSaga);
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF
 }

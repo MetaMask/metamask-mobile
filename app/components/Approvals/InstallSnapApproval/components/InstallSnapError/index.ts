@@ -1,6 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /* eslint-disable import-x/prefer-default-export */
-import InstallSnapError from './InstallSnapError';
-
-export { InstallSnapError };
+export { InstallSnapError } from './InstallSnapError';
 ///: END:ONLY_INCLUDE_IF
