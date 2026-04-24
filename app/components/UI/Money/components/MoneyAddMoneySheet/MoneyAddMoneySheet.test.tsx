@@ -7,7 +7,7 @@ import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockInitiateCustomConversion = jest.fn().mockResolvedValue(undefined);
@@ -26,9 +26,8 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: jest.fn(),
 }));
 
 jest.mock(
@@ -69,8 +68,8 @@ describe('MoneyAddMoneySheet', () => {
     (useRampNavigation as jest.Mock).mockReturnValue({
       goToBuy: mockGoToBuy,
     });
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      musdFiatFormatted: '$1,203.89',
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregatedFormatted: '$1,203.89',
     });
     mockGetPaymentTokenForSelectedNetwork.mockReturnValue(mockPaymentToken);
   });
@@ -91,8 +90,8 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('falls back to the no-amount copy when the mUSD balance is unavailable', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      musdFiatFormatted: undefined,
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregatedFormatted: undefined,
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -100,8 +99,8 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('normalizes a US$ locale prefix to a plain $ in the move mUSD row', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      musdFiatFormatted: 'US$1,203.89',
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregatedFormatted: 'US$1,203.89',
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 

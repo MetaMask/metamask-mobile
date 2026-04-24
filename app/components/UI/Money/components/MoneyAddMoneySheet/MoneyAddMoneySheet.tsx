@@ -17,7 +17,7 @@ import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
@@ -37,10 +37,15 @@ const MoneyAddMoneySheet: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  const { musdFiatFormatted } = useMoneyAccountBalance();
+  // The Move row shows the user's mUSD held in external wallet accounts
+  // (what can be moved INTO the Money Account), not the Money Account balance.
+  const { fiatBalanceAggregatedFormatted } = useMusdBalance();
   // Figma 3027:12190 renders the amount as "$1,203.89" (plain USD symbol).
   // The hook formats in the user locale and may prefix "US$" — normalize.
-  const musdAmountForLabel = musdFiatFormatted?.replace(/^US\$/, '$');
+  const musdAmountForLabel = fiatBalanceAggregatedFormatted?.replace(
+    /^US\$/,
+    '$',
+  );
   const { initiateCustomConversion } = useMusdConversion();
   const { getPaymentTokenForSelectedNetwork } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
