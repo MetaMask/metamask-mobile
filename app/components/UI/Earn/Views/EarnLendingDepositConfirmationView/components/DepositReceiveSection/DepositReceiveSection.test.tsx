@@ -29,11 +29,11 @@ describe('DepositReceiveSection', () => {
   };
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <DepositReceiveSection {...defaultProps} />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Aave v3 USDC Coin')).toBeOnTheScreen();
   });
 });

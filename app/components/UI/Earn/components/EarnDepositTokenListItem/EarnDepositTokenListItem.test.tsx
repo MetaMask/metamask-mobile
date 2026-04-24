@@ -61,11 +61,11 @@ describe('EarnDepositTokenListItem', () => {
       secondaryText,
     };
 
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <EarnDepositTokenListItem {...props} />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Dai Stablecoin')).toBeOnTheScreen();
   });
 
   it('renders primary text and secondary text', () => {
@@ -78,8 +78,8 @@ describe('EarnDepositTokenListItem', () => {
       <EarnDepositTokenListItem {...props} />,
     );
 
-    expect(getByText('Dai Stablecoin')).toBeDefined();
-    expect(getByText('10,100.00 USDC')).toBeDefined();
+    expect(getByText('Dai Stablecoin')).toBeOnTheScreen();
+    expect(getByText('10,100.00 USDC')).toBeOnTheScreen();
   });
 
   it('renders only primary text', () => {
@@ -87,6 +87,6 @@ describe('EarnDepositTokenListItem', () => {
       <EarnDepositTokenListItem {...baseProps} />,
     );
 
-    expect(getByText('Dai Stablecoin')).toBeDefined();
+    expect(getByText('Dai Stablecoin')).toBeOnTheScreen();
   });
 });

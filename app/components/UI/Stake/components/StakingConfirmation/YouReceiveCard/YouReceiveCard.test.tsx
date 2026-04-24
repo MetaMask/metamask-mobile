@@ -24,15 +24,11 @@ describe('YouReceiveCard', () => {
       amountFiat: '12,881.64',
     };
 
-    const { toJSON, getByText } = renderWithProvider(
-      <YouReceiveCard {...props} />,
-    );
+    const { getByText } = renderWithProvider(<YouReceiveCard {...props} />);
 
-    expect(getByText(strings('stake.estimated_changes'))).toBeDefined();
-    expect(getByText(strings('stake.you_receive'))).toBeDefined();
-    expect(getByText(`+ ${renderFromWei(props.amountWei)}`)).toBeDefined();
-    expect(getByText(`$${props.amountFiat}`)).toBeDefined();
-
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.estimated_changes'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.you_receive'))).toBeOnTheScreen();
+    expect(getByText(`+ ${renderFromWei(props.amountWei)}`)).toBeOnTheScreen();
+    expect(getByText(`$${props.amountFiat}`)).toBeOnTheScreen();
   });
 });

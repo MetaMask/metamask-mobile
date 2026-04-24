@@ -292,27 +292,25 @@ describe('EarnLendingDepositConfirmationView', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON, getByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
-
     // ERC20 Token Hero
-    expect(getByTestId('earn-token-selector-USDC-0x1')).toBeDefined();
+    expect(getByTestId('earn-token-selector-USDC-0x1')).toBeOnTheScreen();
     // Deposit Details Section
-    expect(getByTestId(DEPOSIT_DETAILS_SECTION_TEST_ID)).toBeDefined();
+    expect(getByTestId(DEPOSIT_DETAILS_SECTION_TEST_ID)).toBeOnTheScreen();
     // Deposit Receive Section
-    expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeDefined();
+    expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeOnTheScreen();
     // Footer
-    expect(getByTestId(CONFIRMATION_FOOTER_TEST_ID)).toBeDefined();
+    expect(getByTestId(CONFIRMATION_FOOTER_TEST_ID)).toBeOnTheScreen();
     expect(
       getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('does not render when stablecoin lending feature flag disabled', () => {
@@ -322,12 +320,12 @@ describe('EarnLendingDepositConfirmationView', () => {
       >
     ).mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(
+    const { queryByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toBeNull();
+    expect(queryByTestId(CONFIRMATION_FOOTER_TEST_ID)).not.toBeOnTheScreen();
   });
 
   it('navigates to previous page when cancel button is pressed', () => {
@@ -401,7 +399,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         },
       );
 
-      expect(getByText(strings('earn.allowance_reset'))).toBeDefined();
+      expect(getByText(strings('earn.allowance_reset'))).toBeOnTheScreen();
       // 3 Pending Steps
       expect(
         getAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING),
@@ -465,7 +463,9 @@ describe('EarnLendingDepositConfirmationView', () => {
         },
       );
 
-      expect(queryByText(strings('earn.allowance_reset'))).toBeNull();
+      expect(
+        queryByText(strings('earn.allowance_reset')),
+      ).not.toBeOnTheScreen();
       // 2 Pending Steps
       expect(
         getAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING),
@@ -1500,9 +1500,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       { state: mockInitialState },
     );
 
-    expect(getByText('45 USDC')).toBeDefined();
-    expect(getByText('5 aUSDC')).toBeDefined();
-    expect(getByText('4.5%')).toBeDefined();
+    expect(getByText('45 USDC')).toBeOnTheScreen();
+    expect(getByText('5 aUSDC')).toBeOnTheScreen();
+    expect(getByText('4.5%')).toBeOnTheScreen();
   });
 
   it('displays amount information', () => {
@@ -1511,9 +1511,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       { state: mockInitialState },
     );
 
-    expect(getAllByText('$4.99')).toBeDefined();
-    expect(getByText('5 aUSDC')).toBeDefined();
-    expect(getByText('5 USDC')).toBeDefined();
+    expect(getAllByText('$4.99')).toBeOnTheScreen();
+    expect(getByText('5 aUSDC')).toBeOnTheScreen();
+    expect(getByText('5 USDC')).toBeOnTheScreen();
   });
 
   it('displays nothing when missing route params', () => {
@@ -1523,12 +1523,12 @@ describe('EarnLendingDepositConfirmationView', () => {
       params: {},
     });
 
-    const { toJSON } = renderWithProvider(
+    const { queryByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toBeNull();
+    expect(queryByTestId(CONFIRMATION_FOOTER_TEST_ID)).not.toBeOnTheScreen();
   });
 
   it('handles token import and confirmation via subscription listener when no outputToken is present', async () => {

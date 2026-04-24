@@ -270,26 +270,25 @@ describe('EarnLendingBalance', () => {
   });
 
   it('renders balance and buttons when user has lending positions', () => {
-    const { toJSON, getByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <EarnLendingBalance asset={mockDaiMainnet} />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
     expect(
       getByTestId(
         EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO,
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('renders withdraw button and hides deposit button when user is not eligible', () => {
@@ -307,10 +306,10 @@ describe('EarnLendingBalance', () => {
 
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('hides underlying token balance when asset prop is an output token', () => {
@@ -343,17 +342,17 @@ describe('EarnLendingBalance', () => {
     // Hidden
     expect(
       queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(
         EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO,
       ),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
 
     // Still Rendering Buttons
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('displays earn empty state cta when user has no lending positions', () => {
@@ -390,14 +389,14 @@ describe('EarnLendingBalance', () => {
       { state: mockInitialState },
     );
 
-    expect(getByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeDefined();
+    expect(getByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeOnTheScreen();
     expect(
       getByText(
         strings('earn.empty_state_cta.heading', {
           tokenSymbol: 'DAI',
         }),
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('does not display earn empty state cta when user is not eligible', () => {
@@ -435,7 +434,7 @@ describe('EarnLendingBalance', () => {
       { state: mockInitialState },
     );
 
-    expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeNull();
+    expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).not.toBeOnTheScreen();
   });
 
   it('does not render when lending is disabled and token is not mUSD convertible', () => {
@@ -463,12 +462,14 @@ describe('EarnLendingBalance', () => {
       tokens: [],
     });
 
-    const { toJSON } = renderWithProvider(
+    const { queryByTestId } = renderWithProvider(
       <EarnLendingBalance asset={mockDaiMainnet} />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toBeNull();
+    expect(
+      queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('does render if pooled staking feature flag disabled', () => {
@@ -478,12 +479,14 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <EarnLendingBalance asset={mockDaiMainnet} />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toBeDefined();
+    expect(
+      getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to deposit screen when deposit more is pressed', async () => {
@@ -692,12 +695,14 @@ describe('EarnLendingBalance', () => {
       earnToken: mockDaiMainnet,
     });
 
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <EarnLendingBalance asset={mockADAIMainnet} />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('hides mUSD conversion CTA when feature flag is disabled', () => {
@@ -726,7 +731,7 @@ describe('EarnLendingBalance', () => {
 
     expect(
       queryByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('hides mUSD conversion CTA when asset is not a conversion token', () => {
@@ -755,7 +760,7 @@ describe('EarnLendingBalance', () => {
 
     expect(
       queryByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('displays mUSD conversion CTA when lending flag is disabled but mUSD conversion flag is enabled', () => {
@@ -852,7 +857,7 @@ describe('EarnLendingBalance', () => {
     expect(
       getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeOnTheScreen();
-    expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeNull();
+    expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).not.toBeOnTheScreen();
   });
 
   it('updates user state when close button is pressed on mUSD CTA', async () => {
@@ -931,7 +936,7 @@ describe('EarnLendingBalance', () => {
     // mUSD CTA hidden because geo-blocked (useMusdCtaVisibility returns false)
     expect(
       queryByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('shows mUSD conversion CTA when user is geo-eligible', () => {

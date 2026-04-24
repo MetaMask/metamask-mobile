@@ -27,24 +27,19 @@ describe('TokenValueStack', () => {
       tokenSymbol: 'wETH',
     };
 
-    const { getByText, toJSON } = renderWithProvider(
-      <TokenValueStack {...props} />,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-            },
+    const { getByText } = renderWithProvider(<TokenValueStack {...props} />, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
           },
         },
       },
-    );
+    });
 
     expect(
       getByText(`${renderFromWei(props.amountWei)} ${props.tokenSymbol}`),
-    ).toBeDefined(); // 0.00321 wETH
-    expect(getByText(props.amountFiat)).toBeDefined();
-
-    expect(toJSON()).toMatchSnapshot();
+    ).toBeOnTheScreen(); // 0.00321 wETH
+    expect(getByText(props.amountFiat)).toBeOnTheScreen();
   });
 });

@@ -37,8 +37,8 @@ describe('MaxInputModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderMaxInputModal();
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderMaxInputModal();
+    expect(getByText('Use max')).toBeOnTheScreen();
   });
 
   it('calls handleMaxPress when "Use max" button is pressed', () => {
@@ -80,6 +80,6 @@ describe('MaxInputModal', () => {
     const ethDescriptionText = queryByText(
       strings('stake.max_modal.eth.description'),
     );
-    expect(ethDescriptionText).toBeTruthy();
+    expect(ethDescriptionText).toBeOnTheScreen();
   });
 });

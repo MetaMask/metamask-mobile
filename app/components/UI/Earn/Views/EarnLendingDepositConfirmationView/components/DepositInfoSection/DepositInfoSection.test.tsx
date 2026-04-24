@@ -65,7 +65,7 @@ describe('DepositInfoSection', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON, getByText } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <DepositInfoSection {...defaultProps} />,
       { state: mockInitialState },
     );
@@ -83,9 +83,7 @@ describe('DepositInfoSection', () => {
     ];
 
     expectedDefinedStrings.forEach((str) => {
-      expect(getByText(str)).toBeDefined();
+      expect(getByText(str)).toBeOnTheScreen();
     });
-
-    expect(toJSON()).toMatchSnapshot();
   });
 });

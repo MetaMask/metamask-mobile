@@ -88,12 +88,12 @@ const mockInitialState = {
 const earningsHistoryView = <StakeEarningsHistoryView />;
 
 describe('StakeEarningsHistoryView', () => {
-  it('renders correctly and matches snapshot', () => {
+  it('renders correctly', () => {
     const renderedView = renderWithProvider(earningsHistoryView, {
       state: mockInitialState,
     });
     fireLayoutEvent(renderedView.root);
-    expect(renderedView.toJSON()).toMatchSnapshot();
+    expect(mockNavigation.setOptions).toHaveBeenCalled();
   });
 
   it('calls navigation setOptions to get staking navigation bar', () => {

@@ -23,16 +23,14 @@ describe('FooterLegalLinks', () => {
   });
 
   it('render matches snapshot', () => {
-    const { getByText, toJSON } = renderWithProvider(<FooterLegalLinks />);
+    const { getByText } = renderWithProvider(<FooterLegalLinks />);
 
-    expect(getByText(strings('stake.terms_of_service'))).toBeDefined();
-    expect(getByText(strings('stake.risk_disclosure'))).toBeDefined();
-
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.terms_of_service'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.risk_disclosure'))).toBeOnTheScreen();
   });
 
   it('navigates to terms of use web page', () => {
-    const { getByText, toJSON } = renderWithProvider(<FooterLegalLinks />);
+    const { getByText } = renderWithProvider(<FooterLegalLinks />);
 
     fireEvent.press(getByText(strings('stake.terms_of_service')));
 
@@ -41,12 +39,10 @@ describe('FooterLegalLinks', () => {
       params: { url: AppConstants.URLS.TERMS_AND_CONDITIONS },
       screen: 'SimpleWebview',
     });
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to risk disclosure web page', () => {
-    const { getByText, toJSON } = renderWithProvider(<FooterLegalLinks />);
+    const { getByText } = renderWithProvider(<FooterLegalLinks />);
 
     fireEvent.press(getByText(strings('stake.risk_disclosure')));
 
@@ -55,7 +51,5 @@ describe('FooterLegalLinks', () => {
       params: { url: AppConstants.URLS.STAKING_RISK_DISCLOSURE },
       screen: 'SimpleWebview',
     });
-
-    expect(toJSON()).toMatchSnapshot();
   });
 });

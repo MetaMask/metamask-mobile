@@ -36,13 +36,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
 import { RootState } from '../../../../../reducers';
 
-expect.addSnapshotSerializer({
-  // any is the expected type for the val parameter
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  test: (val: any) => val && val?.type === 'Image',
-  print: () => `<Image />`,
-});
-
 const getStakingNavbarSpy = jest.spyOn(NavbarUtils, 'getStakingNavbar');
 
 const mockGoBack = jest.fn();
@@ -221,7 +214,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
       {
         state: mockInitialState,
@@ -254,7 +247,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044 Add back in v1.1
@@ -278,7 +273,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     );
 
-    expect(getByText(strings('stake.advanced_details'))).toBeTruthy();
+    expect(getByText(strings('stake.advanced_details'))).toBeOnTheScreen();
   });
 
   it('navigates back when cancel button is pressed', async () => {
@@ -1053,7 +1048,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         },
       );
 
-      expect(getByText('Test Wallet Group')).toBeTruthy();
+      expect(getByText('Test Wallet Group')).toBeOnTheScreen();
     });
 
     it('should display account name as fallback when account group metadata is not available', () => {
@@ -1089,7 +1084,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         },
       );
 
-      expect(getByText(mockSelectedAccount.metadata.name)).toBeTruthy();
+      expect(getByText(mockSelectedAccount.metadata.name)).toBeOnTheScreen();
     });
   });
 

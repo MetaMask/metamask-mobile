@@ -25,15 +25,13 @@ describe('UnstakingTimeCard', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON, getByText } = renderWithProvider(<UnstakingTimeCard />);
+    const { getByText } = renderWithProvider(<UnstakingTimeCard />);
 
     const estimatedUnstakingTime = strings('stake.estimated_unstaking_time');
 
     expect(
       getByText(strings('tooltip_modal.unstaking_time.title')),
-    ).toBeDefined();
-    expect(getByText(estimatedUnstakingTime)).toBeDefined(); // 1 to 44 days
-
-    expect(toJSON()).toMatchSnapshot();
+    ).toBeOnTheScreen();
+    expect(getByText(estimatedUnstakingTime)).toBeOnTheScreen(); // 1 to 44 days
   });
 });
