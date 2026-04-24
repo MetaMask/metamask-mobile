@@ -12,7 +12,7 @@ export * from './selectors';
  * Initial navigation state
  */
 export const initialNavigationState: NavigationState = {
-  currentRoute: 'WalletView',
+  currentRoute: undefined,
   currentBottomNavRoute: 'Wallet',
 };
 

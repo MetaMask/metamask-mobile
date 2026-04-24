@@ -10,10 +10,11 @@ import {
   initializeSDKServicesSaga,
   handleDeeplinkSaga,
   handleSnapsRegistry,
+  parseDeeplinkAfterNavReady,
   requestAuthOnAppStart,
   appStateListenerTask,
 } from './';
-import { NavigationActionType } from '../../actions/navigation';
+import { NavigationActionType, setCurrentRoute } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import Engine from '../../core/Engine';
@@ -168,7 +169,11 @@ const defaultMockState = {
   user: { existingUser: true },
   engine: { backgroundState: {} },
   confirmation: {},
-  navigation: {},
+  // `parseDeeplinkAfterNavReady` reads `state.navigation.currentRoute`;
+  // a ready, post-login route triggers the fast path so tests exercise
+  // the full parse flow without having to simulate a `SET_CURRENT_ROUTE`
+  // dispatch.
+  navigation: { currentRoute: 'Wallet' },
   security: {},
   sdk: {},
   inpageProvider: {},
@@ -630,6 +635,7 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               user: { existingUser: true },
+              navigation: { currentRoute: 'Wallet' },
             })
             .dispatch(setCompletedOnboarding(true))
             .silentRun();
@@ -663,7 +669,7 @@ describe('handleDeeplinkSaga', () => {
               user: { existingUser: true },
               engine: { backgroundState: {} },
               confirmation: {},
-              navigation: {},
+              navigation: { currentRoute: 'Wallet' },
               security: {},
               sdk: {},
               inpageProvider: {},
@@ -800,6 +806,93 @@ describe('handleDeeplinkSaga', () => {
         );
       });
     });
+  });
+});
+
+describe('parseDeeplinkAfterNavReady', () => {
+  const TEST_URL = 'https://link.metamask.io/buy';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('parses immediately when the current route is ready', async () => {
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN)
+      .withState({ navigation: { currentRoute: 'Wallet' } })
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('waits for SET_CURRENT_ROUTE when currentRoute is undefined (cold start)', async () => {
+    const { effects } = await expectSaga(
+      parseDeeplinkAfterNavReady,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .withState({ navigation: { currentRoute: undefined } })
+      .dispatch(setCurrentRoute('Wallet'))
+      .run();
+
+    // The saga must have taken a SET_CURRENT_ROUTE action before parsing.
+    expect(effects.take).toBeDefined();
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('keeps waiting while routes are still pre-login auth screens', async () => {
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN)
+      .withState({ navigation: { currentRoute: 'Login' } })
+      .dispatch(setCurrentRoute('LockScreen'))
+      .dispatch(setCurrentRoute('Rehydrate'))
+      .dispatch(setCurrentRoute('Wallet'))
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('keeps waiting while the focused leaf is a post-login container route', async () => {
+    // On cold start the leaf briefly focuses on `HomeNav` -> `Main` before
+    // the actual `Wallet` tab is registered. Parsing during that window is
+    // the exact bug this saga exists to prevent.
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN)
+      .withState({ navigation: { currentRoute: 'Login' } })
+      .dispatch(setCurrentRoute('HomeNav'))
+      .dispatch(setCurrentRoute('Main'))
+      .dispatch(setCurrentRoute('Wallet'))
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
+  });
+
+  it('parses anyway after the safety timeout when navigation never settles', async () => {
+    jest.useFakeTimers();
+    try {
+      const racePromise = expectSaga(
+        parseDeeplinkAfterNavReady,
+        TEST_URL,
+        TEST_ORIGIN,
+      )
+        .withState({ navigation: { currentRoute: 'Login' } })
+        .run({ timeout: 5000 });
+
+      // Advance past the 3s safety cap inside the saga's `race`.
+      jest.advanceTimersByTime(3100);
+      await racePromise;
+
+      expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+        origin: TEST_ORIGIN,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 

@@ -46,16 +46,6 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   }
 
   /**
-   * Triggers when the navigation is ready
-   */
-  const onReady = () => {
-    // End trace when navigation is ready
-    endTrace({ name: TraceName.NavInit });
-    // Dispatch navigation ready action, used by sagas
-    dispatch(onNavigationReady());
-  };
-
-  /**
    * Walk a (possibly nested) navigation state to find the name of the
    * currently-focused leaf route.
    */
@@ -72,6 +62,25 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       if (nested) return nested;
     }
     return route.name;
+  };
+
+  /**
+   * Triggers when the navigation is ready. React Navigation does NOT call
+   * `onStateChange` on initial mount, so we must seed the redux current
+   * route here — otherwise consumers like the deeplink saga would read the
+   * `undefined` initial state and race against the first real navigation.
+   */
+  const onReady = () => {
+    endTrace({ name: TraceName.NavInit });
+    dispatch(onNavigationReady());
+
+    const initialRouteName =
+      typeof NavigationService.navigation?.getRootState === 'function'
+        ? getFocusedRouteName(NavigationService.navigation.getRootState())
+        : undefined;
+    if (initialRouteName) {
+      dispatch(setCurrentRoute(initialRouteName));
+    }
   };
 
   /**

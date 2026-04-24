@@ -43,6 +43,7 @@ flowchart TD
   Dispatch["dispatch(checkForDeeplink())"]
 
   Saga["handleDeeplinkSaga<br/>waits for LOGIN | CHECK_FOR_DEEPLINK | SET_COMPLETED_ONBOARDING<br/>gates on KeyringController.isUnlocked + completedOnboarding"]
+  NavReady["parseDeeplinkAfterNavReady<br/>blocks on SET_CURRENT_ROUTE<br/>until leaf is not a pre-login or container route"]
 
   Parse["DeeplinkManager.parse → parseDeeplink"]
   Universal["handleUniversalLink<br/>(signature, interstitial, action switch)"]
@@ -59,7 +60,7 @@ flowchart TD
 
   HD --> MWP
   MWP -- yes --> MWPHandle
-  MWP -- no --> AppState --> Dispatch --> Saga --> Parse
+  MWP -- no --> AppState --> Dispatch --> Saga --> NavReady --> Parse
   Parse -->|http/https/metamask| Universal
   Parse -->|wc://| WC["connectWithWC"]
   Parse -->|ethereum://| ETH["handleEthereumUrl (EIP-681)"]
@@ -178,40 +179,60 @@ Consequence: a deeplink triggered by these callers **cannot** open an MWP WebSoc
 
 File: `app/store/sagas/index.ts` (forked from `rootSaga`).
 
-```203:273:app/store/sagas/index.ts
+```app/store/sagas/index.ts
 export function* handleDeeplinkSaga() {
-  let hasInitializedSDKServices = false;
   while (true) {
-    const value = (yield take([
+    const value = yield take([
       UserActionType.LOGIN,
       UserActionType.CHECK_FOR_DEEPLINK,
       SET_COMPLETED_ONBOARDING,
-    ])) as LoginAction | CheckForDeeplinkAction | SetCompletedOnboardingAction;
+    ]);
     ...
     if (AppStateEventProcessor.pendingDeeplink) {
       const url = new UrlParser(AppStateEventProcessor.pendingDeeplink);
-      ...
       if (!existingUser && url.pathname === '/onboarding') {
-        setTimeout(() => {
-          SharedDeeplinkManager.parse(url.href, { origin: storedSource });
-        }, 200);
+        yield fork(parseDeeplinkAfterNavReady, url.href, storedSource);
         AppStateEventProcessor.clearPendingDeeplink();
         continue;
       }
     }
-    const { KeyringController } = Engine.context;
-    const isUnlocked = KeyringController.isUnlocked();
     if (!isUnlocked || !completedOnboarding) continue;
-
-    if (!hasInitializedSDKServices) {
-      yield call(initializeSDKServices);
-      hasInitializedSDKServices = true;
-    }
     ...
-    setTimeout(() => {
-      SharedDeeplinkManager.parse(deeplink, { origin: deeplinkSource });
-    }, 200);
+    yield fork(parseDeeplinkAfterNavReady, deeplink, deeplinkSource);
     AppStateEventProcessor.clearPendingDeeplink();
+```
+
+And the helper it forks:
+
+```app/store/sagas/index.ts
+const NAV_NOT_READY_ROUTES = new Set([
+  Routes.LOCK_SCREEN,
+  Routes.ONBOARDING.LOGIN,
+  Routes.ONBOARDING.REHYDRATE,
+  Routes.ONBOARDING.HOME_NAV,   // container, not a leaf screen
+  Routes.ONBOARDING.ROOT_NAV,
+  Routes.ONBOARDING.NAV,
+  Routes.FOX_LOADER,
+  'Main',                        // container inside HomeNav
+]);
+
+export function* parseDeeplinkAfterNavReady(deeplink, origin) {
+  const currentRoute = yield select(selectCurrentRoute);
+  if (currentRoute && !NAV_NOT_READY_ROUTES.has(currentRoute)) {
+    SharedDeeplinkManager.parse(deeplink, { origin });
+    return;
+  }
+  yield race({
+    navSettled: call(function* () {
+      while (true) {
+        const action = yield take(NavigationActionType.SET_CURRENT_ROUTE);
+        if (!NAV_NOT_READY_ROUTES.has(action.payload.route)) return;
+      }
+    }),
+    timedOut: delay(3000),
+  });
+  SharedDeeplinkManager.parse(deeplink, { origin });
+}
 ```
 
 Key points:
@@ -219,8 +240,8 @@ Key points:
 - **Wake-up events**: `LOGIN`, `CHECK_FOR_DEEPLINK`, `SET_COMPLETED_ONBOARDING`. Anything that changes authenticated state re-drives the saga.
 - **Gates**: the keyring must be unlocked **and** onboarding must be complete. Otherwise the iteration `continue`s; the deeplink stays in `pendingDeeplink` until a future wake-up.
 - **Fast onboarding exception**: if user is brand-new (`existingUser === false`) and path is `/onboarding`, parse immediately. This is how the `onboarding` deeplink action can run pre-login.
-- **SDK services init**: `WC2Manager.init({})` and `SDKConnect.init({ context: 'Nav/App' })` run once, lazily, only after first successful deeplink resolution post-unlock. TODO in the code notes this exists because SDKConnect "does some weird stuff when it's initialized".
-- **200 ms setTimeout**: workaround — parse runs outside the saga tick so the modal doesn't collide with an ongoing navigation event.
+- **Navigation-readiness gating** (`parseDeeplinkAfterNavReady`): parse is deferred until the focused leaf is no longer a pre-login auth screen (`Login`, `LockScreen`, `Rehydrate`) **nor** a post-login container route (`HomeNav`, `Main`, `OnboardingRootNav`, `OnboardingNav`, `FoxLoader`). Without this, cold starts fire `navigate('SomeScreen')` before the `Main` stack has registered its screens and React Navigation silently drops the action (`The action 'NAVIGATE' ... was not handled by any navigator`). Event-driven via `SET_CURRENT_ROUTE` — dispatched from `NavigationProvider.onStateChange` (and seeded from `onReady`) — with a 3 s safety timeout. Forked so the parent saga loop keeps listening for new deeplink events.
+- **SDK services init** is **not** done here; it lives in a separate `initializeSDKServicesSaga` that runs `WC2Manager.init` and `SDKConnect.init` in parallel on `LOGIN`/`SET_COMPLETED_ONBOARDING`. Handlers that need these services wait for them internally (`WC2Manager.getInstance()` polls; `handleMetaMaskDeeplink` awaits `SDKConnect.init` defensively at entry).
 
 ### Related: `AppStateEventProcessor` timing
 
@@ -345,7 +366,7 @@ Keep this list in mind before proposing refactors — each item was added for a 
 3. **`metamask://` → `https://link.metamask.io/` remap** in `parseDeeplink` — keeps a single code path through `handleUniversalLink`. Then `handleUniversalLink` remaps SDK actions **back** to `metamask://` before delegating to `handleMetaMaskDeeplink`.
 4. **SDKConnectV2 MWP bypass** in `handleDeeplink` — handled **before** redux/saga to open the WebSocket even while the app is locked / pre-onboarding. Analytics (`trackMwpDeepLinkUsed`) is fire-and-forget so it never blocks the handshake.
 5. **Fast-onboarding branch** in the saga — `/onboarding` path is parsed before the unlock/onboarding gate when `existingUser === false`.
-6. **200 ms `setTimeout` before `parse()`** in the saga — avoids modal/navigation race during navigation stack mount.
+6. **Navigation-readiness gating before `parse()`** — replaces the older 200 ms `setTimeout` hack. The saga forks `parseDeeplinkAfterNavReady`, which blocks on `SET_CURRENT_ROUTE` dispatches from `NavigationProvider.onStateChange` (seeded by `onReady`) until the focused leaf leaves `NAV_NOT_READY_ROUTES` (`Login`/`LockScreen`/`Rehydrate` and post-login containers `HomeNav`/`Main`/`OnboardingRootNav`/`OnboardingNav`/`FoxLoader`). Without this, a cold-start parse fires `navigate('X')` before the `Main` stack registers its screens and React Navigation drops the action silently. 3 s safety timeout ensures a delayed parse rather than a permanently stuck one.
 7. **2000 ms `setTimeout` on app foreground** in `AppStateEventListener.handleAppStateChange` — gives the native layer time to emit the deeplink URL before firing `APP_OPENED`.
 8. **`inactive` state guard** in `AppStateEventListener` — on iOS, `background → inactive → active` must not forget the original `background` state; otherwise `APP_OPENED` would fire for every incoming call / permission dialog.
 9. **iOS Braze `shouldOpenURL` returns `NO`** — prevents duplicate delivery: universal links are forwarded to `[Branch handleDeepLink:]`; non-universal links are left to the JS `PUSH_NOTIFICATION_EVENT` listener (`ORIGIN_BRAZE`).
@@ -356,7 +377,7 @@ Keep this list in mind before proposing refactors — each item was added for a 
 14. **`SUPPORTED_ACTIONS.SEND` and `SUPPORTED_ACTIONS.WC` recurse** through `instance.parse(...)` with the remapped `ethereum:` / `wc:` URL — reuses the protocol dispatcher instead of duplicating logic.
 15. **`PERPS_ASSET` path synthesis** — `handleUniversalLink` rewrites `/perps-asset?symbol=X` into `perps?screen=asset&symbol=X` before calling `handlePerpsUrl`. The `perps-asset` action exists for URL ergonomics only.
 16. **Tampered signature demotion, not rejection** — invalid `sig` becomes a PUBLIC link (user still sees a warning) rather than an INVALID modal. This is intentional per the product doc.
-17. **Lazy one-time SDK service init** — `WC2Manager.init` / `SDKConnect.init` run inside the saga after the first post-unlock deeplink. The TODO in `handleDeeplinkSaga` notes this should go away once SDKConnect init is refactored.
+17. **Parallel one-shot SDK service init** — `WC2Manager.init` / `SDKConnect.init` run in parallel from a dedicated `initializeSDKServicesSaga` on `LOGIN`/`SET_COMPLETED_ONBOARDING`. They **used to** run serially inside `handleDeeplinkSaga` and blocked every post-login deeplink on 3-5 s of init work even for deeplinks that don't need these services; this was fixed after the "deeplinks open slowly after unlock" investigation. Handlers that depend on these services wait for them on their own (`WC2Manager.getInstance()` polls; `handleMetaMaskDeeplink` defensively awaits `SDKConnect.init({ context: 'deeplink' })` at entry since init is idempotent).
 18. **DEBUG-only `RCTLinkingManager` fallback** on iOS — in release builds `RNBranch` alone owns `application:openURL:`.
 19. **`trustedInAppSources` bypass widened to PUBLIC + PRIVATE** (PR #28973) — previously only PRIVATE links from carousel / notifications / push / Braze skipped the interstitial; PUBLIC links now skip too. Do **not** narrow this back to PRIVATE without a product conversation — it was a deliberate UX choice to avoid modal spam on our own in-app notifications.
 20. **QRScanner ↔ DeeplinkManager integration** (PR #25739) — MM universal links scanned from the in-app scanner on iOS would otherwise route through `Linking.openURL`, which sends the user to Safari → App Store even though the app is foregrounded. `QRScanner` now calls `isMetaMaskUniversalLink()` and routes through `SharedDeeplinkManager.parse()` instead. Custom schemes stay on the old path.
@@ -368,6 +389,7 @@ Keep this list in mind before proposing refactors — each item was added for a 
 - **Link doesn't open the app**: check the Android manifest intent-filters / iOS associated domain (`applinks:`) — the `autoVerify=true` filters are the universal-link hook.
 - **Expo dev-build Android gotcha**: in `expo-metamask://` dev builds the link arriving at the JS layer is rewritten by Expo before reaching `handleDeeplink`, which triggers a "This page doesn't exist" modal. Test universal links using a Bitrise/release build, not `yarn start:android` through Expo (see PR #23349 manual-testing notes).
 - **Link opens the app but nothing happens**: likely stuck in the saga (locked wallet / incomplete onboarding) or missing switch case in `handleUniversalLink`. Inspect `AppStateEventProcessor.pendingDeeplink` and DevLogger logs prefixed with `DeepLinkManager:parse`.
+- **Cold-start deeplink silently dropped after unlock** (home screen stays focused, logs show `The action 'NAVIGATE' with payload {"name":"<Screen>"} was not handled by any navigator`): the parse ran before `Main`'s nested stack mounted. Confirm `parseDeeplinkAfterNavReady` is actually blocking by checking Redux `state.navigation.currentRoute` at parse time and verifying `SET_CURRENT_ROUTE` is dispatched by `NavigationProvider.onStateChange` / `onReady`. Do **not** re-introduce a blind `setTimeout` — add the offending container route to `NAV_NOT_READY_ROUTES` in `app/store/sagas/index.ts` instead.
 - **Signature keeps failing**: verify `sig_params` lists exactly the params that were signed, and that no listed param is missing from the URL. Legacy mode (no `sig_params`) verifies **all** non-`sig` params.
 - **Duplicate modal or double handling**: look for a push/Branch/Linking fan-in — only one source should hand off to `handleDeeplink` per tap. The iOS Braze delegate is the historical offender.
 - **MWP connection doesn't open**: it bypasses everything above — inspect `SDKConnectV2` / `ConnectionRegistry`, not the saga.

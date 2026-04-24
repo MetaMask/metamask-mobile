@@ -53,34 +53,53 @@ import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMa
 import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 
 /**
- * Route names that indicate the user is still on a pre-login auth screen.
- * While the current route is one of these, the post-login navigator tree has
- * not mounted yet and `navigate(Routes.<post-login>)` will silently no-op
- * because the target screen is not registered in the active tree.
+ * Route names that indicate the post-login screen tree owning most deeplink
+ * targets (`Wallet`, `RampTokenSelection`, `SwapsAmountView`, …) has not yet
+ * mounted. Parsing a deeplink while the focused leaf is any of these will
+ * fire `navigate('SomeScreen')` against a navigator that doesn't know the
+ * screen yet — React Navigation logs "action NAVIGATE was not handled by
+ * any navigator" and the deeplink is silently dropped.
+ *
+ * This covers pre-login auth screens (`Login`, `LockScreen`, `Rehydrate`)
+ * and post-login container routes that briefly focus before their child
+ * `Stack.Navigator` mounts its screens (`HomeNav`, `Main`, `OnboardingRootNav`,
+ * `OnboardingNav`, `FoxLoader`).
+ *
+ * When the focused leaf reaches anything deeper (`Wallet`, `WalletView`, a
+ * browser tab, etc.) the `Main` stack is fully registered and deeplink
+ * navigation works.
  */
-const POST_LOGIN_AUTH_ROUTES: ReadonlySet<string> = new Set<string>([
+const NAV_NOT_READY_ROUTES: ReadonlySet<string> = new Set<string>([
   Routes.LOCK_SCREEN,
   Routes.ONBOARDING.LOGIN,
   Routes.ONBOARDING.REHYDRATE,
+  Routes.ONBOARDING.HOME_NAV,
+  Routes.ONBOARDING.ROOT_NAV,
+  Routes.ONBOARDING.NAV,
+  Routes.FOX_LOADER,
+  'Main',
 ]);
 
 /**
- * Safety ceiling for how long we will wait for the navigation stack to leave
- * the auth screens before parsing the deeplink anyway. A delayed deeplink is
+ * Safety ceiling for how long we will wait for the navigation stack to
+ * become ready before parsing the deeplink anyway. A delayed deeplink is
  * always better than a silently dropped one, so we fall through on timeout.
  */
-const POST_LOGIN_NAV_WAIT_TIMEOUT_MS = 3000;
+const NAV_READY_WAIT_TIMEOUT_MS = 3000;
 
 /**
- * Blocks until the navigation state has transitioned off the pre-login auth
- * screens (see {@link POST_LOGIN_AUTH_ROUTES}), then parses the deeplink.
+ * Blocks until the navigation state has settled on a route where deeplink
+ * navigation can succeed (see {@link NAV_NOT_READY_ROUTES}), then parses
+ * the deeplink.
  *
  * Event-driven via `SET_CURRENT_ROUTE` — which {@link NavigationProvider}
- * dispatches from React Navigation's `onStateChange` — instead of polling
- * `NavigationContainerRef.getCurrentRoute()`. Warm starts where the current
- * route is already off-auth parse immediately; cold starts wait for the
- * first `SET_CURRENT_ROUTE` action reporting a non-auth route, with a
- * {@link POST_LOGIN_NAV_WAIT_TIMEOUT_MS} safety cap.
+ * dispatches from React Navigation's `onStateChange` (and seeds once from
+ * `onReady`) — instead of polling `NavigationContainerRef.getCurrentRoute`.
+ *
+ * On cold starts the redux `currentRoute` is `undefined` until `onReady`
+ * fires; we treat `undefined` as "not ready" and wait. On warm starts the
+ * focused leaf is already something deep (`Wallet`, `Settings`, …) so the
+ * fast path parses immediately.
  *
  * Called as a non-blocking `yield fork(...)` from `handleDeeplinkSaga` so
  * the parent saga loop continues listening for new deeplink events while
@@ -92,28 +111,28 @@ export function* parseDeeplinkAfterNavReady(
 ) {
   const currentRoute: string | undefined = yield select(selectCurrentRoute);
 
-  if (!currentRoute || !POST_LOGIN_AUTH_ROUTES.has(currentRoute)) {
+  if (currentRoute && !NAV_NOT_READY_ROUTES.has(currentRoute)) {
     SharedDeeplinkManager.parse(deeplink, { origin });
     return;
   }
 
   const { timedOut } = yield race({
-    navSettled: call(function* waitForNonAuthRoute() {
+    navSettled: call(function* waitForReadyRoute() {
       while (true) {
         const action: SetCurrentRouteAction = yield take(
           NavigationActionType.SET_CURRENT_ROUTE,
         );
-        if (!POST_LOGIN_AUTH_ROUTES.has(action.payload.route)) {
+        if (!NAV_NOT_READY_ROUTES.has(action.payload.route)) {
           return;
         }
       }
     }),
-    timedOut: delay(POST_LOGIN_NAV_WAIT_TIMEOUT_MS),
+    timedOut: delay(NAV_READY_WAIT_TIMEOUT_MS),
   });
 
   if (timedOut) {
     Logger.log(
-      'parseDeeplinkAfterNavReady: timed out waiting for navigation to leave auth screens, parsing anyway',
+      'parseDeeplinkAfterNavReady: timed out waiting for navigation to become ready, parsing anyway',
     );
   }
 
