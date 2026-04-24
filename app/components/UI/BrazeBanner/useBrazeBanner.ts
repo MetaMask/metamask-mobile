@@ -11,20 +11,17 @@ import { selectLastDismissedBrazeBanner } from '../../../selectors/banner';
  */
 const SKELETON_TIMEOUT_MS = 5000;
 
-/**
- * Maximum allowed byte length for a banner's HTML payload.
- * Banners exceeding this are treated as empty to prevent memory pressure from
- * malformed or unexpectedly large campaign creatives.
- */
-const MAX_BANNER_HTML_BYTES = 256 * 1024; // 256 KB
-
 export type BrazeBannerStatus = 'loading' | 'visible' | 'empty' | 'dismissed';
 
 export interface UseBrazeBannerResult {
   status: BrazeBannerStatus;
   banner: Banner | null;
+  bannerId: string | null;
+  title: string | null;
+  body: string | null;
+  imageUrl: string | null;
+  ctaLabel: string | null;
   deeplink: string | null;
-  height: number | null;
   dismiss: () => void;
 }
 
@@ -32,38 +29,81 @@ export interface UseBrazeBannerResult {
  * Reads the underlying raw property map on `CampaignProperties` directly rather
  * than calling the SDK's `getStringProperty` / `getNumberProperty` helpers,
  * which were not working.
+ *
+ * The Braze SDK occasionally nests the actual property entries one level deeper
+ * under a `properties` key (i.e. `banner.properties.properties`). Both shapes
+ * are checked so callers don't need to worry about the nesting level.
  */
 type RawProperties = Record<string, { type?: string; value?: unknown }>;
 
-function getRawProperties(banner: Banner): RawProperties | undefined {
-  return banner.properties as unknown as RawProperties;
+/**
+ * Resolves the active property map from a banner, then looks up `key` in it.
+ * The SDK sometimes nests properties under `banner.properties.properties`; if
+ * that sub-object exists it is used, otherwise `banner.properties` is used.
+ */
+function getRawProp(
+  banner: Banner,
+  key: string,
+): { type?: string; value?: unknown } | undefined {
+  const top = banner.properties as unknown as RawProperties;
+  if (!top) return undefined;
+
+  const nested = (top as unknown as { properties?: RawProperties }).properties;
+  const props = nested && typeof nested === 'object' ? nested : top;
+
+  return props[key];
 }
 
 function getRawStringProp(banner: Banner, key: string): string | null {
-  const prop = getRawProperties(banner)?.[key];
+  const prop = getRawProp(banner, key);
   return prop?.type === 'string' && typeof prop.value === 'string'
     ? prop.value
     : null;
 }
 
-function getRawNumberProp(banner: Banner, key: string): number | null {
-  const prop = getRawProperties(banner)?.[key];
-  return prop?.type === 'number' && typeof prop.value === 'number'
+/**
+ * Like `getRawStringProp` but also accepts `type: 'image'`, which Braze uses
+ * for image-type campaign properties.
+ */
+function getRawStringOrImageProp(banner: Banner, key: string): string | null {
+  const prop = getRawProp(banner, key);
+  return (prop?.type === 'string' || prop?.type === 'image') &&
+    typeof prop.value === 'string'
     ? prop.value
     : null;
+}
+
+function getRawBooleanProp(banner: Banner, key: string): boolean | null {
+  const prop = getRawProp(banner, key);
+  if (prop?.type === 'boolean') {
+    if (typeof prop.value === 'boolean') return prop.value;
+    if (prop.value === 'true') return true;
+    if (prop.value === 'false') return false;
+  }
+  return null;
 }
 
 /**
  * Braze dashboard property keys. Each key must be set on the campaign for
  * the corresponding feature to work.
  *
- * - `dismiss_id`  Cross-session dismissal persistence.
- * - `deeplink`    URL routed through the app's deeplink pipeline on tap.
- * - `height (optional)`      Banner height in logical pixels. Falls back to the default when absent.
+ * - `banner_id`    Cross-session dismissal persistence and impression tracking.
+ * - `dismissable`  When `true` (boolean), combined with `banner_id`, persists
+ * the dismissal to Redux and notifies Braze. Without this flag the dismissal
+ * is session-only.
+ * - `deeplink`     URL routed through the app's deeplink pipeline on tap.
+ * - `title`        Optional bold heading above the body text.
+ * - `body`         Main message text (required; banner is ignored without it).
+ * - `image_url`    URL for the image displayed on the left of the card.
+ * - `cta_label`    Call-to-action text shown below the body (only when no title).
  */
-const PROP_DISMISS_ID = 'dismiss_id';
+const PROP_BANNER_ID = 'banner_id';
+const PROP_DISMISSABLE = 'dismissable';
 const PROP_DEEPLINK = 'deeplink';
-const PROP_HEIGHT = 'height';
+const PROP_TITLE = 'title';
+const PROP_BODY = 'body';
+const PROP_IMAGE_URL = 'image_url';
+const PROP_CTA_LABEL = 'cta_label';
 
 /**
  * Drives the BrazeBanner state machine.
@@ -77,7 +117,8 @@ const PROP_HEIGHT = 'height';
  *
  * Dismissal behaviour:
  * - Always in-memory: hides immediately and stays hidden for the session.
- * - Persisted only when the campaign has a `dismiss_id` property set.
+ * - Persisted (Redux + Braze notification) only when the campaign sets both
+ * `banner_id` and `dismissable: true`.
  */
 export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   const dispatch = useDispatch();
@@ -121,22 +162,17 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         return;
       }
 
-      if (!candidate.html) return;
-
-      if (candidate.html.length > MAX_BANNER_HTML_BYTES) {
-        clearNoResponseTimeout();
-        setStatus('empty');
-        return;
+      const body = getRawStringProp(candidate, PROP_BODY);
+      if (!body) {
+        return; // wait for a meaningful banner
       }
 
-      const dismissId = getRawStringProp(candidate, PROP_DISMISS_ID);
+      const bannerId = getRawStringProp(candidate, PROP_BANNER_ID);
       if (
-        dismissId !== null &&
-        dismissId === lastDismissedBrazeBannerRef.current
+        bannerId !== null &&
+        bannerId === lastDismissedBrazeBannerRef.current
       ) {
         // This banner was explicitly dismissed last session - skip it.
-        clearNoResponseTimeout();
-        setStatus('empty');
         return;
       }
 
@@ -167,15 +203,12 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         if (dismissedRef.current) return;
 
         const match = event.banners.find(
-          (b) => b.placementId === placementId && b.html,
+          (b) =>
+            b.placementId === placementId && getRawStringProp(b, PROP_BODY),
         );
 
         if (match) {
           handleBanner(match);
-        } else {
-          // There is no banner for this placement right now.
-          clearNoResponseTimeout();
-          setStatus('empty');
         }
       },
     );
@@ -198,21 +231,39 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   const dismiss = useCallback(() => {
     if (!banner || dismissedRef.current) return;
 
-    const dismissId = getRawStringProp(banner, PROP_DISMISS_ID);
+    const bannerId = getRawStringProp(banner, PROP_BANNER_ID);
+    const dismissable = getRawBooleanProp(banner, PROP_DISMISSABLE);
 
     dismissedRef.current = true;
     setStatus('dismissed');
 
-    // Send dismissal to braze and persist only when the campaign has an explicit dismiss_id;
-    // otherwise the dismissal is session-only (nothing stored, nothing filtered at startup).
-    if (dismissId !== null) {
-      dispatch(setLastDismissedBrazeBanner(dismissId));
-      dismissBrazeBanner(dismissId);
+    // Persist the dismissal and notify Braze only when the campaign explicitly
+    // sets both `banner_id` and `dismissable: true`. Without both flags the
+    // dismissal is session-only (nothing stored, nothing filtered at startup).
+    if (bannerId !== null && dismissable === true) {
+      dispatch(setLastDismissedBrazeBanner(bannerId));
+      dismissBrazeBanner(bannerId);
     }
   }, [banner, dispatch]);
 
+  const bannerId = banner ? getRawStringProp(banner, PROP_BANNER_ID) : null;
   const deeplink = banner ? getRawStringProp(banner, PROP_DEEPLINK) : null;
-  const height = banner ? getRawNumberProp(banner, PROP_HEIGHT) : null;
+  const title = banner ? getRawStringProp(banner, PROP_TITLE) : null;
+  const body = banner ? getRawStringProp(banner, PROP_BODY) : null;
+  const imageUrl = banner
+    ? getRawStringOrImageProp(banner, PROP_IMAGE_URL)
+    : null;
+  const ctaLabel = banner ? getRawStringProp(banner, PROP_CTA_LABEL) : null;
 
-  return { status, banner, deeplink, height, dismiss };
+  return {
+    status,
+    banner,
+    bannerId,
+    title,
+    body,
+    imageUrl,
+    ctaLabel,
+    deeplink,
+    dismiss,
+  };
 }
