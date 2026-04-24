@@ -9,6 +9,7 @@ import {
 import { useAccountNativeBalance } from './useAccountNativeBalance';
 import { useNativeCurrencySymbol } from './useNativeCurrencySymbol';
 import { useTransactionAccountOverride } from './transactions/useTransactionAccountOverride';
+import { useTransactionPayIsPostQuote } from './pay/useTransactionPayData';
 
 const HEX_ZERO = '0x0';
 
@@ -20,6 +21,7 @@ export function useHasInsufficientBalance(): {
 } {
   const transactionMetadata = useTransactionMetadataRequest();
   const accountOverride = useTransactionAccountOverride();
+  const isPostQuote = useTransactionPayIsPostQuote();
   const { balanceWeiInHex } = useAccountNativeBalance(
     transactionMetadata?.chainId as Hex,
     (accountOverride ?? transactionMetadata?.txParams?.from) as string,
@@ -36,7 +38,14 @@ export function useHasInsufficientBalance(): {
     gas as Hex,
   );
 
-  const transactionValue = txParams?.value || HEX_ZERO;
+  // Post-quote flows with an account override (e.g. money account withdraw)
+  // settle the token via a provider-funded quote, so `txParams.value` doesn't
+  // come out of the overridden account's native balance and must not be
+  // counted toward the insufficient-balance check.
+  const shouldExcludeTransactionValue = Boolean(accountOverride) && isPostQuote;
+  const transactionValue = shouldExcludeTransactionValue
+    ? HEX_ZERO
+    : txParams?.value || HEX_ZERO;
   const totalTransactionValue = addHexes(maxFeeNativeInHex, transactionValue);
   const totalTransactionInHex = add0x(totalTransactionValue as string);
 
