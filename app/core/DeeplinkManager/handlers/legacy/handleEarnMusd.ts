@@ -2,6 +2,10 @@ import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import ReduxService from '../../../redux';
+import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
+import { selectMoneyHubEnabledFlag } from '../../../../components/UI/Money/selectors/featureFlags';
+import { selectIsMusdConversionGeoEligible } from '../../../../components/UI/Earn/selectors/eligibility';
 
 /**
  * Handler for earn-musd deeplink
@@ -19,10 +23,33 @@ export const handleEarnMusd = () => {
   DevLogger.log('[handleEarnMusd] Starting deeplink handling');
 
   try {
-    NavigationService.navigation.navigate(Routes.EARN.ROOT, {
-      screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-      params: { isDeeplink: true },
-    });
+    const state = ReduxService.store.getState();
+    const isGeoEligible = selectIsMusdConversionGeoEligible(state);
+    const isMoneyHubEnabled = selectMoneyHubEnabledFlag(state);
+    const hasSeenEducationScreen = selectMusdConversionEducationSeen(state);
+
+    // Always show education screen if user has not seen it regardless of geo eligibility.
+    if (!hasSeenEducationScreen) {
+      NavigationService.navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: { isDeeplink: true },
+      });
+      return;
+    }
+
+    if (!isGeoEligible) {
+      NavigationService.navigation.navigate(Routes.WALLET.HOME);
+      return;
+    }
+
+    if (isMoneyHubEnabled) {
+      NavigationService.navigation.navigate(
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      );
+      return;
+    }
+
+    NavigationService.navigation.navigate(Routes.WALLET.HOME);
   } catch (error) {
     DevLogger.log('[handleEarnMusd] Failed to handle deeplink:', error);
     Logger.error(

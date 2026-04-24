@@ -55,6 +55,7 @@ const mockNavigate = jest.fn();
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectPooledStakingEnabledFlag: jest.fn(),
+  selectMusdConversionBlockedCountries: jest.fn(() => []),
 }));
 
 jest.mock('@react-navigation/native', () => {
