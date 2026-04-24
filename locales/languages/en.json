@@ -3796,13 +3796,16 @@
     "risky": "Risky",
     "malicious_token_title": "Malicious token",
     "malicious_token_description": "{{symbol}} is a malicious token. Avoid interacting with it or trading it.",
+    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "suspicious_token_description": "{{symbol}} is a suspicious token.",
     "verified_token_title": "Verified token",
     "verified_token_description": "{{symbol}} is actively traded and is widely recognized. Verification is not an endorsement by MetaMask.",
-    "risky_token_title": "Risky token",
-    "risky_token_description": "Cautionary signals detected on {{symbol}}. Research carefully before trading this token.",
+    "risky_token_title": "Suspicious token",
+    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "Serious risk signals detected on {{symbol}}. We recommend not trading this token.",
     "got_it": "Got it",
     "proceed": "Proceed",
+    "continue_anyway": "Continue anyway",
     "cancel": "Cancel",
     "data_unavailable": "Security data unavailable",
     "subtitle_known": "No risk signals detected. Always research any asset before trading.",
@@ -6390,7 +6393,10 @@
       "add": "Add",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "Add",
@@ -6424,7 +6430,12 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% cashback",
-      "get_now": "Get now"
+      "get_now": "Get now",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "What you get",
@@ -8449,6 +8460,18 @@
       "winner_finalized": {
         "title": "You're a confirmed winner!",
         "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
       }
     }
   },

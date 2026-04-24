@@ -440,7 +440,7 @@ const Routes = {
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',

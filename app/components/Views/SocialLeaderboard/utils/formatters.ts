@@ -3,7 +3,11 @@ import {
   formatPercentage,
   formatTransactionDate,
 } from '../../../UI/Perps/utils/formatUtils';
-import formatNumber from '../../../../util/formatNumber';
+import {
+  formatAmountWithThreshold,
+  localizeLargeNumber,
+} from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
 
 const EM_DASH = '\u2014';
 
@@ -18,8 +22,24 @@ export function formatUsd(value: number | null | undefined): string {
   return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
 }
 
+/**
+ * Formats a raw token quantity for display in list rows.
+ * - Values >= 1,000 are abbreviated with K/M/B/T suffixes (e.g. 216.65M).
+ * - Smaller values are capped at 4 decimal places, with "< 0.00001" for dust.
+ * - Returns "0" for zero, NaN, or non-finite inputs.
+ */
 export function formatTokenAmount(value: number): string {
-  return formatNumber(value);
+  if (!Number.isFinite(value) || value === 0) return '0';
+  const absValue = Math.abs(value);
+  if (absValue >= 1000) {
+    const sign = value < 0 ? '-' : '';
+    const i18n = { t: (key: string) => strings(key) };
+    return (
+      sign +
+      localizeLargeNumber(i18n, absValue, { decimals: 2, includeK: true })
+    );
+  }
+  return String(formatAmountWithThreshold(value, 5));
 }
 
 export function formatPercent(value: number | null | undefined): string {

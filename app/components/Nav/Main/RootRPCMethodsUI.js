@@ -24,7 +24,7 @@ import { ConfirmRoot } from '../../../components/Views/confirmations/components/
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapDialogApproval';
 ///: END:ONLY_INCLUDE_IF
@@ -145,7 +145,7 @@ const RootRPCMethodsUI = (props) => {
       <FlowLoaderModal />
       <TemplateConfirmationModal />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       }
       <InstallSnapApproval />
       <SnapDialogApproval />
