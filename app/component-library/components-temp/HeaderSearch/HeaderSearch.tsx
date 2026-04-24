@@ -82,7 +82,7 @@ const HeaderSearch: React.FC<HeaderSearchProps> = (props) => {
 
     return (
       <Box
-        {...screenBoxProps}
+        {...(screenBoxProps as unknown as {})}
         twClassName={`${baseTwClassName} ml-1 mr-4 gap-2 ${twClassName}`.trim()}
       >
         <ButtonIcon
@@ -116,7 +116,7 @@ const HeaderSearch: React.FC<HeaderSearchProps> = (props) => {
 
   return (
     <Box
-      {...inlineBoxProps}
+      {...(inlineBoxProps as unknown as {})}
       twClassName={`${baseTwClassName} ml-4 ${twClassName}`.trim()}
     >
       <Box twClassName="flex-1">

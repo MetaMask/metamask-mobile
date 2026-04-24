@@ -1,5 +1,10 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import {
+  StyleProp,
+  StyleSheet,
+  TouchableOpacity,
+  ViewStyle,
+} from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -38,7 +43,7 @@ interface KeypadContainerProps extends BoxProps {
 }
 
 const KeypadContainer: React.FC<KeypadContainerProps> = (props) => (
-  <Box gap={3} {...props} />
+  <Box gap={3} {...(props as unknown as {})} />
 );
 
 interface KeypadRowProps {
@@ -50,12 +55,12 @@ const KeypadRow: React.FC<KeypadRowProps> = (props) => (
     flexDirection={BoxFlexDirection.Row}
     justifyContent={BoxJustifyContent.Between}
     gap={3}
-    {...props}
+    {...(props as unknown as {})}
   />
 );
 
 interface KeypadButtonProps {
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
   onPress?: () => void;
   isDisabled?: boolean;
@@ -75,7 +80,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-    <Box twClassName="flex-1" {...boxWrapperProps}>
+    <Box twClassName="flex-1" {...(boxWrapperProps as unknown as {})}>
       <TouchableOpacity
         style={[styles.keypadButton, style]}
         disabled={isDisabled}
@@ -96,7 +101,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 };
 
 interface KeypadDeleteButtonProps {
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
   onPress?: () => void;
   onLongPress?: () => void;
   delayLongPress?: number;
@@ -114,7 +119,7 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
 
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-    <Box twClassName="flex-1" {...boxWrapperProps}>
+    <Box twClassName="flex-1" {...(boxWrapperProps as unknown as {})}>
       <TouchableOpacity
         style={[styles.keypadDeleteButton, style]}
         accessibilityRole="button"

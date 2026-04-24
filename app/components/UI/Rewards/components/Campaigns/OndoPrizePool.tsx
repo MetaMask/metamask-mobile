@@ -194,7 +194,7 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
       >
         <Box
           twClassName="h-full rounded-full bg-success-default"
-          style={{ width: progressPercent }}
+          style={{ width: progressPercent } as unknown as undefined}
         />
       </Box>
 

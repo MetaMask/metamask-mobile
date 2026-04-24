@@ -244,7 +244,11 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     );
 
     return (
-      <Box twClassName="flex-1" testID={testID} {...boxProps}>
+      <Box
+        twClassName="flex-1"
+        testID={testID}
+        {...(boxProps as unknown as {})}
+      >
         <TabsBar {...tabBarPropsComputed} />
 
         <GestureDetector gesture={swipeGesture}>
