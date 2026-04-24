@@ -5589,28 +5589,45 @@ export class HyperLiquidProvider implements PerpsProvider {
           isTestnet: this.#clientService.isTestnetMode(),
         });
         const dexs = await this.#getStandaloneValidatedDexs();
-        const [standaloneSpotStateResult, standalonePerpsResults] =
-          await Promise.all([
-            standaloneInfoClient
-              .spotClearinghouseState({ user: userAddress })
-              .catch((error: unknown) => {
-                this.#deps.debugLogger.log(
-                  'Standalone spot state fetch failed — falling back to perps-only totals',
-                  {
-                    error: ensureError(
-                      error,
-                      'HyperLiquidProvider.getAccountState.standalone.spot',
-                    ).message,
-                  },
-                );
-                return null;
-              }),
-            queryStandaloneClearinghouseStates(
-              standaloneInfoClient,
-              userAddress,
-              dexs,
-            ),
-          ]);
+        const [
+          standaloneSpotStateResult,
+          standalonePerpsResults,
+          standaloneAbstractionResult,
+        ] = await Promise.all([
+          standaloneInfoClient
+            .spotClearinghouseState({ user: userAddress })
+            .catch((error: unknown) => {
+              this.#deps.debugLogger.log(
+                'Standalone spot state fetch failed — falling back to perps-only totals',
+                {
+                  error: ensureError(
+                    error,
+                    'HyperLiquidProvider.getAccountState.standalone.spot',
+                  ).message,
+                },
+              );
+              return null;
+            }),
+          queryStandaloneClearinghouseStates(
+            standaloneInfoClient,
+            userAddress,
+            dexs,
+          ),
+          standaloneInfoClient
+            .userAbstraction({ user: userAddress })
+            .catch((error: unknown) => {
+              this.#deps.debugLogger.log(
+                'Standalone userAbstraction fetch failed — gating fold on conservative default',
+                {
+                  error: ensureError(
+                    error,
+                    'HyperLiquidProvider.getAccountState.standalone.abstraction',
+                  ).message,
+                },
+              );
+              return null;
+            }),
+        ]);
 
         // Aggregate account states across all DEXs, then apply spot-backed
         // adjustments so streamed/standalone/full paths report the same totals.
@@ -5620,6 +5637,11 @@ export class HyperLiquidProvider implements PerpsProvider {
         const aggregatedAccountState = addSpotBalanceToAccountState(
           aggregateAccountStates(dexAccountStates),
           standaloneSpotStateResult,
+          {
+            foldIntoCollateral: hyperLiquidModeFoldsSpot(
+              standaloneAbstractionResult,
+            ),
+          },
         );
 
         this.#deps.debugLogger.log(

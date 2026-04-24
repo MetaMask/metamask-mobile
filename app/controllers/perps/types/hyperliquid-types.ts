@@ -37,14 +37,21 @@ export type HyperLiquidAbstractionMode = UserAbstractionResponse;
  * Used by the provider + subscription service to gate `addSpotBalanceToAccountState`'s
  * `foldIntoCollateral` option.
  *
+ * When the mode is unknown (null/undefined — e.g. `userAbstraction` fetch
+ * failed or hasn't completed yet) this returns `false`. Conservative default:
+ * we would rather briefly under-report a Unified user's combined balance
+ * (they see $0 until the next successful fetch, identical to the pre-TAT-3047
+ * symptom) than over-report a Standard user's spendable/withdrawable and
+ * let them submit trades/withdrawals HL will reject.
+ *
  * @param mode - Abstraction mode from `userAbstraction` endpoint; null/undefined means unknown.
- * @returns `true` when spot folds into spendable/withdrawable; `false` for Standard / DEX abstraction.
+ * @returns `true` when spot folds into spendable/withdrawable; `false` for Standard / DEX abstraction / unknown.
  */
 export function hyperLiquidModeFoldsSpot(
   mode?: HyperLiquidAbstractionMode | null,
 ): boolean {
   if (mode === null || mode === undefined) {
-    return true; // Unknown mode defaults to Unified (app.hyperliquid.xyz default).
+    return false;
   }
   return (
     mode === 'unifiedAccount' ||

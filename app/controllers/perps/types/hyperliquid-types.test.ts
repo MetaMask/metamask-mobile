@@ -21,11 +21,11 @@ describe('hyperLiquidModeFoldsSpot', () => {
     expect(hyperLiquidModeFoldsSpot('dexAbstraction')).toBe(false);
   });
 
-  it('returns true when mode is unknown (null) — fallback to Unified default', () => {
-    expect(hyperLiquidModeFoldsSpot(null)).toBe(true);
+  it('returns false when mode is unknown (null) — conservative: avoid inflating Standard-mode balances during endpoint flakiness', () => {
+    expect(hyperLiquidModeFoldsSpot(null)).toBe(false);
   });
 
-  it('returns true when mode is undefined — fallback to Unified default', () => {
-    expect(hyperLiquidModeFoldsSpot(undefined)).toBe(true);
+  it('returns false when mode is undefined — conservative default before the first fetch completes', () => {
+    expect(hyperLiquidModeFoldsSpot(undefined)).toBe(false);
   });
 });

@@ -87,7 +87,13 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  // "Empty" here means "no funds usable to place a trade right now" — drive
+  // off spendableBalance, not totalBalance. On HL Standard mode, a spot-only
+  // account has totalBalance > 0 but spendableBalance === 0 (spot isn't auto-
+  // collateral); those users need the Add Funds CTA even though their
+  // aggregate wealth on the venue is non-zero.
+  const spendableBalance = perpsAccount?.spendableBalance || '0';
+  const isBalanceEmpty = BigNumber(spendableBalance).isZero();
 
   // Use hook for eligibility checks and action handlers
   // Determine button location based on whether balance is empty (empty state) or not (home)
@@ -181,8 +187,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     },
     [stopBalanceAnimation],
   );
-
-  const spendableBalance = perpsAccount?.spendableBalance ?? '0';
 
   // Show skeleton while loading initial account data
   if (isInitialLoading) {
