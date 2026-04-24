@@ -105,6 +105,12 @@ jest.mock('@metamask/design-system-react-native', () => {
       Error: 'Error',
       SecurityTick: 'SecurityTick',
     },
+    IconAlertSeverity: {
+      Info: 'Info',
+      Success: 'Success',
+      Warning: 'Warning',
+      Error: 'Error',
+    },
     IconSize: { Sm: 'Sm', Xs: 'Xs' },
     TextColor: {
       ErrorDefault: 'ErrorDefault',
