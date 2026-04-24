@@ -272,6 +272,15 @@ export const usePredictBuyActions = ({
     }
   }, [currentState, navigation, isSheetMode, onClose]);
 
+  useEffect(() => {
+    if (currentState === ActiveOrderState.DEPOSITING) {
+      if (didInitiateOrderRef.current) {
+        didInitiateOrderRef.current = false;
+        navigation.dispatch(StackActions.pop());
+      }
+    }
+  }, [currentState, navigation]);
+
   return {
     handleConfirm,
     placeOrder: handlePlaceOrder,
