@@ -59,7 +59,6 @@
     "build:android:checksum:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/checksum.sh flask",
     "build:android:checksum:verify": "shasum -a 512 -c sha512sums.txt",
     "fingerprint:generate": "node scripts/generate-fingerprint.js",
-    "fingerprint:generate:eas": "node scripts/generate-fingerprint-eas.js",
     "build:repack:android": "PLATFORM=android node scripts/repack.js",
     "build:repack:ios": "PLATFORM=ios node scripts/repack.js",
     "build:liveline-webview": "./scripts/build-liveline-webview.sh",

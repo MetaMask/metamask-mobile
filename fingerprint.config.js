@@ -6,25 +6,21 @@
  * Docs - https://docs.expo.dev/versions/latest/sdk/fingerprint/#fingerprintconfigjs
  */
 const config = {
-  /**
-   * Track files and directories under `extraSources` if they affect native code changes.
-   *
-   * Intentionally NOT tracked:
-   * - `.github/workflows/**` and `.github/scripts/**` — these orchestrate CI
-   *   but do not change what `scripts/build.sh` / native toolchains compile
-   *   into the artifacts. Including them would invalidate the fingerprint on
-   *   every unrelated CI workflow edit on `main`, which currently breaks
-   *   build caching and cross-PR artifact reuse (every open PR's merge ref
-   *   picks up those edits). The files that actually drive the native build
-   *   (`scripts/build.sh`, `scripts/setup.mjs`, `react-native.config.js`,
-   *   native dirs, `package.json`/`yarn.lock`, and `.yarn/patches`) are
-   *   tracked explicitly below or by `@expo/fingerprint` defaults.
-   */
   extraSources: [
     {
       type: 'dir',
       filePath: '.yarn/patches',
       reasons: ['Detect yarn patch changes.'],
+    },
+    {
+      type: 'dir',
+      filePath: '.github/workflows',
+      reasons: ['Detect Github workflow changes.'],
+    },
+    {
+      type: 'dir',
+      filePath: '.github/scripts',
+      reasons: ['Detect Github workflow script changes.'],
     },
     {
       type: 'file',
