@@ -22,8 +22,11 @@ import {
   POLYMARKET_GEO_BLOCKED_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds';
-import { getEventsPayloads } from '../../helpers/analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
+import {
+  geoBlockedPredictActionExpectations,
+  geoBlockedCashoutExpectations,
+  geoBlockedDepositExpectations,
+} from '../../helpers/analytics/expectations/predict-geo-restriction.analytics';
 
 //Enable the Predictions feature flag and force Polymarket geoblock
 const setupGeoBlockedBase = async (mockServer: Mockttp) => {
@@ -61,8 +64,9 @@ describe(
           fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
           restartDevice: true,
           testSpecificMock: PredictionGeoBlockedFeature,
+          analyticsExpectations: geoBlockedPredictActionExpectations,
         },
-        async ({ mockServer }) => {
+        async () => {
           await loginToApp();
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
@@ -99,39 +103,6 @@ describe(
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
 
-          // Verify analytics events for geo-blocking
-          const events = await getEventsPayloads(mockServer);
-          const softAssert = new SoftAssert();
-
-          await softAssert.checkAndCollect(async () => {
-            const geoBlockedEvents = events.filter(
-              (event) => event.event === 'Geo Blocked Triggered',
-            );
-            await Assertions.checkIfValueIsDefined(geoBlockedEvents);
-            if (geoBlockedEvents.length > 0) {
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.country,
-              );
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.attempted_action,
-              );
-
-              // Verify we captured predict_action events (Yes/No buttons)
-              const attemptedActions = geoBlockedEvents.map(
-                (e) => e.properties.attempted_action,
-              );
-              const hasPredictAction =
-                attemptedActions.includes('predict_action');
-
-              if (!hasPredictAction) {
-                throw new Error(
-                  `Expected predict_action in geo-blocked events. Found: ${attemptedActions.join(', ')}`,
-                );
-              }
-            }
-          }, 'Geo Blocked events should be tracked for predict actions (Yes/No)');
-
-          softAssert.throwIfErrors();
           await device.enableSynchronization();
         },
       );
@@ -146,8 +117,9 @@ describe(
             .build(),
           restartDevice: true,
           testSpecificMock: PredictionGeoBlockedWithPositionsFeature,
+          analyticsExpectations: geoBlockedCashoutExpectations,
         },
-        async ({ mockServer }) => {
+        async () => {
           await loginToApp();
           await WalletView.scrollAndTapPredictionsPosition(
             'Spurs vs. Pelicans',
@@ -156,39 +128,6 @@ describe(
 
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
-
-          // Verify analytics events for geo-blocking
-          const events = await getEventsPayloads(mockServer);
-          const softAssert = new SoftAssert();
-
-          await softAssert.checkAndCollect(async () => {
-            const geoBlockedEvents = events.filter(
-              (event) => event.event === 'Geo Blocked Triggered',
-            );
-            await Assertions.checkIfValueIsDefined(geoBlockedEvents);
-            if (geoBlockedEvents.length > 0) {
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.country,
-              );
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.attempted_action,
-              );
-
-              // Verify we captured cashout event
-              const attemptedActions = geoBlockedEvents.map(
-                (e) => e.properties.attempted_action,
-              );
-              const hasCashoutAction = attemptedActions.includes('cashout');
-
-              if (!hasCashoutAction) {
-                throw new Error(
-                  `Expected cashout in geo-blocked events. Found: ${attemptedActions.join(', ')}`,
-                );
-              }
-            }
-          }, 'Geo Blocked event should be tracked for cashout action');
-
-          softAssert.throwIfErrors();
         },
       );
     });
@@ -199,8 +138,9 @@ describe(
           fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
           restartDevice: true,
           testSpecificMock: PredictionGeoBlockedFeature,
+          analyticsExpectations: geoBlockedDepositExpectations,
         },
-        async ({ mockServer }) => {
+        async () => {
           await loginToApp();
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
@@ -221,39 +161,6 @@ describe(
                 'Returned to Predictions tab; Unavailable modal dismissed after clicking Add funds',
             },
           );
-
-          // Verify analytics events for geo-blocking
-          const events = await getEventsPayloads(mockServer);
-          const softAssert = new SoftAssert();
-
-          await softAssert.checkAndCollect(async () => {
-            const geoBlockedEvents = events.filter(
-              (event) => event.event === 'Geo Blocked Triggered',
-            );
-            await Assertions.checkIfValueIsDefined(geoBlockedEvents);
-            if (geoBlockedEvents.length > 0) {
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.country,
-              );
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.attempted_action,
-              );
-
-              // Verify we captured deposit event
-              const attemptedActions = geoBlockedEvents.map(
-                (e) => e.properties.attempted_action,
-              );
-              const hasDepositAction = attemptedActions.includes('deposit');
-
-              if (!hasDepositAction) {
-                throw new Error(
-                  `Expected deposit in geo-blocked events. Found: ${attemptedActions.join(', ')}`,
-                );
-              }
-            }
-          }, 'Geo Blocked event should be tracked for deposit action');
-
-          softAssert.throwIfErrors();
         },
       );
     });

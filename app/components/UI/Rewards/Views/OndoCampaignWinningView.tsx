@@ -23,10 +23,10 @@ import {
 } from '@metamask/design-system-react-native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { useOndoCampaignWinnerCode } from '../hooks/useOndoCampaignWinnerCode';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
+import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import CopyableField from '../components/ReferralDetails/CopyableField';
-import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
 import { RewardsMetricsButtons } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -64,30 +64,17 @@ const OndoCampaignWinningView: React.FC = () => {
   const { position, isLoading: positionLoading } =
     useGetOndoLeaderboardPosition(campaignId);
 
-  const {
-    code: winningCode,
-    isLoading: winningCodeLoading,
-    hasFetched: winningCodeFetched,
-    hasError: winningCodeError,
-    retry: retryWinningCode,
-  } = useOndoCampaignWinnerCode(campaignId);
+  const { outcome, isLoading: isOutcomeLoading } =
+    useOndoCampaignParticipantOutcome(campaignId);
+  const winningCode = outcome?.winnerVerificationCode ?? null;
 
   useEffect(() => {
-    if (
-      winningCodeFetched &&
-      !winningCodeLoading &&
-      !winningCodeError &&
-      winningCode === null
-    ) {
-      navigation.goBack();
+    if (!isOutcomeLoading && outcome && !winningCode) {
+      navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId,
+      });
     }
-  }, [
-    winningCodeFetched,
-    winningCodeLoading,
-    winningCodeError,
-    winningCode,
-    navigation,
-  ]);
+  }, [isOutcomeLoading, outcome, winningCode, campaignId, navigation]);
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_winning',
@@ -227,50 +214,26 @@ const OndoCampaignWinningView: React.FC = () => {
               {strings('rewards.ondo_campaign_winning.email_instructions')}
             </Text>
 
-            {winningCodeError && !winningCodeLoading && !winningCode ? (
-              <Box twClassName="w-full max-w-md">
-                <RewardsErrorBanner
-                  title={strings('rewards.ondo_campaign_winning.error_title')}
-                  description={strings(
-                    'rewards.ondo_campaign_winning.error_description',
-                  )}
-                  onConfirm={retryWinningCode}
-                  confirmButtonLabel={strings(
-                    'rewards.ondo_campaign_winning.error_retry',
-                  )}
-                  onConfirmLoading={winningCodeLoading}
-                />
-              </Box>
-            ) : (
-              <>
-                <Box twClassName="w-full max-w-md">
-                  {winningCodeLoading && !winningCode ? (
-                    <Skeleton style={tw.style('h-16 w-full rounded-lg')} />
-                  ) : (
-                    <CopyableField
-                      label={strings(
-                        'rewards.ondo_campaign_winning.winning_code',
-                      )}
-                      value={winningCode}
-                      onCopy={handleCopyWinningCode}
-                      valueLoading={winningCodeLoading}
-                    />
-                  )}
-                </Box>
+            <Box twClassName="w-full max-w-md">
+              <CopyableField
+                label={strings('rewards.ondo_campaign_winning.winning_code')}
+                value={winningCode}
+                valueLoading={isOutcomeLoading}
+                onCopy={handleCopyWinningCode}
+              />
+            </Box>
 
-                <Box twClassName="w-full max-w-md">
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSize.Lg}
-                    isFullWidth
-                    isLoading={winningCodeLoading && !winningCode}
-                    onPress={handleOpenMail}
-                  >
-                    {strings('rewards.ondo_campaign_winning.open_mail')}
-                  </Button>
-                </Box>
-              </>
-            )}
+            <Box twClassName="w-full max-w-md">
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                isLoading={isOutcomeLoading && !winningCode}
+                onPress={handleOpenMail}
+              >
+                {strings('rewards.ondo_campaign_winning.open_mail')}
+              </Button>
+            </Box>
 
             <Button
               variant={ButtonVariant.Tertiary}

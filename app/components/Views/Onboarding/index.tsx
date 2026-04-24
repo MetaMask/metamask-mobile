@@ -651,6 +651,24 @@ const Onboarding = () => {
           }
           return;
         }
+        // Show error sheet for auth server or seedless controller errors
+        if (
+          error.code === OAuthErrorType.AuthServerError ||
+          error.code === OAuthErrorType.LoginError
+        ) {
+          handleOAuthLoginError(error, socialConnectionType, false);
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: {
+              title: strings('error_sheet.oauth_error_title'),
+              description: strings('error_sheet.oauth_error_description'),
+              descriptionAlign: 'center',
+              buttonLabel: strings('error_sheet.oauth_error_button'),
+              type: 'error',
+            },
+          });
+          return;
+        }
         // unexpected oauth login error
         handleOAuthLoginError(error, socialConnectionType, false);
         return;
