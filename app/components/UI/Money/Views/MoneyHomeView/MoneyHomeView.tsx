@@ -104,12 +104,25 @@ const MoneyHomeView = () => {
     showMoneyActivityUnderConstructionAlert();
   }, []);
 
-  let onboardingCtaPress = handleAddPress;
-  if (isCardUnlinked) {
-    onboardingCtaPress = handleLinkCardPress;
-  } else if (isMilestone) {
-    onboardingCtaPress = handleCardPress;
-  }
+  const handleOnboardingCtaPress = useCallback(() => {
+    if (isCardUnlinked) {
+      handleLinkCardPress();
+      return;
+    }
+
+    if (isMilestone) {
+      handleCardPress();
+      return;
+    }
+
+    handleAddPress();
+  }, [
+    isCardUnlinked,
+    isMilestone,
+    handleLinkCardPress,
+    handleCardPress,
+    handleAddPress,
+  ]);
 
   // TODO: Remove before launch
   // Useful for testing how zero and non-zero APYs are handled quickly.
@@ -144,7 +157,7 @@ const MoneyHomeView = () => {
         <MoneyOnboardingCard
           currentStep={isMilestone ? 2 : 1}
           variant={isCardUnlinked ? 'link-card' : 'get-card'}
-          onCtaPress={onboardingCtaPress}
+          onCtaPress={handleOnboardingCtaPress}
         />
         <Divider />
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
