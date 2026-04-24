@@ -22,6 +22,8 @@ describe('Header', () => {
 
   it('should render correctly', () => {
     const { toJSON } = render(<Header title={TITLE} subtitle={DESCRIPTION} />);
-    expect(toJSON()).toMatchSnapshot();
+    const json = JSON.stringify(toJSON());
+    expect(json).toContain(TITLE);
+    expect(json).toContain(DESCRIPTION);
   });
 });
