@@ -38,7 +38,7 @@ runs:
         LABEL_NAME: ${{ inputs.label-name }}
         COMMIT_TAG: ${{ inputs.commit-tag }}
         EVENT_NAME: ${{ github.event_name }}
-        HEAD_COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+        HEAD_COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
         REPOSITORY: ${{ github.repository }}
       run: |

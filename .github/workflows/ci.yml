@@ -81,10 +81,6 @@ jobs:
   post-build-source-hash:
     name: Post build-source-hash commit status
     runs-on: ubuntu-latest
-    # Always publish the commit status (even for merge_group or when builds are
-    # skipped) so future runs can still find this commit when searching for
-    # reusable native builds.
-    if: ${{ !github.event.pull_request.head.repo.fork }}
     permissions:
       contents: read
       statuses: write
@@ -112,6 +108,9 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
+          # .head.sha = PR head (pull_request events); github.sha fallback = pushed/scheduled commit
+          # (push to main, merge_group, schedule) where no PR payload exists.
+          target-sha: ${{ github.event.pull_request.head.sha || github.sha }}
 
   dedupe:
     name: Dedupe
@@ -573,7 +572,6 @@ jobs:
     name: 'Build Android APKs'
     if: >-
       ${{
-        !cancelled() &&
         needs.needs_e2e_build.result == 'success' &&
         needs.smart-e2e-selection.result == 'success' &&
         github.event_name != 'merge_group' &&
@@ -615,13 +613,8 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
-    # See `build-android-apks` above for why `!cancelled()` + explicit
-    # `result == 'success'` checks are used here: a failure/skip of
-    # `post-build-source-hash` must NOT block the E2E build — it only
-    # disables cross-run cache reuse.
     if: >-
       ${{
-        !cancelled() &&
         needs.needs_e2e_build.result == 'success' &&
         needs.smart-e2e-selection.result == 'success' &&
         github.event_name != 'merge_group' &&
