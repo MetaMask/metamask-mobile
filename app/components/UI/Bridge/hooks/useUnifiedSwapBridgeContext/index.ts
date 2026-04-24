@@ -14,7 +14,7 @@ import {
   calcTokenFiatValue,
   calcUsdAmountFromFiat,
 } from '../../utils/exchange-rates';
-import { getSecurityWarnings } from '../../utils/tokenUtils';
+import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
 
 export const useUnifiedSwapBridgeContext = () => {
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);

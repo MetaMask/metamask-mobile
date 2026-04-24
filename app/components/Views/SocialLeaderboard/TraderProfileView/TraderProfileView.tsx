@@ -109,11 +109,12 @@ const TraderProfileView = () => {
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
         traderId,
         traderName,
+        traderImageUrl: profile?.profile.imageUrl ?? undefined,
         tokenSymbol: position.tokenSymbol,
         position,
       });
     },
-    [navigation, traderId, traderName],
+    [navigation, traderId, traderName, profile?.profile.imageUrl],
   );
   const positions = activeTab === 'open' ? openPositions : closedPositions;
   const isLoadingPositions =

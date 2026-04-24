@@ -211,6 +211,7 @@ jobs:
       - name: Install Foundry if cache missed
         if: ${{ steps.gate.outputs.needs-native-build == 'true' && steps.restore-metamask.outputs.cache-hit != 'true' }}
         run: yarn install:foundryup
+
       # Run project setup with retry for better resilience
       - name: Setup project dependencies with retry
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}

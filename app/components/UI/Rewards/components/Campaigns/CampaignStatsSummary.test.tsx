@@ -28,6 +28,25 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
+jest.mock('./OndoCampaignOutcomeBanners', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    OndoGmCampaignOutcomeBanner: ({
+      outcomeStatus,
+      winnerVerificationCode,
+    }: {
+      outcomeStatus: string;
+      winnerVerificationCode: string | null;
+      onWinnerPress: () => void;
+    }) =>
+      ReactActual.createElement(View, {
+        testID: `outcome-banner-${outcomeStatus}-${winnerVerificationCode ?? 'null'}`,
+      }),
+  };
+});
+
 jest.mock('../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
@@ -81,14 +100,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_stats.label_market_value': 'Market value',
       'rewards.ondo_campaign_stats.label_rank': 'Rank',
       'rewards.ondo_campaign_stats.label_tier': 'Tier',
-      'rewards.ondo_winning_banner.description': 'Claim your prize now!',
       'rewards.ondo_campaign_stats.qualified_title': 'You are qualified',
       'rewards.ondo_campaign_leaderboard.qualify_for_rank_title':
         'Qualify for this rank',
     };
-    if (key === 'rewards.ondo_winning_banner.title') {
-      return `You won the ${params?.campaignName ?? ''}`;
-    }
     if (key === 'rewards.ondo_campaign_stats.qualified_description') {
       return `Qualified copy ${params?.minNetDeposit ?? ''}`;
     }
@@ -604,71 +619,74 @@ describe('CampaignStatsSummary', () => {
     ).toBeNull();
   });
 
-  // ── Winning banner ────────────────────────────────────────────────
+  // ── Campaign complete state ───────────────────────────────────────
 
-  it('shows winning banner with campaign name when isWinner=true', () => {
-    const { getByTestId, getByText } = render(
+  it('hides qualified card when isCampaignComplete=true', () => {
+    const { queryByText } = render(
       <CampaignStatsSummary
         {...baseProps}
-        isWinner
-        campaignName="Ondo Campaign"
+        tierMinDeposit={1000}
+        isCampaignComplete
       />,
     );
-    expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.WINNING_BANNER),
-    ).toBeOnTheScreen();
-    expect(getByText('You won the Ondo Campaign')).toBeOnTheScreen();
-    expect(getByText('Claim your prize now!')).toBeOnTheScreen();
+    expect(queryByText('You are qualified')).toBeNull();
   });
 
-  it('hides qualified card when isWinner=true', () => {
-    const { queryByText } = render(
-      <CampaignStatsSummary {...baseProps} isWinner tierMinDeposit={1000} />,
-    );
-    expect(
-      queryByText('rewards.ondo_campaign_stats.qualified_title'),
-    ).toBeNull();
-  });
-
-  it('hides not-eligible banner when isWinner=true', () => {
+  it('hides not-eligible banner when isCampaignComplete=true', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary {...baseProps} isWinner isIneligible />,
+      <CampaignStatsSummary {...baseProps} isIneligible isCampaignComplete />,
     );
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
     ).toBeNull();
   });
 
-  it('does not show winning banner when isWinner=false', () => {
-    const { queryByTestId } = render(<CampaignStatsSummary {...baseProps} />);
-    expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.WINNING_BANNER),
-    ).toBeNull();
+  it('hides qualify-for-rank card when isCampaignComplete=true', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 4,
+    };
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={1000}
+        isCampaignComplete
+      />,
+    );
+    expect(queryByText('Qualify for this rank')).toBeNull();
   });
 
-  it('calls onWinnerBannerPress when the winning banner touchable is pressed', () => {
-    const onWinnerBannerPress = jest.fn();
+  it('shows outcome banner when isCampaignComplete=true and outcome is provided', () => {
     const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
-        isWinner
-        campaignName="Ondo Campaign"
-        onWinnerBannerPress={onWinnerBannerPress}
+        isCampaignComplete
+        outcomeStatus="pending"
+        winnerVerificationCode="LVL346"
+        onWinnerPress={jest.fn()}
       />,
     );
-    fireEvent.press(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.WINNING_BANNER),
-    );
-    expect(onWinnerBannerPress).toHaveBeenCalledTimes(1);
+    expect(getByTestId('outcome-banner-pending-LVL346')).toBeDefined();
   });
 
-  it('shows the qualified explainer card when qualified, not winner, and tierMinDeposit is set', () => {
-    const { getByText } = render(
+  it('does not show outcome banner when isCampaignComplete=false', () => {
+    const { queryByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
-        tierMinDeposit={2500}
-        isWinner={false}
+        isCampaignComplete={false}
+        outcomeStatus="pending"
+        winnerVerificationCode="LVL346"
+        onWinnerPress={jest.fn()}
       />,
+    );
+    expect(queryByTestId('outcome-banner-pending-LVL346')).toBeNull();
+  });
+
+  it('shows the qualified explainer card when qualified and tierMinDeposit is set', () => {
+    const { getByText } = render(
+      <CampaignStatsSummary {...baseProps} tierMinDeposit={2500} />,
     );
     expect(getByText('You are qualified')).toBeOnTheScreen();
     expect(getByText(/Qualified copy/)).toBeOnTheScreen();
@@ -685,7 +703,6 @@ describe('CampaignStatsSummary', () => {
         {...baseProps}
         leaderboardPosition={pendingPosition}
         tierMinDeposit={1000}
-        isWinner={false}
       />,
     );
     expect(getByText('Qualify for this rank')).toBeOnTheScreen();
@@ -703,7 +720,6 @@ describe('CampaignStatsSummary', () => {
         {...baseProps}
         leaderboardPosition={pendingPosition}
         tierMinDeposit={1000}
-        isWinner={false}
       />,
     );
     expect(queryByText('Qualify for this rank')).toBeNull();
