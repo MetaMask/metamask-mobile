@@ -33,6 +33,7 @@ import { handleTrendingUrl } from './handleTrendingUrl';
 import { handleEarnMusd } from './handleEarnMusd';
 import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
+import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import {
@@ -87,6 +88,7 @@ const SUPPORTED_ACTIONS = {
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
+  SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -112,6 +114,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.BUY_CRYPTO,
   SUPPORTED_ACTIONS.SELL,
   SUPPORTED_ACTIONS.SELL_CRYPTO,
+  SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
 ];
 
 /**
@@ -633,6 +636,12 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.NFT: {
       handleNftUrl();
+      break;
+    }
+    case SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION: {
+      handleSocialTraderPositionUrl({
+        actionPath: actionBasedRampPath,
+      });
       break;
     }
   }
