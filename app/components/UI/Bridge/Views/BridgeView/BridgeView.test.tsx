@@ -19,6 +19,7 @@ import {
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
   QuoteStreamCompleteReason,
+  TokenFeatureType,
 } from '@metamask/bridge-controller';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import { SecurityDataType } from '../../hooks/usePopularTokens';
