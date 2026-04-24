@@ -359,7 +359,7 @@ jobs:
           EOF
 
       - name: Post iOS JS bundle size to commit status
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/ci/improve-bundle-size-check' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
