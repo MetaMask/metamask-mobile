@@ -343,12 +343,9 @@ jobs:
       - name: Report iOS JS bundle size and commit (main)
         run: |
           SHORT_SHA="$(git rev-parse --short HEAD)"
-          BUNDLE_PATH='ios/main.jsbundle'
-          BYTES="$(stat -f%z "$BUNDLE_PATH" 2>/dev/null || stat -c%s "$BUNDLE_PATH")"
-          MB="$(awk -v b="$BYTES" 'BEGIN { printf "%.2f", b/1024/1024 }')"
+          FILE_PATH='ios/main.jsbundle'
+          MB="$(stat -c %s "$FILE_PATH" | awk '{print $1/1024/1024}')"
           echo "commit_short=$SHORT_SHA"
-          echo "ios_js_bundle_size_bytes=$BYTES"
-          echo "ios_js_bundle_size_mb=$MB"
           echo "::notice::iOS JS bundle (main): ${MB} MiB @ ${SHORT_SHA}"
 
       - name: Push bundle size to mobile_bundlesize_stats repo
