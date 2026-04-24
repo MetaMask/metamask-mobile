@@ -1,6 +1,6 @@
 # E2E Test Decision Tree
 
-The following diagram shows the high level decision flow used by CI to determine whether E2E tests should run, to which platform, and whether AI-powered test selection is applied.
+The following diagram shows the high level decision flow used by Mobile CI to determine whether E2E tests should run, to which platform, and whether AI-powered test selection is applied.
 
 ```mermaid
 flowchart TD
@@ -17,11 +17,19 @@ flowchart TD
 
     Android & iOS & Both --> LABEL[PR label: skip-smart-e2e-selection ?]
     LABEL -->|yes| AllTags[Run all E2E needed]
-    LABEL -->|no| AI[AI selects test suites + confidence score]
+    LABEL -->|no| AI[🤖 AI selects test suites + confidence score]
     AI --> CONF[Confidence >= 80% ?]
     CONF -->|yes| SelectedTags[Run selected E2E suites]
     CONF -->|no| AllTags
 ```
+
+## E2E tests skipped by default on new PRs
+
+To save infra resources and allow static analysis checks and fixes:
+
+- Label `pr-not-ready-for-e2e` is applied to the PR automatically when it is created.
+- Block merge until the label is removed.
+- If E2E tests are needed, they should pass to be able to merge.
 
 ## AI test selection
 
