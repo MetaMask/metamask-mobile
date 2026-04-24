@@ -1,6 +1,6 @@
 {
     "title": "HL balance validation — phase={{phaseLabel}} expectedMode={{expectedMode}}",
-    "description": "Captures and asserts the three balance readouts the TAT-3016 hotfix touches: (1) PerpsController.state.accountState (availableBalance vs availableToTradeBalance), (2) PerpsMarketDetails balance text (perps-market-available-balance-text — gates order-entry Long/Add-Funds CTA), (3) PerpsWithdraw balance text (perps-withdraw-available-balance-text — must show availableBalance only, never the spot fold). Screenshots per screen tagged with phaseLabel for reviewer before/after comparison. Fold invariant (trade >= avail) is asserted unconditionally. expectedMode='unified' additionally asserts the fold amount is non-trivial when spot USDC is present; expectedMode='standard' asserts withdrawable==availableBalance (no leak from fold into the withdrawable path).",
+    "description": "Captures and asserts the three balance readouts the TAT-3016 hotfix touches: (1) PerpsController.state.accountState (withdrawableBalance vs spendableBalance), (2) PerpsMarketDetails balance text (perps-market-available-balance-text — gates order-entry Long/Add-Funds CTA), (3) PerpsWithdraw balance text (perps-withdraw-available-balance-text — must show withdrawableBalance only, never the spot fold). Screenshots per screen tagged with phaseLabel for reviewer before/after comparison. Fold invariant (trade >= avail) is asserted unconditionally. expectedMode='unified' additionally asserts the fold amount is non-trivial when spot USDC is present; expectedMode='standard' asserts withdrawable==withdrawableBalance (no leak from fold into the withdrawable path).",
     "inputs": {
       "expectedMode": {
         "type": "string",
@@ -23,7 +23,7 @@
         "nodes": {
           "refresh-state": {
             "action": "eval_async",
-            "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({ok:true,availableBalance:r.availableBalance,availableToTradeBalance:r.availableToTradeBalance,totalBalance:r.totalBalance,phase:'{{phaseLabel}}'})}).catch(function(e){return JSON.stringify({ok:false,error:String(e),phase:'{{phaseLabel}}'})})",
+            "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({ok:true,withdrawableBalance:r.withdrawableBalance,spendableBalance:r.spendableBalance,totalBalance:r.totalBalance,phase:'{{phaseLabel}}'})}).catch(function(e){return JSON.stringify({ok:false,error:String(e),phase:'{{phaseLabel}}'})})",
             "assert": { "operator": "eq", "field": "ok", "value": true },
             "timeout_ms": 20000,
             "next": "capture-controller-state"
@@ -33,13 +33,13 @@
             "ref": "perps/hl-fixture-state",
             "assert": {
               "operator": "not_null",
-              "field": "availableToTradeBalance"
+              "field": "spendableBalance"
             },
             "next": "assert-fold-invariant"
           },
           "assert-fold-invariant": {
             "action": "eval_sync",
-            "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,spotFold:spotFold,foldInvariant:trade>=avail,phase:'{{phaseLabel}}'})})()",
+            "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.withdrawableBalance||'0');var trade=parseFloat(s.spendableBalance||s.withdrawableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({withdrawableBalance:avail,spendableBalance:trade,spotFold:spotFold,foldInvariant:trade>=avail,phase:'{{phaseLabel}}'})})()",
             "assert": {
               "operator": "eq",
               "field": "foldInvariant",
@@ -72,7 +72,7 @@
           },
           "capture-market-list-balance": {
             "action": "eval_sync",
-            "expression": "(function(){try{var a=globalThis.__AGENTIC__;var display=a&&a.getTextByTestId('perps-market-available-balance-text')||'';var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var tradeFloor=Math.floor(trade);var tradeStr=tradeFloor.toString();var mentionsTrade=display.length>0&&(display.indexOf(tradeStr)>=0||display.indexOf('$0')>=0&&trade<1);return JSON.stringify({display:display,availableToTradeBalance:trade,displayMatchesTradeBalance:mentionsTrade,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
+            "expression": "(function(){try{var a=globalThis.__AGENTIC__;var display=a&&a.getTextByTestId('perps-market-available-balance-text')||'';var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.spendableBalance||s.withdrawableBalance||'0');var tradeFloor=Math.floor(trade);var tradeStr=tradeFloor.toString();var mentionsTrade=display.length>0&&(display.indexOf(tradeStr)>=0||display.indexOf('$0')>=0&&trade<1);return JSON.stringify({display:display,spendableBalance:trade,displayMatchesTradeBalance:mentionsTrade,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
             "assert": {
               "operator": "not_null",
               "field": "display"
@@ -109,7 +109,7 @@
           },
           "capture-withdraw-balance": {
             "action": "eval_sync",
-            "expression": "(function(){try{var a=globalThis.__AGENTIC__;var display=a&&a.getTextByTestId('perps-withdraw-available-balance-text')||'';var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var availFloor=Math.floor(avail);var availStr=availFloor.toString();var mentionsAvail=display.length>0&&(display.indexOf(availStr)>=0||(avail<1&&display.indexOf('$0')>=0));var leaksFold=trade>avail+0.5&&display.indexOf(Math.floor(trade).toString())>=0;return JSON.stringify({display:display,availableBalance:avail,availableToTradeBalance:trade,displayMatchesWithdrawable:mentionsAvail,displayLeaksFold:leaksFold,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
+            "expression": "(function(){try{var a=globalThis.__AGENTIC__;var display=a&&a.getTextByTestId('perps-withdraw-available-balance-text')||'';var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.withdrawableBalance||'0');var trade=parseFloat(s.spendableBalance||s.withdrawableBalance||'0');var availFloor=Math.floor(avail);var availStr=availFloor.toString();var mentionsAvail=display.length>0&&(display.indexOf(availStr)>=0||(avail<1&&display.indexOf('$0')>=0));var leaksFold=trade>avail+0.5&&display.indexOf(Math.floor(trade).toString())>=0;return JSON.stringify({display:display,withdrawableBalance:avail,spendableBalance:trade,displayMatchesWithdrawable:mentionsAvail,displayLeaksFold:leaksFold,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
             "assert": {
               "all": [
                 { "operator": "eq", "field": "displayMatchesWithdrawable", "value": true },
@@ -160,7 +160,7 @@
           },
           "capture-order-form": {
             "action": "eval_sync",
-            "expression": "(function(){try{var a=globalThis.__AGENTIC__;var paySymbol=a&&a.getTextByTestId('pay-with-symbol')||'';var placeOrderMounted=!!(a&&a.findFiberByTestId('perps-order-view-place-order-button'));var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var expectsPerpsBalance=trade>0;var paysWithPerps=paySymbol.toLowerCase().indexOf('perps')>=0;return JSON.stringify({paySymbol:paySymbol,paysWithPerpsBalance:paysWithPerps,placeOrderButtonMounted:placeOrderMounted,defaultsCorrectly:expectsPerpsBalance?paysWithPerps:true,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
+            "expression": "(function(){try{var a=globalThis.__AGENTIC__;var paySymbol=a&&a.getTextByTestId('pay-with-symbol')||'';var placeOrderMounted=!!(a&&a.findFiberByTestId('perps-order-view-place-order-button'));var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var trade=parseFloat(s.spendableBalance||s.withdrawableBalance||'0');var expectsPerpsBalance=trade>0;var paysWithPerps=paySymbol.toLowerCase().indexOf('perps')>=0;return JSON.stringify({paySymbol:paySymbol,paysWithPerpsBalance:paysWithPerps,placeOrderButtonMounted:placeOrderMounted,defaultsCorrectly:expectsPerpsBalance?paysWithPerps:true,phase:'{{phaseLabel}}'})}catch(e){return JSON.stringify({error:String(e)})}})()",
             "assert": {
               "all": [
                 { "operator": "eq", "field": "defaultsCorrectly", "value": true },
@@ -205,7 +205,7 @@
           },
           "assert-unified-shape": {
             "action": "eval_sync",
-            "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,spotFold:spotFold,tradeExceedsAvail:trade>=avail,expectedMode:'unified',phase:'{{phaseLabel}}'})})()",
+            "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.withdrawableBalance||'0');var trade=parseFloat(s.spendableBalance||s.withdrawableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({withdrawableBalance:avail,spendableBalance:trade,spotFold:spotFold,tradeExceedsAvail:trade>=avail,expectedMode:'unified',phase:'{{phaseLabel}}'})})()",
             "assert": {
               "operator": "eq",
               "field": "tradeExceedsAvail",
@@ -215,7 +215,7 @@
           },
           "assert-standard-shape": {
             "action": "eval_sync",
-            "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,spotFold:spotFold,foldInvariant:trade>=avail,standardContract:true,expectedMode:'standard',phase:'{{phaseLabel}}'})})()",
+            "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.withdrawableBalance||'0');var trade=parseFloat(s.spendableBalance||s.withdrawableBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({withdrawableBalance:avail,spendableBalance:trade,spotFold:spotFold,foldInvariant:trade>=avail,standardContract:true,expectedMode:'standard',phase:'{{phaseLabel}}'})})()",
             "assert": {
               "operator": "eq",
               "field": "foldInvariant",

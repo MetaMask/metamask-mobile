@@ -51,7 +51,7 @@
   },
   "hl-fixture-state": {
     "description": "HL fixture provisioning snapshot: balances and derived shape flags used by hl-provision-fixture flow and post-op assertions",
-    "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.availableBalance||'0');var trade=parseFloat(s.availableToTradeBalance||s.availableBalance||'0');var total=parseFloat(s.totalBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({availableBalance:avail,availableToTradeBalance:trade,totalBalance:total,spotFold:spotFold,hasPerpsBalance:avail>0.01,hasSpotBalance:spotFold>0.01,isEmpty:total<0.01})})()",
+    "expression": "(function(){var s=(Engine.context.PerpsController.state&&Engine.context.PerpsController.state.accountState)||{};var avail=parseFloat(s.withdrawableBalance||'0');var trade=parseFloat(s.spendableBalance||s.withdrawableBalance||'0');var total=parseFloat(s.totalBalance||'0');var spotFold=+(trade-avail).toFixed(6);return JSON.stringify({withdrawableBalance:avail,spendableBalance:trade,totalBalance:total,spotFold:spotFold,hasPerpsBalance:avail>0.01,hasSpotBalance:spotFold>0.01,isEmpty:total<0.01})})()",
     "async": false
   }
 }
