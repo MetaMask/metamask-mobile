@@ -900,15 +900,27 @@ jobs:
             echo "e2e-timings-main-"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
+          echo "update-e2e-timings: PR_NUM for restore-keys=${PR_NUM:-<empty>}"
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
 
       - name: Restore latest timings from cache (baseline)
+        id: e2e-timings-cache-restore
         uses: actions/cache/restore@v4
         with:
           path: tests/e2e-test-timings.json
           key: e2e-timings-never-match-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: ${{ steps.e2e-timings-restore-keys.outputs.RESTORE_KEYS }}
+
+      - name: Log E2E timings cache (update job)
+        run: |
+          echo "cache-hit: ${{ steps.e2e-timings-cache-restore.outputs.cache-hit }}"
+          echo "cache-matched-key: ${{ steps.e2e-timings-cache-restore.outputs.cache-matched-key }}"
+          if [ -f tests/e2e-test-timings.json ]; then
+            echo "Baseline timings file present ($(wc -c < tests/e2e-test-timings.json) bytes)"
+          else
+            echo "No baseline timings file before merge (first run or no cache yet)"
+          fi
 
       - name: Download JUnit artifacts from this run
         uses: actions/download-artifact@v4
