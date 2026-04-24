@@ -123,13 +123,22 @@ function HeadlessHost() {
   // Auth-loop error path: OtpCode resets back to the Host with
   // `nativeFlowError` set when post-OTP routing fails. Forward to the
   // consumer once and close the session.
+  //
+  // Re-reads from the registry rather than using the render-time `session`
+  // reference so that if the processing effect's .catch already closed the
+  // session (both paths firing simultaneously), this becomes a no-op and the
+  // consumer's onError is not called a second time (Bug 1 / Bug 2 fix).
   useEffect(() => {
-    if (!nativeFlowError || !session) {
+    if (!nativeFlowError) {
+      return;
+    }
+    const liveSession = getSession(headlessSessionId);
+    if (!liveSession) {
       return;
     }
     setErrorMessage(nativeFlowError);
     try {
-      session.callbacks.onError({
+      liveSession.callbacks.onError({
         code: 'AUTH_FAILED',
         message: nativeFlowError,
       });
@@ -137,7 +146,7 @@ function HeadlessHost() {
       Logger.error(e as Error, 'HeadlessHost: onError callback threw');
     }
     closeSession(headlessSessionId, { reason: 'unknown' });
-  }, [nativeFlowError, session, headlessSessionId]);
+  }, [nativeFlowError, headlessSessionId]);
 
   // Process the session. Uses `useEffect` (not `useFocusEffect`) so that
   // it fires whenever `headlessSessionId` changes even when the screen is
@@ -150,18 +159,29 @@ function HeadlessHost() {
   // `headlessSessionId` is unchanged during the loop, the effect does not
   // re-fire. Any other dep change (e.g. walletAddress resolving) that
   // re-runs the effect will bail on the status guard.
+  //
+  // `session` is intentionally excluded from deps and re-read inside via
+  // `getSession(headlessSessionId)`. This has two benefits:
+  //  - Bug 2: removes the fragile object-reference dep — if a future refactor
+  //    creates a new session object for the same id, the effect still reads
+  //    the authoritative value rather than reacting to the identity swap.
+  //  - Bug 1: the .catch handler re-reads from the registry before firing
+  //    onError; if the nativeFlowError effect already closed the session, the
+  //    re-read returns undefined and the catch becomes a no-op, preventing the
+  //    consumer receiving onError twice for the same session.
   useEffect(() => {
-    if (!session || nativeFlowError) {
+    const currentSession = getSession(headlessSessionId);
+    if (!currentSession || nativeFlowError) {
       return;
     }
-    if (session.status !== 'pending') {
+    if (currentSession.status !== 'pending') {
       return;
     }
     if (!chainId) {
-      const message = `HeadlessHost: invalid assetId "${session.params.assetId}"`;
+      const message = `HeadlessHost: invalid assetId "${currentSession.params.assetId}"`;
       Logger.error(new Error(message));
       try {
-        session.callbacks.onError({
+        currentSession.callbacks.onError({
           code: 'UNKNOWN',
           message,
         });
@@ -175,7 +195,7 @@ function HeadlessHost() {
     setStatus(headlessSessionId, 'continued');
 
     const { quote, amount, assetId, currency, paymentMethodId } =
-      session.params;
+      currentSession.params;
     // Resolve the catalog id for the quote's payment method when the
     // caller didn't pin one explicitly. The native (Transak) path needs
     // a catalog id to look up `selectedPaymentMethod.isManualBankTransfer`.
@@ -198,9 +218,17 @@ function HeadlessHost() {
     continueWithQuote(quote, ctx).catch((error: Error) => {
       const message =
         error?.message ?? strings('deposit.buildQuote.unexpectedError');
+      // Re-read from the registry: the nativeFlowError effect may have already
+      // closed this session if auth failure arrived via params simultaneously
+      // with the promise rejection. If so, bail — the consumer already got
+      // onError from the nativeFlowError path (Bug 1 fix).
+      const liveSession = getSession(headlessSessionId);
+      if (!liveSession) {
+        return;
+      }
       setErrorMessage(message);
       try {
-        session.callbacks.onError({
+        liveSession.callbacks.onError({
           code: 'UNKNOWN',
           message,
         });
@@ -210,7 +238,6 @@ function HeadlessHost() {
       closeSession(headlessSessionId, { reason: 'unknown' });
     });
   }, [
-    session,
     nativeFlowError,
     chainId,
     headlessSessionId,
