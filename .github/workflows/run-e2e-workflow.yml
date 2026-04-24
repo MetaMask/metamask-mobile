@@ -108,34 +108,6 @@ jobs:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
-      # TEMPORARY: Bitrise runners use Vagrant (user=vagrant, HOME=/Users/vagrant).
-      # GitHub Actions tools hardcode /Users/runner paths. Create symlink to fix.
-      - name: Fix Vagrant environment paths (Bitrise runners)
-        if: ${{ inputs.use_bitrise_runner && inputs.platform == 'ios' }}
-        run: |
-          if [ -L /Users/runner ]; then
-            current_target="$(readlink /Users/runner)"
-            if [ "$current_target" = "/Users/vagrant" ]; then
-              echo "Symlink already correct: /Users/runner → /Users/vagrant"
-            else
-              echo "Replacing incorrect symlink /Users/runner → $current_target"
-              sudo rm /Users/runner
-              sudo ln -s /Users/vagrant /Users/runner
-              echo "Recreated symlink: /Users/runner → /Users/vagrant"
-            fi
-          elif [ -e /Users/runner ]; then
-            echo "Error: /Users/runner exists but is not a symlink"
-            ls -ld /Users/runner
-            exit 1
-          else
-            sudo ln -s /Users/vagrant /Users/runner
-            echo "Created symlink /Users/runner → /Users/vagrant"
-          fi
-          mkdir -p "$HOME/hostedtoolcache" "$HOME/tmp"
-          echo "RUNNER_TOOL_CACHE=$HOME/hostedtoolcache" >> "$GITHUB_ENV"
-          echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
-        shell: bash
-
       # E2E timings baseline is produced by the `prepare-e2e-timings` job earlier in this run
       # (sourced from the latest main artifact, falling back to the current branch). If the
       # artifact is missing, the split script uses equal-count alphabetical sharding.
