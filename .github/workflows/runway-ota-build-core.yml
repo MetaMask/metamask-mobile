@@ -124,6 +124,21 @@ jobs:
           CURRENT_OTA=$(extract_ota app/constants/ota.ts)
           echo "ota_version=${CURRENT_OTA}" >> "$GITHUB_OUTPUT"
 
+          # Early exit 1: sentinel means no OTA has been configured for this release
+          if [[ "$CURRENT_OTA" == "vX.XX.X" ]]; then
+            echo "ota_bump=false" >> "$GITHUB_OUTPUT"
+            echo "OTA_VERSION is sentinel ($CURRENT_OTA) → will trigger build"
+            exit 0
+          fi
+
+          # Early exit 2: if a tag for this OTA_VERSION already exists, the OTA was
+          # already shipped (e.g. merged from a prior release branch) — treat as stale.
+          if git rev-parse "refs/tags/${CURRENT_OTA}" >/dev/null 2>&1; then
+            echo "ota_bump=false" >> "$GITHUB_OUTPUT"
+            echo "OTA tag ${CURRENT_OTA} already exists (already shipped) → stale, will trigger build"
+            exit 0
+          fi
+
           # Ref to compare against for detecting bump: use release tag if it exists, else main
           if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
             COMPARE_REF="$RELEASE_TAG"

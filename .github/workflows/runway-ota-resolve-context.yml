@@ -1,0 +1,137 @@
+##############################################################################################
+#
+# Runway OTA Resolve Context (reusable)
+#
+# Resolves OTA-related context for Runway OTA / auto-RC flows:
+#   - pr_number: open PR number for the resolved branch (empty if none)
+#   - base_ref:  semver release tag derived from package.json version (e.g. v7.71.0)
+#   - ota_version: OTA_VERSION string exported from app/constants/ota.ts at the resolved ref
+#   - ota_bump:  "true" if OTA_VERSION differs from base_ref (or origin/main when tag missing).
+#                Forced to "false" when OTA_VERSION is the sentinel (vX.XX.X) or when a git tag
+#                matching OTA_VERSION already exists (already-shipped / stale merge).
+#
+# Callers:
+#   - auto-rc-ota-build-core.yml (uses all outputs incl. ota_bump to decide OTA vs build)
+#   - runway-ota-rc.yml / runway-ota-production.yml (OTA-only entry points; ignore ota_bump)
+#
+##############################################################################################
+name: Runway OTA Resolve Context
+
+on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: >-
+          Optional branch, tag, or SHA to resolve context from.
+          Empty uses the calling workflow's triggering ref.
+        required: false
+        type: string
+        default: ''
+    outputs:
+      pr_number:
+        description: 'Open PR number for the resolved branch (empty if none)'
+        value: ${{ jobs.resolve.outputs.pr_number }}
+      base_ref:
+        description: 'Semver release tag derived from package.json (e.g. v7.71.0)'
+        value: ${{ jobs.resolve.outputs.base_ref }}
+      ota_version:
+        description: 'OTA_VERSION exported from app/constants/ota.ts at the resolved ref'
+        value: ${{ jobs.resolve.outputs.ota_version }}
+      ota_bump:
+        description: 'true when OTA_VERSION differs from base_ref (or origin/main when tag missing). Forced to false when OTA_VERSION is the sentinel (vX.XX.X) or a matching git tag already exists.'
+        value: ${{ jobs.resolve.outputs.ota_bump }}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  resolve:
+    name: Resolve OTA context
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
+      base_ref: ${{ steps.decide.outputs.base_ref }}
+      ota_version: ${{ steps.decide.outputs.ota_version }}
+      ota_bump: ${{ steps.decide.outputs.ota_bump }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.source_branch || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Resolve PR number for current branch
+        id: resolve-pr
+        run: |
+          BRANCH="${{ inputs.source_branch || github.ref_name }}"
+          # Strip refs/heads/ if present
+          BRANCH="${BRANCH#refs/heads/}"
+          echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
+
+          # Try same-repo head first, then owner:branch (required by API when listing pulls)
+          # jq '.[0].number' on an empty array outputs the literal string "null", so normalise to empty
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
+          if [[ -z "$PR_NUMBER" ]]; then
+            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
+          fi
+
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "Branch: $BRANCH, PR number: ${PR_NUMBER:-none}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decide OTA context
+        id: decide
+        run: |
+          set -e
+          # Version from package.json (e.g. 7.70.0) → base ref for OTA workflow is always v{VERSION}
+          VERSION=$(node -p "require('./package.json').version")
+          RELEASE_TAG="v${VERSION}"
+          echo "base_ref=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
+
+          # Parse OTA_VERSION from the export line (do not use a fixed line number — comment block length changes).
+          extract_ota() { grep -E '^export const OTA_VERSION' "$1" | sed -n "s/^export const OTA_VERSION: string = '\\([^']*\\)'.*/\\1/p"; }
+          extract_ota_from_git_show() { grep -E '^export const OTA_VERSION' | sed -n "s/^export const OTA_VERSION: string = '\\([^']*\\)'.*/\\1/p"; }
+
+          # OTA_VERSION from current ref
+          CURRENT_OTA=$(extract_ota app/constants/ota.ts)
+          echo "ota_version=${CURRENT_OTA}" >> "$GITHUB_OUTPUT"
+
+          # Early exit 1: sentinel means no OTA has been configured for this release
+          if [[ "$CURRENT_OTA" == "vX.XX.X" ]]; then
+            echo "ota_bump=false" >> "$GITHUB_OUTPUT"
+            echo "OTA_VERSION is sentinel ($CURRENT_OTA) → no OTA bump"
+            exit 0
+          fi
+
+          # Early exit 2: if a tag for this OTA_VERSION already exists, the OTA was
+          # already shipped (e.g. merged from a prior release branch) — treat as stale.
+          if git rev-parse "refs/tags/${CURRENT_OTA}" >/dev/null 2>&1; then
+            echo "ota_bump=false" >> "$GITHUB_OUTPUT"
+            echo "OTA tag ${CURRENT_OTA} already exists (already shipped) → stale, no OTA bump"
+            exit 0
+          fi
+
+          # Ref to compare against for detecting bump: use release tag if it exists, else main
+          if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
+            COMPARE_REF="$RELEASE_TAG"
+            BASE_OTA=$(git show "${COMPARE_REF}:app/constants/ota.ts" 2>/dev/null | extract_ota_from_git_show || echo "")
+          else
+            COMPARE_REF="main"
+            BASE_OTA=$(git show "origin/main:app/constants/ota.ts" 2>/dev/null | extract_ota_from_git_show || echo "")
+            echo "Release tag ${RELEASE_TAG} not found; comparing OTA_VERSION to ${COMPARE_REF} to detect bump"
+          fi
+
+          if [[ -n "$BASE_OTA" && "$CURRENT_OTA" != "$BASE_OTA" ]]; then
+            echo "ota_bump=true" >> "$GITHUB_OUTPUT"
+            echo "OTA_VERSION changed: $BASE_OTA -> $CURRENT_OTA"
+          else
+            echo "ota_bump=false" >> "$GITHUB_OUTPUT"
+            echo "No OTA version bump (base: $BASE_OTA, current: $CURRENT_OTA)"
+          fi
