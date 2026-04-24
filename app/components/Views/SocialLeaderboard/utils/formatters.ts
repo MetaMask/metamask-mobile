@@ -2,9 +2,12 @@ import {
   formatPerpsFiat,
   formatPercentage,
   formatTransactionDate,
-  formatLargeNumber,
 } from '../../../UI/Perps/utils/formatUtils';
-import { formatAmountWithThreshold } from '../../../../util/number';
+import {
+  formatAmountWithThreshold,
+  localizeLargeNumber,
+} from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
 
 const EM_DASH = '\u2014';
 
@@ -27,8 +30,14 @@ export function formatUsd(value: number | null | undefined): string {
  */
 export function formatTokenAmount(value: number): string {
   if (!Number.isFinite(value) || value === 0) return '0';
-  if (Math.abs(value) >= 1000) {
-    return formatLargeNumber(value, { decimals: 2, rawDecimals: 4 });
+  const absValue = Math.abs(value);
+  if (absValue >= 1000) {
+    const sign = value < 0 ? '-' : '';
+    const i18n = { t: (key: string) => strings(key) };
+    return (
+      sign +
+      localizeLargeNumber(i18n, absValue, { decimals: 2, includeK: true })
+    );
   }
   return String(formatAmountWithThreshold(value, 4));
 }
