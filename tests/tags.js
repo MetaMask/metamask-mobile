@@ -83,6 +83,8 @@ const smokeTags = {
   },
 };
 
+const flaskTags = {};
+
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
   regressionAccounts: 'RegressionAccounts:',
@@ -151,6 +153,7 @@ const FixtureValidation = (testName) =>
 
 export {
   smokeTags,
+  flaskTags,
   SmokeAccounts,
   SmokeConfirmations,
   SmokeIdentity,
