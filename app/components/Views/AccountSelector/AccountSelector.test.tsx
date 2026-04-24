@@ -20,16 +20,6 @@ import {
 } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
-// Feature flag mocks
-const mockSelectFullPageAccountListEnabledFlag = jest.fn(() => false);
-jest.mock(
-  '../../../selectors/featureFlagController/fullPageAccountList',
-  () => ({
-    selectFullPageAccountListEnabledFlag: () =>
-      mockSelectFullPageAccountListEnabledFlag(),
-  }),
-);
-
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -173,9 +163,6 @@ describe('AccountSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Reset feature flags
-    mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
-
     // Reset loading states to default
     mockUseAccountsOperationsLoadingStates.mockReturnValue({
       isAccountSyncingInProgress: false,
@@ -267,6 +254,14 @@ describe('AccountSelector', () => {
       fireEvent.press(addButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
+
+      // Footer still shows a single "Add wallet" label; add-wallet UI opens via navigation
+      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
+
+      // Account list remains on this screen (navigation is mocked)
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
@@ -554,108 +549,6 @@ describe('AccountSelector', () => {
     });
   });
 
-  describe('Full-Page Account List Feature Flag', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('renders BottomSheet when feature flag is disabled', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      // Should render header with title
-      expect(screen.getByText('Accounts')).toBeOnTheScreen();
-      // Account list should be present
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders full-page modal when feature flag is enabled', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      // Should render header with title
-      expect(screen.getByText('Accounts')).toBeOnTheScreen();
-      // Account list should be present
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders add button in full-page mode', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toBeOnTheScreen();
-    });
-
-    it('navigates to AddWallet page in full-page mode', () => {
-      jest.useRealTimers();
-
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      fireEvent.press(addButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
-
-      jest.useFakeTimers();
-    });
-
-    it('hides add button in full-page mode when disableAddAccountButton is true', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      const routeWithDisabledButton: AccountSelectorProps['route'] = {
-        params: {
-          ...defaultRouteParams,
-          disableAddAccountButton: true,
-        },
-      };
-
-      renderScreen(
-        () => <AccountSelector route={routeWithDisabledButton} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-      );
-
-      const addButton = screen.queryByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toBeNull();
-    });
-  });
-
   describe('Screen Navigation', () => {
     it('navigates to AddWallet page when button is pressed', () => {
       jest.useRealTimers();
@@ -674,6 +567,7 @@ describe('AccountSelector', () => {
       fireEvent.press(addButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
+      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });

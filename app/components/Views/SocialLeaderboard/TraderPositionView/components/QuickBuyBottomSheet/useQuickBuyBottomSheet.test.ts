@@ -4,8 +4,7 @@ import type { Position } from '@metamask/social-controllers';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
-import { useBridgeQuoteRequest } from '../../../../../UI/Bridge/hooks/useBridgeQuoteRequest';
-import { useBridgeQuoteData } from '../../../../../UI/Bridge/hooks/useBridgeQuoteData';
+import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
@@ -37,12 +36,8 @@ jest.mock('./useSourceTokenOptions', () => ({
   useSourceTokenOptions: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useBridgeQuoteRequest', () => ({
-  useBridgeQuoteRequest: jest.fn(),
-}));
-
-jest.mock('../../../../../UI/Bridge/hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn(),
+jest.mock('./useQuickBuyQuotes', () => ({
+  useQuickBuyQuotes: jest.fn(),
 }));
 
 jest.mock('../../../../../UI/Bridge/hooks/useRewards', () => ({
@@ -125,10 +120,6 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 const mockDispatch = jest.fn();
-const mockCancelQuote = jest.fn();
-const mockUpdateQuoteParams = Object.assign(jest.fn(), {
-  cancel: mockCancelQuote,
-});
 const mockSubmitBridgeTx = jest.fn();
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>
@@ -204,14 +195,12 @@ const setupDefaultMocks = () => {
     isLoading: false,
   });
 
-  (useBridgeQuoteRequest as jest.Mock).mockReturnValue(mockUpdateQuoteParams);
-
-  (useBridgeQuoteData as jest.Mock).mockReturnValue({
-    activeQuote: null,
-    isLoading: false,
+  (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+    activeQuote: undefined,
+    destTokenAmount: undefined,
+    isQuoteLoading: false,
     isNoQuotesAvailable: false,
     quoteFetchError: null,
-    blockaidError: null,
     isActiveQuoteForCurrentTokenPair: true,
   });
 
@@ -322,6 +311,38 @@ describe('useQuickBuyBottomSheet', () => {
     });
   });
 
+  describe('quoteOverride wiring', () => {
+    it('passes null to useIsInsufficientBalance when there is no active quote', () => {
+      renderHook(() => useQuickBuyBottomSheet(createPosition(), jest.fn()));
+
+      expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          quoteOverride: null,
+        }),
+      );
+    });
+
+    it('passes the active quote to useIsInsufficientBalance when one is available', () => {
+      const activeQuote = createActiveQuote();
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote,
+        destTokenAmount: '5',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+
+      renderHook(() => useQuickBuyBottomSheet(createPosition(), jest.fn()));
+
+      expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          quoteOverride: activeQuote,
+        }),
+      );
+    });
+  });
+
   describe('isConfirmDisabled', () => {
     it('is disabled when usdAmount is empty', () => {
       const { result } = renderHook(() =>
@@ -348,12 +369,12 @@ describe('useQuickBuyBottomSheet', () => {
         options: [],
         isLoading: false,
       });
-      (useBridgeQuoteData as jest.Mock).mockReturnValue({
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
         activeQuote: createActiveQuote(),
-        isLoading: false,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
         isNoQuotesAvailable: false,
         quoteFetchError: null,
-        blockaidError: null,
         isActiveQuoteForCurrentTokenPair: true,
       });
 
@@ -366,17 +387,17 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.isConfirmLoading).toBe(false);
+      expect(result.current.confirmButtonState).toBe('idle');
     });
 
     it('is disabled when a destination address is required but missing', () => {
       (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(true);
-      (useBridgeQuoteData as jest.Mock).mockReturnValue({
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
         activeQuote: createActiveQuote(),
-        isLoading: false,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
         isNoQuotesAvailable: false,
         quoteFetchError: null,
-        blockaidError: null,
         isActiveQuoteForCurrentTokenPair: true,
       });
 
@@ -389,27 +410,27 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.isConfirmLoading).toBe(false);
+      expect(result.current.confirmButtonState).toBe('idle');
     });
 
     it('is enabled after quote loading settles for the entered amount', () => {
       const quoteState: {
-        activeQuote: ReturnType<typeof createActiveQuote> | null;
-        isLoading: boolean;
+        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
+        destTokenAmount: string | undefined;
+        isQuoteLoading: boolean;
         isNoQuotesAvailable: boolean;
         quoteFetchError: null;
-        blockaidError: null;
         isActiveQuoteForCurrentTokenPair: boolean;
       } = {
-        activeQuote: null,
-        isLoading: false,
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
         isNoQuotesAvailable: false,
         quoteFetchError: null,
-        blockaidError: null,
         isActiveQuoteForCurrentTokenPair: true,
       };
 
-      (useBridgeQuoteData as jest.Mock).mockImplementation(() => quoteState);
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
         position: createPosition(),
@@ -426,10 +447,10 @@ describe('useQuickBuyBottomSheet', () => {
         result.current.handleAmountChange('20');
       });
 
-      quoteState.isLoading = true;
+      quoteState.isQuoteLoading = true;
       rerender(props);
 
-      quoteState.isLoading = false;
+      quoteState.isQuoteLoading = false;
       quoteState.activeQuote = createActiveQuote();
       rerender(props);
       rerender(props);
@@ -439,22 +460,22 @@ describe('useQuickBuyBottomSheet', () => {
 
     it('is disabled when amount changes after quote loading settles', () => {
       const quoteState: {
-        activeQuote: ReturnType<typeof createActiveQuote> | null;
-        isLoading: boolean;
+        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
+        destTokenAmount: string | undefined;
+        isQuoteLoading: boolean;
         isNoQuotesAvailable: boolean;
         quoteFetchError: null;
-        blockaidError: null;
         isActiveQuoteForCurrentTokenPair: boolean;
       } = {
-        activeQuote: null,
-        isLoading: false,
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
         isNoQuotesAvailable: false,
         quoteFetchError: null,
-        blockaidError: null,
         isActiveQuoteForCurrentTokenPair: true,
       };
 
-      (useBridgeQuoteData as jest.Mock).mockImplementation(() => quoteState);
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
         position: createPosition(),
@@ -471,10 +492,10 @@ describe('useQuickBuyBottomSheet', () => {
         result.current.handleAmountChange('20');
       });
 
-      quoteState.isLoading = true;
+      quoteState.isQuoteLoading = true;
       rerender(props);
 
-      quoteState.isLoading = false;
+      quoteState.isQuoteLoading = false;
       quoteState.activeQuote = createActiveQuote();
       rerender(props);
       rerender(props);
@@ -484,7 +505,7 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.isConfirmLoading).toBe(true);
+      expect(result.current.confirmButtonState).toBe('loading');
     });
   });
 

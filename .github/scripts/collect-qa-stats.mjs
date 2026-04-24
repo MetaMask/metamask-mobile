@@ -64,15 +64,6 @@ const SCAN_ANALYTICS_EXPECTATIONS_DIR = 'tests/helpers/analytics/expectations';
  */
 const LEGACY_INLINE_METAMETRICS_PATHS = [
   'tests/smoke/confirmations/send/metricsValidationHelper.ts',
-  'tests/smoke/confirmations/transactions/dapp-initiated-transfer.spec.ts',
-  'tests/smoke/predict/predict-cash-out.spec.ts',
-  'tests/smoke/predict/predict-claim-positions.spec.ts',
-  'tests/smoke/predict/predict-geo-restriction.spec.ts',
-  'tests/smoke/predict/predict-open-position.spec.ts',
-  'tests/smoke/snaps/test-snap-preinstalled.spec.ts',
-  'tests/smoke/swap/bridge-action-smoke.spec.ts',
-  'tests/regression/ramps/onramp-parameters.spec.ts',
-  'tests/regression/wallet/analytics/opt-out.ts',
 ];
 const PATH_ONBOARDING_EVENTS = 'tests/helpers/analytics/helpers.ts';
 const SCAN_PERFORMANCE_DIR = 'tests/performance';

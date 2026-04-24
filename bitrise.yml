@@ -1033,7 +1033,7 @@ workflows:
           inputs:
             - content: |
                 #!/usr/bin/env bash
-                ./scripts/download-android-qa-app.sh
+                ./tests/scripts/download-android-qa-app.sh
                 # APK_PATH is already set by the download script using envman
   build_flask_e2e_android:
     after_run:
@@ -1361,7 +1361,7 @@ workflows:
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
-                  ./scripts/run-e2e-tags.sh
+                  ./tests/scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           title: Export test results
@@ -1491,7 +1491,7 @@ workflows:
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:$METAMASK_BUILD_TYPE:prod $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
-                  ./scripts/run-e2e-tags.sh
+                  ./tests/scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           title: Export test results
@@ -1990,14 +1990,14 @@ workflows:
                 # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                 # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
                 # else
-                # ./scripts/run-e2e-tags.sh
+                # ./tests/scripts/run-e2e-tags.sh
                 # fi
                 if [ -n "${E2E_TEST_FILE:-}" ]; then
                   echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
-                  ./scripts/run-e2e-tags.sh
+                  ./tests/scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           is_always_run: true
@@ -2142,7 +2142,7 @@ workflows:
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:$METAMASK_BUILD_TYPE:prod $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
-                  ./scripts/run-e2e-tags.sh
+                  ./tests/scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           is_always_run: true

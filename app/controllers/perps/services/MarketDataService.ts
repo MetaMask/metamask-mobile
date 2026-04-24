@@ -33,6 +33,7 @@ import type {
   PerpsPlatformDependencies,
 } from '../types';
 import type { CandleData } from '../types/perps-types';
+import { coalescePerpsRestRequest } from '../utils/coalescePerpsRestRequest';
 import { ensureError, isAbortError } from '../utils/errorUtils';
 
 /**
@@ -135,14 +136,21 @@ export class MarketDataService {
    * @param options.provider - The perps provider instance.
    * @param options.params - The operation parameters.
    * @param options.context - The service context for dependencies.
+   * @param options.forceRefresh - Bypass the request-coalesce cache end-to-end
+   * (user-initiated refresh).
    * @returns The result of the operation.
    */
   async getOrderFills(options: {
     provider: PerpsProvider;
     params?: GetOrderFillsParams;
     context: ServiceContext;
+    /**
+     * Bypass the request-coalesce cache. Use for user-initiated refresh
+     * (pull-to-refresh, polling tick) so the fetch runs fresh.
+     */
+    forceRefresh?: boolean;
   }): Promise<OrderFill[]> {
-    const { provider, params, context } = options;
+    const { provider, params, context, forceRefresh } = options;
     const traceId = uuidv4();
     let traceData: { success: boolean; error?: string } | undefined;
 
@@ -157,7 +165,46 @@ export class MarketDataService {
         },
       });
 
-      const result = await provider.getOrderFills(params);
+      // Pagination / explicit end-window callers bypass the shared cache so
+      // their specific page never collides with the default "recent fills"
+      // bucket. Day-granular startTime bucket prevents a ~90d caller from
+      // sharing payloads with an all-history caller.
+      const isPaginated =
+        params?.limit !== undefined || params?.endTime !== undefined;
+
+      if (isPaginated) {
+        const result = await provider.getOrderFills(params, { forceRefresh });
+        traceData = { success: true };
+        return result;
+      }
+
+      // Non-paginated: resolve the caller's account so the cache key is
+      // account-scoped. Without this, callers that omit params.accountId
+      // (the common hook path) would collide on a shared "default" bucket —
+      // after an account switch, account B could receive account A's
+      // still-fresh payload until the TTL expired. Pin the resolved id onto
+      // the forwarded params so the provider cannot re-resolve to a different
+      // account between our resolve() and its fetch (TOCTOU guard).
+      const resolvedAccountId =
+        params?.accountId ?? (await provider.getCurrentAccountId());
+      const pinnedParams: GetOrderFillsParams = {
+        ...params,
+        accountId: resolvedAccountId,
+      };
+      const result = await coalescePerpsRestRequest(
+        [
+          context.tracingContext.provider,
+          context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          'getOrderFills',
+          resolvedAccountId,
+          params?.aggregateByTime === true ? 'agg' : 'raw',
+          params?.startTime === undefined
+            ? 'unbounded'
+            : `s${Math.floor(params.startTime / 86_400_000)}`,
+        ].join('|'),
+        () => provider.getOrderFills(pinnedParams, { forceRefresh }),
+        { forceRefresh },
+      );
 
       traceData = { success: true };
       return result;
@@ -202,14 +249,20 @@ export class MarketDataService {
    * @param options.provider - The perps provider instance.
    * @param options.params - The operation parameters.
    * @param options.context - The service context for dependencies.
+   * @param options.forceRefresh - Bypass the request-coalesce cache end-to-end
+   * (user-initiated refresh).
    * @returns The result of the operation.
    */
   async getOrders(options: {
     provider: PerpsProvider;
     params?: GetOrdersParams;
     context: ServiceContext;
+    /**
+     * Bypass the request-coalesce cache. Use for user-initiated refresh.
+     */
+    forceRefresh?: boolean;
   }): Promise<Order[]> {
-    const { provider, params, context } = options;
+    const { provider, params, context, forceRefresh } = options;
     const traceId = uuidv4();
     let traceData: { success: boolean; error?: string } | undefined;
 
@@ -224,7 +277,37 @@ export class MarketDataService {
         },
       });
 
-      const result = await provider.getOrders(params);
+      const isPaginated =
+        params?.limit !== undefined ||
+        params?.offset !== undefined ||
+        params?.endTime !== undefined;
+
+      if (isPaginated) {
+        const result = await provider.getOrders(params, { forceRefresh });
+        traceData = { success: true };
+        return result;
+      }
+
+      // Non-paginated: resolve the caller's account so the cache key is
+      // account-scoped (see getOrderFills for rationale). Pin the resolved
+      // id onto the forwarded params so the provider cannot re-resolve to a
+      // different account between our resolve() and its fetch.
+      const resolvedAccountId =
+        params?.accountId ?? (await provider.getCurrentAccountId());
+      const pinnedParams: GetOrdersParams = {
+        ...params,
+        accountId: resolvedAccountId,
+      };
+      const result = await coalescePerpsRestRequest(
+        [
+          context.tracingContext.provider,
+          context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          'getOrders',
+          resolvedAccountId,
+        ].join('|'),
+        () => provider.getOrders(pinnedParams, { forceRefresh }),
+        { forceRefresh },
+      );
 
       traceData = { success: true };
       return result;
@@ -344,14 +427,20 @@ export class MarketDataService {
    * @param options.provider - The perps provider instance.
    * @param options.params - The operation parameters.
    * @param options.context - The service context for dependencies.
+   * @param options.forceRefresh - Bypass the request-coalesce cache end-to-end
+   * (user-initiated refresh).
    * @returns The result of the operation.
    */
   async getFunding(options: {
     provider: PerpsProvider;
     params?: GetFundingParams;
     context: ServiceContext;
+    /**
+     * Bypass the request-coalesce cache. Use for user-initiated refresh.
+     */
+    forceRefresh?: boolean;
   }): Promise<Funding[]> {
-    const { provider, params, context } = options;
+    const { provider, params, context, forceRefresh } = options;
     const traceId = uuidv4();
     let traceData: { success: boolean; error?: string } | undefined;
 
@@ -366,7 +455,38 @@ export class MarketDataService {
         },
       });
 
-      const result = await provider.getFunding(params);
+      const isPaginated =
+        params?.limit !== undefined ||
+        params?.offset !== undefined ||
+        params?.startTime !== undefined ||
+        params?.endTime !== undefined;
+
+      if (isPaginated) {
+        const result = await provider.getFunding(params, { forceRefresh });
+        traceData = { success: true };
+        return result;
+      }
+
+      // Non-paginated: resolve the caller's account so the cache key is
+      // account-scoped (see getOrderFills for rationale). Pin the resolved
+      // id onto the forwarded params so the provider cannot re-resolve to a
+      // different account between our resolve() and its fetch.
+      const resolvedAccountId =
+        params?.accountId ?? (await provider.getCurrentAccountId());
+      const pinnedParams: GetFundingParams = {
+        ...params,
+        accountId: resolvedAccountId,
+      };
+      const result = await coalescePerpsRestRequest(
+        [
+          context.tracingContext.provider,
+          context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          'getFunding',
+          resolvedAccountId,
+        ].join('|'),
+        () => provider.getFunding(pinnedParams, { forceRefresh }),
+        { forceRefresh },
+      );
 
       traceData = { success: true };
       return result;
