@@ -26,7 +26,7 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { buildTokenIconUrl } from '../../../Card/util/buildTokenIconUrl';
-import ConvertTokenRow from '../../../Earn/components/Musd/ConvertTokenRow';
+import MusdConversionAssetRow from '../../../Earn/components/Musd/MusdConversionAssetRow';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
 import { CaipChainId } from '@metamask/utils';
@@ -194,7 +194,7 @@ const MoneyConvertStablecoins = ({
         <Box twClassName="mt-3">
           {tokens.map((token) => (
             <Box key={`${token.address}-${token.chainId}`} twClassName="px-4">
-              <ConvertTokenRow
+              <MusdConversionAssetRow
                 token={token}
                 onMaxPress={onMaxPress}
                 onEditPress={onEditPress}

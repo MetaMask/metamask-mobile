@@ -27,32 +27,32 @@ import { Hex } from '@metamask/utils';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { EarnNetworkAvatar } from '../../EarnNetworkAvatar';
-import styleSheet from './ConvertTokenRow.styles';
-import { ConvertTokenRowProps } from './ConvertTokenRow.types';
+import styleSheet from './MusdConversionAssetRow.styles';
+import { MusdConversionAssetRowProps } from './MusdConversionAssetRow.types';
 import useFiatFormatter from '../../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import BigNumber from 'bignumber.js';
 
 /**
- * Test IDs for the ConvertTokenRow component.
+ * Test IDs for the MusdConversionAssetRow component.
  */
-export const ConvertTokenRowTestIds = {
-  CONTAINER: 'convert-token-row-container',
-  TOKEN_ICON: 'convert-token-row-token-icon',
-  TOKEN_NAME: 'convert-token-row-token-name',
-  TOKEN_BALANCE: 'convert-token-row-token-balance',
-  MAX_BUTTON: 'convert-token-row-max-button',
-  EDIT_BUTTON: 'convert-token-row-edit-button',
+export const MusdConversionAssetRowTestIds = {
+  CONTAINER: 'musd-conversion-asset-row-container',
+  TOKEN_ICON: 'musd-conversion-asset-row-token-icon',
+  TOKEN_NAME: 'musd-conversion-asset-row-token-name',
+  TOKEN_BALANCE: 'musd-conversion-asset-row-token-balance',
+  MAX_BUTTON: 'musd-conversion-asset-row-max-button',
+  EDIT_BUTTON: 'musd-conversion-asset-row-edit-button',
 } as const;
 
 /**
- * A row component for displaying a token in the Quick Convert list.
+ * A row component that exposes the Max and Edit conversion buttons for a token.
  *
  * Displays:
  * - Token icon with network badge
  * - Token name and balance
  * - Max and Edit buttons
  */
-const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
+const MusdConversionAssetRow: React.FC<MusdConversionAssetRowProps> = ({
   token,
   onMaxPress,
   onEditPress,
@@ -86,11 +86,14 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
   }, [areActionsDisabled, isConversionPending, onEditPress, token]);
 
   return (
-    <View style={styles.container} testID={ConvertTokenRowTestIds.CONTAINER}>
+    <View
+      style={styles.container}
+      testID={MusdConversionAssetRowTestIds.CONTAINER}
+    >
       <View style={styles.row}>
         {/* Left side: Token icon and info */}
         <View style={styles.left}>
-          <View testID={ConvertTokenRowTestIds.TOKEN_ICON}>
+          <View testID={MusdConversionAssetRowTestIds.TOKEN_ICON}>
             <View style={styles.tokenIconContainer}>
               <BadgeWrapper
                 badgePosition={BadgePosition.BottomRight}
@@ -115,7 +118,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
               variant={TextVariant.BodyMDMedium}
               numberOfLines={1}
               ellipsizeMode="tail"
-              testID={ConvertTokenRowTestIds.TOKEN_BALANCE}
+              testID={MusdConversionAssetRowTestIds.TOKEN_BALANCE}
             >
               {formattedBalance}
             </Text>
@@ -123,7 +126,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
               numberOfLines={1}
-              testID={ConvertTokenRowTestIds.TOKEN_NAME}
+              testID={MusdConversionAssetRowTestIds.TOKEN_NAME}
             >
               {token.symbol}
             </Text>
@@ -141,7 +144,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
                 size={ButtonSize.Md}
                 onPress={handleMaxPress}
                 isDisabled={areActionsDisabled}
-                testID={ConvertTokenRowTestIds.MAX_BUTTON}
+                testID={MusdConversionAssetRowTestIds.MAX_BUTTON}
               >
                 <Text variant={TextVariant.BodyMDMedium}>
                   {strings('earn.musd_conversion.max')}
@@ -154,7 +157,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
                 iconProps={{ size: IconSize.Sm }}
                 onPress={handleEditPress}
                 isDisabled={areActionsDisabled}
-                testID={ConvertTokenRowTestIds.EDIT_BUTTON}
+                testID={MusdConversionAssetRowTestIds.EDIT_BUTTON}
               />
             </>
           )}
@@ -169,4 +172,4 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
   );
 };
 
-export default ConvertTokenRow;
+export default MusdConversionAssetRow;
