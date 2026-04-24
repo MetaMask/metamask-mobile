@@ -13,7 +13,7 @@
 - [x] **Phase 4c** — Make `useContinueWithQuote` headless-ready — extend `ContinueWithQuoteContext` with optional overrides so callers without controller state (the Host) can drive it from a `Quote`
 - [x] **Phase 5 (revised)** — Quote-first headless start path — `startHeadlessBuy({ quote, redirectUrl? })` creates a session carrying the quote, navigates to Headless Host, Host calls `continueWithQuote(quote, ctx)` and re-orchestrates after auth loops
 - [ ] **Phase 5b (deferred)** — `startHeadlessBuy({ assetId, amount, paymentMethodId, providerId? })` "open BuildQuote / Host fetches quotes" mode — picked up after the quote-first path is stable
-- [ ] **Phase 6** — Bypass order-processing redirect in Transak/aggregator routing when headless; fire `onOrderCreated` and end session
+- [x] **Phase 6** — Bypass order-processing redirect in Transak/aggregator routing when headless; fire `onOrderCreated` and end session
 - [ ] **Phase 7** — Extract UI-coupled error/limit surfacing; route errors through `onError` as typed `HeadlessBuyError`
 - [ ] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
 - [ ] **Phase 9** — Expose `getOrder` / `refreshOrder` from hook and show in playground
