@@ -196,7 +196,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
                   await CardController.approveFunding({
                     address,
                     network: params.network,
-                    currency: params.currency.toLowerCase(),
+                    currency: params.currency,
                     amount: params.amount,
                     txHash: actualTxHash,
                     sigHash: signature,
@@ -374,7 +374,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
         await CardController.approveFunding({
           address,
           network: params.network,
-          currency: params.currency.toLowerCase(),
+          currency: params.currency,
           amount: params.amount,
           txHash,
           sigHash: signature,

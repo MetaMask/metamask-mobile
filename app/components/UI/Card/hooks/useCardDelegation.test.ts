@@ -449,7 +449,7 @@ describe('useCardDelegation', () => {
       expect(mockApproveFunding).toHaveBeenCalledWith({
         address: mockAddress,
         network: params.network,
-        currency: params.currency.toLowerCase(),
+        currency: params.currency,
         amount: params.amount,
         txHash: mockTxHash,
         sigHash: mockSignature,
@@ -1391,7 +1391,7 @@ describe('useCardDelegation', () => {
       expect(mockToTokenMinimalUnit).toHaveBeenCalledWith(params.amount, 0);
     });
 
-    it('converts currency to lowercase for approveFunding', async () => {
+    it('passes currency through to approveFunding unchanged (provider lowercases for Baanx)', async () => {
       const mockToken = createMockToken();
       const params = {
         ...createMockDelegationParams(),
@@ -1406,7 +1406,7 @@ describe('useCardDelegation', () => {
 
       expect(mockApproveFunding).toHaveBeenCalledWith(
         expect.objectContaining({
-          currency: 'usdc',
+          currency: 'USDC',
         }),
       );
     });
@@ -1589,7 +1589,7 @@ describe('useCardDelegation', () => {
       expect(mockApproveFunding).toHaveBeenCalledWith({
         address: mockSolanaAddress,
         network: 'solana',
-        currency: 'usdc',
+        currency: params.currency,
         amount: params.amount,
         txHash: mockTxSignature,
         sigHash: 'mock-solana-signature',

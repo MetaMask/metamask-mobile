@@ -8,6 +8,7 @@ import {
   CardProviderError,
   CardProviderErrorCode,
   type CardAuthTokens,
+  FundingApprovalParams,
 } from '../provider-types';
 import Logger from '../../../../../util/Logger';
 import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
@@ -1728,7 +1729,7 @@ describe('BaanxProvider', () => {
             amount: '1000',
             currency: 'USDC',
             network: 'linea',
-          },
+          } as FundingApprovalParams,
           AUTH_TOKENS,
         ),
       ).rejects.toThrow(CardProviderError);
