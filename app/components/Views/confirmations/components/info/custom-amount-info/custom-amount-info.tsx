@@ -46,7 +46,10 @@ import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigatio
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   Button,
@@ -125,6 +128,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
+    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
     const [selectedAddress, setSelectedAddress] = useState<string | undefined>(
       undefined,
@@ -272,7 +276,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
-              hasMax={hasMax && !isNativePayToken}
+              hasMax={hasMax && (isWithdraw || !isNativePayToken)}
             />
           )}
           {!hasTokens && <BuySection />}
