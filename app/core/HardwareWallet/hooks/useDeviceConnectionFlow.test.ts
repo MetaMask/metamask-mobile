@@ -853,7 +853,7 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
-    it('invokes connection success callback and resolves with true', async () => {
+    it('resolves pending readiness with true on connection success', async () => {
       const mockAdapter = createMockAdapter();
       const options = createDefaultOptions({
         createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
