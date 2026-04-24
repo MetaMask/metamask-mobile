@@ -534,6 +534,78 @@ jobs:
 
   # Main E2E tests
 
+  prepare-e2e-timings:
+    name: 'Prepare E2E test timings'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    # Resolves a baseline tests/e2e-test-timings.json by downloading the most recent
+    # `e2e-test-timings` artifact from main; if none found, falls back to the current
+    # PR head branch. The result is published as `e2e-test-timings-baseline` so smoke
+    # E2E jobs in this run can consume it via actions/download-artifact@v4. If neither
+    # source has an artifact, no baseline is uploaded and the split script falls back
+    # to equal-count alphabetical sharding.
+    if: github.event_name != 'merge_group'
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      has-baseline: ${{ steps.fetch.outputs.has-baseline }}
+    steps:
+      - name: Fetch latest e2e-test-timings artifact
+        id: fetch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          find_run_id() {
+            local branch="$1"
+            gh api -X GET "repos/${REPO}/actions/artifacts?name=e2e-test-timings&per_page=100" \
+              --jq "[.artifacts[] | select(.expired == false) | select(.workflow_run.head_branch == \"${branch}\")][0].workflow_run.id // empty"
+          }
+
+          mkdir -p tests
+          RUN_ID="$(find_run_id main || true)"
+          SRC=""
+          if [ -n "${RUN_ID}" ]; then
+            SRC="main (run ${RUN_ID})"
+          elif [ -n "${PR_BRANCH:-}" ] && [ "${PR_BRANCH}" != "main" ]; then
+            RUN_ID="$(find_run_id "${PR_BRANCH}" || true)"
+            [ -n "${RUN_ID}" ] && SRC="branch ${PR_BRANCH} (run ${RUN_ID})"
+          fi
+
+          if [ -z "${RUN_ID}" ]; then
+            echo "ℹ️  No previous e2e-test-timings artifact found (main or PR branch)."
+            echo "    Split script will use equal-count alphabetical sharding."
+            echo "has-baseline=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "⬇️  Downloading e2e-test-timings from ${SRC}"
+          if ! gh run download "${RUN_ID}" --repo "${REPO}" --name e2e-test-timings --dir tests; then
+            echo "::warning::Failed to download artifact from run ${RUN_ID}"
+            echo "has-baseline=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -f tests/e2e-test-timings.json ]; then
+            echo "✅ Restored tests/e2e-test-timings.json ($(wc -c < tests/e2e-test-timings.json) bytes)"
+            echo "    Source: ${SRC}"
+            echo "has-baseline=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Artifact downloaded but tests/e2e-test-timings.json missing"
+            echo "has-baseline=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload baseline for this run
+        if: steps.fetch.outputs.has-baseline == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-timings-baseline
+          path: tests/e2e-test-timings.json
+          retention-days: 1
+
   build-android-apks:
     name: 'Build Android APKs'
     if: >-
@@ -562,7 +634,7 @@ jobs:
       id-token: write
       pull-requests: write
       actions: read
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -606,7 +678,7 @@ jobs:
       id-token: write
       pull-requests: write
       actions: read
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -625,7 +697,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -642,7 +714,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -660,7 +732,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
@@ -860,8 +932,10 @@ jobs:
     name: 'Update E2E test timings'
     runs-on: ubuntu-latest
     continue-on-error: true
-    # Runs after smoke E2E completes: merges JUnit durations into tests/e2e-test-timings.json
-    # and refreshes the Actions cache (no git commits). Non-blocking for the merge gate.
+    # Runs after smoke E2E completes: takes the baseline produced by `prepare-e2e-timings`
+    # (or starts fresh if missing), merges JUnit durations from all shards, and uploads
+    # the result as the `e2e-test-timings` artifact. That artifact becomes the baseline
+    # for future runs (looked up by `prepare-e2e-timings`). Non-blocking for the merge gate.
     if: >-
       ${{
         !cancelled() &&
@@ -871,7 +945,7 @@ jobs:
     needs: [e2e-smoke-tests-android, e2e-smoke-tests-ios]
     permissions:
       contents: read
-      actions: write
+      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -889,37 +963,20 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
 
-      - name: Configure E2E timings cache restore keys
-        id: e2e-timings-restore-keys
-        run: |
-          {
-            echo 'RESTORE_KEYS<<EOF'
-            if [ -n "$PR_NUM" ]; then
-              echo "e2e-timings-pr-${PR_NUM}-"
-            fi
-            echo "e2e-timings-main-"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-          echo "update-e2e-timings: PR_NUM for restore-keys=${PR_NUM:-<empty>}"
-        env:
-          PR_NUM: ${{ github.event.pull_request.number }}
-
-      - name: Restore latest timings from cache (baseline)
-        id: e2e-timings-cache-restore
-        uses: actions/cache/restore@v4
+      - name: Download E2E timings baseline
+        id: e2e-timings-baseline
+        continue-on-error: true
+        uses: actions/download-artifact@v4
         with:
-          path: tests/e2e-test-timings.json
-          key: e2e-timings-never-match-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: ${{ steps.e2e-timings-restore-keys.outputs.RESTORE_KEYS }}
+          name: e2e-test-timings-baseline
+          path: tests
 
-      - name: Log E2E timings cache (update job)
+      - name: Log E2E timings baseline
         run: |
-          echo "cache-hit: ${{ steps.e2e-timings-cache-restore.outputs.cache-hit }}"
-          echo "cache-matched-key: ${{ steps.e2e-timings-cache-restore.outputs.cache-matched-key }}"
           if [ -f tests/e2e-test-timings.json ]; then
             echo "Baseline timings file present ($(wc -c < tests/e2e-test-timings.json) bytes)"
           else
-            echo "No baseline timings file before merge (first run or no cache yet)"
+            echo "No baseline timings file before merge (first run on this branch / main has no artifact yet)"
           fi
 
       - name: Download JUnit artifacts from this run
@@ -965,7 +1022,7 @@ jobs:
             echo "📄 No timings file written"
           fi
 
-      - name: Check timings file for cache save
+      - name: Check timings file for upload
         id: e2e-timings-file
         run: |
           if [ -f tests/e2e-test-timings.json ]; then
@@ -974,29 +1031,13 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Compute E2E timings cache save key
-        id: e2e-timings-save-key
-        run: |
-          if [ -n "${{ github.event.pull_request.number }}" ]; then
-            echo "key=e2e-timings-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "key=e2e-timings-main-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Save updated timings to cache
-        if: steps.e2e-timings-file.outputs.exists == 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: tests/e2e-test-timings.json
-          key: ${{ steps.e2e-timings-save-key.outputs.key }}
-
-      - name: Upload updated timings as artifact (for inspection)
+      - name: Upload updated timings artifact (source of truth for next runs)
         if: steps.e2e-timings-file.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-timings
           path: tests/e2e-test-timings.json
-          retention-days: 30
+          retention-days: 90
 
   check-all-jobs-pass:
     name: Check all jobs pass

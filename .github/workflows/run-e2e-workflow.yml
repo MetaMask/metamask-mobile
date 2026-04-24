@@ -136,41 +136,23 @@ jobs:
           echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
         shell: bash
 
-      # Restore-keys order: PR-scoped timings first, then main. No generic e2e-timings- fallback
-      # (if neither hits, no file is restored → split script uses equal-count sharding).
-      - name: Configure E2E timings cache restore keys
-        id: e2e-timings-restore-keys
-        run: |
-          {
-            echo 'RESTORE_KEYS<<EOF'
-            if [ -n "$PR_NUM" ]; then
-              echo "e2e-timings-pr-${PR_NUM}-"
-            fi
-            echo "e2e-timings-main-"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-          echo "E2E timings cache: PR_NUM for restore-keys=${PR_NUM:-<empty>}"
-        env:
-          PR_NUM: ${{ github.event.pull_request.number }}
-
-      - name: Restore E2E timings cache
-        id: e2e-timings-cache
-        uses: actions/cache/restore@v4
+      # E2E timings baseline is produced by the `prepare-e2e-timings` job earlier in this run
+      # (sourced from the latest main artifact, falling back to the current branch). If the
+      # artifact is missing, the split script uses equal-count alphabetical sharding.
+      - name: Download E2E timings baseline
+        id: e2e-timings-baseline
+        continue-on-error: true
+        uses: actions/download-artifact@v4
         with:
-          path: tests/e2e-test-timings.json
-          key: e2e-timings-never-match-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: ${{ steps.e2e-timings-restore-keys.outputs.RESTORE_KEYS }}
+          name: e2e-test-timings-baseline
+          path: tests
 
-      - name: Log E2E timings cache restore result
+      - name: Log E2E timings baseline
         run: |
-          echo "cache-hit (exact key match): ${{ steps.e2e-timings-cache.outputs.cache-hit }}"
-          echo "cache-primary-key: ${{ steps.e2e-timings-cache.outputs.cache-primary-key }}"
-          echo "cache-matched-key: ${{ steps.e2e-timings-cache.outputs.cache-matched-key }}"
           if [ -f tests/e2e-test-timings.json ]; then
             echo "tests/e2e-test-timings.json: present ($(wc -c < tests/e2e-test-timings.json) bytes)"
           else
             echo "tests/e2e-test-timings.json: missing — split script will use equal-count sharding"
-            echo "If you expected a PR cache, ensure the run has a pull_request number in github.event."
           fi
 
       - name: Set up E2E environment

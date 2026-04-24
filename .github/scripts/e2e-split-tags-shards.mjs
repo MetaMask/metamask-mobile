@@ -5,8 +5,10 @@ import { extractTestResults } from './e2e-extract-test-results.mjs';
 
 // 1) Find all specs files that include the given E2E tags
 // 2) Compute sharding split using time-based bin-packing when
-//    tests/e2e-test-timings.json is present (restored from Actions cache:
-//    PR-specific first, then main). Otherwise equal-count alphabetical split.
+//    tests/e2e-test-timings.json is present (restored from the
+//    `e2e-test-timings-baseline` artifact produced by the `prepare-e2e-timings`
+//    CI job, sourced from main first, then the current PR branch). Otherwise
+//    fall back to equal-count alphabetical split.
 // 3) On re-runs, skip passed tests and only run failed/not-executed tests
 // 4) Flaky test detector mechanism in PRs (test retries)
 // 5) Log and run the selected specs for the given shard split
