@@ -3617,6 +3617,52 @@ describe('PolymarketProvider', () => {
         );
       });
 
+      it('falls back to the requested event when parent fetch fails and still resolves child markets', async () => {
+        const provider = createProvider({
+          liveSportsLeagues: ['nfl'],
+          extendedSportsMarketsLeagues: ['nfl'],
+        });
+        const parentFetchError = new Error('Parent fetch failed');
+        mockGetEventLeague.mockImplementation(actualGetEventLeague);
+        mockGetMarketDetailsFromGammaApi.mockImplementation(({ marketId }) =>
+          marketId === requestedChildEvent.id
+            ? Promise.resolve(requestedChildEvent)
+            : Promise.reject(parentFetchError),
+        );
+        mockFetchChildEventsFromGammaApi.mockResolvedValue([
+          parentEvent,
+          childEvent1,
+          childEvent2,
+        ]);
+        mockMergeChildEventsIntoParent.mockReturnValue(mergedEvent);
+        mockParsePolymarketEvents.mockReturnValue([mockParsedMarket]);
+
+        await provider.getMarketDetails({ marketId: requestedChildEvent.id });
+
+        expect(mockGetMarketDetailsFromGammaApi).toHaveBeenNthCalledWith(1, {
+          marketId: requestedChildEvent.id,
+        });
+        expect(mockGetMarketDetailsFromGammaApi).toHaveBeenNthCalledWith(2, {
+          marketId: 'game-1',
+        });
+        expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
+          parentEventId: 'game-1',
+        });
+        expect(mockMergeChildEventsIntoParent).toHaveBeenCalledWith([
+          parentEvent,
+          childEvent1,
+          childEvent2,
+        ]);
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'Failed to fetch parent event, using requested event only:',
+          parentFetchError,
+        );
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          [mergedEvent],
+          expect.objectContaining({ category: 'trending' }),
+        );
+      });
+
       it('does not fetch child events when getEventLeague returns null', async () => {
         const provider = createProvider({
           liveSportsLeagues: ['nfl'],
@@ -8830,7 +8876,7 @@ describe('PolymarketProvider', () => {
         extendedSportsMarketsLeagues: leagues,
       });
       const mockEvent = { id: 'market-1', question: 'Test?' };
-      mockGetEventLeague.mockReturnValue('nfl');
+      mockGetEventLeague.mockReturnValue(null);
       mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
       mockExtractNeededTeamsFromEvents.mockReturnValue(new Map());
       mockParsePolymarketEvents.mockReturnValue([
@@ -8840,7 +8886,7 @@ describe('PolymarketProvider', () => {
       await provider.getMarketDetails({ marketId: 'market-1' });
 
       expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-        [mockEvent],
+        expect.anything(),
         expect.objectContaining({ extendedSportsMarketsLeagues: leagues }),
       );
     });

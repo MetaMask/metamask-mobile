@@ -194,10 +194,6 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().extendedSportsMarketsLeagues;
   }
 
-  #hasExtendedMarketsForLeague(league: string): boolean {
-    return this.#getExtendedSportsMarketsLeagues().includes(league);
-  }
-
   #createTeamLookup(
     enabled: boolean,
   ):
@@ -231,6 +227,64 @@ export class PolymarketProvider implements PredictProvider {
         TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
       ),
     );
+  }
+
+  /**
+   * Extended sports positions can point to child events like player props or
+   * halftime markets, but the details view should resolve back to the parent
+   * game and merge the child markets into that game when the league supports it.
+   */
+  async #resolveSportMarketFromPolymarket({
+    event,
+    marketId,
+    extendedSportsMarketsLeagues,
+  }: {
+    event: PolymarketApiEvent;
+    marketId: string;
+    extendedSportsMarketsLeagues: string[];
+  }): Promise<{
+    resolvedEvent: PolymarketApiEvent;
+    childMarketIds?: string[];
+  }> {
+    const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
+    if (!eventLeague || !extendedSportsMarketsLeagues.includes(eventLeague)) {
+      return { resolvedEvent: event };
+    }
+
+    let resolvedEvent = event;
+    let resolvedMarketId = marketId;
+
+    if (event.parentEventId) {
+      resolvedMarketId = String(event.parentEventId);
+      try {
+        resolvedEvent = await getMarketDetailsFromGammaApi({
+          marketId: resolvedMarketId,
+        });
+      } catch (parentFetchError) {
+        DevLogger.log(
+          'Failed to fetch parent event, using requested event only:',
+          parentFetchError,
+        );
+      }
+    }
+
+    try {
+      const allEvents = await fetchChildEventsFromGammaApi({
+        parentEventId: resolvedMarketId,
+      });
+      return {
+        resolvedEvent: mergeChildEventsIntoParent(allEvents),
+        childMarketIds: allEvents.map(
+          (resolvedChildEvent) => resolvedChildEvent.id,
+        ),
+      };
+    } catch (childFetchError) {
+      DevLogger.log(
+        'Failed to fetch child events, using resolved event only:',
+        childFetchError,
+      );
+      return { resolvedEvent };
+    }
   }
 
   /**
@@ -685,7 +739,7 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      let event = await getMarketDetailsFromGammaApi({
+      const event = await getMarketDetailsFromGammaApi({
         marketId,
       });
 
@@ -704,38 +758,14 @@ export class PolymarketProvider implements PredictProvider {
       let mergedEvent = event;
       let childMarketIds: string[] | undefined;
       if (isSportsEvent) {
-        const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
-        if (eventLeague && this.#hasExtendedMarketsForLeague(eventLeague)) {
-          let resolvedMarketId = marketId;
-          // If event has parentEventId, we fetch parent data instead of the requested event
-          if (event.parentEventId) {
-            resolvedMarketId = String(event.parentEventId);
-            try {
-              event = await getMarketDetailsFromGammaApi({
-                marketId: resolvedMarketId,
-              });
-              mergedEvent = event;
-            } catch (parentFetchError) {
-              DevLogger.log(
-                'Failed to fetch parent event, using requested event only:',
-                parentFetchError,
-              );
-            }
-          }
-
-          try {
-            const allEvents = await fetchChildEventsFromGammaApi({
-              parentEventId: resolvedMarketId,
-            });
-            mergedEvent = mergeChildEventsIntoParent(allEvents);
-            childMarketIds = allEvents.map((e) => e.id);
-          } catch (childFetchError) {
-            DevLogger.log(
-              'Failed to fetch child events, using parent only:',
-              childFetchError,
-            );
-          }
-        }
+        const resolvedSportMarket =
+          await this.#resolveSportMarketFromPolymarket({
+            event,
+            marketId,
+            extendedSportsMarketsLeagues,
+          });
+        mergedEvent = resolvedSportMarket.resolvedEvent;
+        childMarketIds = resolvedSportMarket.childMarketIds;
 
         await this.#ensureTeamsLoadedForEvents([mergedEvent], supportedLeagues);
       }
