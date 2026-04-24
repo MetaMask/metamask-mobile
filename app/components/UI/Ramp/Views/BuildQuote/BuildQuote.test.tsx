@@ -115,12 +115,8 @@ jest.mock('../../hooks/useRampsQuotes', () => ({
   useRampsQuotes: jest.fn(),
 }));
 
-jest.mock('../../hooks/useTransakController', () => ({
-  useTransakController: jest.fn(),
-}));
-
-jest.mock('../../hooks/useTransakRouting', () => ({
-  useTransakRouting: jest.fn(),
+jest.mock('../../hooks/useContinueWithQuote', () => ({
+  useContinueWithQuote: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -130,7 +126,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../reducers/fiatOrders', () => ({
   getRampRoutingDecision: () => 'AGGREGATOR',
   UnifiedRampRoutingType: { AGGREGATOR: 'AGGREGATOR' },
-  selectHasAgreedTransakNativePolicy: jest.fn(() => false),
 }));
 
 jest.mock('../../hooks/useRampAccountAddress', () => ({
@@ -143,32 +138,6 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
     networkName: chainId === 'eip155:1' ? 'Ethereum Mainnet' : 'Unknown',
     chainId,
   }),
-}));
-
-jest.mock('../../../../../util/device', () => {
-  const mockIsAndroid = jest.fn();
-  const mockIsIos = jest.fn(() => true);
-  return {
-    __esModule: true,
-    default: {
-      isAndroid: mockIsAndroid,
-      isIos: mockIsIos,
-    },
-    isAndroid: mockIsAndroid,
-    isIos: mockIsIos,
-  };
-});
-
-jest.mock('react-native-inappbrowser-reborn', () => ({
-  openAuth: jest.fn(),
-  closeAuth: jest.fn(),
-  isAvailable: jest.fn(),
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeEventListener: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useStyles', () => ({
@@ -196,12 +165,9 @@ const mockUseRampsController = jest.requireMock(
 const mockUseRampsQuotes = jest.requireMock('../../hooks/useRampsQuotes')
   .useRampsQuotes as jest.Mock;
 
-const mockUseTransakController = jest.requireMock(
-  '../../hooks/useTransakController',
-).useTransakController as jest.Mock;
-
-const mockUseTransakRouting = jest.requireMock('../../hooks/useTransakRouting')
-  .useTransakRouting as jest.Mock;
+const mockUseContinueWithQuote = jest.requireMock(
+  '../../hooks/useContinueWithQuote',
+).useContinueWithQuote as jest.Mock;
 
 const mockUseParams = jest.requireMock(
   '../../../../../util/navigation/navUtils',
@@ -215,21 +181,6 @@ const mockUseDebouncedValue = jest.requireMock(
   '../../../../hooks/useDebouncedValue',
 ).useDebouncedValue as jest.Mock;
 
-const mockFiatOrdersModule = jest.requireMock(
-  '../../../../../reducers/fiatOrders',
-) as {
-  selectHasAgreedTransakNativePolicy: jest.Mock;
-};
-
-const mockDeviceIsAndroid = jest.requireMock('../../../../../util/device')
-  .isAndroid as jest.Mock;
-
-const mockLinkingOpenURL = jest.requireMock(
-  'react-native/Libraries/Linking/Linking',
-).openURL as jest.Mock;
-
-const mockInAppBrowser = jest.requireMock('react-native-inappbrowser-reborn');
-
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockAddProperties = jest.fn();
@@ -241,9 +192,7 @@ const mockGetBuyWidgetData = jest.fn();
 const mockAddOrder = jest.fn();
 const mockGetOrderFromCallback = jest.fn();
 const mockAddPrecreatedOrder = jest.fn();
-const mockCheckExistingToken = jest.fn();
-const mockGetBuyQuote = jest.fn();
-const mockRouteAfterAuth = jest.fn();
+const mockContinueWithQuote = jest.fn();
 
 const WIDGET_PROVIDER_QUOTE = {
   provider: 'moonpay',
@@ -254,18 +203,6 @@ const WIDGET_PROVIDER_QUOTE = {
   outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   quote: {
     buyWidget: { browser: 'IN_APP_OS_BROWSER' as const },
-    buyURL: 'https://widget.example.com/checkout',
-  },
-};
-
-const IN_APP_CHECKOUT_QUOTE = {
-  provider: 'moonpay',
-  id: 'quote-inapp-1',
-  inputAmount: 100,
-  inputCurrency: 'USD',
-  outputAmount: '0.05',
-  outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
-  quote: {
     buyURL: 'https://widget.example.com/checkout',
   },
 };
@@ -282,24 +219,6 @@ const NATIVE_PROVIDER = {
   name: 'Transak',
   supportedCryptoCurrencies: { 'eip155:1/slip44:60': true },
   links: [],
-};
-
-const NATIVE_PROVIDER_QUOTE = {
-  provider: 'transak',
-  id: 'quote-transak-1',
-  inputAmount: 100,
-  inputCurrency: 'USD',
-  outputAmount: '0.05',
-  outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
-  providerInfo: { type: 'native' as const, name: 'Transak', id: 'transak' },
-};
-
-const MOCK_TRANSAK_QUOTE = {
-  id: 'transak-quote-1',
-  fiatAmount: 100,
-  fiatCurrency: 'USD',
-  cryptoAmount: '0.05',
-  cryptoCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
 };
 
 const SELECTED_TOKEN = {
@@ -436,21 +355,14 @@ const buildRampsControllerResult = (overrides = {}) => ({
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
-      false,
-    );
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: number) => value);
     mockUseRampsQuotes.mockImplementation((options) =>
       defaultQuotesHookResult(options),
     );
-    mockUseTransakController.mockReturnValue({
-      checkExistingToken: mockCheckExistingToken,
-      getBuyQuote: mockGetBuyQuote,
-    });
-    mockUseTransakRouting.mockReturnValue({
-      routeAfterAuthentication: mockRouteAfterAuth,
+    mockUseContinueWithQuote.mockReturnValue({
+      continueWithQuote: mockContinueWithQuote,
     });
     mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -502,81 +414,6 @@ describe('BuildQuote', () => {
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
       expect(amountInput.props.children).toContain('50');
-    });
-  });
-
-  describe('navigateAfterExternalBrowser', () => {
-    it('resets to BuildQuote when returnDestination is buildQuote (Android external browser path)', async () => {
-      mockDeviceIsAndroid.mockReturnValue(true);
-      mockGetBuyWidgetData.mockResolvedValue({
-        url: 'https://widget.example.com/checkout',
-        browser: 'IN_APP_OS_BROWSER',
-      });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      await waitFor(() => {
-        expect(mockLinkingOpenURL).toHaveBeenCalledWith(
-          'https://widget.example.com/checkout',
-        );
-        expect(mockNavigationReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [
-            {
-              name: Routes.RAMP.BUILD_QUOTE,
-              params: {},
-            },
-          ],
-        });
-      });
-    });
-
-    it('resets to order details when returnDestination is order (InAppBrowser success path)', async () => {
-      mockDeviceIsAndroid.mockReturnValue(false);
-      mockInAppBrowser.isAvailable.mockResolvedValue(true);
-      mockInAppBrowser.openAuth.mockResolvedValue({
-        type: 'success',
-        url: 'metamask://on-ramp/providers/moonpay?orderId=ord-123',
-      });
-      mockGetBuyWidgetData.mockResolvedValue({
-        url: 'https://widget.example.com/checkout',
-        browser: 'IN_APP_OS_BROWSER',
-        orderId: 'ord-123',
-      });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      await waitFor(() => {
-        expect(mockAddOrder).not.toHaveBeenCalled();
-        expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
-        expect(mockNavigationReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [
-            {
-              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-              params: {
-                callbackUrl:
-                  'metamask://on-ramp/providers/moonpay?orderId=ord-123',
-                providerCode: 'moonpay',
-                walletAddress: '0x1234567890123456789012345678901234567890',
-                showCloseButton: true,
-              },
-            },
-          ],
-        });
-      });
     });
   });
 
@@ -1239,33 +1076,9 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('handleNativeProviderContinue', () => {
-    beforeEach(() => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        selectedProvider: NATIVE_PROVIDER,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-      });
-      mockUseRampsQuotes.mockReturnValue({
-        data: { success: [NATIVE_PROVIDER_QUOTE] },
-        loading: false,
-        error: null,
-      });
-    });
-
-    it('routes after auth when user has token', async () => {
-      mockCheckExistingToken.mockResolvedValue(true);
-      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
-      mockRouteAfterAuth.mockResolvedValue(undefined);
+  describe('handleContinuePress wiring', () => {
+    it('calls continueWithQuote with the selected quote and { amount, assetId }', async () => {
+      mockContinueWithQuote.mockResolvedValue(undefined);
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -1275,19 +1088,29 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(mockCheckExistingToken).toHaveBeenCalled();
-      expect(mockGetBuyQuote).toHaveBeenCalledWith(
-        'USD',
-        'eip155:1/slip44:60',
-        'eip155:1',
-        '/payments/debit-credit-card',
-        '100',
+      expect(mockContinueWithQuote).toHaveBeenCalledTimes(1);
+      expect(mockContinueWithQuote).toHaveBeenCalledWith(
+        WIDGET_PROVIDER_QUOTE,
+        { amount: 100, assetId: 'eip155:1/slip44:60' },
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
     });
 
-    it('navigates to VerifyIdentity when user has no token', async () => {
-      mockCheckExistingToken.mockResolvedValue(false);
+    it('fires RAMPS_CONTINUE_BUTTON_CLICKED before calling continueWithQuote', async () => {
+      mockContinueWithQuote.mockResolvedValue(undefined);
+      const callOrder: string[] = [];
+      mockCreateEventBuilder.mockImplementation((category) => {
+        const cat =
+          typeof category === 'object' && category !== null
+            ? (category as { category?: string }).category
+            : undefined;
+        if (cat === 'Ramps Continue Button Clicked') {
+          callOrder.push('analytics');
+        }
+        return { addProperties: mockAddProperties, build: mockBuild };
+      });
+      mockContinueWithQuote.mockImplementation(async () => {
+        callOrder.push('continueWithQuote');
+      });
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -1297,24 +1120,28 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(mockCheckExistingToken).toHaveBeenCalled();
-      expect(mockGetBuyQuote).not.toHaveBeenCalled();
-      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.RAMP.VERIFY_IDENTITY,
-        expect.objectContaining({
-          amount: '100',
-          currency: 'USD',
-          assetId: 'eip155:1/slip44:60',
-        }),
-      );
+      expect(callOrder).toEqual(['analytics', 'continueWithQuote']);
     });
 
-    it('navigates to Enter Email for native provider without token after policy agreement', async () => {
-      mockCheckExistingToken.mockResolvedValue(false);
+    it('surfaces continueWithQuote rejection as the rampsError banner text', async () => {
+      mockContinueWithQuote.mockRejectedValue(
+        new Error('An unexpected error occurred.'),
+      );
 
-      mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
-        true,
+      const { getByTestId, getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(getByText('An unexpected error occurred.')).toBeOnTheScreen();
+    });
+
+    it('does not call continueWithQuote when selectedProvider is null', async () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedProvider: null }),
       );
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
@@ -1325,134 +1152,7 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
       });
 
-      expect(mockCheckExistingToken).toHaveBeenCalled();
-      expect(mockGetBuyQuote).not.toHaveBeenCalled();
-      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.RAMP.ENTER_EMAIL,
-        expect.objectContaining({
-          amount: '100',
-          currency: 'USD',
-          assetId: 'eip155:1/slip44:60',
-        }),
-      );
-    });
-
-    it('sets rampsError when quote is null', async () => {
-      mockCheckExistingToken.mockResolvedValue(true);
-      mockGetBuyQuote.mockResolvedValue(null);
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('sets rampsError when transakCheckExistingToken throws', async () => {
-      mockCheckExistingToken.mockRejectedValue(new Error('Network error'));
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(mockGetBuyQuote).not.toHaveBeenCalled();
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('sets rampsError when transakRouteAfterAuth throws', async () => {
-      mockCheckExistingToken.mockResolvedValue(true);
-      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
-      mockRouteAfterAuth.mockRejectedValue(new Error('Routing failed'));
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('handleWidgetProviderContinue', () => {
-    it('sets rampsError when getBuyWidgetData returns no URL', async () => {
-      mockGetBuyWidgetData.mockResolvedValue({});
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(mockGetBuyWidgetData).toHaveBeenCalled();
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigates to Checkout when useExternalBrowser is false', async () => {
-      mockUseRampsQuotes.mockReturnValue({
-        data: { success: [IN_APP_CHECKOUT_QUOTE] },
-        loading: false,
-        error: null,
-      });
-      mockGetBuyWidgetData.mockResolvedValue({
-        url: 'https://checkout.example.com/embed',
-        orderId: 'ord-456',
-      });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(mockGetBuyWidgetData).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalled();
-      const navigateArgs = JSON.stringify(mockNavigate.mock.calls);
-      expect(navigateArgs).toContain('https://checkout.example.com/embed');
-      expect(navigateArgs).toContain('MoonPay');
-    });
-
-    it('sets rampsError when getBuyWidgetData throws', async () => {
-      mockGetBuyWidgetData.mockRejectedValue(
-        new Error('Network request failed'),
-      );
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
-      });
-
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
+      expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
   });
 

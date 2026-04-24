@@ -99,4 +99,60 @@ describe('MoneyOnboardingCard', () => {
       getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON),
     ).toHaveTextContent(strings('money.onboarding.step2_cta'));
   });
+
+  describe('link-card variant', () => {
+    it('renders link card title when variant is link-card and step is 2', () => {
+      const { getByTestId } = render(
+        <MoneyOnboardingCard currentStep={2} variant="link-card" />,
+      );
+
+      expect(getByTestId(MoneyOnboardingCardTestIds.TITLE)).toHaveTextContent(
+        strings('money.onboarding.link_card_title'),
+      );
+    });
+
+    it('renders link card description when variant is link-card and step is 2', () => {
+      const { getByTestId } = render(
+        <MoneyOnboardingCard currentStep={2} variant="link-card" />,
+      );
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.DESCRIPTION),
+      ).toHaveTextContent(strings('money.onboarding.link_card_description'));
+    });
+
+    it('renders link card CTA when variant is link-card and step is 2', () => {
+      const { getByTestId } = render(
+        <MoneyOnboardingCard currentStep={2} variant="link-card" />,
+      );
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON),
+      ).toHaveTextContent(strings('money.onboarding.link_card_cta'));
+    });
+
+    it('falls back to get-card content for step 1 even with link-card variant', () => {
+      const { getByTestId } = render(
+        <MoneyOnboardingCard currentStep={1} variant="link-card" />,
+      );
+
+      expect(getByTestId(MoneyOnboardingCardTestIds.TITLE)).toHaveTextContent(
+        strings('money.onboarding.title'),
+      );
+    });
+
+    it('calls onCtaPress when link card CTA is tapped', () => {
+      const mockCta = jest.fn();
+      const { getByTestId } = render(
+        <MoneyOnboardingCard
+          currentStep={2}
+          variant="link-card"
+          onCtaPress={mockCta}
+        />,
+      );
+
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+      expect(mockCta).toHaveBeenCalledTimes(1);
+    });
+  });
 });

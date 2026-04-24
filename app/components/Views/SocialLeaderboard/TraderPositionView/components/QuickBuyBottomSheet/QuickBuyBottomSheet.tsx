@@ -65,7 +65,7 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     hasError,
     hasValidAmount,
     isConfirmDisabled,
-    isConfirmLoading,
+    confirmButtonState,
     getButtonLabel,
     handlePresetPress,
     handleAmountAreaPress,
@@ -114,7 +114,7 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
             hasRewardsError={hasRewardsError}
             rewardsAccountScope={rewardsAccountScope}
             isConfirmDisabled={isConfirmDisabled}
-            isConfirmLoading={isConfirmLoading}
+            confirmButtonState={confirmButtonState}
             getButtonLabel={getButtonLabel}
             onPresetPress={handlePresetPress}
             onConfirm={handleConfirm}

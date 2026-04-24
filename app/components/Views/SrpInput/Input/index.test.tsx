@@ -12,26 +12,29 @@ import { INPUT_TEST_ID } from '../../../../component-library/components/Form/Tex
 
 describe('SRP -> Input', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<Input />);
-    expect(toJSON()).toMatchSnapshot();
+    render(<Input />);
+    expect(screen.getByTestId(INPUT_TEST_ID)).toBeOnTheScreen();
   });
+
   it('should render Input with the correct TextVariant', () => {
     render(<Input textVariant={TextVariant.HeadingSM} />);
-    const inputComponent = screen.getByTestId(INPUT_TEST_ID);
-    expect(inputComponent.props.style.fontSize).toBe(
+    const input = screen.getByTestId(INPUT_TEST_ID);
+    expect(input).toBeOnTheScreen();
+    expect(input.props.style.fontSize).toBe(
       mockTheme.typography.sHeadingSM.fontSize,
     );
   });
+
   it('should render the correct disabled state when disabled = true', () => {
     render(<Input isDisabled />);
-    const inputComponent = screen.getByTestId(INPUT_TEST_ID);
-    expect(inputComponent).toHaveProp('editable', false);
-    expect(inputComponent.props.style.opacity).toBe(0.5);
+    const input = screen.getByTestId(INPUT_TEST_ID);
+    expect(input.props.editable).toBe(false);
+    expect(input.props.style.opacity).toBe(0.5);
   });
 
   it('should not render state styles when isStateStylesDisabled = true', () => {
     render(<Input isStateStylesDisabled />);
-    const inputComponent = screen.getByTestId(INPUT_TEST_ID);
-    expect(inputComponent.props.style.opacity).toBe(1);
+    const input = screen.getByTestId(INPUT_TEST_ID);
+    expect(input.props.style.opacity).toBe(1);
   });
 });

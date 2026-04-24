@@ -20,8 +20,9 @@ const renderComponent = (props = {}) =>
   );
 describe('CustomNonceModal', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
+    renderComponent();
+    expect(screen.getByTestId('increment-nonce')).toBeOnTheScreen();
+    expect(screen.getByTestId('decrement-nonce')).toBeOnTheScreen();
   });
 
   it('handles only numeric inputs', () => {

@@ -109,7 +109,7 @@ const defaultProps = {
   hasRewardsError: false,
   rewardsAccountScope: null,
   isConfirmDisabled: false,
-  isConfirmLoading: false,
+  confirmButtonState: 'idle' as const,
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',
   onPresetPress: jest.fn(),
   onConfirm: jest.fn(),

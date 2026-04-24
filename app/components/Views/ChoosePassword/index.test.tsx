@@ -334,7 +334,9 @@ describe('ChoosePassword', () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
-    expect(component.toJSON()).toMatchSnapshot();
+    expect(
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toBeOnTheScreen();
   });
 
   describe('UI State', () => {

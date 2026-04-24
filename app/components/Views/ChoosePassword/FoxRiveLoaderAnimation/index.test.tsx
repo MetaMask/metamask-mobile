@@ -79,12 +79,8 @@ describe('FoxRiveLoaderAnimation', () => {
   });
 
   it('displays Rive animation and ActivityIndicator', () => {
-    // Arrange & Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
-
-    // Assert
-    const tree = toJSON();
-    expect(tree).toMatchSnapshot();
+    const { getByTestId } = render(<FoxRiveLoaderAnimation />);
+    expect(getByTestId('fox-rive-loader-animation')).toBeOnTheScreen();
   });
 
   it('cleans up timers on unmount', () => {

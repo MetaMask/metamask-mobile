@@ -1,5 +1,6 @@
 import React from 'react';
 import WatchAssetRequest from '.';
+import { AssetWatcherSelectorsIDs } from './AssetWatcher.testIds';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 
@@ -29,7 +30,7 @@ const initialState = {
 
 describe('WatchAssetRequest', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <WatchAssetRequest
         suggestedAssetMeta={{
           asset: {
@@ -42,6 +43,6 @@ describe('WatchAssetRequest', () => {
       />,
       { state: initialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(AssetWatcherSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 });
