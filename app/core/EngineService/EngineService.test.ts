@@ -1231,4 +1231,20 @@ describe('EngineService', () => {
       );
     });
   });
+
+  describe('money account override listener', () => {
+    it('subscribes to TransactionController:unapprovedTransactionAdded on start', async () => {
+      await engineService.start();
+
+      const mockSubscribe = Engine.controllerMessenger
+        .subscribe as jest.MockedFunction<
+        typeof Engine.controllerMessenger.subscribe
+      >;
+
+      expect(mockSubscribe).toHaveBeenCalledWith(
+        'TransactionController:unapprovedTransactionAdded',
+        expect.any(Function),
+      );
+    });
+  });
 });
