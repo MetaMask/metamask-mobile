@@ -89,6 +89,7 @@ const AddWallet = () => {
       <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
         <HeaderCompactStandard
           backButtonProps={{
+            accessibilityLabel: strings('navigation.back'),
             onPress: handleBack,
             testID: AddWalletTestIds.BACK_BUTTON,
           }}
