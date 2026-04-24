@@ -28,21 +28,6 @@ const config = {
     },
     {
       type: 'file',
-      filePath: '.github/workflows/push-eas-update.yml',
-      reasons: ['Detect OTA update workflow changes.'],
-    },
-    {
-      type: 'file',
-      filePath: '.github/workflows/runway-ota-build-core.yml',
-      reasons: ['Detect Runway OTA build workflow changes.'],
-    },
-    {
-      type: 'file',
-      filePath: '.github/workflows/build.yml',
-      reasons: ['Detect build workflow changes.'],
-    },
-    {
-      type: 'file',
       filePath: 'react-native.config.js',
       reasons: ['Detect react-native.config.js changes.'],
     },
