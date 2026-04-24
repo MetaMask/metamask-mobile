@@ -79,7 +79,7 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.status === TransactionStatus.approved
       ) {
         expectingDepositRef.current = true;
-        prevAvailableBalanceRef.current = liveAccount?.availableBalance || '0';
+        prevAvailableBalanceRef.current = liveAccount?.spendableBalance || '0';
 
         const processingTimeSeconds = isArbUSDCDeposit ? 0 : 60; // hardcoded to 1 minute to avoid estimation failures of multiple bridges
 
@@ -106,7 +106,7 @@ export const usePerpsDepositStatus = () => {
   }, [
     PerpsToastOptions.accountManagement.deposit,
     bridgeQuotes,
-    liveAccount?.availableBalance,
+    liveAccount?.spendableBalance,
     showToast,
   ]);
 
@@ -117,7 +117,7 @@ export const usePerpsDepositStatus = () => {
     }
 
     const currentBalance = Number.parseFloat(
-      liveAccount.availableBalance || '0',
+      liveAccount.spendableBalance || '0',
     );
     const previousBalance = Number.parseFloat(prevAvailableBalanceRef.current);
     // Check if balance increased
@@ -125,13 +125,13 @@ export const usePerpsDepositStatus = () => {
       // Show success toast
       showToast(
         PerpsToastOptions.accountManagement.deposit.success(
-          liveAccount?.availableBalance,
+          liveAccount?.spendableBalance,
         ),
       );
 
       // Reset state
       expectingDepositRef.current = false;
-      prevAvailableBalanceRef.current = liveAccount.availableBalance;
+      prevAvailableBalanceRef.current = liveAccount.spendableBalance;
     }
   }, [liveAccount, showToast, PerpsToastOptions.accountManagement.deposit]);
 

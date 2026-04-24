@@ -109,17 +109,19 @@ const PerpsWithdrawView: React.FC = () => {
   const { destToken } = useWithdrawTokens();
 
   // Truncate to 2 decimals so the user can withdraw exactly what they see.
-  const availableBalance = useMemo(() => {
-    if (!account?.availableBalance) return 0;
-    return truncateToTwoDecimals(parseCurrencyString(account.availableBalance));
-  }, [account?.availableBalance]);
+  const withdrawableBalance = useMemo(() => {
+    if (!account?.withdrawableBalance) return 0;
+    return truncateToTwoDecimals(
+      parseCurrencyString(account.withdrawableBalance),
+    );
+  }, [account?.withdrawableBalance]);
 
   const formattedBalance = useMemo(
-    () => formatPerpsFiat(availableBalance),
-    [availableBalance],
+    () => formatPerpsFiat(withdrawableBalance),
+    [withdrawableBalance],
   );
 
-  const hasPositiveBalance = availableBalance > 0;
+  const hasPositiveBalance = withdrawableBalance > 0;
 
   // Get withdrawal validation
   const {
@@ -154,9 +156,9 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsMeasurement({
     traceName: TraceName.PerpsWithdrawView,
     conditions: [
-      !!account?.availableBalance,
+      !!account?.withdrawableBalance,
       !!destToken,
-      availableBalance !== undefined,
+      withdrawableBalance !== undefined,
     ],
   });
 
@@ -215,7 +217,7 @@ const PerpsWithdrawView: React.FC = () => {
     (percentage: number) => {
       if (!hasPositiveBalance) return;
 
-      const amount = availableBalance * percentage;
+      const amount = withdrawableBalance * percentage;
       // Format to 2 or 6 decimal places for USDC
       let formattedAmount = '0';
       if (amount < 0.01) {
@@ -235,10 +237,10 @@ const PerpsWithdrawView: React.FC = () => {
       DevLogger.log(
         `Percentage selected: ${
           percentage * 100
-        }%, Amount: ${formattedAmount}, Available Perps Balance: ${availableBalance}`,
+        }%, Amount: ${formattedAmount}, Available Perps Balance: ${withdrawableBalance}`,
       );
     },
-    [availableBalance, hasPositiveBalance],
+    [withdrawableBalance, hasPositiveBalance],
   );
 
   const handleMaxPress = useCallback(() => {

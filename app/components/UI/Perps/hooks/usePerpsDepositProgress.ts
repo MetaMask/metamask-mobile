@@ -47,7 +47,7 @@ export const usePerpsDepositProgress = () => {
       if (transactionMeta.status === TransactionStatus.approved) {
         setIsDepositInProgress(true);
         prevAvailableBalanceRef.current =
-          liveAccountRef.current?.availableBalance || '0';
+          liveAccountRef.current?.spendableBalance || '0';
       }
 
       // Handle PerpsDeposit failed - clear deposit in progress
@@ -76,7 +76,7 @@ export const usePerpsDepositProgress = () => {
     }
 
     const currentBalance = Number.parseFloat(
-      liveAccount.availableBalance || '0',
+      liveAccount.spendableBalance || '0',
     );
     const previousBalance = Number.parseFloat(prevAvailableBalanceRef.current);
 
@@ -84,7 +84,7 @@ export const usePerpsDepositProgress = () => {
     if (currentBalance > previousBalance) {
       // Deposit completed successfully
       setIsDepositInProgress(false);
-      prevAvailableBalanceRef.current = liveAccount.availableBalance;
+      prevAvailableBalanceRef.current = liveAccount.spendableBalance;
     }
   }, [isDepositInProgress, liveAccount]);
 

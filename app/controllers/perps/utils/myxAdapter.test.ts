@@ -478,7 +478,7 @@ describe('myxAdapter', () => {
 
       expect(Number(result.marginUsed)).toBe(1000);
       expect(Number(result.unrealizedPnl)).toBe(50);
-      expect(Number(result.availableBalance)).toBe(500);
+      expect(Number(result.spendableBalance)).toBe(500);
       // totalBalance = balance + marginUsed + unrealizedPnl = 500 + 1000 + 50
       expect(Number(result.totalBalance)).toBe(1550);
     });
@@ -489,13 +489,13 @@ describe('myxAdapter', () => {
       expect(Number(result.marginUsed)).toBe(0);
       expect(Number(result.unrealizedPnl)).toBe(0);
       expect(Number(result.totalBalance)).toBe(0);
-      expect(Number(result.availableBalance)).toBe(0);
+      expect(Number(result.spendableBalance)).toBe(0);
     });
 
     it('returns zeros when walletBalance is undefined', () => {
       const result = adaptAccountStateFromMYX(undefined, undefined);
 
-      expect(Number(result.availableBalance)).toBe(0);
+      expect(Number(result.spendableBalance)).toBe(0);
     });
   });
 

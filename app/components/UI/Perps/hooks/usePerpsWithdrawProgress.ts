@@ -36,7 +36,7 @@ export const usePerpsWithdrawProgress = () => {
       // Withdrawal started - set progress state and capture current balance
       setIsWithdrawInProgress(true);
       prevAvailableBalanceRef.current =
-        liveAccountRef.current?.availableBalance || '0';
+        liveAccountRef.current?.withdrawableBalance || '0';
     } else {
       // Withdrawal completed or failed - clear progress state
       setIsWithdrawInProgress(false);
@@ -49,14 +49,14 @@ export const usePerpsWithdrawProgress = () => {
       return;
     }
 
-    const currentBalance = parseFloat(liveAccount.availableBalance || '0');
+    const currentBalance = parseFloat(liveAccount.withdrawableBalance || '0');
     const previousBalance = parseFloat(prevAvailableBalanceRef.current);
 
     // Check if balance decreased (funds withdrawn)
     if (currentBalance < previousBalance) {
       // Withdrawal completed successfully
       setIsWithdrawInProgress(false);
-      prevAvailableBalanceRef.current = liveAccount.availableBalance;
+      prevAvailableBalanceRef.current = liveAccount.withdrawableBalance;
     }
   }, [isWithdrawInProgress, liveAccount]);
 

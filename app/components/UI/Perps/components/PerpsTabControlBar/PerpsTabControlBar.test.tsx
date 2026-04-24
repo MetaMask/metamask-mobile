@@ -68,7 +68,8 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
       totalBalance: '10000.00',
-      availableBalance: '1000.50',
+      spendableBalance: '1000.50',
+      withdrawableBalance: '1000.50',
       marginUsed: '9000.00',
       unrealizedPnl: '100.50',
       returnOnEquity: '0.15',
@@ -159,7 +160,8 @@ describe('PerpsTabControlBar', () => {
   // Default mock return values
   const defaultAccountState = {
     totalBalance: '1000.50',
-    availableBalance: '800.25',
+    spendableBalance: '800.25',
+    withdrawableBalance: '800.25',
     marginUsed: '200.25',
     unrealizedPnl: '50.75',
   };

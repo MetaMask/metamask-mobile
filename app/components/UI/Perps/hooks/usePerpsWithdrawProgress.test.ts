@@ -22,7 +22,8 @@ describe('usePerpsWithdrawProgress', () => {
     // Default mock for usePerpsLiveAccount
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '1000.00',
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
         totalBalance: '10000.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
@@ -80,7 +81,8 @@ describe('usePerpsWithdrawProgress', () => {
     it('captures balance when withdrawal starts', () => {
       // Arrange
       const mockAccount = {
-        availableBalance: '500.00',
+        spendableBalance: '500.00',
+        withdrawableBalance: '500.00',
         totalBalance: '10000.00',
         marginUsed: '9500.00',
         unrealizedPnl: '100.00',
@@ -107,7 +109,8 @@ describe('usePerpsWithdrawProgress', () => {
     it('completes withdrawal when balance decreases', () => {
       // Arrange
       const initialAccount = {
-        availableBalance: '1000.00',
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
         totalBalance: '10000.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
@@ -115,7 +118,8 @@ describe('usePerpsWithdrawProgress', () => {
       };
 
       const updatedAccount = {
-        availableBalance: '500.00', // Balance decreased
+        spendableBalance: '500.00', // Balance decreased
+        withdrawableBalance: '500.00', // Balance decreased
         totalBalance: '9500.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
@@ -150,7 +154,8 @@ describe('usePerpsWithdrawProgress', () => {
     it('does not complete withdrawal when balance increases', () => {
       // Arrange
       const initialAccount = {
-        availableBalance: '1000.00',
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
         totalBalance: '10000.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
@@ -158,7 +163,8 @@ describe('usePerpsWithdrawProgress', () => {
       };
 
       const updatedAccount = {
-        availableBalance: '1500.00', // Balance increased
+        spendableBalance: '1500.00', // Balance increased
+        withdrawableBalance: '1500.00', // Balance increased
         totalBalance: '10500.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
@@ -193,7 +199,8 @@ describe('usePerpsWithdrawProgress', () => {
     it('does not complete withdrawal when balance stays the same', () => {
       // Arrange
       const account = {
-        availableBalance: '1000.00',
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
         totalBalance: '10000.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
@@ -251,10 +258,11 @@ describe('usePerpsWithdrawProgress', () => {
       expect(result.current.isWithdrawInProgress).toBe(false);
     });
 
-    it('handles missing availableBalance gracefully', () => {
+    it('handles missing withdrawableBalance gracefully', () => {
       // Arrange
       const accountWithoutBalance = {
-        availableBalance: '',
+        spendableBalance: '',
+        withdrawableBalance: '',
         totalBalance: '10000.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',

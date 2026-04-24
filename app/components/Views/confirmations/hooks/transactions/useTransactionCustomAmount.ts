@@ -207,8 +207,8 @@ function useTokenBalance(tokenUsdRate: number) {
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
-    const availableBalance = perpsState?.accountState?.availableBalance;
-    return availableBalance ? parseFloat(availableBalance) : 0;
+    const withdrawableBalance = perpsState?.accountState?.withdrawableBalance;
+    return withdrawableBalance ? parseFloat(withdrawableBalance) : 0;
   }
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])

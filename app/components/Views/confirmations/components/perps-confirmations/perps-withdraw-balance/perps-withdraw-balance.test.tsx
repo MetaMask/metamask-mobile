@@ -28,7 +28,8 @@ describe('PerpsWithdrawBalance', () => {
     } as never);
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '$1,232.39',
+        spendableBalance: '$1,232.39',
+        withdrawableBalance: '$1,232.39',
       },
       isInitialLoading: false,
     } as never);

@@ -447,9 +447,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
   const tradeableBalance = Number.parseFloat(
-    account?.availableToTradeBalance?.toString() ??
-      account?.availableBalance?.toString() ??
-      '0',
+    account?.spendableBalance?.toString() ?? '0',
   );
   const hasDirectOrderFundingPath =
     !isLoadingAccount &&

@@ -142,7 +142,8 @@ describe('usePerpsOrderForm', () => {
     mockUsePerpsNetwork.mockReturnValue('mainnet');
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -426,7 +427,8 @@ describe('usePerpsOrderForm', () => {
       // Arrange - Set low available balance
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '2', // $2 available balance
+          spendableBalance: '2', // $2 available balance
+          withdrawableBalance: '2', // $2 available balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -450,7 +452,8 @@ describe('usePerpsOrderForm', () => {
       // Arrange - Set sufficient available balance
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '5', // $5 available balance
+          spendableBalance: '5', // $5 available balance
+          withdrawableBalance: '5', // $5 available balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -477,7 +480,8 @@ describe('usePerpsOrderForm', () => {
       // Arrange - Start with balance high enough that max >= 999 after 0.5% buffer (e.g. 335 * 3x → floor(1005*0.995) = 999)
       const mockAccount = {
         account: {
-          availableBalance: '335',
+          spendableBalance: '335',
+          withdrawableBalance: '335',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -503,7 +507,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('999');
 
       // Act - Change the available balance so the new max is below user's amount
-      mockAccount.account.availableBalance = '1'; // $1 balance → max order size drops below 999
+      mockAccount.account.spendableBalance = '1'; // $1 balance → max order size drops below 999
       mockUsePerpsLiveAccount.mockReturnValue(mockAccount);
       rerender({});
 
@@ -521,7 +525,8 @@ describe('usePerpsOrderForm', () => {
       // Test 1: Low balance scenario
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '2', // $2 balance, 3x leverage: max = floor(6 * 0.995) = 5 (less than $10 default)
+          spendableBalance: '2', // $2 balance, 3x leverage: max = floor(6 * 0.995) = 5 (less than $10 default)
+          withdrawableBalance: '2', // $2 balance, 3x leverage: max = floor(6 * 0.995) = 5 (less than $10 default)
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -539,7 +544,8 @@ describe('usePerpsOrderForm', () => {
       // Test 2: High balance scenario
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '100', // $100 balance = $300 max with 3x leverage (more than $10 default)
+          spendableBalance: '100', // $100 balance = $300 max with 3x leverage (more than $10 default)
+          withdrawableBalance: '100', // $100 balance = $300 max with 3x leverage (more than $10 default)
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -753,7 +759,8 @@ describe('usePerpsOrderForm', () => {
     it('should not update amount when balance is 0', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',

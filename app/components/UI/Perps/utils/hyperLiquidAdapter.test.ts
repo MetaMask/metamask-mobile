@@ -1074,7 +1074,8 @@ describe('hyperLiquidAdapter', () => {
       const result = adaptAccountStateFromSDK(perpsState);
 
       expect(result).toEqual({
-        availableBalance: '700.25',
+        spendableBalance: '700.25',
+        withdrawableBalance: '700.25',
         availableToTradeBalance: '700.25', // withdrawable + free spot (no spot provided)
         marginUsed: '300.25',
         unrealizedPnl: '24.5', // 50.0 + (-25.5)

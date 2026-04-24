@@ -49,7 +49,8 @@ describe('usePerpsPaymentTokens', () => {
   };
 
   const mockAccountState: AccountState = {
-    availableBalance: '1000.50',
+    spendableBalance: '1000.50',
+    withdrawableBalance: '1000.50',
     marginUsed: '300.25',
     unrealizedPnl: '50.25',
     returnOnEquity: '0',
@@ -279,7 +280,8 @@ describe('usePerpsPaymentTokens', () => {
     it('handles zero Hyperliquid balance', () => {
       const zeroBalanceAccountState = {
         ...mockAccountState,
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
       };
 
       mockUsePerpsLiveAccount.mockReturnValue({

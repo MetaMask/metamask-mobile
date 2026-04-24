@@ -712,7 +712,7 @@ export class HyperLiquidSubscriptionService {
   }
 
   #hashAccountState(account: AccountState): string {
-    return `${account.availableBalance}:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
+    return `${account.spendableBalance}:${account.withdrawableBalance}:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
   }
 
   // Cache hashes to avoid recomputation
@@ -968,9 +968,14 @@ export class HyperLiquidSubscriptionService {
   #aggregateAccountStates(): AccountState {
     const subAccountBreakdown: Record<
       string,
-      { availableBalance: string; totalBalance: string }
+      {
+        spendableBalance: string;
+        withdrawableBalance: string;
+        totalBalance: string;
+      }
     > = {};
-    let totalAvailableBalance = 0;
+    let totalSpendableBalance = 0;
+    let totalWithdrawableBalance = 0;
     let totalBalance = 0;
     let totalMarginUsed = 0;
     let totalUnrealizedPnl = 0;
@@ -986,10 +991,12 @@ export class HyperLiquidSubscriptionService {
       ([currentDex, state]) => {
         const dexKey = currentDex === '' ? 'main' : currentDex;
         subAccountBreakdown[dexKey] = {
-          availableBalance: state.availableBalance,
+          spendableBalance: state.spendableBalance,
+          withdrawableBalance: state.withdrawableBalance,
           totalBalance: state.totalBalance,
         };
-        totalAvailableBalance += parseFloat(state.availableBalance);
+        totalSpendableBalance += parseFloat(state.spendableBalance);
+        totalWithdrawableBalance += parseFloat(state.withdrawableBalance);
         totalBalance += parseFloat(state.totalBalance);
         totalMarginUsed += parseFloat(state.marginUsed);
         totalUnrealizedPnl += parseFloat(state.unrealizedPnl);
@@ -1012,7 +1019,8 @@ export class HyperLiquidSubscriptionService {
     return addSpotBalanceToAccountState(
       {
         ...firstDexAccount,
-        availableBalance: totalAvailableBalance.toString(),
+        spendableBalance: totalSpendableBalance.toString(),
+        withdrawableBalance: totalWithdrawableBalance.toString(),
         totalBalance: totalBalance.toString(),
         marginUsed: totalMarginUsed.toString(),
         unrealizedPnl: totalUnrealizedPnl.toString(),

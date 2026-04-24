@@ -143,7 +143,8 @@ export function addSpotBalanceToAccountState(
   const freeSpot = Math.max(0, spotBalance - spotHold);
 
   const currentTotal = parseFloat(accountState.totalBalance);
-  const currentAvailable = parseFloat(accountState.availableBalance);
+  const currentSpendable = parseFloat(accountState.spendableBalance);
+  const currentWithdrawable = parseFloat(accountState.withdrawableBalance);
 
   // Preserve sentinel totals (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--')
   // rather than coercing them to NaN.
@@ -152,16 +153,14 @@ export function addSpotBalanceToAccountState(
   }
 
   if (spotBalance === 0) {
-    return {
-      ...accountState,
-      availableToTradeBalance: Number.isFinite(currentAvailable)
-        ? currentAvailable.toString()
-        : accountState.availableBalance,
-    };
+    return accountState;
   }
 
-  const availableToTrade = Number.isFinite(currentAvailable)
-    ? (currentAvailable + freeSpot).toString()
+  const nextSpendable = Number.isFinite(currentSpendable)
+    ? (currentSpendable + freeSpot).toString()
+    : freeSpot.toString();
+  const nextWithdrawable = Number.isFinite(currentWithdrawable)
+    ? (currentWithdrawable + freeSpot).toString()
     : freeSpot.toString();
 
   // Subtract spotHold to avoid double-counting on Unified/PM accounts:
@@ -172,7 +171,8 @@ export function addSpotBalanceToAccountState(
   return {
     ...accountState,
     totalBalance: nextTotal.toString(),
-    availableToTradeBalance: availableToTrade,
+    spendableBalance: nextSpendable,
+    withdrawableBalance: nextWithdrawable,
   };
 }
 
@@ -185,7 +185,8 @@ export function addSpotBalanceToAccountState(
  */
 export function aggregateAccountStates(states: AccountState[]): AccountState {
   const fallback: AccountState = {
-    availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    spendableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    withdrawableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
     unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
@@ -200,25 +201,15 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
     if (index === 0) {
       return { ...state };
     }
-    const accAvailableToTrade = parseFloat(
-      acc.availableToTradeBalance ?? acc.availableBalance,
-    );
-    const stateAvailableToTrade = parseFloat(
-      state.availableToTradeBalance ?? state.availableBalance,
-    );
-    const availableToTradeSum =
-      Number.isFinite(accAvailableToTrade) &&
-      Number.isFinite(stateAvailableToTrade)
-        ? (accAvailableToTrade + stateAvailableToTrade).toString()
-        : undefined;
 
     return {
-      availableBalance: (
-        parseFloat(acc.availableBalance) + parseFloat(state.availableBalance)
+      spendableBalance: (
+        parseFloat(acc.spendableBalance) + parseFloat(state.spendableBalance)
       ).toString(),
-      ...(availableToTradeSum !== undefined && {
-        availableToTradeBalance: availableToTradeSum,
-      }),
+      withdrawableBalance: (
+        parseFloat(acc.withdrawableBalance) +
+        parseFloat(state.withdrawableBalance)
+      ).toString(),
       totalBalance: (
         parseFloat(acc.totalBalance) + parseFloat(state.totalBalance)
       ).toString(),

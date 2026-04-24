@@ -65,7 +65,8 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
       : {}),
   })),
   adaptAccountStateFromSDK: jest.fn(() => ({
-    availableBalance: '1000.00',
+    spendableBalance: '1000.00',
+    withdrawableBalance: '1000.00',
     marginUsed: '500.00',
     unrealizedPnl: '100.00',
     returnOnEquity: '20.0',
@@ -3808,7 +3809,8 @@ describe('HyperLiquidSubscriptionService', () => {
   describe('spot-adjusted account balance parity', () => {
     it('includes spot balance exactly once in streamed totalBalance across multiple DEXs', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -3863,10 +3865,10 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls.at(-1)[0];
       expect(accountState.totalBalance).toBe('100.76531791');
-      expect(accountState.availableBalance).toBe('0');
+      expect(accountState.spendableBalance).toBe('0');
       expect(accountState.subAccountBreakdown).toEqual({
-        main: { availableBalance: '0', totalBalance: '0' },
-        xyz: { availableBalance: '0', totalBalance: '0' },
+        main: { spendableBalance: '0', totalBalance: '0' },
+        xyz: { spendableBalance: '0', totalBalance: '0' },
       });
       expect(mockSpotClearinghouseState).toHaveBeenCalledTimes(1);
 
@@ -3875,7 +3877,8 @@ describe('HyperLiquidSubscriptionService', () => {
 
     it('includes spot balance in webData2 (single-DEX) account updates without flickering', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        availableBalance: '50',
+        spendableBalance: '50',
+        withdrawableBalance: '50',
         totalBalance: '200',
         marginUsed: '10',
         unrealizedPnl: '5',
@@ -3923,7 +3926,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockCallback).toHaveBeenCalled();
       const firstUpdate = mockCallback.mock.calls.at(-1)[0];
       expect(firstUpdate.totalBalance).toBe('300.76531791');
-      expect(firstUpdate.availableBalance).toBe('50');
+      expect(firstUpdate.spendableBalance).toBe('50');
 
       // Simulate a second WebSocket tick — should still include spot balance,
       // not revert to perps-only 200.
@@ -3958,7 +3961,8 @@ describe('HyperLiquidSubscriptionService', () => {
     it('calculates positive ROE when unrealizedPnl is positive', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        availableBalance: '100',
+        spendableBalance: '100',
+        withdrawableBalance: '100',
         totalBalance: '1100',
         marginUsed: '1000',
         unrealizedPnl: '100',
@@ -4003,7 +4007,8 @@ describe('HyperLiquidSubscriptionService', () => {
     it('calculates negative ROE when unrealizedPnl is negative', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
         totalBalance: '950',
         marginUsed: '1000',
         unrealizedPnl: '-50',
@@ -4048,7 +4053,8 @@ describe('HyperLiquidSubscriptionService', () => {
     it('returns zero ROE when marginUsed is zero', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -4093,7 +4099,8 @@ describe('HyperLiquidSubscriptionService', () => {
     it('calculates correct ROE with mixed profit and loss positions', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        availableBalance: '75',
+        spendableBalance: '75',
+        withdrawableBalance: '75',
         totalBalance: '1575',
         marginUsed: '1500',
         unrealizedPnl: '75',
@@ -4139,7 +4146,8 @@ describe('HyperLiquidSubscriptionService', () => {
     it('calculates high ROE with large percentage gains', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        availableBalance: '200',
+        spendableBalance: '200',
+        withdrawableBalance: '200',
         totalBalance: '300',
         marginUsed: '100',
         unrealizedPnl: '200',
@@ -4184,7 +4192,8 @@ describe('HyperLiquidSubscriptionService', () => {
     it('stores raw ROE without rounding', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        availableBalance: '100',
+        spendableBalance: '100',
+        withdrawableBalance: '100',
         totalBalance: '433',
         marginUsed: '333',
         unrealizedPnl: '100',

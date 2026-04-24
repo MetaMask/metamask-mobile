@@ -4180,7 +4180,8 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            availableBalance: '5000',
+            spendableBalance: '5000',
+            withdrawableBalance: '5000',
           }),
           writable: true,
         });
@@ -4214,7 +4215,8 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            availableBalance: '5000',
+            spendableBalance: '5000',
+            withdrawableBalance: '5000',
           }),
           writable: true,
         });
@@ -9107,7 +9109,8 @@ describe('HyperLiquidProvider', () => {
 
         // Assert — all DEX queries failed, aggregateAccountStates([]) returns fallback
         expect(result).toEqual({
-          availableBalance: '--',
+          spendableBalance: '--',
+          withdrawableBalance: '--',
           totalBalance: '--',
           marginUsed: '--',
           unrealizedPnl: '--',

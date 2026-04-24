@@ -182,13 +182,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     [stopBalanceAnimation],
   );
 
-  // Order-entry surface reads availableToTradeBalance (withdrawable +
-  // unreserved spot collateral). Withdraw surfaces keep reading
-  // availableBalance directly.
-  const availableBalance =
-    perpsAccount?.availableToTradeBalance ??
-    perpsAccount?.availableBalance ??
-    '0';
+  const spendableBalance = perpsAccount?.spendableBalance ?? '0';
 
   // Show skeleton while loading initial account data
   if (isInitialLoading) {
@@ -271,7 +265,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {formatPerpsFiat(availableBalance, {
+                {formatPerpsFiat(spendableBalance, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,
                   stripTrailingZeros: false,
                 })}

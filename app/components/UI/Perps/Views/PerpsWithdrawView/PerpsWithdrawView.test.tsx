@@ -44,7 +44,8 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      availableBalance: '1000.00',
+      spendableBalance: '1000.00',
+      withdrawableBalance: '1000.00',
       marginUsed: '0.00',
       unrealizedPnl: '0.00',
       returnOnEquity: '0.00',
@@ -87,7 +88,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 // Mock hooks
 jest.mock('../../hooks', () => ({
   usePerpsAccount: jest.fn(() => ({
-    availableBalance: '$1000.00',
+    spendableBalance: '$1000.00',
+    withdrawableBalance: '$1000.00',
   })),
   usePerpsWithdrawQuote: jest.fn(() => ({
     formattedQuoteData: {

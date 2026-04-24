@@ -2540,7 +2540,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     const accountState = await infoClient.clearinghouseState(queryParams);
     const adapted = adaptAccountStateFromSDK(accountState);
-    return parseFloat(adapted.availableBalance);
+    return parseFloat(adapted.spendableBalance);
   }
 
   /**
@@ -2833,7 +2833,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const orderIsLong = isBuy;
 
       if (existingIsLong === orderIsLong) {
-        // Increasing position - HyperLiquid validates availableBalance >= totalRequiredMargin
+        // Increasing position - HyperLiquid validates spendableBalance >= totalRequiredMargin
         // BEFORE reallocating existing locked margin. Must transfer TOTAL margin temporarily.
         const existingSize = Math.abs(parseFloat(existingPosition.size));
         const existingMargin = parseFloat(existingPosition.marginUsed);
@@ -2949,7 +2949,7 @@ export class HyperLiquidProvider implements PerpsProvider {
             '🔄 HyperLiquidProvider: Auto-rebalancing excess margin back to main DEX',
             {
               dex: dexName,
-              availableBalance: postOrderBalance.toFixed(2),
+              spendableBalance: postOrderBalance.toFixed(2),
               desiredBuffer: desiredBuffer.toFixed(2),
               excessAmount: excessAmount.toFixed(2),
               destinationDex: transferInfo.sourceDex,
@@ -5727,7 +5727,8 @@ export class HyperLiquidProvider implements PerpsProvider {
           `DEX ${result.dex ?? 'main'} account state:`,
           {
             totalBalance: dexAccountState.totalBalance,
-            availableBalance: dexAccountState.availableBalance,
+            spendableBalance: dexAccountState.spendableBalance,
+            withdrawableBalance: dexAccountState.withdrawableBalance,
             marginUsed: dexAccountState.marginUsed,
             unrealizedPnl: dexAccountState.unrealizedPnl,
           },
@@ -5742,7 +5743,11 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Build per-sub-account breakdown (HIP-3 DEXs map to sub-accounts)
       const subAccountBreakdown: Record<
         string,
-        { availableBalance: string; totalBalance: string }
+        {
+          spendableBalance: string;
+          withdrawableBalance: string;
+          totalBalance: string;
+        }
       > = {};
       perpsStateResults.forEach((result) => {
         const { dex, data: perpsState } = result;
@@ -5750,7 +5755,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         const subAccountKey = dex ?? ''; // Empty string for main DEX
 
         subAccountBreakdown[subAccountKey] = {
-          availableBalance: dexAccountState.availableBalance,
+          spendableBalance: dexAccountState.spendableBalance,
+          withdrawableBalance: dexAccountState.withdrawableBalance,
           totalBalance: dexAccountState.totalBalance,
         };
       });
@@ -6832,9 +6838,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         'HyperLiquidProvider: CHECKING ACCOUNT BALANCE',
       );
       const accountState = await this.getAccountState();
-      const availableBalance = parseFloat(accountState.availableBalance);
+      const withdrawableBalance = parseFloat(accountState.withdrawableBalance);
       this.#deps.debugLogger.log('HyperLiquidProvider: ACCOUNT BALANCE', {
-        availableBalance,
+        withdrawableBalance,
+        spendableBalance: accountState.spendableBalance,
         totalBalance: accountState.totalBalance,
         marginUsed: accountState.marginUsed,
         unrealizedPnl: accountState.unrealizedPnl,
@@ -6852,13 +6859,13 @@ export class HyperLiquidProvider implements PerpsProvider {
       const withdrawAmount = parseFloat(params.amount);
       this.#deps.debugLogger.log('HyperLiquidProvider: WITHDRAWAL AMOUNT', {
         requestedAmount: withdrawAmount,
-        availableBalance,
-        sufficientBalance: withdrawAmount <= availableBalance,
+        withdrawableBalance,
+        sufficientBalance: withdrawAmount <= withdrawableBalance,
       });
 
       const balanceValidation = validateBalance(
         withdrawAmount,
-        availableBalance,
+        withdrawableBalance,
       );
       if (!balanceValidation.isValid) {
         this.#deps.debugLogger.log(
@@ -6866,13 +6873,54 @@ export class HyperLiquidProvider implements PerpsProvider {
           {
             error: balanceValidation.error,
             requestedAmount: withdrawAmount,
-            availableBalance,
-            difference: withdrawAmount - availableBalance,
+            withdrawableBalance,
+            difference: withdrawAmount - withdrawableBalance,
           },
         );
         throw new Error(balanceValidation.error);
       }
       this.#deps.debugLogger.log('✅ HyperLiquidProvider: BALANCE SUFFICIENT');
+
+      // Step 5b: If perps clearinghouse alone can't cover, sweep spot→perps.
+      // Honours the provider-agnostic withdrawableBalance contract: UI only
+      // sees one number and withdraw() handles the internal move.
+      const perpsWithdrawable = await this.#getBalanceForDex({ dex: null });
+      if (withdrawAmount > perpsWithdrawable) {
+        const shortfall = withdrawAmount - perpsWithdrawable;
+        this.#deps.debugLogger.log('HyperLiquidProvider: SWEEPING SPOT→PERPS', {
+          shortfall,
+          perpsWithdrawable,
+          withdrawAmount,
+        });
+        const transferResult = await exchangeClient.usdClassTransfer({
+          amount: shortfall.toFixed(USDC_DECIMALS),
+          toPerp: true,
+        });
+        if (transferResult.status !== 'ok') {
+          throw new Error(
+            `Spot→perps sweep failed: ${String(transferResult.status)}`,
+          );
+        }
+        // Poll clearinghouseState until the funds land on perps side.
+        // HL L1 spot↔perps moves are fast (<2s p95); 10s covers the tail.
+        const sweepTimeoutMs = 10000;
+        const sweepStart = Date.now();
+        let confirmed = false;
+        while (Date.now() - sweepStart < sweepTimeoutMs) {
+          const current = await this.#getBalanceForDex({ dex: null });
+          if (current >= withdrawAmount) {
+            confirmed = true;
+            break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+        if (!confirmed) {
+          throw new Error(
+            'Spot→perps sweep did not confirm before withdraw timeout',
+          );
+        }
+        this.#deps.debugLogger.log('✅ HyperLiquidProvider: SWEEP CONFIRMED');
+      }
 
       // Step 6: Execute withdrawal via HyperLiquid SDK (API call)
       this.#deps.debugLogger.log('HyperLiquidProvider: CALLING WITHDRAW3 API', {

@@ -19,9 +19,9 @@ export function PerpsWithdrawBalance() {
   const { account } = usePerpsLiveAccount();
 
   const balanceFormatted = useMemo(() => {
-    if (!account?.availableBalance) return formatPerpsFiat(0);
-    return formatPerpsFiat(parseCurrencyString(account.availableBalance));
-  }, [account?.availableBalance]);
+    if (!account?.withdrawableBalance) return formatPerpsFiat(0);
+    return formatPerpsFiat(parseCurrencyString(account.withdrawableBalance));
+  }, [account?.withdrawableBalance]);
 
   return (
     <Box alignItems={AlignItems.center} style={styles.container}>

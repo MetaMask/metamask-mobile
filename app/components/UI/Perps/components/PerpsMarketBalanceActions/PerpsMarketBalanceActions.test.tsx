@@ -311,7 +311,8 @@ const mockUseConfirmNavigation = useConfirmNavigation as jest.Mock;
 describe('PerpsMarketBalanceActions', () => {
   const defaultPerpsAccount = {
     totalBalance: '10.57',
-    availableBalance: '10.57',
+    spendableBalance: '10.57',
+    withdrawableBalance: '10.57',
     marginUsed: '0.00',
     totalUSDBalance: 10.57,
     positions: [],
@@ -510,7 +511,8 @@ describe('PerpsMarketBalanceActions', () => {
         account: {
           ...defaultPerpsAccount,
           totalBalance: '15.50',
-          availableBalance: '15.50',
+          spendableBalance: '15.50',
+          withdrawableBalance: '15.50',
         },
         isInitialLoading: false,
         isLoading: false,
@@ -576,7 +578,8 @@ describe('PerpsMarketBalanceActions', () => {
         account: {
           ...defaultPerpsAccount,
           totalBalance: '0',
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
         },
         isInitialLoading: false,
         isLoading: false,
@@ -623,7 +626,8 @@ describe('PerpsMarketBalanceActions', () => {
         account: {
           ...defaultPerpsAccount,
           totalBalance: '0.00',
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
         },
         isInitialLoading: false,
         isLoading: false,
