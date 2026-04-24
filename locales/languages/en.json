@@ -6424,7 +6424,17 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% cashback",
-      "get_now": "Get now"
+      "get_now": "Get now",
+      "enable_for_card": "Use Money account for card",
+      "enable_pending_title": "Connecting to card",
+      "enable_pending_description": "Sign and approve in the background. This may take a moment.",
+      "enable_success": "Your Money account is set up for MetaMask Card",
+      "enable_error": "Something went wrong. Try again.",
+      "debug_revoke_for_card": "Revoke delegation (debug)",
+      "debug_revoke_pending_title": "Revoking card delegation",
+      "debug_revoke_pending_description": "Using zero allowance. This may take a moment.",
+      "debug_revoke_success": "Delegation revoked (debug build)",
+      "debug_revoke_error": "Could not revoke delegation. Try again."
     },
     "what_you_get": {
       "title": "What you get",

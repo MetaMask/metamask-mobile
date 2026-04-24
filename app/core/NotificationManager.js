@@ -12,6 +12,7 @@ import ReviewManager from './ReviewManager';
 import { selectEvmTicker } from '../selectors/networkController';
 import { store } from '../store';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
+import TransactionTypes from './TransactionTypes';
 
 import Logger from '../util/Logger';
 import {
@@ -549,7 +550,11 @@ class NotificationManager {
     const { transactions } = TransactionController.state;
 
     if (
-      hasTransactionType(transactionMeta, SKIP_NOTIFICATION_TRANSACTION_TYPES)
+      hasTransactionType(
+        transactionMeta,
+        SKIP_NOTIFICATION_TRANSACTION_TYPES,
+      ) ||
+      transactionMeta.origin === TransactionTypes.MMM_CARD
     ) {
       return true;
     }

@@ -2,7 +2,9 @@ import type { CaipChainId, Json } from '@metamask/utils';
 import {
   CardStatus,
   CardType,
-  DelegationSettingsResponse,
+  type CardNetwork,
+  type DelegationPostApprovalParams,
+  type DelegationSettingsResponse,
 } from '../../../../components/UI/Card/types';
 
 export { CardStatus, CardType };
@@ -391,4 +393,18 @@ export interface ICardProvider {
   submitOnboardingStep?(step: OnboardingStep): Promise<OnboardingStepResult>;
 
   getOnChainAssets?(address: string): Promise<CardHomeData>;
+
+  /** GET /v1/delegation/token — step 1 of full EVM delegation. */
+  generateCardDelegationToken?(
+    network: CardNetwork,
+    address: string,
+    tokens: CardAuthTokens,
+    options?: { faucet?: boolean },
+  ): Promise<{ token: string; expiresAt: string; nonce: string }>;
+
+  /** POST /v1/delegation/evm/post-approval — after on-chain approval. */
+  completeCardEvmDelegation?(
+    params: DelegationPostApprovalParams,
+    tokens: CardAuthTokens,
+  ): Promise<{ success: boolean }>;
 }

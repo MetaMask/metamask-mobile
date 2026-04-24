@@ -15,6 +15,7 @@ import {
   CardLocation,
   CardStatus,
   type CardNetwork,
+  type DelegationPostApprovalParams,
 } from '../../../../../components/UI/Card/types';
 import type {
   CardFeatureFlag,
@@ -571,6 +572,34 @@ export class BaanxProvider implements ICardProvider {
       fundingOptions: this.buildFundingOptions(settings),
       supportedChains,
     };
+  }
+
+  // -- Card delegation (Money account on Card; mirrors CardSDK) --
+
+  async generateCardDelegationToken(
+    network: CardNetwork,
+    address: string,
+    tokens: CardAuthTokens,
+    options?: { faucet?: boolean },
+  ): Promise<{ token: string; expiresAt: string; nonce: string }> {
+    const faucet = options?.faucet ? '&faucet=true' : '';
+    const path = `/v1/delegation/token?network=${encodeURIComponent(network)}&address=${encodeURIComponent(address)}${faucet}`;
+    return this.service.request(path, {
+      method: 'GET',
+      tokenSet: tokens,
+      timeout: 30_000,
+    });
+  }
+
+  async completeCardEvmDelegation(
+    params: DelegationPostApprovalParams,
+    tokens: CardAuthTokens,
+  ): Promise<{ success: boolean }> {
+    return this.service.post<{ success: boolean }>(
+      '/v1/delegation/evm/post-approval',
+      params,
+      tokens,
+    );
   }
 
   // -- Funding Approval --

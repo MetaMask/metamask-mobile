@@ -1,5 +1,10 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+  WalletDevice,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { numberToHex, type Hex, type Json } from '@metamask/utils';
 import Logger from '../../../../util/Logger';
 import {
@@ -8,7 +13,10 @@ import {
   type CardControllerMessenger,
   type CardControllerState,
 } from './types';
-import type { CardLocation } from '../../../../components/UI/Card/types';
+import type {
+  CardLocation,
+  DelegationSettingsResponse,
+} from '../../../../components/UI/Card/types';
 import {
   CardProviderError,
   CardProviderErrorCode,
@@ -37,6 +45,13 @@ import {
 import { CardTokenStore } from './CardTokenStore';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
+import { findMonadUsdcDelegation } from './utils/findMonadUsdcDelegation';
+import { buildEvmSiweMessageForCardDelegation } from './utils/buildCardDelegationSiweMessage';
+import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
+import { BAANX_MAX_LIMIT } from '../../../../components/UI/Card/constants';
+import { safeToChecksumAddress } from '../../../../util/address';
+import { toTokenMinimalUnit } from '../../../../util/number';
+import TransactionTypes from '../../../../core/TransactionTypes';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -871,6 +886,148 @@ export class CardController extends BaseController<
         return result;
       },
     };
+  }
+
+  /**
+   * Enable the Money account for MetaMask Card on Monad USDC (full allowance).
+   * Skips the transaction confirmation sheet for the approval transaction.
+   * `delegationSettings` must be supplied by the caller (e.g. useMoneyAccountCardDelegation
+   * via useCardHomeData / selectCardDelegationSettings).
+   * Pass `delegationAmountHuman: '0'` to revoke approval (same flow, zero allowance).
+   * Does not change the legacy CardSDK / useCardDelegation spending-limit flow.
+   */
+  async enableMoneyAccountOnCard(
+    moneyAccountAddress: string,
+    delegationSettings: DelegationSettingsResponse,
+    options?: { delegationAmountHuman?: string },
+  ): Promise<void> {
+    const tokens = await this.requireValidTokens();
+    const provider = this.getActiveProvider();
+    if (
+      !provider.generateCardDelegationToken ||
+      !provider.completeCardEvmDelegation
+    ) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account card delegation is not supported for this provider',
+      );
+    }
+
+    const fromAddress = safeToChecksumAddress(moneyAccountAddress);
+    if (!fromAddress) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Invalid Money account address',
+      );
+    }
+
+    const monadUsdc = findMonadUsdcDelegation(delegationSettings);
+    if (!monadUsdc) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Monad USDC is not available for card delegation',
+      );
+    }
+
+    const { token: delegationJWT, nonce } =
+      await provider.generateCardDelegationToken('monad', fromAddress, tokens);
+
+    const signatureMessage = buildEvmSiweMessageForCardDelegation(
+      fromAddress,
+      nonce,
+      monadUsdc.caipChainId,
+    );
+
+    const dataHex = `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`;
+    const sigHash: string = await this.messenger.call(
+      'KeyringController:signPersonalMessage',
+      { data: dataHex, from: fromAddress },
+    );
+
+    const humanDelegationAmount =
+      options?.delegationAmountHuman ?? BAANX_MAX_LIMIT;
+    const amountInMinimalUnits = toTokenMinimalUnit(
+      humanDelegationAmount,
+      monadUsdc.decimals,
+    ).toString();
+    const approvalData = encodeErc20ApproveCalldata(
+      monadUsdc.delegationContract,
+      amountInMinimalUnits,
+    );
+
+    const chainNumber = parseInt(
+      monadUsdc.caipChainId.split(':')[1] ?? '143',
+      10,
+    );
+    const hexChainId = numberToHex(chainNumber) as Hex;
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      hexChainId,
+    );
+
+    const addResult = (await this.messenger.call(
+      'TransactionController:addTransaction',
+      {
+        from: fromAddress,
+        to: monadUsdc.tokenAddress,
+        data: approvalData,
+      },
+      {
+        networkClientId,
+        origin: TransactionTypes.MMM_CARD,
+        type: TransactionType.tokenMethodApprove,
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        requireApproval: false,
+      },
+    )) as { result: Promise<string>; transactionMeta: TransactionMeta };
+
+    const { result, transactionMeta: trxMeta } = addResult;
+    const actualTxHash = await result;
+    const { id: transactionId } = trxMeta;
+
+    await new Promise<void>((resolve, reject) => {
+      const handler = (transactionMeta: TransactionMeta) => {
+        if (transactionMeta.id !== transactionId) {
+          return;
+        }
+        if (transactionMeta.status === TransactionStatus.confirmed) {
+          this.messenger.unsubscribe(
+            'TransactionController:transactionConfirmed',
+            handler,
+          );
+          resolve();
+        } else if (transactionMeta.status === TransactionStatus.failed) {
+          this.messenger.unsubscribe(
+            'TransactionController:transactionConfirmed',
+            handler,
+          );
+          reject(
+            new CardProviderError(
+              CardProviderErrorCode.Unknown,
+              transactionMeta.error?.message ?? 'Approval transaction failed',
+            ),
+          );
+        }
+      };
+      this.messenger.subscribe(
+        'TransactionController:transactionConfirmed',
+        handler,
+      );
+    });
+
+    await provider.completeCardEvmDelegation(
+      {
+        address: fromAddress,
+        network: 'monad',
+        currency: 'usdc',
+        amount: humanDelegationAmount,
+        txHash: actualTxHash,
+        sigHash,
+        sigMessage: signatureMessage,
+        token: delegationJWT,
+      },
+      tokens,
+    );
   }
 
   // -- Push Provisioning --

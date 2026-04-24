@@ -2,7 +2,12 @@ import React, { useCallback } from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -29,6 +34,8 @@ import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Secti
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
+import { strings } from '../../../../../../locales/i18n';
+import { useMoneyAccountCardDelegation } from '../../hooks/useMoneyAccountCardDelegation';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
@@ -54,6 +61,12 @@ const MoneyHomeView = () => {
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
+  const {
+    canEnable: canEnableMoneyAccountOnCard,
+    isLoading: isEnablingMoneyAccountOnCard,
+    enableMoneyAccountOnCard,
+    revokeMoneyAccountOnCard,
+  } = useMoneyAccountCardDelegation();
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -178,6 +191,29 @@ const MoneyHomeView = () => {
           onGetNowPress={handleGetNowPress}
           onHeaderPress={handleHeaderPress}
         />
+        {canEnableMoneyAccountOnCard && moneyAddress && (
+          <Box twClassName="px-4 pb-2 gap-2">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Md}
+              isDisabled={isEnablingMoneyAccountOnCard}
+              onPress={enableMoneyAccountOnCard}
+              twClassName="w-full"
+            >
+              {strings('money.metamask_card.enable_for_card')}
+            </Button>
+
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              isDisabled={isEnablingMoneyAccountOnCard}
+              onPress={revokeMoneyAccountOnCard}
+              twClassName="w-full"
+            >
+              {strings('money.metamask_card.debug_revoke_for_card')}
+            </Button>
+          </Box>
+        )}
         <Divider />
         {isMilestone && (
           <>

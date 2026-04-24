@@ -15,7 +15,10 @@ import type {
 } from '@metamask/keyring-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
-import type { TransactionControllerAddTransactionAction } from '@metamask/transaction-controller';
+import type {
+  TransactionControllerAddTransactionAction,
+  TransactionControllerTransactionConfirmedEvent,
+} from '@metamask/transaction-controller';
 import type { CardHomeData } from './provider-types';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
@@ -71,7 +74,8 @@ type CardControllerAllowedActions =
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
-  | KeyringControllerUnlockEvent;
+  | KeyringControllerUnlockEvent
+  | TransactionControllerTransactionConfirmedEvent;
 
 export type CardControllerMessenger = Messenger<
   typeof CARD_CONTROLLER_NAME,
