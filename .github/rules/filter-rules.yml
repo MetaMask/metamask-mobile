@@ -1,0 +1,56 @@
+# Filter rules for determining `ci` workflow requirements
+# Used with dorny/paths-filter action
+#
+# Each filter creates two outputs:
+# - {filter_name}: 'true'/'false' if any changed files match any filter rules
+# - {filter_name}_count: number of matching files
+#
+# E2E STRATEGY: Use separate filters to detect different file types non E2E related.
+# Conservative approach - add only files that safely allow skipping E2E tests.
+
+
+android:
+  - 'android/**'                       # All Android project files
+
+ios:
+  - 'ios/**'                           # All iOS project files
+
+shared:
+  - 'package.json'                     # If native deps change
+  - 'metro.config.js'                  # Metro bundler affects both
+  - 'tsconfig.json'                    # TypeScript config affects both
+  - 'babel.config.js'                  # Transpilation affects both
+  - 'yarn.lock'                        # Dependency changes affect both
+  - 'app/**'                           # Shared app files
+  - 'tests/**'                         # E2E test files (separate from mobile builds)
+  - 'sentry*.properties*'              # Sentry configs
+  - 'appwright/**'                     # Appwright test files
+  - 'scripts/build.sh'                 # Build script changes
+  - 'scripts/setup.mjs'                # Setup script changes
+  - 'patches/**'                       # Legacy patch changes
+  - '.yarn/patches/**'                 # Yarn patch changes
+  - '.github/workflows/**'             # GitHub workflow changes
+  - '.github/scripts/**'               # GitHub workflow script changes
+  - 'react-native.config.js'           # React Native config changes
+
+ignore:
+  - '**/*.md'                          # Documentation files
+  - 'docs/**'                          # Documentation directory
+  - '**/*.yml'                         # Workflow files
+  - '.github/**'                       # GitHub rest of .github directory changes
+  - 'LICENSE'                          # License file
+  - 'README.md'                        # Main README
+  - 'RELEASE.MD'                       # Release notes
+  - 'CHANGELOG.md'                     # Changelog
+  - 'attribution.txt'                  # Attribution file
+  - '*.svg'                            # SVG files (like architecture.svg)
+  - '*.png'                            # PNG files (like logo.png, image.png)
+  - 'codecov.yml'                      # Code coverage config
+  - 'crowdin.yml'                      # Translation config
+  - 'bitrise.yml'                      # CI config (non-GitHub)
+  - 'sonar-project.properties'         # SonarQube config
+  - 'scripts/*'                        # Build/utility scripts (except build.sh which is in shared)
+  - 'scripts/*/**'                     # Subdirectories in scripts/
+
+catch_all:
+  - '**/*'                             # Matches everything for conservative fallback

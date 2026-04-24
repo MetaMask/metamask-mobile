@@ -1,0 +1,163 @@
+# Centralised "should this job run?" workflow.
+
+name: Get workflow and job requirements
+
+on:
+  workflow_call:
+    outputs:
+      skip_jobs_in_merge_queue:
+        description: 'Whether all jobs should be skipped in merge-queue (branch is already up-to-date with latest commit)'
+        value: ${{ jobs.detect.outputs.skip_jobs_in_merge_queue }}
+      skip_e2e:
+        description: 'Whether all E2E builds and tests should be skipped. True for any skip signal (labels or commit tag). Check block_merge_for_e2e_readiness separately to know if merge is also blocked'
+        value: ${{ jobs.detect.outputs.skip_e2e }}
+      android_e2e_needed:
+        description: 'Whether Android E2E tests and builds should run (true when Android-specific or shared files changed)'
+        value: ${{ jobs.detect.outputs.android_e2e_needed }}
+      ios_e2e_needed:
+        description: 'Whether iOS E2E tests and builds should run (true when iOS-specific or shared files changed)'
+        value: ${{ jobs.detect.outputs.ios_e2e_needed }}
+      changed_files:
+        description: 'Space-separated list of changed file paths. Smoke test workflows use this to run modified spec files twice for flakiness detection (catches flaky tests before they land on main)'
+        value: ${{ jobs.detect.outputs.changed_files }}
+      block_merge_for_e2e_readiness:
+        description: 'Whether "PR-not-ready-for-E2E" label is still applied; blocks merge while true'
+        value: ${{ jobs.detect.outputs.block_merge_for_e2e_readiness }}
+
+jobs:
+  detect:
+    name: Detect requirements
+    runs-on: ubuntu-latest
+    outputs:
+      skip_jobs_in_merge_queue: ${{ steps.skip-merge-queue.outputs.up-to-date == 'true' && 'true' || 'false' }}
+      skip_e2e: ${{ steps.set-outputs.outputs.builds != 'true' && 'true' || 'false' }}
+      android_e2e_needed: ${{ steps.set-outputs.outputs.android_final }}
+      ios_e2e_needed: ${{ steps.set-outputs.outputs.ios_final }}
+      changed_files: ${{ steps.set-outputs.outputs.changed_files }}
+      block_merge_for_e2e_readiness: ${{ steps.check-labels.outputs.BLOCK_MERGE }}
+    env:
+      # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
+      # For a `push` event, the head commit hash is `github.sha`.
+      HEAD_COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check pull request merge queue status
+        id: skip-merge-queue
+        if: github.event_name == 'merge_group'
+        uses: MetaMask/github-tools/.github/actions/check-skip-merge-queue@v1
+
+      - name: Checkout repository
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          ref: ${{ env.HEAD_COMMIT_HASH }}
+
+      - name: Check skip commit tag
+        id: skip-tag
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        run: |
+          echo "SKIP=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "pull_request" ]] || [[ "${{ github.event_name }}" == "merge_group" ]]; then
+            if git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}" | grep --fixed-strings --quiet '[skip-e2e]'; then
+              echo "SKIP=true" >> "$GITHUB_OUTPUT"
+              echo "-> SKIP=true due to [skip-e2e] tag in last commit message"
+            fi
+          fi
+
+      - name: Check PR labels
+        id: check-labels
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "SKIP_E2E=false" >> "$GITHUB_OUTPUT"
+          echo "BLOCK_MERGE=false" >> "$GITHUB_OUTPUT"
+
+          LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
+
+          if echo "$LABELS" | grep -qx "skip-e2e"; then
+            echo "SKIP_E2E=true" >> "$GITHUB_OUTPUT"
+            echo "-> SKIP_E2E=true due to 'skip-e2e' label on PR"
+          fi
+
+          if echo "$LABELS" | grep -qx "PR-not-ready-for-E2E"; then
+            echo "SKIP_E2E=true" >> "$GITHUB_OUTPUT"
+            echo "BLOCK_MERGE=true" >> "$GITHUB_OUTPUT"
+            echo "-> SKIP_E2E=true and BLOCK_MERGE=true due to 'PR-not-ready-for-E2E' label on PR"
+          fi
+
+      - name: Filter changed files
+        id: filter
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        # version 4.0.0
+        uses: dorny/paths-filter@9d7afb8d214ad99e78fbd4247752c4caed2b6e4c
+        with:
+          filters: .github/rules/filter-rules.yml
+          list-files: shell
+
+      - name: Compute E2E flags
+        id: set-outputs
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          SHOULD_SKIP_E2E: ${{ steps.skip-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
+          HAS_SHARED: ${{ steps.filter.outputs.shared }}
+          HAS_ANDROID: ${{ steps.filter.outputs.android }}
+          HAS_IOS: ${{ steps.filter.outputs.ios }}
+          IGNORE_FILES: ${{ steps.filter.outputs.ignore_files }}
+          CATCH_ALL_FILES: ${{ steps.filter.outputs.catch_all_files }}
+        run: |
+          set -euo pipefail
+
+          ANDROID=false
+          IOS=false
+          CHANGED=""
+          MSG=""
+
+          if [[ "$SHOULD_SKIP_E2E" == "true" ]]; then
+            MSG="Skipping E2E builds"
+          elif [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
+            MSG="Building both platforms (scheduled run)"
+            ANDROID=true; IOS=true
+          elif [[ "$HAS_SHARED" == "true" ]]; then
+            MSG="Building both platforms (shared files changes)"
+            ANDROID=true; IOS=true
+            CHANGED="$CATCH_ALL_FILES"
+          elif [[ -z "${CATCH_ALL_FILES// }" ]]; then
+            MSG="Ignoring - no changes detected"
+          elif [[ "$IGNORE_FILES" == "$CATCH_ALL_FILES" ]]; then
+            MSG="Ignoring - no mobile-impacting changes (pure ignore)"
+          elif [[ "$HAS_ANDROID" == "true" && "$HAS_IOS" == "true" ]]; then
+            MSG="Building both platforms (mixed changes)"
+            ANDROID=true; IOS=true
+            CHANGED="$CATCH_ALL_FILES"
+          elif [[ "$HAS_ANDROID" == "true" ]]; then
+            MSG="Building Android only (mixed changes)"
+            ANDROID=true
+            CHANGED="$CATCH_ALL_FILES"
+          elif [[ "$HAS_IOS" == "true" ]]; then
+            MSG="Building iOS only (mixed changes)"
+            IOS=true
+            CHANGED="$CATCH_ALL_FILES"
+          else
+            MSG="Building both platforms (unclassified changes)"
+            ANDROID=true; IOS=true
+            CHANGED="$CATCH_ALL_FILES"
+          fi
+
+          BUILDS=false
+          [[ "$ANDROID" == "true" || "$IOS" == "true" ]] && BUILDS=true
+
+          echo "$MSG"
+          {
+            echo "android_final=$ANDROID"
+            echo "ios_final=$IOS"
+            echo "builds=$BUILDS"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "changed_files<<GH_EOF"
+            printf '%s\n' "$CHANGED"
+            echo "GH_EOF"
+          } >> "$GITHUB_OUTPUT"

@@ -16,23 +16,16 @@ concurrency:
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
-  check-skip-merge-queue:
-    name: Check if pull request can skip merge queue
-    runs-on: ubuntu-latest
-    outputs:
-      skip-merge-queue: ${{ steps.check-skip-merge-queue.outputs.up-to-date }}
-    steps:
-      - name: Check pull request merge queue status
-        id: check-skip-merge-queue
-        if: github.event_name == 'merge_group'
-        uses: MetaMask/github-tools/.github/actions/check-skip-merge-queue@v1
+  get_requirements:
+    name: Get workflow and job requirements
+    uses: ./.github/workflows/get-requirements.yml
 
   check-diff:
     name: Check diff
     runs-on: macos-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -81,9 +74,9 @@ jobs:
   dedupe:
     name: Dedupe
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -117,9 +110,9 @@ jobs:
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -146,9 +139,9 @@ jobs:
   scripts:
     name: Run `${{ matrix.scripts }}`
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     strategy:
       matrix:
         scripts:
@@ -189,9 +182,9 @@ jobs:
   js-bundle-size-check:
     name: JS bundle size check
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -267,9 +260,9 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     steps:
       - uses: actions/checkout@v4
       - name: Download actionlint
@@ -283,9 +276,9 @@ jobs:
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     strategy:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -446,9 +439,9 @@ jobs:
   component-view-tests:
     name: Component view tests
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     strategy:
       matrix:
         shard: [1, 2]
@@ -490,15 +483,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  needs_e2e_build:
-    uses: ./.github/workflows/needs-e2e-build.yml
-
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true') && !github.event.pull_request.head.repo.fork }}
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' && needs.get_requirements.outputs.skip_e2e != 'true' && !github.event.pull_request.head.repo.fork }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     continue-on-error: true
     permissions:
       contents: read
@@ -538,15 +528,16 @@ jobs:
     name: 'Build Android APKs'
     if: >-
       ${{
+        needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' &&
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
-        (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
+        (needs.get_requirements.outputs.android_e2e_needed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
@@ -556,14 +547,14 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.get_requirements.outputs.android_e2e_needed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    needs: [get_requirements, build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -575,37 +566,38 @@ jobs:
     name: 'Build iOS Apps'
     if: >-
       ${{
+        needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' &&
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
-        (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
+        (needs.get_requirements.outputs.ios_e2e_needed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
-    needs: [needs_e2e_build, build-ios-apps, smart-e2e-selection]
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' && github.event_name != 'merge_group' && (needs.get_requirements.outputs.ios_e2e_needed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    needs: [get_requirements, build-ios-apps, smart-e2e-selection]
     steps:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.get_requirements.outputs.ios_e2e_needed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -617,14 +609,14 @@ jobs:
 
   e2e-smoke-tests-android-flask:
     name: 'Android Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.get_requirements.outputs.android_e2e_needed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    needs: [get_requirements, build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
     with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -634,14 +626,14 @@ jobs:
 
   e2e-smoke-tests-ios-flask:
     name: 'iOS Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.get_requirements.outputs.ios_e2e_needed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios-flask.yml
     with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -652,11 +644,11 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue != 'true' && github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.get_requirements.outputs.ios_e2e_needed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
@@ -857,18 +849,17 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     needs:
-      - check-skip-merge-queue
+      - get_requirements
       - all-jobs-pass
-      - needs_e2e_build
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
       - e2e-smoke-tests-android-flask
       - e2e-smoke-tests-ios-flask
     env:
-      SKIPPED: ${{ needs.check-skip-merge-queue.outputs.skip-merge-queue == 'true' }}
+      SKIPPED: ${{ needs.get_requirements.outputs.skip_jobs_in_merge_queue == 'true' }}
     steps:
       - name: Block merge while PR-not-ready-for-E2E label is applied
-        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'PR-not-ready-for-E2E') }}
+        if: ${{ needs.get_requirements.outputs.block_merge_for_e2e_readiness == 'true' }}
         run: |
           echo "::error::The 'PR-not-ready-for-E2E' label is still applied. Remove it to trigger E2E tests before merging."
           exit 1
@@ -886,7 +877,7 @@ jobs:
           fi
 
           # Check E2E jobs only if they should have run
-          if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
+          if [[ "${{ needs.get_requirements.outputs.skip_e2e }}" != "true" ]]; then
             # Accept both 'success' and 'skipped' as valid results
             # 'skipped' occurs during merge_group events or when jobs are intentionally skipped
             # Only fail on 'failure' or 'cancelled'
