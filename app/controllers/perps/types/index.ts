@@ -228,10 +228,12 @@ export type AccountState = {
   spendableBalance: string;
   /**
    * Max USD that can leave this venue to the user's external wallet.
-   * The provider may perform internal moves (e.g. spot→perps sweep) to honor
-   * a withdraw up to this amount; UI does not branch on provider.
-   * HL Unified: withdrawable + freeSpotUSDC
-   * HL Standard: withdrawable
+   * UI reads this value without branching on provider; the provider
+   * contract guarantees HL's own abstraction (Unified) or the direct
+   * perps-clearinghouse (Standard) is what actually settles the
+   * withdraw — no client-side spot→perps sweep is performed.
+   * HL Unified: withdrawable + freeSpotUSDC (HL withdraw3 draws from the unified ledger server-side)
+   * HL Standard: withdrawable (perps-clearinghouse only; spot is a separate ledger)
    * MYX: walletBalance
    */
   withdrawableBalance: string;
