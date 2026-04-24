@@ -34,6 +34,9 @@ export async function submitSwapUnifiedUI(
     timeout: 60000,
   });
 
+  // Dismiss the keypad so quote details (slippage, confirm) are not obscured
+  await QuoteView.dismissKeypad();
+
   // Set custom slippage if provided
   if (options?.slippage) {
     await SlippageModal.setCustomSlippage(options.slippage);

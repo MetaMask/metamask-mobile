@@ -3,14 +3,18 @@ import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import { isSafeChainId, toHex } from '@metamask/controller-utils';
 import type { NetworkConfiguration } from '@metamask/network-controller';
+import URLParse from 'url-parse';
+import { isWebUri } from 'valid-url';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectUseSafeChainsListValidation } from '../../../../../selectors/preferencesController';
 import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import {
+  isPrivateConnection,
   isValidNetworkName,
   isWhitelistedSymbol,
 } from '../../../../../util/networks';
+import { compareSanitizedUrl } from '../../../../../util/sanitizeUrl';
 import { regex } from '../../../../../util/regex';
 import Logger from '../../../../../util/Logger';
 import AppConstants from '../../../../../core/AppConstants';
@@ -22,6 +26,58 @@ import type {
   NetworkFormState,
   ValidationState,
 } from '../NetworkDetailsView.types';
+
+/**
+ * Returns an error message if the RPC does not return eth_chainId matching the network,
+ * or if the endpoint cannot be reached. Shared by save submit and RPC bottom sheet add.
+ */
+async function getRpcEndpointChainIdMatchErrorMessage(
+  rpcUrl: string,
+  formChainId: string,
+  parsedChainId: string,
+): Promise<string | undefined> {
+  let endpointChainId: string | undefined;
+  let providerError: unknown;
+
+  try {
+    endpointChainId = await jsonRpcRequest(
+      templateInfuraRpc(rpcUrl),
+      'eth_chainId',
+    );
+  } catch (err) {
+    Logger.error(
+      err as Error,
+      'Failed to fetch the chainId from the endpoint.',
+    );
+    providerError = err;
+  }
+
+  if (providerError || typeof endpointChainId !== 'string') {
+    return strings('app_settings.failed_to_fetch_chain_id');
+  }
+
+  if (parsedChainId !== endpointChainId) {
+    let displayEndpointId = endpointChainId;
+    if (!formChainId.startsWith('0x')) {
+      try {
+        const endpointChainIdNumber = new BigNumber(endpointChainId, 16);
+        if (endpointChainIdNumber.isNaN()) {
+          throw new Error('Invalid endpointChainId');
+        }
+        displayEndpointId = endpointChainIdNumber.toString(10);
+      } catch (err) {
+        Logger.error(err as Error, {
+          endpointChainId,
+          message: 'Failed to convert endpoint chain ID to decimal',
+        });
+      }
+    }
+    return strings('app_settings.endpoint_returned_different_chain_id', {
+      chainIdReturned: displayEndpointId,
+    });
+  }
+  return undefined;
+}
 
 export interface UseNetworkValidationReturn extends ValidationState {
   validateChainId: (form: NetworkFormState) => Promise<void>;
@@ -39,6 +95,12 @@ export interface UseNetworkValidationReturn extends ValidationState {
     chainToMatch?: SafeChain | null,
   ) => void;
   validateRpcAndChainId: (form: NetworkFormState) => void;
+  /** Full RPC checks for add-RPC bottom sheet (RpcUrlInput rules + eth_chainId). */
+  validateNewRpcEndpointForSheet: (
+    rpcUrl: string,
+    stateChainId: string,
+    existingFormRpcUrls: string[],
+  ) => Promise<{ ok: true } | { ok: false; message: string }>;
   disabledByChainId: (form: NetworkFormState) => boolean;
   disabledByName: (form: NetworkFormState) => boolean;
   disabledBySymbol: (form: NetworkFormState) => boolean;
@@ -215,46 +277,11 @@ export const useNetworkValidation = (): UseNetworkValidationReturn => {
       parsedChainId: string,
       rpcUrl: string,
     ): Promise<boolean> => {
-      let errorMessage: string | undefined;
-      let endpointChainId: string | undefined;
-      let providerError: unknown;
-
-      try {
-        endpointChainId = await jsonRpcRequest(
-          templateInfuraRpc(rpcUrl),
-          'eth_chainId',
-        );
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          'Failed to fetch the chainId from the endpoint.',
-        );
-        providerError = err;
-      }
-
-      if (providerError || typeof endpointChainId !== 'string') {
-        errorMessage = strings('app_settings.failed_to_fetch_chain_id');
-      } else if (parsedChainId !== endpointChainId) {
-        if (!formChainId.startsWith('0x')) {
-          try {
-            const endpointChainIdNumber = new BigNumber(endpointChainId, 16);
-            if (endpointChainIdNumber.isNaN()) {
-              throw new Error('Invalid endpointChainId');
-            }
-            endpointChainId = endpointChainIdNumber.toString(10);
-          } catch (err) {
-            Logger.error(err as Error, {
-              endpointChainId,
-              message: 'Failed to convert endpoint chain ID to decimal',
-            });
-          }
-        }
-        errorMessage = strings(
-          'app_settings.endpoint_returned_different_chain_id',
-          { chainIdReturned: endpointChainId },
-        );
-      }
-
+      const errorMessage = await getRpcEndpointChainIdMatchErrorMessage(
+        rpcUrl,
+        formChainId,
+        parsedChainId,
+      );
       if (errorMessage) {
         setWarningChainId(errorMessage);
         return false;
@@ -262,6 +289,84 @@ export const useNetworkValidation = (): UseNetworkValidationReturn => {
       return true;
     },
     [],
+  );
+
+  const validateNewRpcEndpointForSheet = useCallback(
+    async (
+      rpcUrl: string,
+      stateChainId: string,
+      existingFormRpcUrls: string[],
+    ): Promise<{ ok: true } | { ok: false; message: string }> => {
+      const trimmed = rpcUrl.trim();
+      if (!trimmed) {
+        return { ok: false, message: strings('app_settings.required') };
+      }
+
+      if (!stateChainId?.trim()) {
+        return {
+          ok: false,
+          message: strings('app_settings.chain_id_required'),
+        };
+      }
+
+      for (const existing of existingFormRpcUrls) {
+        if (compareSanitizedUrl(trimmed, existing)) {
+          return {
+            ok: false,
+            message: strings('app_settings.invalid_rpc_url'),
+          };
+        }
+      }
+
+      if (!isWebUri(trimmed)) {
+        const appendedRpc = `http://${trimmed}`;
+        if (isWebUri(appendedRpc)) {
+          return {
+            ok: false,
+            message: strings('app_settings.invalid_rpc_prefix'),
+          };
+        }
+        return { ok: false, message: strings('app_settings.invalid_rpc_url') };
+      }
+
+      const isRpcExists = await checkIfRpcUrlExists(trimmed);
+      if (isRpcExists.length > 0) {
+        return { ok: false, message: strings('app_settings.invalid_rpc_url') };
+      }
+
+      const isNetworkExists = await checkIfNetworkExists(trimmed);
+      if (isNetworkExists.length > 0) {
+        return {
+          ok: false,
+          message: strings('app_settings.url_associated_to_another_chain_id'),
+        };
+      }
+
+      const url = new URLParse(trimmed);
+      if (!isPrivateConnection(url.hostname) && url.protocol === 'http:') {
+        return {
+          ok: false,
+          message: strings('app_settings.invalid_rpc_prefix'),
+        };
+      }
+
+      const formChainId = stateChainId.trim().toLowerCase();
+      let parsedChainId = formChainId;
+      if (!parsedChainId.startsWith('0x')) {
+        parsedChainId = `0x${parseInt(parsedChainId, 10).toString(16)}`;
+      }
+
+      const chainErr = await getRpcEndpointChainIdMatchErrorMessage(
+        trimmed,
+        formChainId,
+        parsedChainId,
+      );
+      if (chainErr) {
+        return { ok: false, message: chainErr };
+      }
+      return { ok: true };
+    },
+    [checkIfNetworkExists, checkIfRpcUrlExists],
   );
 
   // ---- Symbol validation --------------------------------------------------
@@ -375,6 +480,7 @@ export const useNetworkValidation = (): UseNetworkValidationReturn => {
     validateSymbol,
     validateName,
     validateRpcAndChainId,
+    validateNewRpcEndpointForSheet,
     disabledByChainId,
     disabledByName,
     disabledBySymbol,

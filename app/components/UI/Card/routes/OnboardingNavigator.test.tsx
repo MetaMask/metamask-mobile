@@ -261,7 +261,7 @@ describe('OnboardingNavigator', () => {
       it('does not render Stack Navigator', () => {
         const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
 
-        expect(queryByTestId('stack-navigator')).toBeNull();
+        expect(queryByTestId('stack-navigator')).not.toBeOnTheScreen();
       });
     });
   });
@@ -286,7 +286,7 @@ describe('OnboardingNavigator', () => {
           );
 
           // Verify the navigator renders (not loading)
-          expect(queryByTestId('activity-indicator')).toBeNull();
+          expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
           const stackNavigator = queryByTestId('stack-navigator');
           expect(stackNavigator).not.toBeNull();
           expect(stackNavigator?.props.initialRouteName).toBe(
@@ -310,7 +310,7 @@ describe('OnboardingNavigator', () => {
             <OnboardingNavigator />,
           );
 
-          expect(queryByTestId('activity-indicator')).toBeNull();
+          expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
           // Fallback to SIGN_UP when verificationState is missing
           const stackNavigator = queryByTestId('stack-navigator');
           expect(stackNavigator).not.toBeNull();
@@ -573,7 +573,7 @@ describe('OnboardingNavigator', () => {
       );
     });
 
-    it('routes to SIGN_UP when cardUserPhase is NOT ACCOUNT but contactVerificationId is missing', () => {
+    it('routes to SET_PHONE_NUMBER when cardUserPhase is PHONE_NUMBER regardless of contactVerificationId', () => {
       mockUseParams.mockReturnValue({ cardUserPhase: 'PHONE_NUMBER' });
       mockUseSelector.mockReturnValue('onboarding-123');
       mockUseCardSDK.mockReturnValue({
@@ -591,15 +591,20 @@ describe('OnboardingNavigator', () => {
       const stackNavigator = queryByTestId('stack-navigator');
       expect(stackNavigator).not.toBeNull();
       expect(stackNavigator?.props.initialRouteName).toBe(
-        Routes.CARD.ONBOARDING.SIGN_UP,
+        Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
       );
     });
 
-    it('routes to SET_PHONE_NUMBER when cardUserPhase is PHONE_NUMBER and contactVerificationId exists', () => {
-      mockUseParams.mockReturnValue({ cardUserPhase: 'PHONE_NUMBER' });
+    it('routes to PERSONAL_DETAILS when cardUserPhase is PHYSICAL_ADDRESS, user is VERIFIED, countryOfNationality is null, and contactVerificationId is null', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PHYSICAL_ADDRESS' });
       mockUseSelector.mockReturnValue('onboarding-123');
       mockUseCardSDK.mockReturnValue({
-        user: { id: 'user-123', contactVerificationId: 'contact-123' },
+        user: {
+          id: 'user-123',
+          verificationState: 'VERIFIED',
+          countryOfNationality: null,
+          contactVerificationId: null,
+        },
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
@@ -613,7 +618,7 @@ describe('OnboardingNavigator', () => {
       const stackNavigator = queryByTestId('stack-navigator');
       expect(stackNavigator).not.toBeNull();
       expect(stackNavigator?.props.initialRouteName).toBe(
-        Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
       );
     });
 
@@ -1158,7 +1163,7 @@ describe('OnboardingNavigator', () => {
       );
 
       expect(getByTestId('activity-indicator')).toBeTruthy();
-      expect(queryByTestId('stack-navigator')).toBeNull();
+      expect(queryByTestId('stack-navigator')).not.toBeOnTheScreen();
     });
 
     it('does not show loading indicator when onboardingId is null (new user flow)', () => {
@@ -1175,7 +1180,7 @@ describe('OnboardingNavigator', () => {
 
       const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
 
-      expect(queryByTestId('activity-indicator')).toBeNull();
+      expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
       const stackNavigator = queryByTestId('stack-navigator');
       expect(stackNavigator).not.toBeNull();
       expect(stackNavigator?.props.initialRouteName).toBe(
@@ -1235,7 +1240,7 @@ describe('OnboardingNavigator', () => {
         </NavigationContainer>,
       );
 
-      expect(queryByTestId('activity-indicator')).toBeNull();
+      expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
       const stackNavigator = queryByTestId('stack-navigator');
       expect(stackNavigator).not.toBeNull();
       expect(stackNavigator?.props.initialRouteName).toBe(
@@ -1443,6 +1448,27 @@ describe('OnboardingNavigator', () => {
         expect.objectContaining({
           screen: Routes.CARD.MODALS.CONFIRM_MODAL,
         }),
+      );
+    });
+
+    it('does not show keep going modal when user is null even with cardUserPhase set', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PHYSICAL_ADDRESS' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: null,
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn().mockResolvedValue(undefined),
+        isReturningSession: false,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.anything(),
       );
     });
 

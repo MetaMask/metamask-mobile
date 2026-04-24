@@ -1,6 +1,7 @@
 import {
   IconColor,
   IconName,
+  IconAlertSeverity,
   TextColor,
 } from '@metamask/design-system-react-native';
 import {
@@ -15,8 +16,23 @@ export interface ResultTypeConfig {
   label: string;
   textColor: TextColor;
   subtitle?: string;
+  /** Feature tag icon (used in SecurityTrustScreen, SecurityTrustEntryCard) */
   icon?: IconName;
   iconColor?: IconColor;
+  iconAlertSeverity?: IconAlertSeverity;
+  /** Inline badge configuration (used in TrendingTokenRowItem, AssetOverviewContent). null = no inline badge */
+  badge?: {
+    icon: IconName;
+    iconColor: IconColor;
+    iconAlertSeverity?: IconAlertSeverity;
+    label: string | null;
+    bg: string | null;
+    textColor?: TextColor;
+  } | null;
+  /** Title for bottom sheet display */
+  sheetTitle?: string;
+  /** Description for bottom sheet display (may include token symbol placeholder) */
+  getSheetDescription?: (tokenSymbol: string) => string;
 }
 
 export const getResultTypeConfig = (
@@ -30,6 +46,18 @@ export const getResultTypeConfig = (
         subtitle: strings('security_trust.subtitle_known'),
         icon: IconName.SecurityTick,
         iconColor: IconColor.SuccessDefault,
+        iconAlertSeverity: IconAlertSeverity.Success,
+        badge: {
+          icon: IconName.VerifiedFilled,
+          iconColor: IconColor.PrimaryDefault,
+          iconAlertSeverity: undefined,
+          label: null,
+          bg: null,
+          textColor: undefined,
+        },
+        sheetTitle: strings('security_trust.verified_token_title'),
+        getSheetDescription: (symbol) =>
+          strings('security_trust.verified_token_description', { symbol }),
       };
     case 'Benign':
       return {
@@ -38,6 +66,8 @@ export const getResultTypeConfig = (
         subtitle: strings('security_trust.subtitle_no_issues'),
         icon: IconName.SecurityTick,
         iconColor: IconColor.SuccessDefault,
+        iconAlertSeverity: IconAlertSeverity.Success,
+        badge: null,
       };
     case 'Warning':
     case 'Spam':
@@ -47,14 +77,40 @@ export const getResultTypeConfig = (
         subtitle: strings('security_trust.subtitle_suspicious'),
         icon: IconName.Warning,
         iconColor: IconColor.WarningDefault,
+        iconAlertSeverity: IconAlertSeverity.Warning,
+        badge: {
+          icon: IconName.Warning,
+          iconColor: IconColor.WarningDefault,
+          iconAlertSeverity: IconAlertSeverity.Warning,
+          label: strings('security_trust.risky'),
+          bg: 'bg-warning-muted',
+          textColor: TextColor.WarningDefault,
+        },
+        sheetTitle: strings('security_trust.risky_token_title'),
+        getSheetDescription: (symbol) =>
+          strings('security_trust.risky_token_description', { symbol }),
       };
     case 'Malicious':
       return {
         label: strings('security_trust.malicious_label'),
         textColor: TextColor.ErrorDefault,
         subtitle: strings('security_trust.subtitle_malicious'),
-        icon: IconName.Danger,
+        icon: IconName.Error,
         iconColor: IconColor.ErrorDefault,
+        iconAlertSeverity: IconAlertSeverity.Error,
+        badge: {
+          icon: IconName.Danger,
+          iconColor: IconColor.ErrorDefault,
+          iconAlertSeverity: IconAlertSeverity.Error,
+          label: strings('security_trust.malicious'),
+          bg: 'bg-error-muted',
+          textColor: TextColor.ErrorDefault,
+        },
+        sheetTitle: strings('security_trust.malicious_token_title'),
+        getSheetDescription: (symbol) =>
+          strings('security_trust.malicious_token_sheet_description', {
+            symbol,
+          }),
       };
     default:
       return {

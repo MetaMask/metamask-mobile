@@ -41,8 +41,8 @@ describe('DepositPhoneField', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with default props', () => {
-    const { toJSON } = render(
+  it('renders with US flag and calling code for US region', () => {
+    const { getByText } = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
@@ -51,11 +51,12 @@ describe('DepositPhoneField', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('🇺🇸')).toBeOnTheScreen();
+    expect(getByText('+1')).toBeOnTheScreen();
   });
 
-  it('renders correctly with error message', () => {
-    const { toJSON } = render(
+  it('renders with error message', () => {
+    const { getByText } = render(
       <DepositPhoneField
         label="Phone Number"
         onChangeText={mockOnChangeText}
@@ -65,58 +66,46 @@ describe('DepositPhoneField', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Invalid phone number')).toBeOnTheScreen();
   });
 
-  it('renders correctly with value', () => {
-    const { toJSON } = render(
-      <DepositPhoneField
-        label="Phone Number"
-        onChangeText={mockOnChangeText}
-        value="+15551234567"
-        regions={[]}
-      />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly with different region', () => {
+  it('renders with German flag and calling code for EUR region', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: MOCK_EUR_REGION,
       setSelectedRegion: mockSetSelectedRegion,
     });
 
-    const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
+    const { getByText } = render(<DepositPhoneField {...defaultProps} />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('🇩🇪')).toBeOnTheScreen();
+    expect(getByText('+49')).toBeOnTheScreen();
   });
 
-  it('renders correctly after input change', () => {
-    const { getByTestId, toJSON } = render(
-      <DepositPhoneField
-        label="Phone Number"
-        onChangeText={mockOnChangeText}
-        value=""
-        regions={[]}
-      />,
-    );
+  it('updates displayed region flag after region is selected from modal', () => {
+    const testRegions = [MOCK_US_REGION, MOCK_EUR_REGION];
+    let capturedOnRegionSelect: ((region: DepositRegion) => void) | undefined;
 
-    const input = getByTestId('deposit-phone-field-test-id');
-    fireEvent.changeText(input, '5551234567');
+    mockNavigation.navigate.mockImplementation((_, params) => {
+      if (params?.params?.onRegionSelect) {
+        capturedOnRegionSelect = params.params.onRegionSelect;
+      }
+    });
 
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly after flag button press', () => {
-    const { getByRole, toJSON } = render(
-      <DepositPhoneField {...defaultProps} />,
+    const { getByRole, getByText } = render(
+      <DepositPhoneField {...defaultProps} regions={testRegions} />,
     );
 
     const flagButton = getByRole('button');
     fireEvent.press(flagButton);
 
-    expect(toJSON()).toMatchSnapshot();
+    act(() => {
+      if (capturedOnRegionSelect) {
+        capturedOnRegionSelect(MOCK_EUR_REGION);
+      }
+    });
+
+    expect(getByText('🇩🇪')).toBeOnTheScreen();
+    expect(getByText('+49')).toBeOnTheScreen();
   });
 
   it('opens region selector modal when flag is pressed', () => {
@@ -145,84 +134,6 @@ describe('DepositPhoneField', () => {
         trackSelection: false,
       },
     });
-  });
-
-  it('updates phone region when region is selected from modal', () => {
-    const testRegions = [MOCK_US_REGION, MOCK_EUR_REGION];
-    let capturedOnRegionSelect: ((region: DepositRegion) => void) | undefined;
-
-    mockNavigation.navigate.mockImplementation((_, params) => {
-      if (params?.params?.onRegionSelect) {
-        capturedOnRegionSelect = params.params.onRegionSelect;
-      }
-    });
-
-    const { getByRole, toJSON } = render(
-      <DepositPhoneField {...defaultProps} regions={testRegions} />,
-    );
-
-    const flagButton = getByRole('button');
-    fireEvent.press(flagButton);
-
-    act(() => {
-      if (capturedOnRegionSelect) {
-        capturedOnRegionSelect(MOCK_EUR_REGION);
-      }
-    });
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly with onSubmitEditing callback', () => {
-    const mockOnSubmitEditing = jest.fn();
-    const { toJSON } = render(
-      <DepositPhoneField
-        label="Phone Number"
-        onChangeText={mockOnChangeText}
-        value=""
-        onSubmitEditing={mockOnSubmitEditing}
-        regions={[]}
-      />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly with unsupported region', () => {
-    mockUseDepositSDK.mockReturnValue({
-      selectedRegion: MOCK_UNSUPPORTED_REGION,
-      setSelectedRegion: mockSetSelectedRegion,
-    });
-
-    const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly with long phone number', () => {
-    const { toJSON } = render(
-      <DepositPhoneField
-        label="Phone Number"
-        onChangeText={mockOnChangeText}
-        value="+155512345678901234"
-        regions={[]}
-      />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly with special characters in phone number', () => {
-    const { toJSON } = render(
-      <DepositPhoneField
-        label="Phone Number"
-        onChangeText={mockOnChangeText}
-        value="+1(555)123-4567"
-        regions={[]}
-      />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('undefined region handling', () => {

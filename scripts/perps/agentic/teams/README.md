@@ -56,7 +56,7 @@ Flow JSON files live in `teams/<team>/flows/`. They are automatically discovered
 node scripts/perps/agentic/validate-flow-schema.js
 
 # Validate a single flow
-node scripts/perps/agentic/validate-flow-schema.js teams/perps/flows/trade-open-market.json
+node scripts/perps/agentic/validate-flow-schema.js scripts/perps/agentic/teams/perps/flows/trade-open-market.json
 ```
 
 ## Evals
@@ -83,10 +83,10 @@ Recipes live in `teams/<team>/recipes/`. They compose multiple flows via the `ca
 
 ```bash
 # Run a recipe against the live app
-bash scripts/perps/agentic/validate-recipe.sh teams/perps/recipes/full-trade-lifecycle.json
+bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/teams/perps/recipes/full-trade-lifecycle.json
 
 # Dry-run (prints steps without executing)
-bash scripts/perps/agentic/validate-recipe.sh teams/perps/recipes/full-trade-lifecycle.json --dry-run
+bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/teams/perps/recipes/full-trade-lifecycle.json --dry-run
 ```
 
 See `teams/perps/recipes/full-trade-lifecycle.json` for an example that chains wallet home → mainnet → perps → testnet → open position → TP/SL → close.

@@ -10,6 +10,7 @@ describe('PriceImpactDescription', () => {
         <PriceImpactDescription
           content="bridge.price_impact_error_description"
           formattedPriceImpact="-30%"
+          isDanger={false}
         />,
       );
 
@@ -27,6 +28,7 @@ describe('PriceImpactDescription', () => {
         <PriceImpactDescription
           content="bridge.price_impact_warning_description"
           formattedPriceImpact="-10%"
+          isDanger={false}
         />,
       );
 
@@ -44,6 +46,7 @@ describe('PriceImpactDescription', () => {
         <PriceImpactDescription
           content="bridge.price_impact_info_description"
           formattedPriceImpact={undefined}
+          isDanger={false}
         />,
       );
 
@@ -59,6 +62,7 @@ describe('PriceImpactDescription', () => {
         <PriceImpactDescription
           content="bridge.price_impact_error_description"
           formattedPriceImpact={undefined}
+          isDanger={false}
         />,
       );
 
@@ -76,6 +80,7 @@ describe('PriceImpactDescription', () => {
         <PriceImpactDescription
           content="bridge.price_impact_warning_description"
           formattedPriceImpact="0"
+          isDanger={false}
         />,
       );
 
@@ -86,6 +91,65 @@ describe('PriceImpactDescription', () => {
           }),
         ),
       ).toBeTruthy();
+    });
+  });
+
+  describe('fiat loss banner', () => {
+    it('shows the banner text when isDanger=true and formattedPriceImpactFiat is provided', () => {
+      const { getByText } = render(
+        <PriceImpactDescription
+          content="bridge.price_impact_error_description"
+          formattedPriceImpact="96.40%"
+          formattedPriceImpactFiat="$7.05"
+          isDanger
+        />,
+      );
+
+      expect(
+        getByText(
+          strings('bridge.price_impact_fiat_alert', {
+            priceImpactFiat: '$7.05',
+          }),
+        ),
+      ).toBeTruthy();
+    });
+
+    it('does not show the banner text when isDanger=false even with formattedPriceImpactFiat', () => {
+      const { queryByText } = render(
+        <PriceImpactDescription
+          content="bridge.price_impact_warning_description"
+          formattedPriceImpact="10%"
+          formattedPriceImpactFiat="$1.00"
+          isDanger={false}
+        />,
+      );
+
+      expect(
+        queryByText(
+          strings('bridge.price_impact_fiat_alert', {
+            priceImpactFiat: '$1.00',
+          }),
+        ),
+      ).toBeNull();
+    });
+
+    it('does not show the banner text when isDanger=true but formattedPriceImpactFiat is undefined', () => {
+      const { queryByText } = render(
+        <PriceImpactDescription
+          content="bridge.price_impact_error_description"
+          formattedPriceImpact="96.40%"
+          formattedPriceImpactFiat={undefined}
+          isDanger
+        />,
+      );
+
+      expect(
+        queryByText(
+          strings('bridge.price_impact_fiat_alert', {
+            priceImpactFiat: undefined,
+          }),
+        ),
+      ).toBeNull();
     });
   });
 });

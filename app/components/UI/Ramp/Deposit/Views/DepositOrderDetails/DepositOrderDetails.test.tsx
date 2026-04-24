@@ -41,6 +41,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../../../reducers/fiatOrders', () => ({
   getOrderById: jest.fn(),
   updateFiatOrder: jest.fn().mockReturnValue({ type: 'FIAT_UPDATE_ORDER' }),
+  getDetectedGeolocation: jest.fn(),
 }));
 
 function mockGetUpdatedOrder(order: FiatOrder) {
@@ -109,7 +110,8 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Order ID')).toBeOnTheScreen();
+    expect(screen.getByText('Total')).toBeOnTheScreen();
   });
 
   it('renders error state correctly', () => {
@@ -123,7 +125,8 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Order ID')).toBeOnTheScreen();
+    expect(screen.getByText('Total')).toBeOnTheScreen();
   });
 
   it('renders processing state correctly', () => {
@@ -137,7 +140,8 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Order ID')).toBeOnTheScreen();
+    expect(screen.getByText('Total')).toBeOnTheScreen();
   });
 
   it('renders no order found state', () => {
@@ -150,7 +154,8 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.queryByText('Order ID')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Total')).not.toBeOnTheScreen();
   });
 
   it('renders loading state correctly', () => {
@@ -164,7 +169,8 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.queryByText('Order ID')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Total')).not.toBeOnTheScreen();
   });
 
   it('renders an error screen if a CREATED order cannot be polled on load', async () => {
@@ -184,7 +190,9 @@ describe('DepositOrderDetails Component', () => {
       });
     });
 
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText('There was an error with your deposit order'),
+    ).toBeOnTheScreen();
   });
 
   it('calls handleOnRefresh successfully on mount for CREATED orders', async () => {

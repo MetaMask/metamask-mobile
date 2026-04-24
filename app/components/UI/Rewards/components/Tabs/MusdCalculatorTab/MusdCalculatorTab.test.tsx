@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import MusdCalculatorTab from './MusdCalculatorTab';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 const mockGoToSwaps = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -28,18 +31,7 @@ jest.mock('../../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
 }));
 
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
-
-jest.mock('../../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
-  },
-}));
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../../../util/theme');
@@ -51,6 +43,12 @@ jest.mock('../../../../../../util/theme', () => {
 describe('MusdCalculatorTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   it('renders all calculator UI elements', () => {
@@ -80,7 +78,7 @@ describe('MusdCalculatorTab', () => {
       uri: expect.stringContaining('link.metamask.io/buy'),
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      'rewards_page_button_clicked',
+      MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
       button_type: 'buy_musd',
@@ -94,7 +92,7 @@ describe('MusdCalculatorTab', () => {
 
     expect(mockGoToSwaps).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      'rewards_page_button_clicked',
+      MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
       button_type: 'swap_to_musd',

@@ -1,6 +1,6 @@
 import React from 'react';
 import QRAccountDisplay from './index';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import backgroundState from '../../../util/test/initial-background-state.json';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -83,13 +83,15 @@ describe('QRAccountDisplay', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderScreen(
+    renderScreen(
       () => <TestWrapper accountAddress={ACCOUNT} />,
       { name: 'QRAccountDisplay' },
       // @ts-expect-error initialBackgroundState throws error
       { state: initialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByTestId('qr-account-display-copy-button'),
+    ).toBeOnTheScreen();
   });
 
   it('copies address to clipboard when copy button is pressed', async () => {
@@ -139,7 +141,7 @@ describe('QRAccountDisplay', () => {
 
     // Assert
     expect(getByText('Solana Account')).toBeOnTheScreen();
-    expect(queryByText(/^0x/)).toBeNull();
+    expect(queryByText(/^0x/)).not.toBeOnTheScreen();
     expect(getByText(/7EcDhS/)).toBeOnTheScreen();
     expect(getByText(/CFLtV$/)).toBeOnTheScreen();
   });
@@ -255,7 +257,7 @@ describe('QRAccountDisplay', () => {
     );
 
     // Assert - no specific description text should be present
-    expect(queryByText(/description/i)).toBeNull();
+    expect(queryByText(/description/i)).not.toBeOnTheScreen();
   });
 
   it('displays truncated address with correct format', () => {

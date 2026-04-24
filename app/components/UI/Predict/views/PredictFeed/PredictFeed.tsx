@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { useSelector } from 'react-redux';
 import {
   View,
   Pressable,
@@ -54,6 +55,7 @@ import {
   getPredictSearchSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { deduplicateSeriesMarkets } from '../../utils/feed';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import { usePredictTabs, type FeedTab } from '../../hooks/usePredictTabs';
@@ -71,6 +73,11 @@ import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
 import PredictOffline from '../../components/PredictOffline';
+import FeaturedCarousel from '../../components/FeaturedCarousel';
+import {
+  selectPredictFeaturedCarouselEnabledFlag,
+  selectPredictUpDownEnabledFlag,
+} from '../../selectors/featureFlags';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { strings } from '../../../../../../locales/i18n';
@@ -154,6 +161,9 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const isFeaturedCarouselEnabled = useSelector(
+    selectPredictFeaturedCarouselEnabledFlag,
+  );
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: headerTranslateY.value }],
@@ -185,6 +195,11 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         onLayout={onHeaderLayout}
       >
         <PredictFeedHeader />
+        {isFeaturedCarouselEnabled && (
+          <Box twClassName="pb-3">
+            <FeaturedCarousel />
+          </Box>
+        )}
       </Animated.View>
       <View ref={tabBarRef} onLayout={onTabBarLayout}>
         <PredictFeedTabBar
@@ -238,6 +253,9 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     }
   }, [isActive, hasEverBeenActive]);
 
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
+
   const {
     marketData,
     isFetching,
@@ -246,7 +264,12 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     refetch,
     fetchMore,
     isFetchingMore,
-  } = usePredictMarketData({ category, pageSize: 20, customQueryParams });
+  } = usePredictMarketData({
+    category,
+    pageSize: 20,
+    customQueryParams,
+    refine,
+  });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -486,10 +509,14 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
   const isDebouncing = searchQuery !== debouncedSearchQuery;
 
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
+
   const { marketData, isFetching, error, refetch } = usePredictMarketData({
     category: 'trending',
     q: debouncedSearchQuery,
     pageSize: 20,
+    refine,
   });
 
   const isSearchLoading = isDebouncing || isFetching;

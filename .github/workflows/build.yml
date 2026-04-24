@@ -172,8 +172,8 @@ jobs:
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
-    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: Cirrus macOS Tahoe (has Xcode 26.x)
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
       - name: Validate version-bump commit
@@ -265,9 +265,9 @@ jobs:
 
       - name: Select Xcode (iOS)
         if: matrix.platform == 'ios'
-        env:
-          XCODE_VERSION: '16.3'
-        run: sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app"
+        run: |
+          sudo xcodes select 26.3
+          xcodebuild -version
 
       # TapAndPay SDK Setup (Android only)
       - name: Clone TapAndPay SDK
@@ -358,7 +358,7 @@ jobs:
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
 
-      # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
+      # Signing: uses role + secret from builds.yml (skipped when builds.yml omits signing, e.g. simulator-only flask-dev / qa-dev)
       - name: Configure signing certificates
         if: needs.prepare.outputs.signing_aws_role != ''
         uses: ./.github/actions/configure-signing
@@ -368,6 +368,51 @@ jobs:
           platform: ${{ matrix.platform }}
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
+
+      # Temporary: iOS signing from GitHub Environment secrets (no AWS).
+      # Bridges main-dev until signing is fully migrated to AWS. Remove this step once it uses AWS-based signing.
+      - name: Configure iOS signing from GitHub secrets
+        if: matrix.platform == 'ios' && inputs.build_name == 'main-dev'
+        run: |
+          echo "📦 Configuring iOS code signing for dev builds..."
+
+          CERT_PATH="$RUNNER_TEMP/build_certificate.p12"
+          PROFILE_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          CERT_PW="${IOS_SIGNING_KEYSTORE_PASSWORD}"
+
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "🧹 Removing existing keychain..."
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
+
+          echo "$IOS_SIGNING_KEYSTORE" | base64 --decode > "$CERT_PATH"
+          echo "$IOS_SIGNING_PROFILE" | base64 --decode > "$PROFILE_PATH"
+          echo "✅ Decoded .p12 and provisioning profile"
+
+          security create-keychain -p "$CERT_PW" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$CERT_PW" "$KEYCHAIN_PATH"
+
+          echo "🔐 Importing certificate..."
+          if ! security import "$CERT_PATH" -P "$CERT_PW" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"; then
+            echo "❌ Failed to import certificate."
+            exit 1
+          fi
+          echo "✅ Certificate imported"
+
+          security set-key-partition-list -S apple-tool:,apple: -k "$CERT_PW" "$KEYCHAIN_PATH" 2>/dev/null || true
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
+          echo "✅ Installed provisioning profile"
+
+          # Add keychain to search list (codesign searches this; default-keychain alone is insufficient)
+          # Word splitting is intentional; security list-keychains -s expects separate args
+          # shellcheck disable=SC2046
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"' | xargs)
+          security default-keychain -s "$KEYCHAIN_PATH"
+          echo "✅ Keychain added to search list and set as default"
 
       # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
       - name: Configure Node path for Xcode
@@ -396,6 +441,8 @@ jobs:
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
+        env:
+          GIT_BRANCH: ${{ inputs.source_branch || github.ref_name }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 55
@@ -408,7 +455,7 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Rename build artifacts (zips simulator .app and .xcarchive; writes ios_deploy_path / ios_archive_path / android_*_path outputs)
+      # Rename build artifacts (ios_simulator_path / ios_ipa_path / ios_archive_path / android_*_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
         if: success()
         id: rename
@@ -420,19 +467,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-${{ inputs.build_name }}
-          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          path: ${{ steps.rename.outputs.ios_simulator_path }}
           if-no-files-found: error
 
       - name: Upload iOS IPA
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa-${{ inputs.build_name }}
-          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          path: ${{ steps.rename.outputs.ios_ipa_path }}
           if-no-files-found: error
 
       - name: Upload iOS xcarchive
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-xcarchive-${{ inputs.build_name }}
@@ -440,14 +487,14 @@ jobs:
           if-no-files-found: error
 
       - name: Upload iOS sourcemap
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_sourcemap_path }}
           if-no-files-found: warn
 
-      # Dev builds (CONFIGURATION=Debug): APK only
+      # Dev builds (CONFIGURATION=Debug): APK + test APK (for E2E)
       - name: Upload Android APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
         uses: actions/upload-artifact@v4
@@ -455,6 +502,14 @@ jobs:
           name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
+
+      - name: Upload Android test APK (dev)
+        if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug' && steps.rename.outputs.android_test_apk_path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-apk-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_test_apk_path }}
+          if-no-files-found: warn
 
       # Release builds: APK and AAB as separate artifacts
       - name: Upload Android APK (release)

@@ -74,7 +74,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Deposit screens:** `'deposit_input'` | `'deposit_review'`
   - **Market list screens:** `'market_list'` | `'market_list_all'` | `'market_list_crypto'` | `'market_list_stocks'`
   - **Position management:** `'close_all_positions'` | `'cancel_all_orders'` | `'increase_exposure'` | `'add_margin'` | `'remove_margin'`
-  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'`
+  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from
@@ -554,6 +554,52 @@ usePerpsEventTracking({
   },
 });
 ```
+
+---
+
+## Compliance (OFAC) Blocking Tracking
+
+When a wallet is blocked by an OFAC compliance check, the `compliance_block_notif` screen type is used. The event fires automatically via `AccessRestrictedContext` whenever `showAccessRestrictedModal()` is called — no per-action tracking is needed.
+
+### Properties
+
+- `screen_type`: `'compliance_block_notif'`
+
+### Constant
+
+```typescript
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
+// PERPS_EVENT_VALUE.SCREEN_TYPE.COMPLIANCE_BLOCK_NOTIF === 'compliance_block_notif'
+```
+
+### Where the event fires
+
+The event is tracked in `showAccessRestrictedModal` inside `AccessRestrictedContext.tsx`. All call sites — `useComplianceGate` and every gated action handler — call this method, so coverage is automatic.
+
+```typescript
+// app/components/UI/Compliance/contexts/AccessRestrictedContext.tsx
+const showAccessRestrictedModal = useCallback(() => {
+  notificationAsync(NotificationFeedbackType.Warning);
+  setIsVisible(true);
+  track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+      PERPS_EVENT_VALUE.SCREEN_TYPE.COMPLIANCE_BLOCK_NOTIF,
+  });
+}, [track]);
+```
+
+### Difference from geo-blocking
+
+|                    | Geo-blocking                       | Compliance blocking                            |
+| ------------------ | ---------------------------------- | ---------------------------------------------- |
+| `screen_type`      | `geo_block_notif`                  | `compliance_block_notif`                       |
+| Tracked per action | Yes — each handler tracks `source` | No — tracked once in context                   |
+| Source property    | Identifies the blocked action      | Not included (all routes share the same modal) |
+| Feature flag       | Geo eligibility                    | `complianceEnabled`                            |
 
 ---
 

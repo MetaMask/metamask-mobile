@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DeFiPositionsList from './DeFiPositionsList';
@@ -29,6 +30,8 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const mockDeFiExecutePoll = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     NetworkEnablementController: {
@@ -39,6 +42,9 @@ jest.mock('../../../core/Engine', () => ({
       disableNetwork: jest.fn(),
       enableNetworkInNamespace: jest.fn(),
       enableAllPopularNetworks: jest.fn(),
+    },
+    DeFiPositionsController: {
+      _executePoll: (...args: unknown[]) => mockDeFiExecutePoll(...args),
     },
   },
 }));
@@ -675,30 +681,36 @@ describe('DeFiPositionsList', () => {
     });
   });
 
-  describe('Homepage Redesign V1 Feature', () => {
-    it('removes scrolling container in favour of global scroll container when isHomepageRedesignV1Enabled is true', async () => {
+  describe('Pull to refresh (full view)', () => {
+    beforeEach(() => {
+      mockDeFiExecutePoll.mockClear();
+    });
+
+    it('calls DeFiPositionsController._executePoll when refresh control fires', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      const scrollView = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      const { refreshControl } = scrollView.props;
+      expect(refreshControl).toBeTruthy();
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockDeFiExecutePoll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Homepage scroll container behaviour', () => {
+    it('removes scrolling container when rendering on homepage (not full view)', async () => {
       const { findByTestId, queryByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
-        {
-          state: {
-            ...mockInitialState,
-            engine: {
-              ...mockInitialState.engine,
-              backgroundState: {
-                ...mockInitialState.engine.backgroundState,
-                RemoteFeatureFlagController: {
-                  remoteFeatureFlags: {
-                    homepageRedesignV1: {
-                      enabled: true,
-                      minimumVersion: '1.0.0',
-                    },
-                  },
-                  cacheTimestamp: 0,
-                },
-              },
-            },
-          },
-        },
+        { state: mockInitialState },
       );
 
       const container = await findByTestId(
@@ -717,7 +729,7 @@ describe('DeFiPositionsList', () => {
       expect(scrollView).toBeNull();
     });
 
-    it('renders empty state without scroll container when isHomepageRedesignV1Enabled is true', async () => {
+    it('renders empty state without scroll container on homepage', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
       );
@@ -728,26 +740,7 @@ describe('DeFiPositionsList', () => {
 
       const { findByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
-        {
-          state: {
-            ...mockInitialState,
-            engine: {
-              ...mockInitialState.engine,
-              backgroundState: {
-                ...mockInitialState.engine.backgroundState,
-                RemoteFeatureFlagController: {
-                  remoteFeatureFlags: {
-                    homepageRedesignV1: {
-                      enabled: true,
-                      minimumVersion: '1.0.0',
-                    },
-                  },
-                  cacheTimestamp: 0,
-                },
-              },
-            },
-          },
-        },
+        { state: mockInitialState },
       );
 
       const container = await findByTestId(
@@ -756,7 +749,7 @@ describe('DeFiPositionsList', () => {
       expect(container).toBeOnTheScreen();
     });
 
-    it('renders multiple positions without scroll container when isHomepageRedesignV1Enabled is true', async () => {
+    it('renders multiple positions without scroll container on homepage', async () => {
       // Override mock to return both enabled chains
       const allPositions =
         mockInitialState.engine.backgroundState.DeFiPositionsController
@@ -786,15 +779,6 @@ describe('DeFiPositionsList', () => {
                     [MOCK_CHAIN_ID_2]: true,
                   },
                 },
-                RemoteFeatureFlagController: {
-                  remoteFeatureFlags: {
-                    homepageRedesignV1: {
-                      enabled: true,
-                      minimumVersion: '1.0.0',
-                    },
-                  },
-                  cacheTimestamp: 0,
-                },
               },
             },
           },
@@ -813,25 +797,6 @@ describe('DeFiPositionsList', () => {
         WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
       );
       expect(scrollView).toBeNull();
-    });
-
-    it('renders scroll container when isHomepageRedesignV1Enabled is false', async () => {
-      const { findByTestId } = renderWithProvider(
-        <DeFiPositionsList tabLabel="DeFi" />,
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const listContainer = await findByTestId(
-        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
-      );
-      expect(listContainer).toBeOnTheScreen();
-
-      const scrollView = await findByTestId(
-        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
-      );
-      expect(scrollView).toBeOnTheScreen();
     });
   });
 });

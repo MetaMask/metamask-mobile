@@ -82,7 +82,7 @@ jobs:
       report-artifact-name: drift-report
       workflow-run-url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
       pr-title-prefix: 'test: Sync Feature Flag Registry'
-      pr-label: 'team-qa,no-changelog'
+      pr-label: 'team-qa,no-changelog,skip-smart-e2e-selection'
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 

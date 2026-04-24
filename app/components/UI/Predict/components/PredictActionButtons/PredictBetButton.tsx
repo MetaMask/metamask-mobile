@@ -13,6 +13,7 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
   disabled = false,
   testID,
   size,
+  layout = 'stacked',
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -39,6 +40,8 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
     return variant === 'yes' ? 'text-success-default' : 'text-error-default';
   };
 
+  const textStyle = tw.style('font-medium text-center', getTextColor());
+
   return (
     <Button
       onPress={onPress}
@@ -48,15 +51,18 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
       isFullWidth
       size={size}
     >
-      <Text
-        style={tw.style('font-medium text-center', getTextColor())}
-        numberOfLines={1}
-      >
-        {label.toUpperCase()}
-      </Text>
-      <Text style={tw.style('font-medium text-center', getTextColor())}>
-        {price}¢
-      </Text>
+      {layout === 'inline' ? (
+        <Text style={textStyle} numberOfLines={1}>
+          {label.toUpperCase()} · {price}¢
+        </Text>
+      ) : (
+        <>
+          <Text style={textStyle} numberOfLines={1}>
+            {label.toUpperCase()}
+          </Text>
+          <Text style={textStyle}>{price}¢</Text>
+        </>
+      )}
     </Button>
   );
 };

@@ -45,6 +45,14 @@ jest.mock('../../hooks/usePredictEligibility', () => ({
   usePredictEligibility: () => mockUsePredictEligibility(),
 }));
 
+const mockOpenBuySheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: jest.fn(),
+  }),
+}));
+
 const mockOutcome: PredictOutcome = {
   id: 'test-outcome-1',
   marketId: 'test-market-1',
@@ -145,7 +153,7 @@ describe('PredictMarketOutcome', () => {
     const noButton = getByText(/35¢/);
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
       market: mockMarket,
       outcome: mockOutcome,
       outcomeToken: mockOutcome.tokens[0],
@@ -153,7 +161,7 @@ describe('PredictMarketOutcome', () => {
     });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
       market: mockMarket,
       outcome: mockOutcome,
       outcomeToken: mockOutcome.tokens[1],
@@ -623,7 +631,7 @@ describe('PredictMarketOutcome', () => {
 
       fireEvent.press(yesButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith({
         market: mockMarket,
         outcome: outcomeWithLongLabels,
         outcomeToken: outcomeWithLongLabels.tokens[0],
@@ -632,7 +640,7 @@ describe('PredictMarketOutcome', () => {
 
       fireEvent.press(noButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith({
         market: mockMarket,
         outcome: outcomeWithLongLabels,
         outcomeToken: outcomeWithLongLabels.tokens[1],

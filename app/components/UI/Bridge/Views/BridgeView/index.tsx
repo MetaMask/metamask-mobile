@@ -14,7 +14,11 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import { useStyles } from '../../../../../component-library/hooks';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Box,
+} from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -100,6 +104,7 @@ import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index
 import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
+import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -168,6 +173,7 @@ const BridgeView = () => {
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location = route.params?.location;
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -549,6 +555,16 @@ const BridgeView = () => {
                   );
                 })()
               : null}
+
+            {contentMode === 'quote' &&
+            activeQuote &&
+            hasMissingPriceData(activeQuote) ? (
+              <BannerAlert
+                severity={BannerAlertSeverity.Danger}
+                description={strings('swaps.market_price_unavailable')}
+                testID={BridgeViewSelectorsIDs.MISSING_PRICE_BANNER}
+              />
+            ) : null}
           </Box>
 
           <Box
@@ -579,6 +595,7 @@ const BridgeView = () => {
         <BridgeViewFooter
           location={location}
           latestSourceBalance={latestSourceBalance}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         <SwapsKeypad
@@ -592,6 +609,7 @@ const BridgeView = () => {
             <SwapsConfirmButton
               location={location}
               latestSourceBalance={latestSourceBalance}
+              transactionActiveAbTests={transactionActiveAbTests}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
             />
           ) : (

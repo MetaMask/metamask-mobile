@@ -44,6 +44,7 @@ function PredictPayWithAnyTokenInfoInner({
   isInputFocused,
 }: PredictPayWithAnyTokenInfoProps) {
   const [depositAmount, setDepositAmount] = useState('');
+
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
   const { setPayToken, payToken } = useTransactionPayToken();

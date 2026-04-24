@@ -24,9 +24,7 @@ import {
   type RawLedgerUpdate,
   type OrderParams,
   type AssetPosition,
-  type SpotBalance,
   type ClearinghouseStateResponse,
-  type SpotClearinghouseStateResponse,
   type PerpsUniverse,
   type FrontendOrder,
 } from '@metamask/perps-controller';
@@ -1082,89 +1080,6 @@ describe('hyperLiquidAdapter', () => {
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
         returnOnEquity: '7.991673605328893', // Calculated from weighted return and margin
         totalBalance: '1000.5', // Perps only (no spot balance provided)
-      });
-    });
-
-    it('should convert account state with spot and perps', () => {
-      const perpsState: ClearinghouseStateResponse = {
-        crossMarginSummary: {
-          accountValue: '500.0',
-          totalMarginUsed: '150.0',
-          totalNtlPos: '500.0',
-          totalRawUsd: '500.0',
-        },
-        marginSummary: {
-          accountValue: '500.0',
-          totalNtlPos: '500.0',
-          totalRawUsd: '500.0',
-          totalMarginUsed: '150.0',
-        },
-        crossMaintenanceMarginUsed: '50.0',
-        time: Date.now(),
-        withdrawable: '350.0',
-        assetPositions: [
-          {
-            position: { unrealizedPnl: '100.0' },
-            type: 'perp',
-          } as unknown as AssetPosition,
-        ],
-      };
-
-      const spotState: SpotClearinghouseStateResponse = {
-        balances: [
-          { total: '200.0' },
-          { total: '300.5' },
-        ] as unknown as SpotBalance[],
-      };
-
-      const result = adaptAccountStateFromSDK(perpsState, spotState);
-
-      expect(result).toEqual({
-        availableBalance: '350.0',
-        availableToTradeBalance: '850.5', // withdrawable 350 + free spot 500.5 (hold = 0)
-        marginUsed: '150.0',
-        unrealizedPnl: '100',
-        returnOnEquity: '0',
-        totalBalance: '1000.5',
-      });
-    });
-
-    it('should handle missing spot balances', () => {
-      const perpsState: ClearinghouseStateResponse = {
-        crossMarginSummary: {
-          accountValue: '1000.0',
-          totalMarginUsed: '200.0',
-          totalNtlPos: '1000.0',
-          totalRawUsd: '1000.0',
-        },
-        marginSummary: {
-          accountValue: '1000.0',
-          totalNtlPos: '1000.0',
-          totalRawUsd: '1000.0',
-          totalMarginUsed: '200.0',
-        },
-        crossMaintenanceMarginUsed: '80.0',
-        time: Date.now(),
-        withdrawable: '800.0',
-        assetPositions: [],
-      };
-
-      const spotState: SpotClearinghouseStateResponse = {
-        balances: [
-          { total: undefined },
-          {} as SpotBalance, // no total field
-        ] as unknown as SpotBalance[],
-      };
-
-      const result = adaptAccountStateFromSDK(perpsState, spotState);
-
-      expect(result).toEqual({
-        availableBalance: '800.0',
-        availableToTradeBalance: '800', // withdrawable + 0 (no spot totals)
-        marginUsed: '200.0',
-        unrealizedPnl: '0',
-        returnOnEquity: '0',
-        totalBalance: '1000',
       });
     });
 

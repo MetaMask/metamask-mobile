@@ -1,3 +1,5 @@
+import enContent from '../../../../locales/languages/en.json';
+
 export const LoginViewSelectors = {
   CONTAINER: 'login',
   PASSWORD_ERROR: 'invalid-password-error',
@@ -9,4 +11,8 @@ export const LoginViewSelectors = {
   PASSWORD_INPUT: 'login-password-input',
   DEVICE_AUTHENTICATION_ICON: 'device-authentication-icon',
   OTHER_METHODS_BUTTON: 'other-methods-button',
+};
+
+export const LoginViewSelectorText = {
+  UNLOCK_BUTTON: enContent.login.unlock_button,
 };

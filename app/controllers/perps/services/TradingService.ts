@@ -6,7 +6,6 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
-import { ESTIMATED_FEE_RATE } from '../constants/hyperLiquidConfig';
 import { isTPSLOrder } from '../constants/orderTypes';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -1516,7 +1515,6 @@ export class TradingService {
 
       this.#deps.debugLogger.log('[closePositions] Batch method check', {
         providerType: provider.protocolId,
-        hasBatchMethod: 'closePositions' in provider,
         providerKeys: Object.keys(provider).filter((key) =>
           key.includes('close'),
         ),
@@ -1943,43 +1941,28 @@ export class TradingService {
       const isCurrentlyLong = parseFloat(position.size) > 0;
       const oppositeDirection = !isCurrentlyLong;
 
-      // Validate available balance for fees
-      const accountState = await provider.getAccountState?.();
-      if (!accountState) {
-        throw new Error('Failed to get account state');
-      }
-
-      const availableBalance = parseFloat(accountState.availableBalance);
-
-      // Estimate fees: ESTIMATED_FEE_RATE (0.09%) already accounts for both legs
-      // (close at 0.045% + open at 0.045% = 0.09% of position notional).
-      // Apply to 1x notional (positionSize * entryPrice), not 2x (flipSize * entryPrice).
-      const entryPrice = parseFloat(position.entryPrice);
       const flipSize = positionSize * 2;
-      const notionalValue = positionSize * entryPrice;
-      const estimatedFees = notionalValue * ESTIMATED_FEE_RATE;
-
-      if (estimatedFees > availableBalance) {
-        throw new Error(
-          `Insufficient balance for flip fees. Need $${estimatedFees.toFixed(2)}, have $${availableBalance.toFixed(2)}`,
-        );
-      }
 
       // Create order params for flip
-      // Use 2x position size: 1x to close current position + 1x to open opposite position
+      // Use 2x position size: 1x to close current position + 1x to open opposite position.
+      // Do not pass the position entry price as currentPrice: the provider must fetch
+      // live market data for validation and IOC pricing.
       const orderParams: OrderParams = {
         symbol: position.symbol,
         isBuy: oppositeDirection,
         size: flipSize.toString(),
         orderType: 'market',
         leverage: position.leverage?.value,
-        currentPrice: entryPrice,
       };
 
       // Place flip order (HyperLiquid handles margin transfer automatically)
       const result = await provider.placeOrder(orderParams);
 
       const completionDuration = this.#deps.performance.now() - startTime;
+
+      const executedPrice = parseFloat(
+        result.averagePrice ?? position.entryPrice,
+      );
 
       if (result.success) {
         // Update state on success
@@ -2007,8 +1990,7 @@ export class TradingService {
             [PERPS_EVENT_PROPERTY.ORDER_SIZE]: positionSize,
             [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
             [PERPS_EVENT_PROPERTY.ACTION]: flipAction,
-            [PERPS_EVENT_PROPERTY.ORDER_VALUE]:
-              positionSize * parseFloat(position.entryPrice),
+            [PERPS_EVENT_PROPERTY.ORDER_VALUE]: positionSize * executedPrice,
           },
         );
 

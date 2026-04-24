@@ -1,5 +1,9 @@
 import React, { useCallback, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
   Box,
   Text,
   TextVariant,
@@ -8,10 +12,6 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -26,6 +26,7 @@ export const createRampUnsupportedModalNavigationDetails =
 
 function RampUnsupportedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -34,7 +35,7 @@ function RampUnsupportedModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       isInteractable={false}
       testID={RAMP_UNSUPPORTED_MODAL_TEST_IDS.MODAL}
     >

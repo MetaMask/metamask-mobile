@@ -2,6 +2,7 @@ import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import { Text, AppState } from 'react-native';
 import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
@@ -11,6 +12,15 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../services/PerpsConnectionManager');
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      startMarketDataPreload: jest.fn(),
+      stopMarketDataPreload: jest.fn(),
+    },
+  },
+}));
 
 // Prevent PerpsStreamManager singleton from instantiating PERFORMANCE_CONFIG
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -44,6 +54,10 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockResumeFromForeground =
   PerpsConnectionManager.resumeFromForeground as jest.Mock;
 const mockDisconnect = PerpsConnectionManager.disconnect as jest.Mock;
+const mockStartMarketDataPreload = Engine.context.PerpsController
+  .startMarketDataPreload as jest.Mock;
+const mockStopMarketDataPreload = Engine.context.PerpsController
+  .stopMarketDataPreload as jest.Mock;
 
 describe('PerpsAlwaysOnProvider', () => {
   let mockAppStateListener: ((state: string) => void) | null = null;
@@ -56,6 +70,8 @@ describe('PerpsAlwaysOnProvider', () => {
 
     mockResumeFromForeground.mockResolvedValue(undefined);
     mockDisconnect.mockResolvedValue(undefined);
+    mockStartMarketDataPreload.mockClear();
+    mockStopMarketDataPreload.mockClear();
 
     mockSubscriptionRemove = jest.fn();
     addEventListenerSpy = jest
@@ -110,6 +126,16 @@ describe('PerpsAlwaysOnProvider', () => {
     });
   });
 
+  it('starts market data preload on mount when perps is enabled', () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(mockStartMarketDataPreload).toHaveBeenCalledTimes(1);
+  });
+
   it('does not call resumeFromForeground on mount when perps is disabled', () => {
     mockUseSelector.mockReturnValue(false);
 
@@ -120,6 +146,19 @@ describe('PerpsAlwaysOnProvider', () => {
     );
 
     expect(mockResumeFromForeground).not.toHaveBeenCalled();
+  });
+
+  it('does not start market data preload when perps is disabled', () => {
+    mockUseSelector.mockReturnValue(false);
+
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(mockStartMarketDataPreload).not.toHaveBeenCalled();
+    expect(mockStopMarketDataPreload).toHaveBeenCalledTimes(1);
   });
 
   it('registers AppState listener when perps is enabled', () => {
@@ -382,5 +421,6 @@ describe('PerpsAlwaysOnProvider', () => {
 
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
     expect(mockSubscriptionRemove).toHaveBeenCalledTimes(1);
+    expect(mockStopMarketDataPreload).toHaveBeenCalledTimes(1);
   });
 });

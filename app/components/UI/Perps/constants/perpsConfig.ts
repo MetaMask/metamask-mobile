@@ -10,6 +10,10 @@
  */
 import type { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
+import {
+  PERPS_ADL_URL,
+  METAMASK_SUPPORT_URL,
+} from '../../../../constants/urls';
 
 /** Address used to represent "Perps balance" as the payment token (synthetic option). */
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
@@ -129,18 +133,7 @@ export const LIMIT_PRICE_CONFIG = {
   ShortPresets: [1, 2], // Sell above market for short orders
 } as const;
 
-/**
- * Funding rate display configuration
- * Controls how funding rates are formatted and displayed across the app
- */
-export const FUNDING_RATE_CONFIG = {
-  // Number of decimal places to display for funding rates
-  Decimals: 4,
-  // Default display value when funding rate is zero or unavailable
-  ZeroDisplay: '0.0000%',
-  // Multiplier to convert decimal funding rate to percentage
-  PercentageMultiplier: 100,
-} as const;
+export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
@@ -202,7 +195,7 @@ export const LEARN_MORE_CONFIG = {
  * Contact support button configuration (matches Settings behavior)
  */
 export const SUPPORT_CONFIG = {
-  Url: 'https://support.metamask.io',
+  Url: METAMASK_SUPPORT_URL,
   TitleKey: 'perps.support.title',
   DescriptionKey: 'perps.support.description',
 } as const;
@@ -221,8 +214,7 @@ export const FEEDBACK_CONFIG = {
  * Links to specific MetaMask support articles for Perps features
  */
 export const PERPS_SUPPORT_ARTICLES_URLS = {
-  AdlUrl:
-    'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
+  AdlUrl: PERPS_ADL_URL,
 } as const;
 
 /**
@@ -302,6 +294,13 @@ export function getPerpsProviderChainId(
 ): string | undefined {
   return PERPS_PROVIDER_CHAIN_IDS[provider]?.[network];
 }
+
+// Re-export disk cache constants from controller layer
+export {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_DISK_CACHE_THROTTLE_MS,
+} from '@metamask/perps-controller/constants/perpsConfig';
 
 /** Source identifiers for PerpsConnectionManager.connect/ensureConnected/resumeFromForeground calls. */
 export const PERPS_CONNECTION_SOURCE = {

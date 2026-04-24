@@ -182,11 +182,6 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
-const mockSelectTokenList = jest.fn();
-jest.mock('../../../../selectors/tokenListController', () => ({
-  selectTokenList: (state: unknown) => mockSelectTokenList(state),
-}));
-
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -203,7 +198,6 @@ describe('MoreTokenActionsMenu', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (selectAsset as unknown as jest.Mock).mockReturnValue({});
-    mockSelectTokenList.mockReturnValue({});
     Object.assign(mockRouteParams, {
       hasPerpsMarket: false,
       hasBalance: false,
@@ -538,9 +532,6 @@ describe('MoreTokenActionsMenu', () => {
         hasBalance: true,
         isBuyable: false,
         isNativeCurrency: false,
-      });
-      mockSelectTokenList.mockReturnValue({
-        '0x123': { symbol: 'TEST' },
       });
       (
         Engine.context.NetworkController

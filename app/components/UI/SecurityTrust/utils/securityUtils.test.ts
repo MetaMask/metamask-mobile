@@ -1,4 +1,5 @@
 import type {
+  TokenSecurityData,
   TokenSecurityFeature,
   TokenSecurityFinancialStats,
 } from '../types';
@@ -72,7 +73,7 @@ describe('securityUtils', () => {
       expect(config.subtitle).toBe(
         strings('security_trust.subtitle_malicious'),
       );
-      expect(config.icon).toBe(IconName.Danger);
+      expect(config.icon).toBe(IconName.Error);
       expect(config.iconColor).toBe(IconColor.ErrorDefault);
     });
 
@@ -361,6 +362,63 @@ describe('securityUtils', () => {
 
     it('does not adjust when decimals is 0', () => {
       expect(formatCompactSupply(5_000_000, 0)).toBe('5.00M');
+    });
+  });
+
+  describe('badge property in getResultTypeConfig', () => {
+    it('returns badge config for Verified result type', () => {
+      const config = getResultTypeConfig('Verified');
+
+      expect(config.badge).toEqual({
+        icon: IconName.VerifiedFilled,
+        iconColor: IconColor.PrimaryDefault,
+        iconAlertSeverity: undefined,
+        label: null,
+        bg: null,
+        textColor: undefined,
+      });
+    });
+
+    it('returns null badge for Benign result type', () => {
+      const config = getResultTypeConfig('Benign');
+
+      expect(config.badge).toBeNull();
+    });
+
+    it('returns badge config for Warning result type', () => {
+      const config = getResultTypeConfig('Warning');
+
+      expect(config.badge).toMatchObject({
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+        label: strings('security_trust.risky'),
+        bg: 'bg-warning-muted',
+        textColor: TextColor.WarningDefault,
+      });
+    });
+
+    it('returns badge config for Spam result type', () => {
+      const config = getResultTypeConfig('Spam');
+
+      expect(config.badge).toMatchObject({
+        icon: IconName.Warning,
+        iconColor: IconColor.WarningDefault,
+        label: strings('security_trust.risky'),
+        bg: 'bg-warning-muted',
+        textColor: TextColor.WarningDefault,
+      });
+    });
+
+    it('returns badge config for Malicious result type', () => {
+      const config = getResultTypeConfig('Malicious');
+
+      expect(config.badge).toMatchObject({
+        icon: IconName.Danger,
+        iconColor: IconColor.ErrorDefault,
+        label: strings('security_trust.malicious'),
+        bg: 'bg-error-muted',
+        textColor: TextColor.ErrorDefault,
+      });
     });
   });
 });

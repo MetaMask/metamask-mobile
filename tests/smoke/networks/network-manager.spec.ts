@@ -5,8 +5,19 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import Assertions from '../../framework/Assertions';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import WalletView from '../../page-objects/wallet/WalletView';
+import TokensFullView from '../../page-objects/wallet/HomeSections';
 
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupRemoteFeatureFlagsMock(mockServer, {
+      ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    });
+  };
+
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
@@ -16,20 +27,30 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
+
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet homepage should be visible',
+        });
+
+        await WalletView.tapOnNewTokensSection();
+        await TokensFullView.waitForVisible();
 
         await NetworkManager.openNetworkManager();
 
         await Assertions.expectElementToBeVisible(
           NetworkManager.popularNetworksContainer,
         );
+        // Default fixture starts with Polygon as the active chain, so a single
+        // network is selected rather than "all networks"
         await Assertions.expectElementToBeVisible(
-          NetworkManager.selectAllPopularNetworksSelected,
+          NetworkManager.selectAllPopularNetworksNotSelected,
         );
 
-        // Verify all popular networks are not selected (since "Select All" is selected)
+        // Verify individual networks reflect their selected/not-selected state
         const popularNetworks = [
           NetworkToCaipChainId.ETHEREUM,
           NetworkToCaipChainId.LINEA,
@@ -48,14 +69,26 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
-        await NetworkManager.openNetworkManager();
-        // verify popular networks container is visible
-        await NetworkManager.checkPopularNetworksContainerIsVisible();
 
-        // verify all popular networks are selected
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet homepage should be visible',
+        });
+
+        await WalletView.tapOnNewTokensSection();
+        await TokensFullView.waitForVisible();
+
+        await NetworkManager.openNetworkManager();
+
+        // Default fixture starts with Polygon selected — tap "Select All" to
+        // move into the all-networks-selected state. This dismisses the sheet.
+        await NetworkManager.tapSelectAllPopularNetworks();
+
+        // Re-open to verify the all-selected state persisted
+        await NetworkManager.openNetworkManager();
         await NetworkManager.checkAllPopularNetworksIsSelected();
       },
     );
@@ -66,34 +99,39 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
+
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet homepage should be visible',
+        });
+
+        await WalletView.tapOnNewTokensSection();
+        await TokensFullView.waitForVisible();
+
+        // Default fixture starts with Polygon selected (known bug with
+        // homepageSectionsV1 flag). Select Ethereum and verify the control bar.
         await NetworkManager.openNetworkManager();
-
-        await NetworkManager.checkAllPopularNetworksIsSelected();
-
-        // Select and check the network in the base control bar
         await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.ETHEREUM,
         );
 
-        // Open the network manager and check the network is selected
+        // Re-open and verify Ethereum is marked as selected
         await NetworkManager.openNetworkManager();
-
         await NetworkManager.checkNetworkIsSelected(
           NetworkToCaipChainId.ETHEREUM,
         );
 
-        // Select Avalanche and check if Ethereum is not selected
+        // Switch to Linea and verify the control bar updates
         await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
-
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.LINEA,
         );
 
-        // validate that Ethereum is not selected
+        // Re-open and verify Ethereum is now deselected
         await NetworkManager.openNetworkManager();
         await NetworkManager.checkNetworkIsNotSelected(
           NetworkToCaipChainId.ETHEREUM,
@@ -107,12 +145,19 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
-        // Open network manager and check popular networks container is visible
+
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet homepage should be visible',
+        });
+
+        await WalletView.tapOnNewTokensSection();
+        await TokensFullView.waitForVisible();
+
         await NetworkManager.openNetworkManager();
-        await NetworkManager.checkPopularNetworksContainerIsVisible();
 
         // Tap custom networks tab and check custom networks container is visible
         await NetworkManager.tapCustomNetworksTab();
@@ -120,12 +165,12 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
 
         // Tap localhost network and check base control bar text
         await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
-
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.LOCALHOST,
         );
 
-        // Open network manager and check custom networks container is visible
+        // Re-open and verify network manager defaults back to custom tab
+        // since the last selected network was a custom network
         await NetworkManager.openNetworkManager();
         await NetworkManager.checkCustomNetworksContainerIsVisible();
       },
@@ -137,9 +182,18 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
+
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet homepage should be visible',
+        });
+
+        await WalletView.tapOnNewTokensSection();
+        await TokensFullView.waitForVisible();
+
         await NetworkManager.openNetworkManager();
         await NetworkManager.checkPopularNetworksContainerIsVisible();
       },
