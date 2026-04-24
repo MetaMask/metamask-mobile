@@ -449,11 +449,11 @@ describe('EarnWithdrawInputView', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('renders unstake ETH heading', async () => {
+  it('renders withdraw input view with review button', async () => {
     render(EarnWithdrawInputView);
 
     await waitFor(async () => {
-      expect(screen.getByText(strings('stake.unstake_eth'))).toBeOnTheScreen();
+      expect(screen.getByTestId('review-button')).toBeOnTheScreen();
     });
   });
 

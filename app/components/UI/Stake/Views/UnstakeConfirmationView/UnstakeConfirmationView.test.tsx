@@ -109,6 +109,9 @@ describe('UnstakeConfirmationView', () => {
       state: mockInitialState,
     });
 
-    expect(getByText(strings('stake.you_receive'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.unstaking_to'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.interacting_with'))).toBeOnTheScreen();
+    expect(getByText('Cancel')).toBeOnTheScreen();
+    expect(getByText('Continue')).toBeOnTheScreen();
   });
 });
