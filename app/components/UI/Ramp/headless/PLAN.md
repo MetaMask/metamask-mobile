@@ -40,7 +40,7 @@ flowchart LR
     Registry -->|onOrderCreated| Caller
 ```
 
-Key idea: the hook orchestrates by (a) storing attempt params + callbacks in the session registry, (b) navigating into the existing v2 screens with a `headlessSessionId` param, and (c) having existing routing callbacks detect the session and fire the callback instead of navigating to order-details. Controller selections are not written from `useHeadlessBuy` (Phase 3.1); the destination resolves ids from the catalog when needed.
+Key idea: the hook orchestrates by (a) seeding the controller with the quote's token/provider/payment method (Phase 5 — same as BuildQuote before calling `continueWithQuote`), (b) storing attempt params + callbacks in the session registry, (c) navigating into the existing v2 screens with a `headlessSessionId` param, and (d) having existing routing callbacks detect the session and fire the callback instead of navigating to order-details.
 
 ---
 
@@ -139,7 +139,7 @@ startHeadlessBuy(
   1. `createSession(params, callbacks)` returns `sessionId`.
   2. Add `headlessSessionId?: string` to `BuildQuoteParams` (BuildQuote.tsx line 112).
   3. Navigate to `BuildQuote` via `createBuildQuoteNavDetails({ assetId, amount, headlessSessionId })` from [app/components/UI/Ramp/Views/BuildQuote/BuildQuote.tsx](../Views/BuildQuote/BuildQuote.tsx) (lines 112–147) — i.e. reuse the existing entry.
-- **Phase 3.1** superseded an earlier idea of pre-seeding RampsController from `startHeadlessBuy` — params stay on the session only; no controller writes from the hook (see Phase 3.1 section below).
+- **Phase 3.1** removed id-only seeding that had a type/race bug; **Phase 5** re-introduced object-level seeding using the quote's full catalog objects (see Phase 3.1 section below for the full history).
 - Unit tests around the registry (create/get/end, collisions, dangling sessions).
 
 Deliverable: playground can call `startHeadlessBuy` and land on the BuildQuote screen (still the full UI) — validates plumbing without breaking anything.
@@ -164,6 +164,8 @@ Both go away if we never write to the controller from the hook:
 Tests: replace "pre-seeds the controller" assertions with "writes the params onto the session" / "does not call any controller setter" assertions. `useHeadlessBuy` no longer needs setters in its destructure.
 
 Deliverable: the bug is fixed without changing the public API; downstream phases can rely on `getSession(sessionId).params` instead of mutating controller state from outside.
+
+> **Revised in Phase 5** — The Phase 3.1 "no seeding" contract was superseded once the API became quote-first. The Phase 3.1 race (seeding with raw ids before the catalog hydrated) no longer applies because `startHeadlessBuy` now receives a full `Quote` object from the already-resolved `getQuotes()` call. The catalog is loaded by the time the caller picks a quote, so the id→object lookup is reliable. Seeding the controller at `startHeadlessBuy` time is equivalent to what BuildQuote does before calling `continueWithQuote`, and is required so the native auth loop (`OtpCode`, `useTransakRouting`) reads the correct `selectedToken.chainId`, `selectedPaymentMethod`, and `walletAddress` — values these screens take from the controller rather than from navigation params.
 
 ---
 
@@ -200,7 +202,7 @@ Originally Phase 5 had the Headless Host fetch quotes for the consumer; Phase 5b
 Why:
 
 - Consumers already have `useHeadlessBuy().getQuotes(...)` from Phase 2, so they can pair it with their own selection UI today. Asking them to re-derive `assetId` / `paymentMethodId` / `providerId` from a chosen `Quote` only for the Host to fetch quotes again is busywork.
-- The `Quote` carries every piece of context `continueWithQuote` needs (provider, payment method, fiat amount, asset, currency hints), so the Host can route directly without controller pre-seeding (Phase 3.1 already removed that coupling).
+- The `Quote` carries every piece of context `continueWithQuote` needs (provider, payment method, fiat amount, asset, currency hints). `startHeadlessBuy` seeds the controller with those objects before navigating (Phase 5 re-introduced seeding with full objects rather than the id-only approach Phase 3.1 removed).
 - Smaller, shippable surface — the Host only needs to read `session.params.quote` and call into the Phase 4 hook. Quote selection logic stays out of the Ramp internals.
 
 Implications threaded into the phases below:

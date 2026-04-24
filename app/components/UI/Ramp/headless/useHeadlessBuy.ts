@@ -86,6 +86,9 @@ export function useHeadlessBuy(): HeadlessBuyResult {
     orders,
     getOrderById,
     getQuotes: getQuotesRaw,
+    setSelectedToken,
+    setSelectedProvider,
+    setSelectedPaymentMethod,
   } = useRampsController();
 
   const getQuotes = useCallback(
@@ -117,12 +120,37 @@ export function useHeadlessBuy(): HeadlessBuyResult {
       params: HeadlessBuyParams,
       callbacks: HeadlessBuyCallbacks,
     ): StartHeadlessBuyResult => {
-      // Quote-first start: callers must hand us a single quote (typically
-      // one of the entries returned by `getQuotes(...)`). The Host derives
-      // every downstream value (asset, chain, payment method, provider…)
-      // from that quote, so we don't write anything to the RampsController
-      // here. Avoids the catalog-hydration race that an id-based seed had.
+      // Seed the controller — mirrors what BuildQuote does before calling
+      // continueWithQuote. Screens in the native auth loop (OtpCode,
+      // useTransakRouting) read selectedToken.chainId, selectedPaymentMethod
+      // and walletAddress from the controller rather than from navigation
+      // params. Without seeding, all three are null in headless mode
+      // (controller was never set), causing the post-OTP quote fetch and
+      // wallet-address resolution to fail with empty strings.
       //
+      // setSelectedToken takes the assetId string directly. For provider and
+      // payment method we look up the full objects from the currently loaded
+      // catalogs — almost always populated since the caller just ran
+      // getQuotes(). If a lookup misses (cross-provider edge case), passing
+      // null is safe: the auto-select useEffect in useRampsPaymentMethods will
+      // correct the payment method once the query refetches for the new
+      // provider.
+      //
+      // Revised from Phase 3.1 (which removed all seeding to fix a type/race
+      // bug with id-only params). Phase 5's quote-first API gives us complete
+      // objects with the right ids, so the lookup is reliable and the
+      // Phase 3.1 race no longer applies.
+      setSelectedToken(params.assetId);
+      const matchedProvider =
+        providers.find((p) => p.id === params.quote.providerInfo?.id) ?? null;
+      setSelectedProvider(matchedProvider);
+      const targetPaymentMethodId =
+        params.paymentMethodId ?? params.quote.quote.paymentMethod;
+      const matchedPaymentMethod =
+        (paymentMethods ?? []).find((pm) => pm.id === targetPaymentMethodId) ??
+        null;
+      setSelectedPaymentMethod(matchedPaymentMethod);
+
       // Single-live-session policy: only one headless session may be
       // active at a time. Starting a new one auto-cancels the previous,
       // matching the playground UX where tapping "Start" on a different
@@ -163,7 +191,14 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         },
       };
     },
-    [navigation],
+    [
+      navigation,
+      providers,
+      paymentMethods,
+      setSelectedToken,
+      setSelectedProvider,
+      setSelectedPaymentMethod,
+    ],
   );
 
   const errors = useMemo(

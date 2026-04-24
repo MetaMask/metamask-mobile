@@ -67,7 +67,7 @@ const mockTokens = {
 
 const mockProviders = [
   { id: 'provider-1', name: 'Provider One' },
-  { id: 'provider-2', name: 'Provider Two' },
+  { id: '/providers/transak-native', name: 'Transak', type: 'native' },
 ] as unknown as Provider[];
 
 const mockPaymentMethods = [
@@ -365,12 +365,15 @@ describe('useHeadlessBuy', () => {
       expect(session?.status).toBe('pending');
     });
 
-    it('does not call any controller setter (params live on the session only)', () => {
+    it('seeds the controller with the quote token, provider and payment method', () => {
+      // Mirrors what BuildQuote does before calling continueWithQuote. The
+      // native auth loop (OtpCode, useTransakRouting) reads selectedToken,
+      // selectedPaymentMethod and walletAddress from the controller; without
+      // seeding these are null in headless mode, breaking post-OTP routing.
       const setters = {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
         setSelectedPaymentMethod: jest.fn(),
-        setUserRegion: jest.fn().mockResolvedValue(undefined),
       };
       (useRampsController as jest.Mock).mockReturnValue({
         ...baseControllerValue,
@@ -380,10 +383,29 @@ describe('useHeadlessBuy', () => {
       act(() => {
         result.current.startHeadlessBuy(baseStartParams, buildCallbacks());
       });
-      expect(setters.setSelectedToken).not.toHaveBeenCalled();
-      expect(setters.setSelectedProvider).not.toHaveBeenCalled();
-      expect(setters.setSelectedPaymentMethod).not.toHaveBeenCalled();
-      expect(setters.setUserRegion).not.toHaveBeenCalled();
+      expect(setters.setSelectedToken).toHaveBeenCalledWith(
+        baseStartParams.assetId,
+      );
+      expect(setters.setSelectedProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ id: '/providers/transak-native' }),
+      );
+      expect(setters.setSelectedPaymentMethod).toHaveBeenCalledWith(
+        expect.objectContaining({ id: '/payments/debit-credit-card' }),
+      );
+    });
+
+    it('seeds provider as null when quote provider is not in the loaded catalog', () => {
+      const setSelectedProvider = jest.fn();
+      (useRampsController as jest.Mock).mockReturnValue({
+        ...baseControllerValue,
+        providers: [{ id: 'other-provider', name: 'Other' }],
+        setSelectedProvider,
+      });
+      const { result } = renderHook(() => useHeadlessBuy());
+      act(() => {
+        result.current.startHeadlessBuy(baseStartParams, buildCallbacks());
+      });
+      expect(setSelectedProvider).toHaveBeenCalledWith(null);
     });
 
     it('persists currency and paymentMethodId overrides on the session params', () => {
