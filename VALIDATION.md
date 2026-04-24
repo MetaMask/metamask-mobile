@@ -222,5 +222,5 @@ Manual validation of the migration path requires a build-upgrade harness (instal
 | `scripts/perps/agentic/teams/perps/flows/hl-balance-math-check.json`     | Composable math check                | ✓ git                       |
 | `scripts/perps/agentic/teams/perps/flows/hl-empty-state-check.json`      | Composable empty-state check         | ✓ git                       |
 | `.task/fix/tat-3047-0424-1139/artifacts/recipe.json`                     | Top-level orchestration              | local (`.task/` gitignored) |
-| `.task/fix/tat-3047-0424-1139/VALIDATION.md`                             | This document                        | local                       |
+| `VALIDATION.md` (repo root)                                              | This document                        | ✓ git                       |
 | `.agent/recipe-runs/*/`                                                  | Trace / screenshots / issues per run | local                       |
