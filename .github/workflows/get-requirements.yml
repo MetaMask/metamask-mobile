@@ -90,8 +90,7 @@ jobs:
       - name: Filter changed files
         id: filter
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
-        # version 4.0.0
-        uses: dorny/paths-filter@9d7afb8d214ad99e78fbd4247752c4caed2b6e4c
+        uses: dorny/paths-filter@9d7afb8d214ad99e78fbd4247752c4caed2b6e4c # v4.0.0
         with:
           filters: .github/rules/filter-rules.yml
           list-files: shell
@@ -102,11 +101,12 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           SHOULD_SKIP_E2E: ${{ steps.skip-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
-          HAS_SHARED: ${{ steps.filter.outputs.shared }}
-          HAS_ANDROID: ${{ steps.filter.outputs.android }}
-          HAS_IOS: ${{ steps.filter.outputs.ios }}
-          IGNORE_FILES: ${{ steps.filter.outputs.ignore_files }}
-          CATCH_ALL_FILES: ${{ steps.filter.outputs.catch_all_files }}
+          ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
+          ALL_CHANGES_FILES: ${{ steps.filter.outputs.all_changes_files }}
+          IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
+          E2E_WORKFLOWS_COUNT: ${{ steps.filter.outputs.e2e_workflows_count }}
+          ANDROID_COUNT: ${{ steps.filter.outputs.android_count }}
+          IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
         run: |
           set -euo pipefail
 
@@ -115,35 +115,45 @@ jobs:
           CHANGED=""
           MSG=""
 
+          # Explicit skip signals always win (label / commit tag)
           if [[ "$SHOULD_SKIP_E2E" == "true" ]]; then
-            MSG="Skipping E2E builds"
+            MSG="Skipping E2E builds (skip signal)"
+
+          # Scheduled runs always build both platforms
           elif [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
             MSG="Building both platforms (scheduled run)"
             ANDROID=true; IOS=true
-          elif [[ "$HAS_SHARED" == "true" ]]; then
-            MSG="Building both platforms (shared files changes)"
-            ANDROID=true; IOS=true
-            CHANGED="$CATCH_ALL_FILES"
-          elif [[ -z "${CATCH_ALL_FILES// }" ]]; then
-            MSG="Ignoring - no changes detected"
-          elif [[ "$IGNORE_FILES" == "$CATCH_ALL_FILES" ]]; then
-            MSG="Ignoring - no mobile-impacting changes (pure ignore)"
-          elif [[ "$HAS_ANDROID" == "true" && "$HAS_IOS" == "true" ]]; then
-            MSG="Building both platforms (mixed changes)"
-            ANDROID=true; IOS=true
-            CHANGED="$CATCH_ALL_FILES"
-          elif [[ "$HAS_ANDROID" == "true" ]]; then
-            MSG="Building Android only (mixed changes)"
+
+          # All changed files are ignorable AND no E2E-relevant workflow touched
+          # (e2e_workflows overrides the .github/** ignorable catch-all)
+          elif [[ "$ALL_CHANGES_COUNT" -gt 0 &&
+                  "$IGNORABLE_COUNT" -eq "$ALL_CHANGES_COUNT" &&
+                  "$E2E_WORKFLOWS_COUNT" -eq 0 ]]; then
+            MSG="Skipping E2E builds (ignorable-only changes)"
+
+          # Android-only: only android + ignorable files changed, no iOS, no E2E workflows
+          elif [[ "$ANDROID_COUNT" -gt 0 &&
+                  "$IOS_COUNT" -eq 0 &&
+                  "$E2E_WORKFLOWS_COUNT" -eq 0 &&
+                  $(( ANDROID_COUNT + IGNORABLE_COUNT )) -ge "$ALL_CHANGES_COUNT" ]]; then
+            MSG="Building Android only"
             ANDROID=true
-            CHANGED="$CATCH_ALL_FILES"
-          elif [[ "$HAS_IOS" == "true" ]]; then
-            MSG="Building iOS only (mixed changes)"
+            CHANGED="$ALL_CHANGES_FILES"
+
+          # iOS-only: symmetric
+          elif [[ "$IOS_COUNT" -gt 0 &&
+                  "$ANDROID_COUNT" -eq 0 &&
+                  "$E2E_WORKFLOWS_COUNT" -eq 0 &&
+                  $(( IOS_COUNT + IGNORABLE_COUNT )) -ge "$ALL_CHANGES_COUNT" ]]; then
+            MSG="Building iOS only"
             IOS=true
-            CHANGED="$CATCH_ALL_FILES"
+            CHANGED="$ALL_CHANGES_FILES"
+
+          # Conservative default: app code, yarn.lock, E2E workflows, mixed, or unknown
           else
-            MSG="Building both platforms (unclassified changes)"
+            MSG="Building both platforms"
             ANDROID=true; IOS=true
-            CHANGED="$CATCH_ALL_FILES"
+            CHANGED="$ALL_CHANGES_FILES"
           fi
 
           BUILDS=false

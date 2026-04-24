@@ -5,52 +5,73 @@
 # - {filter_name}: 'true'/'false' if any changed files match any filter rules
 # - {filter_name}_count: number of matching files
 #
-# E2E STRATEGY: Use separate filters to detect different file types non E2E related.
-# Conservative approach - add only files that safely allow skipping E2E tests.
+# E2E STRATEGY:
+# - e2e_ignorable:    files that never require E2E (denylist); includes all .github/**
+#                     so that non-E2E workflow changes are automatically ignored.
+# - e2e_workflows:    allowlist of workflows/scripts that DO affect E2E — overrides
+#                     the ignorable catch-all when present. Only this list needs
+#                     maintenance when new E2E-relevant workflows are added.
+# - android / ios:    platform-specific file trees.
+# - all_changes:      denominator for count comparisons.
+#
+# Decision logic (see get-requirements.yml "Compute E2E flags" step):
+#   skip both    = (ignorable_count == all_changes_count) && (e2e_workflows_count == 0)
+#   android only = android_count > 0, ios_count == 0,
+#                  (android_count + ignorable_count >= all_changes_count),
+#                  e2e_workflows_count == 0
+#   ios only     = symmetric
+#   both         = conservative default for everything else
 
+# ── Ignorable (safe to skip E2E) ─────────────────────────────────────────────
+# Conservative list: add only files that can NEVER affect a mobile E2E run.
+# .github/** is included as a catch-all so that non-E2E workflow PRs are
+# automatically skipped without needing to enumerate every ignorable workflow.
+e2e_ignorable:
+  - '**/*.md'
+  - 'docs/**'
+  - 'LICENSE'
+  - 'attribution.txt'
+  - '*.svg'
+  - '*.png'
+  - 'codecov.yml'
+  - 'crowdin.yml'
+  - 'sonar-project.properties'
+  - 'scripts/*'                        # top-level utility scripts (not build.sh/setup.mjs)
+  - 'scripts/*/**'                     # subdirectories in scripts/
+  - '.github/**'                       # all .github files — overridden by e2e_workflows below
 
+# ── E2E-relevant workflows (overrides the .github/** ignorable above) ─────────
+# Changes here always trigger E2E regardless of e2e_ignorable.
+# Add new E2E/build workflows here; everything else in .github is auto-ignored.
+e2e_workflows:
+  - '.github/workflows/ci.yml'
+  - '.github/workflows/get-requirements.yml'
+  - '.github/workflows/build-android-e2e.yml'
+  - '.github/workflows/build-ios-e2e.yml'
+  - '.github/workflows/run-e2e-workflow.yml'
+  - '.github/workflows/run-e2e-*.yml'
+  - '.github/workflows/run-performance-e2e*.yml'
+  - '.github/workflows/performance-test-runner.yml'
+  - '.github/workflows/setup-node-modules.yml'
+  - '.github/workflows/nightly-build.yml'
+  - '.github/workflows/update-e2e-fixtures.yml'
+  - '.github/workflows/push-eas-update.yml'
+  - '.github/workflows/expo-dev-build.yml'
+  - '.github/workflows/build.yml'
+  - '.github/workflows/build-rc-auto.yml'
+  - '.github/workflows/build-android-upload-to-browserstack.yml'
+  - '.github/workflows/build-ios-upload-to-browserstack.yml'
+  - '.github/workflows/post-merge-validation.yml'
+  - '.github/workflows/rerun-ci-on-skipped-e2e-labels.yml'
+  - '.github/scripts/**'
+
+# ── Platform-specific ────────────────────────────────────────────────────────
 android:
-  - 'android/**'                       # All Android project files
+  - 'android/**'
 
 ios:
-  - 'ios/**'                           # All iOS project files
+  - 'ios/**'
 
-shared:
-  - 'package.json'                     # If native deps change
-  - 'metro.config.js'                  # Metro bundler affects both
-  - 'tsconfig.json'                    # TypeScript config affects both
-  - 'babel.config.js'                  # Transpilation affects both
-  - 'yarn.lock'                        # Dependency changes affect both
-  - 'app/**'                           # Shared app files
-  - 'tests/**'                         # E2E test files (separate from mobile builds)
-  - 'sentry*.properties*'              # Sentry configs
-  - 'appwright/**'                     # Appwright test files
-  - 'scripts/build.sh'                 # Build script changes
-  - 'scripts/setup.mjs'                # Setup script changes
-  - 'patches/**'                       # Legacy patch changes
-  - '.yarn/patches/**'                 # Yarn patch changes
-  - '.github/workflows/**'             # GitHub workflow changes
-  - '.github/scripts/**'               # GitHub workflow script changes
-  - 'react-native.config.js'           # React Native config changes
-
-ignore:
-  - '**/*.md'                          # Documentation files
-  - 'docs/**'                          # Documentation directory
-  - '**/*.yml'                         # Workflow files
-  - '.github/**'                       # GitHub rest of .github directory changes
-  - 'LICENSE'                          # License file
-  - 'README.md'                        # Main README
-  - 'RELEASE.MD'                       # Release notes
-  - 'CHANGELOG.md'                     # Changelog
-  - 'attribution.txt'                  # Attribution file
-  - '*.svg'                            # SVG files (like architecture.svg)
-  - '*.png'                            # PNG files (like logo.png, image.png)
-  - 'codecov.yml'                      # Code coverage config
-  - 'crowdin.yml'                      # Translation config
-  - 'bitrise.yml'                      # CI config (non-GitHub)
-  - 'sonar-project.properties'         # SonarQube config
-  - 'scripts/*'                        # Build/utility scripts (except build.sh which is in shared)
-  - 'scripts/*/**'                     # Subdirectories in scripts/
-
-catch_all:
-  - '**/*'                             # Matches everything for conservative fallback
+# ── Denominator for count comparisons ────────────────────────────────────────
+all_changes:
+  - '**'
