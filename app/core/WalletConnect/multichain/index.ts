@@ -29,9 +29,14 @@ export {
 } from './namespaces';
 export type { ApprovedNamespaces } from './namespaces';
 
-export { getChainChangedEmission, shouldEmitChainChanged } from './emission';
+export {
+  getChainChangedEmission,
+  getEventEmissionChainId,
+  shouldEmitChainChanged,
+} from './emission';
 export type {
   ChainChangedEmission,
   ChainChangedEmitDecision,
   ChainChangedSkipReason,
+  EventChainEmission,
 } from './emission';

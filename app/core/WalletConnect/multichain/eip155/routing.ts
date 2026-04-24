@@ -11,7 +11,10 @@ import type { SessionTypes } from '@walletconnect/types';
 import type { WalletKitTypes } from '@reown/walletkit';
 import type { CaipChainId, Hex } from '@metamask/utils';
 import { rpcErrors } from '@metamask/rpc-errors';
-import { WalletDevice } from '@metamask/transaction-controller';
+import {
+  WalletDevice,
+  type TransactionParams,
+} from '@metamask/transaction-controller';
 
 import { store } from '../../../../store';
 import { updateWC2Metadata } from '../../../../actions/sdk';
@@ -68,7 +71,7 @@ const sendTransaction = async ({
   unverifiedOrigin: string;
   host: RoutingHostContext;
 }): Promise<void> => {
-  const txParams = methodParams[0] as Record<string, unknown>;
+  const txParams = methodParams[0] as TransactionParams;
   try {
     const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
     const trx = await addTransaction(txParams, {

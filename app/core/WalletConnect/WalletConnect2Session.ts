@@ -34,6 +34,7 @@ import {
   buildApprovedNamespaces,
   filterToRequestedNamespaces,
   getChainChangedEmission,
+  getEventEmissionChainId,
   getRedirectMethodsForChain,
   isEmptyApprovedNamespaces,
   mergeApprovedWithSession,
@@ -310,7 +311,11 @@ class WalletConnect2Session {
             fallbackEvmDecimal: Number(data),
             fallbackEvmHex: String(data),
           }).chainId
-        : `eip155:${data}`;
+        : getEventEmissionChainId({
+            eventName,
+            namespaces: this.session.namespaces ?? {},
+            fallbackEvmDecimal: Number.parseInt(this.getCurrentChainId(), 16),
+          }).chainId;
 
     await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,

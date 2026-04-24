@@ -1,4 +1,8 @@
-import { getChainChangedEmission, shouldEmitChainChanged } from './emission';
+import {
+  getChainChangedEmission,
+  getEventEmissionChainId,
+  shouldEmitChainChanged,
+} from './emission';
 
 describe('getChainChangedEmission', () => {
   const fallback = { fallbackEvmDecimal: 1, fallbackEvmHex: '0x1' };
@@ -12,15 +16,11 @@ describe('getChainChangedEmission', () => {
         namespaces: {
           eip155: {
             chains: ['eip155:1'],
-            methods: [],
             events: [],
-            accounts: [],
           },
           unknown: {
             chains: ['unknown:42'],
-            methods: [],
             events: [],
-            accounts: [],
           },
         },
         ...fallback,
@@ -34,14 +34,27 @@ describe('getChainChangedEmission', () => {
         namespaces: {
           eip155: {
             chains: ['eip155:137'],
-            methods: [],
             events: [],
-            accounts: [],
           },
         },
         ...fallback,
       }),
     ).toEqual({ chainId: 'eip155:137', data: '0x1' });
+  });
+
+  it('uses the target EVM chain scope when it exists in session chains', () => {
+    expect(
+      getChainChangedEmission({
+        namespaces: {
+          eip155: {
+            chains: ['eip155:1', 'eip155:137'],
+            events: ['chainChanged'],
+          },
+        },
+        fallbackEvmDecimal: 137,
+        fallbackEvmHex: '0x89',
+      }),
+    ).toEqual({ chainId: 'eip155:137', data: '0x89' });
   });
 
   it('ignores the wallet mirror namespace when selecting the emission chain', () => {
@@ -50,15 +63,11 @@ describe('getChainChangedEmission', () => {
         namespaces: {
           wallet: {
             chains: ['wallet:eip155'],
-            methods: [],
             events: [],
-            accounts: [],
           },
           eip155: {
             chains: ['eip155:1'],
-            methods: [],
             events: [],
-            accounts: [],
           },
         },
         ...fallback,
@@ -81,9 +90,7 @@ describe('shouldEmitChainChanged', () => {
       namespaces: {
         eip155: {
           chains: ['eip155:1'],
-          methods: [],
           events: ['chainChanged'],
-          accounts: [],
         },
       },
     });
@@ -96,9 +103,7 @@ describe('shouldEmitChainChanged', () => {
       namespaces: {
         eip155: {
           chains: ['eip155:1'],
-          methods: [],
           events: ['chainChanged'],
-          accounts: [],
         },
       },
     });
@@ -113,9 +118,7 @@ describe('shouldEmitChainChanged', () => {
       namespaces: {
         tron: {
           chains: ['tron:0x2b6653dc'],
-          methods: [],
           events: [],
-          accounts: [],
         },
       },
     });
@@ -123,5 +126,55 @@ describe('shouldEmitChainChanged', () => {
     expect(decision.reason).toBe('event_not_supported');
     expect(decision.namespace).toBe('tron');
     expect(decision.namespaceEvents).toEqual([]);
+  });
+});
+
+describe('getEventEmissionChainId', () => {
+  it('selects a chain from a namespace that supports the event', () => {
+    expect(
+      getEventEmissionChainId({
+        eventName: 'accountsChanged',
+        fallbackEvmDecimal: 1,
+        namespaces: {
+          tron: {
+            chains: ['tron:0x2b6653dc'],
+            events: ['accountsChanged'],
+          },
+          eip155: {
+            chains: ['eip155:1'],
+            events: [],
+          },
+        },
+      }),
+    ).toEqual({ chainId: 'tron:0x2b6653dc' });
+  });
+
+  it('ignores wallet mirror namespace and falls back to concrete chain', () => {
+    expect(
+      getEventEmissionChainId({
+        eventName: 'accountsChanged',
+        fallbackEvmDecimal: 1,
+        namespaces: {
+          wallet: {
+            chains: ['wallet:eip155'],
+            events: ['accountsChanged'],
+          },
+          eip155: {
+            chains: ['eip155:137'],
+            events: [],
+          },
+        },
+      }),
+    ).toEqual({ chainId: 'eip155:137' });
+  });
+
+  it('falls back to eip155 current chain when session has no chains', () => {
+    expect(
+      getEventEmissionChainId({
+        eventName: 'accountsChanged',
+        fallbackEvmDecimal: 10,
+        namespaces: {},
+      }),
+    ).toEqual({ chainId: 'eip155:10' });
   });
 });

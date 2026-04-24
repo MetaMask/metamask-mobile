@@ -23,6 +23,10 @@ export interface ChainChangedEmission {
   data: string | number;
 }
 
+export interface EventChainEmission {
+  chainId: string;
+}
+
 export type ChainChangedSkipReason =
   | 'chain_not_in_session'
   | 'event_not_supported';
@@ -50,6 +54,7 @@ export const getChainChangedEmission = ({
   fallbackEvmDecimal: number;
   fallbackEvmHex: string;
 }): ChainChangedEmission => {
+  const targetEvmChainId = `${KnownCaipNamespace.Eip155}:${fallbackEvmDecimal}`;
   const candidates = Object.entries(namespaces ?? {})
     .filter(
       (
@@ -62,6 +67,7 @@ export const getChainChangedEmission = ({
     .map(([key, config]) => ({
       key,
       chain: config.chains[0],
+      chains: config.chains,
       priority: getAdapter(key)?.emissionPriority ?? 0,
     }))
     .sort((a, b) => b.priority - a.priority);
@@ -70,8 +76,12 @@ export const getChainChangedEmission = ({
 
   if (winner) {
     const isEvm = winner.key === KnownCaipNamespace.Eip155;
+    const evmChainId =
+      isEvm && winner.chains.includes(targetEvmChainId)
+        ? targetEvmChainId
+        : winner.chain;
     return {
-      chainId: winner.chain,
+      chainId: evmChainId,
       data: isEvm ? fallbackEvmHex : winner.chain,
     };
   }
@@ -80,6 +90,56 @@ export const getChainChangedEmission = ({
     chainId: `${KnownCaipNamespace.Eip155}:${fallbackEvmDecimal}`,
     data: fallbackEvmHex,
   };
+};
+
+/**
+ * Pick the CAIP chain id to target when emitting a non-`chainChanged` event.
+ *
+ * Preference order:
+ * 1) A namespace that declares the event and has chains, highest adapter
+ * `emissionPriority` wins.
+ * 2) First concrete chain in the active session (excluding `wallet` mirror).
+ * 3) EVM fallback derived from the currently selected chain id.
+ */
+export const getEventEmissionChainId = ({
+  eventName,
+  namespaces,
+  fallbackEvmDecimal,
+}: {
+  eventName: string;
+  namespaces?: EmissionNamespaces;
+  fallbackEvmDecimal: number;
+}): EventChainEmission => {
+  const candidates = Object.entries(namespaces ?? {})
+    .filter(
+      (entry): entry is [string, { chains: string[]; events?: string[] }] =>
+        entry[0] !== KnownCaipNamespace.Wallet &&
+        Array.isArray(entry[1]?.chains) &&
+        entry[1].chains.length > 0 &&
+        (entry[1].events ?? []).includes(eventName),
+    )
+    .map(([key, config]) => ({
+      chainId: config.chains[0],
+      priority: getAdapter(key)?.emissionPriority ?? 0,
+    }))
+    .sort((a, b) => b.priority - a.priority);
+
+  if (candidates[0]) {
+    return { chainId: candidates[0].chainId };
+  }
+
+  const firstSessionChain = Object.entries(namespaces ?? {}).find(
+    ([key, ns]) =>
+      key !== KnownCaipNamespace.Wallet &&
+      Array.isArray(ns?.chains) &&
+      ns.chains.length > 0,
+  )?.[1]?.chains?.[0];
+
+  if (firstSessionChain) {
+    return { chainId: firstSessionChain };
+  }
+
+  return { chainId: `${KnownCaipNamespace.Eip155}:${fallbackEvmDecimal}` };
 };
 
 /**
