@@ -170,12 +170,14 @@ export default class SnapBridge {
     // @ts-expect-error: Type mismatch.
     engine.push(asLegacyMiddleware(createWalletSnapPermissionMiddleware()));
 
-    const permissionMessenger = new Messenger<
+    type PermissionMessenger = Messenger<
       'PermissionMiddleware',
       PermissionMiddlewareActions
-    >({
-      namespace: 'PermissionMessenger',
-      parent: controllerMessenger,
+    >;
+
+    const permissionMessenger: PermissionMessenger = new Messenger({
+      namespace: 'PermissionMiddleware',
+      parent: controllerMessenger as unknown as PermissionMessenger,
     });
     controllerMessenger.delegate({
       messenger: permissionMessenger,

@@ -26,10 +26,13 @@ import {
 import {
   Caveat,
   CaveatSpecificationConstraint,
+  createPermissionMiddleware,
   ExtractPermission,
   PermissionConstraint,
   PermissionController,
   PermissionDoesNotExistError,
+  type PermissionMiddlewareActions,
+  type PermissionControllerMessenger,
   PermissionSpecificationConstraint,
   SubjectPermissions,
   ValidPermission,
@@ -427,16 +430,15 @@ describe('getRpcMethodMiddleware', () => {
         ...baseEoaAccount,
       },
     ]);
-    const permissionController = new PermissionController({
-      messenger: new Messenger<
-        'PermissionController',
-        never,
-        never,
-        typeof rootMessenger
-      >({
+
+    const permissionControllerMessenger: PermissionControllerMessenger =
+      new Messenger({
         namespace: 'PermissionController',
+        // @ts-expect-error: Type mismatch.
         parent: rootMessenger,
-      }),
+      });
+    const _permissionController = new PermissionController({
+      messenger: permissionControllerMessenger,
       caveatSpecifications: getCaveatSpecifications({
         listAccounts: mockListAccounts,
         findNetworkClientIdByChainId: jest.fn(),
@@ -448,10 +450,29 @@ describe('getRpcMethodMiddleware', () => {
       },
       unrestrictedMethods,
     });
-    const permissionMiddleware =
-      permissionController.createPermissionMiddleware({
-        origin: hostMock,
-      });
+
+    type PermissionMessenger = Messenger<
+      'PermissionMiddleware',
+      PermissionMiddlewareActions
+    >;
+
+    const permissionMiddlewareMessenger: PermissionMessenger = new Messenger({
+      namespace: 'PermissionMiddleware',
+      parent: permissionControllerMessenger,
+    });
+    permissionControllerMessenger.delegate({
+      messenger: permissionMiddlewareMessenger,
+      actions: [
+        'PermissionController:executeRestrictedMethod',
+        'PermissionController:hasUnrestrictedMethod',
+      ],
+    });
+
+    const permissionMiddleware = createPermissionMiddleware({
+      origin: hostMock,
+      messenger: permissionMiddlewareMessenger,
+    });
+
     engine.push(permissionMiddleware);
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
