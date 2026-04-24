@@ -15,9 +15,6 @@ import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import WalletView from '../../page-objects/wallet/WalletView';
-import TokensFullView from '../../page-objects/wallet/HomeSections';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
