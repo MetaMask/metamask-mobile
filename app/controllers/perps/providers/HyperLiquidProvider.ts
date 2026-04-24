@@ -4588,8 +4588,37 @@ export class HyperLiquidProvider implements PerpsProvider {
         ntli,
       });
 
-      // Call SDK to update isolated margin
       const exchangeClient = this.#clientService.getExchangeClient();
+
+      // For ADD direction, if the perps clearinghouse alone can't cover the
+      // requested margin but the account's spendable can, sweep spot→perps
+      // first. Mirrors the withdraw() sweep so the provider honours the
+      // spendableBalance contract (UI reads one number; provider performs
+      // any internal moves required to satisfy it).
+      if (amountFloat > 0) {
+        const perpsWithdrawable = await this.#getBalanceForDex({ dex: null });
+        if (amountFloat > perpsWithdrawable) {
+          const shortfall = amountFloat - perpsWithdrawable;
+          this.#deps.debugLogger.log(
+            'HyperLiquidProvider: SWEEPING SPOT→PERPS (updateMargin)',
+            { shortfall, perpsWithdrawable, amountFloat },
+          );
+          const transferResult = await exchangeClient.usdClassTransfer({
+            amount: shortfall.toFixed(USDC_DECIMALS),
+            toPerp: true,
+          });
+          if (transferResult.status !== 'ok') {
+            throw new Error(
+              `Spot→perps sweep failed: ${String(transferResult.status)}`,
+            );
+          }
+          this.#deps.debugLogger.log(
+            '✅ HyperLiquidProvider: SWEEP APPLIED (updateMargin)',
+          );
+        }
+      }
+
+      // Call SDK to update isolated margin
       const result = await exchangeClient.updateIsolatedMargin({
         asset: assetId,
         isBuy,
