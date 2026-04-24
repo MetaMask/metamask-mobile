@@ -37,6 +37,10 @@ import {
 import { CardTokenStore } from './CardTokenStore';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
+import {
+  resolveCardFeatureFlag,
+  type CardFeatureFlag,
+} from '../../../../selectors/featureFlagController/card';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -170,6 +174,26 @@ export class CardController extends BaseController<
           .sort()
           .join(','),
     );
+
+    this.messenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      (_cardFeatureKey: string) => {
+        this.#handleCardFeatureFlagChange();
+      },
+      (state) => JSON.stringify(state.remoteFeatureFlags?.cardFeature ?? {}),
+    );
+  }
+
+  #fetchCardHomeDataWithLogging(method: string): void {
+    this.fetchCardHomeData().catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method },
+        },
+      }),
+    );
   }
 
   #handleAccountSwitch(): void {
@@ -182,16 +206,20 @@ export class CardController extends BaseController<
         s.cardHomeData = null;
         s.cardHomeDataStatus = 'idle';
       });
-      this.fetchCardHomeData().catch((error) =>
-        Logger.error(error as Error, {
-          tags: { feature: 'card' },
-          context: {
-            name: 'CardController',
-            data: { method: '#handleAccountSwitch' },
-          },
-        }),
-      );
+      this.#fetchCardHomeDataWithLogging('#handleAccountSwitch');
     }
+  }
+
+  #handleCardFeatureFlagChange(): void {
+    const currentAddress = this.#getSelectedEvmAddress();
+    if (!currentAddress) return;
+
+    this.invalidateFetch();
+    this.update((s) => {
+      s.cardHomeData = null;
+      s.cardHomeDataStatus = 'idle';
+    });
+    this.#fetchCardHomeDataWithLogging('#handleCardFeatureFlagChange');
   }
 
   #triggerCardholderCheck(): void {
@@ -220,9 +248,11 @@ export class CardController extends BaseController<
       const featureState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
       );
-      const cardFeature = featureState.remoteFeatureFlags?.cardFeature as
-        | { constants?: { accountsApiUrl?: string } }
-        | undefined;
+      const cardFeature = resolveCardFeatureFlag(
+        featureState.remoteFeatureFlags?.cardFeature as
+          | CardFeatureFlag
+          | undefined,
+      );
       const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
       if (!accountsApiUrl) return;
 
@@ -475,19 +505,14 @@ export class CardController extends BaseController<
       }
       this.update((s) => {
         s.isAuthenticated = true;
+        s.cardHomeData = null;
+        s.cardHomeDataStatus = 'idle';
         (s.providerData as unknown as Record<string, Record<string, string>>)[
           pid
         ] = { location: tokenSet.location };
       });
-      this.fetchCardHomeData().catch((error) =>
-        Logger.error(error as Error, {
-          tags: { feature: 'card' },
-          context: {
-            name: 'CardController',
-            data: { method: 'submitCredentials/fetchCardHomeData' },
-          },
-        }),
-      );
+      this.invalidateFetch();
+      this.#fetchCardHomeDataWithLogging('submitCredentials/fetchCardHomeData');
     }
 
     return result;
@@ -541,14 +566,8 @@ export class CardController extends BaseController<
 
     // Always fetch card home data regardless of auth state: authenticated users
     // get full card data, unauthenticated users get on-chain asset state.
-    this.fetchCardHomeData().catch((error) =>
-      Logger.error(error as Error, {
-        tags: { feature: 'card' },
-        context: {
-          name: 'CardController',
-          data: { method: 'validateAndRefreshSession/fetchCardHomeData' },
-        },
-      }),
+    this.#fetchCardHomeDataWithLogging(
+      'validateAndRefreshSession/fetchCardHomeData',
     );
 
     if (!tokens) return { isAuthenticated: false };

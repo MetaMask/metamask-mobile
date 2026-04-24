@@ -35,7 +35,11 @@ export function getCardControllerMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'TransactionController:addTransaction',
     ],
-    events: ['AccountTreeController:stateChange', 'KeyringController:unlock'],
+    events: [
+      'AccountTreeController:stateChange',
+      'RemoteFeatureFlagController:stateChange',
+      'KeyringController:unlock',
+    ],
   });
 
   return messenger;
