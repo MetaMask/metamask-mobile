@@ -11,16 +11,19 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../component-library/components-temp/KeyValueRow';
+import {
+  ButtonIconSize,
+  FontWeight,
+  IconName,
+  KeyValueRow,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import useTooltipModal from '../../../../hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   IMetaMetricsEvent,
@@ -74,6 +77,7 @@ export interface EarnWithdrawalConfirmationViewProps {
 const EarnLendingWithdrawalConfirmationView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openTooltipModal } = useTooltipModal();
 
   const navigation = useNavigation();
 
@@ -480,22 +484,24 @@ const EarnLendingWithdrawalConfirmationView = () => {
           <InfoSection>
             <View style={styles.infoSectionContainer}>
               <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.withdrawal_time'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                  tooltip: {
-                    title: strings('earn.withdrawal_time'),
-                    content: strings('earn.tooltip_content.withdrawal_time'),
-                    size: TooltipSizes.Sm,
-                  },
+                keyLabel={strings('earn.withdrawal_time')}
+                value={strings('earn.immediate')}
+                valueTextProps={{
+                  variant: TextVariant.BodyMd,
+                  fontWeight: FontWeight.Regular,
                 }}
-                value={{
-                  label: {
-                    text: strings('earn.immediate'),
-                    variant: TextVariant.BodyMD,
-                  },
+                keyEndButtonIconProps={{
+                  size: ButtonIconSize.Sm,
+                  iconName: IconName.Question,
+                  accessibilityRole: 'button',
+                  accessibilityLabel: `${strings(
+                    'earn.withdrawal_time',
+                  )} tooltip`,
+                  onPress: () =>
+                    openTooltipModal(
+                      strings('earn.withdrawal_time'),
+                      strings('earn.tooltip_content.withdrawal_time'),
+                    ),
                 }}
               />
             </View>
@@ -503,72 +509,57 @@ const EarnLendingWithdrawalConfirmationView = () => {
           <InfoSection>
             <View style={styles.infoSectionContainer}>
               <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.withdrawing_to'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                }}
-                value={{
-                  label: (
-                    <AccountTag
-                      accountAddress={selectedAccount?.address}
-                      accountName={
-                        activeAccountGroup?.metadata?.name ||
-                        selectedAccount.metadata.name
-                      }
-                      avatarAccountType={avatarAccountType}
-                    />
-                  ),
-                }}
+                keyLabel={strings('earn.withdrawing_to')}
+                value={
+                  <AccountTag
+                    accountAddress={selectedAccount?.address}
+                    accountName={
+                      activeAccountGroup?.metadata?.name ||
+                      selectedAccount.metadata.name
+                    }
+                    avatarAccountType={avatarAccountType}
+                  />
+                }
               />
               <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.protocol'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                  tooltip: {
-                    title: strings('earn.protocol'),
-                    content: strings('earn.tooltip_content.protocol'),
-                    size: TooltipSizes.Sm,
-                  },
-                }}
-                value={{
-                  label: (
-                    <ContractTag
-                      contractAddress={lendingContractAddress}
-                      contractName={capitalize(lendingProtocol)}
-                      avatarAccountType={avatarAccountType}
-                    />
-                  ),
+                keyLabel={strings('earn.protocol')}
+                value={
+                  <ContractTag
+                    contractAddress={lendingContractAddress}
+                    contractName={capitalize(lendingProtocol)}
+                    avatarAccountType={avatarAccountType}
+                  />
+                }
+                keyEndButtonIconProps={{
+                  size: ButtonIconSize.Sm,
+                  iconName: IconName.Question,
+                  accessibilityRole: 'button',
+                  accessibilityLabel: `${strings('earn.protocol')} tooltip`,
+                  onPress: () =>
+                    openTooltipModal(
+                      strings('earn.protocol'),
+                      strings('earn.tooltip_content.protocol'),
+                    ),
                 }}
               />
             </View>
             <InfoRowDivider />
             <View style={styles.infoSectionContainer}>
               <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.network'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                }}
-                value={{
-                  label: (
-                    <View style={styles.networkRowRight}>
-                      <Badge
-                        variant={BadgeVariant.Network}
-                        size={AvatarSize.Xs}
-                        isScaled={false}
-                        imageSource={getNetworkImageSource({
-                          chainId: token?.chainId,
-                        })}
-                      />
-                      <Text>{networkConfig?.name}</Text>
-                    </View>
-                  ),
-                }}
+                keyLabel={strings('earn.network')}
+                value={
+                  <View style={styles.networkRowRight}>
+                    <Badge
+                      variant={BadgeVariant.Network}
+                      size={AvatarSize.Xs}
+                      isScaled={false}
+                      imageSource={getNetworkImageSource({
+                        chainId: token?.chainId,
+                      })}
+                    />
+                    <Text>{networkConfig?.name}</Text>
+                  </View>
+                }
               />
             </View>
           </InfoSection>

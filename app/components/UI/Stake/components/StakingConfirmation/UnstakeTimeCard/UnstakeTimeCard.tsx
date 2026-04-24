@@ -1,42 +1,49 @@
 import React from 'react';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../../component-library/components-temp/KeyValueRow';
+import {
+  ButtonIconSize,
+  FontWeight,
+  IconName,
+  KeyValueRow,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './UnstakeTimeCard.styles';
-import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
+import useTooltipModal from '../../../../../hooks/useTooltipModal';
 
 const UnstakingTimeCard = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { trackEvent } = useAnalytics();
+  const { openTooltipModal } = useTooltipModal();
+
+  const unstakingTimeTitle = strings('tooltip_modal.unstaking_time.title');
 
   return (
     <Card style={styles.card} disabled>
       <KeyValueRow
-        field={{
-          label: { text: strings('tooltip_modal.unstaking_time.title') },
-          tooltip: {
-            title: strings('tooltip_modal.unstaking_time.title'),
-            content: strings('tooltip_modal.unstaking_time.tooltip'),
-            size: TooltipSizes.Sm,
-            onPress: () =>
-              trackEvent(
-                createTooltipOpenedEvent(
-                  'Unstaking Time Card',
-                  'Unstaking Time',
-                ),
-              ),
-          },
+        keyLabel={unstakingTimeTitle}
+        value={strings('stake.estimated_unstaking_time')}
+        valueTextProps={{
+          variant: TextVariant.BodyMd,
+          fontWeight: FontWeight.Regular,
         }}
-        value={{
-          label: {
-            text: strings('stake.estimated_unstaking_time'),
-            variant: TextVariant.BodyMD,
+        keyEndButtonIconProps={{
+          size: ButtonIconSize.Sm,
+          iconName: IconName.Question,
+          accessibilityRole: 'button',
+          accessibilityLabel: `${unstakingTimeTitle} tooltip`,
+          onPress: () => {
+            openTooltipModal(
+              unstakingTimeTitle,
+              strings('tooltip_modal.unstaking_time.tooltip'),
+            );
+            trackEvent(
+              createTooltipOpenedEvent('Unstaking Time Card', 'Unstaking Time'),
+            );
           },
         }}
       />

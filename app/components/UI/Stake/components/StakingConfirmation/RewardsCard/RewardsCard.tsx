@@ -1,19 +1,22 @@
 import React from 'react';
 import { View } from 'react-native';
-import { strings } from '../../../../../../../locales/i18n';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../../component-library/components-temp/KeyValueRow';
-import Text, {
+import {
+  ButtonIconSize,
+  FontWeight,
+  IconName,
+  KeyValueRow,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import styleSheet from './RewardsCard.styles';
 import { RewardsCardProps } from './RewardsCard.types';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import useTooltipModal from '../../../../../hooks/useTooltipModal';
 
 const RewardsCard = ({
   rewardRate,
@@ -22,58 +25,64 @@ const RewardsCard = ({
 }: RewardsCardProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent } = useAnalytics();
+  const { openTooltipModal } = useTooltipModal();
+
+  const rewardRateTitle = strings('tooltip_modal.reward_rate.title');
+  const rewardFrequencyTitle = strings('tooltip_modal.reward_frequency.title');
 
   return (
     <Card style={styles.card} disabled>
       <KeyValueRow
-        field={{
-          label: { text: strings('tooltip_modal.reward_rate.title') },
-          tooltip: {
-            title: strings('tooltip_modal.reward_rate.title'),
-            content: strings('tooltip_modal.reward_rate.tooltip'),
-            size: TooltipSizes.Sm,
-            onPress: () =>
-              trackEvent(
-                createTooltipOpenedEvent('Rewards Card', 'Reward Rate'),
-              ),
-          },
+        keyLabel={rewardRateTitle}
+        value={rewardRate}
+        valueTextProps={{
+          variant: TextVariant.BodyMd,
+          fontWeight: FontWeight.Regular,
+          color: TextColor.SuccessDefault,
         }}
-        value={{
-          label: {
-            text: rewardRate,
-            color: TextColor.Success,
-            variant: TextVariant.BodyMD,
+        keyEndButtonIconProps={{
+          size: ButtonIconSize.Sm,
+          iconName: IconName.Question,
+          accessibilityRole: 'button',
+          accessibilityLabel: `${rewardRateTitle} tooltip`,
+          onPress: () => {
+            openTooltipModal(
+              rewardRateTitle,
+              strings('tooltip_modal.reward_rate.tooltip'),
+            );
+            trackEvent(createTooltipOpenedEvent('Rewards Card', 'Reward Rate'));
           },
         }}
       />
       <KeyValueRow
-        field={{ label: { text: strings('stake.estimated_annual_rewards') } }}
-        value={{
-          label: (
-            <View style={styles.estAnnualRewardValue}>
-              <Text color={TextColor.Alternative}>{rewardsFiat}</Text>
-              <Text>{rewardsEth}</Text>
-            </View>
-          ),
-        }}
+        keyLabel={strings('stake.estimated_annual_rewards')}
+        value={
+          <View style={styles.estAnnualRewardValue}>
+            <Text color={TextColor.TextAlternative}>{rewardsFiat}</Text>
+            <Text>{rewardsEth}</Text>
+          </View>
+        }
       />
       <KeyValueRow
-        field={{
-          label: { text: strings('tooltip_modal.reward_frequency.title') },
-          tooltip: {
-            title: strings('tooltip_modal.reward_frequency.title'),
-            content: strings('tooltip_modal.reward_frequency.tooltip'),
-            size: TooltipSizes.Sm,
-            onPress: () =>
-              trackEvent(
-                createTooltipOpenedEvent('Rewards Card', 'Reward Frequency'),
-              ),
-          },
+        keyLabel={rewardFrequencyTitle}
+        value={strings('stake.12_hours')}
+        valueTextProps={{
+          variant: TextVariant.BodyMd,
+          fontWeight: FontWeight.Regular,
         }}
-        value={{
-          label: {
-            text: strings('stake.12_hours'),
-            variant: TextVariant.BodyMD,
+        keyEndButtonIconProps={{
+          size: ButtonIconSize.Sm,
+          iconName: IconName.Question,
+          accessibilityRole: 'button',
+          accessibilityLabel: `${rewardFrequencyTitle} tooltip`,
+          onPress: () => {
+            openTooltipModal(
+              rewardFrequencyTitle,
+              strings('tooltip_modal.reward_frequency.tooltip'),
+            );
+            trackEvent(
+              createTooltipOpenedEvent('Rewards Card', 'Reward Frequency'),
+            );
           },
         }}
       />
