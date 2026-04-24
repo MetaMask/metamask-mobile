@@ -3867,8 +3867,16 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(accountState.totalBalance).toBe('100.76531791');
       expect(accountState.spendableBalance).toBe('0');
       expect(accountState.subAccountBreakdown).toEqual({
-        main: { spendableBalance: '0', totalBalance: '0' },
-        xyz: { spendableBalance: '0', totalBalance: '0' },
+        main: {
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+          totalBalance: '0',
+        },
+        xyz: {
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+          totalBalance: '0',
+        },
       });
       expect(mockSpotClearinghouseState).toHaveBeenCalledTimes(1);
 
