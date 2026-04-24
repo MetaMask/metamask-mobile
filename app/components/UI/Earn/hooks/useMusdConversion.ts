@@ -377,16 +377,6 @@ export const useMusdConversion = () => {
     [navigation, pendingTransactionMetas, selectedAddress],
   );
 
-  const navigateToQuickConvertScreen = useCallback(
-    (config: MusdConversionConfig) => {
-      const { navigationStack = Routes.EARN.ROOT } = config;
-      navigation.navigate(navigationStack, {
-        screen: Routes.EARN.MUSD.QUICK_CONVERT,
-      });
-    },
-    [navigation],
-  );
-
   /**
    * Navigates to the custom amount conversion screen.
    */
@@ -472,12 +462,12 @@ export const useMusdConversion = () => {
           throw new Error('No account selected');
         }
 
+        // TODO: Remove navigation override and all references to it
         if (
           navigationOverride ===
             MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT &&
           isMusdQuickConvertEnabledFlag
         ) {
-          navigateToQuickConvertScreen(config);
           return;
         }
 
@@ -579,7 +569,6 @@ export const useMusdConversion = () => {
       handleEducationRedirectIfNeeded,
       isMusdQuickConvertEnabledFlag,
       navigateToCustomConversionScreen,
-      navigateToQuickConvertScreen,
       navigation,
       pendingTransactionMetas,
       selectedAddress,
