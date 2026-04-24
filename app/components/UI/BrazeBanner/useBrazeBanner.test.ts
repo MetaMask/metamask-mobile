@@ -16,12 +16,14 @@ jest.mock('@braze/react-native-sdk', () => ({
   __esModule: true,
   default: {
     getBanner: jest.fn().mockResolvedValue(null),
-    addListener: jest.fn().mockImplementation(
-      (_event: string, cb: (event: { banners: object[] }) => void) => {
-        capturedBannerListener = cb;
-        return { remove: jest.fn() };
-      },
-    ),
+    addListener: jest
+      .fn()
+      .mockImplementation(
+        (_event: string, cb: (event: { banners: object[] }) => void) => {
+          capturedBannerListener = cb;
+          return { remove: jest.fn() };
+        },
+      ),
     logBannerClick: jest.fn(),
     logBannerImpression: jest.fn(),
     requestImmediateDataFlush: jest.fn(),
@@ -32,10 +34,13 @@ jest.mock('@braze/react-native-sdk', () => ({
 // Mock: core/Braze
 // ---------------------------------------------------------------------------
 const mockGetBannerForPlacement = jest.fn().mockResolvedValue(null);
+const mockDismissBrazeBanner = jest.fn();
+
 jest.mock('../../../core/Braze', () => ({
   getBannerForPlacement: (...args: unknown[]) =>
     mockGetBannerForPlacement(...args),
   refreshBrazeBanners: jest.fn(),
+  dismissBrazeBanner: (...args: unknown[]) => mockDismissBrazeBanner(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -57,46 +62,56 @@ jest.mock('react-redux', () => ({
 /**
  * Builds a raw Braze properties bag in the format the SDK serialises over
  * the bridge: `{ properties: { [key]: { type, value } } }`.
- *
- * Using raw properties directly avoids the SDK's getStringProperty /
- * getNumberProperty helpers which log console.error for missing keys.
  */
 function makeRawProperties(props: {
-  dismissId?: string;
+  bannerId?: string;
   deeplink?: string;
-  height?: number;
-}) {
-  const inner: Record<string, { type: string; value: unknown }> = {};
-  if (props.dismissId !== undefined)
-    inner.dismiss_id = { type: 'string', value: props.dismissId };
+  title?: string;
+  body?: string;
+  imageUrl?: string;
+  ctaLabel?: string;
+}): Record<string, { type: string; value: unknown }> {
+  const result: Record<string, { type: string; value: unknown }> = {};
+  if (props.bannerId !== undefined)
+    result.bannerId = { type: 'string', value: props.bannerId };
   if (props.deeplink !== undefined)
-    inner.deeplink = { type: 'string', value: props.deeplink };
-  if (props.height !== undefined)
-    inner.height = { type: 'number', value: props.height };
-  return Object.keys(inner).length > 0 ? { properties: inner } : {};
+    result.deeplink = { type: 'string', value: props.deeplink };
+  if (props.title !== undefined)
+    result.title = { type: 'string', value: props.title };
+  if (props.body !== undefined)
+    result.body = { type: 'string', value: props.body };
+  if (props.imageUrl !== undefined)
+    result.image_url = { type: 'string', value: props.imageUrl };
+  if (props.ctaLabel !== undefined)
+    result.cta_label = { type: 'string', value: props.ctaLabel };
+  return result;
 }
 
 function makeBanner(
   overrides: Partial<{
     trackingId: string;
     placementId: string;
-    html: string;
-    dismissId: string;
+    bannerId: string;
     deeplink: string;
-    height: number;
+    title: string;
+    body: string;
+    imageUrl: string;
+    ctaLabel: string;
   }> = {},
 ) {
   return {
     trackingId: overrides.trackingId ?? 'tracking-abc',
     placementId: overrides.placementId ?? TEST_PLACEMENT_ID,
-    html: overrides.html ?? '<div>Hello</div>',
     isControl: false,
     isTestSend: false,
     expiresAt: -1,
     properties: makeRawProperties({
-      dismissId: overrides.dismissId,
+      bannerId: overrides.bannerId,
       deeplink: overrides.deeplink,
-      height: overrides.height,
+      title: overrides.title,
+      body: overrides.body ?? 'Default body',
+      imageUrl: overrides.imageUrl,
+      ctaLabel: overrides.ctaLabel,
     }),
   };
 }
@@ -138,6 +153,24 @@ describe('useBrazeBanner', () => {
     expect(result.current.banner).not.toBeNull();
   });
 
+  it('transitions to empty when banner has no body', () => {
+    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+    // Banner without body is treated as "no banner for this placement" by
+    // the listener's find() guard, which sets status to empty.
+    const bannerWithoutBody = {
+      trackingId: 'tracking-abc',
+      placementId: TEST_PLACEMENT_ID,
+      isControl: false,
+      isTestSend: false,
+      expiresAt: -1,
+      properties: {},
+    };
+    fireBannerEvent([bannerWithoutBody]);
+
+    expect(result.current.status).toBe('empty');
+  });
+
   it('transitions to empty when skeleton timeout elapses with no banner', () => {
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
@@ -168,22 +201,11 @@ describe('useBrazeBanner', () => {
     expect(result.current.status).toBe('visible');
   });
 
-  it('stays in empty when event banner trackingId matches lastDismissedBrazeBanner', () => {
-    mockLastDismissed = 'tracking-abc';
-    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-    fireBannerEvent([makeBanner({ trackingId: 'tracking-abc' })]);
-
-    expect(result.current.status).toBe('empty');
-  });
-
-  it('uses dismiss_id property for dismiss key matching', () => {
+  it('stays in empty when event banner bannerId matches lastDismissedBrazeBanner', () => {
     mockLastDismissed = 'campaign-xyz';
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
-    fireBannerEvent([
-      makeBanner({ trackingId: 'any-tracking', dismissId: 'campaign-xyz' }),
-    ]);
+    fireBannerEvent([makeBanner({ bannerId: 'campaign-xyz' })]);
 
     expect(result.current.status).toBe('empty');
   });
@@ -192,7 +214,7 @@ describe('useBrazeBanner', () => {
     mockLastDismissed = 'old-campaign';
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
-    fireBannerEvent([makeBanner({ trackingId: 'new-campaign' })]);
+    fireBannerEvent([makeBanner({ bannerId: 'new-campaign' })]);
 
     expect(result.current.status).toBe('visible');
   });
@@ -221,26 +243,10 @@ describe('useBrazeBanner', () => {
     expect(result.current.status).toBe('dismissed');
   });
 
-  it('dispatches setLastDismissedBrazeBanner with trackingId on dismiss', () => {
+  it('dispatches setLastDismissedBrazeBanner with bannerId on dismiss', () => {
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
-    fireBannerEvent([makeBanner({ trackingId: 'tracking-abc' })]);
-
-    act(() => {
-      result.current.dismiss();
-    });
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ payload: 'tracking-abc' }),
-    );
-  });
-
-  it('dispatches setLastDismissedBrazeBanner with dismiss_id when available', () => {
-    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-    fireBannerEvent([
-      makeBanner({ trackingId: 'tracking-abc', dismissId: 'campaign-xyz' }),
-    ]);
+    fireBannerEvent([makeBanner({ bannerId: 'campaign-xyz' })]);
 
     act(() => {
       result.current.dismiss();
@@ -251,7 +257,7 @@ describe('useBrazeBanner', () => {
     );
   });
 
-  it('calls logBannerClick and requestImmediateDataFlush on dismiss', () => {
+  it('does not dispatch when banner has no bannerId', () => {
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
     fireBannerEvent([makeBanner()]);
@@ -260,8 +266,19 @@ describe('useBrazeBanner', () => {
       result.current.dismiss();
     });
 
-    expect(Braze.logBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID, null);
-    expect(Braze.requestImmediateDataFlush).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('calls dismissBrazeBanner on dismiss when bannerId is set', () => {
+    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+    fireBannerEvent([makeBanner({ bannerId: 'campaign-xyz' })]);
+
+    act(() => {
+      result.current.dismiss();
+    });
+
+    expect(mockDismissBrazeBanner).toHaveBeenCalledWith('campaign-xyz');
   });
 
   it('ignores subsequent events after dismiss', () => {
@@ -301,30 +318,85 @@ describe('useBrazeBanner', () => {
     expect(mockRemove).toHaveBeenCalledTimes(1);
   });
 
-  describe('HTML size cap', () => {
-    it('transitions to empty when banner html exceeds 256 KB', () => {
+  describe('content properties', () => {
+    it('returns null body and title when no banner is loaded', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      // 256 KB + 1 byte — just over the cap
-      const oversizedHtml = 'x'.repeat(256 * 1024 + 1);
-      fireBannerEvent([makeBanner({ html: oversizedHtml })]);
-
-      expect(result.current.status).toBe('empty');
-      expect(result.current.banner).toBeNull();
+      expect(result.current.body).toBeNull();
+      expect(result.current.title).toBeNull();
     });
 
-    it('accepts a banner whose html is exactly 256 KB', () => {
+    it('returns body from banner property', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ body: 'Hello world' })]);
+      expect(result.current.body).toBe('Hello world');
+    });
 
-      const exactHtml = 'x'.repeat(256 * 1024);
-      fireBannerEvent([makeBanner({ html: exactHtml })]);
+    it('returns null title when property is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner()]);
+      expect(result.current.title).toBeNull();
+    });
 
-      expect(result.current.status).toBe('visible');
-      expect(result.current.banner).not.toBeNull();
+    it('returns title from banner property', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ title: 'Banner title' })]);
+      expect(result.current.title).toBe('Banner title');
+    });
+
+    it('returns null imageUrl when property is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner()]);
+      expect(result.current.imageUrl).toBeNull();
+    });
+
+    it('returns imageUrl from banner property when type is string', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([
+        makeBanner({ imageUrl: 'https://example.com/img.png' }),
+      ]);
+      expect(result.current.imageUrl).toBe('https://example.com/img.png');
+    });
+
+    it('returns imageUrl from banner property when type is image', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      // Simulate Braze serialising image_url with type: 'image'
+      const bannerWithImageType = makeBanner();
+      (
+        bannerWithImageType.properties as Record<
+          string,
+          { type: string; value: unknown }
+        >
+      ).image_url = { type: 'image', value: 'https://example.com/img.png' };
+      fireBannerEvent([bannerWithImageType]);
+      expect(result.current.imageUrl).toBe('https://example.com/img.png');
+    });
+
+    it('returns null ctaLabel when property is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner()]);
+      expect(result.current.ctaLabel).toBeNull();
+    });
+
+    it('returns ctaLabel from banner property', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ ctaLabel: 'Enable' })]);
+      expect(result.current.ctaLabel).toBe('Enable');
+    });
+
+    it('returns null bannerId when property is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner()]);
+      expect(result.current.bannerId).toBeNull();
+    });
+
+    it('returns bannerId from banner property', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ bannerId: 'campaign-abc' })]);
+      expect(result.current.bannerId).toBe('campaign-abc');
     });
   });
 
-  describe('deeplink and height properties', () => {
+  describe('deeplink property', () => {
     it('returns null deeplink when property is absent', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
       fireBannerEvent([makeBanner()]);
@@ -337,22 +409,9 @@ describe('useBrazeBanner', () => {
       expect(result.current.deeplink).toBe('metamask://portfolio');
     });
 
-    it('returns null height when property is absent', () => {
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-      fireBannerEvent([makeBanner()]);
-      expect(result.current.height).toBeNull();
-    });
-
-    it('returns height from banner property', () => {
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-      fireBannerEvent([makeBanner({ height: 150 })]);
-      expect(result.current.height).toBe(150);
-    });
-
-    it('returns null deeplink and null height when no banner is loaded', () => {
+    it('returns null deeplink when no banner is loaded', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
       expect(result.current.deeplink).toBeNull();
-      expect(result.current.height).toBeNull();
     });
   });
 });

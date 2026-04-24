@@ -144,6 +144,7 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import BrazeBanner from '../../UI/BrazeBanner';
+import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/constants';
 import { TokenI } from '../../UI/Tokens/types';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
@@ -1306,6 +1307,11 @@ const Wallet = ({
     ],
   );
 
+  const handleBannerError = useCallback(() => {
+    // Log the error but don't block the UI
+    Logger.error(new Error('Banner rendering error in wallet home'));
+  }, []);
+
   const content = (
     <>
       <View style={styles.banner}>
@@ -1341,7 +1347,12 @@ const Wallet = ({
         />
 
         {homeBanner === 'braze' && (
-          <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+          <ComponentErrorBoundary
+            componentLabel="BrazeBanner"
+            onError={handleBannerError}
+          >
+            <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+          </ComponentErrorBoundary>
         )}
         {homeBanner === 'carousel' && <Carousel style={styles.carousel} />}
 

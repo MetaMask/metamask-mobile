@@ -27,6 +27,7 @@ jest.mock('@braze/react-native-sdk', () => ({
       ),
     logBannerClick: jest.fn(),
     logBannerImpression: jest.fn(),
+    logCustomEvent: jest.fn(),
     requestImmediateDataFlush: jest.fn(),
   },
 }));
@@ -35,10 +36,17 @@ jest.mock('@braze/react-native-sdk', () => ({
 // Mock: core/Braze
 // ---------------------------------------------------------------------------
 const mockGetBannerForPlacement = jest.fn().mockResolvedValue(null);
+const mockLogBrazeBannerImpression = jest.fn();
+const mockLogBrazeBannerClick = jest.fn();
+
 jest.mock('../../../core/Braze', () => ({
   getBannerForPlacement: (...args: unknown[]) =>
     mockGetBannerForPlacement(...args),
   refreshBrazeBanners: jest.fn(),
+  dismissBrazeBanner: jest.fn(),
+  logBrazeBannerImpression: (...args: unknown[]) =>
+    mockLogBrazeBannerImpression(...args),
+  logBrazeBannerClick: (...args: unknown[]) => mockLogBrazeBannerClick(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -53,8 +61,7 @@ jest.mock(
 );
 
 // ---------------------------------------------------------------------------
-// Mock: isAllowedBrazeDeeplink — default to true so existing tests are
-// unaffected; individual tests override via mockReturnValueOnce.
+// Mock: isAllowedBrazeDeeplink — default to true; individual tests can override
 // ---------------------------------------------------------------------------
 const mockIsAllowedBrazeDeeplink = jest.fn().mockReturnValue(true);
 jest.mock('./isAllowedBrazeDeeplink', () => ({
@@ -85,13 +92,18 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const mockReact = require('react');
-  const {
-    View: mockRNView,
-    Pressable: mockPressable,
-  } = require('react-native');
+  const mockReact = jest.requireActual('react');
+  const { View: mockRNView } = jest.requireActual('react-native');
   return {
-    Box: mockRNView,
+    Box: ({
+      children,
+      testID,
+      ...rest
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      [key: string]: unknown;
+    }) => mockReact.createElement(mockRNView, { testID, ...rest }, children),
     Skeleton: ({
       testID,
     }: {
@@ -99,30 +111,25 @@ jest.mock('@metamask/design-system-react-native', () => {
       height?: number;
       twClassName?: string;
     }) => mockReact.createElement(mockRNView, { testID }),
-    ButtonIcon: ({
-      onPress,
-      testID,
-    }: {
-      onPress: () => void;
-      testID?: string;
-    }) => mockReact.createElement(mockPressable, { onPress, testID }),
-    ButtonIconSize: { Sm: 'sm' },
-    IconName: { Close: 'close' },
-    IconColor: { IconDefault: 'icon-default' },
   };
 });
 
 // ---------------------------------------------------------------------------
-// Mock: BrazeBannerWebView — simple static placeholder
+// Mock: BrazeBannerCard — stub that renders only the dismiss button.
+// The outer CONTAINER testID lives on BrazeBanner's own Box; no duplicate here.
 // ---------------------------------------------------------------------------
-jest.mock('./BrazeBannerWebView', () => {
-  const mockReact = require('react');
-  const { View: mockView } = require('react-native');
+jest.mock('./BrazeBannerCard', () => {
+  const mockReact = jest.requireActual('react');
+  const { Pressable } = jest.requireActual('react-native');
+  const { BRAZE_BANNER_TEST_IDS: IDS } = jest.requireActual(
+    './BrazeBanner.testIds',
+  );
   return {
     __esModule: true,
-    default: () =>
-      mockReact.createElement(mockView, {
-        testID: BRAZE_BANNER_TEST_IDS.WEBVIEW,
+    default: ({ onDismiss }: { onDismiss: () => void }) =>
+      mockReact.createElement(Pressable, {
+        testID: IDS.DISMISS_BUTTON,
+        onPress: onDismiss,
       }),
   };
 });
@@ -131,41 +138,40 @@ jest.mock('./BrazeBannerWebView', () => {
 // Helpers
 // ---------------------------------------------------------------------------
 function makeRawProperties(props: {
-  dismissId?: string;
+  bannerId?: string;
   deeplink?: string;
-  height?: number;
-}) {
-  const inner: Record<string, { type: string; value: unknown }> = {};
-  if (props.dismissId !== undefined)
-    inner.dismiss_id = { type: 'string', value: props.dismissId };
+  body?: string;
+}): Record<string, { type: string; value: unknown }> {
+  const result: Record<string, { type: string; value: unknown }> = {
+    // body is always set so the banner transitions to visible
+    body: { type: 'string', value: props.body ?? 'Default body text' },
+  };
+  if (props.bannerId !== undefined)
+    result.bannerId = { type: 'string', value: props.bannerId };
   if (props.deeplink !== undefined)
-    inner.deeplink = { type: 'string', value: props.deeplink };
-  if (props.height !== undefined)
-    inner.height = { type: 'number', value: props.height };
-  return Object.keys(inner).length > 0 ? { properties: inner } : {};
+    result.deeplink = { type: 'string', value: props.deeplink };
+  return result;
 }
 
 function makeBanner(
   overrides: Partial<{
     trackingId: string;
     placementId: string;
-    html: string;
-    dismissId: string;
+    bannerId: string;
     deeplink: string;
-    height: number;
+    body: string;
   }> = {},
 ) {
   return {
     trackingId: overrides.trackingId ?? 'tracking-abc',
     placementId: overrides.placementId ?? TEST_PLACEMENT_ID,
-    html: overrides.html ?? '<div>Hello</div>',
     isControl: false,
     isTestSend: false,
     expiresAt: -1,
     properties: makeRawProperties({
-      dismissId: overrides.dismissId,
+      bannerId: overrides.bannerId,
       deeplink: overrides.deeplink,
-      height: overrides.height,
+      body: overrides.body,
     }),
   };
 }
@@ -187,7 +193,6 @@ describe('BrazeBanner', () => {
     jest.useFakeTimers();
     mockGetBannerForPlacement.mockResolvedValue(null);
     (Braze.getBanner as jest.Mock).mockResolvedValue(null);
-    // Allow all deeplinks by default so existing tests are unaffected
     mockIsAllowedBrazeDeeplink.mockReturnValue(true);
   });
 
@@ -202,10 +207,10 @@ describe('BrazeBanner', () => {
 
     expect(queryByTestId(BRAZE_BANNER_TEST_IDS.SKELETON)).toBeTruthy();
     expect(queryByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON)).toBeNull();
-    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.WEBVIEW)).toBeNull();
+    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE)).toBeNull();
   });
 
-  it('shows the WebView and dismiss button when a banner event arrives', async () => {
+  it('shows the banner card and dismiss button when a banner event arrives', async () => {
     const { queryByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
@@ -213,7 +218,7 @@ describe('BrazeBanner', () => {
     fireBannerEvent([makeBanner()]);
 
     expect(queryByTestId(BRAZE_BANNER_TEST_IDS.SKELETON)).toBeNull();
-    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.WEBVIEW)).toBeTruthy();
+    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE)).toBeTruthy();
     expect(queryByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON)).toBeTruthy();
   });
 
@@ -238,35 +243,21 @@ describe('BrazeBanner', () => {
     fireBannerEvent([]);
 
     expect(queryByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER)).toBeNull();
+    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE)).toBeNull();
   });
 
-  it('stays in skeleton when incoming banner key matches lastDismissedBrazeBanner', () => {
-    mockLastDismissed = 'tracking-abc';
-    const { queryByTestId } = render(
-      <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-    );
-
-    fireBannerEvent([makeBanner({ trackingId: 'tracking-abc' })]);
-
-    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.SKELETON)).toBeTruthy();
-    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.WEBVIEW)).toBeNull();
-  });
-
-  it('respects custom dismiss_id property for dismiss key matching', () => {
+  it('renders nothing when incoming banner bannerId matches lastDismissedBrazeBanner', () => {
     mockLastDismissed = 'campaign-xyz';
     const { queryByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    fireBannerEvent([
-      makeBanner({
-        trackingId: 'different-tracking',
-        dismissId: 'campaign-xyz',
-      }),
-    ]);
+    fireBannerEvent([makeBanner({ bannerId: 'campaign-xyz' })]);
 
-    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.SKELETON)).toBeTruthy();
-    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.WEBVIEW)).toBeNull();
+    // Dismissed banner → empty state → component returns null
+    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER)).toBeNull();
+    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.SKELETON)).toBeNull();
+    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE)).toBeNull();
   });
 
   it('renders normally when lastDismissedBrazeBanner does not match incoming banner', () => {
@@ -275,9 +266,9 @@ describe('BrazeBanner', () => {
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    fireBannerEvent([makeBanner({ trackingId: 'new-campaign' })]);
+    fireBannerEvent([makeBanner({ bannerId: 'new-campaign' })]);
 
-    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.WEBVIEW)).toBeTruthy();
+    expect(queryByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE)).toBeTruthy();
   });
 
   it('renders null immediately on dismiss with no skeleton shown', () => {
@@ -294,27 +285,12 @@ describe('BrazeBanner', () => {
     expect(queryByTestId(BRAZE_BANNER_TEST_IDS.SKELETON)).toBeNull();
   });
 
-  it('dispatches setLastDismissedBrazeBanner on dismiss', () => {
+  it('dispatches setLastDismissedBrazeBanner on dismiss when bannerId is set', () => {
     const { getByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    fireBannerEvent([makeBanner({ trackingId: 'tracking-abc' })]);
-    fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ payload: 'tracking-abc' }),
-    );
-  });
-
-  it('uses dismiss_id property as dispatch payload when available', () => {
-    const { getByTestId } = render(
-      <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-    );
-
-    fireBannerEvent([
-      makeBanner({ trackingId: 'tracking-abc', dismissId: 'campaign-xyz' }),
-    ]);
+    fireBannerEvent([makeBanner({ bannerId: 'campaign-xyz' })]);
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -322,7 +298,7 @@ describe('BrazeBanner', () => {
     );
   });
 
-  it('calls logBannerClick and requestImmediateDataFlush on dismiss', () => {
+  it('does not dispatch when banner has no bannerId', () => {
     const { getByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
@@ -330,20 +306,7 @@ describe('BrazeBanner', () => {
     fireBannerEvent([makeBanner()]);
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
-    expect(Braze.logBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID, null);
-    expect(Braze.requestImmediateDataFlush).toHaveBeenCalledTimes(1);
-  });
-
-  it('does NOT call refreshBrazeBanners on dismiss', () => {
-    const { refreshBrazeBanners } = require('../../../core/Braze');
-    const { getByTestId } = render(
-      <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-    );
-
-    fireBannerEvent([makeBanner()]);
-    fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
-
-    expect(refreshBrazeBanners).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('ignores further bannerCardsUpdated events after dismiss', () => {
@@ -366,7 +329,7 @@ describe('BrazeBanner', () => {
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    expect(await findByTestId(BRAZE_BANNER_TEST_IDS.WEBVIEW)).toBeTruthy();
+    expect(await findByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE)).toBeTruthy();
   });
 
   it('cancels the skeleton timeout on unmount', () => {
@@ -377,23 +340,37 @@ describe('BrazeBanner', () => {
     clearTimeoutSpy.mockRestore();
   });
 
-  it('logs a banner impression when the banner becomes visible', () => {
+  it('calls logBrazeBannerImpression when the banner becomes visible', () => {
+    render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
+
+    fireBannerEvent([makeBanner({ bannerId: 'campaign-abc' })]);
+
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledWith(
+      TEST_PLACEMENT_ID,
+      'campaign-abc',
+    );
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls logBrazeBannerImpression with null bannerId when bannerId is absent', () => {
     render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
 
     fireBannerEvent([makeBanner()]);
 
-    expect(Braze.logBannerImpression).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
-    expect(Braze.logBannerImpression).toHaveBeenCalledTimes(1);
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledWith(
+      TEST_PLACEMENT_ID,
+      null,
+    );
   });
 
   it('does not log impression while in loading state', () => {
     render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
 
-    expect(Braze.logBannerImpression).not.toHaveBeenCalled();
+    expect(mockLogBrazeBannerImpression).not.toHaveBeenCalled();
   });
 
   describe('banner tap', () => {
-    it('calls handleDeeplink and logBannerClick when banner has a deeplink', () => {
+    it('calls logBrazeBannerClick and handleDeeplink when banner has a deeplink', () => {
       const { getByTestId } = render(
         <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
       );
@@ -401,10 +378,7 @@ describe('BrazeBanner', () => {
       fireBannerEvent([makeBanner({ deeplink: 'metamask://portfolio' })]);
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
-      expect(Braze.logBannerClick).toHaveBeenCalledWith(
-        TEST_PLACEMENT_ID,
-        null,
-      );
+      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
       expect(mockHandleDeeplink).toHaveBeenCalledWith({
         uri: 'metamask://portfolio',
         source: 'braze',
@@ -420,10 +394,10 @@ describe('BrazeBanner', () => {
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
       expect(mockHandleDeeplink).not.toHaveBeenCalled();
-      expect(Braze.logBannerClick).not.toHaveBeenCalled();
+      expect(mockLogBrazeBannerClick).not.toHaveBeenCalled();
     });
 
-    it('does not call handleDeeplink or logBannerClick when deeplink is rejected by the allowlist', () => {
+    it('does not call handleDeeplink or logBrazeBannerClick when deeplink is rejected by the allowlist', () => {
       mockIsAllowedBrazeDeeplink.mockReturnValueOnce(false);
 
       const { getByTestId } = render(
@@ -436,7 +410,7 @@ describe('BrazeBanner', () => {
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
       expect(mockHandleDeeplink).not.toHaveBeenCalled();
-      expect(Braze.logBannerClick).not.toHaveBeenCalled();
+      expect(mockLogBrazeBannerClick).not.toHaveBeenCalled();
     });
 
     it('passes the deeplink URI to isAllowedBrazeDeeplink before routing', () => {
@@ -449,60 +423,6 @@ describe('BrazeBanner', () => {
 
       expect(mockIsAllowedBrazeDeeplink).toHaveBeenCalledWith(
         'metamask://home',
-      );
-    });
-  });
-
-  describe('height clamping', () => {
-    it('uses DEFAULT_BANNER_HEIGHT (120) when no height property is set', () => {
-      const { getByTestId } = render(
-        <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-      );
-
-      fireBannerEvent([makeBanner()]);
-
-      const container = getByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER);
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([expect.objectContaining({ height: 120 })]),
-      );
-    });
-
-    it('clamps a height below the minimum (60) up to 60', () => {
-      const { getByTestId } = render(
-        <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-      );
-
-      fireBannerEvent([makeBanner({ height: 10 })]);
-
-      const container = getByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER);
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([expect.objectContaining({ height: 60 })]),
-      );
-    });
-
-    it('clamps a height above the maximum (240) down to 240', () => {
-      const { getByTestId } = render(
-        <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-      );
-
-      fireBannerEvent([makeBanner({ height: 5000 })]);
-
-      const container = getByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER);
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([expect.objectContaining({ height: 240 })]),
-      );
-    });
-
-    it('uses an in-range height value as-is', () => {
-      const { getByTestId } = render(
-        <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-      );
-
-      fireBannerEvent([makeBanner({ height: 150 })]);
-
-      const container = getByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER);
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([expect.objectContaining({ height: 150 })]),
       );
     });
   });

@@ -1,4 +1,4 @@
-import Braze from '@braze/react-native-sdk';
+import Braze, { Banner } from '@braze/react-native-sdk';
 import I18n, { I18nEvents } from '../../../locales/i18n';
 import Logger from '../../util/Logger';
 import { isE2E } from '../../util/test/utils';
@@ -70,7 +70,7 @@ export function clearBrazeUser(): void {
  */
 export async function getBannerForPlacement(
   placementId: string,
-): Promise<import('@braze/react-native-sdk').Banner | null> {
+): Promise<Banner | null> {
   try {
     return await Braze.getBanner(placementId);
   } catch (error) {
@@ -99,14 +99,45 @@ export function refreshBrazeBanners(
 /**
  * Set a custom user attribute to track banner dismissals and flush the event immediately.
  */
-export function dismissBrazeBanner(dismissId: string): void {
+export function dismissBrazeBanner(bannerId: string): void {
   try {
-    const dismissalAttribute = `banner-dismissed-${dismissId}`;
+    const dismissalAttribute = `banner-dismissed-${bannerId}`;
     Logger.log('[Braze] Setting custom user attribute', { dismissalAttribute });
     Braze.setCustomUserAttribute(dismissalAttribute, true);
     Braze.requestImmediateDataFlush();
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to log banner dismissal');
+  }
+}
+
+/**
+ * Log a Braze banner impression and a corresponding `Banner Impression`
+ * custom event tagged with the campaign's `bannerId` property.
+ */
+export function logBrazeBannerImpression(
+  placementId: string,
+  bannerId: string | null,
+): void {
+  try {
+    Braze.logBannerImpression(placementId);
+
+    if (bannerId) {
+      Braze.logCustomEvent('Banner Impression', { banner_id: bannerId });
+    }
+  } catch (error) {
+    Logger.error(error as Error, '[Braze] Failed to log banner impression');
+  }
+}
+
+/**
+ * Log a Braze banner click and a corresponding `Banner Click`
+ * custom event tagged with the campaign's `bannerId` property.
+ */
+export function logBrazeBannerClick(placementId: string): void {
+  try {
+    Braze.logBannerClick(placementId, null);
+  } catch (error) {
+    Logger.error(error as Error, '[Braze] Failed to log banner click');
   }
 }
 

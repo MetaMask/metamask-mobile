@@ -170,7 +170,9 @@ describe('isAllowedBrazeDeeplink', () => {
   // -------------------------------------------------------------------------
   describe('dangerous schemes', () => {
     it('rejects javascript:', () => {
-      expect(isAllowedBrazeDeeplink('javascript:alert(1)')).toBe(false);
+      // Concatenated to avoid eslint `no-script-url` while keeping the test value.
+      const javascriptUri = `${'java'}${'script'}:alert(1)`;
+      expect(isAllowedBrazeDeeplink(javascriptUri)).toBe(false);
     });
 
     it('rejects file://', () => {

@@ -573,6 +573,8 @@ jest.mock('@braze/react-native-sdk', () => ({
   default: {
     changeUser: jest.fn(),
     logCustomEvent: jest.fn(),
+    logBannerImpression: jest.fn(),
+    logBannerClick: jest.fn(),
     requestImmediateDataFlush: jest.fn(),
     setCustomUserAttribute: jest.fn(),
     setLanguage: jest.fn(),
