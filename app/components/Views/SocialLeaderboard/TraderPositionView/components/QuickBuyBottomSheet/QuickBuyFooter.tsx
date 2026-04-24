@@ -14,6 +14,9 @@ import {
   AvatarToken,
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
+import QuickBuyConfirmButton, {
+  type ConfirmButtonState,
+} from './QuickBuyConfirmButton';
 import Icon, {
   IconName,
   IconSize,
@@ -55,7 +58,7 @@ interface QuickBuyFooterProps {
   hasRewardsError: boolean;
   rewardsAccountScope: InternalAccount | null;
   isConfirmDisabled: boolean;
-  isConfirmLoading: boolean;
+  confirmButtonState: ConfirmButtonState;
   getButtonLabel: () => string;
   onPresetPress: (preset: string) => void;
   onConfirm: () => Promise<void>;
@@ -80,7 +83,7 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   hasRewardsError,
   rewardsAccountScope,
   isConfirmDisabled,
-  isConfirmLoading,
+  confirmButtonState,
   getButtonLabel,
   onPresetPress,
   onConfirm,
@@ -275,17 +278,13 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
       </Box>
 
       {/* Buy button */}
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonBaseSize.Lg}
-        isFullWidth
+      <QuickBuyConfirmButton
+        state={confirmButtonState}
+        label={getButtonLabel()}
         isDisabled={isConfirmDisabled}
-        isLoading={isConfirmLoading}
         onPress={onConfirm}
         testID="quick-buy-confirm-button"
-      >
-        {getButtonLabel()}
-      </Button>
+      />
     </Box>
   </Box>
 );

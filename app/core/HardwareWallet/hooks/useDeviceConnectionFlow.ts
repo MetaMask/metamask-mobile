@@ -213,9 +213,14 @@ export const useDeviceConnectionFlow = ({
 
       if (pendingReadyResolveRef.current) {
         DevLogger.log(
-          '[HardwareWallet] Abandoning previous pending readiness check (not resolving)',
+          '[HardwareWallet] Cancelling previous pending readiness check',
         );
-        pendingReadyResolveRef.current = null;
+        const resolvePending = pendingReadyResolveRef.current;
+        if (resolvePending) {
+          pendingReadyResolveRef.current = null;
+          connectionSuccessCallbackRef.current = null;
+          resolvePending(false);
+        }
       }
 
       const targetType =
@@ -347,9 +352,11 @@ export const useDeviceConnectionFlow = ({
   ]);
 
   const closeFlow = useCallback(() => {
-    if (pendingReadyResolveRef.current) {
-      pendingReadyResolveRef.current(false);
+    const resolvePending = pendingReadyResolveRef.current;
+    if (resolvePending) {
       pendingReadyResolveRef.current = null;
+      connectionSuccessCallbackRef.current = null;
+      resolvePending(false);
     }
     setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });

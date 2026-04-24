@@ -54,9 +54,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  qrTitle: {
-    textAlign: 'center',
-  },
   qrErrorText: {
     textAlign: 'center',
   },

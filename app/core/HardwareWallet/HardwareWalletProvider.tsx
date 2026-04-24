@@ -209,7 +209,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   );
 
   const qrSigningValue = useQRSigningState();
-
   const contextValue = useMemo(
     () => ({
       walletType: effectiveWalletType,

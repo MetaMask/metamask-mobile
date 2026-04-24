@@ -218,7 +218,9 @@ describe('AwaitingConfirmationContent', () => {
       const { getByText } = renderComponent();
 
       expect(
-        getByText(/hardware_wallet\.awaiting_confirmation\.message/),
+        getByText(
+          'hardware_wallet.awaiting_confirmation.message {"device":"hardware_wallet.device_names.ledger"}',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -226,7 +228,9 @@ describe('AwaitingConfirmationContent', () => {
       const { getByText } = renderComponent();
 
       expect(
-        getByText(/hardware_wallet\.awaiting_confirmation\.title_transaction/),
+        getByText(
+          'hardware_wallet.awaiting_confirmation.title_transaction {"device":"hardware_wallet.device_names.ledger"}',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -236,7 +240,9 @@ describe('AwaitingConfirmationContent', () => {
       });
 
       expect(
-        getByText(/hardware_wallet\.awaiting_confirmation\.title_transaction/),
+        getByText(
+          'hardware_wallet.awaiting_confirmation.title_transaction {"device":"hardware_wallet.device_names.ledger"}',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -244,7 +250,9 @@ describe('AwaitingConfirmationContent', () => {
       const { getByText } = renderComponent({ operationType: 'message' });
 
       expect(
-        getByText(/hardware_wallet\.awaiting_confirmation\.title_message/),
+        getByText(
+          'hardware_wallet.awaiting_confirmation.title_message {"device":"hardware_wallet.device_names.ledger"}',
+        ),
       ).toBeOnTheScreen();
     });
 
