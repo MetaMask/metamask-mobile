@@ -307,3 +307,34 @@ export const selectOndoCampaignDepositsError = (state: RootState) =>
 
 export const selectPendingDeeplink = (state: RootState) =>
   state.rewards.pendingDeeplink;
+
+// Perps Trading Campaign leaderboard selectors
+export const selectPerpsTradingCampaignLeaderboard = (state: RootState) =>
+  state.rewards.perpsTradingCampaignLeaderboard;
+
+export const selectPerpsTradingCampaignLeaderboardLoading = (
+  state: RootState,
+) => state.rewards.perpsTradingCampaignLeaderboardLoading;
+
+export const selectPerpsTradingCampaignLeaderboardError = (state: RootState) =>
+  state.rewards.perpsTradingCampaignLeaderboardError;
+
+// Perps Trading Campaign leaderboard position selectors
+export const selectPerpsTradingCampaignLeaderboardPositionById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.perpsTradingCampaignLeaderboardPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+// Perps Trading Campaign prize pool selectors
+export const selectPerpsTradingCampaignPrizePool = (state: RootState) =>
+  state.rewards.perpsTradingCampaignPrizePool;
+
+export const selectPerpsTradingCampaignPrizePoolLoading = (state: RootState) =>
+  state.rewards.perpsTradingCampaignPrizePoolLoading;
+
+export const selectPerpsTradingCampaignPrizePoolError = (state: RootState) =>
+  state.rewards.perpsTradingCampaignPrizePoolError;

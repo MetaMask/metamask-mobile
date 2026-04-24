@@ -66,6 +66,9 @@ import {
   RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction,
   RewardsDataServiceGetOndoCampaignDepositsAction,
   RewardsDataServiceGetOndoCampaignParticipantOutcomeAction,
+  RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
+  RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
+  RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -118,7 +121,10 @@ type AllowedActions =
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
   | RewardsDataServiceGetOndoCampaignDepositsAction
-  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction;
+  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -193,6 +199,9 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getOndoCampaignActivityLastUpdated',
       'RewardsDataService:getOndoCampaignDeposits',
       'RewardsDataService:getOndoCampaignParticipantOutcome',
+      'RewardsDataService:getPerpsTradingCampaignLeaderboard',
+      'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
+      'RewardsDataService:getPerpsTradingCampaignPrizePool',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

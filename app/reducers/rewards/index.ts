@@ -17,6 +17,8 @@ import {
   OndoGmPortfolioDto,
   OndoGmActivityEntryDto,
   OndoGmCampaignDepositsDto,
+  PerpsTradingCampaignLeaderboardDto,
+  PerpsTradingCampaignLeaderboardPositionDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -165,6 +167,27 @@ export interface RewardsState {
   ondoCampaignDepositsLoading: boolean;
   ondoCampaignDepositsError: boolean;
 
+  // Perps Trading Campaign leaderboard
+  perpsTradingCampaignLeaderboard: PerpsTradingCampaignLeaderboardDto | null;
+  perpsTradingCampaignLeaderboardLoading: boolean;
+  perpsTradingCampaignLeaderboardError: boolean;
+
+  // Perps Trading Campaign leaderboard position (user's own position)
+  perpsTradingCampaignLeaderboardPositions: Record<
+    string,
+    PerpsTradingCampaignLeaderboardPositionDto
+  >;
+
+  // Perps Trading Campaign prize pool
+  perpsTradingCampaignPrizePool: {
+    currentNotionalVolume: string;
+    currentPrize: number;
+    maxPrize: number;
+    milestones: { notionalVolume: number; prize: number }[];
+  } | null;
+  perpsTradingCampaignPrizePoolLoading: boolean;
+  perpsTradingCampaignPrizePoolError: boolean;
+
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
@@ -176,7 +199,7 @@ export interface RewardsState {
  */
 export interface PendingDeeplink {
   page?: 'campaigns' | 'musd' | 'benefits';
-  campaign?: 'ondo' | 'season1';
+  campaign?: 'ondo' | 'season1' | 'perps-comp';
 }
 
 export const initialState: RewardsState = {
@@ -274,6 +297,15 @@ export const initialState: RewardsState = {
   ondoCampaignDeposits: null,
   ondoCampaignDepositsLoading: false,
   ondoCampaignDepositsError: false,
+
+  // Perps Trading Campaign initial state
+  perpsTradingCampaignLeaderboard: null,
+  perpsTradingCampaignLeaderboardLoading: false,
+  perpsTradingCampaignLeaderboardError: false,
+  perpsTradingCampaignLeaderboardPositions: {},
+  perpsTradingCampaignPrizePool: null,
+  perpsTradingCampaignPrizePoolLoading: false,
+  perpsTradingCampaignPrizePoolError: false,
 
   pendingDeeplink: null,
 };
@@ -694,6 +726,72 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDepositsError = action.payload;
     },
 
+    // Perps Trading Campaign leaderboard reducers
+    setPerpsTradingCampaignLeaderboard: (
+      state,
+      action: PayloadAction<PerpsTradingCampaignLeaderboardDto | null>,
+    ) => {
+      state.perpsTradingCampaignLeaderboard = action.payload;
+      state.perpsTradingCampaignLeaderboardError = false;
+    },
+    setPerpsTradingCampaignLeaderboardLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.perpsTradingCampaignLeaderboard) {
+        return;
+      }
+      state.perpsTradingCampaignLeaderboardLoading = action.payload;
+    },
+    setPerpsTradingCampaignLeaderboardError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.perpsTradingCampaignLeaderboardError = action.payload;
+    },
+
+    // Perps Trading Campaign leaderboard position reducers
+    setPerpsTradingCampaignLeaderboardPosition: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        position: PerpsTradingCampaignLeaderboardPositionDto | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      if (action.payload.position) {
+        state.perpsTradingCampaignLeaderboardPositions[key] =
+          action.payload.position;
+      } else {
+        delete state.perpsTradingCampaignLeaderboardPositions[key];
+      }
+    },
+
+    // Perps Trading Campaign prize pool reducers
+    setPerpsTradingCampaignPrizePool: (
+      state,
+      action: PayloadAction<RewardsState['perpsTradingCampaignPrizePool']>,
+    ) => {
+      state.perpsTradingCampaignPrizePool = action.payload;
+      state.perpsTradingCampaignPrizePoolError = false;
+    },
+    setPerpsTradingCampaignPrizePoolLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.perpsTradingCampaignPrizePool) {
+        return;
+      }
+      state.perpsTradingCampaignPrizePoolLoading = action.payload;
+    },
+    setPerpsTradingCampaignPrizePoolError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.perpsTradingCampaignPrizePoolError = action.payload;
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -888,6 +986,14 @@ export const {
   setOndoCampaignDeposits,
   setOndoCampaignDepositsLoading,
   setOndoCampaignDepositsError,
+  // Perps Trading Campaign actions
+  setPerpsTradingCampaignLeaderboard,
+  setPerpsTradingCampaignLeaderboardLoading,
+  setPerpsTradingCampaignLeaderboardError,
+  setPerpsTradingCampaignLeaderboardPosition,
+  setPerpsTradingCampaignPrizePool,
+  setPerpsTradingCampaignPrizePoolLoading,
+  setPerpsTradingCampaignPrizePoolError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

@@ -95,6 +95,10 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
       navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
         campaignId: campaign.id,
       });
+    } else if (campaign.type === CampaignType.PERPS_TRADING) {
+      navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: campaign.id,
+      });
     }
   };
 

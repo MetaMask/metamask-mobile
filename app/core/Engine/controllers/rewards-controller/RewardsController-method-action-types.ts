@@ -703,6 +703,37 @@ export type RewardsControllerInvalidateSubscriptionCacheAction = {
 };
 
 /**
+ * Get the Perps Trading Campaign leaderboard (top 20 entries, no tiers).
+ * Public endpoint — no authentication required.
+ * Results are cached for 5 minutes.
+ */
+export type RewardsControllerGetPerpsTradingCampaignLeaderboardAction = {
+  type: `RewardsController:getPerpsTradingCampaignLeaderboard`;
+  handler: RewardsController['getPerpsTradingCampaignLeaderboard'];
+};
+
+/**
+ * Get the current user's position on the Perps Trading Campaign leaderboard.
+ * Authenticated endpoint.
+ * Results are cached for 5 minutes.
+ */
+export type RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction =
+  {
+    type: `RewardsController:getPerpsTradingCampaignLeaderboardPosition`;
+    handler: RewardsController['getPerpsTradingCampaignLeaderboardPosition'];
+  };
+
+/**
+ * Get the Perps Trading Campaign prize pool stats (current/max prize, milestones, notional volume).
+ * Public endpoint — no authentication required.
+ * Results are cached for 5 minutes.
+ */
+export type RewardsControllerGetPerpsTradingCampaignPrizePoolAction = {
+  type: `RewardsController:getPerpsTradingCampaignPrizePool`;
+  handler: RewardsController['getPerpsTradingCampaignPrizePool'];
+};
+
+/**
  * Union of all RewardsController action types.
  */
 export type RewardsControllerMethodActions =
@@ -771,4 +802,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
-  | RewardsControllerInvalidateSubscriptionCacheAction;
+  | RewardsControllerInvalidateSubscriptionCacheAction
+  | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
+  | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
+  | RewardsControllerGetPerpsTradingCampaignPrizePoolAction;
