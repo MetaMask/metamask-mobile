@@ -15,29 +15,27 @@ jest.mock('../../hooks/useLatestBalance', () => ({
 const mockInputFocus = jest.fn();
 const mockInputBlur = jest.fn();
 const mockInputIsFocused = jest.fn(() => false);
-jest.mock(
-  '../../../../../component-library/components/Form/TextField/foundation/Input',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { TextInput } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: MockReact.forwardRef(
-        (props: Record<string, unknown>, inputRef: React.Ref<unknown>) => {
-          MockReact.useImperativeHandle(inputRef, () => ({
-            focus: mockInputFocus,
-            blur: mockInputBlur,
-            isFocused: mockInputIsFocused,
-          }));
-          return MockReact.createElement(TextInput, {
-            ...props,
-            testID: props.testID,
-          });
-        },
-      ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const MockReact = jest.requireActual('react');
+  const { TextInput } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Input: MockReact.forwardRef(
+      (props: Record<string, unknown>, inputRef: React.Ref<unknown>) => {
+        MockReact.useImperativeHandle(inputRef, () => ({
+          focus: mockInputFocus,
+          blur: mockInputBlur,
+          isFocused: mockInputIsFocused,
+        }));
+        return MockReact.createElement(TextInput, {
+          ...props,
+          testID: props.testID,
+        });
+      },
+    ),
+  };
+});
 
 jest.mock('../../hooks/useShouldRenderMaxOption', () => ({
   useShouldRenderMaxOption: jest.fn(() => true),
