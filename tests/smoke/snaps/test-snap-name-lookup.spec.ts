@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -17,7 +17,7 @@ jest.setTimeout(150_000);
 
 const TOKEN = 'Ethereum';
 
-describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
+describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
   it('displays the resolved recipient address in the send flow', async () => {
     await withFixtures(
       {

@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -8,7 +8,7 @@ import { Assertions } from '../../framework';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Cronjob Snap Tests'), () => {
+describe(SmokeSnaps('Cronjob Snap Tests'), () => {
   it('can connect to the Cronjob Snap which triggers a dialog', async () => {
     await withFixtures(
       {

@@ -76,11 +76,8 @@ const smokeTags = {
     description:
       'Tests the in-app browser (BrowserTab/BrowserUrlBar WebView). Covers browser navigation: visiting invalid URLs and returning home, ENS domain resolution via mocked IPFS gateway, and cross-origin redirect URL bar updates. Tests browser security: camera permission prompts within WebView and history disclosure prevention. Tests file download handling from web pages. Tests phishing detection via mocked dapp-scanning API responses. Browser tests use local HTML fixture servers (DappServer) and testSpecificMock for API mocking rather than live external websites. When changes touch BrowserTab, BrowserUrlBar, WebView configuration, or dapp-scanning integration, select this tag. Related to SmokeWalletPlatform for Trending browser navigation integration.',
   },
-};
-
-const flaskTags = {
-  flaskBuildTests: {
-    tag: 'FlaskBuildTests:',
+  smokeSnaps: {
+    tag: 'SmokeSnaps:',
     description:
       'Tests the MetaMask Snaps extensibility platform. Covers snap lifecycle: installation from npm, enabling/disabling installed snaps, and removal with keyring warnings for snaps managing accounts. Tests snap Ethereum provider access: eth_chainId, eth_accounts, personal_sign, eth_signTypedData_v4, and wallet_switchEthereumChain. Validates snap dialog systems for alerts and confirmations with approve/cancel flows. Tests snap capabilities: persistent state management (snap_manageState for set/get/clear), network access for external API calls, WebAssembly (WASM) execution, interactive UI rendering with JSX components, cronjob scheduling for background tasks, entropy generation for randomness, file handling, and BIP-32/BIP-44 key derivation for account management. Also covers preinstalled snaps, snap UI links, lifecycle events, user preference access, image handling in snap UIs, and background event listeners. Snaps enable non-EVM chain support like Solana account derivation.',
   },
@@ -126,6 +123,7 @@ const SmokePredictions = (testName) =>
 const SmokeSeedlessOnboarding = (testName) =>
   `${smokeTags.smokeSeedlessOnboarding.tag} ${testName}`;
 const SmokeBrowser = (testName) => `${smokeTags.smokeBrowser.tag} ${testName}`;
+const SmokeSnaps = (testName) => `${smokeTags.smokeSnaps.tag} ${testName}`;
 // Other test tags functions.
 const RegressionAccounts = (testName) =>
   `${otherTags.regressionAccounts} ${testName}`;
@@ -147,15 +145,12 @@ const RegressionTrade = (testName) =>
   `${otherTags.regressionTrade} ${testName}`;
 const RegressionSampleFeature = (testName) =>
   `${otherTags.regressionSampleFeature} ${testName}`;
-const FlaskBuildTests = (testName) =>
-  `${flaskTags.flaskBuildTests.tag} ${testName}`;
 const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
 const FixtureValidation = (testName) =>
   `${otherTags.fixtureValidation} ${testName}`;
 
 export {
   smokeTags,
-  flaskTags,
   SmokeAccounts,
   SmokeConfirmations,
   SmokeIdentity,
@@ -180,7 +175,7 @@ export {
   RegressionWalletUX,
   RegressionTrade,
   RegressionSampleFeature,
-  FlaskBuildTests,
+  SmokeSnaps,
   SmokePerformance,
   FixtureValidation,
 };

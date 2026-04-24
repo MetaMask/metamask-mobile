@@ -1,6 +1,6 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { loginToApp } from '../../flows/wallet.flow';
@@ -8,7 +8,7 @@ import { navigateToBrowserView } from '../../flows/browser.flow';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Installed Snap Tests'), () => {
+describe(SmokeSnaps('Installed Snap Tests'), () => {
   it('connects to the snap and displays the installed snaps', async () => {
     await withFixtures(
       {
