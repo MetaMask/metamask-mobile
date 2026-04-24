@@ -12,13 +12,6 @@
 #
 # The RC build comment includes an AI-generated test plan (inline with collapsible sections).
 #
-# Rolling builds: when a new run starts for the same release branch, any queued or
-# in-progress run of this workflow for that branch is cancelled (same behavior as
-# Bitrise “Rolling builds” / “Abort running builds” for one branch + one workflow).
-#
-# Version bump runs once (update-latest-build-version.yml), then iOS and Android
-# builds are triggered in parallel via runway-ota-build-core.yml (skip_version_bump).
-#
 ##############################################################################################
 name: Auto RC builds
 
