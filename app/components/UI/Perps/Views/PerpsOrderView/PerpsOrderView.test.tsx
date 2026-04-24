@@ -447,6 +447,26 @@ jest.mock(
   }),
 );
 
+const mockUseTransactionPayToken = jest.fn<
+  {
+    payToken: Record<string, unknown> | undefined;
+    setPayToken: jest.Mock;
+    isNative: boolean | undefined;
+  },
+  unknown[]
+>(() => ({
+  payToken: undefined,
+  setPayToken: jest.fn(),
+  isNative: undefined,
+}));
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useTransactionPayToken',
+  () => ({
+    useTransactionPayToken: (...args: unknown[]) =>
+      mockUseTransactionPayToken(...args),
+  }),
+);
+
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics',
   () => ({
@@ -4034,6 +4054,182 @@ describe('PerpsOrderView', () => {
 
       const builder = findPerpsErrorBuilder();
       expect(builder).toBeUndefined();
+    });
+
+    it('fires warning event when hasInsufficientPayTokenBalance is true', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      const { useNoPayTokenQuotesAlert: mockNoQuotesAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([]);
+      mockNoQuotesAlert.mockReturnValue([]);
+
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { balanceUsd: '0.01', address: '0xusdc', chainId: '0xa4b1' },
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'warning',
+            warning_message: 'insufficient_balance',
+            screen_name: 'perps_order',
+            screen_type: 'trading',
+          }),
+        );
+      });
+    });
+
+    it('does not fire warning event when pay-token balance is sufficient', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      const { useNoPayTokenQuotesAlert: mockNoQuotesAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([]);
+      mockNoQuotesAlert.mockReturnValue([]);
+
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: {
+          balanceUsd: '999999999',
+          address: '0xusdc',
+          chainId: '0xa4b1',
+        },
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+
+      const allBuilders = (
+        mockCreateEventBuilder.mock.calls as unknown as [
+          { category?: string },
+        ][]
+      ).reduce<ReturnType<typeof mockCreateEventBuilder>[]>(
+        (acc, call, idx) => {
+          if (call[0]?.category === 'Perp Error') {
+            acc.push(mockCreateEventBuilder.mock.results[idx].value);
+          }
+          return acc;
+        },
+        [],
+      );
+      const hasWarningBuilder = allBuilders.some((b) =>
+        (b.addProperties as jest.Mock).mock.calls.some(
+          (c: [Record<string, unknown>]) => c[0]?.error_type === 'warning',
+        ),
+      );
+      expect(hasWarningBuilder).toBe(false);
+    });
+
+    it('uses title as alertMessage fallback when message is not a string', async () => {
+      const expectedTitle = 'Alert title fallback';
+      const { useInsufficientPayTokenBalanceAlert: mockAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          key: 'InsufficientPayTokenBalance',
+          field: 'Amount',
+          message: undefined,
+          title: expectedTitle,
+          severity: 'danger',
+          isBlocking: true,
+        },
+      ]);
+
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'validation',
+            error_message: expectedTitle,
+          }),
+        );
+      });
+    });
+
+    it('uses key as alertMessage fallback when neither message nor title exist', async () => {
+      const expectedKey = 'CustomAlertKey';
+      const { useInsufficientPayTokenBalanceAlert: mockAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          key: expectedKey,
+          field: 'Amount',
+          severity: 'danger',
+          isBlocking: true,
+        },
+      ]);
+
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'validation',
+            error_message: expectedKey,
+          }),
+        );
+      });
+    });
+
+    it('uses unknown_blocking_alert as alertMessage fallback when no message, title, or key', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          field: 'Amount',
+          severity: 'danger',
+          isBlocking: true,
+        },
+      ]);
+
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'validation',
+            error_message: 'unknown_blocking_alert',
+          }),
+        );
+      });
     });
   });
 });
