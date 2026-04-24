@@ -13,6 +13,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import { hasTransactionType } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import Engine from '../../../../../core/Engine';
 import {
   useTransactionPayIsMaxAmount,
@@ -205,10 +206,18 @@ function useTokenBalance(tokenUsdRate: number) {
     .multipliedBy(tokenUsdRate)
     .toNumber();
 
+  const { totalFiatRaw: moneyAccountTotalFiatRaw } = useMoneyAccountBalance();
+
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
     const availableBalance = perpsState?.accountState?.availableBalance;
     return availableBalance ? parseFloat(availableBalance) : 0;
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    return moneyAccountTotalFiatRaw ? parseFloat(moneyAccountTotalFiatRaw) : 0;
   }
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])

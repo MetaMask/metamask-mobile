@@ -15,6 +15,7 @@ import {
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { Hex } from '@metamask/utils';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import {
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
@@ -36,6 +37,7 @@ jest.mock('../pay/useTransactionPayHasSourceAmount');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
+jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -97,6 +99,7 @@ describe('useTransactionCustomAmount', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useParamsMock = jest.mocked(useParams);
   const usePredictBalanceMock = jest.mocked(usePredictBalance);
+  const useMoneyAccountBalanceMock = jest.mocked(useMoneyAccountBalance);
   const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
   const useTransactionPayIsMaxAmountMock = jest.mocked(
     useTransactionPayIsMaxAmount,
@@ -139,6 +142,9 @@ describe('useTransactionCustomAmount', () => {
 
     useParamsMock.mockReturnValue({});
     usePredictBalanceMock.mockReturnValue({ data: 0 } as never);
+    useMoneyAccountBalanceMock.mockReturnValue({
+      totalFiatRaw: undefined,
+    } as ReturnType<typeof useMoneyAccountBalance>);
     useConfirmationMetricEventsMock.mockReturnValue({
       setConfirmationMetric: setConfirmationMetricMock,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
@@ -510,6 +516,60 @@ describe('useTransactionCustomAmount', () => {
 
       await act(async () => {
         result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('0');
+    });
+
+    it('to percentage of money account total fiat balance', async () => {
+      useMoneyAccountBalanceMock.mockReturnValue({
+        totalFiatRaw: '500',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.moneyAccountWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      expect(result.current.amountFiat).toBe('250');
+    });
+
+    it('to total money account balance when selecting max', async () => {
+      useMoneyAccountBalanceMock.mockReturnValue({
+        totalFiatRaw: '500',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.moneyAccountWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('500');
+    });
+
+    it('returns 0 for money account withdraw when totalFiatRaw is undefined', async () => {
+      useMoneyAccountBalanceMock.mockReturnValue({
+        totalFiatRaw: undefined,
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.moneyAccountWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
       });
 
       expect(result.current.amountFiat).toBe('0');
