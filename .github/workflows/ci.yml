@@ -233,7 +233,7 @@ jobs:
 
           FILE_PATH='ios/main.jsbundle'
           CURRENT_MB="$(stat -c %s "$FILE_PATH" | awk '{print $1/1024/1024}')"
-          echo "Current iOS JS bundle: ${CURRENT_MB} MB"
+          echo "Current iOS JS bundle: ${CURRENT_MB} MB. Test run"
 
           BASELINE_MB=""
           BASE_SHA='${{ github.event.pull_request.base.sha }}'
