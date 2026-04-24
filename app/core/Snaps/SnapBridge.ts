@@ -19,8 +19,10 @@ import {
   SnapEndowments,
 } from '@metamask/snaps-rpc-methods';
 import {
+  createPermissionMiddleware,
   RequestedPermissions,
   SubjectType,
+  type PermissionMiddlewareActions,
 } from '@metamask/permission-controller';
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
@@ -53,6 +55,7 @@ import {
 } from '../RPCMethods/utils';
 import { MultichainRoutingService } from '@metamask/snaps-controllers';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
+import { Messenger } from '@metamask/messenger';
 
 /**
  * Type definition for the GetRPCMethodMiddleware function.
@@ -167,9 +170,25 @@ export default class SnapBridge {
     // @ts-expect-error: Type mismatch.
     engine.push(asLegacyMiddleware(createWalletSnapPermissionMiddleware()));
 
+    const permissionMessenger = new Messenger<
+      'PermissionMiddleware',
+      PermissionMiddlewareActions
+    >({
+      namespace: 'PermissionMessenger',
+      parent: controllerMessenger,
+    });
+    controllerMessenger.delegate({
+      messenger: permissionMessenger,
+      actions: [
+        'PermissionController:executeRestrictedMethod',
+        'PermissionController:hasUnrestrictedMethod',
+      ],
+    });
+
     engine.push(
-      PermissionController.createPermissionMiddleware({
+      createPermissionMiddleware({
         origin: this.#snapId,
+        messenger: permissionMessenger,
       }),
     );
 
