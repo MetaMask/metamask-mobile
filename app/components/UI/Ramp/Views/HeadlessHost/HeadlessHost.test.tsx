@@ -311,6 +311,10 @@ describe('HeadlessHost', () => {
 
   describe('Error handling', () => {
     it('forwards a malformed assetId as onError(UNKNOWN, ...) and closes the session', () => {
+      // Real hook: falsy chain id → null wallet. The invalid-assetId branch
+      // must run before the wallet deferral or the effect would return early
+      // forever (regression guard for guard ordering).
+      mockUseRampAccountAddress.mockReturnValue(null);
       const quote = buildAggregatorQuote();
       const session = seedSession(quote, { assetId: 'not-a-caip-19' });
       const callbacks = session.callbacks;

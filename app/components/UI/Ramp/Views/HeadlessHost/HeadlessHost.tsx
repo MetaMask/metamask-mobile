@@ -160,8 +160,12 @@ function HeadlessHost() {
   // re-fire.
   //
   // `walletAddress` begins as null while `useRampAccountAddress` resolves
-  // async. We defer (return early, leave status as 'pending') until it
-  // settles — a non-null value is a required input for widget/order URLs.
+  // async. The effect body validates chainId before deferring on wallet:
+  // a null chainId also yields walletAddress === null (falsy chain id), so
+  // the invalid-assetId branch must run first or the host would spin forever.
+  // After chainId is valid, defer (leave status as 'pending') until
+  // walletAddress settles — a non-null value is a required input for
+  // widget/order URLs.
   // When it resolves the effect re-fires (walletAddress is a dep) and
   // proceeds with the real address. The status guard prevents a second
   // invocation once continued.
@@ -179,12 +183,10 @@ function HeadlessHost() {
     if (currentSession.status !== 'pending') {
       return;
     }
-    // Defer until walletAddress resolves — avoids calling continueWithQuote
-    // with an undefined address that downstream screens (widget URL, order
-    // creation) cannot recover from. Effect re-fires when walletAddress changes.
-    if (walletAddress === null) {
-      return;
-    }
+    // Invalid assetId must run before the wallet deferral: when chainId is
+    // null we still call useRampAccountAddress with a falsy chain id, which
+    // yields walletAddress === null. If we deferred on wallet first, we'd
+    // spin forever and never surface the UNKNOWN invalid-assetId error.
     if (!chainId) {
       const message = `HeadlessHost: invalid assetId "${currentSession.params.assetId}"`;
       Logger.error(new Error(message));
@@ -197,6 +199,12 @@ function HeadlessHost() {
         Logger.error(e as Error, 'HeadlessHost: onError callback threw');
       }
       closeSession(headlessSessionId, { reason: 'unknown' });
+      return;
+    }
+    // Defer until walletAddress resolves — avoids calling continueWithQuote
+    // with an undefined address that downstream screens (widget URL, order
+    // creation) cannot recover from. Effect re-fires when walletAddress changes.
+    if (walletAddress === null) {
       return;
     }
 
