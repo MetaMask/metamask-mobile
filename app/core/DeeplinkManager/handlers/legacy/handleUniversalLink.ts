@@ -293,29 +293,28 @@ async function handleUniversalLink({
    * Timeout and error paths are logged so we retain observability on Branch
    * being slow or broken.
    */
-  const branchParamsPromise: Promise<BranchParams | undefined> =
-    Promise.race([
-      // Promise.resolve tolerates mocks that return a non-Promise synchronously.
-      Promise.resolve(branch.getLatestReferringParams()).then((rawParams) =>
-        rawParams &&
-        typeof rawParams === 'object' &&
-        Object.keys(rawParams).length > 0
-          ? (rawParams as BranchParams)
-          : undefined,
+  const branchParamsPromise: Promise<BranchParams | undefined> = Promise.race([
+    // Promise.resolve tolerates mocks that return a non-Promise synchronously.
+    Promise.resolve(branch.getLatestReferringParams()).then((rawParams) =>
+      rawParams &&
+      typeof rawParams === 'object' &&
+      Object.keys(rawParams).length > 0
+        ? (rawParams as BranchParams)
+        : undefined,
+    ),
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error('Branch.io params fetch timeout')),
+        500,
       ),
-      new Promise<never>((_, reject) =>
-        setTimeout(
-          () => reject(new Error('Branch.io params fetch timeout')),
-          500,
-        ),
-      ),
-    ]).catch((error) => {
-      Logger.error(
-        error as Error,
-        'DeepLinkManager: Error getting Branch.io params',
-      );
-      return undefined;
-    });
+    ),
+  ]).catch((error) => {
+    Logger.error(
+      error as Error,
+      'DeepLinkManager: Error getting Branch.io params',
+    );
+    return undefined;
+  });
 
   // Build analytics context - determine signature status
   // Check if signature parameter exists and has a value
