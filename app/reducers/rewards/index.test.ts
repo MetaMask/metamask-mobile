@@ -52,6 +52,7 @@ import rewardsReducer, {
   setVersionGuardMinimumMobileVersion,
   setVersionGuardLoading,
   setVersionGuardError,
+  dismissCampaignOutcomeToast,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -2199,6 +2200,7 @@ describe('rewardsReducer', () => {
         versionGuardLoading: false,
         versionGuardError: false,
         pendingDeeplink: null,
+        dismissedCampaignOutcomeToasts: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -5608,5 +5610,122 @@ describe('ondoCampaignDeposits', () => {
     expect(state.ondoCampaignDeposits).toBeNull();
     expect(state.ondoCampaignDepositsLoading).toBe(false);
     expect(state.ondoCampaignDepositsError).toBe(false);
+  });
+
+  describe('dismissCampaignOutcomeToast', () => {
+    it('records winner_verify variant as dismissed', () => {
+      const state = rewardsReducer(
+        initialState,
+        dismissCampaignOutcomeToast({
+          campaignId: 'campaign-1',
+          subscriptionId: 'sub-1',
+          variant: 'winner_verify',
+        }),
+      );
+
+      expect(
+        state.dismissedCampaignOutcomeToasts['campaign-1:sub-1:winner_verify'],
+      ).toBe(true);
+    });
+
+    it('records participant_no_winner variant as dismissed', () => {
+      const state = rewardsReducer(
+        initialState,
+        dismissCampaignOutcomeToast({
+          campaignId: 'campaign-2',
+          subscriptionId: 'sub-2',
+          variant: 'participant_no_winner',
+        }),
+      );
+
+      expect(
+        state.dismissedCampaignOutcomeToasts[
+          'campaign-2:sub-2:participant_no_winner'
+        ],
+      ).toBe(true);
+    });
+
+    it('accumulates multiple dismissed toasts without overwriting existing ones', () => {
+      let state = rewardsReducer(
+        initialState,
+        dismissCampaignOutcomeToast({
+          campaignId: 'c1',
+          subscriptionId: 's1',
+          variant: 'winner_verify',
+        }),
+      );
+      state = rewardsReducer(
+        state,
+        dismissCampaignOutcomeToast({
+          campaignId: 'c2',
+          subscriptionId: 's2',
+          variant: 'participant_no_winner',
+        }),
+      );
+
+      expect(state.dismissedCampaignOutcomeToasts['c1:s1:winner_verify']).toBe(
+        true,
+      );
+      expect(
+        state.dismissedCampaignOutcomeToasts['c2:s2:participant_no_winner'],
+      ).toBe(true);
+    });
+
+    it('starts with empty dismissedCampaignOutcomeToasts in initial state', () => {
+      expect(initialState.dismissedCampaignOutcomeToasts).toEqual({});
+    });
+  });
+
+  describe('persist/REHYDRATE — dismissedCampaignOutcomeToasts', () => {
+    it('restores dismissedCampaignOutcomeToasts from persisted state', () => {
+      const persisted: RewardsState = {
+        ...initialState,
+        dismissedCampaignOutcomeToasts: {
+          'campaign-1:sub-1:winner_verify': true,
+        },
+      };
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.dismissedCampaignOutcomeToasts).toEqual({
+        'campaign-1:sub-1:winner_verify': true,
+      });
+    });
+
+    it('defaults to empty object when dismissedCampaignOutcomeToasts is absent from persisted state', () => {
+      const persisted = { ...initialState } as Partial<RewardsState>;
+      delete persisted.dismissedCampaignOutcomeToasts;
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.dismissedCampaignOutcomeToasts).toEqual({});
+    });
+  });
+
+  describe('setCandidateSubscriptionId — preserves dismissedCampaignOutcomeToasts', () => {
+    it('preserves dismissedCampaignOutcomeToasts when subscription ID changes', () => {
+      const stateWithDismissals: RewardsState = {
+        ...initialState,
+        candidateSubscriptionId: 'old-sub',
+        dismissedCampaignOutcomeToasts: {
+          'campaign-1:old-sub:winner_verify': true,
+        },
+      };
+
+      const state = rewardsReducer(
+        stateWithDismissals,
+        setCandidateSubscriptionId('new-sub'),
+      );
+
+      expect(state.dismissedCampaignOutcomeToasts).toEqual({
+        'campaign-1:old-sub:winner_verify': true,
+      });
+    });
   });
 });
