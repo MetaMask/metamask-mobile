@@ -21,4 +21,7 @@ export const createStyles = (theme: Theme) =>
       alignItems: 'flex-start',
       gap: 4,
     },
+    comingSoonTag: {
+      borderRadius: 8,
+    },
   });

@@ -155,7 +155,10 @@ const MoneyAddMoneySheet: React.FC = () => {
             >
               {strings('money.add_money_sheet.receive_external')}
             </Text>
-            <Tag label={strings('money.add_money_sheet.coming_soon')} />
+            <Tag
+              label={strings('money.add_money_sheet.coming_soon')}
+              style={styles.comingSoonTag}
+            />
           </View>
         </View>
       </View>
